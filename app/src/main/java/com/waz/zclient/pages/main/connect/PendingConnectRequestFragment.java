@@ -28,7 +28,6 @@ import android.view.animation.Animation;
 import android.widget.TextView;
 import com.waz.api.CommonConnections;
 import com.waz.api.IConversation;
-import com.waz.api.MessagesList;
 import com.waz.api.UpdateListener;
 import com.waz.api.User;
 import com.waz.zclient.R;
@@ -364,8 +363,6 @@ public class PendingConnectRequestFragment extends BaseFragment<PendingConnectRe
                                                              userRequester);
                 break;
         }
-
-        getStoreFactory().getConnectStore().loadMessages(conversation.getMessages());
     }
 
     //////////////////////////////////////////////////////////////////////////////////////////
@@ -373,11 +370,6 @@ public class PendingConnectRequestFragment extends BaseFragment<PendingConnectRe
     //  ConnectStoreObserver
     //
     //////////////////////////////////////////////////////////////////////////////////////////
-
-    @Override
-    public void onMessagesUpdated(MessagesList messagesList) {
-
-    }
 
     @Override
     public void onConnectUserUpdated(final User user, IConnectStore.UserRequester userRequester) {

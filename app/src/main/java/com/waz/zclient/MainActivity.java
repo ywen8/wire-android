@@ -691,20 +691,7 @@ public class MainActivity extends BaseActivity implements MainPhoneFragment.Cont
     //  ConnectStoreObserver
     //
     //////////////////////////////////////////////////////////////////////////////////////////
-
-    @Override
-    public void onMessagesUpdated(MessagesList messagesList) {}
-
-    @Override
-    public void onConnectUserUpdated(User user, IConnectStore.UserRequester usertype) {
-        IConversation currentConverstation  = getStoreFactory().getConversationStore().getCurrentConversation();
-        if (currentConverstation != null &&
-            currentConverstation.getType() == IConversation.Type.WAIT_FOR_CONNECTION &&
-            currentConverstation.getOtherParticipant().getId().equals(user.getId()) &&
-            user.getConnectionStatus() == User.ConnectionStatus.CANCELLED) {
-            getStoreFactory().getConversationStore().setCurrentConversationToNext(ConversationChangeRequester.CONNECT_REQUEST_CANCELLED);
-        }
-    }
+    public void onConnectUserUpdated(User user, IConnectStore.UserRequester usertype) {}
 
     @Override
     public void onCommonConnectionsUpdated(CommonConnections commonConnections) {}
