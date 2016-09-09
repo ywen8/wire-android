@@ -238,4 +238,6 @@
         <attr name="isFileType" format="boolean"/>
     </declare-styleable>
 
+    <attr name="wireDividerColor" format="color"/>
+
 </resources>
