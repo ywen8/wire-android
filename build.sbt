@@ -57,7 +57,7 @@ lazy val wireCore = project.in(file("wire-core"))
   .settings(androidBuildAar: _ *)
   .settings(subProjectSettings: _ *)
   .settings(
-    libraryDependencies ++= Seq(supportv4, appcompatv7, timber, hockey, translations, zMessaging(zmsVersion.value), avsDep)
+    libraryDependencies ++= Seq(supportv4, appcompatv7, timber, hockey, threetenabp, translations, zMessaging(zmsVersion.value), avsDep)
   )
 
 lazy val wireUi = project.in(file("wire-ui"))
