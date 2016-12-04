@@ -86,10 +86,10 @@ class MessagesListAdapter(listWidth: Signal[Int])(implicit inj: Injector, ec: Ev
   }
 
   private def changeInfo(payloads: util.List[AnyRef]) =
-    if (payloads.size() != 1) None // we only handle single partial change, will default to full restart otherwise
+    if (payloads.size() != 1) ChangeInfo.Unknown // we only handle single partial change, will default to full restart otherwise
     else payloads.get(0) match {
-      case ci: ChangeInfo => Some(ci)
-      case _ => None
+      case ci: ChangeInfo => ci
+      case _ => ChangeInfo.Unknown
     }
 
   val showUnreadAtPos = showUnreadDot.zip(nextUnreadIndex)

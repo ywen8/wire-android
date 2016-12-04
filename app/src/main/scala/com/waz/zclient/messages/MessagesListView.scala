@@ -122,13 +122,12 @@ case class MessageViewHolder(view: MessageView, adapter: MessagesListAdapter)(im
 
   def shouldDisplayFooter = _isFocused || _hasLikes
 
-  def bind(msg: MessageAndLikes, prev: Option[MessageData], opts: MsgOptions, change: Option[ChangeInfo]): Unit = {
+  def bind(msg: MessageAndLikes, prev: Option[MessageData], opts: MsgOptions, change: ChangeInfo): Unit = {
     id = msg.message.id
     _isFocused = selection.focused.currentValue.exists(_.contains(id))
     _hasLikes = msg.likes.nonEmpty
-
     change match {
-      case None => //full update
+      case ChangeInfo.Unknown => //full update
         view.set(msg, prev, opts)
         view.getFooter.foreach{ f =>  //set initial state for footer
           f.setVisible(shouldDisplayFooter)
@@ -136,9 +135,9 @@ case class MessageViewHolder(view: MessageView, adapter: MessagesListAdapter)(im
             f.setContentTranslationY(if (hasLikes && isFocused) 0 else getDimen(R.dimen.content__footer__height)(itemView.getContext).toInt) //FIXME
           }
         }
-      case Some(ChangeInfo.Likes) =>
+      case ChangeInfo.Likes =>
         view.getFooter.foreach(_.updateLikes(msg.likedBySelf, msg.likes))
-      case Some(ChangeInfo.Focus) =>
+      case ChangeInfo.Focus =>
         //nothing special to do
     }
   }

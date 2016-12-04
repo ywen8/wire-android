@@ -166,5 +166,6 @@ object ItemChangeAnimator {
   object ChangeInfo {
     case object Focus extends ChangeInfo
     case object Likes extends ChangeInfo
+    case object Unknown extends ChangeInfo
   }
 }

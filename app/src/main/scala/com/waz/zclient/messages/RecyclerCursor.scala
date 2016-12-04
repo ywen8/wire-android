@@ -84,7 +84,7 @@ class RecyclerCursor(val conv: ConvId, zms: ZMessaging, adapter: RecyclerView.Ad
       notifyFromHistory(c.createTime)
       countSignal ! c.size
       onChangedSub.foreach(_.destroy())
-      onChangedSub = Some(c onUpdate (id => likesChanged(Seq(id))))
+      onChangedSub = Some(c.onUpdate.on(Threading.Ui) { case (prev, current) => onUpdated(prev, current) })
     }
   }
 
@@ -97,20 +97,15 @@ class RecyclerCursor(val conv: ConvId, zms: ZMessaging, adapter: RecyclerView.Ad
     toApply foreach {
       case Added(msgs) => msgs foreach window.onAdded // TODO: batching (use notifyRange if possible)
       case Removed(msg) => window.onRemoved(msg)
-      case Updated(updates) => updates foreach { case (prev, current) => window.onUpdated(prev, current, null) }
+      case Updated(updates) => updates foreach { case (prev, current) => window.onUpdated(prev, current, ChangeInfo.Unknown) }
       case RemovedOlder(t) => window.onRemoved(t)
     }
 
     if (toApply.isEmpty) adapter.notifyDataSetChanged()
   }
 
-  private def likesChanged(ids: Seq[MessageId]) = {
-    verbose(s"likesChanged: $ids")
-    storage.getAll(ids).map { msgs =>
-      msgs foreach {
-        _ foreach { msg => window.onUpdated(msg, msg, ChangeInfo.Likes) }
-      }
-    }(Threading.Ui)
+  private def onUpdated(prev: MessageAndLikes, current: MessageAndLikes) = {
+    window.onUpdated(prev.message, current.message, if (prev.message == current.message) ChangeInfo.Likes else ChangeInfo.Unknown)
   }
 
   def count: Int = cursor.fold(0)(_.size)
@@ -202,7 +197,7 @@ class RecyclerCursor(val conv: ConvId, zms: ZMessaging, adapter: RecyclerView.Ad
       }
     }
 
-    def onUpdated(prev: MessageData, current: MessageData, payload: ChangeInfo) = {
+    def onUpdated(prev: MessageData, current: MessageData, info: ChangeInfo) = {
       val pe = Entry(prev)
       val ce = Entry(current)
 
@@ -211,7 +206,7 @@ class RecyclerCursor(val conv: ConvId, zms: ZMessaging, adapter: RecyclerView.Ad
         search(pe) match {
           case Found(pos) =>
             verbose(s"found, notifiying adapter at pos: ${offset + pos}")
-            adapter.notifyItemChanged(offset + pos, payload)
+            adapter.notifyItemChanged(offset + pos, info)
           case _ => verbose("no need to notify about changes outside of window")
         }
       } else {
@@ -224,7 +219,7 @@ class RecyclerCursor(val conv: ConvId, zms: ZMessaging, adapter: RecyclerView.Ad
           case (Found(src), InsertionPoint(dst)) if src == dst || src == dst - 1 =>
             // time changed, but position remains the same
             entries.update(src, ce)
-            adapter.notifyItemChanged(offset + src, payload)
+            adapter.notifyItemChanged(offset + src, info)
           case (Found(src), InsertionPoint(dst)) =>
             entries.remove(src)
             val target = if (dst > src) dst - 1 else dst // use dst - 1 since one item was just removed on left side
