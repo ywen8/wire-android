@@ -23,6 +23,7 @@ import com.waz.utils.events.{EventContext, Signal}
 import com.waz.zclient.{Injectable, Injector}
 import com.waz.ZLog._
 import com.waz.ZLog.ImplicitTag._
+import org.threeten.bp.Instant
 
 class SelectionController(implicit injector: Injector, ev: EventContext) extends Injectable {
 
@@ -33,7 +34,7 @@ class SelectionController(implicit injector: Injector, ev: EventContext) extends
   object messages {
     private val selection = Signal(Set.empty[MessageId])
 
-    val focused = Signal(Option.empty[MessageId])
+    val focused = Signal(Option.empty[(MessageId, Instant)])
 
     selectedConv.onChanged { _ => clear() }
 
@@ -42,16 +43,20 @@ class SelectionController(implicit injector: Injector, ev: EventContext) extends
       focused ! None
     }
 
+    def lastFocused = focused.currentValue.flatMap(_.map(_._1))
+
     def isSelected(id: MessageId): Signal[Boolean] = selection map { _.contains(id) }
 
     def setSelected(id: MessageId, selected: Boolean) =
       selection.mutate(s => if (selected) s + id else s - id)
 
+    def setFocused(id: MessageId) = focused ! Some((id, Instant.now))
+
     def toggleFocused(id: MessageId) = {
       verbose(s"toggleFocused($id)")
       focused.mutate {
-        case Some(`id`) => None
-        case _ => Some(id)
+        case Some((`id`, _)) => None
+        case _ => Some((id, Instant.now))
       }
     }
   }

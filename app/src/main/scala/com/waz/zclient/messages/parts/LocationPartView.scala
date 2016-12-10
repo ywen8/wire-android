@@ -33,7 +33,7 @@ import com.waz.utils._
 import com.waz.utils.events.Signal
 import com.waz.zclient.controllers.BrowserController
 import com.waz.zclient.controllers.global.AccentColorController
-import com.waz.zclient.messages.MessageView.MsgOptions
+import com.waz.zclient.messages.MessageView.MsgBindOptions
 import com.waz.zclient.messages.{MessageViewPart, MsgPart}
 import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.utils._
@@ -93,7 +93,7 @@ class LocationPartView(context: Context, attrs: AttributeSet, style: Int) extend
 
   accent.accentColor { c => pinView.setTextColor(c.getColor()) }
 
-  override def set(msg: MessageData, part: Option[MessageContent], opts: MsgOptions): Unit = {
+  override def set(msg: MessageData, part: Option[MessageContent], opts: MsgBindOptions): Unit = {
     message ! msg
   }
 

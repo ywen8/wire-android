@@ -47,44 +47,44 @@ class ItemChangeAnimator extends DefaultItemAnimator {
     } else super.animateChange(oldHolder, newHolder, fromX, fromY, toX, toY)
   }
 
-  override def runPendingAnimations(): Unit = {
-    super.runPendingAnimations()
-    if (pendingChanges.nonEmpty) {
-      val changer: Runnable = new Runnable() {
-        def run() = {
-          for (change <- pendingChanges) {
-            animateChangeImpl(change)
-          }
-        }
-      }
-      changer.run()
-    }
-  }
+//  override def runPendingAnimations(): Unit = {
+//    super.runPendingAnimations()
+//    if (pendingChanges.nonEmpty) {
+//      val changer: Runnable = new Runnable() {
+//        def run() = {
+//          for (change <- pendingChanges) {
+//            animateChangeImpl(change)
+//          }
+//        }
+//      }
+//      changer.run()
+//    }
+//  }
 
-  def animateChangeImpl(viewHolder: ViewHolder): Unit = {
-    val holder = viewHolder.asInstanceOf[MessageViewHolder]
-    holder.view.getFooter.foreach {
-      case footer if shouldAnimateFooter(holder) =>
-        returning(new FooterAnimator(footer, holder)) { anim =>
-          pendingChanges -= viewHolder
-          anims += anim
-          anim.start()
-        }
-      case footer if shouldAnimateTimestamp(holder) =>
-        returning(new TimestampLikesAnimator(footer, holder)) { anim =>
-          pendingChanges -= viewHolder
-          anims += anim
-          anim.start()
-        }
-      case _ => //no animation
-    }
-  }
-
-  def shouldAnimateFooter(h: MessageViewHolder) = h.shouldDisplayFooter && !h.view.getFooter.exists(_.isVisible) ||
-    !h.shouldDisplayFooter && h.view.getFooter.exists(_.isVisible)
-
-  def shouldAnimateTimestamp(h: MessageViewHolder) = h.hasLikes && h.isFocused && h.view.getFooter.exists(_.getContentTranslation == 0f) ||
-    h.hasLikes && !h.isFocused && h.view.getFooter.exists(_.getContentTranslation > 0f)
+//  def animateChangeImpl(viewHolder: ViewHolder): Unit = {
+//    val holder = viewHolder.asInstanceOf[MessageViewHolder]
+//    holder.view.getFooter.foreach {
+//      case footer if shouldAnimateFooter(holder) =>
+//        returning(new FooterAnimator(footer, holder)) { anim =>
+//          pendingChanges -= viewHolder
+//          anims += anim
+//          anim.start()
+//        }
+//      case footer if shouldAnimateTimestamp(holder) =>
+//        returning(new TimestampLikesAnimator(footer, holder)) { anim =>
+//          pendingChanges -= viewHolder
+//          anims += anim
+//          anim.start()
+//        }
+//      case _ => //no animation
+//    }
+//  }
+//
+//  def shouldAnimateFooter(h: MessageViewHolder) = h.shouldDisplayFooter && !h.view.getFooter.exists(_.isVisible) ||
+//    !h.shouldDisplayFooter && h.view.getFooter.exists(_.isVisible)
+//
+//  def shouldAnimateTimestamp(h: MessageViewHolder) = h.hasLikes && h.isFocused && h.view.getFooter.exists(_.getContentTranslation == 0f) ||
+//    h.hasLikes && !h.isFocused && h.view.getFooter.exists(_.getContentTranslation > 0f)
 
   override def endAnimations(): Unit = {
     anims.foreach(_.end())
@@ -114,50 +114,50 @@ class ItemChangeAnimator extends DefaultItemAnimator {
     override def onAnimationCancel(animation: Animator): Unit = onAnimationEnd(animation)
   }
 
-  class FooterAnimator(footer: View, holder: MessageViewHolder) extends StartEndAnimator(holder) {
+//  class FooterAnimator(footer: View, holder: MessageViewHolder) extends StartEndAnimator(holder) {
+//
+//    private val closing = !holder.shouldDisplayFooter
+//    private val openHeight = getDimen(R.dimen.content__footer__height)(holder.itemView.getContext).toInt //TODO must be a better way
+//
+//    setInterpolator(new Expo.EaseInOut)
+//
+//    override def onAnimationStart(animation: Animator): Unit = {
+//      if (!closing) footer.setVisible(true)
+//      super.onAnimationEnd(animation)
+//    }
+//
+//    override def onAnimationEnd(animation: Animator): Unit = {
+//      if (closing) footer.setVisible(false)
+//      super.onAnimationEnd(animation)
+//    }
+//
+//    override def onAnimationUpdate(animation: ValueAnimator): Unit = {
+//      val heightDelta = (openHeight * animation.getAnimatedFraction).toInt
+//      footer.getLayoutParams.height = if (closing) openHeight - heightDelta else heightDelta
+//      footer.requestLayout()
+//    }
+//  }
 
-    private val closing = !holder.shouldDisplayFooter
-    private val openHeight = getDimen(R.dimen.content__footer__height)(holder.itemView.getContext).toInt //TODO must be a better way
-
-    setInterpolator(new Expo.EaseInOut)
-
-    override def onAnimationStart(animation: Animator): Unit = {
-      if (!closing) footer.setVisible(true)
-      super.onAnimationEnd(animation)
-    }
-
-    override def onAnimationEnd(animation: Animator): Unit = {
-      if (closing) footer.setVisible(false)
-      super.onAnimationEnd(animation)
-    }
-
-    override def onAnimationUpdate(animation: ValueAnimator): Unit = {
-      val heightDelta = (openHeight * animation.getAnimatedFraction).toInt
-      footer.getLayoutParams.height = if (closing) openHeight - heightDelta else heightDelta
-      footer.requestLayout()
-    }
-  }
-
-  class TimestampLikesAnimator(footer: Footer, holder: MessageViewHolder) extends StartEndAnimator(holder) {
-
-    private val animateDown = holder.hasLikes && holder.isFocused && footer.getContentTranslation == 0f
-
-    private val translationHeight = getDimen(R.dimen.content__footer__height)(holder.itemView.getContext).toInt //TODO must be a better way
-
-    override def onAnimationStart(animation: Animator): Unit = {
-      super.onAnimationStart(animation)
-    }
-
-    override def onAnimationEnd(animation: Animator): Unit = {
-      footer.setContentTranslationY(if (animateDown) translationHeight else 0)
-      super.onAnimationEnd(animation)
-    }
-
-    override def onAnimationUpdate(animation: ValueAnimator): Unit = {
-      val transDelta = translationHeight * animation.getAnimatedFraction
-      footer.setContentTranslationY(if (animateDown) transDelta else translationHeight - transDelta)
-    }
-  }
+//  class TimestampLikesAnimator(footer: Footer, holder: MessageViewHolder) extends StartEndAnimator(holder) {
+//
+//    private val animateDown = holder.hasLikes && holder.isFocused && footer.getContentTranslation == 0f
+//
+//    private val translationHeight = getDimen(R.dimen.content__footer__height)(holder.itemView.getContext).toInt //TODO must be a better way
+//
+//    override def onAnimationStart(animation: Animator): Unit = {
+//      super.onAnimationStart(animation)
+//    }
+//
+//    override def onAnimationEnd(animation: Animator): Unit = {
+//      footer.setContentTranslationY(if (animateDown) translationHeight else 0)
+//      super.onAnimationEnd(animation)
+//    }
+//
+//    override def onAnimationUpdate(animation: ValueAnimator): Unit = {
+//      val transDelta = translationHeight * animation.getAnimatedFraction
+//      footer.setContentTranslationY(if (animateDown) transDelta else translationHeight - transDelta)
+//    }
+//  }
 }
 
 object ItemChangeAnimator {

@@ -34,26 +34,32 @@ class SyncEngineSignals(implicit injector: Injector, context: Context) extends I
   lazy val itemSeparator = getString(R.string.content__system__item_separator)
   lazy val lastSeparator = getString(R.string.content__system__last_item_separator)
 
-  def displayName(zms: ZMessaging, id: UserId): Signal[String] =
-    if (zms.selfUserId == id) Signal const getString(R.string.content__system__you)
-    else zms.users.userSignal(id).map(_.getDisplayName)
+  lazy val selfUserId = zMessaging map { _.selfUserId }
 
-  def userDisplayName(zms: ZMessaging, id: UserId): Signal[DisplayName] =
+  def displayName(id: UserId): Signal[String] = zMessaging flatMap { displayNameString(_, id) }
+
+  def displayNameString(zms: ZMessaging, id: UserId): Signal[String] =
+    displayName(zms, id) map {
+      case Me => getString(R.string.content__system__you)
+      case Other(name) => name
+    }
+
+  def displayName(zms: ZMessaging, id: UserId): Signal[DisplayName] =
     if (zms.selfUserId == id) Signal const Me
     else zms.users.userSignal(id).map(u => Other(u.getDisplayName))
 
-  def userDisplayName(message: Signal[MessageData]): Signal[DisplayName] =
+  def displayName(message: Signal[MessageData]): Signal[DisplayName] =
     for {
       zms <- zMessaging
       msg <- message
-      name <- userDisplayName(zms, msg.userId)
+      name <- displayName(zms, msg.userId)
     } yield name
 
   def userDisplayNameString(message: Signal[MessageData]): Signal[String] =
     for {
       zms <- zMessaging
       msg <- message
-      name <- displayName(zms, msg.userId)
+      name <- displayNameString(zms, msg.userId)
     } yield name
 
   def userAccentColor(message: Signal[MessageData]) =
@@ -67,7 +73,7 @@ class SyncEngineSignals(implicit injector: Injector, context: Context) extends I
     for {
       zms <- zMessaging
       msg <- message
-      names <- Signal.sequence[String](msg.members.toSeq.sortBy(_.str).map { displayName(zms, _) }: _*)
+      names <- Signal.sequence[String](msg.members.toSeq.sortBy(_.str).map { displayNameString(zms, _) }: _*)
     } yield
       names match {
         case Seq() => ""
@@ -78,8 +84,6 @@ class SyncEngineSignals(implicit injector: Injector, context: Context) extends I
       }
 
   def user(id: UserId) = zMessaging flatMap { _.users.userSignal(id) }
-
-  def selfUserId = zMessaging map { _.selfUserId }
 
   def conv(message: Signal[MessageData]) = {
     for {

@@ -33,8 +33,8 @@ import com.waz.zclient.controllers.userpreferences.IUserPreferencesController
 import com.waz.zclient.controllers.{BrowserController, DefaultControllerFactory, IControllerFactory, ScreenController}
 import com.waz.zclient.core.stores.IStoreFactory
 import com.waz.zclient.messages.controllers.{MessageActionsController, NavigationController}
-import com.waz.zclient.messages.parts.{AssetController, FooterController}
-import com.waz.zclient.messages.{MessageViewFactory, SyncEngineSignals}
+import com.waz.zclient.messages.parts.AssetController
+import com.waz.zclient.messages.{MessageViewFactory, MessagesController, SyncEngineSignals}
 import com.waz.zclient.notifications.controllers.{CallingNotificationsController, ImageNotificationsController, MessageNotificationsController}
 import com.waz.zclient.pages.main.conversation.controller.IConversationScreenController
 import com.waz.zclient.pages.main.pickuser.controller.IPickUserController
@@ -99,10 +99,10 @@ object WireApplication {
     bind [PermissionActivity]        to ctx.asInstanceOf[PermissionActivity]
     bind [PermissionsController]     to new PermissionsController(new PermissionsWrapper)
     bind [SyncEngineSignals]         to new SyncEngineSignals()
-    bind [FooterController]          to new FooterController()
     bind [ScreenController]          to new ScreenController()
     bind [NavigationController]      to new NavigationController()
     bind [MessageActionsController]  to new MessageActionsController()
+    bind [MessagesController]    to new MessagesController()
   }
 }
 

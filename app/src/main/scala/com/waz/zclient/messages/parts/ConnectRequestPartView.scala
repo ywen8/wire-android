@@ -27,7 +27,7 @@ import com.waz.threading.Threading
 import com.waz.utils.events.Signal
 import com.waz.zclient.common.views.ChatheadView
 import com.waz.zclient.controllers.BrowserController
-import com.waz.zclient.messages.MessageView.MsgOptions
+import com.waz.zclient.messages.MessageView.MsgBindOptions
 import com.waz.zclient.messages.{MessageViewPart, MsgPart}
 import com.waz.zclient.ui.utils.TextViewUtils
 import com.waz.zclient.utils.ContextUtils._
@@ -67,7 +67,7 @@ class ConnectRequestPartView(context: Context, attrs: AttributeSet, style: Int) 
       label.setText(R.string.content__message__connect_request__footer)
   }
 
-  override def set(msg: MessageData, part: Option[MessageContent], opts: MsgOptions): Unit = {
+  override def set(msg: MessageData, part: Option[MessageContent], opts: MsgBindOptions): Unit = {
     message ! msg
   }
 }

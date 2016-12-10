@@ -30,12 +30,10 @@ import com.waz.threading.{CancellableFuture, Threading}
 import com.waz.utils.events.{EventContext, Signal}
 import com.waz.zclient.controllers.global.SelectionController
 import com.waz.zclient.messages.ItemChangeAnimator.ChangeInfo
-import com.waz.zclient.messages.MessageView.MsgOptions
+import com.waz.zclient.messages.MessageView.MsgBindOptions
 import com.waz.zclient.messages.ScrollController.Scroll
 import com.waz.zclient.messages.controllers.NavigationController
-import com.waz.zclient.utils.ContextUtils._
-import com.waz.zclient.utils.RichView
-import com.waz.zclient.{Injectable, Injector, R, ViewHelper}
+import com.waz.zclient.{Injectable, Injector, ViewHelper}
 
 import scala.concurrent.duration._
 
@@ -53,7 +51,7 @@ class MessagesListView(context: Context, attrs: AttributeSet, style: Int) extend
   setHasFixedSize(true)
   setLayoutManager(layoutManager)
   setAdapter(adapter)
-  setItemAnimator(new ItemChangeAnimator)
+//  setItemAnimator(new ItemChangeAnimator)
 
   scrollController.onScroll.on(Threading.Ui) { case Scroll(pos, smooth) =>
     verbose(s"Scrolling to pos: $pos")
@@ -108,41 +106,38 @@ object MessagesListView {
 case class MessageViewHolder(view: MessageView, adapter: MessagesListAdapter)(implicit ec: EventContext, inj: Injector) extends RecyclerView.ViewHolder(view) with Injectable {
 
   private val selection = inject[SelectionController].messages
+  private val msgsController = inject[MessagesController]
   private var id: MessageId = _
+  private var opts = Option.empty[MsgBindOptions]
   private var _isFocused = false
-  private var _hasLikes = false
 
-  selection.focused.onChanged { f =>
-    if (_isFocused != f.contains(id)) adapter.notifyItemChanged(getAdapterPosition, ChangeInfo.Focus)
+  selection.focused.onChanged.on(Threading.Ui) { f =>
+    if (_isFocused != f.exists(_._1 == id)) adapter.notifyItemChanged(getAdapterPosition, ChangeInfo.Focus)
   }
 
-  def hasLikes = _hasLikes
+  msgsController.lastSelfMessage.onChanged.on(Threading.Ui) { m =>
+    opts foreach { o =>
+      if (o.isLastSelf != (m.id == id)) adapter.notifyItemChanged(getAdapterPosition, ChangeInfo.Unknown)
+    }
+  }
+
+  msgsController.lastMessage.onChanged.on(Threading.Ui) { m =>
+    opts foreach { o =>
+      if (o.isLast != (m.id == id)) adapter.notifyItemChanged(getAdapterPosition, ChangeInfo.Unknown)
+    }
+  }
 
   def isFocused = _isFocused
 
-  def shouldDisplayFooter = _isFocused || _hasLikes
-
-  def bind(msg: MessageAndLikes, prev: Option[MessageData], opts: MsgOptions, change: ChangeInfo): Unit = {
+  def bind(msg: MessageAndLikes, prev: Option[MessageData], opts: MsgBindOptions, change: ChangeInfo): Unit = {
+    view.set(msg, prev, opts)
     id = msg.message.id
-    _isFocused = selection.focused.currentValue.exists(_.contains(id))
-    _hasLikes = msg.likes.nonEmpty
-    change match {
-      case ChangeInfo.Unknown => //full update
-        view.set(msg, prev, opts)
-        view.getFooter.foreach{ f =>  //set initial state for footer
-          f.setVisible(shouldDisplayFooter)
-          if (f.isVisible) {
-            f.setContentTranslationY(if (hasLikes && isFocused) 0 else getDimen(R.dimen.content__footer__height)(itemView.getContext).toInt) //FIXME
-          }
-        }
-      case ChangeInfo.Likes =>
-        view.getFooter.foreach(_.updateLikes(msg.likedBySelf, msg.likes))
-      case ChangeInfo.Focus =>
-        //nothing special to do
-    }
+    this.opts = Some(opts)
+    _isFocused = selection.lastFocused.contains(id)
+
+    msgsController.onMessageRead(msg.message)
   }
 }
-
 
 class LastReadController(adapter: MessagesListAdapter, layoutManager: LinearLayoutManager)(implicit injector: Injector, ev: EventContext) extends Injectable {
 

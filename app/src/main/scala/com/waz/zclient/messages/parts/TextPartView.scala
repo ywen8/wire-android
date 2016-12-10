@@ -24,7 +24,7 @@ import com.waz.api.{AccentColor, Message}
 import com.waz.model.{MessageContent, MessageData}
 import com.waz.utils.events.Signal
 import com.waz.zclient.controllers.global.AccentColorController
-import com.waz.zclient.messages.MessageView.MsgOptions
+import com.waz.zclient.messages.MessageView.MsgBindOptions
 import com.waz.zclient.messages.{MessageViewPart, MsgPart}
 import com.waz.zclient.ui.text.LinkTextView
 import com.waz.zclient.ui.utils.TypefaceUtils
@@ -58,7 +58,7 @@ class TextPartView(context: Context, attrs: AttributeSet, style: Int) extends Li
     case Right(ac) => setTextColor(ac.getColor())
   }
 
-  override def set(msg: MessageData, part: Option[MessageContent], opts: MsgOptions): Unit = {
+  override def set(msg: MessageData, part: Option[MessageContent], opts: MsgBindOptions): Unit = {
     setTextSize(TypedValue.COMPLEX_UNIT_PX, if (isEmojiOnly(msg, part)) textSizeEmoji else textSizeRegular)
     setTextLink(part.fold(msg.contentString)(_.content))
 

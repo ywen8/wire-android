@@ -32,8 +32,7 @@ import com.waz.threading.Threading
 import com.waz.utils.events.Signal
 import com.waz.zclient.common.views.ChatheadView
 import com.waz.zclient.controllers.global.AccentColorController
-import com.waz.zclient.messages.MessageView.MsgOptions
-import com.waz.zclient.messages.MsgPart.Footer
+import com.waz.zclient.messages.MessageView.MsgBindOptions
 import com.waz.zclient.messages.parts.EphemeralDotsDrawable
 import com.waz.zclient.ui.text.{GlyphTextView, TypefaceTextView}
 import com.waz.zclient.ui.theme.ThemeUtils
@@ -47,25 +46,14 @@ import org.threeten.bp.{Instant, LocalDateTime, ZoneId}
 trait MessageViewPart extends View {
   val tpe: MsgPart
 
-  def set(msg: MessageData, part: Option[MessageContent], opts: MsgOptions): Unit
+  def set(msg: MessageData, part: Option[MessageContent], opts: MsgBindOptions): Unit
 
-  def set(msg: MessageAndLikes, part: Option[MessageContent], opts: MsgOptions): Unit =
+  def set(msg: MessageAndLikes, part: Option[MessageContent], opts: MsgBindOptions): Unit =
     set(msg.message, part, opts)
 }
 
 // Marker for view parts that should be laid out as in FrameLayout (instead of LinearLayout)
 trait FrameLayoutPart extends MessageViewPart
-
-trait Footer extends MessageViewPart {
-  override val tpe = Footer
-
-  //for animation
-  def setContentTranslationY(translation: Float): Unit
-
-  def getContentTranslation: Float
-
-  def updateLikes(likedBySelf: Boolean, likes: IndexedSeq[UserId]): Unit
-}
 
 trait TimeSeparator extends MessageViewPart with ViewHelper {
 
@@ -81,7 +69,7 @@ trait TimeSeparator extends MessageViewPart with ViewHelper {
 
   text.on(Threading.Ui)(timeText.setTransformedText)
 
-  def set(msg: MessageData, part: Option[MessageContent], opts: MsgOptions): Unit = {
+  def set(msg: MessageData, part: Option[MessageContent], opts: MsgBindOptions): Unit = {
     this.time ! msg.time
     unreadDot.show ! opts.isFirstUnread
   }
@@ -162,7 +150,7 @@ class UserPartView(context: Context, attrs: AttributeSet, style: Int) extends Li
 
   stateGlyph.collect { case Some(glyph) => glyph } { tvStateGlyph.setText }
 
-  override def set(msg: MessageData, part: Option[MessageContent], opts: MsgOptions): Unit = {
+  override def set(msg: MessageData, part: Option[MessageContent], opts: MsgBindOptions): Unit = {
     userId ! msg.userId
     message ! msg
   }
@@ -174,7 +162,7 @@ class EmptyPartView(context: Context, attrs: AttributeSet, style: Int) extends V
 
   override val tpe = MsgPart.Empty
 
-  override def set(msg: MessageData, part: Option[MessageContent], opts: MsgOptions): Unit = ()
+  override def set(msg: MessageData, part: Option[MessageContent], opts: MsgBindOptions): Unit = ()
 }
 
 class EphemeralDotsView(context: Context, attrs: AttributeSet, style: Int) extends View(context, attrs, style) with ViewHelper with FrameLayoutPart {
@@ -186,6 +174,6 @@ class EphemeralDotsView(context: Context, attrs: AttributeSet, style: Int) exten
 
   setBackground(background)
 
-  override def set(msg: MessageData, part: Option[MessageContent], opts: MsgOptions): Unit =
+  override def set(msg: MessageData, part: Option[MessageContent], opts: MsgBindOptions): Unit =
     background.setMessage(msg.id)
 }

@@ -21,15 +21,12 @@ import android.content.Context
 import android.util.AttributeSet
 import android.widget.{GridLayout, LinearLayout}
 import com.waz.ZLog.ImplicitTag._
-import com.waz.ZLog._
 import com.waz.api.Message
-import com.waz.model.{MessageContent, MessageData, UserId}
+import com.waz.model.{MessageContent, MessageData}
 import com.waz.service.ZMessaging
 import com.waz.threading.Threading
 import com.waz.utils.events.Signal
-import com.waz.utils.returning
-import com.waz.zclient.common.views.ChatheadView
-import com.waz.zclient.messages.MessageView.MsgOptions
+import com.waz.zclient.messages.MessageView.MsgBindOptions
 import com.waz.zclient.messages.SyncEngineSignals.DisplayName.{Me, Other}
 import com.waz.zclient.messages._
 import com.waz.zclient.utils.ContextUtils._
@@ -62,7 +59,7 @@ class MemberChangePartView(context: Context, attrs: AttributeSet, style: Int) ex
 
   val memberNames = signals.memberDisplayNames(message)
 
-  val userName = signals.userDisplayName(message)
+  val userName = signals.displayName(message)
 
   val linkText = for {
     zms <- zMessaging
@@ -93,40 +90,19 @@ class MemberChangePartView(context: Context, attrs: AttributeSet, style: Int) ex
 
   linkText.on(Threading.Ui) { messageView.setText }
 
-  message.map(_.members.toSeq.sortBy(_.str)) { gridView.members ! _ }
+  message.map(_.members.toSeq.sortBy(_.str)) { gridView.users ! _ }
 
-  override def set(msg: MessageData, part: Option[MessageContent], opts: MsgOptions): Unit = {
+  override def set(msg: MessageData, part: Option[MessageContent], opts: MsgBindOptions): Unit = {
     message ! msg
   }
 }
 
-
-class MembersGridView(context: Context, attrs: AttributeSet, style: Int) extends GridLayout(context, attrs, style) with ViewHelper {
+class MembersGridView(context: Context, attrs: AttributeSet, style: Int) extends GridLayout(context, attrs, style) with ChatheadsRecyclerView {
   def this(context: Context, attrs: AttributeSet) = this(context, attrs, 0)
   def this(context: Context) = this(context, null, 0)
 
-  val cache = inject[MessageViewFactory]
-
   val columnSpacing = getDimenPx(R.dimen.wire__padding__small)
   val columnWidth = getDimenPx(R.dimen.content__separator__chathead__size)
-
-  val members = Signal[Seq[UserId]]()
-
-  members { ids =>
-    verbose(s"user id: $ids")
-    if (getChildCount > ids.length) {
-      for (i <- ids.length until getChildCount) cache.recycle(getChildAt(i), R.layout.message_member_chathead)
-      removeViewsInLayout(ids.length, getChildCount - ids.length)
-    }
-
-    ids.zipWithIndex foreach { case (id, index) =>
-      val view =
-        if (index < getChildCount) getChildAt(index).asInstanceOf[ChatheadView]
-        else returning(cache.get[ChatheadView](R.layout.message_member_chathead, this)) { addView }
-
-      view.setUserId(id)
-    }
-  }
 
   override def onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int): Unit = {
     super.onLayout(changed, left, top, right, bottom)

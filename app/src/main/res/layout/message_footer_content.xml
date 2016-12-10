@@ -24,7 +24,7 @@
                 android:layout_height="match_parent"
     >
 
-    <com.waz.zclient.messages.parts.LikeButton
+    <com.waz.zclient.messages.parts.footer.LikeButton
         android:id="@+id/like__button"
         android:layout_width="@dimen/content__padding_left"
         android:layout_height="match_parent"
@@ -32,7 +32,7 @@
         android:gravity="center"
         />
 
-    <com.waz.zclient.messages.parts.LikeDetailsLayout
+    <com.waz.zclient.messages.parts.footer.LikeDetailsView
         android:id="@+id/like_details"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -48,7 +48,7 @@
         android:gravity="start|center_vertical"
         android:singleLine="true"
         android:textSize="@dimen/wire__text_size__small"
-        app:font="@string/wire__typeface__light"
+        app:font="@string/wire__typeface__medium"
         />
 
 </FrameLayout>

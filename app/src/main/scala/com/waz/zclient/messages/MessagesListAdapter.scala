@@ -29,7 +29,7 @@ import com.waz.threading.Threading
 import com.waz.utils.events.{EventContext, EventStream, Signal}
 import com.waz.zclient.controllers.global.SelectionController
 import com.waz.zclient.messages.ItemChangeAnimator.ChangeInfo
-import com.waz.zclient.messages.MessageView.MsgOptions
+import com.waz.zclient.messages.MessageView.MsgBindOptions
 import com.waz.zclient.{Injectable, Injector}
 
 class MessagesListAdapter(listWidth: Signal[Int])(implicit inj: Injector, ec: EventContext) extends RecyclerView.Adapter[MessageViewHolder]() with Injectable with MessagesListView.Adapter { adapter =>
@@ -37,6 +37,7 @@ class MessagesListAdapter(listWidth: Signal[Int])(implicit inj: Injector, ec: Ev
   verbose("MessagesListAdapter created")
 
   val zms = inject[Signal[ZMessaging]]
+  val listController = inject[MessagesController]
   override val selectedConversation = inject[SelectionController].selectedConv
 
   val onBindView = EventStream[Int]()
@@ -77,9 +78,11 @@ class MessagesListAdapter(listWidth: Signal[Int])(implicit inj: Injector, ec: Ev
   override def onBindViewHolder(holder: MessageViewHolder, pos: Int, payloads: util.List[AnyRef]): Unit = {
     verbose(s"onBindViewHolder: position: $pos")
     val data = message(pos)
+    val isLast = pos == adapter.getItemCount
     val isSelf = zms.currentValue.exists(_.selfUserId == data.message.userId)
     val isFirstUnread = pos > 0 && !isSelf && showUnreadAtPos.currentValue.exists { case (show, p) => show && p == pos }
-    val opts = MsgOptions(pos, getItemCount, isSelf, isFirstUnread, listWidth.currentValue.getOrElse(0), conversationType)
+    val isLastSelf = listController.isLastSelf(data.message.id)
+    val opts = MsgBindOptions(pos, isSelf, isLast, isLastSelf, isFirstUnread = isFirstUnread, listWidth.currentValue.getOrElse(0), conversationType)
 
     holder.bind(data, if (pos == 0) None else Some(message(pos - 1).message), opts, changeInfo(payloads))
     onBindView ! pos

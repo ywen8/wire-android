@@ -1,3 +1,20 @@
+/**
+ * Wire
+ * Copyright (C) 2016 Wire Swiss GmbH
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 package com.waz.zclient.messages
 
 import android.content.Context
@@ -11,7 +28,7 @@ import com.waz.ZLog._
 import com.waz.ZLog.ImplicitTag._
 import com.waz.model.MessageContent
 import com.waz.service.messages.MessageAndLikes
-import com.waz.zclient.messages.MessageView.MsgOptions
+import com.waz.zclient.messages.MessageView.MsgBindOptions
 
 abstract class MessageViewLayout(context: Context, attrs: AttributeSet, style: Int) extends ViewGroup(context, attrs, style) {
   protected val factory: MessageViewFactory
@@ -19,13 +36,12 @@ abstract class MessageViewLayout(context: Context, attrs: AttributeSet, style: I
   private var listParts = Seq.empty[MessageViewPart]
   private var frameParts = Seq.empty[MessageViewPart]
   private var separatorHeight = 0
-  protected var footer = Option.empty[Footer]
 
   private val defaultLayoutParams = generateDefaultLayoutParams()
 
   setClipChildren(false)
 
-  protected def setParts(msg: MessageAndLikes, parts: Seq[(MsgPart, Option[MessageContent])], opts: MsgOptions): Unit = {
+  protected def setParts(msg: MessageAndLikes, parts: Seq[(MsgPart, Option[MessageContent])], opts: MsgBindOptions): Unit = {
     verbose(s"setParts: opts: $opts, parts: ${parts.map(_._1)}")
 
     // recycle views in reverse order, recycled views are stored in a Stack, this way we will get the same views back if parts are the same
@@ -34,7 +50,7 @@ abstract class MessageViewLayout(context: Context, attrs: AttributeSet, style: I
       case pv: MessageViewPart => factory.recycle(pv)
       case _ =>
     }
-    removeAllViewsInLayout()
+    removeAllViewsInLayout() // TODO: avoid removing views if not really needed, compute proper diff with previous state
 
     val views = parts.zipWithIndex map { case ((tpe, content), index) =>
       val view = factory.get(tpe, this)
@@ -49,7 +65,9 @@ abstract class MessageViewLayout(context: Context, attrs: AttributeSet, style: I
     }
     frameParts = fps
     listParts = lps
-    footer = views.collectFirst { case v: Footer => v }
+
+    // TODO: request layout only if parts were actually changed
+    requestLayout()
   }
 
   override def onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int): Unit = {

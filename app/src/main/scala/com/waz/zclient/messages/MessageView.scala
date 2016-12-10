@@ -21,7 +21,6 @@ import android.content.Context
 import android.util.AttributeSet
 import android.view.{HapticFeedbackConstants, ViewGroup}
 import com.waz.ZLog.ImplicitTag._
-import com.waz.ZLog._
 import com.waz.api.Message
 import com.waz.model.ConversationData.ConversationType
 import com.waz.model.{MessageContent, MessageData, MessageId}
@@ -53,7 +52,7 @@ class MessageView(context: Context, attrs: AttributeSet, style: Int)
   private var data: MessageAndLikes = MessageAndLikes.Empty
 
   this.onClick {
-    selection.toggleFocused(msgId)
+    selection.setFocused(msgId)
   }
 
   this.onLongClick {
@@ -61,12 +60,9 @@ class MessageView(context: Context, attrs: AttributeSet, style: Int)
     messageActions.showDialog(data)
   }
 
-  private var pos = -1 //messages position for debugging only
-
-  def set(mAndL: MessageAndLikes, prev: Option[MessageData], opts: MsgOptions): Unit = {
+  def set(mAndL: MessageAndLikes, prev: Option[MessageData], opts: MsgBindOptions): Unit = {
     data = mAndL
     msg = mAndL.message
-    pos = opts.position
     msgId = msg.id
 
     val contentParts = {
@@ -93,8 +89,7 @@ class MessageView(context: Context, attrs: AttributeSet, style: Int)
           builder += MsgPart.EphemeralDots -> None
         }
 
-        // FIXME: don't always add footer part, only when it needs to be shown, this needs to be better handled with animations
-        if (focusableTypes.contains(msg.msgType))//|| mAndL.likes.nonEmpty) TODO need to trigger open animation if liked
+        if (shouldShowFooter(mAndL, opts)) // TODO need to trigger open animation if liked
           builder += MsgPart.Footer -> None
 
         builder.result()
@@ -103,8 +98,6 @@ class MessageView(context: Context, attrs: AttributeSet, style: Int)
     if (parts.nonEmpty) this.setMarginTop(getTopMargin(prev.map(_.msgType), parts.head._1))
     setParts(mAndL, parts, opts)
   }
-
-  def getFooter: Option[Footer] = footer
 
   private def getSeparatorType(msg: MessageData, prev: Option[MessageData], isFirstUnread: Boolean): Option[MsgPart] = msg.msgType match {
     case Message.Type.CONNECT_REQUEST => None
@@ -128,8 +121,11 @@ class MessageView(context: Context, attrs: AttributeSet, style: Int)
     !knock && !msg.isSystemMessage && (recalled || edited || userChanged)
   }
 
-  private def shouldShowInviteBanner(msg: MessageData, opts: MsgOptions) =
+  private def shouldShowInviteBanner(msg: MessageData, opts: MsgBindOptions) =
     opts.position == 0 && msg.msgType == Message.Type.MEMBER_JOIN && opts.convType == ConversationType.Group
+
+  private def shouldShowFooter(mAndL: MessageAndLikes, opts: MsgBindOptions): Boolean =
+    mAndL.likes.nonEmpty || selection.lastFocused.contains(mAndL.message.id) || opts.isLastSelf
 }
 
 object MessageView {
@@ -214,16 +210,17 @@ object MessageView {
     }
   }
 
-  case class MsgOptions(
+  // Message properties calculated while binding, may not be directly related to message state,
+  // should not be cached in message view as those can be valid only while set method is called
+  case class MsgBindOptions(
                          position: Int,
-                         totalCount: Int,
                          isSelf: Boolean,
+                         isLast: Boolean,
+                         isLastSelf: Boolean, // last self message in conv
                          isFirstUnread: Boolean,
                          widthHint: Int,
                          convType: ConversationType
-                       ) {
-    def isLast: Boolean = position == totalCount - 1
-  }
+                       )
 }
 
 
