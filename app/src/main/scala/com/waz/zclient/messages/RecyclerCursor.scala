@@ -117,7 +117,7 @@ class RecyclerCursor(val conv: ConvId, zms: ZMessaging, adapter: RecyclerView.Ad
     }
 
     val msg = c(position)
-    verbose(s"Fetching for position: $position message: $msg")
+    verbose(s"Fetching for position: $position")
     msg
   })
 

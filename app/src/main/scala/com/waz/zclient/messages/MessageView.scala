@@ -68,7 +68,6 @@ class MessageView(context: Context, attrs: AttributeSet, style: Int)
     msg = mAndL.message
     pos = opts.position
     msgId = msg.id
-    verbose(s"set $pos, $mAndL")
 
     val contentParts = {
       if (msg.msgType != Message.Type.RICH_MEDIA) Seq(MsgPart(msg.msgType) -> None)
