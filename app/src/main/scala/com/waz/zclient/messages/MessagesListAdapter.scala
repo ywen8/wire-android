@@ -44,23 +44,31 @@ class MessagesListAdapter(listWidth: Signal[Int])(implicit inj: Injector, ec: Ev
   val showUnreadDot = Signal[Boolean](false)
   override val nextUnreadIndex = Signal[Int]()
 
-  val convType = for {
-    (zs, convId) <- zms.zip(selectedConversation)
+  val conv = for {
+    zs <- zms
+    convId <- selectedConversation
     conv <- Signal future zs.convsStorage.get(convId)
-  } yield conv.fold(ConversationType.Group)(_.convType)
+  } yield conv
 
-  val cursor = zms.zip(selectedConversation) map { case (zs, conv) => new RecyclerCursor(conv, zs, adapter) }
-  override val msgCount = cursor.flatMap(_.countSignal)
+  val cursor = for {
+    zs <- zms
+    Some(c) <- conv
+  } yield
+    (new RecyclerCursor(c.id, zs, adapter), c.convType)
+
+  override val msgCount = cursor.flatMap { case (c, _) => c.countSignal }
 
   private var messages = Option.empty[RecyclerCursor]
   private var conversationType = ConversationType.Group
 
-  cursor.zip(convType).on(Threading.Ui) { case (c, tpe) =>
-    messages.foreach(_.close())
-    verbose(s"cursor changed: ${c.count}")
-    messages = Some(c)
-    conversationType = tpe
-    notifyDataSetChanged()
+  cursor.on(Threading.Ui) { case (c, tpe) =>
+    if (!messages.contains(c)) {
+      verbose(s"cursor changed: ${c.count}")
+      messages.foreach(_.close())
+      messages = Some(c)
+      conversationType = tpe
+      notifyDataSetChanged()
+    }
   }
 
   override def getItemCount: Int = messages.fold(0)(_.count)

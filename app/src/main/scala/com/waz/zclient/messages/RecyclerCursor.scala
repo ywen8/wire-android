@@ -66,6 +66,7 @@ class RecyclerCursor(val conv: ConvId, zms: ZMessaging, adapter: RecyclerView.Ad
   }
 
   def close() = {
+    verbose(s"close")
     Threading.assertUiThread()
     closed = true
     cursor = None
