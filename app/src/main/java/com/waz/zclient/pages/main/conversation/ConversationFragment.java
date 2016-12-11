@@ -82,6 +82,7 @@ import com.waz.api.User;
 import com.waz.api.UsersList;
 import com.waz.api.Verification;
 import com.waz.zclient.*;
+import com.waz.zclient.BuildConfig;
 import com.waz.zclient.camera.controllers.GlobalCameraController;
 import com.waz.zclient.controllers.IControllerFactory;
 import com.waz.zclient.controllers.accentcolor.AccentColorObserver;
@@ -129,6 +130,7 @@ import com.waz.zclient.core.stores.inappnotification.InAppNotificationStoreObser
 import com.waz.zclient.core.stores.inappnotification.KnockingEvent;
 import com.waz.zclient.core.stores.network.DefaultNetworkAction;
 import com.waz.zclient.core.stores.participants.ParticipantsStoreObserver;
+import com.waz.zclient.messages.MessagesListView;
 import com.waz.zclient.messages.controllers.EditActionSupport;
 import com.waz.zclient.notifications.controllers.ImageNotificationsController;
 import com.waz.zclient.pages.BaseFragment;
@@ -252,6 +254,7 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
     private boolean isVideoMessageButtonClicked;
     private MessageBottomSheetDialog messageBottomSheetDialog;
     private ImageAsset imageAssetToSave;
+    private MessagesListView listView;
 
     public static ConversationFragment newInstance() {
         return new ConversationFragment();
@@ -469,6 +472,7 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
         shieldView.setVisibility(View.GONE);
         typingIndicatorView = ViewUtils.getView(view, R.id.tiv_typing_indicator_view);
         typingIndicatorView.setCallback(this);
+        listView = ViewUtils.getView(view, R.id.messages_list_view);
         toolbar.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -1553,6 +1557,7 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
 
     @Override
     public void onCursorClicked() {
+        listView.scrollToBottom();
     }
 
     @Override
@@ -2101,6 +2106,7 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
         }
         try {
             boolean ephemeral = false;
+            // TODO: implement in new messages list
 //            for (int i = listView.getFirstVisiblePosition(); i <= listView.getLastVisiblePosition(); i++) {
 //                Message message = (Message) listView.getItemAtPosition(i);
 //                if (message != null && message.isEphemeral()) {
@@ -2131,7 +2137,7 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
         if (visible) {
             cursorLayout.showTopbar(false);
         } else {
-//            cursorLayout.showTopbar(!listView.computeIsScrolledToBottom());
+            cursorLayout.showTopbar(!listView.scrollController().shouldScrollToBottom());
         }
     }
 

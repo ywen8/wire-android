@@ -19,30 +19,31 @@ package com.waz.zclient.messages
 
 import java.util
 
-import android.support.v7.widget.RecyclerView
 import android.view.ViewGroup
 import com.waz.ZLog.ImplicitTag._
 import com.waz.ZLog._
+import com.waz.model.ConvId
 import com.waz.model.ConversationData.ConversationType
 import com.waz.service.ZMessaging
 import com.waz.threading.Threading
-import com.waz.utils.events.{EventContext, EventStream, Signal}
+import com.waz.utils.events.{EventContext, Signal}
 import com.waz.zclient.controllers.global.SelectionController
 import com.waz.zclient.messages.ItemChangeAnimator.ChangeInfo
 import com.waz.zclient.messages.MessageView.MsgBindOptions
+import com.waz.zclient.messages.MessagesListView.UnreadIndex
+import com.waz.zclient.messages.RecyclerCursor.RecyclerNotifier
 import com.waz.zclient.{Injectable, Injector}
 
-class MessagesListAdapter(listWidth: Signal[Int])(implicit inj: Injector, ec: EventContext) extends RecyclerView.Adapter[MessageViewHolder]() with Injectable with MessagesListView.Adapter { adapter =>
+class MessagesListAdapter(listWidth: Signal[Int])(implicit inj: Injector, ec: EventContext)
+  extends MessagesListView.Adapter() with Injectable { adapter =>
 
   verbose("MessagesListAdapter created")
 
   val zms = inject[Signal[ZMessaging]]
   val listController = inject[MessagesController]
-  override val selectedConversation = inject[SelectionController].selectedConv
+  val selectedConversation = inject[SelectionController].selectedConv
 
-  val onBindView = EventStream[Int]()
-  val showUnreadDot = Signal[Boolean](false)
-  override val nextUnreadIndex = Signal[Int]()
+  var unreadIndex = UnreadIndex(0)
 
   val conv = for {
     zs <- zms
@@ -54,28 +55,32 @@ class MessagesListAdapter(listWidth: Signal[Int])(implicit inj: Injector, ec: Ev
     zs <- zms
     Some(c) <- conv
   } yield
-    (new RecyclerCursor(c.id, zs, adapter), c.convType)
-
-  override val msgCount = cursor.flatMap { case (c, _) => c.countSignal }
+    (new RecyclerCursor(c.id, zs, notifier), c.convType)
 
   private var messages = Option.empty[RecyclerCursor]
-  private var conversationType = ConversationType.Group
+  private var convId = ConvId()
+  private var convType = ConversationType.Group
 
   cursor.on(Threading.Ui) { case (c, tpe) =>
     if (!messages.contains(c)) {
       verbose(s"cursor changed: ${c.count}")
       messages.foreach(_.close())
       messages = Some(c)
-      conversationType = tpe
-      notifyDataSetChanged()
+      convType = tpe
+      convId = c.conv
+      notifier.notifyDataSetChanged()
     }
   }
+
+  override def getConvId: ConvId = convId
+
+  override def getUnreadIndex = unreadIndex
 
   override def getItemCount: Int = messages.fold(0)(_.count)
 
   def message(position: Int) = messages.get.apply(position)
 
-  def currentLastReadIndex() = messages.fold(-1)(_.lastReadIndex())
+  def lastReadIndex = messages.fold(-1)(_.lastReadIndex())
 
   override def getItemViewType(position: Int): Int = MessageView.viewType(message(position).message.msgType)
 
@@ -88,12 +93,11 @@ class MessagesListAdapter(listWidth: Signal[Int])(implicit inj: Injector, ec: Ev
     val data = message(pos)
     val isLast = pos == adapter.getItemCount
     val isSelf = zms.currentValue.exists(_.selfUserId == data.message.userId)
-    val isFirstUnread = pos > 0 && !isSelf && showUnreadAtPos.currentValue.exists { case (show, p) => show && p == pos }
+    val isFirstUnread = pos > 0 && !isSelf && unreadIndex.index == pos
     val isLastSelf = listController.isLastSelf(data.message.id)
-    val opts = MsgBindOptions(pos, isSelf, isLast, isLastSelf, isFirstUnread = isFirstUnread, listWidth.currentValue.getOrElse(0), conversationType)
+    val opts = MsgBindOptions(pos, isSelf, isLast, isLastSelf, isFirstUnread = isFirstUnread, listWidth.currentValue.getOrElse(0), convType)
 
     holder.bind(data, if (pos == 0) None else Some(message(pos - 1).message), opts, changeInfo(payloads))
-    onBindView ! pos
   }
 
   private def changeInfo(payloads: util.List[AnyRef]) =
@@ -103,33 +107,45 @@ class MessagesListAdapter(listWidth: Signal[Int])(implicit inj: Injector, ec: Ev
       case _ => ChangeInfo.Unknown
     }
 
-  val showUnreadAtPos = showUnreadDot.zip(nextUnreadIndex)
-  showUnreadAtPos.onChanged.on(Threading.Ui) { case (_, pos) => notifyItemChanged(pos) }
-
   override def onCreateViewHolder(parent: ViewGroup, viewType: Int): MessageViewHolder =
     MessageViewHolder(MessageView(parent, viewType), adapter)
 
-  // view depends on two message entries,
-  // most importantly, view needs to be refreshed if previous message was added or removed
-  // TODO: test if that actually works
-  registerAdapterDataObserver(new RecyclerView.AdapterDataObserver {
+  val notifier = new RecyclerNotifier {
+    // view depends on two message entries,
+    // most importantly, view needs to be refreshed if previous message was added or removed
 
     private def notifyChangedIfExists(position: Int) =
-      if (position >= 0 && position < getItemCount) notifyItemChanged(position)
+      if (position >= 0 && position < getItemCount)
+        adapter.notifyItemChanged(position)
 
-    override def onItemRangeRemoved(positionStart: Int, itemCount: Int): Unit =
-      notifyChangedIfExists(positionStart)
+    override def notifyItemMoved(src: Int, dst: Int) = {
+      adapter.notifyItemMoved(src, dst)
 
-    override def onItemRangeMoved(fromPosition: Int, toPosition: Int, itemCount: Int): Unit =
-      if (fromPosition < toPosition) {
-        notifyChangedIfExists(fromPosition)
-        notifyChangedIfExists(toPosition + itemCount)
-      } else {
-        notifyChangedIfExists(fromPosition + 1)
-        notifyChangedIfExists(toPosition + itemCount + 1)
-      }
+      notifyChangedIfExists(if (src < dst) src else src + 1)
+      notifyChangedIfExists(dst + 1)
+    }
 
-    override def onItemRangeInserted(positionStart: Int, itemCount: Int): Unit =
-      notifyChangedIfExists(positionStart + itemCount + 1)
-  })
+    override def notifyItemInserted(pos: Int) = {
+      adapter.notifyItemInserted(pos)
+
+      notifyChangedIfExists(pos + 1)
+    }
+
+    override def notifyItemRemoved(pos: Int) =
+      notifyItemRangeRemoved(pos, 1)
+
+    override def notifyItemChanged(pos: Int, info: ChangeInfo = ChangeInfo.Unknown) =
+      adapter.notifyItemChanged(pos, info)
+
+    override def notifyItemRangeRemoved(pos: Int, count: Int) = {
+      adapter.notifyItemRangeRemoved(pos, count)
+      notifyChangedIfExists(pos)
+    }
+
+    override def notifyDataSetChanged() = {
+      unreadIndex = UnreadIndex(lastReadIndex + 1)
+      adapter.notifyDataSetChanged()
+    }
+  }
+
 }

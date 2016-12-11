@@ -19,15 +19,18 @@ package com.waz.zclient.messages
 
 import com.waz.model.{MessageData, MessageId}
 import com.waz.service.ZMessaging
-import com.waz.utils.events.{EventContext, Signal}
+import com.waz.utils.events.{EventContext, EventStream, Signal}
 import com.waz.zclient.controllers.global.SelectionController
 import com.waz.zclient.{Injectable, Injector}
+import org.threeten.bp.Instant
 
 class MessagesController()(implicit injector: Injector, ev: EventContext) extends Injectable {
   import com.waz.threading.Threading.Implicits.Background
 
   val zms = inject[Signal[ZMessaging]]
   val selectedConversation = inject[SelectionController].selectedConv
+
+  val onScrollToBottomRequested = EventStream[Int]
 
   val currentConvIndex = for {
     z       <- zms
@@ -44,8 +47,16 @@ class MessagesController()(implicit injector: Injector, ev: EventContext) extend
 
   def isLastSelf(id: MessageId) = lastSelfMessage.currentValue.exists(_.id == id)
 
+  @volatile
+  private var lastReadTime = Instant.EPOCH
+
+  currentConvIndex.flatMap(_.signals.lastReadTime) { lastReadTime = _ }
+
   def onMessageRead(msg: MessageData) = {
     if (msg.isEphemeral && !msg.expired)
       zms.head foreach  { _.ephemeral.onMessageRead(msg.id) }
+
+    if (msg.time isAfter lastReadTime)
+      zms.head.foreach { _.convsUi.setLastRead(msg.convId, msg) }
   }
 }

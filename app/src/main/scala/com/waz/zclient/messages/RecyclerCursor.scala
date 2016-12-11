@@ -17,7 +17,6 @@
  */
 package com.waz.zclient.messages
 
-import android.support.v7.widget.RecyclerView
 import com.waz.ZLog.ImplicitTag._
 import com.waz.ZLog._
 import com.waz.content.ConvMessagesIndex._
@@ -29,13 +28,14 @@ import com.waz.threading.Threading
 import com.waz.utils._
 import com.waz.utils.events.{EventContext, Signal, Subscription}
 import com.waz.zclient.messages.ItemChangeAnimator.ChangeInfo
+import com.waz.zclient.messages.RecyclerCursor.RecyclerNotifier
 import com.waz.zclient.{Injectable, Injector}
 import org.threeten.bp.Instant
 
 import scala.collection.Searching.{Found, InsertionPoint}
 import scala.collection.mutable.ListBuffer
 
-class RecyclerCursor(val conv: ConvId, zms: ZMessaging, adapter: RecyclerView.Adapter[_])(implicit inj: Injector, ev: EventContext) extends Injectable { self =>
+class RecyclerCursor(val conv: ConvId, zms: ZMessaging, adapter: RecyclerNotifier)(implicit inj: Injector, ev: EventContext) extends Injectable { self =>
 
   import com.waz.threading.Threading.Implicits.Ui
 
@@ -235,3 +235,14 @@ class RecyclerCursor(val conv: ConvId, zms: ZMessaging, adapter: RecyclerView.Ad
   }
 }
 
+object RecyclerCursor {
+
+  trait RecyclerNotifier {
+    def notifyDataSetChanged(): Unit
+    def notifyItemRangeRemoved(pos: Int, count: Int): Unit
+    def notifyItemRemoved(pos: Int): Unit
+    def notifyItemInserted(pos: Int): Unit
+    def notifyItemChanged(pos: Int, info: ChangeInfo = ChangeInfo.Unknown): Unit
+    def notifyItemMoved(src: Int, dst: Int): Unit
+  }
+}

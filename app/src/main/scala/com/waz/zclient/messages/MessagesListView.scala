@@ -24,51 +24,45 @@ import android.util.AttributeSet
 import com.waz.ZLog.ImplicitTag._
 import com.waz.ZLog._
 import com.waz.model.{ConvId, MessageData, MessageId}
-import com.waz.service.ZMessaging
 import com.waz.service.messages.MessageAndLikes
-import com.waz.threading.{CancellableFuture, Threading}
+import com.waz.threading.Threading
 import com.waz.utils.events.{EventContext, Signal}
 import com.waz.zclient.controllers.global.SelectionController
 import com.waz.zclient.messages.ItemChangeAnimator.ChangeInfo
 import com.waz.zclient.messages.MessageView.MsgBindOptions
 import com.waz.zclient.messages.ScrollController.Scroll
-import com.waz.zclient.messages.controllers.NavigationController
 import com.waz.zclient.{Injectable, Injector, ViewHelper}
-
-import scala.concurrent.duration._
 
 class MessagesListView(context: Context, attrs: AttributeSet, style: Int) extends RecyclerView(context, attrs, style) with ViewHelper {
   def this(context: Context, attrs: AttributeSet) = this(context, attrs, 0)
   def this(context: Context) = this(context, null, 0)
+
+  import MessagesListView._
 
   val width = Signal[Int]()
   val height = Signal[Int]()
   val layoutManager = new LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false)
   val adapter = new MessagesListAdapter(width)
   val scrollController = new ScrollController(adapter, height)
-  val lastRead = new LastReadController(adapter, layoutManager)
 
   setHasFixedSize(true)
   setLayoutManager(layoutManager)
   setAdapter(adapter)
 //  setItemAnimator(new ItemChangeAnimator)
 
-  scrollController.onScroll.on(Threading.Ui) { case Scroll(pos, smooth) =>
-    verbose(s"Scrolling to pos: $pos")
-      val scrollTo = math.min(adapter.getItemCount - 1, pos)
-//    val itemHeight = findViewHolderForAdapterPosition(pos).itemView.getHeight
-//    if (smooth) {
-//      val current = layoutManager.findFirstVisibleItemPosition()
-//
-//      // jump closer to target position before scrolling, don't want to smooth scroll through many messages
-//      if (math.abs(current - pos) > MaxSmoothScroll)
-//        layoutManager.scrollToPositionWithOffset(if (pos > current) pos - MaxSmoothScroll else pos + MaxSmoothScroll, 0)
-//
-//      smoothScrollToPosition(pos) //TODO figure out how to provide an offset
-//    } else {
-      layoutManager.scrollToPositionWithOffset(scrollTo, 0)
-//      scrollToPosition(pos)
-//    }
+  scrollController.onScroll { case Scroll(pos, smooth) =>
+    verbose(s"Scrolling to pos: $pos, smooth: $smooth")
+    val scrollTo = math.min(adapter.getItemCount - 1, pos)
+    if (smooth) {
+      val current = layoutManager.findFirstVisibleItemPosition()
+      // jump closer to target position before scrolling, don't want to smooth scroll through many messages
+      if (math.abs(current - pos) > MaxSmoothScroll)
+        layoutManager.scrollToPosition(if (pos > current) pos - MaxSmoothScroll else pos + MaxSmoothScroll)
+
+      smoothScrollToPosition(pos) //TODO figure out how to provide an offset, we should scroll to top of the message
+    } else {
+      layoutManager.scrollToPosition(scrollTo)
+    }
   }
 
   addOnScrollListener(new OnScrollListener {
@@ -94,12 +88,11 @@ object MessagesListView {
 
   val MaxSmoothScroll = 50
 
-  trait Adapter {
-    def selectedConversation: Signal[ConvId]
+  case class UnreadIndex(index: Int) extends AnyVal
 
-    def nextUnreadIndex: Signal[Int]
-    def msgCount: Signal[Int]
-    def getItemCount: Int
+  abstract class Adapter extends RecyclerView.Adapter[MessageViewHolder] {
+    def getConvId: ConvId
+    def getUnreadIndex: UnreadIndex
   }
 }
 
@@ -136,40 +129,5 @@ case class MessageViewHolder(view: MessageView, adapter: MessagesListAdapter)(im
     _isFocused = selection.lastFocused.contains(id)
 
     msgsController.onMessageRead(msg.message)
-  }
-}
-
-class LastReadController(adapter: MessagesListAdapter, layoutManager: LinearLayoutManager)(implicit injector: Injector, ev: EventContext) extends Injectable {
-
-  val zmessaging = inject[Signal[ZMessaging]]
-  val messageStreamOpen = inject[NavigationController].messageStreamOpen
-
-  private var hideUnread = CancellableFuture.successful[Unit](())
-
-  //last read should only be updated each time we enter a conversation, whether the conv changed or not
-  messageStreamOpen.onChanged.filter(_ == true) { _ =>
-    val lastRead = adapter.currentLastReadIndex()
-    verbose(s"setting last read index: $lastRead")
-    adapter.showUnreadDot ! (lastRead + 1 < adapter.getItemCount)
-    adapter.nextUnreadIndex ! lastRead + 1
-    hideUnread.cancel()
-    hideUnread = CancellableFuture.delay(3.seconds).map(_ => adapter.showUnreadDot ! false)(Threading.Background)
-  }
-
-  private val lastBoundMessage = for {
-    zms <- zmessaging
-    index <- Signal.wrap(adapter.onBindView).throttle(500.millis)
-  } yield (zms, index)
-
-  lastBoundMessage.zip(messageStreamOpen).on(Threading.Ui) {
-    case ((zms, _), true) =>
-      val index = layoutManager.findLastCompletelyVisibleItemPosition()
-      if (index >= 0) {
-        val msg = adapter.message(index).message
-        verbose(s"Setting last read to pos:$index, $msg")
-        zms.convsUi.setLastRead(msg.convId, msg)
-      }
-    case _ => //message stream not open
-
   }
 }
