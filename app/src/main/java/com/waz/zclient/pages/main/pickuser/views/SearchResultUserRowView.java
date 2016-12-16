@@ -33,6 +33,7 @@ public class SearchResultUserRowView extends FrameLayout implements UserRowView,
     private User user;
     private ChatheadView chathead;
     private ContactListItemTextView contactListItemTextView;
+    private boolean showContactInfo;
 
     public SearchResultUserRowView(Context context) {
         this(context, null);
@@ -58,6 +59,10 @@ public class SearchResultUserRowView extends FrameLayout implements UserRowView,
         updated();
     }
 
+    public void setShowContatctInfo(boolean showContactInfo) {
+        this.showContactInfo = showContactInfo;
+    }
+
     @Override
     public User getUser() {
         return user;
@@ -79,7 +84,7 @@ public class SearchResultUserRowView extends FrameLayout implements UserRowView,
         if (user == null) {
             return;
         }
-        contactListItemTextView.setUser(user);
+        contactListItemTextView.setUser(user, showContactInfo);
         chathead.setUser(user);
     }
 

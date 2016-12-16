@@ -35,7 +35,7 @@ public class LikesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
     public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View view;
         view = LayoutInflater.from(parent.getContext()).inflate(R.layout.startui_user, parent, false);
-        return new UserViewHolder(view, false);
+        return new UserViewHolder(view, false, false);
     }
 
     @Override

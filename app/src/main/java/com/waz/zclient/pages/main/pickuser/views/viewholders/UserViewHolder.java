@@ -27,12 +27,13 @@ import com.waz.zclient.utils.ViewUtils;
 public class UserViewHolder extends RecyclerView.ViewHolder {
     private final SearchResultUserRowView userRow;
 
-    public UserViewHolder(View itemView, boolean darkTheme) {
+    public UserViewHolder(View itemView, boolean darkTheme, boolean showContactInfo) {
         super(itemView);
         userRow =  ViewUtils.getView(itemView, R.id.srurv_startui_user);
         if (darkTheme) {
             userRow.applyDarkTheme();
         }
+        userRow.setShowContatctInfo(showContactInfo);
     }
 
     public void bind(User user, boolean isSelected) {

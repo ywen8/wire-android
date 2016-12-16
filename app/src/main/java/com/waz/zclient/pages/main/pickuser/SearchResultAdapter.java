@@ -123,7 +123,7 @@ public class SearchResultAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
             case ITEM_TYPE_OTHER_USER:
             case ITEM_TYPE_CONNECTED_USER:
                 view = LayoutInflater.from(parent.getContext()).inflate(R.layout.startui_user, parent, false);
-                return new UserViewHolder(view, darkTheme);
+                return new UserViewHolder(view, darkTheme, true);
             case ITEM_TYPE_CONVERSATION:
                 view = LayoutInflater.from(parent.getContext()).inflate(R.layout.startui_conversation, parent, false);
                 return new ConversationViewHolder(view);

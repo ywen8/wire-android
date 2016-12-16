@@ -35,10 +35,13 @@ import com.waz.zclient.utils.ViewUtils;
 
 public class ContactListItemTextView extends LinearLayout {
 
+    private static final String SEPARATOR_SYMBOL = " · ";
+
     private ContactDetails contactDetails;
     private User user;
     private TextView nameView;
     private TextView subLabelView;
+    private boolean showContactDetails = true;
 
     private final ModelObserver<ContactDetails> contactDetailsModelObserver = new ModelObserver<ContactDetails>() {
         @Override
@@ -73,11 +76,16 @@ public class ContactListItemTextView extends LinearLayout {
     }
 
     public void setUser(User user) {
+        setUser(user, true);
+    }
+
+    public void setUser(User user, boolean showContactDetails) {
         if (user == null) {
             return;
         }
         recycle();
         clearDraw();
+        this.showContactDetails = showContactDetails;
         userModelObserver.setAndUpdate(user);
     }
 
@@ -155,10 +163,10 @@ public class ContactListItemTextView extends LinearLayout {
 
         String otherString = "";
         if (TextUtils.isEmpty(addressBookName)) {
-            if (commonContacts > 0 && !user.isConnected()) {
+            if (commonContacts > 0 && !user.isConnected() && showContactDetails) {
                 otherString = getResources().getQuantityString(R.plurals.people_picker__contact_list_contact_sub_label_common_friends, commonContacts, commonContacts);
             }
-        } else {
+        } else if (showContactDetails) {
             if (name.equalsIgnoreCase(addressBookName)) {
                 otherString = getContext().getString(R.string.people_picker__contact_list_contact_sub_label_address_book_identical);
             } else {
@@ -171,7 +179,7 @@ public class ContactListItemTextView extends LinearLayout {
         } else if (TextUtils.isEmpty(otherString)) {
             return usernameString;
         }
-        return usernameString + " - " + otherString;
+        return usernameString + SEPARATOR_SYMBOL + otherString;
     }
 
     public void applyDarkTheme() {
