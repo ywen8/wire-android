@@ -44,6 +44,7 @@ public class UserPreferencesController implements IUserPreferencesController {
     public static final String USER_PREFS_GENERIC_INVITATION_TOKEN = "USER_PREFS_GENERIC_INVITATION_TOKEN";
     public static final String USER_PREFS_PERSONAL_INVITATION_TOKEN = "USER_PREFS_PERSONAL_INVITATION_TOKEN";
     public static final String USER_PERFS_AB_TESTING_GROUP = "USER_PERFS_AB_TESTING_GROUP";
+    public static final String USER_PREF_PLAY_SERVICES_ERROR_SHOWN = "USER_PREF_PLAY_SERVICES_ERROR_SHOWN";
     private static final String USER_PREFS_SHOW_SHARE_CONTACTS_DIALOG = "USER_PREFS_SHOW_SHARE_CONTACTS_DIALOG ";
     private static final String USER_PREFS_RECENT_CAMERA_DIRECTION = "USER_PREFS_RECENT_CAMERA_DIRECTION";
     private static final String USER_PREF_SPOTIFY_LOGIN_COUNT = "PREF_SPOTIFY_LOGIN_COUNT";
@@ -370,5 +371,15 @@ public class UserPreferencesController implements IUserPreferencesController {
     @Override
     public void setLastEphemeralValue(long value) {
         userPreferences.edit().putLong(USER_PREF_LAST_EPHEMERAL_VALUE, value).apply();
+    }
+
+    @Override
+    public boolean hasPlayServicesErrorShown() {
+        return userPreferences.getBoolean(USER_PREF_PLAY_SERVICES_ERROR_SHOWN, false);
+    }
+
+    @Override
+    public void setPlayServicesErrorShown(boolean value) {
+        userPreferences.edit().putBoolean(USER_PREF_PLAY_SERVICES_ERROR_SHOWN, value).apply();
     }
 }
