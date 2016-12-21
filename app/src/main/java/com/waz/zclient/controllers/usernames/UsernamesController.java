@@ -36,8 +36,9 @@ import java.util.WeakHashMap;
 public class UsernamesController implements IUsernamesController {
 
     private static final int USERNAME_MAX_LENGTH = 21;
-    private static final int MAX_ATTEMPTS = 50;
-    private static final int MAX_RANDOM_TRAILLING_NUMBER = 10000;
+    private static final int NORMAL_ATTEMPTS = 30;
+    private static final int RANDOM_ATTEMPTS = 20;
+    private static final int MAX_RANDOM_TRAILLING_NUMBER = 1000;
 
     private ZApplication application = null;
     private Random randomGenerator;
@@ -176,11 +177,16 @@ public class UsernamesController implements IUsernamesController {
         currentAttemptsArray = null;
         Usernames usernames = application.getStoreFactory().getZMessagingApiStore().getApi().getUsernames();
         String baseGeneratedUsername = usernames.generateUsernameFromName(baseName, application);
+        String randomUsername = usernames.generateUsernameFromName("", application);
 
         List<String> attempts = new ArrayList<>();
-        for (int i = 0; i < MAX_ATTEMPTS; i++) {
+        for (int i = 0; i < NORMAL_ATTEMPTS; i++) {
             String trailingNumber = getTrailingNumber(i);
             attempts.add(StringUtils.truncate(baseGeneratedUsername, USERNAME_MAX_LENGTH - trailingNumber.length()) + trailingNumber);
+        }
+        for (int i = 0; i < RANDOM_ATTEMPTS; i++) {
+            String trailingNumber = getTrailingNumber(i);
+            attempts.add(StringUtils.truncate(randomUsername, USERNAME_MAX_LENGTH - trailingNumber.length()) + trailingNumber);
         }
         currentAttemptsArray = new String[attempts.size()];
         attempts.toArray(currentAttemptsArray);
