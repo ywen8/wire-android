@@ -123,4 +123,8 @@ public interface IUserPreferencesController {
     long getLastEphemeralValue();
 
     void setLastEphemeralValue(long value);
+
+    boolean hasPlayServicesErrorShown();
+
+    void setPlayServicesErrorShown(boolean value);
 }

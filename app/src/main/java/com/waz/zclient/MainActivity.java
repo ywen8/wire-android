@@ -392,11 +392,15 @@ public class MainActivity extends BaseActivity implements MainPhoneFragment.Cont
 
     private void verifyGooglePlayServicesStatus() {
         int deviceGooglePlayServicesState = GooglePlayServicesUtil.isGooglePlayServicesAvailable(getApplicationContext());
-        if (deviceGooglePlayServicesState == ConnectionResult.SERVICE_VERSION_UPDATE_REQUIRED) {
+        Boolean errorShown = getControllerFactory().getUserPreferencesController().hasPlayServicesErrorShown();
+        if (deviceGooglePlayServicesState == ConnectionResult.SERVICE_VERSION_UPDATE_REQUIRED && !errorShown) {
             GooglePlayServicesUtil.getErrorDialog(deviceGooglePlayServicesState,
                                                   this,
                                                   REQUEST_CODE_GOOGLE_PLAY_SERVICES_DIALOG)
                                   .show();
+            getControllerFactory().getUserPreferencesController().setPlayServicesErrorShown(true);
+        } else if (deviceGooglePlayServicesState == ConnectionResult.SUCCESS) {
+            getControllerFactory().getUserPreferencesController().setPlayServicesErrorShown(false);
         }
     }
 
