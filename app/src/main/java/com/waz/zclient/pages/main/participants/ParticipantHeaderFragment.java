@@ -560,6 +560,9 @@ public class ParticipantHeaderFragment extends BaseFragment<ParticipantHeaderFra
     }
 
     private void toggleEditModeForConversationName(boolean edit) {
+        if (!isGroupConversation) {
+            return;
+        }
         getControllerFactory().getConversationScreenController().editConversationName(edit);
         if (edit) {
             headerEditText.setText(headerReadOnlyTextView.getText());
