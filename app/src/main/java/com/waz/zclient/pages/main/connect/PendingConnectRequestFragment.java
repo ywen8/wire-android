@@ -300,6 +300,7 @@ public class PendingConnectRequestFragment extends BaseFragment<PendingConnectRe
         // Show footer
         footerMenu.setVisibility(View.VISIBLE);
         isShowingFooterMenu = true;
+        footerMenu.setRightActionText("");
 
         footerMenu.setCallback(new FooterMenuCallback() {
             @Override
@@ -310,7 +311,6 @@ public class PendingConnectRequestFragment extends BaseFragment<PendingConnectRe
 
             @Override
             public void onRightActionClicked() {
-                user.block();
             }
         });
     }
