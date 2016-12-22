@@ -158,7 +158,7 @@ public class UsernamesController implements IUsernamesController {
 
     @Override
     public boolean hasGeneratedUsername() {
-        return generatedUsername != null;
+        return generatedUsername != null && generatedUsername.isValid();
     }
 
     @Override
