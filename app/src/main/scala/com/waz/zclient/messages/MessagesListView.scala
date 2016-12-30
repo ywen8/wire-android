@@ -127,10 +127,11 @@ case class MessageViewHolder(view: MessageView, adapter: MessagesListAdapter)(im
   def isFocused = _isFocused
 
   def bind(msg: MessageAndLikes, prev: Option[MessageData], opts: MsgBindOptions): Unit = {
-    view.set(msg, prev, opts)
+    val nowFocused = selection.lastFocused.contains(id)
+    view.set(msg, prev, opts.copy(focused = nowFocused))
     id = msg.message.id
     this.opts = Some(opts)
-    _isFocused = selection.lastFocused.contains(id)
+    _isFocused = nowFocused
 
     msgsController.onMessageRead(msg.message)
   }

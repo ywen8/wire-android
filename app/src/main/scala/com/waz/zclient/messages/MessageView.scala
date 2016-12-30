@@ -242,7 +242,8 @@ object MessageView {
                              isLastSelf: Boolean, // last self message in conv
                              isFirstUnread: Boolean,
                              listDimensions: Dim2,
-                             convType: ConversationType
+                             convType: ConversationType,
+                             focused: Boolean = false
                        )
 }
 

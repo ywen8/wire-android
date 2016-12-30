@@ -57,6 +57,18 @@ class FooterViewController(implicit inj: Injector, context: Context, ec: EventCo
   val likedBySelf = messageAndLikes.map(_.likedBySelf)
   val expiring = message.map { msg => msg.isEphemeral && !msg.expired && msg.expiryTime.isDefined }
 
+  /**
+    * FIXME: There is an awkward coupling now between "timestamp being shown" and "view focused"
+    * This is problematic for some other views that both want to handle onClick events AND still allow for the timestamp
+    * to appear, such as the ImagePartView. The Image controls now appear and disappear in time with the FocusTimeout,
+    * and also disappear if the likes change.
+    *
+    * However, it's hard to separate this coupling right now, since if the timeout finishes, and then we DON'T set
+    * the focused state in the selection controller back to false, then the next time the user clicks on the same view,
+    * the focus will THEN be removed and we won't show the time stamp. That is, the user would have to click twice to
+    * get the timestamp to appear again.
+    */
+
   val focusedTime = selection.focused.zip(message.map(_.id)).map {
     case (Some((selectedId, time)), thisId) if selectedId == thisId => time
     case _ => Instant.EPOCH

@@ -56,7 +56,7 @@ class ImagePartView(context: Context, attrs: AttributeSet, style: Int) extends F
   }
 
   override def set(msg: MessageData, part: Option[MessageContent], opts: MsgBindOptions): Unit = {
-    imageActions.setVisible(false)
+    imageActions.setVisible(opts.focused)
     super.set(msg, part, opts)
   }
 
@@ -65,6 +65,6 @@ class ImagePartView(context: Context, attrs: AttributeSet, style: Int) extends F
 
   setBackground(imageDrawable)
 
-  this.onClick(imageActions.setVisible(!imageActions.isVisible))
-
 }
+
+
