@@ -18,6 +18,8 @@
 package com.waz.zclient.messages.parts.footer
 
 import android.content.Context
+import com.waz.ZLog.ImplicitTag._
+import com.waz.ZLog.verbose
 import com.waz.api.Message.Status
 import com.waz.model.ConversationData.ConversationType
 import com.waz.model.MessageData
@@ -50,6 +52,7 @@ class FooterViewController(implicit inj: Injector, context: Context, ec: EventCo
   val messageAndLikes = Signal[MessageAndLikes]()
   val isSelfMessage = opts.map(_.isSelf)
   val message = messageAndLikes.map(_.message)
+  val messageId = message.map(_.id)
   val isLiked = messageAndLikes.map(_.likes.nonEmpty)
   val likedBySelf = messageAndLikes.map(_.likedBySelf)
   val expiring = message.map { msg => msg.isEphemeral && !msg.expired && msg.expiryTime.isDefined }
@@ -59,11 +62,26 @@ class FooterViewController(implicit inj: Injector, context: Context, ec: EventCo
     case _ => Instant.EPOCH
   }
 
+  private var currentTimeout = CancellableFuture.cancelled[Boolean]()
   val focused = focusedTime flatMap { time =>
     val delay = Instant.now.until(time.plus(FocusTimeout)).asScala
+    verbose(s"focus will change after: $delay")
     if (delay.isNegative) Signal const false
-    else Signal.future(CancellableFuture.delayed(delay)(false)).orElse(Signal const true) // signal `true` switching to `false` after delay
+    else {
+      currentTimeout.cancel()
+      currentTimeout = CancellableFuture.delayed(delay)(false)
+      Signal.future(currentTimeout).orElse(Signal const true) // signal `true` switching to `false` after delay
+    }
   }
+
+  //if the user likes something, we want to show the likes immediately, so we need to drop the timeout and remove focus
+  likedBySelf.onChanged.filter(_ == true) { _ =>
+    currentTimeout.cancel()
+    messageId.currentValue.foreach(selection.setFocused(_, isFocused = false))
+  }
+
+  //tell the selection controller to unfocus when the timeout is up
+  focused.onChanged.filter(_ == false)(_ => messageId.currentValue.foreach(selection.setFocused(_, isFocused = false)))
 
   val showTimestamp: Signal[Boolean] = for {
     liked     <- isLiked

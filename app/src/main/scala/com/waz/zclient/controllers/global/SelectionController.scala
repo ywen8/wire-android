@@ -17,17 +17,21 @@
  */
 package com.waz.zclient.controllers.global
 
+import com.waz.ZLog.ImplicitTag._
+import com.waz.ZLog._
 import com.waz.model.MessageId
 import com.waz.service.ZMessaging
+import com.waz.threading.CancellableFuture
 import com.waz.utils.events.{EventContext, Signal}
 import com.waz.zclient.{Injectable, Injector}
-import com.waz.ZLog._
-import com.waz.ZLog.ImplicitTag._
 import org.threeten.bp.Instant
+
+import scala.concurrent.duration._
 
 class SelectionController(implicit injector: Injector, ev: EventContext) extends Injectable {
 
   private val zms = inject[Signal[ZMessaging]]
+  import com.waz.threading.Threading.Implicits.Ui
 
   val selectedConv = zms.flatMap(_.convsStats.selectedConversationId).collect { case Some(convId) => convId }
 
@@ -50,7 +54,7 @@ class SelectionController(implicit injector: Injector, ev: EventContext) extends
     def setSelected(id: MessageId, selected: Boolean) =
       selection.mutate(s => if (selected) s + id else s - id)
 
-    def setFocused(id: MessageId) = focused ! Some((id, Instant.now))
+    def setFocused(id: MessageId, isFocused: Boolean = true) = focused ! (if (isFocused) Some((id, Instant.now)) else None)
 
     def toggleFocused(id: MessageId) = {
       verbose(s"toggleFocused($id)")
