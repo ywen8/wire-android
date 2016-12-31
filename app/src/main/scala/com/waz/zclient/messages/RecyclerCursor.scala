@@ -21,7 +21,7 @@ import com.waz.ZLog.ImplicitTag._
 import com.waz.ZLog._
 import com.waz.content.ConvMessagesIndex._
 import com.waz.content.{ConvMessagesIndex, MessagesCursor}
-import com.waz.model.{ConvId, MessageData, MessageId}
+import com.waz.model.ConvId
 import com.waz.service.ZMessaging
 import com.waz.service.messages.MessageAndLikes
 import com.waz.threading.Threading
@@ -30,9 +30,6 @@ import com.waz.utils.events.{EventContext, Signal, Subscription}
 import com.waz.zclient.messages.RecyclerCursor.RecyclerNotifier
 import com.waz.zclient.{Injectable, Injector}
 import org.threeten.bp.Instant
-
-import scala.collection.Searching.{Found, InsertionPoint}
-import scala.collection.mutable.ListBuffer
 
 class RecyclerCursor(val conv: ConvId, zms: ZMessaging, adapter: RecyclerNotifier)(implicit inj: Injector, ev: EventContext) extends Injectable { self =>
 
@@ -47,19 +44,26 @@ class RecyclerCursor(val conv: ConvId, zms: ZMessaging, adapter: RecyclerNotifie
   val lastReadTime = Signal.future(index).flatMap(_.signals.lastReadTime)
   val countSignal = Signal[Int](0)
 
-  private val window = new IndexWindow()
+  private val window = new IndexWindow(this, adapter)
   private var closed = false
-  private var history = Seq.empty[ConvMessagesIndex.Change]
   private var cursor = Option.empty[MessagesCursor]
   private var subs = Seq.empty[Subscription]
   private var onChangedSub = Option.empty[Subscription]
+
+  // buffer storing all update notifications which are replayed when cursor is reloaded
+  // this is needed to notify list about updates which happened while cursor was being loaded
+  // without that we could miss some updates due to race conditions
+  private var history = Seq.empty[ConvMessagesIndex.Updated]
 
   index onSuccess { case idx =>
     verbose(s"index: $idx, closed?: $closed")
     if (!closed) {
       subs = Seq(
         idx.signals.messagesCursor.on(Threading.Ui) { setCursor },
-        idx.signals.indexChanged.on(Threading.Ui) { change => history = history :+ change }
+        idx.signals.indexChanged.on(Threading.Ui) {
+          case u: Updated => history = history :+ u
+          case _ => // ignore other changes
+        }
       )
     }
   }
@@ -81,6 +85,7 @@ class RecyclerCursor(val conv: ConvId, zms: ZMessaging, adapter: RecyclerNotifie
     verbose(s"setCursor: c: $c, count: ${c.size}")
     if (!closed) {
       self.cursor = Some(c)
+      window.cursorChanged(c)
       notifyFromHistory(c.createTime)
       countSignal ! c.size
       onChangedSub.foreach(_.destroy())
@@ -90,18 +95,12 @@ class RecyclerCursor(val conv: ConvId, zms: ZMessaging, adapter: RecyclerNotifie
 
   private def notifyFromHistory(time: Instant) = {
     verbose(s"notifyFromHistory($time)")
-    val (toApply, toLeave) = history.partition(_.time <= time)
-    history = toLeave
 
-    verbose(s"history: $toApply")
-    toApply foreach {
-      case Added(msgs) => msgs foreach window.onAdded // TODO: batching (use notifyRange if possible)
-      case Removed(msg) => window.onRemoved(msg)
-      case Updated(updates) => updates foreach { case (prev, current) => window.onUpdated(prev, current) }
-      case RemovedOlder(t) => window.onRemoved(t)
+    history foreach { change =>
+      change.updates foreach { case (prev, current) => window.onUpdated(prev, current) }
     }
 
-    if (toApply.isEmpty) adapter.notifyDataSetChanged()
+    history = history.filter(_.time.isAfter(time)) // leave only updates which happened after current cursor was loaded
   }
 
   private def onUpdated(prev: MessageAndLikes, current: MessageAndLikes) = {
@@ -121,125 +120,14 @@ class RecyclerCursor(val conv: ConvId, zms: ZMessaging, adapter: RecyclerNotifie
 
   def lastReadIndex() = cursor.fold(-1)(_.lastReadIndex)
 
-  class IndexWindow {
-    import MessagesCursor.Entry
-
-    private var offset = 0
-
-    def getOffset = offset
-
-    //just for printing
-    private var entries = new ListBuffer[Entry]()
-
-    def shouldReload(position: Int): Boolean = offset > math.max(0, position - 25) || offset + entries.length < math.min(count, position + 25)
-
-    def reload(c: MessagesCursor, position: Int) = {
-      offset = math.max(0, position - 50)
-      entries.clear()
-      entries ++= c.getEntries(offset, math.min(count - offset, 100))
-    }
-
-    private def search(e: Entry) = entries.toIndexedSeq.binarySearch(e, identity)
-
-    def clear() = {
-      offset = 0
-      entries.clear()
-      adapter.notifyDataSetChanged()
-    }
-
-    def onRemoved(upTo: Instant) =
-      search(Entry(MessageId("{}"), upTo)) match { // using `{}` as MessageId.MAX value
-        case InsertionPoint(ind) if ind < 0 && ind < entries.length =>
-          entries.remove(0, ind)
-          adapter.notifyItemRangeRemoved(0, offset + ind)
-        case _ =>
-          // removed all or no items from window, need to reload data set
-          clear()
-      }
-
-    def onRemoved(msg: MessageData) =
-      search(Entry(msg)) match {
-        case InsertionPoint(0) => // outside of window
-          offset -= 1
-          adapter.notifyItemRemoved(0)
-        case InsertionPoint(ind) if ind == entries.length =>
-          verbose(s"notifyRemoved ${offset + ind} (outside of window)")
-          adapter.notifyItemRemoved(offset + ind)
-        case InsertionPoint(_) =>
-          warn(s"onRemoved($msg) - message not found in current window")
-          clear()
-        case Found(ind) =>
-          entries.remove(ind, 1)
-          verbose(s"notifyRemoved ${offset + ind}")
-          adapter.notifyItemRemoved(offset + ind)
-      }
-
-    def onAdded(msg: MessageData) = {
-      val entry = Entry(msg)
-      search(entry) match {
-        case InsertionPoint(0) => // outside of window
-          offset += 1
-          verbose(s"notifyInserted 0")
-          adapter.notifyItemInserted(0)
-        case InsertionPoint(ind) if ind == entries.length =>
-          verbose(s"notifyInserted ${offset + entries.length}")
-          adapter.notifyItemInserted(offset + entries.length)
-        case InsertionPoint(ind) =>
-          entries.insert(ind, entry)
-          verbose(s"notifyInserted ${offset + ind}")
-          adapter.notifyItemInserted(offset + ind)
-        case Found(ind) =>
-          warn(s"onAdded($msg) - message already exists in current window")
-          entries.update(ind, entry)
-          adapter.notifyItemChanged(offset + ind)
-      }
-    }
-
-    def onUpdated(prev: MessageData, current: MessageData) = {
-      val pe = Entry(prev)
-      val ce = Entry(current)
-
-      if (pe == ce) {
-        verbose(s"position unchanged, will only notify adapter about data change")
-        search(pe) match {
-          case Found(pos) =>
-            verbose(s"found, notifiying adapter at pos: ${offset + pos}")
-            adapter.notifyItemChanged(offset + pos)
-          case _ => verbose("no need to notify about changes outside of window")
-        }
-      } else {
-        verbose("message position changed")
-        val len = entries.length
-
-        (search(pe), search(ce)) match {
-          case (InsertionPoint(0), InsertionPoint(0)) | (InsertionPoint(`len`), InsertionPoint(`len`)) =>
-            // message updated outside of window, ignoring
-          case (Found(src), InsertionPoint(dst)) if src == dst || src == dst - 1 =>
-            // time changed, but position remains the same
-            entries.update(src, ce)
-            adapter.notifyItemChanged(offset + src)
-          case (Found(src), InsertionPoint(dst)) =>
-            entries.remove(src)
-            val target = if (dst > src) dst - 1 else dst // use dst - 1 since one item was just removed on left side
-            entries.insert(target, ce)
-            adapter.notifyItemMoved(src + offset, target + offset)
-          case (InsertionPoint(src), InsertionPoint(target)) =>
-            entries.insert(target, ce)
-            adapter.notifyItemMoved(src + offset, target + offset)
-        }
-      }
-    }
-  }
 }
 
 object RecyclerCursor {
 
   trait RecyclerNotifier {
     def notifyDataSetChanged(): Unit
+    def notifyItemRangeInserted(index: Int, length: Int): Unit
     def notifyItemRangeRemoved(pos: Int, count: Int): Unit
-    def notifyItemRemoved(pos: Int): Unit
-    def notifyItemInserted(pos: Int): Unit
-    def notifyItemChanged(pos: Int): Unit
-    def notifyItemMoved(src: Int, dst: Int): Unit
+    def notifyItemRangeChanged(index: Int, length: Int): Unit
   }
 }

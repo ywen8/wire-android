@@ -102,7 +102,7 @@ class MessagesListAdapter(listDim: Signal[Dim2])(implicit inj: Injector, ec: Eve
   override def onCreateViewHolder(parent: ViewGroup, viewType: Int): MessageViewHolder =
     MessageViewHolder(MessageView(parent, viewType), adapter)
 
-  val notifier = new RecyclerNotifier {
+  lazy val notifier = new RecyclerNotifier {
     // view depends on two message entries,
     // most importantly, view needs to be refreshed if previous message was added or removed
 
@@ -110,24 +110,13 @@ class MessagesListAdapter(listDim: Signal[Dim2])(implicit inj: Injector, ec: Eve
       if (position >= 0 && position < getItemCount)
         adapter.notifyItemChanged(position)
 
-    override def notifyItemMoved(src: Int, dst: Int) = {
-      adapter.notifyItemMoved(src, dst)
-
-      notifyChangedIfExists(if (src < dst) src else src + 1)
-      notifyChangedIfExists(dst + 1)
+    override def notifyItemRangeInserted(index: Int, length: Int) = {
+      adapter.notifyItemRangeInserted(index, length)
+      notifyChangedIfExists(index + length + 1)
     }
 
-    override def notifyItemInserted(pos: Int) = {
-      adapter.notifyItemInserted(pos)
-
-      notifyChangedIfExists(pos + 1)
-    }
-
-    override def notifyItemRemoved(pos: Int) =
-      notifyItemRangeRemoved(pos, 1)
-
-    override def notifyItemChanged(pos: Int) =
-      adapter.notifyItemChanged(pos)
+    override def notifyItemRangeChanged(index: Int, length: Int) =
+      adapter.notifyItemRangeChanged(index, length)
 
     override def notifyItemRangeRemoved(pos: Int, count: Int) = {
       adapter.notifyItemRangeRemoved(pos, count)
