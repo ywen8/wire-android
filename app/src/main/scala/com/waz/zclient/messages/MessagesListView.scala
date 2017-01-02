@@ -42,6 +42,7 @@ class MessagesListView(context: Context, attrs: AttributeSet, style: Int) extend
 
   val viewDim = Signal[Dim2]()
   val layoutManager = new LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false) {
+    setStackFromEnd(true)
     override def supportsPredictiveItemAnimations(): Boolean = true
   }
   val adapter = new MessagesListAdapter(viewDim)

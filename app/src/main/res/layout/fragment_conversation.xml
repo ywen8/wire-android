@@ -92,7 +92,6 @@
                 android:layout_height="match_parent"
                 android:divider="@null"
                 android:drawSelectorOnTop="false"
-                android:stackFromBottom="true"
                 android:transcriptMode="disabled"
                 android:listSelector="@color/transparent"
                 android:paddingBottom="@dimen/wire__padding__tiny"
