@@ -37,7 +37,6 @@ import org.threeten.bp.{DateTimeUtils, Instant}
 import scala.concurrent.duration._
 
 class FooterViewController(implicit inj: Injector, context: Context, ec: EventContext) extends Injectable {
-  import FooterViewController._
   import com.waz.threading.Threading.Implicits.Ui
 
   val zms = inject[Signal[ZMessaging]]
@@ -58,27 +57,22 @@ class FooterViewController(implicit inj: Injector, context: Context, ec: EventCo
   val likedBySelfTime = Signal(Instant.EPOCH)
   likedBySelf.onChanged(_ => likedBySelfTime ! Instant.now)
 
-  val timeoutActive = (for {
-    id <- message.map(_.id)
-    fTime <- selection.focusChangedTime(id)
-    lTime <- likedBySelfTime
-  } yield (fTime, lTime)).flatMap {
-    case (fTime, lTime) =>
-      if (lTime.isAfter(fTime)) Signal const false
-      else {
-        val delay = Instant.now.until(fTime.plus(FocusTimeout)).asScala
-        if (delay.isNegative) Signal const false
-        else {
-          Signal.future(CancellableFuture.delayed(delay)(false)).orElse(Signal const true) // signal `true` switching to `false` after delay
-        }
-      }
-  }
+  val active =
+    for {
+      (activeId, time) <- selection.lastActive
+      msgId            <- message.map(_.id)
+      lTime            <- likedBySelfTime
+      untilTimeout = Instant.now.until(time.plus(selection.ActivityTimeout)).asScala
+      active <-
+        if (msgId != activeId || lTime.isAfter(time) || untilTimeout <= Duration.Zero) Signal.const(false)
+        else Signal.future(CancellableFuture.delayed(untilTimeout)(false)).orElse(Signal const true) // signal `true` switching to `false` on timeout
+    } yield active
 
   val showTimestamp: Signal[Boolean] = for {
     liked     <- isLiked
     selfMsg   <- isSelfMessage
     expiring  <- expiring
-    timeAct <- timeoutActive
+    timeAct   <- active
   } yield
     timeAct || expiring || (selfMsg && !liked)
 
@@ -156,8 +150,4 @@ class FooterViewController(implicit inj: Injector, context: Context, ec: EventCo
     stringBuilder.append(context.getResources.getQuantityString(R.plurals.message_footer__expire__seconds, seconds, new Integer(seconds)))
     context.getString(R.string.message_footer__status__ephemeral_summary, timestamp, stringBuilder.toString)
   }
-}
-
-object FooterViewController {
-  val FocusTimeout = 3.seconds
 }

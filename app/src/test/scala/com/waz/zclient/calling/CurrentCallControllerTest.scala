@@ -50,10 +50,12 @@ class CurrentCallControllerTest extends JUnitSuite {
   implicit val printSignalVals: PrintValues = false
   implicit val context = mock(classOf[TestWireContext])
 
+  import com.waz.utils.events.EventContext.Implicits.global
+
   implicit lazy val module = new Module {
     bind[Context] to context
     bind[Signal[Option[ZMessaging]]] to Signal.const(Some(zMessaging))
-    bind[GlobalCallingController] to new GlobalCallingController(context)
+    bind[GlobalCallingController] to new GlobalCallingController()
     bind[PowerManager] to null //not needed for tests
     bind[PermissionsController] to null //not needed for tests
   }

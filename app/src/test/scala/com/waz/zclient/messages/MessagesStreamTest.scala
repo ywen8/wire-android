@@ -97,8 +97,9 @@ class MessagesStreamTest extends JUnitSuite {
   def initialLastRead(): Unit = {
     addTextMessages(10, conv1.id)
     selectConversation(conv1.id)
-    signalTest(attachListViewToActivity().adapter.nextUnreadIndex) {
-      case (_, 0) => true
+    val adapter = attachListViewToActivity().adapter
+    signalTest(adapter.cursor.map(_ => adapter.unreadIndex.index)) {
+      case 0 => true
       case _ => false
     } {}
   }

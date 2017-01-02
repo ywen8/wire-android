@@ -110,8 +110,8 @@ case class MessageViewHolder(view: MessageView, adapter: MessagesListAdapter)(im
   private var opts = Option.empty[MsgBindOptions]
   private var _isFocused = false
 
-  selection.onFocusChanged.on(Threading.Ui) { f =>
-    if (_isFocused != (f == id)) adapter.notifyItemChanged(getAdapterPosition)
+  selection.focused.onChanged.on(Threading.Ui) { mId =>
+    if (_isFocused != (id == mId)) adapter.notifyItemChanged(getAdapterPosition)
   }
 
   msgsController.lastSelfMessage.onChanged.on(Threading.Ui) { m =>
@@ -130,7 +130,7 @@ case class MessageViewHolder(view: MessageView, adapter: MessagesListAdapter)(im
     view.set(msg, prev, opts)
     id = Some(msg.message.id)
     this.opts = Some(opts)
-    _isFocused = selection.lastFocused == id
+    _isFocused = id.exists(selection.isFocused)
 
     msgsController.onMessageRead(msg.message)
   }

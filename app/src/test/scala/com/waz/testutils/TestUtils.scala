@@ -17,14 +17,18 @@
  */
 package com.waz.testutils
 
-import java.util.concurrent.{CountDownLatch, TimeUnit}
+import java.util.concurrent.{CountDownLatch, TimeUnit, TimeoutException}
 
 import android.support.v4.app.FragmentActivity
 import com.waz.utils.events.{EventContext, Signal}
-import com.waz.zclient.{Injector, ActivityHelper, WireContext}
+import com.waz.utils._
+import com.waz.zclient.{ActivityHelper, Injector, WireContext}
+import org.robolectric.Robolectric
+import org.threeten.bp.Instant
 
-import scala.concurrent.duration.Duration
-import scala.concurrent.{Await, ExecutionContext}
+import scala.concurrent.duration._
+import scala.concurrent.{Await, ExecutionContext, Future}
+import scala.util.{Failure, Success}
 
 object TestUtils {
 
@@ -36,11 +40,23 @@ object TestUtils {
     signal.disableAutowiring()
     trigger
     if (printVals) println("****")
-    Await.result(signal.filter { value =>
-      if (printVals) println(value)
-      test(value)
-    }.head, Duration(timeoutMillis, TimeUnit.MILLISECONDS))
+    awaitUi(signal.filter { value => if (printVals) println(value); test (value) }.head)(timeoutMillis.millis)
     if (printVals) println("****")
+  }
+
+  // active wait to make sure UI thread is not blocked (Robolectric blocks it)
+  def awaitUi[A](f: Future[A])(implicit timeout: FiniteDuration = 5.seconds): A = {
+    val endTime = Instant.now + timeout
+    while (!f.isCompleted && Instant.now.isBefore(endTime)) {
+      Robolectric.runBackgroundTasks()
+      Robolectric.runUiThreadTasksIncludingDelayedTasks()
+      Thread.sleep(50) // sleep a bit
+    }
+    f.value match {
+      case None => throw new TimeoutException("Future did not complete within supplied timeout")
+      case Some(Failure(ex)) => throw ex
+      case Some(Success(res)) => res
+    }
   }
 
   type PrintValues = Boolean

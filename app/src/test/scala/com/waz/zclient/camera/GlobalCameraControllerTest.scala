@@ -49,6 +49,8 @@ class GlobalCameraControllerTest extends JUnitSuite with RobolectricSuite {
 
   implicit val defaultDuration = Duration(30, TimeUnit.SECONDS)
 
+  import com.waz.utils.events.EventContext.Implicits.global
+
   implicit val printSignalVals: PrintValues = false
   implicit val context = mock(classOf[TestWireContext])
   implicit val eventContext = EventContext.Global
@@ -183,7 +185,7 @@ class GlobalCameraControllerTest extends JUnitSuite with RobolectricSuite {
 
   def createController(camInfos: Seq[CameraInfo] = Seq(defaultInfo)) = {
     when(cameraFactory.getCameraInfos).thenReturn(camInfos)
-    new GlobalCameraController(module.inject[Context], cameraFactory)
+    new GlobalCameraController(cameraFactory)
   }
 
   def createMockCamera(info: CameraInfo = defaultInfo, previewSize: PreviewSize = defaultPreviewSize, flashModes: Set[FlashMode] = Set.empty) = {

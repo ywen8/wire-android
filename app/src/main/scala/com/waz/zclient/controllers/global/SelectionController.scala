@@ -21,48 +21,57 @@ import com.waz.ZLog.ImplicitTag._
 import com.waz.ZLog._
 import com.waz.model.MessageId
 import com.waz.service.ZMessaging
-import com.waz.utils.events.{EventContext, EventStream, Signal}
+import com.waz.utils._
+import com.waz.utils.events.{EventContext, Signal}
 import com.waz.zclient.{Injectable, Injector}
 import org.threeten.bp.Instant
 
-class SelectionController(implicit injector: Injector, ev: EventContext) extends Injectable {
+import scala.concurrent.duration._
 
-  private val zms = inject[Signal[ZMessaging]]
+class SelectionController(implicit injector: Injector, ev: EventContext) extends Injectable { ctrl =>
+
+  val zms = inject[Signal[ZMessaging]]
 
   val selectedConv = zms.flatMap(_.convsStats.selectedConversationId).collect { case Some(convId) => convId }
 
   object messages {
 
-    //(currentlyFocusedMsg, prevFocusedMsg, timeFocusChanged)
-    private val focused = Signal((Option.empty[MessageId], Option.empty[MessageId], Instant.EPOCH))
+    val ActivityTimeout = 3.seconds
+
+    /**
+      * Currently focused message.
+      * There is only one focused message, switched by tapping.
+      */
+    val focused = Signal(Option.empty[MessageId])
+
+    /**
+      * Tracks last focused message together with last action time.
+      * It's not cleared when message is unfocused, and toggleFocus takes timeout into account.
+      * This is used to decide if timestamp view should be shown in footer when message has likes.
+      */
+    val lastActive = Signal((MessageId.Empty, Instant.EPOCH)) // message showing status info
 
     selectedConv.onChanged { _ => clear() }
 
-    def clear() = focused ! (None, None, Instant.EPOCH)
-
-    def isFocused(id: MessageId): Signal[Boolean] = focused.map {
-      case (Some(`id`), _, _) => true
-      case _ => false
+    def clear() = {
+      focused ! None
+      lastActive ! (MessageId.Empty, Instant.EPOCH)
     }
 
-    //Returns the time that a message either gains or loses focus
-    def focusChangedTime(id: MessageId): Signal[Instant] = focused.map {
-      case (Some(`id`), _, time) => time
-      case (_, Some(`id`), time) => time
-      case _ => Instant.EPOCH
-    }
+    def isFocused(id: MessageId): Boolean = focused.currentValue.flatten.contains(id)
 
-    def onFocusChanged: EventStream[Option[MessageId]] = focused.map(_._1).onChanged
-
-    def lastFocused: Option[MessageId] = focused.currentValue.flatMap(_._1)
-
-    //Shuffle the currently focused message down to previously focused message. If they're the same, the current
-    //focused message is then None (no focus), else, put the newly focused message in the current spot.
+    /**
+      * Switches current msg focus state to/from given msg.
+      */
     def toggleFocused(id: MessageId) = {
       verbose(s"toggleFocused($id)")
-      focused.mutate {
-        case (oldId@Some(`id`), _, _) => (None, oldId, Instant.now)
-        case (oldId, _, _)            => (Some(id), oldId, Instant.now)
+      focused mutate {
+        case Some(`id`) => None
+        case _ => Some(id)
+      }
+      lastActive.mutate {
+        case (`id`, t) if !ActivityTimeout.elapsedSince(t) => (id, Instant.EPOCH)
+        case _ => (id, Instant.now)
       }
     }
   }

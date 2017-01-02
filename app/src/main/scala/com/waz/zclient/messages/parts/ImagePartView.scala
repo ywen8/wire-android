@@ -22,7 +22,6 @@ import android.util.AttributeSet
 import android.view.View
 import android.widget.FrameLayout
 import com.waz.ZLog.ImplicitTag._
-import com.waz.ZLog.verbose
 import com.waz.threading.Threading
 import com.waz.zclient.R
 import com.waz.zclient.controllers.AssetsController
@@ -41,6 +40,8 @@ class ImagePartView(context: Context, attrs: AttributeSet, style: Int) extends F
 
   override def inflate(): Unit = inflate(R.layout.message_image_content)
 
+  private val selection = inject[SelectionController].messages
+
   private lazy val assets = inject[AssetsController]
   private val imageActions = findById[View](R.id.image_actions)
 
@@ -54,7 +55,7 @@ class ImagePartView(context: Context, attrs: AttributeSet, style: Int) extends F
 
   findById[View](R.id.button_fullscreen).onClick(message.currentValue foreach (assets.showSingleImage(_, this)))
 
-  message.flatMap(m => inject[SelectionController].messages.isFocused(m.id)).on(Threading.Ui)(imageActions.setVisible)
+  message.flatMap(m => selection.focused.map(_.contains(m.id))).on(Threading.Ui)(imageActions.setVisible)
 
   private def openDrawingFragment(drawingMethod: DrawingMethod) =
     message.currentValue foreach (assets.openDrawingFragment(_, drawingMethod))
