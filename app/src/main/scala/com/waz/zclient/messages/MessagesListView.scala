@@ -104,34 +104,32 @@ case class MessageViewHolder(view: MessageView, adapter: MessagesListAdapter)(im
 
   private val selection = inject[SelectionController].messages
   private val msgsController = inject[MessagesController]
-  private var id: MessageId = _
+
+  private var id = Option.empty[MessageId]
   private var opts = Option.empty[MsgBindOptions]
   private var _isFocused = false
 
-  selection.focused.onChanged.on(Threading.Ui) { f =>
-    if (_isFocused != f.exists(_._1 == id)) adapter.notifyItemChanged(getAdapterPosition)
+  selection.onFocusChanged.on(Threading.Ui) { f =>
+    if (_isFocused != (f == id)) adapter.notifyItemChanged(getAdapterPosition)
   }
 
   msgsController.lastSelfMessage.onChanged.on(Threading.Ui) { m =>
     opts foreach { o =>
-      if (o.isLastSelf != (m.id == id)) adapter.notifyItemChanged(getAdapterPosition)
+      if (o.isLastSelf != id.contains(m.id)) adapter.notifyItemChanged(getAdapterPosition)
     }
   }
 
   msgsController.lastMessage.onChanged.on(Threading.Ui) { m =>
     opts foreach { o =>
-      if (o.isLast != (m.id == id)) adapter.notifyItemChanged(getAdapterPosition)
+      if (o.isLast != id.contains(m.id)) adapter.notifyItemChanged(getAdapterPosition)
     }
   }
 
-  def isFocused = _isFocused
-
   def bind(msg: MessageAndLikes, prev: Option[MessageData], opts: MsgBindOptions): Unit = {
-    val nowFocused = selection.lastFocused.contains(id)
-    view.set(msg, prev, opts.copy(focused = nowFocused))
-    id = msg.message.id
+    view.set(msg, prev, opts)
+    id = Some(msg.message.id)
     this.opts = Some(opts)
-    _isFocused = nowFocused
+    _isFocused = selection.lastFocused == id
 
     msgsController.onMessageRead(msg.message)
   }

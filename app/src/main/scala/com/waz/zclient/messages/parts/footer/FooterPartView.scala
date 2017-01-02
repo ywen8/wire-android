@@ -50,9 +50,6 @@ class FooterPartView(context: Context, attrs: AttributeSet, style: Int) extends 
 
   val controller = new FooterViewController
   val message = controller.message
-  val selection = controller.selection
-  val isLiked = controller.isLiked
-  val focused = controller.focused
 
   val height = Signal[Int]()
   val contentOffset = Signal[Float]()

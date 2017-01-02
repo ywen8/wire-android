@@ -21,46 +21,48 @@ import com.waz.ZLog.ImplicitTag._
 import com.waz.ZLog._
 import com.waz.model.MessageId
 import com.waz.service.ZMessaging
-import com.waz.threading.CancellableFuture
-import com.waz.utils.events.{EventContext, Signal}
+import com.waz.utils.events.{EventContext, EventStream, Signal}
 import com.waz.zclient.{Injectable, Injector}
 import org.threeten.bp.Instant
-
-import scala.concurrent.duration._
 
 class SelectionController(implicit injector: Injector, ev: EventContext) extends Injectable {
 
   private val zms = inject[Signal[ZMessaging]]
-  import com.waz.threading.Threading.Implicits.Ui
 
   val selectedConv = zms.flatMap(_.convsStats.selectedConversationId).collect { case Some(convId) => convId }
 
   object messages {
-    private val selection = Signal(Set.empty[MessageId])
 
-    val focused = Signal(Option.empty[(MessageId, Instant)])
+    //(currentlyFocusedMsg, prevFocusedMsg, timeFocusChanged)
+    private val focused = Signal((Option.empty[MessageId], Option.empty[MessageId], Instant.EPOCH))
 
     selectedConv.onChanged { _ => clear() }
 
-    def clear() = {
-      selection.mutate(_ => Set.empty)
-      focused ! None
+    def clear() = focused ! (None, None, Instant.EPOCH)
+
+    def isFocused(id: MessageId): Signal[Boolean] = focused.map {
+      case (Some(`id`), _, _) => true
+      case _ => false
     }
 
-    def lastFocused = focused.currentValue.flatMap(_.map(_._1))
+    //Returns the time that a message either gains or loses focus
+    def focusChangedTime(id: MessageId): Signal[Instant] = focused.map {
+      case (Some(`id`), _, time) => time
+      case (_, Some(`id`), time) => time
+      case _ => Instant.EPOCH
+    }
 
-    def isSelected(id: MessageId): Signal[Boolean] = selection map { _.contains(id) }
+    def onFocusChanged: EventStream[Option[MessageId]] = focused.map(_._1).onChanged
 
-    def setSelected(id: MessageId, selected: Boolean) =
-      selection.mutate(s => if (selected) s + id else s - id)
+    def lastFocused: Option[MessageId] = focused.currentValue.flatMap(_._1)
 
-    def setFocused(id: MessageId, isFocused: Boolean = true) = focused ! (if (isFocused) Some((id, Instant.now)) else None)
-
+    //Shuffle the currently focused message down to previously focused message. If they're the same, the current
+    //focused message is then None (no focus), else, put the newly focused message in the current spot.
     def toggleFocused(id: MessageId) = {
       verbose(s"toggleFocused($id)")
       focused.mutate {
-        case Some((`id`, _)) => None
-        case _ => Some((id, Instant.now))
+        case (oldId@Some(`id`), _, _) => (None, oldId, Instant.now)
+        case (oldId, _, _)            => (Some(id), oldId, Instant.now)
       }
     }
   }

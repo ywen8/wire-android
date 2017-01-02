@@ -21,13 +21,14 @@ import android.content.Context
 import android.util.AttributeSet
 import android.view.View
 import android.widget.FrameLayout
-import com.waz.model.{MessageContent, MessageData}
+import com.waz.ZLog.ImplicitTag._
+import com.waz.ZLog.verbose
 import com.waz.threading.Threading
 import com.waz.zclient.R
 import com.waz.zclient.controllers.AssetsController
 import com.waz.zclient.controllers.drawing.IDrawingController.DrawingMethod
 import com.waz.zclient.controllers.drawing.IDrawingController.DrawingMethod._
-import com.waz.zclient.messages.MessageView.MsgBindOptions
+import com.waz.zclient.controllers.global.SelectionController
 import com.waz.zclient.messages.MsgPart
 import com.waz.zclient.messages.parts.assets.ImageLayoutAssetPart
 import com.waz.zclient.utils.RichView
@@ -51,14 +52,9 @@ class ImagePartView(context: Context, attrs: AttributeSet, style: Int) extends F
 
   findById[View](R.id.button_text).onClick(openDrawingFragment(TEXT))
 
-  findById[View](R.id.button_fullscreen).onClick {
-    message.currentValue foreach (assets.showSingleImage(_, this))
-  }
+  findById[View](R.id.button_fullscreen).onClick(message.currentValue foreach (assets.showSingleImage(_, this)))
 
-  override def set(msg: MessageData, part: Option[MessageContent], opts: MsgBindOptions): Unit = {
-    imageActions.setVisible(opts.focused)
-    super.set(msg, part, opts)
-  }
+  message.flatMap(m => inject[SelectionController].messages.isFocused(m.id)).on(Threading.Ui)(imageActions.setVisible)
 
   private def openDrawingFragment(drawingMethod: DrawingMethod) =
     message.currentValue foreach (assets.openDrawingFragment(_, drawingMethod))

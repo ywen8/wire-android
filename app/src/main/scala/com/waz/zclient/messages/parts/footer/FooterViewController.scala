@@ -18,8 +18,6 @@
 package com.waz.zclient.messages.parts.footer
 
 import android.content.Context
-import com.waz.ZLog.ImplicitTag._
-import com.waz.ZLog.verbose
 import com.waz.api.Message.Status
 import com.waz.model.ConversationData.ConversationType
 import com.waz.model.MessageData
@@ -52,56 +50,37 @@ class FooterViewController(implicit inj: Injector, context: Context, ec: EventCo
   val messageAndLikes = Signal[MessageAndLikes]()
   val isSelfMessage = opts.map(_.isSelf)
   val message = messageAndLikes.map(_.message)
-  val messageId = message.map(_.id)
   val isLiked = messageAndLikes.map(_.likes.nonEmpty)
   val likedBySelf = messageAndLikes.map(_.likedBySelf)
   val expiring = message.map { msg => msg.isEphemeral && !msg.expired && msg.expiryTime.isDefined }
 
-  /**
-    * FIXME: There is an awkward coupling now between "timestamp being shown" and "view focused"
-    * This is problematic for some other views that both want to handle onClick events AND still allow for the timestamp
-    * to appear, such as the ImagePartView. The Image controls now appear and disappear in time with the FocusTimeout,
-    * and also disappear if the likes change.
-    *
-    * However, it's hard to separate this coupling right now, since if the timeout finishes, and then we DON'T set
-    * the focused state in the selection controller back to false, then the next time the user clicks on the same view,
-    * the focus will THEN be removed and we won't show the time stamp. That is, the user would have to click twice to
-    * get the timestamp to appear again.
-    */
+  //if the user likes OR dislikes something, we want to allow the timestamp/footer to disappear immediately
+  val likedBySelfTime = Signal(Instant.EPOCH)
+  likedBySelf.onChanged(_ => likedBySelfTime ! Instant.now)
 
-  val focusedTime = selection.focused.zip(message.map(_.id)).map {
-    case (Some((selectedId, time)), thisId) if selectedId == thisId => time
-    case _ => Instant.EPOCH
+  val timeoutActive = (for {
+    id <- message.map(_.id)
+    fTime <- selection.focusChangedTime(id)
+    lTime <- likedBySelfTime
+  } yield (fTime, lTime)).flatMap {
+    case (fTime, lTime) =>
+      if (lTime.isAfter(fTime)) Signal const false
+      else {
+        val delay = Instant.now.until(fTime.plus(FocusTimeout)).asScala
+        if (delay.isNegative) Signal const false
+        else {
+          Signal.future(CancellableFuture.delayed(delay)(false)).orElse(Signal const true) // signal `true` switching to `false` after delay
+        }
+      }
   }
-
-  private var currentTimeout = CancellableFuture.cancelled[Boolean]()
-  val focused = focusedTime flatMap { time =>
-    val delay = Instant.now.until(time.plus(FocusTimeout)).asScala
-    verbose(s"focus will change after: $delay")
-    if (delay.isNegative) Signal const false
-    else {
-      currentTimeout.cancel()
-      currentTimeout = CancellableFuture.delayed(delay)(false)
-      Signal.future(currentTimeout).orElse(Signal const true) // signal `true` switching to `false` after delay
-    }
-  }
-
-  //if the user likes something, we want to show the likes immediately, so we need to drop the timeout and remove focus
-  likedBySelf.onChanged.filter(_ == true) { _ =>
-    currentTimeout.cancel()
-    messageId.currentValue.foreach(selection.setFocused(_, isFocused = false))
-  }
-
-  //tell the selection controller to unfocus when the timeout is up
-  focused.onChanged.filter(_ == false)(_ => messageId.currentValue.foreach(selection.setFocused(_, isFocused = false)))
 
   val showTimestamp: Signal[Boolean] = for {
     liked     <- isLiked
     selfMsg   <- isSelfMessage
     expiring  <- expiring
-    focused   <- focused
+    timeAct <- timeoutActive
   } yield
-    focused || expiring || (selfMsg && !liked)
+    timeAct || expiring || (selfMsg && !liked)
 
   val ephemeralTimeout: Signal[Option[FiniteDuration]] = message.map(_.expiryTime) flatMap {
     case None => Signal const None
@@ -143,7 +122,6 @@ class FooterViewController(implicit inj: Injector, context: Context, ec: EventCo
     mAndL <- messageAndLikes.head
   } {
     val msg = mAndL.message
-    selection.setFocused(msg.id)
     if (mAndL.likedBySelf) reacts.unlike(msg.convId, msg.id)
     else reacts.like(msg.convId, msg.id)
   }
