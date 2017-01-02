@@ -133,10 +133,10 @@ trait ImageLayoutAssetPart extends ContentAssetPart {
     w <- viewWidth
     Dim2(dW, dH) <- displaySize
   } yield {
-    if (dW >= w) Rectangle.Empty
+    if (dW >= w) Offset.Empty
     else {
       val left = if (getLayoutDirection == View.LAYOUT_DIRECTION_LTR) contentPaddingStart else w - contentPaddingStart - dW
-      Rectangle(left, 0, w - dW - left, 0)
+      Offset(left, 0, w - dW - left, 0)
     }
   }
 

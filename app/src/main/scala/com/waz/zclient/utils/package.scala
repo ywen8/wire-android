@@ -29,10 +29,9 @@ import com.waz.zclient.ui.utils.ResourceUtils
 
 package object utils {
 
-  case class Rectangle(l: Int, t: Int, r: Int, b: Int)
-  object Rectangle {
-    val Empty = Rectangle(0, 0, 0, 0)
-    def apply(r: Rect): Rectangle = Rectangle(r.left, r.top, r.right, r.bottom)
+  case class Offset(l: Int, t: Int, r: Int, b: Int)
+  object Offset {
+    val Empty = Offset(0, 0, 0, 0)
   }
 
   implicit class RichView(val view: View) extends AnyVal {
@@ -46,7 +45,7 @@ package object utils {
       view.requestLayout()
     }
 
-    def setMargin(r: Rectangle): Unit = setMargin(r.l, r.t, r.r, r.b)
+    def setMargin(r: Offset): Unit = setMargin(r.l, r.t, r.r, r.b)
 
     def setMargin(l: Int, t: Int, r: Int, b: Int): Unit = {
       val lp = view.getLayoutParams.asInstanceOf[ViewGroup.MarginLayoutParams]

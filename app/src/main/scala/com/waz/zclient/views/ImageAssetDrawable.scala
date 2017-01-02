@@ -32,7 +32,7 @@ import com.waz.threading.Threading
 import com.waz.ui.MemoryImageCache.BitmapRequest
 import com.waz.ui.MemoryImageCache.BitmapRequest.Regular
 import com.waz.utils.events.{EventContext, Signal}
-import com.waz.zclient.utils.Rectangle
+import com.waz.zclient.utils.Offset
 import com.waz.zclient.views.ImageAssetDrawable.{RequestBuilder, ScaleType, State}
 import com.waz.zclient.views.ImageController._
 import com.waz.zclient.{Injectable, Injector}
@@ -53,7 +53,7 @@ class ImageAssetDrawable(
 
   private val animator = ValueAnimator.ofFloat(0, 1).setDuration(750)
 
-  val padding = Signal(Rectangle.Empty)
+  val padding = Signal(Offset.Empty)
 
   animator.addUpdateListener(new AnimatorUpdateListener {
     override def onAnimationUpdate(animation: ValueAnimator): Unit = {
@@ -75,7 +75,7 @@ class ImageAssetDrawable(
   }
 
   background foreach { bg =>
-    dims.zip(padding) { case (_, Rectangle(l, t, r, b)) =>
+    dims.zip(padding) { case (_, Offset(l, t, r, b)) =>
       val bounds = getBounds
       bg.setBounds(bounds.left + l, bounds.top + t, bounds.right - r, bounds.bottom - b)
     }
@@ -103,7 +103,7 @@ class ImageAssetDrawable(
 
     def updateMatrix(b: Bitmap) = {
       val bounds = getBounds
-      val p = padding.currentValue.getOrElse(Rectangle.Empty)
+      val p = padding.currentValue.getOrElse(Offset.Empty)
       scaleType(matrix, b.getWidth, b.getHeight, Dim2(bounds.width() - p.l - p.r, bounds.height() - p.t - p.b))
       matrix.postTranslate(bounds.left + p.l, bounds.top + p.t)
     }
