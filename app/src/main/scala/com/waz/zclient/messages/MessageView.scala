@@ -134,7 +134,7 @@ class MessageView(context: Context, attrs: AttributeSet, style: Int)
   }
 
   private def shouldShowChathead(msg: MessageData, prev: Option[MessageData]) = {
-    val userChanged = prev.forall(m => m.userId != msg.userId || m.isSystemMessage)
+    val userChanged = prev.exists(m => m.userId != msg.userId || m.isSystemMessage)
     val recalled = msg.msgType == Message.Type.RECALLED
     val edited = msg.editTime != Instant.EPOCH
     val knock = msg.msgType == Message.Type.KNOCK
