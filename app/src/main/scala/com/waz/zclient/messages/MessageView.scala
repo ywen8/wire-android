@@ -179,8 +179,7 @@ object MessageView {
   case object TextLike extends MarginRule
   case object ImageLike extends MarginRule
   case object FileLike extends MarginRule
-  case object MemberChange extends MarginRule
-  case object Rename extends MarginRule
+  case object SystemLike extends MarginRule
   case object Ping extends MarginRule
   case object MissedCall extends MarginRule
   case object Other extends MarginRule
@@ -195,7 +194,6 @@ object MessageView {
              User |
              Text => TextLike
         case MsgPart.Ping => Ping
-        case MsgPart.Rename => Rename
         case FileAsset |
              AudioAsset |
              WebLink |
@@ -203,7 +201,9 @@ object MessageView {
              Location |
              SoundCloud => FileLike
         case Image | VideoAsset => ImageLike
-        case MsgPart.MemberChange => MemberChange
+        case MsgPart.MemberChange |
+             MsgPart.OtrMessage |
+             MsgPart.Rename => SystemLike
         case MsgPart.MissedCall => MissedCall
         case _ => Other
       }
@@ -212,7 +212,7 @@ object MessageView {
 
   def getTopMargin(prevTpe: Option[Message.Type], topPart: MsgPart)(implicit context: Context): Int = {
     if (prevTpe.isEmpty)
-      if (MarginRule(topPart) == MemberChange) toPx(24) else 0
+      if (MarginRule(topPart) == SystemLike) toPx(24) else 0
     else {
       val p = (MarginRule(prevTpe.get), MarginRule(topPart)) match {
         case (TextLike, TextLike)         => 8
@@ -221,10 +221,9 @@ object MessageView {
         case (ImageLike, ImageLike)       => 4
         case (FileLike | ImageLike, _) |
              (_, FileLike | ImageLike)    => 10
-        case (Rename, _)                  => 24
         case (MissedCall, _)              => 24
-        case (MemberChange, _) |
-             (_, MemberChange)            => 24
+        case (SystemLike, _) |
+             (_, SystemLike)              => 24
         case (_, Ping) | (Ping, _)        => 14
         case (_, MissedCall)              => 24
         case _                            => 0
