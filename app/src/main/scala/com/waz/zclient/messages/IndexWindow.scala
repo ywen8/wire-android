@@ -44,6 +44,7 @@ class IndexWindow(cursor: RecyclerCursor, notifier: RecyclerNotifier) {
   private val ord = implicitly[Ordering[Entry]]
 
   var data = IndexedSeq.empty[Entry]
+  var totalCount = 0
 
   var offset = 0
 
@@ -53,6 +54,12 @@ class IndexWindow(cursor: RecyclerCursor, notifier: RecyclerNotifier) {
   def reload(c: MessagesCursor, position: Int) = {
     offset = math.max(0, position - 50)
     data = c.getEntries(offset, math.min(cursor.count - offset, 100)).toIndexedSeq
+    val size = c.size
+    if (size != totalCount) {
+      totalCount = size
+      error("MessagesCursor size has changed unexpectedly, will notify data set change.")
+      notifier.notifyDataSetChanged()
+    }
   }
 
   private def search(e: Entry) = data.binarySearch(e, identity)
@@ -80,24 +87,34 @@ class IndexWindow(cursor: RecyclerCursor, notifier: RecyclerNotifier) {
     * RecyclerView expects to receive just one notification anyway, so we will fall back to generic notifyItemRangeChanged
     * in case of more complicated changes, will notify with range encompassing all changes.
     *
+    * We also track total count of messages to detect any additions or removals outside of current window.
+    * Will report full data set change if deduced changes doen't add up with total count, this is needed to avoid inconsistencies in recycler view.
+    *
     * XXX: This doesn't work well when message is moved, it will just update all messages in range of move.
     * We might want to improve that, although we rarely move messages, only in case of race conditions,
     * there is no intended use case for moving of message.
     */
   def cursorChanged(c: MessagesCursor) = {
     val items = c.getEntries(offset, math.min(cursor.count - offset, 100)).toIndexedSeq
+    val prevCount = totalCount
     val change = diff(data, items).result
     data = items
+    totalCount = c.size
     val count = math.min(change.count, cursor.count - offset - change.index)
-    if (offset > 0 && count > items.size / 2) notifier.notifyDataSetChanged()
-    else change match {
-      case Change.None => // nothing really changed
-      case Change.Added(index, _) =>
+    if (count > 5 && count > items.size / 2) {
+      // revert to reporting full data set change if detected change is big (most of the items, excluding small windows)
+      notifier.notifyDataSetChanged()
+    } else change match {
+      case Change.None if prevCount == totalCount => // nothing really changed
+      case Change.Added(index, _) if prevCount + count == totalCount =>
         notifier.notifyItemRangeInserted(offset + index, count)
-      case Change.Removed(index, _) =>
+      case Change.Removed(index, _) if prevCount - count == totalCount =>
         notifier.notifyItemRangeRemoved(offset + index, count)
-      case Change.Changed(index, _) =>
+      case Change.Changed(index, _) if prevCount == totalCount =>
         notifier.notifyItemRangeChanged(offset + index, count)
+      case _ =>
+        // report full data set change if detected change doesn't add up with total count
+        notifier.notifyDataSetChanged()
     }
   }
 
