@@ -22,8 +22,8 @@ import java.util
 import android.view.ViewGroup
 import com.waz.ZLog.ImplicitTag._
 import com.waz.ZLog._
-import com.waz.model.{ConvId, Dim2}
 import com.waz.model.ConversationData.ConversationType
+import com.waz.model.{ConvId, Dim2}
 import com.waz.service.ZMessaging
 import com.waz.threading.Threading
 import com.waz.utils.events.{EventContext, Signal}
@@ -90,13 +90,15 @@ class MessagesListAdapter(listDim: Signal[Dim2])(implicit inj: Injector, ec: Eve
   override def onBindViewHolder(holder: MessageViewHolder, pos: Int, payloads: util.List[AnyRef]): Unit = {
     verbose(s"onBindViewHolder: position: $pos")
     val data = message(pos)
-    val isLast = pos == adapter.getItemCount
+    val isLast = pos == adapter.getItemCount - 1
     val isSelf = zms.currentValue.exists(_.selfUserId == data.message.userId)
     val isFirstUnread = pos > 0 && !isSelf && unreadIndex.index == pos
     val isLastSelf = listController.isLastSelf(data.message.id)
     val opts = MsgBindOptions(pos, isSelf, isLast, isLastSelf, isFirstUnread = isFirstUnread, listDim.currentValue.getOrElse(Dim2(0, 0)), convType)
 
-    holder.bind(data, if (pos == 0) None else Some(message(pos - 1).message), opts)
+    val prev = if (pos == 0) None else Some(message(pos - 1).message)
+    val next = if (isLast) None else Some(message(pos + 1).message)
+    holder.bind(data, prev, next, opts)
   }
 
   override def onCreateViewHolder(parent: ViewGroup, viewType: Int): MessageViewHolder =

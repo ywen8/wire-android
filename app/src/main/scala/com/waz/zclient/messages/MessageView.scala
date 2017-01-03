@@ -67,7 +67,7 @@ class MessageView(context: Context, attrs: AttributeSet, style: Int)
     messageActions.showDialog(data)
   }
 
-  def set(mAndL: MessageAndLikes, prev: Option[MessageData], opts: MsgBindOptions): Unit = {
+  def set(mAndL: MessageAndLikes, prev: Option[MessageData], next: Option[MessageData], opts: MsgBindOptions): Unit = {
     val animateFooter = msgId == mAndL.message.id && hasFooter != shouldShowFooter(mAndL, opts)
     hasFooter = shouldShowFooter(mAndL, opts)
     data = mAndL
@@ -105,10 +105,8 @@ class MessageView(context: Context, attrs: AttributeSet, style: Int)
       }
 
     // don't use margin on message view for spacing, this produces gaps ignoring click events, also margin change forces layout requests
-    // TODO: this should be split between this and previous view
-    // TODO: last view should have bottom padding to avoid overlaps with cursor
-    val pad = if (parts.isEmpty) 0 else getTopMargin(prev.map(_.msgType), parts.head.tpe)
-    setPadding(0, pad, 0, 0)
+    val (top, bottom) = if (parts.isEmpty) (0, 0) else getMargins(prev.map(_.msgType), next.map(_.msgType), parts.head.tpe, parts.last.tpe)
+    setPadding(0, top, 0, bottom)
     setParts(mAndL, parts, opts)
 
     if (animateFooter)
@@ -210,26 +208,39 @@ object MessageView {
     }
   }
 
-  def getTopMargin(prevTpe: Option[Message.Type], topPart: MsgPart)(implicit context: Context): Int = {
-    if (prevTpe.isEmpty)
-      if (MarginRule(topPart) == SystemLike) toPx(24) else 0
-    else {
-      val p = (MarginRule(prevTpe.get), MarginRule(topPart)) match {
-        case (TextLike, TextLike)         => 8
-        case (TextLike, FileLike)         => 16
-        case (FileLike, FileLike)         => 10
-        case (ImageLike, ImageLike)       => 4
-        case (FileLike | ImageLike, _) |
-             (_, FileLike | ImageLike)    => 10
-        case (MissedCall, _)              => 24
-        case (SystemLike, _) |
-             (_, SystemLike)              => 24
-        case (_, Ping) | (Ping, _)        => 14
-        case (_, MissedCall)              => 24
-        case _                            => 0
+  def getMargins(prevTpe: Option[Message.Type], nextTpe: Option[Message.Type], topPart: MsgPart, bottomPart: MsgPart)(implicit context: Context): (Int, Int) = {
+    val top =
+      if (prevTpe.isEmpty)
+        MarginRule(topPart) match {
+          case SystemLike => 24
+          case _ => 0
+        }
+      else {
+        (MarginRule(prevTpe.get), MarginRule(topPart)) match {
+          case (TextLike, TextLike)         => 8
+          case (TextLike, FileLike)         => 16
+          case (FileLike, FileLike)         => 10
+          case (ImageLike, ImageLike)       => 4
+          case (FileLike | ImageLike, _) |
+               (_, FileLike | ImageLike)    => 10
+          case (MissedCall, _)              => 24
+          case (SystemLike, _) |
+               (_, SystemLike)              => 24
+          case (_, Ping) | (Ping, _)        => 14
+          case (_, MissedCall)              => 24
+          case _                            => 0
+        }
       }
-      toPx(p)
-    }
+
+    val bottom =
+      if (nextTpe.isEmpty)
+        MarginRule(bottomPart) match {
+          case SystemLike => 24
+          case _ => 0
+        }
+      else 0
+
+    (toPx(top), toPx(bottom))
   }
 
   // Message properties calculated while binding, may not be directly related to message state,

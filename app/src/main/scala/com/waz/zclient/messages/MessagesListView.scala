@@ -126,8 +126,8 @@ case class MessageViewHolder(view: MessageView, adapter: MessagesListAdapter)(im
     }
   }
 
-  def bind(msg: MessageAndLikes, prev: Option[MessageData], opts: MsgBindOptions): Unit = {
-    view.set(msg, prev, opts)
+  def bind(msg: MessageAndLikes, prev: Option[MessageData], next: Option[MessageData], opts: MsgBindOptions): Unit = {
+    view.set(msg, prev, next, opts)
     id = Some(msg.message.id)
     this.opts = Some(opts)
     _isFocused = id.exists(selection.isFocused)
