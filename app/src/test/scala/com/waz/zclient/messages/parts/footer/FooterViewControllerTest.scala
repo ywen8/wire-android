@@ -49,16 +49,15 @@ import scala.concurrent.{Await, ExecutionContext}
 @RunWith(classOf[RobolectricTestRunner])
 @Config(manifest = "src/test/AndroidManifest.xml", resourceDir = "../../build/intermediates/res/merged/dev/debug")
 class FooterViewControllerTest extends JUnitSuite {
-  import com.waz.utils.events.EventContext.Implicits.global
 
   ShadowLog.stream = System.out
 
   implicit val printSignalVals: PrintValues = true
   val duration = Duration(1000, TimeUnit.MILLISECONDS)
   val durationShort = Duration(200, TimeUnit.MILLISECONDS)
-
   implicit lazy val context = mock(classOf[TestWireContext])
   implicit lazy val executionContext = ExecutionContext.Implicits.global
+  implicit lazy val eventContext = EventContext.Implicits.global
 
   lazy val selfUser = UserData("Self user")
   lazy val user2 = UserData("User 2")
@@ -73,7 +72,7 @@ class FooterViewControllerTest extends JUnitSuite {
     zms.insertConv(conv)
     zms.addMessage(likedMsg)
     Await.result(zms.reactionsStorage.insert(Seq(
-      Liking(likedMsg.id, user3.id, Instant.now, Liking.Action.Like),
+      Liking(likedMsg.id, user3.id, Instant.now, Liking.Action.Like)
     )), duration)
   }
 
@@ -111,14 +110,52 @@ class FooterViewControllerTest extends JUnitSuite {
     controller.selection.toggleFocused(likedMsg.id)
     signalTest(controller.showTimestamp)(_ == true){} // show timestamp when focused again
 
-    signalTest(controller.showTimestamp)(_ == false){}(true, 5000) // hide timestamp after delay
+    signalTest(controller.showTimestamp)(_ == false){}(printSignalVals, 5000) // hide timestamp after delay
 
     controller.selection.toggleFocused(likedMsg.id)
     signalTest(controller.showTimestamp)(_ == true){} // show timestamp on next click
   }
 
   @Test
-  def statusVisiblityMsgIsLikedBySelf(): Unit = {
+  def openMessageAndLike(): Unit = {
+    val controller = new FooterViewController()(injector, context, EventContext.Global)
+
+    controller.opts ! MsgBindOptions(1, isSelf = false, isLast = false, isLastSelf = false, isFirstUnread = false, Dim2(100, 100), ConversationType.Group)
+    controller.messageAndLikes ! MessageAndLikes(likedMsg, IndexedSeq(), likedBySelf = false)
+
+    assertEquals(false, Await.result(controller.showTimestamp.head, durationShort))
+    assertEquals(false, Await.result(controller.isLiked.head, durationShort))
+    assertEquals(true, Await.result(injector.binding[SelectionController].get().zms.map(_ != null).head, durationShort))
+
+    controller.selection.toggleFocused(likedMsg.id)
+    signalTest(controller.showTimestamp)(_ == true){} //show timestamp
+
+    controller.messageAndLikes ! MessageAndLikes(likedMsg, IndexedSeq(selfUser.id), likedBySelf = true)
+    signalTest(controller.showTimestamp)(_ == false){} //timestamp should disappear
+
+    /**
+      * TODO - there is a slight timing edge case here.
+      *
+      * Because we want to be able to un-set the 'activity' of a msg (or footer), we set back the lastActivity time to
+      * Instant.now - ActivityTimeout. This allows the timestamp to be dismissed if the timeout is already active, essentially
+      * by replacing it with a timeout that expires in the past.
+      *
+      * If, however, a message is liked within [lastActivityTime - (Instant.now - ActivityTimeout)] BEFORE lastActivityTime,
+      * then the likes rule will take precedence and prevent the timestamp from showing when it should.
+      *
+      * This can be reproduced manually by clicking on an unliked message, liking it and then trying to display the timestamp
+      * again, all in relatively quick succession. The "You" remains in place when one would expect the timestamp to appear.
+      *
+      * It can be reproduced in the test by commenting out this sleep.
+      *
+      * Be careful - trying to fix this issue will likely break other things. If the user likes something, and ActivityTimeout
+      * goes by (currently 3 seconds) and then they click the message again, the timestamp appears as expected. A pretty small
+      * edge case, but nice to fix one day
+      */
+    Thread.sleep(3000)
+
+    controller.selection.toggleFocused(likedMsg.id)
+    signalTest(controller.showTimestamp)(_ == true){} //show timestamp again
 
   }
 }

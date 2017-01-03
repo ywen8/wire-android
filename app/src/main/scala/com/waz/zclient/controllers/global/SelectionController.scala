@@ -70,7 +70,7 @@ class SelectionController(implicit injector: Injector, ev: EventContext) extends
         case _ => Some(id)
       }
       lastActive.mutate {
-        case (`id`, t) if !ActivityTimeout.elapsedSince(t) => (id, Instant.EPOCH)
+        case (`id`, t) if !ActivityTimeout.elapsedSince(t) => (id, Instant.now - ActivityTimeout)
         case _ => (id, Instant.now)
       }
     }

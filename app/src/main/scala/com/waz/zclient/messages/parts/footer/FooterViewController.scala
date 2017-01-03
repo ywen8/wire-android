@@ -36,6 +36,9 @@ import org.threeten.bp.{DateTimeUtils, Instant}
 
 import scala.concurrent.duration._
 
+/**
+  * Be warned - the timestamp/footer logic and when to display what has more edges than a tetrahedron.
+  */
 class FooterViewController(implicit inj: Injector, context: Context, ec: EventContext) extends Injectable {
   import com.waz.threading.Threading.Implicits.Ui
 
