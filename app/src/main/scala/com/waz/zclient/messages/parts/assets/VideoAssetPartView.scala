@@ -40,7 +40,10 @@ class VideoAssetPartView(context: Context, attrs: AttributeSet, style: Int) exte
 
   override def inflate() = inflate(R.layout.message_video_asset_content)
 
-  private val controls = findById[View](R.id.controls)
+  private val controls = Seq(
+    findById[View](R.id.action_button),
+    findById[View](R.id.duration)
+  )
 
   imageDrawable.state.map {
     case Loaded(_, _, _) => getColor(R.color.white)
@@ -56,7 +59,7 @@ class VideoAssetPartView(context: Context, attrs: AttributeSet, style: Int) exte
       } orElse Signal.const[Drawable](imageDrawable)
   }
 
-  padding.on(Threading.Ui)(controls.setMargin)
+  padding.on(Threading.Ui)(offset => controls.foreach(_.setMargin(offset)))
 
   bg.on(Threading.Ui) { setBackground }
 
