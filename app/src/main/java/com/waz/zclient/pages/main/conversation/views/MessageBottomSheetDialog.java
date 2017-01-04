@@ -28,13 +28,11 @@ import android.widget.TextView;
 import com.waz.api.AssetStatus;
 import com.waz.api.Message;
 import com.waz.zclient.R;
-import com.waz.zclient.pages.main.conversation.views.row.message.MessageViewController;
 import com.waz.zclient.utils.ViewUtils;
 
 public class MessageBottomSheetDialog extends BottomSheetDialog {
 
     private final Message message;
-    private final MessageViewController messageViewController;
     private final Callback callback;
 
     public enum MessageAction {
@@ -59,18 +57,9 @@ public class MessageBottomSheetDialog extends BottomSheetDialog {
         }
     }
 
-    public MessageBottomSheetDialog(@NonNull Context context, @NonNull Message message, MessageViewController messageViewController, boolean isMemberOfConversation, Callback callback) {
-        super(context);
-        this.message = message;
-        this.messageViewController = messageViewController;
-        this.callback = callback;
-        init(isMemberOfConversation);
-    }
-
-    public MessageBottomSheetDialog(@NonNull Context context, int theme, @NonNull Message message, MessageViewController messageViewController, boolean isMemberOfConversation, Callback callback) {
+    public MessageBottomSheetDialog(@NonNull Context context, int theme, @NonNull Message message, boolean isMemberOfConversation, Callback callback) {
         super(context, theme);
         this.message = message;
-        this.messageViewController = messageViewController;
         this.callback = callback;
         init(isMemberOfConversation);
     }
@@ -120,7 +109,7 @@ public class MessageBottomSheetDialog extends BottomSheetDialog {
         row.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                callback.onAction(action, message, messageViewController);
+                callback.onAction(action, message);
                 dismiss();
             }
         });
@@ -260,7 +249,7 @@ public class MessageBottomSheetDialog extends BottomSheetDialog {
     }
 
     public interface Callback {
-        void onAction(MessageAction action, Message message, MessageViewController messageViewController);
+        void onAction(MessageAction action, Message message);
     }
 
 }

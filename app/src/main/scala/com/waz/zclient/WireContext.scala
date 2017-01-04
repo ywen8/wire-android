@@ -21,8 +21,10 @@ import android.annotation.SuppressLint
 import android.app.{Activity, Service}
 import android.content.{Context, ContextWrapper}
 import android.support.v4.app.{Fragment, FragmentActivity}
-import android.view.{View, ViewGroup, ViewStub}
+import android.view.{LayoutInflater, View, ViewGroup, ViewStub}
+import com.waz.ZLog
 import com.waz.ZLog._
+import com.waz.threading.CancellableFuture
 import com.waz.utils.events._
 import com.waz.utils.returning
 
@@ -52,21 +54,61 @@ trait ViewFinder {
   def stub[V <: View](id: Int) : V = findById[ViewStub](id).inflate().asInstanceOf[V]
 }
 
-trait ViewHelper extends View with ViewFinder with Injectable with ViewEventContext {
-  lazy implicit val injector = WireContext(getContext).injector
+trait DelayedViewEventContext extends View with EventContext {
+  import com.waz.ZLog.ImplicitTag._
+  import com.waz.threading.Threading.Implicits.Ui
+
+  import scala.concurrent.duration._
+
+  private var attached = false
+  private var stopFuture = CancellableFuture.cancelled[Any]()
+
+  override def onAttachedToWindow(): Unit = {
+    super.onAttachedToWindow()
+
+    attached = true
+    stopFuture.cancel()
+    onContextStart()
+  }
+
+  override def onDetachedFromWindow(): Unit = {
+    super.onDetachedFromWindow()
+
+    attached = false
+    stopFuture = CancellableFuture.delayed(1.second) {
+      if (!attached) onContextStop()
+    }
+  }
+}
+
+trait ViewHelper extends View with ViewFinder with Injectable with DelayedViewEventContext {
+  lazy implicit val wContext = WireContext(getContext)
+  lazy implicit val injector = wContext.injector
 
   @SuppressLint(Array("com.waz.ViewUtils"))
-  def findById[V <: View](id: Int) = findViewById(id).asInstanceOf[V]
+  def findById[V <: View](id: Int): V = findViewById(id).asInstanceOf[V]
+
+  def inflate(layoutResId: Int, group: ViewGroup = ViewHelper.viewGroup(this), addToParent: Boolean = true)(implicit tag: LogTag = "ViewHelper") =
+    ViewHelper.inflate[View](layoutResId, group, addToParent)
+}
+
+object ViewHelper {
 
   @SuppressLint(Array("LogNotTimber"))
-  def inflate(context: Context, layoutResId: Int, group: ViewGroup)(implicit tag: LogTag = "ViewHelper") =
-    try View.inflate(context, layoutResId, group)
-    catch { case e: Throwable =>
-      var cause = e
-      while (cause.getCause != null) cause = cause.getCause
-      error("inflate failed with root cause:", cause)
-      throw e
+  def inflate[T <: View](layoutResId: Int, group: ViewGroup, addToParent: Boolean)(implicit logTag: ZLog.LogTag) =
+    try LayoutInflater.from(group.getContext).inflate(layoutResId, group, addToParent).asInstanceOf[T]
+    catch {
+      case e: Throwable =>
+        var cause = e
+        while (cause.getCause != null) cause = cause.getCause
+        ZLog.error("inflate failed with root cause:", cause)
+        throw e
     }
+
+  def viewGroup(view: View) = view match {
+    case vg: ViewGroup => vg
+    case _ => view.getParent.asInstanceOf[ViewGroup]
+  }
 }
 
 trait ServiceHelper extends Service with Injectable with WireContext with EventContext {

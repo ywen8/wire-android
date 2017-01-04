@@ -17,23 +17,65 @@
  */
 package com.waz.zclient
 
-import android.view.View
+import android.content.res.TypedArray
+import android.graphics.{LightingColorFilter, Rect}
+import android.graphics.drawable.LayerDrawable
+import android.support.annotation.StyleableRes
+import android.util.AttributeSet
+import android.view.{View, ViewGroup}
 import android.view.View._
+import android.widget.SeekBar
 import com.waz.zclient.ui.utils.ResourceUtils
 
 package object utils {
 
+  case class Offset(l: Int, t: Int, r: Int, b: Int)
+  object Offset {
+    val Empty = Offset(0, 0, 0, 0)
+  }
+
   implicit class RichView(val view: View) extends AnyVal {
-    def setVisible(isVisible: Boolean): Unit = {
-      view.setVisibility(if (isVisible) VISIBLE else GONE)
+
+    def setVisible(isVisible: Boolean): Unit = view.setVisibility(if (isVisible) VISIBLE else GONE)
+
+    def isVisible = view.getVisibility == VISIBLE
+
+    def setMarginTop(m: Int) = {
+      view.getLayoutParams.asInstanceOf[ViewGroup.MarginLayoutParams].topMargin = m
+      view.requestLayout()
+    }
+
+    def setMargin(r: Offset): Unit = setMargin(r.l, r.t, r.r, r.b)
+
+    def setMargin(l: Int, t: Int, r: Int, b: Int): Unit = {
+      val lp = view.getLayoutParams.asInstanceOf[ViewGroup.MarginLayoutParams]
+      lp.leftMargin = l
+      lp.topMargin = t
+      lp.rightMargin = r
+      lp.bottomMargin = b
+      view.requestLayout()
     }
 
     //TODO improve this so that multiple click listeners can be set from different places at once
     //TODO could also handle a set of views?
-    def onClick(f: => Unit): Unit = {
-      view.setOnClickListener(new OnClickListener {
-        override def onClick(v: View): Unit = f
-      })
+    def onClick(f: => Unit): Unit = view.setOnClickListener(new OnClickListener {
+      override def onClick(v: View): Unit = f
+    })
+
+    def onLongClick(f: => Boolean): Unit = view.setOnLongClickListener(new OnLongClickListener {
+      override def onLongClick(v: View): Boolean = f
+    })
+  }
+
+  implicit class RichSeekBar(val bar: SeekBar) extends AnyVal {
+    def setColor(color: Int): Unit = {
+      val progressDrawable = Option(bar.getProgressDrawable).map {
+        case d: LayerDrawable => Option(d.findDrawableByLayerId(android.R.id.progress)).getOrElse(d)
+        case d => d
+      }
+      val thumbDrawable = Option(bar.getThumb)
+      val filter = new LightingColorFilter(0xFF000000, color)
+      Seq(progressDrawable, thumbDrawable).foreach(_.foreach(_.setColorFilter(filter)))
     }
   }
 
@@ -42,6 +84,8 @@ package object utils {
     import android.content.Context
 
     def getColor(resId: Int)(implicit context: Context) = context.getResources.getColor(resId)
+
+    def getInt(resId: Int)(implicit context: Context) = context.getResources.getInteger(resId)
 
     def getString(resId: Int)(implicit context: Context): String = context.getResources.getString(resId)
     def getString(resId: Int, args: String*)(implicit context: Context): String = context.getResources.getString(resId, args:_*)
@@ -62,5 +106,12 @@ package object utils {
     def getResourceFloat(resId: Int)(implicit context: Context) = ResourceUtils.getResourceFloat(context.getResources, resId)
 
     def toPx(dp: Int)(implicit context: Context) = (dp * context.getResources.getDisplayMetrics.density).toInt
+
+    def getLocale(implicit context: Context) = context.getResources.getConfiguration.locale
+
+    def withStyledAttributes[A](set: AttributeSet, @StyleableRes attrs: Array[Int])(body: TypedArray => A)(implicit context: Context) = {
+      val a = context.getTheme.obtainStyledAttributes(set, attrs, 0, 0)
+      try body(a) finally a.recycle()
+    }
   }
 }

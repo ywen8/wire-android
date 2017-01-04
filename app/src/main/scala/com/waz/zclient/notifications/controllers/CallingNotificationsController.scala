@@ -1,4 +1,21 @@
 /**
+ * Wire
+ * Copyright (C) 2016 Wire Swiss GmbH
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+/**
   * Wire
   * Copyright (C) 2017 Wire Swiss GmbH
   *
@@ -32,19 +49,16 @@ import com.waz.service.images.BitmapSignal
 import com.waz.threading.Threading
 import com.waz.ui.MemoryImageCache.BitmapRequest.Regular
 import com.waz.utils.LoggedTry
-import com.waz.utils.events.Signal
+import com.waz.utils.events.{EventContext, Signal}
 import com.waz.zclient.calling.controllers.GlobalCallingController
 import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.utils.IntentUtils.getNotificationAppLaunchIntent
 import com.waz.zclient.{Injectable, Injector, R, WireContext}
 import com.waz.zms.CallService
 
-class CallingNotificationsController(cxt: WireContext)(implicit inj: Injector) extends Injectable {
+class CallingNotificationsController(implicit cxt: WireContext, eventContext: EventContext, inj: Injector) extends Injectable {
 
   import CallingNotificationsController._
-
-  implicit val eventContext = cxt.eventContext
-  implicit val context = cxt
 
   val callImageSizePx = toPx(CallImageSizeDp)
 
@@ -93,12 +107,12 @@ class CallingNotificationsController(cxt: WireContext)(implicit inj: Injector) e
       val bigTextStyle = new NotificationCompat.BigTextStyle()
         .setBigContentTitle(conv)
         .bigText(message)
-      val builder = new NotificationCompat.Builder(context)
+      val builder = new NotificationCompat.Builder(cxt)
         .setSmallIcon(R.drawable.ic_menu_logo)
         .setLargeIcon(bitmap.orNull)
         .setContentTitle(title)
         .setContentText(message)
-        .setContentIntent(getNotificationAppLaunchIntent(context))
+        .setContentIntent(getNotificationAppLaunchIntent(cxt))
         .setStyle(bigTextStyle)
         .setCategory(NotificationCompat.CATEGORY_CALL)
         .setPriority(NotificationCompat.PRIORITY_MAX)
@@ -149,13 +163,13 @@ class CallingNotificationsController(cxt: WireContext)(implicit inj: Injector) e
 
   }
 
-  private def silenceIntent(convId: ConvId) = pendingIntent(SilenceRequestCode, CallService.silenceIntent(context, convId))
+  private def silenceIntent(convId: ConvId) = pendingIntent(SilenceRequestCode, CallService.silenceIntent(cxt, convId))
 
-  private def leaveIntent(convId: ConvId) = pendingIntent(LeaveRequestCode, CallService.leaveIntent(context, convId))
+  private def leaveIntent(convId: ConvId) = pendingIntent(LeaveRequestCode, CallService.leaveIntent(cxt, convId))
 
-  private def joinIntent(convId: ConvId) = pendingIntent(JoinRequestCode, CallService.joinIntent(context, convId))
+  private def joinIntent(convId: ConvId) = pendingIntent(JoinRequestCode, CallService.joinIntent(cxt, convId))
 
-  private def pendingIntent(reqCode: Int, intent: Intent) = PendingIntent.getService(context, reqCode, intent, PendingIntent.FLAG_UPDATE_CURRENT)
+  private def pendingIntent(reqCode: Int, intent: Intent) = PendingIntent.getService(cxt, reqCode, intent, PendingIntent.FLAG_UPDATE_CURRENT)
 }
 
 object CallingNotificationsController {

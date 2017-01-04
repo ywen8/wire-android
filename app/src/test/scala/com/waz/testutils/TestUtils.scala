@@ -17,32 +17,49 @@
  */
 package com.waz.testutils
 
-import java.util.concurrent.{CountDownLatch, TimeUnit}
+import java.util.concurrent.{CountDownLatch, TimeUnit, TimeoutException}
 
+import android.support.v4.app.FragmentActivity
 import com.waz.utils.events.{EventContext, Signal}
-import com.waz.zclient.WireContext
+import com.waz.utils._
+import com.waz.zclient.{ActivityHelper, Injector, WireContext}
+import org.robolectric.Robolectric
+import org.threeten.bp.Instant
 
-import scala.concurrent.duration.Duration
-import scala.concurrent.{Await, ExecutionContext}
+import scala.concurrent.duration._
+import scala.concurrent.{Await, ExecutionContext, Future}
+import scala.util.{Failure, Success}
 
 object TestUtils {
 
   implicit val eventContext = EventContext.Implicits.global
   implicit val executionContext = ExecutionContext.Implicits.global
-  val timeout = 1000;
+  val timeout = 1000
 
-  def signalTest[A](signal: Signal[A])(test: A => Boolean)(trigger: => Unit)(implicit printVals: PrintSignalVals): Unit = {
+  def signalTest[A](signal: Signal[A])(test: A => Boolean)(trigger: => Unit)(implicit printVals: PrintValues, timeoutMillis: Int = timeout): Unit = {
     signal.disableAutowiring()
     trigger
-    if (printVals.debug) println("****")
-    Await.result(signal.filter { value =>
-      if (printVals.debug) println(value)
-      test(value)
-    }.head, Duration(timeout, TimeUnit.MILLISECONDS))
-    if (printVals.debug) println("****")
+    if (printVals) println("****")
+    awaitUi(signal.filter { value => if (printVals) println(value); test (value) }.head)(timeoutMillis.millis)
+    if (printVals) println("****")
   }
 
-  case class PrintSignalVals(debug: Boolean)
+  // active wait to make sure UI thread is not blocked (Robolectric blocks it)
+  def awaitUi[A](f: Future[A])(implicit timeout: FiniteDuration = 5.seconds): A = {
+    val endTime = Instant.now + timeout
+    while (!f.isCompleted && Instant.now.isBefore(endTime)) {
+      Robolectric.runBackgroundTasks()
+      Robolectric.runUiThreadTasksIncludingDelayedTasks()
+      Thread.sleep(50) // sleep a bit
+    }
+    f.value match {
+      case None => throw new TimeoutException("Future did not complete within supplied timeout")
+      case Some(Failure(ex)) => throw ex
+      case Some(Success(res)) => res
+    }
+  }
+
+  type PrintValues = Boolean
 
   implicit class RichLatch(latch: CountDownLatch) {
     def waitDuration(implicit duration: Duration): Unit = latch.await(duration.toMillis, TimeUnit.MILLISECONDS)
@@ -50,6 +67,14 @@ object TestUtils {
 }
 
 
-abstract class TestWireContext extends WireContext
+abstract class TestWireContext extends WireContext {
+  override def eventContext = EventContext.Implicits.global
+}
 
+class ViewTestActivity extends FragmentActivity with ActivityHelper {
+
+  var inj: Injector = _
+
+  override lazy val injector = inj
+}
 

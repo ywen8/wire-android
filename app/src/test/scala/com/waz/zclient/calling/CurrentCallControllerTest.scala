@@ -29,7 +29,7 @@ import com.waz.model._
 import com.waz.service.ZMessaging
 import com.waz.service.call.FlowManagerService.{StateAndReason, StateOfReceivedVideo, UnknownState}
 import com.waz.service.call.{FlowManagerService, VoiceChannelContent, VoiceChannelService}
-import com.waz.testutils.TestUtils.{PrintSignalVals, signalTest}
+import com.waz.testutils.TestUtils.{PrintValues, signalTest}
 import com.waz.testutils.{MockZMessaging, TestWireContext}
 import com.waz.utils.events.Signal
 import com.waz.zclient.calling.controllers.{GlobalCallingController, CurrentCallController}
@@ -47,13 +47,15 @@ import org.scalatest.junit.JUnitSuite
 @Config(manifest=Config.NONE)
 class CurrentCallControllerTest extends JUnitSuite {
 
-  implicit val printSignalVals = PrintSignalVals(false)
+  implicit val printSignalVals: PrintValues = false
   implicit val context = mock(classOf[TestWireContext])
+
+  import com.waz.utils.events.EventContext.Implicits.global
 
   implicit lazy val module = new Module {
     bind[Context] to context
     bind[Signal[Option[ZMessaging]]] to Signal.const(Some(zMessaging))
-    bind[GlobalCallingController] to new GlobalCallingController(context)
+    bind[GlobalCallingController] to new GlobalCallingController()
     bind[PowerManager] to null //not needed for tests
     bind[PermissionsController] to null //not needed for tests
   }

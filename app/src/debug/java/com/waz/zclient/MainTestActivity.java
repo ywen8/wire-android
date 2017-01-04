@@ -19,7 +19,6 @@ package com.waz.zclient;
 
 import com.waz.api.CommonConnections;
 import com.waz.api.IConversation;
-import com.waz.api.MessagesList;
 import com.waz.api.Self;
 import com.waz.api.User;
 import com.waz.api.VoiceChannel;
@@ -58,11 +57,6 @@ public class MainTestActivity extends TestActivity implements MainPhoneFragment.
 
     @Override
     public void onStartCall(boolean withVideo) {
-
-    }
-
-    @Override
-    public void onMessagesUpdated(MessagesList messagesList) {
 
     }
 

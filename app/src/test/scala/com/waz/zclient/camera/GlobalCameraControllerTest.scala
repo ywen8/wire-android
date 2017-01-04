@@ -1,4 +1,21 @@
 /**
+ * Wire
+ * Copyright (C) 2016 Wire Swiss GmbH
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+/**
   * Wire
   * Copyright (C) 2017 Wire Swiss GmbH
   *
@@ -23,7 +40,7 @@ import android.content.Context
 import android.graphics
 import android.graphics.{Rect, SurfaceTexture}
 import android.view.OrientationEventListener
-import com.waz.testutils.TestUtils.{PrintSignalVals, RichLatch}
+import com.waz.testutils.TestUtils.{PrintValues, RichLatch}
 import com.waz.testutils.TestWireContext
 import com.waz.utils.events.EventContext
 import com.waz.zclient.Module
@@ -40,7 +57,7 @@ import org.scalatest.RobolectricSuite
 import org.scalatest.junit.JUnitSuite
 
 import scala.concurrent.duration.Duration
-import scala.concurrent.{Future, Await, ExecutionContext, Promise}
+import scala.concurrent.{Await, ExecutionContext, Future, Promise}
 import scala.util.{Failure, Success}
 
 @RunWith(classOf[RobolectricTestRunner])
@@ -49,7 +66,9 @@ class GlobalCameraControllerTest extends JUnitSuite with RobolectricSuite {
 
   implicit val defaultDuration = Duration(30, TimeUnit.SECONDS)
 
-  implicit val printSignalVals = PrintSignalVals(true)
+  import com.waz.utils.events.EventContext.Implicits.global
+
+  implicit val printSignalVals: PrintValues = false
   implicit val context = mock(classOf[TestWireContext])
   implicit val eventContext = EventContext.Global
   implicit val executionContext = ExecutionContext.Implicits.global
@@ -183,7 +202,7 @@ class GlobalCameraControllerTest extends JUnitSuite with RobolectricSuite {
 
   def createController(camInfos: Seq[CameraInfo] = Seq(defaultInfo)) = {
     when(cameraFactory.getCameraInfos).thenReturn(camInfos)
-    new GlobalCameraController(module.inject[Context], cameraFactory)
+    new GlobalCameraController(cameraFactory)
   }
 
   def createMockCamera(info: CameraInfo = defaultInfo, previewSize: PreviewSize = defaultPreviewSize, flashModes: Set[FlashMode] = Set.empty) = {

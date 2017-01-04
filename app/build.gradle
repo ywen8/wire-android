@@ -306,9 +306,11 @@ dependencies {
     compile project(':wire-core')
     compile project(':wire-ui')
     compile project(':lintlib')
+    compile project(':macrosupport')
 
 //    compile fileTree(dir: 'libs', include: ['*.jar'])
     compile deps.scala
+    provided deps.scalaReflect
     compile deps.multidex
     compile deps.supportv4
     compile deps.supportv13
@@ -322,6 +324,7 @@ dependencies {
     compile deps.localytics
     compile deps.roundedimageview
     compile deps.rebound
+    compile deps.gridview
 
     // For spotify
     compile deps.spotifyAuth

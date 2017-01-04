@@ -27,7 +27,6 @@ import android.view.animation.Animation;
 import android.widget.TextView;
 import com.waz.api.CommonConnections;
 import com.waz.api.IConversation;
-import com.waz.api.MessagesList;
 import com.waz.api.User;
 import com.waz.zclient.R;
 import com.waz.zclient.controllers.accentcolor.AccentColorObserver;
@@ -240,11 +239,6 @@ public class SendConnectRequestFragment extends BaseFragment<SendConnectRequestF
     //  IConnectStoreObserver
     //
     //////////////////////////////////////////////////////////////////////////////////////////
-
-    @Override
-    public void onMessagesUpdated(MessagesList messagesList) {
-
-    }
 
     @Override
     public void onConnectUserUpdated(final User user, final IConnectStore.UserRequester userRequester) {

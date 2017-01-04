@@ -218,6 +218,15 @@
     <issue id="UnusedIds" severity="error" />
     <issue id="UnusedResources" severity="error">
         <ignore path="src/main/res/layout/calling*"/>
+        <ignore path="src/main/res/layout/message_*"/>
+        <ignore path="src/main/res/layout/system_message_content.xml"/>
+        <ignore path="*pin_bg.xml*"/>
+
+        <!--TODO Dean - leaving these here as design comes up with a new container-->
+        <ignore path="*ic_action_soundcloud*"/>
+        <ignore path="*ic_action_spotify*"/>
+
+        <ignore path="*youtube_logo.png*"/>
         <ignore path="*ic_menu_end_call_w.png*"/>
         <ignore path="*ic_menu_join_call_w.png*"/>
         <ignore path="*ic_menu_save_image_gallery.png*"/>
@@ -226,6 +235,8 @@
     </issue>
     <issue id="UnusedIds" severity="error" >
         <ignore path="src/main/res/layout/calling*"/>
+        <ignore path="src/main/res/layout/message_*"/>
+        <ignore path="src/main/res/layout/system_message_content.xml"/>
     </issue>
     <issue id="EnforceUTF8" severity="error" />
     <issue id="ViewHolder" severity="error" />

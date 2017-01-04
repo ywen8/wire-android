@@ -19,27 +19,19 @@ package com.waz.zclient.pages.main.conversation;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
-import android.app.Dialog;
-import android.app.ProgressDialog;
-import android.content.ClipData;
-import android.content.ClipboardManager;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Configuration;
-import android.database.DataSetObserver;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.Looper;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentManager;
-import android.support.v4.app.ShareCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
@@ -49,17 +41,13 @@ import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.WindowManager;
 import android.view.animation.Animation;
 import android.widget.AbsListView;
 import android.widget.FrameLayout;
-import android.widget.ImageView;
-import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
-import com.waz.api.Asset;
 import com.waz.api.AssetFactory;
 import com.waz.api.AssetForUpload;
 import com.waz.api.AudioAssetForUpload;
@@ -86,6 +74,7 @@ import com.waz.zclient.BaseScalaActivity;
 import com.waz.zclient.BuildConfig;
 import com.waz.zclient.OnBackPressedListener;
 import com.waz.zclient.R;
+import com.waz.zclient.WireContext;
 import com.waz.zclient.camera.controllers.GlobalCameraController;
 import com.waz.zclient.controllers.IControllerFactory;
 import com.waz.zclient.controllers.accentcolor.AccentColorObserver;
@@ -105,18 +94,11 @@ import com.waz.zclient.controllers.navigation.PagerControllerObserver;
 import com.waz.zclient.controllers.permission.RequestPermissionsObserver;
 import com.waz.zclient.controllers.singleimage.SingleImageObserver;
 import com.waz.zclient.controllers.streammediaplayer.StreamMediaBarObserver;
-import com.waz.zclient.controllers.tracking.events.conversation.CopiedMessageEvent;
-import com.waz.zclient.controllers.tracking.events.conversation.DeletedMessageEvent;
 import com.waz.zclient.controllers.tracking.events.conversation.EditedMessageEvent;
-import com.waz.zclient.controllers.tracking.events.conversation.ForwardedMessageEvent;
-import com.waz.zclient.controllers.tracking.events.conversation.OpenedMessageActionEvent;
-import com.waz.zclient.controllers.tracking.events.conversation.ReactedToMessageEvent;
 import com.waz.zclient.controllers.tracking.events.navigation.OpenedMoreActionsEvent;
-import com.waz.zclient.controllers.userpreferences.IUserPreferencesController;
 import com.waz.zclient.core.api.scala.ModelObserver;
 import com.waz.zclient.core.controllers.tracking.attributes.OpenedMediaAction;
 import com.waz.zclient.core.controllers.tracking.attributes.RangedAttribute;
-import com.waz.zclient.core.controllers.tracking.events.filetransfer.SavedFileEvent;
 import com.waz.zclient.core.controllers.tracking.events.filetransfer.SelectedTooLargeFileEvent;
 import com.waz.zclient.core.controllers.tracking.events.media.CancelledRecordingAudioMessageEvent;
 import com.waz.zclient.core.controllers.tracking.events.media.OpenedActionHintEvent;
@@ -133,7 +115,8 @@ import com.waz.zclient.core.stores.inappnotification.InAppNotificationStoreObser
 import com.waz.zclient.core.stores.inappnotification.KnockingEvent;
 import com.waz.zclient.core.stores.network.DefaultNetworkAction;
 import com.waz.zclient.core.stores.participants.ParticipantsStoreObserver;
-import com.waz.zclient.notifications.controllers.ImageNotificationsController;
+import com.waz.zclient.messages.MessagesListView;
+import com.waz.zclient.messages.controllers.EditActionSupport;
 import com.waz.zclient.pages.BaseFragment;
 import com.waz.zclient.pages.extendedcursor.ExtendedCursorContainer;
 import com.waz.zclient.pages.extendedcursor.emoji.EmojiKeyboardLayout;
@@ -142,25 +125,14 @@ import com.waz.zclient.pages.extendedcursor.image.CursorImagesLayout;
 import com.waz.zclient.pages.extendedcursor.image.ImagePreviewLayout;
 import com.waz.zclient.pages.extendedcursor.voicefilter.VoiceFilterLayout;
 import com.waz.zclient.pages.main.calling.enums.VoiceBarAppearance;
-import com.waz.zclient.pages.main.conversation.views.ExpandableView;
 import com.waz.zclient.pages.main.conversation.views.MessageBottomSheetDialog;
-import com.waz.zclient.pages.main.conversation.views.MessageViewsContainer;
 import com.waz.zclient.pages.main.conversation.views.TypingIndicatorView;
 import com.waz.zclient.pages.main.conversation.views.header.StreamMediaPlayerBarFragment;
-import com.waz.zclient.pages.main.conversation.views.listview.ConversationListView;
-import com.waz.zclient.pages.main.conversation.views.listview.ConversationScrollListener;
-import com.waz.zclient.pages.main.conversation.views.row.message.MessageAndSeparatorViewController;
-import com.waz.zclient.pages.main.conversation.views.row.message.MessageViewController;
-import com.waz.zclient.pages.main.conversation.views.row.message.views.FileMessageViewController;
-import com.waz.zclient.pages.main.conversation.views.row.message.views.ImageMessageViewController;
-import com.waz.zclient.pages.main.conversation.views.row.message.views.MediaPlayerViewController;
-import com.waz.zclient.pages.main.conversation.views.row.message.views.YouTubeMessageViewController;
 import com.waz.zclient.pages.main.conversationlist.ConversationListAnimation;
 import com.waz.zclient.pages.main.conversationpager.controller.SlidingPaneObserver;
 import com.waz.zclient.pages.main.onboarding.OnBoardingHintFragment;
 import com.waz.zclient.pages.main.onboarding.OnBoardingHintType;
 import com.waz.zclient.pages.main.pickuser.controller.IPickUserController;
-import com.waz.zclient.pages.main.profile.ZetaPreferencesActivity;
 import com.waz.zclient.pages.main.profile.camera.CameraContext;
 import com.waz.zclient.ui.animation.interpolators.penner.Expo;
 import com.waz.zclient.ui.audiomessage.AudioMessageRecordingView;
@@ -173,13 +145,11 @@ import com.waz.zclient.ui.views.e2ee.ShieldView;
 import com.waz.zclient.utils.AssetUtils;
 import com.waz.zclient.utils.Callback;
 import com.waz.zclient.utils.LayoutSpec;
-import com.waz.zclient.utils.OtrDestination;
 import com.waz.zclient.utils.PermissionUtils;
 import com.waz.zclient.utils.TrackingUtils;
 import com.waz.zclient.utils.ViewUtils;
 import com.waz.zclient.views.LoadingIndicatorView;
 import com.waz.zclient.views.MentioningFragment;
-import net.hockeyapp.android.ExceptionHandler;
 import timber.log.Timber;
 
 import java.util.ArrayList;
@@ -190,16 +160,12 @@ import java.util.Map;
 public class ConversationFragment extends BaseFragment<ConversationFragment.Container> implements ConversationStoreObserver,
                                                                                                   CallingObserver,
                                                                                                   OnBoardingHintFragment.Container,
-                                                                                                  ConversationScrollListener.ScrolledToBottomListener,
-                                                                                                  ConversationScrollListener.VisibleMessagesChangesListener,
-                                                                                                  ConversationScrollListener.ScrollStateChangeListener,
                                                                                                   KeyboardVisibilityObserver,
                                                                                                   AccentColorObserver,
                                                                                                   StreamMediaPlayerBarFragment.Container,
                                                                                                   StreamMediaBarObserver,
                                                                                                   ParticipantsStoreObserver,
                                                                                                   InAppNotificationStoreObserver,
-                                                                                                  MessageViewsContainer,
                                                                                                   NavigationControllerObserver,
                                                                                                   SlidingPaneObserver,
                                                                                                   SingleImageObserver,
@@ -222,7 +188,6 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
     private static final String SAVED_STATE_PREVIEW = "SAVED_STATE_PREVIEW";
     private static final int REQUEST_VIDEO_CAPTURE = 911;
     private static final int CAMERA_PERMISSION_REQUEST_ID = 21;
-    private static final int BOTTOM_MENU_DISPLAY_DELAY_MS = 200;
 
     private static final String[] EXTENDED_CURSOR_PERMISSIONS = new String[] {Manifest.permission.CAMERA, Manifest.permission.READ_EXTERNAL_STORAGE};
     private static final int OPEN_EXTENDED_CURSOR_IMAGES = 1254;
@@ -234,12 +199,6 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
     private static final int AUDIO_PERMISSION_REQUEST_ID = 864;
     private static final int AUDIO_FILTER_PERMISSION_REQUEST_ID = 865;
 
-    private static final String[] SAVE_IMAGE_PERMISSIONS = new String[] {android.Manifest.permission.WRITE_EXTERNAL_STORAGE};
-    private static final int SAVE_IMAGE_PERMISSION_REQUEST_ID = 6;
-
-    private ConversationListView listView;
-    private MessageAdapter messageAdapter;
-    private MessageStreamManager messageStreamManager;
     private InputStateIndicator inputStateIndicator;
     private UpdateListener typingListener;
 
@@ -250,14 +209,9 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
     private FrameLayout invisibleFooter;
 
     private IConversation.Type toConversationType;
-    private String expandedMessageId;
-    private ExpandableView currentExpandableView;
-    private String lastPingMessageId;
-    private String lastHotPingMessageId;
     private Toolbar toolbar;
     private TextView toolbarTitle;
     private ShieldView shieldView;
-
     private CursorLayout cursorLayout;
     private AudioMessageRecordingView audioMessageRecordingView;
     private ExtendedCursorContainer extendedCursorContainer;
@@ -267,7 +221,7 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
     private boolean isPreviewShown;
     private boolean isVideoMessageButtonClicked;
     private MessageBottomSheetDialog messageBottomSheetDialog;
-    private ImageAsset imageAssetToSave;
+    private MessagesListView listView;
 
     public static ConversationFragment newInstance() {
         return new ConversationFragment();
@@ -294,19 +248,6 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
             } else {
                 toolbar.inflateMenu(R.menu.conversation_header_menu_audio);
             }
-        }
-    };
-
-    private final ModelObserver<MessagesList> messagesListModelObserver = new ModelObserver<MessagesList>() {
-        @Override
-        public void updated(MessagesList messagesList) {
-            if (LayoutSpec.isPhone(getActivity()) &&
-                getControllerFactory().getNavigationController().getCurrentPage() != Page.MESSAGE_STREAM) {
-                return;
-            }
-
-            showLoadingIndicator(messagesList);
-            syncIndicatorModelObserver.setAndUpdate(messagesList.getSyncIndicator());
         }
     };
 
@@ -394,65 +335,6 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
         }
     };
 
-    private final MessageBottomSheetDialog.Callback messageBottomSheetDialogCallback = new MessageBottomSheetDialog.Callback() {
-
-        @Override
-        public void onAction(MessageBottomSheetDialog.MessageAction action, Message message, MessageViewController messageViewController) {
-            switch (action) {
-                case COPY:
-                    copyMessage(message);
-                    getControllerFactory().getTrackingController().tagEvent(OpenedMessageActionEvent.copy(message.getMessageType().name()));
-                    break;
-
-                case DELETE_GLOBAL:
-                    deleteMessage(message, true);
-                    getControllerFactory().getTrackingController().tagEvent(OpenedMessageActionEvent.deleteForEveryone(message.getMessageType().name()));
-                    break;
-
-                case DELETE_LOCAL:
-                    deleteMessage(message, false);
-                    getControllerFactory().getTrackingController().tagEvent(OpenedMessageActionEvent.deleteForMe(message.getMessageType().name()));
-                    break;
-
-                case EDIT:
-                    editMessage(message);
-                    getControllerFactory().getTrackingController().tagEvent(OpenedMessageActionEvent.edit(message.getMessageType().name()));
-                    break;
-
-                case FORWARD:
-                    forwardMessage(message);
-                    getControllerFactory().getTrackingController().tagEvent(OpenedMessageActionEvent.forward(message.getMessageType().name()));
-                    break;
-                case LIKE:
-                case UNLIKE:
-                    if (message.isLikedByThisUser()) {
-                        message.unlike();
-                        getControllerFactory().getTrackingController().tagEvent(ReactedToMessageEvent.unlike(message.getConversation(),
-                                                                                                             message,
-                                                                                                             ReactedToMessageEvent.Method.MENU));
-                    } else {
-                        message.like();
-                        getControllerFactory().getUserPreferencesController().setPerformedAction(IUserPreferencesController.LIKED_MESSAGE);
-                        getControllerFactory().getTrackingController().tagEvent(ReactedToMessageEvent.like(message.getConversation(),
-                                                                                                           message,
-                                                                                                           ReactedToMessageEvent.Method.MENU));
-                    }
-                    break;
-                case SAVE:
-                    saveMessage(message);
-                    break;
-                case OPEN_FILE:
-                    if (message.getMessageType() == Message.Type.ANY_ASSET &&
-                        messageViewController instanceof FileMessageViewController) {
-                        ((FileMessageViewController) messageViewController).startAssetDownLoad();
-                    }
-                    break;
-                default:
-                    ExceptionHandler.saveException(new RuntimeException("Unhandled action"), null, null);
-            }
-        }
-    };
-
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //
     //  Lifecycle
@@ -508,9 +390,6 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
     @Override
     public void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
-        if (messageStreamManager != null) {
-            messageStreamManager.onConfigurationChanged(getContext(), messageAdapter);
-        }
 
         if (BuildConfig.SHOW_MENTIONING) {
             getControllerFactory().getMentioningController().hide();
@@ -518,11 +397,6 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
 
         audioMessageRecordingView.requestLayout();
         audioMessageRecordingView.invalidate();
-
-        if (LayoutSpec.isTablet(getContext()) && listView != null && messageAdapter != null) {
-            // To clear ListView cache as we use different views for portrait and landscape
-            listView.setAdapter(messageAdapter);
-        }
 
         if (ViewUtils.isInLandscape(newConfig)) {
             toolbar.setNavigationIcon(null);
@@ -544,6 +418,7 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
         extendedCursorContainer = ViewUtils.getView(view, R.id.ecc__conversation);
         containerPreview = ViewUtils.getView(view, R.id.fl__conversation_overlay);
         cursorLayout = ViewUtils.getView(view, R.id.cl__cursor);
+        new EditActionSupport((WireContext) getActivity(), cursorLayout); // TODO: remove that once cursorLayout is reimplemented in scala
         audioMessageRecordingView = ViewUtils.getView(view, R.id.amrv_audio_message_recording);
         toolbar = ViewUtils.getView(view, R.id.t_conversation_toolbar);
         toolbarTitle = ViewUtils.getView(toolbar, R.id.tv__conversation_toolbar__title);
@@ -551,6 +426,7 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
         shieldView.setVisibility(View.GONE);
         typingIndicatorView = ViewUtils.getView(view, R.id.tiv_typing_indicator_view);
         typingIndicatorView.setCallback(this);
+        listView = ViewUtils.getView(view, R.id.messages_list_view);
         toolbar.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -599,40 +475,11 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
                                      .commit();
         }
 
-        listView = ViewUtils.getView(view, R.id.clv__conversation_list_view);
-        listView.setVerticalScrollBarEnabled(false);
-        listView.setRecyclerListener(new AbsListView.RecyclerListener() {
-            @Override
-            public void onMovedToScrapHeap(View view) {
-                if (view == null || view.getTag() == null || !(view.getTag() instanceof MessageViewController)) {
-                    return;
-                }
-                MessageViewController viewTag = (MessageViewController) view.getTag();
-                // We want to ignore those because it looks weird if the images and so on fades in again
-                if (viewTag instanceof ImageMessageViewController || viewTag instanceof YouTubeMessageViewController || viewTag instanceof MediaPlayerViewController) {
-                    return;
-                }
-                viewTag.recycle();
-            }
-        });
-
-        messageAdapter = new MessageAdapter(this);
-        messageAdapter.registerDataSetObserver(new DataSetObserver() {
-            @Override
-            public void onChanged() {
-                checkEphemeralMessageOnScreen();
-            }
-        });
-        listView.setAdapter(messageAdapter);
-        messageStreamManager = new MessageStreamManager(listView, messageAdapter);
-
         // invisible footer to scroll over inputfield
         invisibleFooter = new FrameLayout(getActivity());
         AbsListView.LayoutParams params = new AbsListView.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
                                                                        getResources().getDimensionPixelSize(R.dimen.cursor__list_view_footer__height));
         invisibleFooter.setLayoutParams(params);
-
-        listView.addFooterView(invisibleFooter, null, false);
 
         cursorLayout.showSendButton(false);
 
@@ -674,11 +521,10 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
             getControllerFactory().getMentioningController().addObserver(this);
         }
 
-        messagesListModelObserver.resumeListening();
+//        messagesListModelObserver.resumeListening();
         syncIndicatorModelObserver.resumeListening();
         audioMessageRecordingView.setDarkTheme(getControllerFactory().getThemeController().isDarkTheme());
 
-        getControllerFactory().getConversationScreenController().setConversationStreamUiReady(messageStreamManager.getCount() > 0);
         if (!getControllerFactory().getConversationScreenController().isConversationStreamUiInitialized()) {
             getStoreFactory().getConversationStore().addConversationStoreObserverAndUpdate(this);
         } else {
@@ -692,9 +538,6 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
         getControllerFactory().getStreamMediaPlayerController().addStreamMediaBarObserver(this);
         getControllerFactory().getAccentColorController().addAccentColorObserver(this);
         getStoreFactory().getParticipantsStore().addParticipantsStoreObserver(this);
-        listView.registerScrolledToBottomListener(this);
-        listView.registerVisibleMessagesChangedListener(this);
-        listView.registerScrollStateChangeListener(this);
         getControllerFactory().getGlobalLayoutController().addKeyboardVisibilityObserver(this);
         getStoreFactory().getInAppNotificationStore().addInAppNotificationObserver(this);
 
@@ -754,15 +597,12 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
         getControllerFactory().getGlobalLayoutController().removeKeyboardVisibilityObserver(this);
         getControllerFactory().getNavigationController().removePagerControllerObserver(this);
 
-        messagesListModelObserver.pauseListening();
+//        messagesListModelObserver.pauseListening();
         syncIndicatorModelObserver.pauseListening();
 
         getStoreFactory().getConversationStore().removeConversationStoreObserver(this);
         getControllerFactory().getAccentColorController().removeAccentColorObserver(this);
         getControllerFactory().getNavigationController().removeNavigationControllerObserver(this);
-        listView.unregisterVisibleMessagesChangedListener(this);
-        listView.unregisterScrolledToBottomListener(this);
-        listView.unregisterScrollStateChangeListener(this);
         getControllerFactory().getSlidingPaneController().removeObserver(this);
         getControllerFactory().getConversationScreenController().setConversationStreamUiReady(false);
         getControllerFactory().getRequestPermissionsController().removeObserver(this);
@@ -772,8 +612,6 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
     @Override
     public void onDestroyView() {
         containerPreview = null;
-        listView = null;
-        messageAdapter = null;
         cursorLayout = null;
         conversationLoadingIndicatorViewView = null;
         if (inputStateIndicator != null) {
@@ -797,7 +635,6 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
 
     @Override
     public void onShowSingleImage(Message message) {
-        listView.setEnabled(true);
     }
 
     @Override
@@ -808,34 +645,11 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
     @Override
     public void onHideSingleImage() {
         getControllerFactory().getNavigationController().setRightPage(Page.MESSAGE_STREAM, TAG);
-        listView.setEnabled(true);
     }
 
     @Override
     public void updateSingleImageReferences() {
-        listView.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                if (getControllerFactory() == null || getControllerFactory().isTornDown()) {
-                    return;
-                }
-                Message message = getControllerFactory().getSingleImageController().getMessage();
-                if (message == null) {
-                    getControllerFactory().getSingleImageController().setContainerOutOfScreen(true);
-                    return;
-                }
-                // Single image is visible
-                int messagePosition = messageStreamManager.getIndexOfMessage(message);
-                View messageView = getViewByPosition(messagePosition, listView);
-                if (messageView == null) {
-                    getControllerFactory().getSingleImageController().setContainerOutOfScreen(true);
-                    return;
-                }
-                final ImageView clickedImageView = ViewUtils.getView(messageView,
-                                                                     R.id.iv__row_conversation__message_image);
-                getControllerFactory().getSingleImageController().setViewReferences(clickedImageView);
-            }
-        }, getResources().getInteger(R.integer.framework_animation_duration_long));
+
     }
 
     @Override
@@ -846,19 +660,6 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
     @Override
     public void onHideVideo() {
         getControllerFactory().getNavigationController().setRightPage(Page.MESSAGE_STREAM, TAG);
-        listView.setEnabled(true);
-    }
-
-    private View getViewByPosition(int pos, ListView listView) {
-        final int firstListItemPosition = listView.getFirstVisiblePosition();
-        final int lastListItemPosition = firstListItemPosition + listView.getChildCount() - 1;
-
-        if (pos < firstListItemPosition || pos > lastListItemPosition) {
-            return listView.getAdapter().getView(pos, null, listView);
-        } else {
-            final int childIndex = pos - firstListItemPosition;
-            return listView.getChildAt(childIndex);
-        }
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -896,14 +697,6 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
 
         extendedCursorContainer.close(true);
 
-        final boolean changeToDifferentConversation = fromConversation == null ||
-                                                      !fromConversation.getId().equals(toConversation.getId());
-        if (changeToDifferentConversation) {
-            messageStreamManager.resetMessages();
-        }
-        messageStreamManager.setConversation(toConversation,
-                                             getControllerFactory().getNavigationController().getCurrentPage() != Page.MESSAGE_STREAM);
-
         getControllerFactory().getConversationScreenController().setSingleConversation(toConversation.getType() == IConversation.Type.ONE_TO_ONE);
 
 
@@ -919,6 +712,10 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
                 if (cursorLayout == null) {
                     return;
                 }
+
+                final boolean changeToDifferentConversation = fromConversation == null ||
+                                                              !fromConversation.getId().equals(toConversation.getId());
+
 
                 // handle draft
                 if (fromConversation != null && changeToDifferentConversation &&
@@ -937,13 +734,13 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
                 if (changeToDifferentConversation) {
                     getControllerFactory().getConversationScreenController().setConversationStreamUiReady(false);
                     toConversationType = toConversation.getType();
-                    messagesListModelObserver.setAndUpdate(toConversation.getMessages());
+//                    messagesListModelObserver.setAndUpdate(toConversation.getMessages());
                     getControllerFactory().getSharingController().maybeResetSharedText(fromConversation);
                     getControllerFactory().getSharingController().maybeResetSharedUris(fromConversation);
 
 
                     cursorLayout.setVisibility(toConversation.isActive() ? View.VISIBLE : View.GONE);
-                    if (!inSplitPortraitMode() && listView.computeIsScrolledToBottom()) {
+                    if (!inSplitPortraitMode()) {
                         resetCursor();
                     }
 
@@ -1101,31 +898,12 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
     }
 
     @Override
-    public void onScrolledToBottom() {
-        getStoreFactory().getInAppNotificationStore().onScrolledToBottom();
-        messageStreamManager.onScrolledToBottom(true);
-        cursorLayout.showTopbar(false);
-    }
-
-    @Override
-    public void onScrolledAwayFromBottom() {
-        getStoreFactory().getInAppNotificationStore().onScrolledAwayFromBottom();
-        messageStreamManager.onScrolledToBottom(false);
-        cursorLayout.showTopbar(typingIndicatorView.getVisibility() == View.GONE);
-    }
-
-    @Override
-    public void onScrollOffsetFromFirstElement(int offset) {
-    }
-
-    @Override
     public void onKeyboardVisibilityChanged(boolean keyboardIsVisible, int keyboardHeight, View currentFocus) {
         cursorLayout.notifyKeyboardVisibilityChanged(keyboardIsVisible, currentFocus);
 
         if (keyboardIsVisible &&
             getControllerFactory().getFocusController().getCurrentFocus() == IFocusController.CONVERSATION_CURSOR &&
             !cursorLayout.isEditingMessage()) {
-            messageStreamManager.onCursorStateEdit();
             getControllerFactory().getNavigationController().setMessageStreamState(VoiceBarAppearance.MINI);
         }
 
@@ -1150,15 +928,6 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
 
     @Override
     public void onEditTextHasChanged(int cursorPosition, String text) {
-        if (listView == null) {
-            return;
-        }
-        // this is needed to make sure that text is scrolled to bottom - on some devices
-        // the keyboard height changes while text is being entered
-        if (!cursorLayout.isEditingMessage()) {
-            messageStreamManager.onCursorStateEdit();
-        }
-
         if (inputStateIndicator != null) {
             if (text.isEmpty()) {
                 inputStateIndicator.textCleared();
@@ -1195,17 +964,6 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
         conversationLoadingIndicatorViewView.setColor(color);
         audioMessageRecordingView.setAccentColor(color);
         extendedCursorContainer.setAccentColor(color);
-    }
-
-    //////////////////////////////////////////////////////////////////////////////////////////
-    //
-    //  VisibleMessagesChangesListener
-    //
-    //////////////////////////////////////////////////////////////////////////////////////////
-
-    @Override
-    public void onVisibleMessagesChanged(List<String> visibleMessageIds) {
-        getControllerFactory().getStreamMediaPlayerController().informVisibleItems(visibleMessageIds);
     }
 
     //////////////////////////////////////////////////////////////////////////////////////////
@@ -1251,11 +1009,6 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
 
     @Override
     public void onScrollTo(Message message) {
-        if (listView != null) {
-            final int scrollPosition = messageStreamManager.getIndexOfMessage(message);
-            Timber.i("onScrollTo. Smooth scroll list to position %s", scrollPosition);
-            listView.smoothScrollToPosition(scrollPosition);
-        }
     }
 
     @Override
@@ -1283,11 +1036,8 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
 
         if (currentConversation == null || !currentConversation.isMemberOfConversation()) {
             cursorLayout.setVisibility(View.GONE);
-            ViewUtils.setMarginBottom(listView,
-                                      getResources().getDimensionPixelSize(R.dimen.cursor__list_view_footer_no_cursor__height));
         } else {
             cursorLayout.setVisibility(View.VISIBLE);
-            ViewUtils.setMarginBottom(listView, 0);
         }
     }
 
@@ -1310,15 +1060,8 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
     @Override
     public void onPageVisible(Page page) {
         if (page == Page.MESSAGE_STREAM) {
-            messagesListModelObserver.forceUpdate();
+//            messagesListModelObserver.forceUpdate();
             cursorLayout.enableMessageWriting();
-        }
-        if (LayoutSpec.isPhone(getContext())) {
-            if (page == Page.MESSAGE_STREAM) {
-                messageStreamManager.resume();
-            } else {
-                messageStreamManager.pause();
-            }
         }
     }
 
@@ -1338,164 +1081,8 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
 
     }
 
-    //////////////////////////////////////////////////////////////////////////////
-    //
-    //  MessageViewsContainer
-    //
-    //////////////////////////////////////////////////////////////////////////////
-
-    @Override
-    public int getUnreadMessageCount() {
-        return messageStreamManager.getUnreadMessageCount();
-    }
-
-    @Override
     public IConversation.Type getConversationType() {
         return toConversationType;
-    }
-
-    @Override
-    public void setExpandedMessageId(String messageId) {
-        expandedMessageId = messageId;
-    }
-
-    @Override
-    public String getExpandedMessageId() {
-        return expandedMessageId;
-    }
-
-    @Override
-    public void setExpandedView(ExpandableView expandedView) {
-        currentExpandableView = expandedView;
-    }
-
-    @Override
-    public ExpandableView getExpandedView() {
-        return currentExpandableView;
-    }
-
-    @Override
-    public void closeMessageViewsExtras() {
-        if (messageAdapter == null) {
-            return;
-        }
-        for (View v : messageAdapter.getActiveViews()) {
-            MessageAndSeparatorViewController messageVC = (MessageAndSeparatorViewController) v.getTag();
-            if (messageVC != null) {
-                messageVC.closeMessageViewControllerExtras();
-            }
-        }
-    }
-
-    @Override
-    public boolean ping(boolean hotKnock, String id, String message, int color) {
-        if (hotKnock) {
-            if (lastHotPingMessageId != null && lastHotPingMessageId.equals(id)) {
-                return false;
-            }
-
-            lastHotPingMessageId = id;
-        } else {
-            if (lastPingMessageId != null && lastPingMessageId.equals(id)) {
-                return false;
-            }
-
-            lastPingMessageId = id;
-        }
-
-        return true;
-    }
-
-    @Override
-    public boolean isPhone() {
-        return LayoutSpec.isPhone(getActivity());
-    }
-
-    @Override
-    public void openSpotifySettings() {
-        startActivity(ZetaPreferencesActivity.getSpotifyLoginIntent(getActivity()));
-    }
-
-    @Override
-    public void openDevicesPage(OtrDestination otrDestination, View anchorView) {
-        if (isKeyboardUp()) {
-            KeyboardUtils.hideKeyboard(getActivity());
-        }
-        switch (otrDestination) {
-            case PREFERENCES:
-                startActivity(ZetaPreferencesActivity.getOtrDevicesPreferencesIntent(getContext()));
-                break;
-            case PARTICIPANTS:
-                getControllerFactory().getConversationScreenController().showParticipants(anchorView, true);
-                break;
-        }
-    }
-
-    @Override
-    public boolean onItemLongClick(final Message message, final MessageViewController messageViewController) {
-        if (messageBottomSheetDialog != null) {
-            if (messageBottomSheetDialog.isShowing()) {
-                messageBottomSheetDialog.dismiss();
-            }
-            messageBottomSheetDialog = null;
-        }
-        if (message == null || message.isEphemeral()) {
-            return false;
-        }
-        final boolean isMemberOfConversation = getStoreFactory().getConversationStore().getCurrentConversation().isMemberOfConversation();
-        if (KeyboardUtils.isKeyboardVisible(getContext())) {
-            KeyboardUtils.hideKeyboard(getActivity());
-            new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    if (getActivity() == null) {
-                        return;
-                    }
-                    messageBottomSheetDialog = new MessageBottomSheetDialog(getContext(),
-                                                                            R.style.message__bottom_sheet__base,
-                                                                            message,
-                                                                            messageViewController,
-                                                                            isMemberOfConversation,
-                                                                            messageBottomSheetDialogCallback);
-                    messageBottomSheetDialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
-                        @Override
-                        public void onDismiss(DialogInterface dialog) {
-                            messageBottomSheetDialog = null;
-                        }
-                    });
-                    messageBottomSheetDialog.show();
-                }
-            }, BOTTOM_MENU_DISPLAY_DELAY_MS);
-        } else {
-            messageBottomSheetDialog = new MessageBottomSheetDialog(getContext(),
-                                                                    R.style.message__bottom_sheet__base,
-                                                                    message, messageViewController,
-                                                                    isMemberOfConversation,
-                                                                    messageBottomSheetDialogCallback);
-            messageBottomSheetDialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
-                @Override
-                public void onDismiss(DialogInterface dialog) {
-                    messageBottomSheetDialog = null;
-                }
-            });
-            messageBottomSheetDialog.show();
-        }
-        return true;
-    }
-
-    @Override
-    public void onOpenUrl(String url) {
-        getContainer().onOpenUrl(url);
-    }
-
-    @Override
-    public void openSettings() {
-        startActivity(ZetaPreferencesActivity.getDefaultIntent(getActivity()));
-    }
-
-    @Override
-    public boolean isTornDown() {
-        return getContainer() == null || getControllerFactory().isTornDown() || getStoreFactory().isTornDown();
     }
 
     //////////////////////////////////////////////////////////////////////////////
@@ -1801,9 +1388,7 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
 
     @Override
     public void onCursorClicked() {
-        if (!cursorLayout.isEditingMessage()) {
-            listView.scrollToBottom();
-        }
+        listView.scrollToBottom();
     }
 
     @Override
@@ -1821,7 +1406,6 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
     @Override
     public void onClosedMessageEditing() {
         getControllerFactory().getConversationScreenController().setMessageBeingEdited(null);
-        messageAdapter.notifyDataSetChanged();
     }
 
     @Override
@@ -1940,13 +1524,6 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
                     Toast.makeText(getActivity(),
                                    R.string.audio_message_error__missing_audio_permissions,
                                    Toast.LENGTH_SHORT).show();
-                }
-                break;
-            case SAVE_IMAGE_PERMISSION_REQUEST_ID:
-                if (PermissionUtils.verifyPermissions(grantResults)) {
-                    saveImageAssetToGallery();
-                } else {
-                    unableToSaveImageNoPermissions();
                 }
                 break;
             default:
@@ -2353,234 +1930,6 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
         }
     }
 
-    private void editMessage(final Message message) {
-        if (cursorLayout == null) {
-            return;
-        }
-        cursorLayout.editMessage(message);
-
-        getControllerFactory().getConversationScreenController().setMessageBeingEdited(message);
-        messageAdapter.notifyDataSetChanged();
-
-        // Add small delay so triggering keyboard works
-        new Handler().postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                KeyboardUtils.showKeyboard(getActivity());
-            }
-        }, 200);
-    }
-
-    private void deleteMessage(final Message message, final boolean forEveryone) {
-        Dialog dialog = new AlertDialog.Builder(getContext())
-            .setTitle(forEveryone ? R.string.conversation__message_action__delete_for_everyone : R.string.conversation__message_action__delete_for_me)
-            .setMessage(R.string.conversation__message_action__delete_details)
-            .setCancelable(true)
-            .setNegativeButton(R.string.conversation__message_action__delete__dialog__cancel, null)
-            .setPositiveButton(R.string.conversation__message_action__delete__dialog__ok,
-                               new DialogInterface.OnClickListener() {
-                                   @Override
-                                   public void onClick(DialogInterface dialog, int which) {
-                                       if (forEveryone) {
-                                           message.recall();
-                                       } else {
-                                           message.delete();
-                                       }
-                                       Toast.makeText(getContext(), R.string.conversation__message_action__delete__confirmation, Toast.LENGTH_SHORT).show();
-                                       getControllerFactory().getTrackingController().tagEvent(new DeletedMessageEvent(message, forEveryone));
-                                   }
-                               })
-            .create();
-        dialog.show();
-    }
-
-    private void copyMessage(Message message) {
-        getControllerFactory().getTrackingController().tagEvent(new CopiedMessageEvent(message.getMessageType().name()));
-
-        ClipboardManager clipboard = (ClipboardManager) getContext().getSystemService(Context.CLIPBOARD_SERVICE);
-        ClipData clip = ClipData.newPlainText(getContext().getString(R.string.conversation__action_mode__copy__description,
-                                                                     message.getUser().getDisplayName()),
-                                              message.getBody());
-        clipboard.setPrimaryClip(clip);
-        Toast.makeText(getContext(), R.string.conversation__action_mode__copy__toast, Toast.LENGTH_SHORT).show();
-    }
-
-    private void forwardMessage(final Message message) {
-        getControllerFactory().getTrackingController().tagEvent(new ForwardedMessageEvent(message.getMessageType().name()));
-
-        final ShareCompat.IntentBuilder intentBuilder = ShareCompat.IntentBuilder.from(getActivity());
-        intentBuilder.setChooserTitle(R.string.conversation__action_mode__fwd__chooser__title);
-        switch (message.getMessageType()) {
-            case TEXT:
-            case RICH_MEDIA:
-                intentBuilder.setType("text/plain");
-                intentBuilder.setText(message.getBody());
-                intentBuilder.startChooser();
-                break;
-            case ANY_ASSET:
-            case VIDEO_ASSET:
-            case AUDIO_ASSET:
-            case ASSET:
-                final ProgressDialog dialog = ProgressDialog.show(getContext(),
-                                                                  getString(R.string.conversation__action_mode__fwd__dialog__title),
-                                                                  getString(R.string.conversation__action_mode__fwd__dialog__message),
-                                                                  true, true, null);
-                // TODO: Once https://wearezeta.atlassian.net/browse/CM-976 is resolved, this 'if' block can be removed
-                if (message.getMessageType() == Message.Type.ASSET) {
-                    final ImageAsset imageAsset = message.getImage();
-                    intentBuilder.setType(imageAsset.getMimeType());
-                    imageAsset.saveImageToGallery(new ImageAsset.SaveCallback() {
-                        @Override
-                        public void imageSaved(Uri uri) {
-                            if (getActivity() == null) {
-                                return;
-                            }
-                            dialog.dismiss();
-                            intentBuilder.addStream(uri);
-                            intentBuilder.startChooser();
-                        }
-
-                        @Override
-                        public void imageSavingFailed(Exception ex) {
-                            if (getActivity() == null) {
-                                return;
-                            }
-                            dialog.dismiss();
-                        }
-                    });
-                } else {
-                    final Asset messageAsset = message.getAsset();
-                    intentBuilder.setType(messageAsset.getMimeType());
-                    messageAsset.getContentUri(new Asset.LoadCallback<Uri>() {
-                        @Override
-                        public void onLoaded(Uri uri) {
-                            if (getActivity() == null) {
-                                return;
-                            }
-                            dialog.dismiss();
-                            intentBuilder.addStream(uri);
-                            intentBuilder.startChooser();
-                        }
-
-                        @Override
-                        public void onLoadFailed() {
-                            if (getActivity() == null) {
-                                return;
-                            }
-                            dialog.dismiss();
-                        }
-                    });
-                }
-                break;
-        }
-    }
-
-    private void saveMessage(Message message) {
-        if (message.getMessageType() == Message.Type.ASSET) {
-            imageAssetToSave = message.getImage();
-            if (PermissionUtils.hasSelfPermissions(getActivity(), SAVE_IMAGE_PERMISSIONS)) {
-                saveImageAssetToGallery();
-            } else {
-                ActivityCompat.requestPermissions(getActivity(),
-                                                  SAVE_IMAGE_PERMISSIONS,
-                                                  SAVE_IMAGE_PERMISSION_REQUEST_ID);
-            }
-        } else {
-            final ProgressDialog dialog = ProgressDialog.show(getContext(),
-                                                              getString(R.string.conversation__action_mode__fwd__dialog__title),
-                                                              getString(R.string.conversation__action_mode__fwd__dialog__message),
-                                                              true, true, null);
-            final Asset asset = message.getAsset();
-            asset.saveToDownloads(new Asset.LoadCallback() {
-
-                @Override
-                public void onLoaded(Object o) {
-                    if (getActivity() == null ||
-                        getControllerFactory() == null ||
-                        getControllerFactory().isTornDown()) {
-                        return;
-                    }
-                    getControllerFactory().getTrackingController().tagEvent(new SavedFileEvent(asset.getMimeType(),
-                                                                                               (int) asset.getSizeInBytes()));
-                    Toast.makeText(getActivity(),
-                                   com.waz.zclient.ui.R.string.content__file__action__save_completed,
-                                   Toast.LENGTH_SHORT).show();
-                    dialog.dismiss();
-                }
-
-                @Override
-                public void onLoadFailed() {
-                    if (getActivity() == null ||
-                        getControllerFactory() == null ||
-                        getControllerFactory().isTornDown()) {
-                        return;
-                    }
-                    Toast.makeText(getActivity(),
-                                   com.waz.zclient.ui.R.string.content__file__action__save_error,
-                                   Toast.LENGTH_SHORT).show();
-                    dialog.dismiss();
-                }
-            });
-        }
-    }
-
-    private void saveImageAssetToGallery() {
-        if (imageAssetToSave == null) {
-            return;
-        }
-        imageAssetToSave.saveImageToGallery(new ImageAsset.SaveCallback() {
-
-            @Override
-            public void imageSaved(Uri uri) {
-                if (getControllerFactory() == null ||
-                    getControllerFactory().isTornDown()) {
-                    return;
-                }
-                ((BaseScalaActivity) getActivity())
-                    .injectJava(ImageNotificationsController.class)
-                    .showImageSavedNotification(imageAssetToSave.getId(), uri);
-                Toast.makeText(getContext(), R.string.message_bottom_menu_action_save_ok, Toast.LENGTH_SHORT).show();
-                imageAssetToSave = null;
-            }
-
-            @Override
-            public void imageSavingFailed(Exception ex) {
-                unableToSaveImageNoPermissions();
-            }
-        });
-    }
-
-    private void unableToSaveImageNoPermissions() {
-        imageAssetToSave = null;
-        Toast.makeText(getContext(), R.string.message_bottom_menu_action_save_fail, Toast.LENGTH_SHORT).show();
-    }
-
-    private void checkEphemeralMessageOnScreen() {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB) {
-            // Not really supported
-            return;
-        }
-        try {
-            boolean ephemeral = false;
-            for (int i = listView.getFirstVisiblePosition(); i <= listView.getLastVisiblePosition(); i++) {
-                Message message = (Message) listView.getItemAtPosition(i);
-                if (message != null && message.isEphemeral()) {
-                    ephemeral = true;
-                    break;
-                }
-            }
-            if (ephemeral) {
-                getActivity().getWindow().addFlags(WindowManager.LayoutParams.FLAG_SECURE);
-            } else {
-                getActivity().getWindow().clearFlags(WindowManager.LayoutParams.FLAG_SECURE);
-            }
-
-        } catch (Throwable t) {
-            //ignore
-            Timber.w(t, "Something went wrong");
-        }
-    }
-
     @Override
     public void onEmojiSelected(String emoji) {
         cursorLayout.appendText(emoji);
@@ -2592,7 +1941,7 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
         if (visible) {
             cursorLayout.showTopbar(false);
         } else {
-            cursorLayout.showTopbar(!listView.computeIsScrolledToBottom());
+            cursorLayout.showTopbar(!listView.scrollController().shouldScrollToBottom());
         }
     }
 
@@ -2605,11 +1954,6 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
             extendedCursorContainer.close(false);
         }
         getStoreFactory().getConversationStore().getCurrentConversation().setEphemeralExpiration(expiration);
-    }
-
-    @Override
-    public void onScrollStateChanged(boolean idle) {
-        checkEphemeralMessageOnScreen();
     }
 
     public interface Container {
