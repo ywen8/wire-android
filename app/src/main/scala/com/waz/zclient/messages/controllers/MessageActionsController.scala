@@ -41,7 +41,6 @@ import com.waz.zclient.notifications.controllers.ImageNotificationsController
 import com.waz.zclient.pages.main.conversation.controller.IConversationScreenController
 import com.waz.zclient.pages.main.conversation.views.MessageBottomSheetDialog
 import com.waz.zclient.pages.main.conversation.views.MessageBottomSheetDialog.{Callback, MessageAction}
-import com.waz.zclient.pages.main.conversation.views.row.message.MessageViewController
 import com.waz.zclient.ui.cursor.CursorLayout
 import com.waz.zclient.ui.utils.KeyboardUtils
 import com.waz.zclient.utils.ContextUtils._
@@ -68,7 +67,7 @@ class MessageActionsController(implicit injector: Injector, ctx: Context, ec: Ev
   private var dialog = Option.empty[MessageBottomSheetDialog]
 
   private val callback = new Callback {
-    override def onAction(action: MessageAction, message: Message, messageViewController: MessageViewController): Unit = {
+    override def onAction(action: MessageAction, message: Message): Unit = {
       onMessageAction ! (action, message)
     }
   }
@@ -108,7 +107,7 @@ class MessageActionsController(implicit injector: Injector, ctx: Context, ec: Ev
     } yield {
       dialog.foreach(_.dismiss())
       dialog = Some(
-        returning(new MessageBottomSheetDialog(context, R.style.message__bottom_sheet__base, message, null, isMember, callback)) { d =>
+        returning(new MessageBottomSheetDialog(context, R.style.message__bottom_sheet__base, message, isMember, callback)) { d =>
           d.setOnDismissListener(onDismissed)
           d.show()
         }

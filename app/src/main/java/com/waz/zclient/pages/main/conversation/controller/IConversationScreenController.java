@@ -82,8 +82,6 @@ public interface IConversationScreenController {
 
     void tearDown();
 
-    void notifyConversationListReady();
-
     boolean isConversationStreamUiInitialized();
 
     void setConversationStreamUiReady(boolean ready);

@@ -29,7 +29,6 @@ import java.util.Set;
 
 public class ConversationScreenController implements IConversationScreenController {
     private Set<ConversationScreenControllerObserver> conversationScreenControllerObservers = new HashSet<>();
-    private Set<ConversationListReadyObserver> conversationListReadyObservers = new HashSet<>();
 
     private boolean isShowingParticipant;
     private boolean isSingleConversation;
@@ -192,15 +191,6 @@ public class ConversationScreenController implements IConversationScreenControll
     public void tearDown() {
         conversationScreenControllerObservers.clear();
         conversationScreenControllerObservers = null;
-        conversationListReadyObservers.clear();
-        conversationListReadyObservers = null;
-    }
-
-    @Override
-    public void notifyConversationListReady() {
-        for (ConversationListReadyObserver conversationListReadyObserver : conversationListReadyObservers) {
-            conversationListReadyObserver.onConversationListReady();
-        }
     }
 
     @Override

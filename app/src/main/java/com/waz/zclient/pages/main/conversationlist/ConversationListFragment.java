@@ -458,7 +458,6 @@ public class ConversationListFragment extends BaseFragment<ConversationListFragm
                 if (getContainer() == null) {
                     return;
                 }
-                getControllerFactory().getConversationScreenController().notifyConversationListReady();
             }
         });
 

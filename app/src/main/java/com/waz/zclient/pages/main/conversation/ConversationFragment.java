@@ -19,27 +19,19 @@ package com.waz.zclient.pages.main.conversation;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
-import android.app.Dialog;
-import android.app.ProgressDialog;
-import android.content.ClipData;
-import android.content.ClipboardManager;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Configuration;
-import android.database.DataSetObserver;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.Looper;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentManager;
-import android.support.v4.app.ShareCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
@@ -49,16 +41,13 @@ import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.WindowManager;
 import android.view.animation.Animation;
 import android.widget.AbsListView;
 import android.widget.FrameLayout;
-import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
-import com.waz.api.Asset;
 import com.waz.api.AssetFactory;
 import com.waz.api.AssetForUpload;
 import com.waz.api.AudioAssetForUpload;
@@ -81,8 +70,11 @@ import com.waz.api.UpdateListener;
 import com.waz.api.User;
 import com.waz.api.UsersList;
 import com.waz.api.Verification;
-import com.waz.zclient.*;
+import com.waz.zclient.BaseScalaActivity;
 import com.waz.zclient.BuildConfig;
+import com.waz.zclient.OnBackPressedListener;
+import com.waz.zclient.R;
+import com.waz.zclient.WireContext;
 import com.waz.zclient.camera.controllers.GlobalCameraController;
 import com.waz.zclient.controllers.IControllerFactory;
 import com.waz.zclient.controllers.accentcolor.AccentColorObserver;
@@ -102,18 +94,11 @@ import com.waz.zclient.controllers.navigation.PagerControllerObserver;
 import com.waz.zclient.controllers.permission.RequestPermissionsObserver;
 import com.waz.zclient.controllers.singleimage.SingleImageObserver;
 import com.waz.zclient.controllers.streammediaplayer.StreamMediaBarObserver;
-import com.waz.zclient.controllers.tracking.events.conversation.CopiedMessageEvent;
-import com.waz.zclient.controllers.tracking.events.conversation.DeletedMessageEvent;
 import com.waz.zclient.controllers.tracking.events.conversation.EditedMessageEvent;
-import com.waz.zclient.controllers.tracking.events.conversation.ForwardedMessageEvent;
-import com.waz.zclient.controllers.tracking.events.conversation.OpenedMessageActionEvent;
-import com.waz.zclient.controllers.tracking.events.conversation.ReactedToMessageEvent;
 import com.waz.zclient.controllers.tracking.events.navigation.OpenedMoreActionsEvent;
-import com.waz.zclient.controllers.userpreferences.IUserPreferencesController;
 import com.waz.zclient.core.api.scala.ModelObserver;
 import com.waz.zclient.core.controllers.tracking.attributes.OpenedMediaAction;
 import com.waz.zclient.core.controllers.tracking.attributes.RangedAttribute;
-import com.waz.zclient.core.controllers.tracking.events.filetransfer.SavedFileEvent;
 import com.waz.zclient.core.controllers.tracking.events.filetransfer.SelectedTooLargeFileEvent;
 import com.waz.zclient.core.controllers.tracking.events.media.CancelledRecordingAudioMessageEvent;
 import com.waz.zclient.core.controllers.tracking.events.media.OpenedActionHintEvent;
@@ -132,7 +117,6 @@ import com.waz.zclient.core.stores.network.DefaultNetworkAction;
 import com.waz.zclient.core.stores.participants.ParticipantsStoreObserver;
 import com.waz.zclient.messages.MessagesListView;
 import com.waz.zclient.messages.controllers.EditActionSupport;
-import com.waz.zclient.notifications.controllers.ImageNotificationsController;
 import com.waz.zclient.pages.BaseFragment;
 import com.waz.zclient.pages.extendedcursor.ExtendedCursorContainer;
 import com.waz.zclient.pages.extendedcursor.emoji.EmojiKeyboardLayout;
@@ -141,19 +125,14 @@ import com.waz.zclient.pages.extendedcursor.image.CursorImagesLayout;
 import com.waz.zclient.pages.extendedcursor.image.ImagePreviewLayout;
 import com.waz.zclient.pages.extendedcursor.voicefilter.VoiceFilterLayout;
 import com.waz.zclient.pages.main.calling.enums.VoiceBarAppearance;
-import com.waz.zclient.pages.main.conversation.views.ExpandableView;
 import com.waz.zclient.pages.main.conversation.views.MessageBottomSheetDialog;
-import com.waz.zclient.pages.main.conversation.views.MessageViewsContainer;
 import com.waz.zclient.pages.main.conversation.views.TypingIndicatorView;
 import com.waz.zclient.pages.main.conversation.views.header.StreamMediaPlayerBarFragment;
-import com.waz.zclient.pages.main.conversation.views.listview.ConversationScrollListener;
-import com.waz.zclient.pages.main.conversation.views.row.message.MessageViewController;
 import com.waz.zclient.pages.main.conversationlist.ConversationListAnimation;
 import com.waz.zclient.pages.main.conversationpager.controller.SlidingPaneObserver;
 import com.waz.zclient.pages.main.onboarding.OnBoardingHintFragment;
 import com.waz.zclient.pages.main.onboarding.OnBoardingHintType;
 import com.waz.zclient.pages.main.pickuser.controller.IPickUserController;
-import com.waz.zclient.pages.main.profile.ZetaPreferencesActivity;
 import com.waz.zclient.pages.main.profile.camera.CameraContext;
 import com.waz.zclient.ui.animation.interpolators.penner.Expo;
 import com.waz.zclient.ui.audiomessage.AudioMessageRecordingView;
@@ -166,13 +145,11 @@ import com.waz.zclient.ui.views.e2ee.ShieldView;
 import com.waz.zclient.utils.AssetUtils;
 import com.waz.zclient.utils.Callback;
 import com.waz.zclient.utils.LayoutSpec;
-import com.waz.zclient.utils.OtrDestination;
 import com.waz.zclient.utils.PermissionUtils;
 import com.waz.zclient.utils.TrackingUtils;
 import com.waz.zclient.utils.ViewUtils;
 import com.waz.zclient.views.LoadingIndicatorView;
 import com.waz.zclient.views.MentioningFragment;
-import net.hockeyapp.android.ExceptionHandler;
 import timber.log.Timber;
 
 import java.util.ArrayList;
@@ -183,16 +160,12 @@ import java.util.Map;
 public class ConversationFragment extends BaseFragment<ConversationFragment.Container> implements ConversationStoreObserver,
                                                                                                   CallingObserver,
                                                                                                   OnBoardingHintFragment.Container,
-                                                                                                  ConversationScrollListener.ScrolledToBottomListener,
-                                                                                                  ConversationScrollListener.VisibleMessagesChangesListener,
-                                                                                                  ConversationScrollListener.ScrollStateChangeListener,
                                                                                                   KeyboardVisibilityObserver,
                                                                                                   AccentColorObserver,
                                                                                                   StreamMediaPlayerBarFragment.Container,
                                                                                                   StreamMediaBarObserver,
                                                                                                   ParticipantsStoreObserver,
                                                                                                   InAppNotificationStoreObserver,
-                                                                                                  MessageViewsContainer,
                                                                                                   NavigationControllerObserver,
                                                                                                   SlidingPaneObserver,
                                                                                                   SingleImageObserver,
@@ -215,7 +188,6 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
     private static final String SAVED_STATE_PREVIEW = "SAVED_STATE_PREVIEW";
     private static final int REQUEST_VIDEO_CAPTURE = 911;
     private static final int CAMERA_PERMISSION_REQUEST_ID = 21;
-    private static final int BOTTOM_MENU_DISPLAY_DELAY_MS = 200;
 
     private static final String[] EXTENDED_CURSOR_PERMISSIONS = new String[] {Manifest.permission.CAMERA, Manifest.permission.READ_EXTERNAL_STORAGE};
     private static final int OPEN_EXTENDED_CURSOR_IMAGES = 1254;
@@ -237,10 +209,6 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
     private FrameLayout invisibleFooter;
 
     private IConversation.Type toConversationType;
-    private String expandedMessageId;
-    private ExpandableView currentExpandableView;
-    private String lastPingMessageId;
-    private String lastHotPingMessageId;
     private Toolbar toolbar;
     private TextView toolbarTitle;
     private ShieldView shieldView;
@@ -253,7 +221,6 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
     private boolean isPreviewShown;
     private boolean isVideoMessageButtonClicked;
     private MessageBottomSheetDialog messageBottomSheetDialog;
-    private ImageAsset imageAssetToSave;
     private MessagesListView listView;
 
     public static ConversationFragment newInstance() {
@@ -283,19 +250,6 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
             }
         }
     };
-
-//    private final ModelObserver<MessagesList> messagesListModelObserver = new ModelObserver<MessagesList>() {
-//        @Override
-//        public void updated(MessagesList messagesList) {
-//            if (LayoutSpec.isPhone(getActivity()) &&
-//                getControllerFactory().getNavigationController().getCurrentPage() != Page.MESSAGE_STREAM) {
-//                return;
-//            }
-//
-//            showLoadingIndicator(messagesList);
-//            syncIndicatorModelObserver.setAndUpdate(messagesList.getSyncIndicator());
-//        }
-//    };
 
     private final ModelObserver<SyncIndicator> syncIndicatorModelObserver = new ModelObserver<SyncIndicator>() {
         @Override
@@ -944,22 +898,6 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
     }
 
     @Override
-    public void onScrolledToBottom() {
-        getStoreFactory().getInAppNotificationStore().onScrolledToBottom();
-        cursorLayout.showTopbar(false);
-    }
-
-    @Override
-    public void onScrolledAwayFromBottom() {
-        getStoreFactory().getInAppNotificationStore().onScrolledAwayFromBottom();
-        cursorLayout.showTopbar(typingIndicatorView.getVisibility() == View.GONE);
-    }
-
-    @Override
-    public void onScrollOffsetFromFirstElement(int offset) {
-    }
-
-    @Override
     public void onKeyboardVisibilityChanged(boolean keyboardIsVisible, int keyboardHeight, View currentFocus) {
         cursorLayout.notifyKeyboardVisibilityChanged(keyboardIsVisible, currentFocus);
 
@@ -1026,17 +964,6 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
         conversationLoadingIndicatorViewView.setColor(color);
         audioMessageRecordingView.setAccentColor(color);
         extendedCursorContainer.setAccentColor(color);
-    }
-
-    //////////////////////////////////////////////////////////////////////////////////////////
-    //
-    //  VisibleMessagesChangesListener
-    //
-    //////////////////////////////////////////////////////////////////////////////////////////
-
-    @Override
-    public void onVisibleMessagesChanged(List<String> visibleMessageIds) {
-        getControllerFactory().getStreamMediaPlayerController().informVisibleItems(visibleMessageIds);
     }
 
     //////////////////////////////////////////////////////////////////////////////////////////
@@ -1154,104 +1081,8 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
 
     }
 
-    //////////////////////////////////////////////////////////////////////////////
-    //
-    //  MessageViewsContainer
-    //
-    //////////////////////////////////////////////////////////////////////////////
-
-    @Override
-    public int getUnreadMessageCount() {
-        return 0;
-    }
-
-    @Override
     public IConversation.Type getConversationType() {
         return toConversationType;
-    }
-
-    @Override
-    public void setExpandedMessageId(String messageId) {
-        expandedMessageId = messageId;
-    }
-
-    @Override
-    public String getExpandedMessageId() {
-        return expandedMessageId;
-    }
-
-    @Override
-    public void setExpandedView(ExpandableView expandedView) {
-        currentExpandableView = expandedView;
-    }
-
-    @Override
-    public ExpandableView getExpandedView() {
-        return currentExpandableView;
-    }
-
-    @Override
-    public boolean ping(boolean hotKnock, String id, String message, int color) {
-        if (hotKnock) {
-            if (lastHotPingMessageId != null && lastHotPingMessageId.equals(id)) {
-                return false;
-            }
-
-            lastHotPingMessageId = id;
-        } else {
-            if (lastPingMessageId != null && lastPingMessageId.equals(id)) {
-                return false;
-            }
-
-            lastPingMessageId = id;
-        }
-
-        return true;
-    }
-
-    @Override
-    public boolean isPhone() {
-        return LayoutSpec.isPhone(getActivity());
-    }
-
-    @Override
-    public void openSpotifySettings() {
-        startActivity(ZetaPreferencesActivity.getSpotifyLoginIntent(getActivity()));
-    }
-
-    @Override
-    public void openDevicesPage(OtrDestination otrDestination, View anchorView) {
-        if (isKeyboardUp()) {
-            KeyboardUtils.hideKeyboard(getActivity());
-        }
-        switch (otrDestination) {
-            case PREFERENCES:
-                startActivity(ZetaPreferencesActivity.getOtrDevicesPreferencesIntent(getContext()));
-                break;
-            case PARTICIPANTS:
-                getControllerFactory().getConversationScreenController().showParticipants(anchorView, true);
-                break;
-        }
-    }
-
-    @Override
-    public void closeMessageViewsExtras() {
-
-    }
-
-    @Override
-    public void onOpenUrl(String url) {
-        getContainer().onOpenUrl(url);
-    }
-
-    @Override
-    public void openSettings() {
-        startActivity(ZetaPreferencesActivity.getDefaultIntent(getActivity()));
-    }
-
-    @Override
-    public boolean isTornDown() {
-        return getContainer() == null || getControllerFactory().isTornDown() || getStoreFactory().isTornDown();
     }
 
     //////////////////////////////////////////////////////////////////////////////
@@ -2099,33 +1930,6 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
         }
     }
 
-    private void checkEphemeralMessageOnScreen() {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB) {
-            // Not really supported
-            return;
-        }
-        try {
-            boolean ephemeral = false;
-            // TODO: implement in new messages list
-//            for (int i = listView.getFirstVisiblePosition(); i <= listView.getLastVisiblePosition(); i++) {
-//                Message message = (Message) listView.getItemAtPosition(i);
-//                if (message != null && message.isEphemeral()) {
-//                    ephemeral = true;
-//                    break;
-//                }
-//            }
-            if (ephemeral) {
-                getActivity().getWindow().addFlags(WindowManager.LayoutParams.FLAG_SECURE);
-            } else {
-                getActivity().getWindow().clearFlags(WindowManager.LayoutParams.FLAG_SECURE);
-            }
-
-        } catch (Throwable t) {
-            //ignore
-            Timber.w(t, "Something went wrong");
-        }
-    }
-
     @Override
     public void onEmojiSelected(String emoji) {
         cursorLayout.appendText(emoji);
@@ -2150,11 +1954,6 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
             extendedCursorContainer.close(false);
         }
         getStoreFactory().getConversationStore().getCurrentConversation().setEphemeralExpiration(expiration);
-    }
-
-    @Override
-    public void onScrollStateChanged(boolean idle) {
-        checkEphemeralMessageOnScreen();
     }
 
     public interface Container {

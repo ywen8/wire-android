@@ -38,11 +38,6 @@ public class StubConversationScreenController implements IConversationScreenCont
     }
 
     @Override
-    public void notifyConversationListReady() {
-        ;
-    }
-
-    @Override
     public boolean shouldShowDevicesTab() {
         return false;
     }

@@ -19,7 +19,6 @@ package com.waz.zclient.pages.main.conversation.views;
 
 import android.content.Context;
 import android.util.AttributeSet;
-import com.waz.zclient.pages.main.conversation.views.row.message.views.BlockingImageView;
 
 public class AspectRatioImageView extends BlockingImageView {
     private float aspectRatio = 1f;
