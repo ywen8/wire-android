@@ -43,7 +43,6 @@ import com.waz.api.ActiveVoiceChannels;
 import com.waz.api.CommonConnections;
 import com.waz.api.ConversationsList;
 import com.waz.api.IConversation;
-import com.waz.api.MessagesList;
 import com.waz.api.NetworkMode;
 import com.waz.api.Self;
 import com.waz.api.SyncState;

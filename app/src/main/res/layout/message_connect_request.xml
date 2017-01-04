@@ -39,8 +39,8 @@
         android:textColor="?wirePrimaryTextColor"
         android:textSize="@dimen/wire__text_size__regular"
         android:ellipsize="end"
-        android:singleLine="true"
         app:font="@string/wire__typeface__light"
+        android:maxLines="1"
         />
 
     <com.waz.zclient.common.views.ChatheadView

@@ -68,9 +68,9 @@
         android:paddingEnd="@dimen/content__location_message__name_padding_end"
         android:textSize="@dimen/wire__text_size__regular"
         android:gravity="center|start"
-        android:singleLine="true"
         android:ellipsize="end"
         app:font="@string/wire__typeface__thin"
+        android:maxLines="1"
         />
 
 </LinearLayout>

@@ -56,11 +56,11 @@
         android:paddingRight="@dimen/wire__padding__12"
         android:paddingLeft="@dimen/wire__padding__12"
         android:ellipsize="middle"
-        android:singleLine="true"
         android:gravity="left"
         android:textSize="@dimen/wire__text_size__small"
         android:textColor="@color/wire__text_color_secondary_light_selector"
         app:font="@string/wire__typeface__light"
+        android:maxLines="1"
         />
 
 </LinearLayout>

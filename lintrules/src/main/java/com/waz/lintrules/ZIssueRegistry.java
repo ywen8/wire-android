@@ -23,7 +23,6 @@ import com.waz.lintrules.issues.BaseClassDetector;
 import com.waz.lintrules.issues.LayoutXmlValueDetector;
 import com.waz.lintrules.issues.MathUtilsDetector;
 import com.waz.lintrules.issues.ObjectAnimatorPropertyDetector;
-import com.waz.lintrules.issues.ViewUtilsDetector;
 import com.waz.lintrules.issues.WrongTimberUsageDetector;
 
 import java.util.Arrays;
@@ -36,7 +35,6 @@ public class ZIssueRegistry extends IssueRegistry {
         return Arrays.asList(BaseClassDetector.ISSUE_DIALOG_FRAGMENT,
                              BaseClassDetector.ISSUE_FRAGMENT,
                              BaseClassDetector.ISSUE_PREFERENCE_FRAGMENT,
-                             ViewUtilsDetector.ISSUE,
                              LayoutXmlValueDetector.ISSUE,
                              WrongTimberUsageDetector.ISSUE_D_USAGE,
                              WrongTimberUsageDetector.ISSUE_LOG,

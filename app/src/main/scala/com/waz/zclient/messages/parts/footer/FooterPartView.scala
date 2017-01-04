@@ -22,6 +22,7 @@ import android.animation.ValueAnimator.AnimatorUpdateListener
 import android.animation.{Animator, ValueAnimator}
 import android.content.Context
 import android.graphics.Rect
+import android.support.v4.view.ViewCompat
 import android.util.AttributeSet
 import android.view.{View, ViewGroup}
 import android.widget.{FrameLayout, TextView}
@@ -108,7 +109,7 @@ class FooterPartView(context: Context, attrs: AttributeSet, style: Int) extends 
 
   setClipChildren(true)
   height { h =>
-    setClipBounds(new Rect(0, 0, getWidth, h))
+    ViewCompat.setClipBounds(this, new Rect(0, 0, getWidth, h))
   }
 
   contentTranslate { likeButton.setTranslationY }

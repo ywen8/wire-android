@@ -31,7 +31,6 @@ import android.widget.LinearLayout;
 import com.waz.api.CommonConnections;
 import com.waz.api.IConversation;
 import com.waz.api.Message;
-import com.waz.api.MessagesList;
 import com.waz.api.NetworkMode;
 import com.waz.api.OtrClient;
 import com.waz.api.User;
