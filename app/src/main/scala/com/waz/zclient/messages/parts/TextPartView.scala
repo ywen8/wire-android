@@ -25,7 +25,7 @@ import com.waz.model.{MessageContent, MessageData}
 import com.waz.utils.events.Signal
 import com.waz.zclient.controllers.global.AccentColorController
 import com.waz.zclient.messages.MessageView.MsgBindOptions
-import com.waz.zclient.messages.{ClickableViewPart, MessageViewPart, MsgPart}
+import com.waz.zclient.messages.{ClickableViewPart, MsgPart}
 import com.waz.zclient.ui.text.LinkTextView
 import com.waz.zclient.ui.utils.TypefaceUtils
 import com.waz.zclient.{R, ViewHelper}

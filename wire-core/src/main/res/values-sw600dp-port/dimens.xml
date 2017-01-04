@@ -43,7 +43,7 @@
     <dimen name="new_reg__body_right_margin">128dp</dimen>
 
     <dimen name="content__width">424dp</dimen>
-    <dimen name="content__padding_left">0dp</dimen>
+    <dimen name="content__padding_left">72dp</dimen>
     <dimen name="content__separator__avatar_container__width">0dp</dimen>
     <dimen name="content__separator__label_container__width">@dimen/content__width</dimen>
 
