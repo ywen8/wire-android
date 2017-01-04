@@ -34,7 +34,7 @@ import com.waz.utils.events.Signal
 import com.waz.zclient.controllers.BrowserController
 import com.waz.zclient.controllers.global.AccentColorController
 import com.waz.zclient.messages.MessageView.MsgBindOptions
-import com.waz.zclient.messages.{MessageViewPart, MsgPart}
+import com.waz.zclient.messages.{ClickableViewPart, MessageViewPart, MsgPart}
 import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.utils._
 import com.waz.zclient.views.ImageAssetDrawable
@@ -42,7 +42,7 @@ import com.waz.zclient.views.ImageAssetDrawable.State
 import com.waz.zclient.views.ImageController.{DataImage, ImageSource, WireImage}
 import com.waz.zclient.{R, ViewHelper}
 
-class LocationPartView(context: Context, attrs: AttributeSet, style: Int) extends CardView(context, attrs, style) with MessageViewPart with ViewHelper {
+class LocationPartView(context: Context, attrs: AttributeSet, style: Int) extends CardView(context, attrs, style) with ClickableViewPart with ViewHelper {
   def this(context: Context, attrs: AttributeSet) = this(context, attrs, 0)
   def this(context: Context) = this(context, null, 0)
 
@@ -97,7 +97,7 @@ class LocationPartView(context: Context, attrs: AttributeSet, style: Int) extend
     message ! msg
   }
 
-  this.onClick {
+  onClicked { _ =>
     message.currentValue.flatMap(_.location) foreach { browser.openLocation }
   }
 

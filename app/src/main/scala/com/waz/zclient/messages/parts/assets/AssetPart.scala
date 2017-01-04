@@ -27,7 +27,7 @@ import com.waz.utils.events.Signal
 import com.waz.utils.returning
 import com.waz.zclient.controllers.AssetsController
 import com.waz.zclient.messages.MessageView.MsgBindOptions
-import com.waz.zclient.messages.MessageViewPart
+import com.waz.zclient.messages.{ClickableViewPart, MessageViewPart}
 import com.waz.zclient.messages.parts.assets.DeliveryState.OtherUploading
 import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.utils.{StringUtils, _}
@@ -36,7 +36,7 @@ import com.waz.zclient.views.ImageController.WireImage
 import com.waz.zclient.{R, ViewHelper}
 import org.threeten.bp.Duration
 
-trait AssetPart extends View with MessageViewPart with ViewHelper {
+trait AssetPart extends View with ClickableViewPart with ViewHelper {
   val controller = inject[AssetsController]
 
   val message = Signal[MessageData]()

@@ -33,7 +33,7 @@ import com.waz.utils._
 import com.waz.utils.events.Signal
 import com.waz.zclient.controllers.BrowserController
 import com.waz.zclient.messages.MessageView.MsgBindOptions
-import com.waz.zclient.messages.{MessageViewPart, MsgPart}
+import com.waz.zclient.messages.{ClickableViewPart, MessageViewPart, MsgPart}
 import com.waz.zclient.ui.text.GlyphTextView
 import com.waz.zclient.ui.utils.ColorUtils
 import com.waz.zclient.utils.ContextUtils._
@@ -43,7 +43,7 @@ import com.waz.zclient.views.ImageAssetDrawable.State
 import com.waz.zclient.views.ImageController.{ImageSource, WireImage}
 import com.waz.zclient.{R, ViewHelper}
 
-class YouTubePartView(context: Context, attrs: AttributeSet, style: Int) extends RelativeLayout(context, attrs, style) with MessageViewPart with ViewHelper {
+class YouTubePartView(context: Context, attrs: AttributeSet, style: Int) extends RelativeLayout(context, attrs, style) with ClickableViewPart with ViewHelper {
   def this(context: Context, attrs: AttributeSet) = this(context, attrs, 0)
   def this(context: Context) = this(context, null, 0)
 
@@ -108,7 +108,7 @@ class YouTubePartView(context: Context, attrs: AttributeSet, style: Int) extends
     width ! (right - left)
   }
 
-  this.onClick {
+  onClicked { _ =>
     content.currentValue foreach { c =>
       browser.openUrl(c.contentAsUri)
     }

@@ -20,6 +20,7 @@ package com.waz.zclient.messages.parts
 import android.content.Context
 import android.support.v7.widget.CardView
 import android.util.AttributeSet
+import android.view.View
 import android.widget.{ImageView, TextView}
 import com.waz.ZLog.ImplicitTag._
 import com.waz.ZLog._
@@ -32,14 +33,14 @@ import com.waz.threading.Threading
 import com.waz.utils.events.Signal
 import com.waz.zclient.controllers.BrowserController
 import com.waz.zclient.messages.MessageView.MsgBindOptions
-import com.waz.zclient.messages.{MessageViewPart, MsgPart}
+import com.waz.zclient.messages.{ClickableViewPart, MessageViewPart, MsgPart}
 import com.waz.zclient.utils._
 import com.waz.zclient.views.ImageAssetDrawable.{RequestBuilder, ScaleType, State}
 import com.waz.zclient.views.ImageController.{DataImage, ImageUri}
 import com.waz.zclient.views.{ImageAssetDrawable, ProgressDotsDrawable}
 import com.waz.zclient.{R, ViewHelper}
 
-class WebLinkPartView(context: Context, attrs: AttributeSet, style: Int) extends CardView(context, attrs, style) with MessageViewPart with ViewHelper {
+class WebLinkPartView(context: Context, attrs: AttributeSet, style: Int) extends CardView(context, attrs, style) with ClickableViewPart with ViewHelper {
   def this(context: Context, attrs: AttributeSet) = this(context, attrs, 0)
   def this(context: Context) = this(context, null, 0)
 
@@ -108,7 +109,7 @@ class WebLinkPartView(context: Context, attrs: AttributeSet, style: Int) extends
 
   urlText.on(Threading.Ui) { urlTextView.setText }
 
-  this.onClick {
+  onClicked { _ =>
     content.currentValue foreach { c => browser.openUrl(c.contentAsUri) }
   }
 

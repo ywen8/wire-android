@@ -29,7 +29,7 @@ import com.waz.model._
 import com.waz.service.ZMessaging
 import com.waz.service.messages.MessageAndLikes
 import com.waz.threading.Threading
-import com.waz.utils.events.Signal
+import com.waz.utils.events.{EventStream, Signal}
 import com.waz.zclient.common.views.ChatheadView
 import com.waz.zclient.controllers.global.AccentColorController
 import com.waz.zclient.messages.MessageView.MsgBindOptions
@@ -50,6 +50,23 @@ trait MessageViewPart extends View {
 
   def set(msg: MessageAndLikes, part: Option[MessageContent], opts: MsgBindOptions): Unit =
     set(msg.message, part, opts)
+
+  //By default disable clicks for all view types. There are fewer that need click functionality than those that don't
+  this.onClick {}
+  this.onLongClick(false)
+}
+
+//Marker for views that should hide/display the footer when clicked and show the menu when long clicked.
+trait ClickableViewPart extends MessageViewPart {
+
+  val onClicked = EventStream[Unit]()
+
+  this.onClick {
+    onClicked ! ({})
+    getParent.asInstanceOf[View].performClick()
+  }
+
+  this.onLongClick(getParent.asInstanceOf[View].performLongClick())
 }
 
 // Marker for view parts that should be laid out as in FrameLayout (instead of LinearLayout)
@@ -73,8 +90,6 @@ trait TimeSeparator extends MessageViewPart with ViewHelper {
     this.time ! msg.time
     unreadDot.show ! opts.isFirstUnread
   }
-
-  this.onClick {} //confusing if message opens when timestamp clicked
 }
 
 class SeparatorView(context: Context, attrs: AttributeSet, style: Int) extends RelativeLayout(context, attrs, style) with TimeSeparator {
