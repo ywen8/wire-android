@@ -1,6 +1,6 @@
 /**
   * Wire
-  * Copyright (C) 2016 Wire Swiss GmbH
+  * Copyright (C) 2017 Wire Swiss GmbH
   *
   * This program is free software: you can redistribute it and/or modify
   * it under the terms of the GNU General Public License as published by
@@ -90,10 +90,10 @@ class MessageNotificationsController(implicit inj: Injector, cxt: Context, event
     verbose(s"Notifications updated: shouldBeSilent: $silent, $nots")
     if (nots.isEmpty) notManager.cancel(notifId)
     else if (!nots.forall(_.hasBeenDisplayed)) { //Only show notifications if there are any that haven't yet been displayed to the user
-      val notification =
-        if (notifId == ZETA_EPHEMERAL_NOTIFICATION_ID) getEphemeralNotification(nots.size, silent, nots.maxBy(_.time).time)
-        else if (nots.size == 1) getSingleMessageNotification(nots.head, silent)
-        else getMultipleMessagesNotification(nots, silent)
+    val notification =
+      if (notifId == ZETA_EPHEMERAL_NOTIFICATION_ID) getEphemeralNotification(nots.size, silent, nots.maxBy(_.time).time)
+      else if (nots.size == 1) getSingleMessageNotification(nots.head, silent)
+      else getMultipleMessagesNotification(nots, silent)
 
       notification.priority = Notification.PRIORITY_HIGH
       notification.flags |= Notification.FLAG_AUTO_CANCEL
