@@ -21,5 +21,6 @@
                                                          android:layout_width="@dimen/content__width"
                                                          android:layout_height="@dimen/content__audio_message__view_height"
                                                          android:layout_gravity="center"
+                                                         android:layout_marginStart="@dimen/content__padding_left"
                                                          android:paddingEnd="@dimen/content__row__padding_right"
     />

@@ -21,7 +21,6 @@ import android.animation.ObjectAnimator;
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.pm.ActivityInfo;
-import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.Point;
 import android.graphics.PointF;
@@ -94,12 +93,6 @@ public abstract class SingleImageFragment extends BaseFragment<SingleImageFragme
             backToConversation(false);
         }
     };
-
-    @Override
-    public void onConfigurationChanged(Configuration newConfig) {
-        super.onConfigurationChanged(newConfig);
-        getControllerFactory().getSingleImageController().updateViewReferences();
-    }
 
     @Override
     @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)

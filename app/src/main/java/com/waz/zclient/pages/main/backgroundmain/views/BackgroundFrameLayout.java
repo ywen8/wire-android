@@ -99,12 +99,6 @@ public class BackgroundFrameLayout extends FrameLayout implements BackgroundObse
         drawable.setAccentColor(color, true);
     }
 
-    @Override
-    protected void onConfigurationChanged(Configuration newConfig) {
-        super.onConfigurationChanged(newConfig);
-        resizeIfNeeded(newConfig);
-    }
-
     private void resizeIfNeeded(Configuration configuration) {
         if (!isTablet) {
             return;

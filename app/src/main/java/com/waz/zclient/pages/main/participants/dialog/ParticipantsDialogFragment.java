@@ -21,7 +21,6 @@ import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
 import android.animation.ValueAnimator;
 import android.annotation.SuppressLint;
-import android.content.res.Configuration;
 import android.graphics.Rect;
 import android.os.Bundle;
 import android.os.Handler;
@@ -313,13 +312,6 @@ public class ParticipantsDialogFragment extends BaseFragment<ParticipantsDialogF
 
         marker.setTranslationX(markerTranslationX);
         marker.setTranslationY(markerTranslationY);
-    }
-
-    @Override
-    public void onConfigurationChanged(Configuration newConfig) {
-        super.onConfigurationChanged(newConfig);
-        isInConfigurationChange = true;
-        hide();
     }
 
     private void hide() {

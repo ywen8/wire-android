@@ -31,8 +31,6 @@ public interface ISingleImageController {
 
     Message getMessage();
 
-    void updateViewReferences();
-
     void setViewReferences(View imageContainer);
 
     void setContainerOutOfScreen(boolean containerOutOfScreen);

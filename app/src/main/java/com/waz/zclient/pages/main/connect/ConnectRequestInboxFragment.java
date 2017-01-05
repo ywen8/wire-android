@@ -17,7 +17,6 @@
  */
 package com.waz.zclient.pages.main.connect;
 
-import android.content.res.Configuration;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.NonNull;
@@ -78,14 +77,6 @@ public class ConnectRequestInboxFragment extends BaseFragment<ConnectRequestInbo
     //  Lifecycle
     //
     //////////////////////////////////////////////////////////////////////////////////////////
-
-
-    @Override
-    public void onConfigurationChanged(Configuration newConfig) {
-        super.onConfigurationChanged(newConfig);
-        inboxListView.setAdapter(inboxAdapter);
-        inboxAdapter.notifyDataSetChanged();
-    }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {

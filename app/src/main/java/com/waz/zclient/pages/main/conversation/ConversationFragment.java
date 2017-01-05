@@ -21,7 +21,6 @@ import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.res.Configuration;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Build;
@@ -139,7 +138,6 @@ import com.waz.zclient.ui.audiomessage.AudioMessageRecordingView;
 import com.waz.zclient.ui.cursor.CursorCallback;
 import com.waz.zclient.ui.cursor.CursorLayout;
 import com.waz.zclient.ui.cursor.CursorMenuItem;
-import com.waz.zclient.ui.theme.ThemeUtils;
 import com.waz.zclient.ui.utils.KeyboardUtils;
 import com.waz.zclient.ui.views.e2ee.ShieldView;
 import com.waz.zclient.utils.AssetUtils;
@@ -388,30 +386,6 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
     }
 
     @Override
-    public void onConfigurationChanged(Configuration newConfig) {
-        super.onConfigurationChanged(newConfig);
-
-        if (BuildConfig.SHOW_MENTIONING) {
-            getControllerFactory().getMentioningController().hide();
-        }
-
-        audioMessageRecordingView.requestLayout();
-        audioMessageRecordingView.invalidate();
-
-        if (ViewUtils.isInLandscape(newConfig)) {
-            toolbar.setNavigationIcon(null);
-        } else {
-            if (ThemeUtils.isDarkTheme(getContext())) {
-                toolbar.setNavigationIcon(R.drawable.ic_action_menu_light);
-            } else {
-                toolbar.setNavigationIcon(R.drawable.ic_action_menu_dark);
-            }
-        }
-        toolbar.setContentInsetsRelative(getResources().getDimensionPixelSize(R.dimen.content__padding_left),
-                                         toolbar.getContentInsetEnd());
-    }
-
-    @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup viewGroup, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_conversation, viewGroup, false);
 
@@ -645,11 +619,6 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
     @Override
     public void onHideSingleImage() {
         getControllerFactory().getNavigationController().setRightPage(Page.MESSAGE_STREAM, TAG);
-    }
-
-    @Override
-    public void updateSingleImageReferences() {
-
     }
 
     @Override

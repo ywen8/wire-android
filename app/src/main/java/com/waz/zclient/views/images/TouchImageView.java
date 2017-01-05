@@ -51,7 +51,6 @@ package com.waz.zclient.views.images;
 import android.animation.TypeEvaluator;
 import android.annotation.TargetApi;
 import android.content.Context;
-import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Matrix;
@@ -305,12 +304,6 @@ public class TouchImageView extends ImageView {
             delayedZoomVariables = null;
         }
         super.onDraw(canvas);
-    }
-
-    @Override
-    public void onConfigurationChanged(Configuration newConfig) {
-        super.onConfigurationChanged(newConfig);
-        savePreviousImageValues();
     }
 
     /**

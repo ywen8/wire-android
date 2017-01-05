@@ -137,54 +137,6 @@ public class RootFragment extends BaseFragment<RootFragment.Container> implement
     }
 
     @Override
-    public void onConfigurationChanged(Configuration newConfig) {
-        super.onConfigurationChanged(newConfig);
-        adjustLayout(true, newConfig);
-    }
-
-    private void adjustLayout(final boolean onOrientationChange, Configuration newConfig) {
-
-        boolean isInLandscape = ViewUtils.isInLandscape(newConfig);
-        getControllerFactory().getNavigationController().setIsLandscape(isInLandscape);
-        getStoreFactory().getInAppNotificationStore().setIsLandscape(isInLandscape);
-
-        slidingPaneLayout.setSideBarWidth(newConfig);
-        if (isInLandscape) {
-            slidingPaneLayout.setPreservedOpenState(false);
-            // left view adjustments
-            leftView.setTranslationX(0);
-
-            // right view adjustments
-            SlidingPaneLayout.LayoutParams params = (SlidingPaneLayout.LayoutParams) backgroundColorRightView.getLayoutParams();
-            params.leftMargin = getResources().getDimensionPixelSize(R.dimen.framework__sidebar_width);
-
-            slidingPaneLayout.openPane();
-        } else {
-
-            // left view adjustments
-            leftView.setTranslationX(0);
-
-            // right view adjustments
-            SlidingPaneLayout.LayoutParams params = (SlidingPaneLayout.LayoutParams) backgroundColorRightView.getLayoutParams();
-            params.leftMargin = 0;
-
-            boolean open = !onOrientationChange ||
-                           getControllerFactory().getPickUserController().isShowingPickUser(IPickUserController.Destination.CONVERSATION_LIST);
-            slidingPaneLayout.setPreservedOpenState(open);
-            if (open) {
-                getControllerFactory().getSlidingPaneController().onPanelOpened(leftView);
-            } else {
-                getControllerFactory().getSlidingPaneController().onPanelClosed(leftView);
-            }
-        }
-
-        // Hide start ui on screen rotation
-        if (onOrientationChange) {
-            getControllerFactory().getPickUserController().hidePickUserWithoutAnimations(IPickUserController.Destination.CONVERSATION_LIST);
-        }
-    }
-
-    @Override
     public View onCreateView(LayoutInflater inflater,
                              @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
@@ -215,7 +167,46 @@ public class RootFragment extends BaseFragment<RootFragment.Container> implement
     @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        adjustLayout(savedInstanceState != null, getActivity().getResources().getConfiguration());
+        Configuration newConfig = getActivity().getResources().getConfiguration();
+
+        boolean isInLandscape = ViewUtils.isInLandscape(newConfig);
+        getControllerFactory().getNavigationController().setIsLandscape(isInLandscape);
+        getStoreFactory().getInAppNotificationStore().setIsLandscape(isInLandscape);
+
+        slidingPaneLayout.setSideBarWidth(newConfig);
+        if (isInLandscape) {
+            slidingPaneLayout.setPreservedOpenState(false);
+            // left view adjustments
+            leftView.setTranslationX(0);
+
+            // right view adjustments
+            SlidingPaneLayout.LayoutParams params = (SlidingPaneLayout.LayoutParams) backgroundColorRightView.getLayoutParams();
+            params.leftMargin = getResources().getDimensionPixelSize(R.dimen.framework__sidebar_width);
+
+            slidingPaneLayout.openPane();
+        } else {
+
+            // left view adjustments
+            leftView.setTranslationX(0);
+
+            // right view adjustments
+            SlidingPaneLayout.LayoutParams params = (SlidingPaneLayout.LayoutParams) backgroundColorRightView.getLayoutParams();
+            params.leftMargin = 0;
+
+            boolean open = !(savedInstanceState != null) ||
+                           getControllerFactory().getPickUserController().isShowingPickUser(IPickUserController.Destination.CONVERSATION_LIST);
+            slidingPaneLayout.setPreservedOpenState(open);
+            if (open) {
+                getControllerFactory().getSlidingPaneController().onPanelOpened(leftView);
+            } else {
+                getControllerFactory().getSlidingPaneController().onPanelClosed(leftView);
+            }
+        }
+
+        // Hide start ui on screen rotation
+        if (savedInstanceState != null) {
+            getControllerFactory().getPickUserController().hidePickUserWithoutAnimations(IPickUserController.Destination.CONVERSATION_LIST);
+        }
     }
 
     @Override

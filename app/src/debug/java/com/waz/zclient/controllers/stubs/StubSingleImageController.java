@@ -72,11 +72,6 @@ public class StubSingleImageController implements ISingleImageController {
     }
 
     @Override
-    public void updateViewReferences() {
-        ;
-    }
-
-    @Override
     public void setViewReferences(View imageContainer) {
 
     }

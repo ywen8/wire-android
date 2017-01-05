@@ -151,14 +151,6 @@ public class PendingConnectRequestFragment extends BaseFragment<PendingConnectRe
     }
 
     @Override
-    public void onConfigurationChanged(Configuration newConfig) {
-        super.onConfigurationChanged(newConfig);
-        updateToolbarNavigationIcon(newConfig);
-        toolbar.setContentInsetsRelative(getResources().getDimensionPixelSize(R.dimen.content__padding_left),
-                                         toolbar.getContentInsetEnd());
-    }
-
-    @Override
     public View onCreateView(LayoutInflater inflater, final ViewGroup viewContainer, Bundle savedInstanceState) {
         if (savedInstanceState != null) {
             userId = savedInstanceState.getString(ARGUMENT_USER_ID);

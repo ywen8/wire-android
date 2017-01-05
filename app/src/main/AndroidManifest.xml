@@ -83,7 +83,7 @@
         <!-- main activity -->
         <activity
             android:name=".MainActivity"
-            android:configChanges="orientation|screenSize|keyboardHidden"
+            android:configChanges="keyboardHidden"
             android:hardwareAccelerated="true"
             android:launchMode="singleTask"
             android:theme="@style/Theme.Light"
