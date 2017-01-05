@@ -55,7 +55,8 @@ public class DebugUtils {
         }
         versionText.append("\nSync Engine ").append(ZmsVersion.ZMS_VERSION)
                    .append("\nAVS ").append(context.getString(R.string.avs_version))
-                   .append("\nAudio-notifications ").append(context.getString(R.string.audio_notifications_version));
+                   .append("\nAudio-notifications ").append(context.getString(R.string.audio_notifications_version))
+                   .append("\nTranslations ").append(context.getString(R.string.wiretranslations_version));
 
         return versionText.toString();
     }
