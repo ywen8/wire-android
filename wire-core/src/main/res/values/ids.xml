@@ -50,4 +50,6 @@
     <item name="video_calling_view" type="id" />
 
     <item name="emoji_keyboard_item" type="id" />
+
+    <item name="content" type="id"/>
 </resources>
