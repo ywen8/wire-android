@@ -38,7 +38,10 @@ class VideoAssetPartView(context: Context, attrs: AttributeSet, style: Int) exte
 
   override val tpe: MsgPart = MsgPart.VideoAsset
 
-  override def inflate() = inflate(R.layout.message_video_asset_content)
+  override lazy val contentLayoutId = {
+    setId(R.id.content) //ensure outer view has content id set - this doens't seem to work with merge tags
+    R.layout.message_video_asset_content
+  }
 
   private val controls = Seq(
     findById[View](R.id.action_button),

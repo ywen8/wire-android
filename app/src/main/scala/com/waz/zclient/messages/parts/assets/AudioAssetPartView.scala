@@ -35,7 +35,7 @@ class AudioAssetPartView(context: Context, attrs: AttributeSet, style: Int) exte
 
   override val tpe: MsgPart = MsgPart.AudioAsset
 
-  override def inflate() = inflate(R.layout.message_audio_asset_content)
+  override lazy val contentLayoutId = R.layout.message_audio_asset_content
 
   private val progressBar: SeekBar = findById(R.id.progress)
 

@@ -27,7 +27,7 @@ import com.waz.utils.events.Signal
 import com.waz.utils.returning
 import com.waz.zclient.controllers.AssetsController
 import com.waz.zclient.messages.MessageView.MsgBindOptions
-import com.waz.zclient.messages.{ClickableViewPart, MessageViewPart}
+import com.waz.zclient.messages.ClickableViewPart
 import com.waz.zclient.messages.parts.assets.DeliveryState.OtherUploading
 import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.utils.{StringUtils, _}
@@ -38,6 +38,11 @@ import org.threeten.bp.Duration
 
 trait AssetPart extends View with ClickableViewPart with ViewHelper {
   val controller = inject[AssetsController]
+
+  def contentLayoutId: Int
+  inflate(contentLayoutId)
+
+  private lazy val content: View = findById[View](R.id.content)
 
   val message = Signal[MessageData]()
   val asset = controller.assetSignal(message)
@@ -50,14 +55,6 @@ trait AssetPart extends View with ClickableViewPart with ViewHelper {
   override def set(msg: MessageData, part: Option[MessageContent], opts: MsgBindOptions): Unit = {
     message ! msg
   }
-}
-
-
-trait ContentAssetPart extends AssetPart {
-  def inflate(): Unit
-
-  inflate()
-  private val content: View = findById(R.id.content)
 
   //toggle content visibility to show only progress dot background if other side is uploading asset
   deliveryState.map {
@@ -66,8 +63,7 @@ trait ContentAssetPart extends AssetPart {
   }.on(Threading.Ui)(content.setVisible)
 }
 
-
-trait ActionableAssetPart extends ContentAssetPart {
+trait ActionableAssetPart extends AssetPart {
   protected val assetActionButton: AssetActionButton = findById(R.id.action_button)
 
   override def set(msg: MessageData, part: Option[MessageContent], opts: MsgBindOptions): Unit = {
@@ -91,7 +87,7 @@ trait PlayableAsset extends ActionableAssetPart {
 }
 
 
-trait ImageLayoutAssetPart extends ContentAssetPart {
+trait ImageLayoutAssetPart extends AssetPart {
   import ImageLayoutAssetPart._
 
   protected val imageDim = message map { _.imageDimensions.getOrElse(Dim2(1, 1)) }

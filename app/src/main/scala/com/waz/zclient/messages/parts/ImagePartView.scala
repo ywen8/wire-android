@@ -38,7 +38,10 @@ class ImagePartView(context: Context, attrs: AttributeSet, style: Int) extends F
 
   override val tpe: MsgPart = MsgPart.Image
 
-  override def inflate(): Unit = inflate(R.layout.message_image_content)
+  override lazy val contentLayoutId = {
+    setId(R.id.content) //ensure outer view has content id set - this doesn't seem to work with merge tags
+    R.layout.message_image_content
+  }
 
   private val selection = inject[SelectionController].messages
 
