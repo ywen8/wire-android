@@ -32,7 +32,7 @@ import com.waz.utils.returning
 import com.waz.zclient._
 import com.waz.zclient.controllers.global.{AccentColorController, SelectionController}
 import com.waz.zclient.messages.MessageView.MsgBindOptions
-import com.waz.zclient.messages.SyncEngineSignals
+import com.waz.zclient.messages.{LikesController, SyncEngineSignals}
 import junit.framework.Assert.assertEquals
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -84,6 +84,7 @@ class FooterViewControllerTest extends JUnitSuite {
     bind[AccentColorController] to new AccentColorController
     bind[SelectionController] to new SelectionController
     bind[SyncEngineSignals] to new SyncEngineSignals
+    bind[LikesController] to new LikesController()
   }
 
   val activity = Robolectric.buildActivity(classOf[ViewTestActivity]).create().start().resume().get()

@@ -25,14 +25,18 @@ import android.text.TextUtils
 import android.util.TypedValue
 import android.view.{Gravity, View}
 import android.widget.{TextView, Toast}
+import com.waz.ZLog.ImplicitTag._
+import com.waz.ZLog._
 import com.waz.api.{ImageAsset, Message}
 import com.waz.model.{AssetData, AssetId, MessageData, Mime}
 import com.waz.service.ZMessaging
 import com.waz.service.assets.GlobalRecordAndPlayService
 import com.waz.service.assets.GlobalRecordAndPlayService.{AssetMediaKey, Content, UnauthenticatedContent}
 import com.waz.threading.Threading
-import com.waz.utils.events.{EventContext, Signal}
+import com.waz.utils.events.{EventContext, EventStream, Signal}
 import com.waz.zclient.controllers.AssetsController.PlaybackControls
+import com.waz.zclient.controllers.drawing.IDrawingController
+import com.waz.zclient.controllers.drawing.IDrawingController.DrawingMethod
 import com.waz.zclient.controllers.singleimage.ISingleImageController
 import com.waz.zclient.core.api.scala.ModelObserver
 import com.waz.zclient.messages.controllers.MessageActionsController
@@ -42,10 +46,6 @@ import com.waz.zclient.utils.AssetUtils
 import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.{Injectable, Injector, R}
 import org.threeten.bp.Duration
-import com.waz.ZLog._
-import com.waz.ZLog.ImplicitTag._
-import com.waz.zclient.controllers.drawing.IDrawingController
-import com.waz.zclient.controllers.drawing.IDrawingController.DrawingMethod
 
 import scala.PartialFunction._
 import scala.concurrent.Promise
@@ -63,11 +63,15 @@ class AssetsController(implicit context: Context, inj: Injector, ec: EventContex
   lazy val singleImage              = inject[ISingleImageController]
   lazy val drawingController        = inject[IDrawingController]
 
+  val onFileOpened = EventStream[AssetData]()
+  val onFileSaved = EventStream[AssetData]()
+  val onVideoPlayed = EventStream[AssetData]()
+  val onAudioPlayed = EventStream[AssetData]()
 
   messageActionsController.onMessageAction {
     case (MessageAction.OPEN_FILE, msg) =>
       zms.head.flatMap(_.assetsStorage.get(AssetId(msg.getId))) foreach {
-        case Some(asset) => openFile(asset, showDialog = false)
+        case Some(asset) => openFile(asset)
         case None => // TODO: show error
       }
     case _ => // ignore
@@ -138,24 +142,28 @@ class AssetsController(implicit context: Context, inj: Injector, ec: EventContex
     }
   }
 
-  def openFile(asset: AssetData, showDialog: Boolean = true) =  // TODO: do we need showDialog param? shouldn't we decide that by mime type?
+  def openFile(asset: AssetData) =
     assets.head.flatMap(_.getContentUri(asset.id)) foreach {
-      case Some(uri) if showDialog =>
-        showOpenFileDialog(uri, asset)
       case Some(uri) =>
-        context.startActivity(AssetUtils.getOpenFileIntent(uri, asset.mime.orDefault.str))
+        asset match {
+         case AssetData.IsVideo() =>
+           onVideoPlayed ! asset
+           context.startActivity(AssetUtils.getOpenFileIntent(uri, asset.mime.orDefault.str))
+         case _ =>
+           showOpenFileDialog(uri, asset)
+        }
       case None =>
       // TODO: display error
     }
 
-  def showOpenFileDialog(uri: Uri, a: AssetData) = {
-    val intent = AssetUtils.getOpenFileIntent(uri, a.mime.orDefault.str)
+  def showOpenFileDialog(uri: Uri, asset: AssetData) = {
+    val intent = AssetUtils.getOpenFileIntent(uri, asset.mime.orDefault.str)
     val fileCanBeOpened = AssetUtils.fileTypeCanBeOpened(context.getPackageManager, intent)
 
     //TODO tidy up
     //TODO there is also a weird flash or double-dialog issue when you click outside of the dialog
     val dialog = new AppCompatDialog(context)
-    a.name.foreach(dialog.setTitle)
+    asset.name.foreach(dialog.setTitle)
     dialog.setContentView(R.layout.file_action_sheet_dialog)
 
     val title = dialog.findViewById(R.id.title).asInstanceOf[TextView]
@@ -173,6 +181,7 @@ class AssetsController(implicit context: Context, inj: Injector, ec: EventContex
       openButton.setAlpha(1f)
       openButton.setOnClickListener(new View.OnClickListener() {
         def onClick(v: View) = {
+          onFileOpened ! asset
           context.startActivity(intent)
           dialog.dismiss()
         }
@@ -186,8 +195,9 @@ class AssetsController(implicit context: Context, inj: Injector, ec: EventContex
 
     saveButton.setOnClickListener(new View.OnClickListener() {
       def onClick(v: View) = {
+        onFileSaved ! asset
         dialog.dismiss()
-        saveToDownloads(a)
+        saveToDownloads(asset)
       }
     })
 

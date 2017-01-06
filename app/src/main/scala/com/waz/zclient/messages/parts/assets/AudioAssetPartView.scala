@@ -21,6 +21,8 @@ import android.content.Context
 import android.util.AttributeSet
 import android.widget.SeekBar.OnSeekBarChangeListener
 import android.widget.{FrameLayout, SeekBar}
+import com.waz.ZLog.ImplicitTag._
+import com.waz.ZLog.verbose
 import com.waz.threading.Threading
 import com.waz.zclient.R
 import com.waz.zclient.controllers.global.AccentColorController
@@ -48,7 +50,16 @@ class AudioAssetPartView(context: Context, attrs: AttributeSet, style: Int) exte
   duration.map(_.toMillis.toInt).on(Threading.Ui)(progressBar.setMax)
   playControls.flatMap(_.playHead).map(_.toMillis.toInt).on(Threading.Ui)(progressBar.setProgress)
 
-  playControls.flatMap(_.isPlaying) { assetActionButton.isPlaying ! _ }
+  val isPlaying = playControls.flatMap(_.isPlaying)
+
+  isPlaying { assetActionButton.isPlaying ! _ }
+
+  (for {
+    pl <- isPlaying
+    a <- asset
+  } yield (pl, a)).onChanged {
+    case (pl, (a, _)) if pl => controller.onAudioPlayed ! a
+  }
 
   assetActionButton.onClicked.filter(_ == DeliveryState.Complete) { _ =>
     playControls.currentValue.foreach(_.playOrPause())

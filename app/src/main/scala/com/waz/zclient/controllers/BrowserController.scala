@@ -19,12 +19,16 @@ package com.waz.zclient.controllers
 
 import android.content.{Context, Intent}
 import android.net.Uri
-import com.waz.utils.LoggedTry
 import com.waz.ZLog.ImplicitTag._
 import com.waz.api.MessageContent.Location
+import com.waz.model.MessageId
+import com.waz.utils.LoggedTry
+import com.waz.utils.events.EventStream
 import com.waz.zclient.utils.IntentUtils
 
 class BrowserController(implicit context: Context) {
+
+  val onYoutubeLinkOpened = EventStream[MessageId]()
 
   def normalizeHttp(uri: Uri) =
     if (uri.getScheme == null) uri.buildUpon().scheme("http").build()

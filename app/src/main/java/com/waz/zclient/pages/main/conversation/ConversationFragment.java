@@ -1926,7 +1926,6 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
     }
 
     public interface Container {
-        void onOpenUrl(String url);
     }
 
 }

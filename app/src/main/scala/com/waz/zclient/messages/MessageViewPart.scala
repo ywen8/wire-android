@@ -63,25 +63,17 @@ trait ClickableViewPart extends MessageViewPart with ViewHelper {
   import ClickableViewPart._
   import com.waz.threading.Threading.Implicits.Ui
   val zms = inject[Signal[ZMessaging]]
-  val reactions = zms.map(_.reactions)
+  val likes = inject[LikesController]
   val onClicked = EventStream[Unit]()
-
-  private val likedByMe = messageAndLikes map { m => m.likedBySelf }
 
   def onSingleClick() = {
     onClicked ! ({})
     getParent.asInstanceOf[View].performClick()
   }
 
-  def onDoubleClick() = {
-    for {
-      msg <- message.currentValue
-      if isLikeable(msg.msgType)
-      reacts <- reactions.head
-      likedByMe <- likedByMe.currentValue
-    } {
-      if (likedByMe) reacts.unlike(msg.convId, msg.id)
-      else reacts.like(msg.convId, msg.id)
+  def onDoubleClick() = messageAndLikes.head.map { mAndL =>
+    if (isLikeable(mAndL.message.msgType)) {
+      likes.onViewDoubleClicked ! mAndL
       getParent.asInstanceOf[View].performClick() //perform click to change focus
     }
   }

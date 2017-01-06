@@ -67,7 +67,7 @@ class VideoAssetPartView(context: Context, attrs: AttributeSet, style: Int) exte
 
   assetActionButton.onClicked.filter(_ == DeliveryState.Complete) { _ =>
     asset.currentValue foreach { case (a, _) =>
-      controller.openFile(a, showDialog = false)
+      controller.openFile(a)
     }
   }
 }
