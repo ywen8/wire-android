@@ -127,11 +127,11 @@ class FooterViewController(implicit inj: Injector, context: Context, ec: EventCo
     m.state match {
       case Status.PENDING => getString(R.string.message_footer__status__sending)
       case Status.SENT => getString(R.string.message_footer__status__sent, timestamp)
-      case Status.DELIVERED if convType == ConversationType.Group => context.getString(R.string.message_footer__status__sent, timestamp)
-      case Status.DELIVERED => context.getString(R.string.message_footer__status__delivered, timestamp)
+      case Status.DELIVERED if convType == ConversationType.Group => getString(R.string.message_footer__status__sent, timestamp)
+      case Status.DELIVERED => getString(R.string.message_footer__status__delivered, timestamp)
       case Status.DELETED => getString(R.string.message_footer__status__deleted, timestamp)
       case Status.FAILED |
-           Status.FAILED_READ => context.getString(R.string.message_footer__status__failed)
+           Status.FAILED_READ => getString(R.string.message_footer__status__failed)
       case _ => timestamp
     }
 
@@ -139,18 +139,18 @@ class FooterViewController(implicit inj: Injector, context: Context, ec: EventCo
     val stringBuilder = new StringBuilder
     if (remaining > 1.day) {
       val days = remaining.toDays.toInt
-      stringBuilder.append(context.getResources.getQuantityString(R.plurals.message_footer__expire__days, days, new Integer(days))).append(", ")
+      stringBuilder.append(getQuantityString(R.plurals.message_footer__expire__days, days, Integer.valueOf(days))).append(", ")
     }
     if (remaining > 1.hour) {
       val hours = remaining.toHours.toInt % 24
-      stringBuilder.append(context.getResources.getQuantityString(R.plurals.message_footer__expire__hours, hours, new Integer(hours))).append(", ")
+      stringBuilder.append(getQuantityString(R.plurals.message_footer__expire__hours, hours, Integer.valueOf(hours))).append(", ")
     }
     if (remaining > 1.minute) {
       val minutes = remaining.toMinutes.toInt % 60
-      stringBuilder.append(context.getResources.getQuantityString(R.plurals.message_footer__expire__minutes, minutes, new Integer(minutes))).append(", ")
+      stringBuilder.append(getQuantityString(R.plurals.message_footer__expire__minutes, minutes, Integer.valueOf(minutes))).append(", ")
     }
     val seconds = remaining.toSeconds.toInt % 60
-    stringBuilder.append(context.getResources.getQuantityString(R.plurals.message_footer__expire__seconds, seconds, new Integer(seconds)))
-    context.getString(R.string.message_footer__status__ephemeral_summary, timestamp, stringBuilder.toString)
+    stringBuilder.append(getQuantityString(R.plurals.message_footer__expire__seconds, seconds, Integer.valueOf(seconds)))
+    getString(R.string.message_footer__status__ephemeral_summary, timestamp, stringBuilder.toString)
   }
 }

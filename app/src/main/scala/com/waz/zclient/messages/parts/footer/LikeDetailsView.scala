@@ -47,7 +47,7 @@ class LikeDetailsView(context: Context, attrs: AttributeSet, style: Int) extends
     val likedBy = controller.messageAndLikes.map(_.likes)
 
     def getDisplayNameString(ids: Seq[UserId]): Signal[String] = {
-      if (showAvatars(ids)) Signal const getQuantityString(R.plurals.message_footer__number_of_likes, ids.size, ids.size.toString)
+      if (showAvatars(ids)) Signal const getQuantityString(R.plurals.message_footer__number_of_likes, ids.size, Integer.valueOf(ids.size))
       else for {
         zms <- controller.zms
         names <- Signal.sequence(ids map { controller.signals.displayNameString(zms, _) } :_*)
