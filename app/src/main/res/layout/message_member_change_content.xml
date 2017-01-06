@@ -36,7 +36,7 @@
         android:id="@+id/rv__row_conversation__people_changed__grid"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginStart="@dimen/content__separator__avatar_container__width"
+        android:layout_marginStart="@dimen/content__padding_left"
         android:layout_marginEnd="@dimen/wire__padding__32"
         />
 

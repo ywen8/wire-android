@@ -95,7 +95,7 @@ trait ImageLayoutAssetPart extends ContentAssetPart {
   import ImageLayoutAssetPart._
 
   protected val imageDim = message map { _.imageDimensions.getOrElse(Dim2(1, 1)) }
-  protected val viewWidth = Signal[Int]()
+  protected val maxWidth = Signal[Int]()
   protected val maxHeight = Signal[Int]()
 
   private lazy val contentPaddingStart = getDimenPx(R.dimen.content__padding_left)
@@ -104,39 +104,45 @@ trait ImageLayoutAssetPart extends ContentAssetPart {
   val imageDrawable = new ImageAssetDrawable(message map { m => WireImage(m.assetId) })
 
   val displaySize = for {
-    w <- viewWidth
+    maxW <- maxWidth
     maxH <- maxHeight
     Dim2(imW, imH) <- imageDim
   } yield {
-    val pxW = toPx(imW)
-    val centered = w - contentPaddingStart - contentPaddingEnd
-    val padded = w - contentPaddingStart
+    val centered = maxW - contentPaddingStart - contentPaddingEnd
 
-    val width =
-      if (imH > imW) math.min(pxW, centered)
-      else if (pxW >= padded) w
-      else if (pxW >= centered) centered
-      else pxW
+    val heightToWidth = imH.toDouble / imW.toDouble
 
-    val height = imH * width / imW
+    val width = if (imH > imW) centered else maxW
+    val height = heightToWidth * width
 
-    //fit image within view port height-wise (plus the little bit of buffer space), if it's not too tall. For super tall
-    //images, we leave them as is otherwise they might become too skinny
-    val heightDiff = (height - maxH).toDouble / maxH.toDouble
+    //fit image within view port height-wise (plus the little bit of buffer space), if it's height to width ratio is not too big. For super tall/thin
+    //images, we leave them as is otherwise they might become too skinny to be viewed properly
     val scaleDownToHeight = maxH * (1 - scaleDownBuffer)
-    val scaleDown = if (height > scaleDownToHeight && heightDiff < scaleDownUnderLimit) scaleDownToHeight.toDouble / height.toDouble else 1D
+    val scaleDown = if (height > scaleDownToHeight && heightToWidth < scaleDownUnderRatio) scaleDownToHeight.toDouble / height.toDouble else 1D
 
-    Dim2((width * scaleDown).toInt, (height * scaleDown).toInt)
+    val scaledWidth = width * scaleDown
+
+    //finally, make sure the width of the now height-adjusted image is either the full view port width, or less than
+    //or equal to the centered area (taking left and right margins into consideration). This is important to get the
+    //padding right in the next signal
+    val finalWidth =
+      if (scaledWidth <= centered) scaledWidth
+      else if (scaledWidth >= maxW) maxW
+      else centered
+
+    val finalHeight = heightToWidth * finalWidth
+
+    Dim2(finalWidth.toInt, finalHeight.toInt)
   }
 
   val padding = for {
-    w <- viewWidth
+    maxW <- maxWidth
     Dim2(dW, dH) <- displaySize
   } yield {
-    if (dW >= w) Offset.Empty
+    if (dW >= maxW) Offset.Empty
     else {
-      val left = if (getLayoutDirection == View.LAYOUT_DIRECTION_LTR) contentPaddingStart else w - contentPaddingStart - dW
-      Offset(left, 0, w - dW - left, 0)
+      val left = if (getLayoutDirection == View.LAYOUT_DIRECTION_LTR) contentPaddingStart else maxW - contentPaddingStart - dW
+      Offset(left, 0, maxW - dW - left, 0)
     }
   }
 
@@ -148,18 +154,20 @@ trait ImageLayoutAssetPart extends ContentAssetPart {
 
   override def set(msg: MessageData, part: Option[MessageContent], opts: MsgBindOptions): Unit = {
     super.set(msg, part, opts)
-    viewWidth.mutateOrDefault(identity, opts.listDimensions.width)
+    maxWidth.mutateOrDefault(identity, opts.listDimensions.width)
     maxHeight ! opts.listDimensions.height
   }
 
   override def onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int): Unit = {
     super.onLayout(changed, left, top, right, bottom)
-    viewWidth ! (right - left)
+    maxWidth ! (right - left)
   }
 }
 
 object ImageLayoutAssetPart {
   //a little bit of space for scaling images within the viewport
   val scaleDownBuffer = 0.05
-  val scaleDownUnderLimit = 0.2 + scaleDownBuffer
+
+  //Height to width - images with a lower ratio will be scaled to fit in the view port. Taller images will be allowed to keep their size
+  val scaleDownUnderRatio = 2.0
 }

@@ -297,11 +297,6 @@ public class MainPhoneFragment extends BaseFragment<MainPhoneFragment.Container>
     }
 
     @Override
-    public void updateSingleImageReferences() {
-
-    }
-
-    @Override
     public void onShowVideo(Uri uri) {
         getChildFragmentManager().beginTransaction()
                                  .add(R.id.fl__overlay_container,

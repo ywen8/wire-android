@@ -90,6 +90,7 @@ class MessagesListAdapter(listDim: Signal[Dim2])(implicit inj: Injector, ec: Eve
   override def onBindViewHolder(holder: MessageViewHolder, pos: Int, payloads: util.List[AnyRef]): Unit = {
     verbose(s"onBindViewHolder: position: $pos")
     val data = message(pos)
+
     val isLast = pos == adapter.getItemCount - 1
     val isSelf = zms.currentValue.exists(_.selfUserId == data.message.userId)
     val isFirstUnread = pos > 0 && !isSelf && unreadIndex.index == pos

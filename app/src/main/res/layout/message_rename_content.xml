@@ -36,7 +36,7 @@
         android:id="@+id/ttv__new_conversation_name"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="@dimen/content__separator__avatar_container__width"
+        android:layout_marginLeft="@dimen/content__padding_left"
         android:layout_marginRight="@dimen/wire__padding__32"
         android:textSize="@dimen/wire__text_size__regular"
         android:textColor="?wirePrimaryTextColor"

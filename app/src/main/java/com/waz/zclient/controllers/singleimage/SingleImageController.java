@@ -59,13 +59,6 @@ public class SingleImageController implements ISingleImageController {
     }
 
     @Override
-    public void updateViewReferences() {
-        for (SingleImageObserver observer : observerList) {
-            observer.updateSingleImageReferences();
-        }
-    }
-
-    @Override
     public void showSingleImage(Message message) {
         this.message = message;
         for (SingleImageObserver observer : observerList) {

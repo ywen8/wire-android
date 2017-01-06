@@ -82,7 +82,10 @@ class MessagesListView(context: Context, attrs: AttributeSet, style: Int) extend
   })
 
   override def onLayout(changed: Boolean, l: Int, t: Int, r: Int, b: Int): Unit = {
-    viewDim ! Dim2(r - l, b - t)
+    //We don't want the original height of the view to change if the keyboard comes up, or else images will be resized to
+    //fit in the small space left. So only let the height change if for some reason the new height is bigger (shouldn't happen)
+    //i.e., height in viewDim should always represent the height of the screen without the keyboard shown.
+    viewDim.mutateOrDefault({ case Dim2(_, h) => Dim2(r - l, math.max(h, b - t)) }, Dim2(r - l, b - t))
     super.onLayout(changed, l, t, r, b)
   }
 

@@ -28,8 +28,6 @@ public interface SingleImageObserver {
 
     void onHideSingleImage();
 
-    void updateSingleImageReferences();
-
     void onShowVideo(Uri uri);
 
     void onHideVideo();

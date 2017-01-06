@@ -42,7 +42,7 @@ class SystemMessageView(context: Context, attrs: AttributeSet, style: Int) exten
   inflate(R.layout.system_message_content)
 
   val end = getDimenPx(R.dimen.wire__margin__huge)
-  val start = getDimenPx(R.dimen.content__separator__avatar_container__width)
+  val start = getDimenPx(R.dimen.content__padding_left)
   val locale = getLocale
 
   val iconMargin = getDimenPx(R.dimen.error__image__margin)

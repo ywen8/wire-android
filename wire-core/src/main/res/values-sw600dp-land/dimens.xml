@@ -32,6 +32,7 @@
 
     <dimen name="content__padding_left">88dp</dimen>
     <dimen name="content__row__padding_right">72dp</dimen>
+    <dimen name="chathead__margin_start">34dp</dimen>
     <dimen name="content__separator__avatar_container__width">@dimen/content__padding_left</dimen>
 
     <dimen name="signup_content__margin_top">52dp</dimen>

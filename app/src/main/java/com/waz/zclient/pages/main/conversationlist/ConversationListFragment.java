@@ -19,15 +19,12 @@ package com.waz.zclient.pages.main.conversationlist;
 
 import android.animation.ObjectAnimator;
 import android.annotation.SuppressLint;
-import android.content.res.Configuration;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.ViewTreeObserver;
 import android.view.animation.Animation;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
@@ -212,46 +209,6 @@ public class ConversationListFragment extends BaseFragment<ConversationListFragm
                                              0,
                                              false,
                                              1f);
-    }
-
-    @Override
-    public void onConfigurationChanged(Configuration newConfig) {
-        super.onConfigurationChanged(newConfig);
-        if (conversationsListAdapter == null ||
-            swipeListView == null ||
-            pullForActionContainer == null) {
-            return;
-        }
-        Parcelable onSaveInstanceState = swipeListView.onSaveInstanceState();
-        swipeListView.setAdapter(conversationsListAdapter);
-        swipeListView.onRestoreInstanceState(onSaveInstanceState);
-        conversationsListAdapter.notifyDataSetChanged();
-
-        final ViewTreeObserver viewTreeObserver = pullForActionContainer.getViewTreeObserver();
-        if (viewTreeObserver == null) {
-            return;
-        }
-        viewTreeObserver.addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
-
-            int oldHeight = pullForActionContainer.getHeight();
-
-            @Override
-            public void onGlobalLayout() {
-                if (pullForActionContainer == null ||
-                    conversationsListAdapter == null) {
-                    viewTreeObserver.removeOnGlobalLayoutListener(this);
-                    return;
-                }
-
-                int height = pullForActionContainer.getHeight();
-                if (oldHeight == height) {
-                    return;
-                }
-
-                conversationsListAdapter.setLayoutHeight(height);
-                viewTreeObserver.removeOnGlobalLayoutListener(this);
-            }
-        });
     }
 
     @Override
