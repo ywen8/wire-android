@@ -49,7 +49,6 @@ class FooterPartView(context: Context, attrs: AttributeSet, style: Int) extends 
   inflate(R.layout.message_footer_content)
 
   val controller = new FooterViewController
-  val message = controller.message
 
   val height = Signal[Int]()
   val contentOffset = Signal[Float]()
@@ -152,9 +151,8 @@ class FooterPartView(context: Context, attrs: AttributeSet, style: Int) extends 
     height ! (bottom - top)
   }
 
-  override def set(msg: MessageData, part: Option[MessageContent], opts: MsgBindOptions): Unit = ()
-
   override def set(msg: MessageAndLikes, part: Option[MessageContent], opts: MsgBindOptions): Unit = {
+    super.set(msg, part, opts)
     hideAnim.cancel()
     contentAnim.cancel()
     contentOffset ! 0

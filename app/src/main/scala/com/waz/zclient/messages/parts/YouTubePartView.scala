@@ -25,15 +25,16 @@ import android.view.{View, ViewGroup}
 import android.widget.{LinearLayout, RelativeLayout, TextView}
 import com.waz.ZLog.ImplicitTag._
 import com.waz.api.{Message, NetworkMode}
+import com.waz.model.MessageContent
 import com.waz.model.messages.media.MediaAssetData
-import com.waz.model.{MessageContent, MessageData}
 import com.waz.service.NetworkModeService
+import com.waz.service.messages.MessageAndLikes
 import com.waz.threading.Threading
 import com.waz.utils._
 import com.waz.utils.events.Signal
 import com.waz.zclient.controllers.BrowserController
 import com.waz.zclient.messages.MessageView.MsgBindOptions
-import com.waz.zclient.messages.{ClickableViewPart, MessageViewPart, MsgPart}
+import com.waz.zclient.messages.{ClickableViewPart, MsgPart}
 import com.waz.zclient.ui.text.GlyphTextView
 import com.waz.zclient.ui.utils.ColorUtils
 import com.waz.zclient.utils.ContextUtils._
@@ -97,7 +98,8 @@ class YouTubePartView(context: Context, attrs: AttributeSet, style: Int) extends
     setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, h))
   }
 
-  override def set(msg: MessageData, part: Option[MessageContent], opts: MsgBindOptions): Unit = {
+  override def set(msg: MessageAndLikes, part: Option[MessageContent], opts: MsgBindOptions): Unit = {
+    super.set(msg, part, opts)
     width.mutateOrDefault(identity, opts.listDimensions.width)
     part foreach { content ! _ }
   }

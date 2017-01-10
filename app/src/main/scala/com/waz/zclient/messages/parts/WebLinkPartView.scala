@@ -20,7 +20,6 @@ package com.waz.zclient.messages.parts
 import android.content.Context
 import android.support.v7.widget.CardView
 import android.util.AttributeSet
-import android.view.View
 import android.widget.{ImageView, TextView}
 import com.waz.ZLog.ImplicitTag._
 import com.waz.ZLog._
@@ -28,12 +27,13 @@ import com.waz.api.Message.Part
 import com.waz.model.GenericContent.LinkPreview
 import com.waz.model.GenericMessage.TextMessage
 import com.waz.model._
+import com.waz.service.messages.MessageAndLikes
 import com.waz.sync.client.OpenGraphClient.OpenGraphData
 import com.waz.threading.Threading
 import com.waz.utils.events.Signal
 import com.waz.zclient.controllers.BrowserController
 import com.waz.zclient.messages.MessageView.MsgBindOptions
-import com.waz.zclient.messages.{ClickableViewPart, MessageViewPart, MsgPart}
+import com.waz.zclient.messages.{ClickableViewPart, MsgPart}
 import com.waz.zclient.utils._
 import com.waz.zclient.views.ImageAssetDrawable.{RequestBuilder, ScaleType, State}
 import com.waz.zclient.views.ImageController.{DataImage, ImageUri}
@@ -52,7 +52,6 @@ class WebLinkPartView(context: Context, attrs: AttributeSet, style: Int) extends
   lazy val urlTextView: TextView    = findById(R.id.ttv__row_conversation__link_preview__url)
   lazy val imageView: ImageView     = findById(R.id.iv__row_conversation__link_preview__image)
 
-  private val message = Signal[MessageData]()
   private val content = Signal[MessageContent]()
 
   inflate(R.layout.message_part_weblink_content)
@@ -113,9 +112,9 @@ class WebLinkPartView(context: Context, attrs: AttributeSet, style: Int) extends
     content.currentValue foreach { c => browser.openUrl(c.contentAsUri) }
   }
 
-  override def set(msg: MessageData, part: Option[MessageContent], opts: MsgBindOptions): Unit = {
+  override def set(msg: MessageAndLikes, part: Option[MessageContent], opts: MsgBindOptions): Unit = {
+    super.set(msg, part, opts)
     verbose(s"set $part")
-    message ! msg
     part foreach { content ! _ }
   }
 }
