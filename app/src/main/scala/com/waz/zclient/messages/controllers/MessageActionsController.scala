@@ -24,6 +24,7 @@ import android.net.Uri
 import android.support.v4.app.ShareCompat
 import android.support.v7.app.AlertDialog
 import android.widget.Toast
+import com.waz.ZLog.ImplicitTag._
 import com.waz.api.{Asset, ImageAsset, Message}
 import com.waz.model._
 import com.waz.service.ZMessaging
@@ -33,10 +34,7 @@ import com.waz.utils._
 import com.waz.utils.events.{EventContext, EventStream, Signal}
 import com.waz.zclient.common.controllers.{PermissionsController, WriteExternalStoragePermission}
 import com.waz.zclient.controllers.global.KeyboardController
-import com.waz.zclient.controllers.tracking.ITrackingController
-import com.waz.zclient.controllers.tracking.events.conversation._
 import com.waz.zclient.controllers.userpreferences.IUserPreferencesController
-import com.waz.zclient.core.controllers.tracking.events.filetransfer.SavedFileEvent
 import com.waz.zclient.notifications.controllers.ImageNotificationsController
 import com.waz.zclient.pages.main.conversation.controller.IConversationScreenController
 import com.waz.zclient.pages.main.conversation.views.MessageBottomSheetDialog
@@ -45,16 +43,13 @@ import com.waz.zclient.ui.cursor.CursorLayout
 import com.waz.zclient.ui.utils.KeyboardUtils
 import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.{Injectable, Injector, R, WireContext}
-import com.waz.ZLog.ImplicitTag._
 
-// TODO: rewrite to not use java message api
-// TODO: don't call tracking controller directly, expose generic event streams instead
+// TODO: rewrite to not use java message and asset api
 class MessageActionsController(implicit injector: Injector, ctx: Context, ec: EventContext) extends Injectable {
   import com.waz.threading.Threading.Implicits.Ui
 
   private val context                   = inject[Activity]
   private lazy val keyboardController   = inject[KeyboardController]
-  private lazy val trackingController   = inject[ITrackingController]
   private lazy val userPrefsController  = inject[IUserPreferencesController]
   private lazy val clipboardManager     = inject[ClipboardManager]
   private lazy val permissions          = inject[PermissionsController]
@@ -64,18 +59,13 @@ class MessageActionsController(implicit injector: Injector, ctx: Context, ec: Ev
 
   val onMessageAction = EventStream[(MessageAction, Message)]()
 
+  val onDeleteConfirmed = EventStream[(Message, Boolean)]() // Boolean == isRecall(true) or localDelete(false)
+  val onAssetSaved = EventStream[Asset]()
+
   private var dialog = Option.empty[MessageBottomSheetDialog]
 
   private val callback = new Callback {
-    override def onAction(action: MessageAction, message: Message): Unit = {
-      onMessageAction ! (action, message)
-    }
-  }
-
-  // TODO: this should be done inside of tracking controller
-  onMessageAction {
-    case (action, message) =>
-      trackingController.tagEvent(OpenedMessageActionEvent.forAction(action, message.getMessageType.name))
+    override def onAction(action: MessageAction, message: Message): Unit = onMessageAction ! (action, message)
   }
 
   onMessageAction {
@@ -117,19 +107,15 @@ class MessageActionsController(implicit injector: Injector, ctx: Context, ec: Ev
   }
 
   private def toggleLike(message: Message) = {
-    if (message.isLikedByThisUser) {
+    if (message.isLikedByThisUser)
       message.unlike()
-      trackingController.tagEvent(ReactedToMessageEvent.unlike(message.getConversation, message, ReactedToMessageEvent.Method.MENU))
-    }
     else {
       message.like()
       userPrefsController.setPerformedAction(IUserPreferencesController.LIKED_MESSAGE)
-      trackingController.tagEvent(ReactedToMessageEvent.like(message.getConversation, message, ReactedToMessageEvent.Method.MENU))
     }
   }
 
   private def copyMessage(message: Message) = {
-    trackingController.tagEvent(new CopiedMessageEvent(message.getMessageType.name))
     val clip = ClipData.newPlainText(getString(R.string.conversation__action_mode__copy__description, message.getUser.getDisplayName), message.getBody)
     clipboardManager.setPrimaryClip(clip)
     Toast.makeText(context, R.string.conversation__action_mode__copy__toast, Toast.LENGTH_SHORT).show()
@@ -138,13 +124,13 @@ class MessageActionsController(implicit injector: Injector, ctx: Context, ec: Ev
   private def deleteMessage(message: Message) =
     showDeleteDialog(R.string.conversation__message_action__delete_for_me) {
       message.delete()
-      trackingController.tagEvent(new DeletedMessageEvent(message, false))
+      onDeleteConfirmed ! (message, false)
     }
 
   private def recallMessage(message: Message) =
     showDeleteDialog(R.string.conversation__message_action__delete_for_everyone) {
       message.recall()
-      trackingController.tagEvent(new DeletedMessageEvent(message, true))
+      onDeleteConfirmed ! (message, true)
     }
 
   private def showDeleteDialog(title: Int)(onSuccess: => Unit) =
@@ -163,7 +149,6 @@ class MessageActionsController(implicit injector: Injector, ctx: Context, ec: Ev
       .show()
 
   private def forwardMessage(message: Message) = {
-    trackingController.tagEvent(new ForwardedMessageEvent(message.getMessageType.name))
     val asset = message.getAsset
     val intentBuilder = ShareCompat.IntentBuilder.from(context)
     intentBuilder.setChooserTitle(R.string.conversation__action_mode__fwd__chooser__title)
@@ -208,7 +193,7 @@ class MessageActionsController(implicit injector: Injector, ctx: Context, ec: Ev
         val asset = message.getAsset
         asset.saveToDownloads(new Asset.LoadCallback[Uri]() {
           def onLoaded(uri: Uri): Unit = {
-            trackingController.tagEvent(new SavedFileEvent(asset.getMimeType, asset.getSizeInBytes.toInt))
+            onAssetSaved ! asset
             Toast.makeText(context, com.waz.zclient.ui.R.string.content__file__action__save_completed, Toast.LENGTH_SHORT).show()
             dialog.dismiss()
           }

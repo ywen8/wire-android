@@ -36,10 +36,11 @@ import com.waz.zclient.controllers.tracking.ITrackingController
 import com.waz.zclient.controllers.userpreferences.IUserPreferencesController
 import com.waz.zclient.core.stores.IStoreFactory
 import com.waz.zclient.messages.controllers.{MessageActionsController, NavigationController}
-import com.waz.zclient.messages.{MessageViewFactory, MessagesController, SyncEngineSignals}
+import com.waz.zclient.messages.{LikesController, MessageViewFactory, MessagesController, SyncEngineSignals}
 import com.waz.zclient.notifications.controllers.{CallingNotificationsController, ImageNotificationsController, MessageNotificationsController}
 import com.waz.zclient.pages.main.conversation.controller.IConversationScreenController
 import com.waz.zclient.pages.main.pickuser.controller.IPickUserController
+import com.waz.zclient.tracking.TrackingController
 import com.waz.zclient.utils.{BackendPicker, BuildConfigUtils, Callback}
 import com.waz.zclient.views.ImageController
 
@@ -106,7 +107,9 @@ object WireApplication {
     bind [ScreenController]          to new ScreenController()
     bind [NavigationController]      to new NavigationController()
     bind [MessageActionsController]  to new MessageActionsController()
-    bind [MessagesController]    to new MessagesController()
+    bind [MessagesController]        to new MessagesController()
+    bind [LikesController]           to new LikesController()
+    bind [TrackingController]        to new TrackingController()
   }
 }
 

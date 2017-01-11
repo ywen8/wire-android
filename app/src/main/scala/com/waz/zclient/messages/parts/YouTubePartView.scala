@@ -111,8 +111,13 @@ class YouTubePartView(context: Context, attrs: AttributeSet, style: Int) extends
   }
 
   onClicked { _ =>
-    content.currentValue foreach { c =>
+    for {
+      c <- content.currentValue
+      m <- message.currentValue
+    } {
+      browser.onYoutubeLinkOpened ! m.id
       browser.openUrl(c.contentAsUri)
     }
+
   }
 }

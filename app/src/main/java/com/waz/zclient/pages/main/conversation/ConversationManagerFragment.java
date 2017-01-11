@@ -71,8 +71,7 @@ import com.waz.zclient.views.LoadingIndicatorView;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ConversationManagerFragment extends BaseFragment<ConversationManagerFragment.Container> implements ConversationFragment.Container,
-                                                                                                                ParticipantFragment.Container,
+public class ConversationManagerFragment extends BaseFragment<ConversationManagerFragment.Container> implements ParticipantFragment.Container,
                                                                                                                 LikesListFragment.Container,
                                                                                                                 OnBackPressedListener,
                                                                                                                 ConversationScreenControllerObserver,

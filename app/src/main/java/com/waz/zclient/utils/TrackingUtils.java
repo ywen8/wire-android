@@ -41,9 +41,7 @@ import com.waz.zclient.core.controllers.tracking.attributes.RangedAttribute;
 import com.waz.zclient.core.controllers.tracking.events.media.CompletedMediaActionEvent;
 import com.waz.zclient.core.controllers.tracking.events.media.OpenedMediaActionEvent;
 import com.waz.zclient.core.controllers.tracking.events.media.SentAudioMessageEvent;
-import com.waz.zclient.core.controllers.tracking.events.media.SentLocationEvent;
 import com.waz.zclient.core.controllers.tracking.events.media.SentPictureEvent;
-import com.waz.zclient.core.controllers.tracking.events.media.SentTextMessageEvent;
 import com.waz.zclient.core.controllers.tracking.events.settings.ChangedContactsPermissionEvent;
 import com.waz.zclient.core.controllers.tracking.events.settings.ChangedSoundNotificationLevelEvent;
 import com.waz.zclient.core.stores.connect.IConnectStore;
@@ -246,7 +244,6 @@ public class TrackingUtils {
     }
 
     public static void onSentTextMessage(ITrackingController trackingController, IConversation conversation) {
-        trackingController.tagEvent(new SentTextMessageEvent(conversation));
         trackingController.tagEvent(new CompletedMediaActionEvent(CompletedMediaType.TEXT,
                                                                   conversation.getType().name(),
                                                                   conversation.isOtto(),
@@ -255,7 +252,6 @@ public class TrackingUtils {
     }
 
     public static void onSentGifMessage(ITrackingController trackingController, IConversation conversation) {
-        trackingController.tagEvent(new SentTextMessageEvent(conversation));
         trackingController.tagEvent(new CompletedMediaActionEvent(CompletedMediaType.TEXT,
                                                                   conversation.getType().name(),
                                                                   conversation.isOtto(),
@@ -309,7 +305,6 @@ public class TrackingUtils {
     }
 
     public static void onSentLocationMessage(ITrackingController trackingController, IConversation conversation) {
-        trackingController.tagEvent(new SentLocationEvent(conversation));
         trackingController.tagEvent(new CompletedMediaActionEvent(CompletedMediaType.LOCATION,
                                                                   conversation.getType().name(),
                                                                   conversation.isOtto(),

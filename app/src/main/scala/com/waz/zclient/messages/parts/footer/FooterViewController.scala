@@ -29,7 +29,7 @@ import com.waz.utils._
 import com.waz.utils.events.{ClockSignal, EventContext, Signal}
 import com.waz.zclient.controllers.global.{AccentColorController, SelectionController}
 import com.waz.zclient.messages.MessageView.MsgBindOptions
-import com.waz.zclient.messages.SyncEngineSignals
+import com.waz.zclient.messages.{LikesController, SyncEngineSignals}
 import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.utils.ZTimeFormatter
 import com.waz.zclient.{Injectable, Injector, R}
@@ -47,7 +47,7 @@ class FooterViewController(implicit inj: Injector, context: Context, ec: EventCo
   val accents = inject[AccentColorController]
   val selection = inject[SelectionController].messages
   val signals = inject[SyncEngineSignals]
-  val reactions = zms.map(_.reactions)
+  val likesController = inject[LikesController]
 
   val opts = Signal[MsgBindOptions]()
   val messageAndLikes = Signal[MessageAndLikes]()
@@ -117,15 +117,7 @@ class FooterViewController(implicit inj: Injector, context: Context, ec: EventCo
     }
   }
 
-  def onLikeClicked() = for {
-    reacts <- reactions.head
-    mAndL <- messageAndLikes.head
-  } {
-    val msg = mAndL.message
-    // TODO tracking?
-    if (mAndL.likedBySelf) reacts.unlike(msg.convId, msg.id)
-    else reacts.like(msg.convId, msg.id)
-  }
+  def onLikeClicked() = messageAndLikes.head.map { likesController.onLikeButtonClicked ! _ }
 
   private def statusString(timestamp: String, m: MessageData, convType: ConversationType) =
     m.state match {
