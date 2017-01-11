@@ -55,8 +55,8 @@ abstract class MessageViewLayout(context: Context, attrs: AttributeSet, style: I
 
     val views = parts.zipWithIndex map { case (PartDesc(tpe, content), index) =>
       val view = factory.get(tpe, this)
-      view.set(msg, content, opts)
       view.setVisibility(View.VISIBLE)
+      view.set(msg, content, opts)
       addViewInLayout(view, index, Option(view.getLayoutParams).getOrElse(defaultLayoutParams))
       view
     }

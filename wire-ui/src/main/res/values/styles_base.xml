@@ -84,7 +84,6 @@
 
     <style name="message_stream__subtitle__base">
         <item name="android:textSize">@dimen/wire__text_size__small</item>
-        <item name="android:textAllCaps">true</item>
     </style>
 
     <style name="message_stream__subtitle__no_color__base">

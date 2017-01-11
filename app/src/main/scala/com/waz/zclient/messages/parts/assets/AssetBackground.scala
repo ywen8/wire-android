@@ -22,7 +22,7 @@ import android.graphics.drawable.Drawable
 import com.waz.threading.Threading
 import com.waz.utils.events.{EventContext, Signal}
 import com.waz.zclient.utils.ContextUtils._
-import com.waz.zclient.utils.ViewUtils
+import com.waz.zclient.utils.{Offset, ViewUtils}
 import com.waz.zclient.views.ProgressDotsDrawable
 import com.waz.zclient.{R, WireContext}
 
@@ -35,16 +35,32 @@ class AssetBackground(showDots: Signal[Boolean])(implicit context: WireContext, 
   private val dots = new ProgressDotsDrawable
   dots.setCallback(this)
 
-  private var show = false
+  val padding = Signal(Offset.Empty) //empty signifies match_parent
 
-  showDots.on(Threading.Ui) { s =>
-    show = s
-    invalidateSelf()
+  private var _showDots = false
+  private var _padding = Offset.Empty
+
+  (for {
+    dots <- showDots
+    pad <- padding
+  } yield (dots, pad)).on(Threading.Ui) {
+    case (dots, pad) =>
+      _showDots = dots
+      _padding = pad
+      invalidateSelf()
   }
 
   override def draw(canvas: Canvas): Unit = {
-    canvas.drawRoundRect(new RectF(getBounds), cornerRadius, cornerRadius, backgroundPaint)
-    if (show) dots.draw(canvas)
+
+    val bounds =
+      if (_padding == Offset.Empty) getBounds
+      else {
+        val b = getBounds
+        new Rect(b.left + _padding.l, b.top + _padding.t, b.right - _padding.r, b.bottom - _padding.b)
+      }
+
+    canvas.drawRoundRect(new RectF(bounds), cornerRadius, cornerRadius, backgroundPaint)
+    if (_showDots) dots.draw(canvas)
   }
 
   override def setColorFilter(colorFilter: ColorFilter): Unit = {

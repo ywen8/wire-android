@@ -44,6 +44,7 @@ object MsgPart {
   case object OtrMessage extends MsgPart
   case object MissedCall extends MsgPart
   case object EphemeralDots extends MsgPart
+  case object WifiWarning extends MsgPart
   case object Empty extends MsgPart
   case object Unknown extends MsgPart
 
@@ -81,4 +82,6 @@ object MsgPart {
       case GOOGLE_MAPS | SPOTIFY | TWITTER => Text
     }
   }
+
+
 }

@@ -26,7 +26,7 @@ import com.waz.model.AssetData.{IsImage, IsVideo}
 import com.waz.model._
 import com.waz.service.ZMessaging
 import com.waz.service.assets.AssetService.BitmapResult
-import com.waz.service.assets.AssetService.BitmapResult.BitmapLoaded
+import com.waz.service.assets.AssetService.BitmapResult.{BitmapLoaded, LoadingFailed}
 import com.waz.service.images.BitmapSignal
 import com.waz.threading.Threading
 import com.waz.ui.MemoryImageCache.BitmapRequest
@@ -85,6 +85,7 @@ class ImageAssetDrawable(
     images.imageSignal(im, request(w))
       .map[State] {
         case BitmapLoaded(bmp, etag) => State.Loaded(im, Some(bmp), etag)
+        case LoadingFailed(ex) => State.Failed(im, Some(ex))
         case _ => State.Failed(im)
       }
       .orElse(Signal const State.Loading(im))
@@ -197,7 +198,7 @@ object ImageAssetDrawable {
   object State {
     case class Loading(src: ImageSource) extends State
     case class Loaded(src: ImageSource, override val bmp: Option[Bitmap], etag: Int = 0) extends State
-    case class Failed(src: ImageSource) extends State
+    case class Failed(src: ImageSource, ex: Option[Throwable] = None) extends State
   }
 }
 

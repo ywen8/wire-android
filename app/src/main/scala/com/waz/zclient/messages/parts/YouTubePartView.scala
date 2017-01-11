@@ -69,7 +69,7 @@ class YouTubePartView(context: Context, attrs: AttributeSet, style: Int) extends
   val imageDrawable = new ImageAssetDrawable(image, background = Some(new ColorDrawable(getColor(R.color.content__youtube__background_color))))
 
   val loadingFailed = imageDrawable.state.map {
-    case State.Failed(_) => true
+    case State.Failed(_, _) => true
     case _ => false
   }
 

@@ -19,17 +19,23 @@ package com.waz.zclient.messages.parts
 
 import android.content.Context
 import android.util.AttributeSet
-import android.view.View
-import android.widget.FrameLayout
+import android.view.{View, ViewGroup}
+import android.widget.{FrameLayout, LinearLayout}
+import com.waz.ZLog.ImplicitTag._
+import com.waz.model.MessageContent
+import com.waz.service.downloads.DownloaderService.DownloadOnWifiOnlyException
+import com.waz.service.messages.MessageAndLikes
 import com.waz.threading.Threading
-import com.waz.zclient.R
 import com.waz.zclient.controllers.AssetsController
 import com.waz.zclient.controllers.drawing.IDrawingController.DrawingMethod
 import com.waz.zclient.controllers.drawing.IDrawingController.DrawingMethod._
 import com.waz.zclient.controllers.global.SelectionController
-import com.waz.zclient.messages.MsgPart
+import com.waz.zclient.messages.MessageView.MsgBindOptions
 import com.waz.zclient.messages.parts.assets.ImageLayoutAssetPart
+import com.waz.zclient.messages.{MessageViewPart, MsgPart}
 import com.waz.zclient.utils.RichView
+import com.waz.zclient.views.ImageAssetDrawable.State.{Failed, Loaded}
+import com.waz.zclient.{R, ViewHelper}
 
 class ImagePartView(context: Context, attrs: AttributeSet, style: Int) extends FrameLayout(context, attrs, style) with ImageLayoutAssetPart {
   def this(context: Context, attrs: AttributeSet) = this(context, attrs, 0)
@@ -45,9 +51,11 @@ class ImagePartView(context: Context, attrs: AttributeSet, style: Int) extends F
   private val selection = inject[SelectionController].messages
 
   private lazy val assets = inject[AssetsController]
-  private val imageActions = findById[View](R.id.image_actions)
 
-  padding.on(Threading.Ui)(imageActions.setMargin)
+  private val imageActions = findById[View](R.id.image_actions)
+  private val imageIcon = findById[View](R.id.image_icon)
+
+  padding.on(Threading.Ui)(m => Seq(imageActions, imageIcon).foreach(_.setMargin(m)))
 
   findById[View](R.id.button_sketch).onClick(openDrawingFragment(DRAW))
 
@@ -57,13 +65,51 @@ class ImagePartView(context: Context, attrs: AttributeSet, style: Int) extends F
 
   findById[View](R.id.button_fullscreen).onClick(message.currentValue foreach (assets.showSingleImage(_, this)))
 
-  message.flatMap(m => selection.focused.map(_.contains(m.id))).on(Threading.Ui)(imageActions.setVisible)
+  val noWifi = imageDrawable.state.map {
+    case Failed(_, Some(DownloadOnWifiOnlyException)) => true
+    case _ => false
+  }
+
+  (for {
+    focused <- message.flatMap(m => selection.focused.map(_.contains(m.id)))
+    loaded <- imageDrawable.state.map {
+      case Loaded(_, _, _) => true
+      case _ => false
+    }
+  } yield focused && loaded).on(Threading.Ui)(imageActions.setVisible)
+
+  noWifi.on(Threading.Ui)(imageIcon.setVisible)
 
   private def openDrawingFragment(drawingMethod: DrawingMethod) =
     message.currentValue foreach (assets.openDrawingFragment(_, drawingMethod))
+}
 
-  setBackground(imageDrawable)
+class WifiWarningPartView(context: Context, attrs: AttributeSet, style: Int) extends LinearLayout(context, attrs, style) with MessageViewPart with ViewHelper {
+  def this(context: Context, attrs: AttributeSet) = this(context, attrs, 0)
 
+  def this(context: Context) = this(context, null, 0)
+
+  override val tpe: MsgPart = MsgPart.WifiWarning
+
+  inflate(R.layout.message_wifi_warning_content)
+
+  //A little bit hacky - but we can safely rely on the fact there should be an ImagePartView for each WifiWarningPartView
+  //def to ensure we only get the ImagePartView after the view is attached to the window (the parent will be null otherwise)
+  def imagePart = Option(getParent).map(_.asInstanceOf[ViewGroup]).flatMap { p =>
+    (0 until p.getChildCount).map(p.getChildAt).collectFirst {
+      case v: ImagePartView => v
+    }
+  }
+
+  override def set(msg: MessageAndLikes, part: Option[MessageContent], opts: MsgBindOptions): Unit = {
+    super.set(msg, part, opts)
+    this.setVisible(false) //setVisible(true) is called for all view parts shortly before setting...
+  }
+
+  override def onAttachedToWindow(): Unit = {
+    super.onAttachedToWindow()
+    imagePart.foreach(_.noWifi.on(Threading.Ui)(this.setVisible))
+  }
 }
 
 
