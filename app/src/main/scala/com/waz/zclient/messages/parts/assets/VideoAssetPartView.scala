@@ -18,19 +18,15 @@
 package com.waz.zclient.messages.parts.assets
 
 import android.content.Context
-import android.graphics.drawable.Drawable
 import android.util.AttributeSet
 import android.view.View
 import android.widget.FrameLayout
 import com.waz.threading.Threading
-import com.waz.utils.events.Signal
 import com.waz.zclient.R
 import com.waz.zclient.messages.MsgPart
-import com.waz.zclient.messages.parts.assets.DeliveryState.OtherUploading
 import com.waz.zclient.utils.ContextUtils._
-import com.waz.zclient.views.ImageAssetDrawable
-import com.waz.zclient.views.ImageAssetDrawable.State.Loaded
 import com.waz.zclient.utils.RichView
+import com.waz.zclient.views.ImageAssetDrawable.State.Loaded
 
 class VideoAssetPartView(context: Context, attrs: AttributeSet, style: Int) extends FrameLayout(context, attrs, style) with PlayableAsset with ImageLayoutAssetPart {
   def this(context: Context, attrs: AttributeSet) = this(context, attrs, 0)
@@ -39,7 +35,7 @@ class VideoAssetPartView(context: Context, attrs: AttributeSet, style: Int) exte
   override val tpe: MsgPart = MsgPart.VideoAsset
 
   override lazy val contentLayoutId = {
-    setId(R.id.content) //ensure outer view has content id set - this doens't seem to work with merge tags
+    setId(R.id.content) //ensure outer view has content id set - this doesn't seem to work with merge tags
     R.layout.message_video_asset_content
   }
 
@@ -50,18 +46,7 @@ class VideoAssetPartView(context: Context, attrs: AttributeSet, style: Int) exte
     case _ => getColor(R.color.black)
   }.on(Threading.Ui)(durationView.setTextColor)
 
-  val bg = deliveryState flatMap {
-    case OtherUploading => Signal.const[Drawable](assetBackground)
-    case _ =>
-      imageDrawable.state map {
-        case ImageAssetDrawable.State.Failed(_) => assetBackground
-        case _ => imageDrawable
-      } orElse Signal.const[Drawable](imageDrawable)
-  }
-
   padding.on(Threading.Ui)(offset => controls.setMargin(offset))
-
-  bg.on(Threading.Ui) { setBackground }
 
   asset.disableAutowiring()
 

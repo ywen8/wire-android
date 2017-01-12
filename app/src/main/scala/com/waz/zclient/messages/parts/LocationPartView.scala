@@ -76,7 +76,7 @@ class LocationPartView(context: Context, attrs: AttributeSet, style: Int) extend
   val imageDrawable = new ImageAssetDrawable(image, background = Some(new ColorDrawable(getColor(R.color.light_graphite_24))))
 
   val loadingFailed = imageDrawable.state.map {
-    case State.Failed(_) => true
+    case State.Failed(_, _) => true
     case _ => false
   } .orElse(Signal const false)
 

@@ -17,10 +17,11 @@
  */
 package com.waz.zclient.messages.parts.assets
 
+import android.graphics.drawable.Drawable
 import android.view.View
 import android.widget.TextView
 import com.waz.ZLog.ImplicitTag._
-import com.waz.model.{AssetData, Dim2, MessageContent, MessageData}
+import com.waz.model.{AssetData, Dim2, MessageContent}
 import com.waz.service.messages.MessageAndLikes
 import com.waz.threading.Threading
 import com.waz.utils.events.Signal
@@ -76,9 +77,7 @@ trait PlayableAsset extends ActionableAssetPart {
 
   protected val durationView: TextView = findById(R.id.duration)
 
-  //TODO there is more logic for what text to display in video views, but it doesn't seem to be used - confirm
   formattedDuration.on(Threading.Ui)(durationView.setText)
-
 }
 
 
@@ -93,6 +92,18 @@ trait ImageLayoutAssetPart extends AssetPart {
   private lazy val contentPaddingEnd = getDimenPx(R.dimen.content__padding_right)
 
   val imageDrawable = new ImageAssetDrawable(message map { m => WireImage(m.assetId) })
+
+  val bg = deliveryState flatMap {
+    case OtherUploading => Signal.const[Drawable](assetBackground)
+    case _ =>
+      imageDrawable.state map {
+        case ImageAssetDrawable.State.Failed(_, _) |
+             ImageAssetDrawable.State.Loading(_) => assetBackground
+        case _ => imageDrawable
+      } orElse Signal.const[Drawable](imageDrawable)
+  }
+
+  bg.on(Threading.Ui) { setBackground }
 
   val displaySize = for {
     maxW <- maxWidth
@@ -137,11 +148,15 @@ trait ImageLayoutAssetPart extends AssetPart {
     }
   }
 
-  padding { imageDrawable.padding ! _ }
+  padding { p =>
+    imageDrawable.padding ! p
+    assetBackground.padding ! p
+  }
 
   displaySize.map(_.height) { h =>
     setLayoutParams(returning(getLayoutParams)(_.height = h))
   }
+
 
   override def set(msg: MessageAndLikes, part: Option[MessageContent], opts: MsgBindOptions): Unit = {
     super.set(msg, part, opts)

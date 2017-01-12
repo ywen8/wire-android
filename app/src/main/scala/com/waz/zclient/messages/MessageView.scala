@@ -24,8 +24,10 @@ import com.waz.ZLog.ImplicitTag._
 import com.waz.api.Message
 import com.waz.model.ConversationData.ConversationType
 import com.waz.model.{Dim2, MessageData, MessageId}
+import com.waz.service.ZMessaging
 import com.waz.service.messages.MessageAndLikes
 import com.waz.utils.RichOption
+import com.waz.utils.events.Signal
 import com.waz.zclient.controllers.global.SelectionController
 import com.waz.zclient.messages.MessageViewLayout.PartDesc
 import com.waz.zclient.messages.MsgPart._
@@ -98,6 +100,9 @@ class MessageView(context: Context, attrs: AttributeSet, style: Int)
           builder += PartDesc(MsgPart.EphemeralDots)
         }
 
+        if (msg.msgType == Message.Type.ASSET && !isDownloadOnWifiEnabled)
+          builder += PartDesc(MsgPart.WifiWarning)
+
         if (hasFooter || animateFooter)
           builder += PartDesc(MsgPart.Footer)
 
@@ -115,6 +120,11 @@ class MessageView(context: Context, attrs: AttributeSet, style: Int)
         else footer.slideContentOut()
       }
   }
+
+  //TODO make a preference controller for handling UI preferences in conjunction with SE preferences
+  def isDownloadOnWifiEnabled = inject[Signal[ZMessaging]]
+    .flatMap(_.prefs.preference(getString(R.string.pref_options_image_download_key), getString(R.string.zms_image_download_value_always)).signal)
+    .currentValue.contains(getString(R.string.zms_image_download_value_wifi))
 
   def isFooterHiding = !hasFooter && getFooter.isDefined
 
