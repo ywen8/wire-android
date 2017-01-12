@@ -34,12 +34,9 @@ class VideoAssetPartView(context: Context, attrs: AttributeSet, style: Int) exte
 
   override val tpe: MsgPart = MsgPart.VideoAsset
 
-  override lazy val contentLayoutId = {
-    setId(R.id.content) //ensure outer view has content id set - this doesn't seem to work with merge tags
-    R.layout.message_video_asset_content
-  }
-
   private val controls = findById[View](R.id.controls)
+
+  hideContent.map(!_).on(Threading.Ui)(controls.setVisible)
 
   imageDrawable.state.map {
     case Loaded(_, _, _) => getColor(R.color.white)

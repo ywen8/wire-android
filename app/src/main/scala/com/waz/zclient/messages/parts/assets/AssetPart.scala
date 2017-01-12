@@ -21,14 +21,17 @@ import android.graphics.drawable.Drawable
 import android.view.View
 import android.widget.TextView
 import com.waz.ZLog.ImplicitTag._
+import com.waz.ZLog.verbose
 import com.waz.model.{AssetData, Dim2, MessageContent}
 import com.waz.service.messages.MessageAndLikes
 import com.waz.threading.Threading
 import com.waz.utils.events.Signal
 import com.waz.utils.returning
 import com.waz.zclient.controllers.AssetsController
+import com.waz.zclient.controllers.global.AccentColorController
 import com.waz.zclient.messages.ClickableViewPart
 import com.waz.zclient.messages.MessageView.MsgBindOptions
+import com.waz.zclient.messages.parts.ImagePartView
 import com.waz.zclient.messages.parts.assets.DeliveryState.OtherUploading
 import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.utils.{StringUtils, _}
@@ -37,26 +40,32 @@ import com.waz.zclient.views.ImageController.WireImage
 import com.waz.zclient.{R, ViewHelper}
 import org.threeten.bp.Duration
 
-trait AssetPart extends View with ClickableViewPart with ViewHelper {
+trait AssetPart extends View with ClickableViewPart with ViewHelper { self =>
   val controller = inject[AssetsController]
 
-  def contentLayoutId: Int
-  inflate(contentLayoutId)
-
-  private lazy val content: View = findById[View](R.id.content)
+  inflate(self match {
+    case _: AudioAssetPartView => R.layout.message_audio_asset_content
+    case _: FileAssetPartView  => R.layout.message_file_asset_content
+    case _: ImagePartView      => R.layout.message_image_content
+    case _: VideoAssetPartView => R.layout.message_video_asset_content
+    case _ => throw new Exception("Unexpected AssetPart view type - ensure you define the content layout and an id for the content for the part")
+  })
 
   val asset = controller.assetSignal(message)
   val deliveryState = DeliveryState(message, asset)
   val completed = deliveryState.map(_ == DeliveryState.Complete)
+  val expired = message map { m => m.isEphemeral && m.expired }
+  val accentColorController = inject[AccentColorController]
 
-  val assetBackground = new AssetBackground(deliveryState.map(_ == OtherUploading))
+  val assetBackground = new AssetBackground(deliveryState.map(_ == OtherUploading), expired, accentColorController.accentColor)
+
   setBackground(assetBackground)
 
   //toggle content visibility to show only progress dot background if other side is uploading asset
-  deliveryState.map {
-    case OtherUploading => false
-    case _ => true
-  }.on(Threading.Ui)(content.setVisible)
+  val hideContent = for {
+    exp <- expired
+    st <- deliveryState
+  } yield exp || st == OtherUploading
 }
 
 trait ActionableAssetPart extends AssetPart {
@@ -80,6 +89,12 @@ trait PlayableAsset extends ActionableAssetPart {
   formattedDuration.on(Threading.Ui)(durationView.setText)
 }
 
+trait FileLayoutAssetPart extends AssetPart {
+  private lazy val content: View = findById[View](R.id.content)
+  //For file and audio assets - we can hide the whole content
+  //For images and video, we don't want the view to collapse (since they use merge tags), so we let them hide their content separately
+  hideContent.map(!_).on(Threading.Ui)(content.setVisible)
+}
 
 trait ImageLayoutAssetPart extends AssetPart {
   import ImageLayoutAssetPart._
@@ -93,17 +108,14 @@ trait ImageLayoutAssetPart extends AssetPart {
 
   val imageDrawable = new ImageAssetDrawable(message map { m => WireImage(m.assetId) })
 
-  val bg = deliveryState flatMap {
-    case OtherUploading => Signal.const[Drawable](assetBackground)
-    case _ =>
-      imageDrawable.state map {
-        case ImageAssetDrawable.State.Failed(_, _) |
-             ImageAssetDrawable.State.Loading(_) => assetBackground
-        case _ => imageDrawable
-      } orElse Signal.const[Drawable](imageDrawable)
-  }
-
-  bg.on(Threading.Ui) { setBackground }
+  hideContent.flatMap {
+    case true => Signal.const[Drawable](assetBackground)
+    case _ => imageDrawable.state map {
+      case ImageAssetDrawable.State.Failed(_, _) |
+           ImageAssetDrawable.State.Loading(_) => assetBackground
+      case _ => imageDrawable
+    } orElse Signal.const[Drawable](imageDrawable)
+  }.on(Threading.Ui)(setBackground)
 
   val displaySize = for {
     maxW <- maxWidth

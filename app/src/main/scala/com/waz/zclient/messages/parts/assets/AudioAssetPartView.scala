@@ -21,27 +21,20 @@ import android.content.Context
 import android.util.AttributeSet
 import android.widget.SeekBar.OnSeekBarChangeListener
 import android.widget.{FrameLayout, SeekBar}
-import com.waz.ZLog.ImplicitTag._
-import com.waz.ZLog.verbose
 import com.waz.threading.Threading
 import com.waz.zclient.R
-import com.waz.zclient.controllers.global.AccentColorController
 import com.waz.zclient.messages.MsgPart
 import com.waz.zclient.utils.RichSeekBar
 import org.threeten.bp.Duration
 
-class AudioAssetPartView(context: Context, attrs: AttributeSet, style: Int) extends FrameLayout(context, attrs, style) with PlayableAsset {
+class AudioAssetPartView(context: Context, attrs: AttributeSet, style: Int) extends FrameLayout(context, attrs, style) with PlayableAsset with FileLayoutAssetPart {
   def this(context: Context, attrs: AttributeSet) = this(context, attrs, 0)
 
   def this(context: Context) = this(context, null, 0)
 
   override val tpe: MsgPart = MsgPart.AudioAsset
 
-  override lazy val contentLayoutId = R.layout.message_audio_asset_content
-
   private val progressBar: SeekBar = findById(R.id.progress)
-
-  val accentColorController = inject[AccentColorController]
 
   accentColorController.accentColor.map(_.getColor).on(Threading.Ui)(progressBar.setColor)
 

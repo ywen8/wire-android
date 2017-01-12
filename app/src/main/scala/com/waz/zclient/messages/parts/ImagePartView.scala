@@ -43,11 +43,6 @@ class ImagePartView(context: Context, attrs: AttributeSet, style: Int) extends F
 
   override val tpe: MsgPart = MsgPart.Image
 
-  override lazy val contentLayoutId = {
-    setId(R.id.content) //ensure outer view has content id set - this doesn't seem to work with merge tags
-    R.layout.message_image_content
-  }
-
   private val selection = inject[SelectionController].messages
 
   private lazy val assets = inject[AssetsController]
@@ -71,14 +66,18 @@ class ImagePartView(context: Context, attrs: AttributeSet, style: Int) extends F
   }
 
   (for {
+    hide <- hideContent
     focused <- message.flatMap(m => selection.focused.map(_.contains(m.id)))
     loaded <- imageDrawable.state.map {
       case Loaded(_, _, _) => true
       case _ => false
     }
-  } yield focused && loaded).on(Threading.Ui)(imageActions.setVisible)
+  } yield !hide && (focused && loaded)).on(Threading.Ui)(imageActions.setVisible)
 
-  noWifi.on(Threading.Ui)(imageIcon.setVisible)
+  (for {
+    noW <- noWifi
+    hide <- hideContent
+  } yield !hide && noW).on(Threading.Ui)(imageIcon.setVisible)
 
   private def openDrawingFragment(drawingMethod: DrawingMethod) =
     message.currentValue foreach (assets.openDrawingFragment(_, drawingMethod))
