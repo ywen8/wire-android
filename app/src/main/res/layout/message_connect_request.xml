@@ -30,17 +30,12 @@
               android:paddingRight="@dimen/framework__general__right_padding"
     >
 
-    <com.waz.zclient.ui.text.TypefaceTextView
-        android:id="@+id/ttv__row_conversation__connect_request__user"
+    <com.waz.zclient.common.views.UserDetailsView
+        android:id="@+id/udv__row_conversation__connect_request__user_details"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/content__connect_request__chathead__margin_top"
+        android:layout_marginTop="@dimen/wire__padding__big"
         android:layout_marginBottom="@dimen/wire__padding__big"
-        android:textColor="?wirePrimaryTextColor"
-        android:textSize="@dimen/wire__text_size__regular"
-        android:ellipsize="end"
-        app:font="@string/wire__typeface__light"
-        android:maxLines="1"
         />
 
     <com.waz.zclient.common.views.ChatheadView

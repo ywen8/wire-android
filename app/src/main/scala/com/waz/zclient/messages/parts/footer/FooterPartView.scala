@@ -27,7 +27,7 @@ import android.util.AttributeSet
 import android.view.{View, ViewGroup}
 import android.widget.{FrameLayout, TextView}
 import com.waz.ZLog.ImplicitTag._
-import com.waz.model.{MessageContent, MessageData, MessageId}
+import com.waz.model.{MessageContent, MessageId}
 import com.waz.service.messages.MessageAndLikes
 import com.waz.threading.Threading
 import com.waz.utils.events.{EventContext, Signal}

@@ -1,6 +1,6 @@
 /**
  * Wire
- * Copyright (C) 2016 Wire Swiss GmbH
+ * Copyright (C) 2017 Wire Swiss GmbH
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,7 +19,7 @@ package com.waz.zclient.messages
 
 import android.content.Context
 import com.waz.api.impl.AccentColor
-import com.waz.model.{MessageData, UserId}
+import com.waz.model.{Contact, Handle, MessageData, UserId}
 import com.waz.service.ZMessaging
 import com.waz.utils.events.Signal
 import com.waz.zclient.messages.SyncEngineSignals.DisplayName
@@ -82,6 +82,20 @@ class SyncEngineSignals(implicit injector: Injector, context: Context) extends I
           val n = names.length
           s"${names.take(n - 1).mkString(itemSeparator + " ")} $lastSeparator  ${names.last}"
       }
+
+  def userHandle(id: Signal[UserId]): Signal[Option[Handle]] =
+    for {
+      zms <- zMessaging
+      userId <- id
+      user <- zms.users.userSignal(userId)
+    } yield user.handle
+
+  def userFirstContact(id: Signal[UserId]): Signal[Option[Contact]] =
+    for {
+      zms <- zMessaging
+      userId <- id
+      contact <- zms.contacts.contactForUser(userId)
+    } yield contact
 
   def user(id: UserId) = zMessaging flatMap { _.users.userSignal(id) }
 

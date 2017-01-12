@@ -21,10 +21,11 @@ import android.content.Context
 import android.net.Uri
 import android.util.AttributeSet
 import android.widget.{LinearLayout, TextView}
+import com.waz.model.UserId
 import com.waz.service.ZMessaging
 import com.waz.threading.Threading
 import com.waz.utils.events.Signal
-import com.waz.zclient.common.views.ChatheadView
+import com.waz.zclient.common.views.{ChatheadView, UserDetailsView}
 import com.waz.zclient.controllers.BrowserController
 import com.waz.zclient.messages.{MessageViewPart, MsgPart}
 import com.waz.zclient.ui.utils.TextViewUtils
@@ -38,8 +39,8 @@ class ConnectRequestPartView(context: Context, attrs: AttributeSet, style: Int) 
   override val tpe: MsgPart = MsgPart.ConnectRequest
 
   lazy val chatheadView: ChatheadView = findById(R.id.cv__row_conversation__connect_request__chat_head)
-  lazy val usernameTextView: TextView = findById(R.id.ttv__row_conversation__connect_request__user)
   lazy val label: TextView            = findById(R.id.ttv__row_conversation__connect_request__label)
+  lazy val userDetailsTextView: UserDetailsView = findById(R.id.udv__row_conversation__connect_request__user_details)
 
   private val browser = inject[BrowserController]
   private val zMessaging = inject[Signal[ZMessaging]]
@@ -47,12 +48,12 @@ class ConnectRequestPartView(context: Context, attrs: AttributeSet, style: Int) 
   private val user = for {
     zms <- zMessaging
     msg <- message
-    user <- zms.users.userSignal(msg.userId)
+    conv <- zms.convsStorage.signal(msg.convId)
+    user <- zms.users.userSignal(UserId(conv.id.str))
   } yield user
 
-  message.map(_.userId) { chatheadView.setUserId }
-
-  user.map(_.name).on(Threading.Ui) { usernameTextView.setText }
+  user.map(_.id) { chatheadView.setUserId }
+  user.map(_.id) { userDetailsTextView.setUserId }
 
   user.map(_.isAutoConnect).on(Threading.Ui) {
     case true =>
