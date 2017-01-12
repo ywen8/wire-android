@@ -94,7 +94,7 @@
                 android:drawSelectorOnTop="false"
                 android:transcriptMode="disabled"
                 android:listSelector="@color/transparent"
-                android:paddingBottom="@dimen/wire__padding__tiny"
+                android:paddingBottom="@dimen/wire__padding__regular"
                 android:clipToPadding="false"
                 />
 
