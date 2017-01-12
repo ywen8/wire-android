@@ -19,10 +19,9 @@ package com.waz.zclient.messages.parts
 
 import android.content.Context
 import android.util.AttributeSet
-import android.widget.LinearLayout
-import com.waz.service.ZMessaging
+import android.view.View
+import android.widget.{LinearLayout, TextView}
 import com.waz.threading.Threading
-import com.waz.utils.events.Signal
 import com.waz.zclient.common.views.ChatheadView
 import com.waz.zclient.messages.SyncEngineSignals.DisplayName.{Me, Other}
 import com.waz.zclient.messages.{MessageViewPart, MsgPart, SyncEngineSignals}
@@ -31,7 +30,7 @@ import com.waz.zclient.ui.utils.TextViewUtils
 import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.{R, ViewHelper}
 
-class PingPartView(context: Context, attrs: AttributeSet, style: Int) extends LinearLayout(context, attrs, style) with MessageViewPart with ViewHelper {
+class PingPartView(context: Context, attrs: AttributeSet, style: Int) extends LinearLayout(context, attrs, style) with MessageViewPart with ViewHelper with EphemeralTextPart {
   def this(context: Context, attrs: AttributeSet) = this(context, attrs, 0)
   def this(context: Context) = this(context, null, 0)
 
@@ -46,11 +45,10 @@ class PingPartView(context: Context, attrs: AttributeSet, style: Int) extends Li
   val textViewMessage: TypefaceTextView = findById(R.id.ttv__row_conversation__ping_message)
   val glyphTextView: GlyphTextView      = findById(R.id.gtv__ping_icon)
 
+  val glyphTypeface = expired map { if (_) redactedTypeface else glyphTextView.getTypeface }
+
   val locale = context.getResources.getConfiguration.locale
 
-  val originalLeftPadding = context.getResources.getDimensionPixelSize(R.dimen.content__padding_left)
-
-  val zMessaging = inject[Signal[ZMessaging]]
   val signals = inject[SyncEngineSignals]
 
   val userName = signals.displayName(message)
@@ -62,9 +60,16 @@ class PingPartView(context: Context, attrs: AttributeSet, style: Int) extends Li
 
   message.map(_.userId) { chatheadView.setUserId }
 
-  text.on(Threading.Ui) { t =>
-    textViewMessage.setText(t)
-    TextViewUtils.boldText(textViewMessage)
+  (for {
+    t <- text
+    exp <- expired
+  } yield (t, exp)).on(Threading.Ui) {
+    case (t, true) =>
+      textViewMessage.setText(t)
+      //making the text bold ruins obfuscation for some reason
+    case (t, _) =>
+      textViewMessage.setText(t)
+      TextViewUtils.boldText(textViewMessage)
   }
 
   signals.userAccentColor(message).on(Threading.Ui) { c =>
@@ -72,6 +77,14 @@ class PingPartView(context: Context, attrs: AttributeSet, style: Int) extends Li
     glyphTextView.setTextColor(c.getColor())
   }
 
-  // TODO: animate new ping, we need some generic controller to track message animations acrosss recycled views
+  //TODO it would be nice if instead of overriding just one view, the EphemeralTextPart provided methods for achieving the same functionality on an arbitrary number of views...
+  override val textView: TextView = textViewMessage
+  glyphTypeface(glyphTextView.setTypeface)
 
+  expired.map {
+    case true => View.INVISIBLE
+    case _ => View.VISIBLE
+  }.on(Threading.Ui)(chatheadView.setVisibility)
+
+  // TODO: animate new ping, we need some generic controller to track message animations acrosss recycled views
 }
