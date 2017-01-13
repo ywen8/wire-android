@@ -21,7 +21,6 @@ import android.graphics.drawable.Drawable
 import android.view.View
 import android.widget.TextView
 import com.waz.ZLog.ImplicitTag._
-import com.waz.ZLog.verbose
 import com.waz.model.{AssetData, Dim2, MessageContent}
 import com.waz.service.messages.MessageAndLikes
 import com.waz.threading.Threading
