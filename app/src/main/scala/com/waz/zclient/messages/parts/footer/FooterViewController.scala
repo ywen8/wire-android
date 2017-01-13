@@ -29,7 +29,7 @@ import com.waz.utils._
 import com.waz.utils.events.{ClockSignal, EventContext, Signal}
 import com.waz.zclient.controllers.global.{AccentColorController, SelectionController}
 import com.waz.zclient.messages.MessageView.MsgBindOptions
-import com.waz.zclient.messages.{LikesController, SyncEngineSignals}
+import com.waz.zclient.messages.{LikesController, UsersController}
 import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.utils.ZTimeFormatter
 import com.waz.zclient.{Injectable, Injector, R}
@@ -46,7 +46,7 @@ class FooterViewController(implicit inj: Injector, context: Context, ec: EventCo
   val zms = inject[Signal[ZMessaging]]
   val accents = inject[AccentColorController]
   val selection = inject[SelectionController].messages
-  val signals = inject[SyncEngineSignals]
+  val signals = inject[UsersController]
   val likesController = inject[LikesController]
 
   val opts = Signal[MsgBindOptions]()
@@ -89,7 +89,7 @@ class FooterViewController(implicit inj: Injector, context: Context, ec: EventCo
       }
   }
 
-  val conv = signals.conv(message)
+  val conv = message.flatMap(signals.conv)
 
   val timestampText = for {
     selfUserId  <- signals.selfUserId

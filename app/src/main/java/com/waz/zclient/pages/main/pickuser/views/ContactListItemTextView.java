@@ -158,7 +158,7 @@ public class ContactListItemTextView extends LinearLayout {
 
         String usernameString = "";
         if (!TextUtils.isEmpty(username)) {
-            usernameString = StringUtils.formatUsername(username);
+            usernameString = StringUtils.formatHandle(username);
         }
 
         String otherString = "";

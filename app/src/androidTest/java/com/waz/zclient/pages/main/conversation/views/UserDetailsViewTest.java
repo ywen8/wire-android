@@ -56,7 +56,7 @@ public class UserDetailsViewTest extends ViewTest<MainTestActivity> {
         setView(userDetailsView);
 
         onView(withId(R.id.ttv__user_details__user_name)).check(isVisible());
-        onView(withId(R.id.ttv__user_details__user_name)).check(hasText(StringUtils.formatUsername(handle)));
+        onView(withId(R.id.ttv__user_details__user_name)).check(hasText(StringUtils.formatHandle(handle)));
     }
 
     @Test

@@ -18,6 +18,7 @@
 package com.waz.zclient.messages
 
 import com.waz.api.Message
+import com.waz.model.ConversationData.ConversationType
 
 sealed trait MsgPart
 sealed trait SeparatorPart extends MsgPart
@@ -48,7 +49,7 @@ object MsgPart {
   case object Empty extends MsgPart
   case object Unknown extends MsgPart
 
-  def apply(msgType: Message.Type): MsgPart = {
+  def apply(msgType: Message.Type, isOneToOne: Boolean): MsgPart = {
     import Message.Type._
     msgType match {
       case TEXT | TEXT_EMOJI_ONLY => Text
@@ -57,7 +58,7 @@ object MsgPart {
       case VIDEO_ASSET => VideoAsset
       case AUDIO_ASSET => AudioAsset
       case LOCATION => Location
-      case MEMBER_JOIN | MEMBER_LEAVE => MemberChange
+      case MEMBER_JOIN | MEMBER_LEAVE => if (isOneToOne) Empty else MemberChange //Member change information is not very interesting in One-To-One conversations
       case CONNECT_REQUEST => ConnectRequest
       case OTR_ERROR | OTR_DEVICE_ADDED | OTR_IDENTITY_CHANGED | OTR_UNVERIFIED | OTR_VERIFIED | HISTORY_LOST | STARTED_USING_DEVICE => OtrMessage
       case KNOCK => Ping

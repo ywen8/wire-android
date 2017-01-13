@@ -50,7 +50,7 @@ class LikeDetailsView(context: Context, attrs: AttributeSet, style: Int) extends
       if (showAvatars(ids)) Signal const getQuantityString(R.plurals.message_footer__number_of_likes, ids.size, Integer.valueOf(ids.size))
       else for {
         zms <- controller.zms
-        names <- Signal.sequence(ids map { controller.signals.displayNameString(zms, _) } :_*)
+        names <- Signal.sequence(ids map { controller.signals.displayNameString } :_*)
       } yield
         if (names.isEmpty) getString(R.string.message_footer__tap_to_like)
         else names.mkString(", ")

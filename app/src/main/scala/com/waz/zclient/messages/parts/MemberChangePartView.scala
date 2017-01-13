@@ -25,7 +25,7 @@ import com.waz.api.Message
 import com.waz.service.ZMessaging
 import com.waz.threading.Threading
 import com.waz.utils.events.Signal
-import com.waz.zclient.messages.SyncEngineSignals.DisplayName.{Me, Other}
+import com.waz.zclient.messages.UsersController.DisplayName.{Me, Other}
 import com.waz.zclient.messages._
 import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.{R, ViewHelper}
@@ -41,7 +41,7 @@ class MemberChangePartView(context: Context, attrs: AttributeSet, style: Int) ex
   inflate(R.layout.message_member_change_content)
 
   val zMessaging = inject[Signal[ZMessaging]]
-  val signals = inject[SyncEngineSignals]
+  val users      = inject[UsersController]
 
   val messageView: SystemMessageView  = findById(R.id.smv_header)
   val gridView: MembersGridView       = findById(R.id.rv__row_conversation__people_changed__grid)
@@ -53,14 +53,14 @@ class MemberChangePartView(context: Context, attrs: AttributeSet, style: Int) ex
     }
   }
 
-  val memberNames = signals.memberDisplayNames(message)
+  val memberNames = users.memberDisplayNames(message)
 
-  val userName = signals.displayName(message)
+  val senderName = message.map(_.userId).flatMap(users.displayName)
 
   val linkText = for {
     zms <- zMessaging
     msg <- message
-    displayName <- userName
+    displayName <- senderName
     members <- memberNames
   } yield {
     import Message.Type._

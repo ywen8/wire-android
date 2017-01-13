@@ -26,7 +26,7 @@ import com.waz.threading.Threading
 import com.waz.utils.events.Signal
 import com.waz.zclient.controllers.global.AccentColorController
 import com.waz.zclient.controllers.{BrowserController, ScreenController}
-import com.waz.zclient.messages.{MessageViewPart, MsgPart, SyncEngineSignals, SystemMessageView}
+import com.waz.zclient.messages.{MessageViewPart, MsgPart, UsersController, SystemMessageView}
 import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.{R, ViewHelper}
 
@@ -42,13 +42,13 @@ class OtrMsgPartView(context: Context, attrs: AttributeSet, style: Int) extends 
   lazy val browserController = inject[BrowserController]
 
   val accentColor = inject[AccentColorController]
-  val signals = inject[SyncEngineSignals]
+  val users = inject[UsersController]
 
   val msgType = message.map(_.msgType)
 
-  val userName = signals.userDisplayNameString(message)
+  val affectedUserName = message.map(_.userId).flatMap(users.displayNameString)
 
-  val memberNames = signals.memberDisplayNames(message)
+  val memberNames = users.memberDisplayNames(message)
 
   val shieldIcon = msgType map {
     case OTR_ERROR | OTR_IDENTITY_CHANGED | HISTORY_LOST  => Some(R.drawable.red_alert)
@@ -62,8 +62,8 @@ class OtrMsgPartView(context: Context, attrs: AttributeSet, style: Int) extends 
     case HISTORY_LOST         => Signal const getString(R.string.content__otr__lost_history)
     case STARTED_USING_DEVICE => Signal const getString(R.string.content__otr__start_this_device__message)
     case OTR_VERIFIED         => Signal const getString(R.string.content__otr__all_fingerprints_verified)
-    case OTR_ERROR            => userName map { getString(R.string.content__otr__message_error, _) }
-    case OTR_IDENTITY_CHANGED => userName map { getString(R.string.content__otr__identity_changed_error, _) }
+    case OTR_ERROR            => affectedUserName map { getString(R.string.content__otr__message_error, _) }
+    case OTR_IDENTITY_CHANGED => affectedUserName map { getString(R.string.content__otr__identity_changed_error, _) }
     case OTR_UNVERIFIED       => memberNames map { getString(R.string.content__otr__unverified_device__message, _) }
     case OTR_DEVICE_ADDED     => memberNames map { getString(R.string.content__otr__added_new_device__message, _) }
     case _                    => Signal const ""
@@ -74,7 +74,7 @@ class OtrMsgPartView(context: Context, attrs: AttributeSet, style: Int) extends 
     case Some(icon) => setIcon(icon)
   }
 
-  Signal(message, msgString, accentColor.accentColor, signals.selfUserId).on(Threading.Ui) {
+  Signal(message, msgString, accentColor.accentColor, users.selfUserId).on(Threading.Ui) {
     case (msg, text, color, selfUserId) => setTextWithLink(text, color.getColor()) {
       def isMe = msg.members.size == 1 && msg.members.contains(selfUserId)
       (msg.msgType, isMe) match {

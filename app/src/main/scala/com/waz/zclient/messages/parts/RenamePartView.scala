@@ -21,8 +21,8 @@ import android.content.Context
 import android.util.AttributeSet
 import android.widget.{LinearLayout, TextView}
 import com.waz.threading.Threading
-import com.waz.zclient.messages.SyncEngineSignals.DisplayName.{Me, Other}
-import com.waz.zclient.messages.{MessageViewPart, MsgPart, SyncEngineSignals, SystemMessageView}
+import com.waz.zclient.messages.UsersController.DisplayName.{Me, Other}
+import com.waz.zclient.messages.{MessageViewPart, MsgPart, UsersController, SystemMessageView}
 import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.utils._
 import com.waz.zclient.{R, ViewHelper}
@@ -37,16 +37,16 @@ class RenamePartView(context: Context, attrs: AttributeSet, style: Int) extends 
 
   inflate(R.layout.message_rename_content)
 
-  val signals = inject[SyncEngineSignals]
+  val users = inject[UsersController]
 
   val messageView: SystemMessageView  = findById(R.id.smv_header)
   val nameView: TextView              = findById(R.id.ttv__new_conversation_name)
 
   messageView.setIconGlyph(R.string.glyph__edit)
 
-  val userName = signals.displayName(message)
+  val renamerName = message.map(_.userId).flatMap(users.displayName)
 
-  val text = userName map {
+  val text = renamerName map {
     case Me           => getString(R.string.content__system__you_renamed_conv)
     case Other(name)  => getString(R.string.content__system__other_renamed_conv, name)
   }
