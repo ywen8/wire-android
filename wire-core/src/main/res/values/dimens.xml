@@ -146,6 +146,7 @@
     <dimen name="wire__text_size__medium">24dp</dimen>
     <dimen name="wire__text_size__big">28dp</dimen>
     <dimen name="wire__text_size__huge">32dp</dimen>
+    <dimen name="wire__text_size__insane">160dp</dimen>
     <dimen name="wire__text_size__emoji">40sp</dimen>
     <dimen name="wire__text_spacing__tiny">2dp</dimen>
     <dimen name="wire__text_spacing__medium">4dp</dimen>
@@ -154,6 +155,7 @@
     <dimen name="wire__margin_huge">48dp</dimen>
     <dimen name="wire__padding__tiny">4dp</dimen>
     <dimen name="wire__padding__small">8dp</dimen>
+    <dimen name="wire__padding__2">2dp</dimen>
     <dimen name="wire__padding__4">4dp</dimen>
     <dimen name="wire__padding__5">5dp</dimen>
     <dimen name="wire__padding__6">6dp</dimen>
@@ -805,4 +807,21 @@
     <dimen name="usernames__take_over__side_margin">28dp</dimen>
     <dimen name="usernames__take_over__username__bottom_padding">240dp</dimen>
     <dimen name="prefs__username_change__content_height">140dp</dimen>
+
+    <dimen name="toolbar_home_icon_width">56dp</dimen>
+
+    <dimen name="collections__content_horizontal_padding">@dimen/wire__padding__20</dimen>
+    <dimen name="collections__content_top_padding">24dp</dimen>
+    <dimen name="collections__content_bottom_padding">24dp</dimen>
+    <dimen name="collections__header_height">56dp</dimen>
+    <dimen name="collections__image_padding">0.5dp</dimen>
+    <dimen name="collections__item_view_height">88dp</dimen>
+    <dimen name="collections__medium_item_view_height">80dp</dimen>
+    <dimen name="collections__small_item_view_height">64dp</dimen>
+    <dimen name="collections__item_top_margin">2dp</dimen>
+    <dimen name="collections__web_preview_image_size">40dp</dimen>
+    <dimen name="collections__multi_share_footer_height">50dp</dimen>
+    <dimen name="collections__item_inner_padding">16dp</dimen>
+    <dimen name="collections__small_text_line_size">8dp</dimen>
+    <dimen name="collections__small_text_height">12dp</dimen>
 </resources>

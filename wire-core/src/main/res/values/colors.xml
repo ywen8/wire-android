@@ -93,8 +93,14 @@
 
     <color name="yorgos">#FF4A4A4A</color>
 
+    <color name="separator_dark_solid">#FF1E1F20</color>
+    <color name="separator_light_solid">#FFE6E6E6</color>
+
     <color name="ephemera">#FFFF5000</color>
     <color name="ephemera_dimmed">#3DFF5000</color>
+
+    <color name="collection_background_light">#fafafa</color>
+    <color name="collection_background_dark">@color/background_graphite</color>
 
     <!-- +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ -->
     <!-- Component colors  -->

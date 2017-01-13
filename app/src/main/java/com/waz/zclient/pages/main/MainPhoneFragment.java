@@ -31,9 +31,11 @@ import android.view.ViewGroup;
 import com.waz.api.IConversation;
 import com.waz.api.Message;
 import com.waz.api.User;
+import com.waz.model.MessageData;
 import com.waz.zclient.OnBackPressedListener;
 import com.waz.zclient.R;
 import com.waz.zclient.controllers.accentcolor.AccentColorObserver;
+import com.waz.zclient.controllers.collections.CollectionsObserver;
 import com.waz.zclient.controllers.confirmation.ConfirmationObserver;
 import com.waz.zclient.controllers.confirmation.ConfirmationRequest;
 import com.waz.zclient.controllers.confirmation.IConfirmationController;
@@ -41,6 +43,8 @@ import com.waz.zclient.controllers.giphy.GiphyObserver;
 import com.waz.zclient.controllers.navigation.Page;
 import com.waz.zclient.controllers.onboarding.OnboardingControllerObserver;
 import com.waz.zclient.controllers.singleimage.SingleImageObserver;
+import com.waz.zclient.conversation.CollectionFragment;
+import com.waz.zclient.conversation.ShareToMultipleFragment;
 import com.waz.zclient.core.controllers.tracking.attributes.RangedAttribute;
 import com.waz.zclient.pages.BaseFragment;
 import com.waz.zclient.pages.main.backgroundmain.views.BackgroundFrameLayout;
@@ -65,7 +69,8 @@ public class MainPhoneFragment extends BaseFragment<MainPhoneFragment.Container>
                                                                                             SingleImageFragment.Container,
                                                                                             GiphyObserver,
                                                                                             ConfirmationObserver,
-                                                                                            AccentColorObserver {
+                                                                                            AccentColorObserver,
+                                                                                            CollectionsObserver {
 
     public static final String TAG = MainPhoneFragment.class.getName();
     private ConfirmationMenu confirmationMenu;
@@ -105,6 +110,7 @@ public class MainPhoneFragment extends BaseFragment<MainPhoneFragment.Container>
         getControllerFactory().getGiphyController().addObserver(this);
         getControllerFactory().getConfirmationController().addConfirmationObserver(this);
         getControllerFactory().getAccentColorController().addAccentColorObserver(this);
+        getControllerFactory().getCollectionsController().addObserver(this);
 
         getControllerFactory().getAccentColorController().addAccentColorObserver(backgroundLayout);
         getControllerFactory().getBackgroundController().addBackgroundObserver(backgroundLayout);
@@ -123,6 +129,7 @@ public class MainPhoneFragment extends BaseFragment<MainPhoneFragment.Container>
         getControllerFactory().getOnboardingController().removeOnboardingControllerObserver(this);
         getControllerFactory().getConfirmationController().removeConfirmationObserver(this);
         getControllerFactory().getAccentColorController().removeAccentColorObserver(this);
+        getControllerFactory().getCollectionsController().removeObserver(this);
 
         getControllerFactory().getAccentColorController().removeAccentColorObserver(backgroundLayout);
         getControllerFactory().getBackgroundController().removeBackgroundObserver(backgroundLayout);
@@ -162,7 +169,7 @@ public class MainPhoneFragment extends BaseFragment<MainPhoneFragment.Container>
 
         if (getChildFragmentManager().getBackStackEntryCount() > 0) {
             Fragment topFragment = getChildFragmentManager().findFragmentByTag(getChildFragmentManager().getBackStackEntryAt(
-                0).getName());
+                getChildFragmentManager().getBackStackEntryCount() - 1).getName());
             if (topFragment instanceof SingleImageFragment) {
                 return ((SingleImageFragment) topFragment).onBackPressed();
             } else if (topFragment instanceof VideoPlayerFragment) {
@@ -173,6 +180,8 @@ public class MainPhoneFragment extends BaseFragment<MainPhoneFragment.Container>
                                                                     FragmentManager.POP_BACK_STACK_INCLUSIVE);
                 }
                 return true;
+            } else if (topFragment instanceof CollectionFragment) {
+                return  ((CollectionFragment) topFragment).onBackPressed();
             }
 
         }
@@ -353,6 +362,46 @@ public class MainPhoneFragment extends BaseFragment<MainPhoneFragment.Container>
     public void onCancelGiphy() {
         getChildFragmentManager().popBackStackImmediate(GiphySharingPreviewFragment.TAG,
                                                         FragmentManager.POP_BACK_STACK_INCLUSIVE);
+    }
+
+    //////////////////////////////////////////////////////////////////////////////////////////
+    //
+    //  CollectionsObserver
+    //
+    //////////////////////////////////////////////////////////////////////////////////////////
+
+    @Override
+    public void openCollection() {
+    }
+
+    @Override
+    public void closeCollection() {
+    }
+
+    @Override
+    public void shareCollectionItem(MessageData messageData) {
+        getChildFragmentManager().beginTransaction()
+                                .add(R.id.fl__overlay_container,
+                                    ShareToMultipleFragment.newInstance(messageData.id()),
+                                    ShareToMultipleFragment.TAG())
+                                .addToBackStack(ShareToMultipleFragment.TAG())
+                                .commit();
+    }
+
+    @Override
+    public void closeCollectionShare() {
+        getChildFragmentManager().popBackStackImmediate(ShareToMultipleFragment.TAG(),
+            FragmentManager.POP_BACK_STACK_INCLUSIVE);
+    }
+
+    @Override
+    public void nextItemRequested() {
+
+    }
+
+    @Override
+    public void previousItemRequested() {
+
     }
 
     //////////////////////////////////////////////////////////////////////////////////////////

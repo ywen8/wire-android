@@ -32,10 +32,12 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AlertDialog;
+import android.support.v7.widget.ActionMenuView;
 import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
 import android.text.format.Formatter;
 import android.view.LayoutInflater;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
@@ -45,6 +47,7 @@ import android.widget.AbsListView;
 import android.widget.FrameLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.waz.api.AssetFactory;
@@ -148,12 +151,13 @@ import com.waz.zclient.utils.TrackingUtils;
 import com.waz.zclient.utils.ViewUtils;
 import com.waz.zclient.views.LoadingIndicatorView;
 import com.waz.zclient.views.MentioningFragment;
-import timber.log.Timber;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import timber.log.Timber;
 
 public class ConversationFragment extends BaseFragment<ConversationFragment.Container> implements ConversationStoreObserver,
                                                                                                   CallingObserver,
@@ -208,6 +212,7 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
 
     private IConversation.Type toConversationType;
     private Toolbar toolbar;
+    private ActionMenuView leftMenu;
     private TextView toolbarTitle;
     private ShieldView shieldView;
     private CursorLayout cursorLayout;
@@ -241,6 +246,11 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
             if (!model.isMemberOfConversation()) {
                 return;
             }
+
+            MenuInflater inflater = getActivity().getMenuInflater();
+            leftMenu.getMenu().clear();
+            inflater.inflate(R.menu.conversation_header_menu_collection, leftMenu.getMenu());
+
             if (model.getType() == IConversation.Type.ONE_TO_ONE) {
                 toolbar.inflateMenu(R.menu.conversation_header_menu_video);
             } else {
@@ -395,6 +405,7 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
         new EditActionSupport((WireContext) getActivity(), cursorLayout); // TODO: remove that once cursorLayout is reimplemented in scala
         audioMessageRecordingView = ViewUtils.getView(view, R.id.amrv_audio_message_recording);
         toolbar = ViewUtils.getView(view, R.id.t_conversation_toolbar);
+        leftMenu = ViewUtils.getView(view, R.id.conversation_left_menu);
         toolbarTitle = ViewUtils.getView(toolbar, R.id.tv__conversation_toolbar__title);
         shieldView = ViewUtils.getView(view, R.id.sv__conversation_toolbar__verified_shield);
         shieldView.setVisibility(View.GONE);
@@ -432,6 +443,18 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
                 cursorLayout.closeEditMessage(false);
                 getActivity().onBackPressed();
                 KeyboardUtils.closeKeyboardIfShown(getActivity());
+            }
+        });
+
+        leftMenu.setOnMenuItemClickListener(new ActionMenuView.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(MenuItem item) {
+                switch (item.getItemId()) {
+                    case R.id.action_collection:
+                        getControllerFactory().getCollectionsController().openCollection();
+                        return true;
+                }
+                return false;
             }
         });
 
@@ -514,7 +537,6 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
         getStoreFactory().getParticipantsStore().addParticipantsStoreObserver(this);
         getControllerFactory().getGlobalLayoutController().addKeyboardVisibilityObserver(this);
         getStoreFactory().getInAppNotificationStore().addInAppNotificationObserver(this);
-
         getControllerFactory().getSlidingPaneController().addObserver(this);
 
         extendedCursorContainer.setCallback(this);
@@ -1089,7 +1111,6 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
     public void onCancelGiphy() {
 
     }
-
 
     //////////////////////////////////////////////////////////////////////////////
     //
