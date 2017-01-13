@@ -19,18 +19,22 @@ package com.waz.zclient.messages.parts.assets
 
 import android.graphics._
 import android.graphics.drawable.Drawable
+import com.waz.api.impl.AccentColor
 import com.waz.threading.Threading
 import com.waz.utils.events.{EventContext, Signal}
+import com.waz.zclient.ui.theme.ThemeUtils
+import com.waz.zclient.ui.utils.ColorUtils
 import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.utils.{Offset, ViewUtils}
 import com.waz.zclient.views.ProgressDotsDrawable
 import com.waz.zclient.{R, WireContext}
 
-class AssetBackground(showDots: Signal[Boolean])(implicit context: WireContext, eventContext: EventContext) extends Drawable with Drawable.Callback {
-  private val cornerRadius = ViewUtils.toPx(context, 4).toFloat
+class AssetBackground(showDots: Signal[Boolean], expired: Signal[Boolean], accent: Signal[AccentColor])(implicit context: WireContext, eventContext: EventContext) extends Drawable with Drawable.Callback {
+  private val cornerRadius = toPx(4)
+  private val defColor = getColor(R.color.light_graphite_8)
 
   private val backgroundPaint = new Paint
-  backgroundPaint.setColor(getColor(R.color.light_graphite_8))
+  backgroundPaint.setColor(defColor)
 
   private val dots = new ProgressDotsDrawable
   dots.setCallback(this)
@@ -43,10 +47,16 @@ class AssetBackground(showDots: Signal[Boolean])(implicit context: WireContext, 
   (for {
     dots <- showDots
     pad <- padding
-  } yield (dots, pad)).on(Threading.Ui) {
-    case (dots, pad) =>
+    exp <- expired
+    acc <- accent
+  } yield (dots, pad, exp, acc)).on(Threading.Ui) {
+    case (dots, pad, exp, acc) =>
       _showDots = dots
       _padding = pad
+
+      if (exp) backgroundPaint.setColor(ColorUtils.injectAlpha(ThemeUtils.getEphemeralBackgroundAlpha(context), acc.getColor()))
+      else backgroundPaint.setColor(defColor)
+
       invalidateSelf()
   }
 

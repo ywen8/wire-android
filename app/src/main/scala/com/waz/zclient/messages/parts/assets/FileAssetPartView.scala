@@ -32,13 +32,11 @@ import com.waz.zclient.messages.parts.assets.DeliveryState._
 import com.waz.zclient.ui.text.GlyphTextView
 import com.waz.zclient.utils.ContextUtils._
 
-class FileAssetPartView(context: Context, attrs: AttributeSet, style: Int) extends FrameLayout(context, attrs, style) with ActionableAssetPart { self =>
+class FileAssetPartView(context: Context, attrs: AttributeSet, style: Int) extends FrameLayout(context, attrs, style) with ActionableAssetPart with FileLayoutAssetPart { self =>
   def this(context: Context, attrs: AttributeSet) = this(context, attrs, 0)
   def this(context: Context) = this(context, null, 0)
 
   override val tpe: MsgPart = MsgPart.FileAsset
-
-  override lazy val contentLayoutId = R.layout.message_file_asset_content
 
   private val downloadedIndicator: GlyphTextView = findById(R.id.done_indicator)
   private val fileNameView: TextView = findById(R.id.file_name)

@@ -18,7 +18,7 @@
 package com.waz.zclient
 
 import android.content.res.TypedArray
-import android.graphics.LightingColorFilter
+import android.graphics.{LightingColorFilter, Rect}
 import android.graphics.drawable.LayerDrawable
 import android.support.annotation.StyleableRes
 import android.util.AttributeSet
