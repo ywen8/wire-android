@@ -66,7 +66,7 @@ public class UserDetailsView extends LinearLayout {
                 userNameTextView.setText("");
             } else {
                 userNameTextView.setVisibility(VISIBLE);
-                userNameTextView.setText(StringUtils.formatUsername(user.getUsername()));
+                userNameTextView.setText(StringUtils.formatHandle(user.getUsername()));
             }
 
             if (user.getConnectionStatus() != User.ConnectionStatus.ACCEPTED &&

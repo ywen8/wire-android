@@ -32,7 +32,7 @@ import com.waz.utils.returning
 import com.waz.zclient._
 import com.waz.zclient.controllers.global.{AccentColorController, SelectionController}
 import com.waz.zclient.messages.MessageView.MsgBindOptions
-import com.waz.zclient.messages.{LikesController, SyncEngineSignals}
+import com.waz.zclient.messages.{LikesController, UsersController}
 import junit.framework.Assert.assertEquals
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -83,7 +83,7 @@ class FooterViewControllerTest extends JUnitSuite {
     bind[PreferenceService] to zMessaging.prefs
     bind[AccentColorController] to new AccentColorController
     bind[SelectionController] to new SelectionController
-    bind[SyncEngineSignals] to new SyncEngineSignals
+    bind[UsersController] to new UsersController
     bind[LikesController] to new LikesController()
   }
 

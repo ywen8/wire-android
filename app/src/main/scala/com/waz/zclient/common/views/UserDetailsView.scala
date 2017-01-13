@@ -23,7 +23,7 @@ import android.util.AttributeSet
 import android.widget.{LinearLayout, TextView}
 import com.waz.model.UserId
 import com.waz.utils.events.Signal
-import com.waz.zclient.messages.SyncEngineSignals
+import com.waz.zclient.messages.UsersController
 import com.waz.zclient.utils.StringUtils
 import com.waz.zclient.{R, ViewHelper}
 
@@ -35,14 +35,14 @@ class UserDetailsView(val context: Context, val attrs: AttributeSet, val defStyl
   private lazy val userInfoTextView: TextView = findById(R.id.ttv__user_details__user_info)
   inflate(R.layout.user__details, this, true)
 
-  val signals = inject[SyncEngineSignals]
+  val users = inject[UsersController]
   val userId = Signal[UserId]
-  val handle = signals.userHandle(userId)
-  val firstContact = signals.userFirstContact(userId)
-  val displayName = userId.flatMap(signals.displayName)
+  val handle = userId.flatMap(users.userHandle)
+  val firstContact = userId.flatMap(users.userFirstContact)
+  val displayName = userId.flatMap(users.displayNameString)
 
   val handleText = handle.map {
-    case Some(handle) => StringUtils.formatUsername(handle.string)
+    case Some(h) => StringUtils.formatHandle(h.string)
     case None => ""
   }
 
@@ -60,10 +60,7 @@ class UserDetailsView(val context: Context, val attrs: AttributeSet, val defStyl
   handleText { userNameTextView.setText }
   contactText { userInfoTextView.setText }
 
-  def setUserId(userId: UserId) = Option(userId).fold(throw new IllegalArgumentException("UserId should not be null")){
-    userNameTextView.setText("")
-    userInfoTextView.setText("")
-    this.userId ! _
-  }
+  def setUserId(id: UserId) =
+    Option(id).fold(throw new IllegalArgumentException("UserId should not be null"))(userId ! _)
 
 }

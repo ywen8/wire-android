@@ -439,7 +439,7 @@ public class AccountPreferences extends BasePreferenceFragment<AccountPreference
             usernamePreference.setTitle(getString(R.string.pref_account_username_empty_title));
             usernamePreference.setSummary("");
         } else {
-            usernamePreference.setTitle(StringUtils.formatUsername(myUsername));
+            usernamePreference.setTitle(StringUtils.formatHandle(myUsername));
             usernamePreference.setSummary(getString(R.string.pref_account_username_title));
         }
     }

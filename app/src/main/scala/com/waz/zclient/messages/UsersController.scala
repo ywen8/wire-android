@@ -19,15 +19,16 @@ package com.waz.zclient.messages
 
 import android.content.Context
 import com.waz.api.impl.AccentColor
-import com.waz.model.{Contact, Handle, MessageData, UserId}
+import com.waz.model.ConversationData.ConversationType
+import com.waz.model._
 import com.waz.service.ZMessaging
 import com.waz.utils.events.Signal
-import com.waz.zclient.messages.SyncEngineSignals.DisplayName
-import com.waz.zclient.messages.SyncEngineSignals.DisplayName.{Me, Other}
+import com.waz.zclient.messages.UsersController.DisplayName
+import com.waz.zclient.messages.UsersController.DisplayName.{Me, Other}
 import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.{Injectable, Injector, R}
 
-class SyncEngineSignals(implicit injector: Injector, context: Context) extends Injectable {
+class UsersController(implicit injector: Injector, context: Context) extends Injectable {
 
   private val zMessaging = inject[Signal[ZMessaging]]
 
@@ -36,44 +37,32 @@ class SyncEngineSignals(implicit injector: Injector, context: Context) extends I
 
   lazy val selfUserId = zMessaging map { _.selfUserId }
 
-  def displayName(id: UserId): Signal[String] = zMessaging flatMap { displayNameString(_, id) }
+  //Always returns the other user for the conversation for a given message, regardless of who sent the message
+  def getOtherUser(message: Signal[MessageData]): Signal[Option[UserData]] = for {
+    zms <- zMessaging
+    msg <- message
+    conv <- zms.convsStorage.signal(msg.convId)
+    user <- zms.users.userSignal(UserId(conv.id.str))
+  } yield if (ConversationType.isOneToOne(conv.convType)) Some(user) else None
 
-  def displayNameString(zms: ZMessaging, id: UserId): Signal[String] =
-    displayName(zms, id) map {
+  def displayNameString(id: UserId): Signal[String] =
+    displayName(id) map {
       case Me => getString(R.string.content__system__you)
       case Other(name) => name
     }
 
-  def displayName(zms: ZMessaging, id: UserId): Signal[DisplayName] =
+  def displayName(id: UserId): Signal[DisplayName] = zMessaging.flatMap { zms =>
     if (zms.selfUserId == id) Signal const Me
     else zms.users.userSignal(id).map(u => Other(u.getDisplayName))
+  }
 
-  def displayName(message: Signal[MessageData]): Signal[DisplayName] =
-    for {
-      zms <- zMessaging
-      msg <- message
-      name <- displayName(zms, msg.userId)
-    } yield name
-
-  def userDisplayNameString(message: Signal[MessageData]): Signal[String] =
-    for {
-      zms <- zMessaging
-      msg <- message
-      name <- displayNameString(zms, msg.userId)
-    } yield name
-
-  def userAccentColor(message: Signal[MessageData]) =
-    for {
-      zms <- zMessaging
-      msg <- message
-      user <- zms.users.userSignal(msg.userId)
-    } yield AccentColor(user.accent)
+  def accentColor(id: UserId): Signal[AccentColor] = user(id).map(u => AccentColor(u.accent))
 
   def memberDisplayNames(message: Signal[MessageData]) =
     for {
       zms <- zMessaging
       msg <- message
-      names <- Signal.sequence[String](msg.members.toSeq.sortBy(_.str).map { displayNameString(zms, _) }: _*)
+      names <- Signal.sequence[String](msg.members.toSeq.sortBy(_.str).map(displayNameString): _*)
     } yield
       names match {
         case Seq() => ""
@@ -83,33 +72,26 @@ class SyncEngineSignals(implicit injector: Injector, context: Context) extends I
           s"${names.take(n - 1).mkString(itemSeparator + " ")} $lastSeparator  ${names.last}"
       }
 
-  def userHandle(id: Signal[UserId]): Signal[Option[Handle]] =
-    for {
-      zms <- zMessaging
-      userId <- id
-      user <- zms.users.userSignal(userId)
-    } yield user.handle
+  def userHandle(id: UserId): Signal[Option[Handle]] = user(id).map(_.handle)
 
-  def userFirstContact(id: Signal[UserId]): Signal[Option[Contact]] =
+  def userFirstContact(id: UserId): Signal[Option[Contact]] =
     for {
       zms <- zMessaging
-      userId <- id
-      contact <- zms.contacts.contactForUser(userId)
+      contact <- zms.contacts.contactForUser(id)
     } yield contact
 
   def user(id: UserId) = zMessaging flatMap { _.users.userSignal(id) }
 
-  def conv(message: Signal[MessageData]) = {
+  def conv(msg: MessageData) = {
     for {
       zms <- zMessaging
-      msg <- message
       conv <- zms.convsStorage.signal(msg.convId)
     } yield conv
   }
 
 }
 
-object SyncEngineSignals {
+object UsersController {
 
   sealed trait DisplayName
   object DisplayName {

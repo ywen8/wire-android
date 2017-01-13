@@ -65,7 +65,7 @@ public class FirstTimeAssignUsernameFragment extends BaseFragment<FirstTimeAssig
             self = model;
             if (self.hasSetUsername()) {
                 suggestedUsername = self.getUsername();
-                usernameTextView.setText(StringUtils.formatUsername(self.getUsername()));
+                usernameTextView.setText(StringUtils.formatHandle(self.getUsername()));
             }
         }
     };
@@ -123,7 +123,7 @@ public class FirstTimeAssignUsernameFragment extends BaseFragment<FirstTimeAssig
         });
 
         nameTextView.setText(getArguments().getString(ARG_NAME, ""));
-        usernameTextView.setText(StringUtils.formatUsername(suggestedUsername));
+        usernameTextView.setText(StringUtils.formatHandle(suggestedUsername));
 
         if (TextUtils.isEmpty(suggestedUsername)) {
             usernameTextView.setVisibility(View.INVISIBLE);

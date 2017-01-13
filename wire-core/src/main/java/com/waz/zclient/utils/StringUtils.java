@@ -139,7 +139,7 @@ public class StringUtils {
         return missing;
     }
 
-    public static String formatUsername(String username) {
+    public static String formatHandle(String username) {
         return "@" + username;
     }
 

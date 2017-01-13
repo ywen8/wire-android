@@ -76,8 +76,10 @@ class MessageView(context: Context, attrs: AttributeSet, style: Int)
     msg = mAndL.message
     msgId = msg.id
 
+    val isOneToOne = ConversationType.isOneToOne(opts.convType)
+
     val contentParts = {
-      if (msg.msgType != Message.Type.RICH_MEDIA) Seq(PartDesc(MsgPart(msg.msgType)))
+      if (msg.msgType != Message.Type.RICH_MEDIA) Seq(PartDesc(MsgPart(msg.msgType, isOneToOne)))
       else msg.content map { content => PartDesc(MsgPart(content.tpe), Some(content)) }
     } .filter(_.tpe != MsgPart.Empty)
 
@@ -110,7 +112,7 @@ class MessageView(context: Context, attrs: AttributeSet, style: Int)
       }
 
     // don't use margin on message view for spacing, this produces gaps ignoring click events, also margin change forces layout requests
-    val (top, bottom) = if (parts.isEmpty) (0, 0) else getMargins(prev.map(_.msgType), next.map(_.msgType), parts.head.tpe, parts.last.tpe)
+    val (top, bottom) = if (parts.isEmpty) (0, 0) else getMargins(prev.map(_.msgType), next.map(_.msgType), parts.head.tpe, parts.last.tpe, isOneToOne)
     setPadding(0, top, 0, bottom)
     setParts(mAndL, parts, opts)
 
@@ -207,7 +209,7 @@ object MessageView {
   case object Other extends MarginRule
 
   object MarginRule {
-    def apply(tpe: Message.Type): MarginRule = apply(MsgPart(tpe))
+    def apply(tpe: Message.Type, isOneToOne: Boolean): MarginRule = apply(MsgPart(tpe, isOneToOne))
 
     def apply(tpe: MsgPart): MarginRule = {
       tpe match {
@@ -232,7 +234,7 @@ object MessageView {
     }
   }
 
-  def getMargins(prevTpe: Option[Message.Type], nextTpe: Option[Message.Type], topPart: MsgPart, bottomPart: MsgPart)(implicit context: Context): (Int, Int) = {
+  def getMargins(prevTpe: Option[Message.Type], nextTpe: Option[Message.Type], topPart: MsgPart, bottomPart: MsgPart, isOneToOne: Boolean)(implicit context: Context): (Int, Int) = {
     val top =
       if (prevTpe.isEmpty)
         MarginRule(topPart) match {
@@ -240,7 +242,7 @@ object MessageView {
           case _ => 0
         }
       else {
-        (MarginRule(prevTpe.get), MarginRule(topPart)) match {
+        (MarginRule(prevTpe.get, isOneToOne), MarginRule(topPart)) match {
           case (TextLike, TextLike)         => 8
           case (TextLike, FileLike)         => 16
           case (FileLike, FileLike)         => 10

@@ -23,8 +23,8 @@ import android.view.View
 import android.widget.{LinearLayout, TextView}
 import com.waz.threading.Threading
 import com.waz.zclient.common.views.ChatheadView
-import com.waz.zclient.messages.SyncEngineSignals.DisplayName.{Me, Other}
-import com.waz.zclient.messages.{MessageViewPart, MsgPart, SyncEngineSignals}
+import com.waz.zclient.messages.UsersController.DisplayName.{Me, Other}
+import com.waz.zclient.messages.{MessageViewPart, MsgPart, UsersController}
 import com.waz.zclient.ui.text.{GlyphTextView, TypefaceTextView}
 import com.waz.zclient.ui.utils.TextViewUtils
 import com.waz.zclient.utils.ContextUtils._
@@ -49,9 +49,9 @@ class PingPartView(context: Context, attrs: AttributeSet, style: Int) extends Li
 
   val locale = context.getResources.getConfiguration.locale
 
-  val signals = inject[SyncEngineSignals]
+  val users = inject[UsersController]
 
-  val userName = signals.displayName(message)
+  val userName = message.map(_.userId).flatMap(users.displayName)
 
   val text = userName map {
     case Me          => getString(R.string.content__you_pinged)
@@ -72,7 +72,7 @@ class PingPartView(context: Context, attrs: AttributeSet, style: Int) extends Li
       TextViewUtils.boldText(textViewMessage)
   }
 
-  signals.userAccentColor(message).on(Threading.Ui) { c =>
+  message.map(_.userId).flatMap(users.accentColor).on(Threading.Ui) { c =>
     textViewMessage.setTextColor(c.getColor())
     glyphTextView.setTextColor(c.getColor())
   }

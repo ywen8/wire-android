@@ -912,7 +912,7 @@ public class PickUserFragment extends BaseFragment<PickUserFragment.Container> i
             if (TextUtils.isEmpty(username)) {
                 smsBody = getString(R.string.people_picker__invite__share_text__body, me.getName());
             } else {
-                smsBody = getString(R.string.people_picker__invite__share_text__body, StringUtils.formatUsername(username));
+                smsBody = getString(R.string.people_picker__invite__share_text__body, StringUtils.formatHandle(username));
             }
             Intent intent = new Intent(Intent.ACTION_SENDTO, Uri.fromParts("sms", number, ""));
             intent.putExtra("sms_body", smsBody);
@@ -1029,7 +1029,7 @@ public class PickUserFragment extends BaseFragment<PickUserFragment.Container> i
             username = getStoreFactory().getProfileStore().getSelfUser().getUsername();
         }
 
-        shareBody = getString(R.string.people_picker__invite__share_text__body, StringUtils.formatUsername(username));
+        shareBody = getString(R.string.people_picker__invite__share_text__body, StringUtils.formatHandle(username));
         String shareSubject = getString(R.string.people_picker__invite__share_text__header, name);
         String shareChooserMessage = getString(R.string.people_picker__invite__share_details_dialog);
         Intent sharingIntent = new Intent(Intent.ACTION_SEND);

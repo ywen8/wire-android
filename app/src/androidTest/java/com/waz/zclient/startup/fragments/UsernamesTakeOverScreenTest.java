@@ -87,6 +87,6 @@ public class UsernamesTakeOverScreenTest extends FragmentTest<UsernamesTakeoverT
         attachFragment(FirstTimeAssignUsernameFragment.newInstance(mockSelf.getName(), DEFAULT_DISPLAY_USERNAME), FirstTimeAssignUsernameFragment.TAG);
 
         onView(withId(R.id.ttv__name)).check(matches(withText(mockSelf.getName())));
-        onView(withId(R.id.ttv__username)).check(matches(withText(StringUtils.formatUsername(DEFAULT_DISPLAY_USERNAME))));
+        onView(withId(R.id.ttv__username)).check(matches(withText(StringUtils.formatHandle(DEFAULT_DISPLAY_USERNAME))));
     }
 }
