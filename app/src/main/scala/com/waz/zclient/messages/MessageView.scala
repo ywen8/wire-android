@@ -61,12 +61,15 @@ class MessageView(context: Context, attrs: AttributeSet, style: Int)
   setClipToPadding(false)
 
   this.onClick {
-    selection.toggleFocused(msgId)
+    if (clickableTypes.contains(msg.msgType))
+      selection.toggleFocused(msgId)
   }
 
   this.onLongClick {
-    performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
-    messageActions.showDialog(data)
+    if (longClickableTypes.contains(msg.msgType)) {
+      performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
+      messageActions.showDialog(data)
+    } else false
   }
 
   def set(mAndL: MessageAndLikes, prev: Option[MessageData], next: Option[MessageData], opts: MsgBindOptions): Unit = {
@@ -111,7 +114,6 @@ class MessageView(context: Context, attrs: AttributeSet, style: Int)
         builder.result()
       }
 
-    // don't use margin on message view for spacing, this produces gaps ignoring click events, also margin change forces layout requests
     val (top, bottom) = if (parts.isEmpty) (0, 0) else getMargins(prev.map(_.msgType), next.map(_.msgType), parts.head.tpe, parts.last.tpe, isOneToOne)
     setPadding(0, top, 0, bottom)
     setParts(mAndL, parts, opts)
@@ -177,15 +179,21 @@ class MessageView(context: Context, attrs: AttributeSet, style: Int)
 
 object MessageView {
 
-  val focusableTypes = Set(
-    Message.Type.TEXT,
-    Message.Type.TEXT_EMOJI_ONLY,
-    Message.Type.ANY_ASSET,
-    Message.Type.ASSET,
-    Message.Type.AUDIO_ASSET,
-    Message.Type.VIDEO_ASSET,
-    Message.Type.LOCATION,
-    Message.Type.RICH_MEDIA
+  import Message.Type._
+
+  val clickableTypes = Set(
+    TEXT,
+    TEXT_EMOJI_ONLY,
+    ANY_ASSET,
+    ASSET,
+    AUDIO_ASSET,
+    VIDEO_ASSET,
+    LOCATION,
+    RICH_MEDIA
+  )
+
+  val longClickableTypes = clickableTypes ++ Set(
+    KNOCK
   )
 
   val GenericMessage = 0
@@ -201,6 +209,7 @@ object MessageView {
   trait MarginRule
 
   case object TextLike extends MarginRule
+  case object SeparatorLike extends MarginRule
   case object ImageLike extends MarginRule
   case object FileLike extends MarginRule
   case object SystemLike extends MarginRule
