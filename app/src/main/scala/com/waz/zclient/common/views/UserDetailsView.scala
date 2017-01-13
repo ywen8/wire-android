@@ -22,6 +22,7 @@ import android.content.Context
 import android.util.AttributeSet
 import android.widget.{LinearLayout, TextView}
 import com.waz.model.UserId
+import com.waz.threading.Threading
 import com.waz.utils.events.Signal
 import com.waz.zclient.messages.UsersController
 import com.waz.zclient.utils.StringUtils
@@ -57,8 +58,8 @@ class UserDetailsView(val context: Context, val attrs: AttributeSet, val defStyl
       }
   }
 
-  handleText { userNameTextView.setText }
-  contactText { userInfoTextView.setText }
+  handleText.on(Threading.Ui) { userNameTextView.setText }
+  contactText.on(Threading.Ui) { userInfoTextView.setText }
 
   def setUserId(id: UserId) =
     Option(id).fold(throw new IllegalArgumentException("UserId should not be null"))(userId ! _)
