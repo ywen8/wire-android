@@ -24,13 +24,13 @@ import android.widget.{LinearLayout, TextView}
 import com.waz.threading.Threading
 import com.waz.zclient.common.views.ChatheadView
 import com.waz.zclient.messages.UsersController.DisplayName.{Me, Other}
-import com.waz.zclient.messages.{MessageViewPart, MsgPart, UsersController}
+import com.waz.zclient.messages.{ClickableViewPart, MessageViewPart, MsgPart, UsersController}
 import com.waz.zclient.ui.text.{GlyphTextView, TypefaceTextView}
 import com.waz.zclient.ui.utils.TextViewUtils
 import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.{R, ViewHelper}
 
-class PingPartView(context: Context, attrs: AttributeSet, style: Int) extends LinearLayout(context, attrs, style) with MessageViewPart with ViewHelper with EphemeralTextPart {
+class PingPartView(context: Context, attrs: AttributeSet, style: Int) extends LinearLayout(context, attrs, style) with ClickableViewPart with ViewHelper with EphemeralTextPart {
   def this(context: Context, attrs: AttributeSet) = this(context, attrs, 0)
   def this(context: Context) = this(context, null, 0)
 
