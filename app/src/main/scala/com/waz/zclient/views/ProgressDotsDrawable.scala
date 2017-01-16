@@ -56,8 +56,8 @@ class ProgressDotsDrawable(duration: FiniteDuration = (350 * 3).millis)(implicit
     val uptime = SystemClock.uptimeMillis()
     val darkDotIndex = (uptime / frameMillis) % 3
 
-    val centerY = getBounds.centerY()
-    val left = getBounds.centerX() - 2 * dotSpacing
+    val centerY = canvas.getHeight / 2
+    val left = canvas.getWidth / 2 - 2 * dotSpacing
     for (i <- 0 until 3) {
       canvas.drawCircle(left + i * 2 * dotSpacing, centerY, dotRadius, if (darkDotIndex == i) darkPaint else lightPaint)
     }

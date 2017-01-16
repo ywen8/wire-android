@@ -58,9 +58,14 @@ trait MessageViewPart extends View {
   this.onLongClick(false)
 }
 
-//Marker for views that should hide/display the footer when clicked and show the menu when long clicked.
+/**
+  * Marker for views that should pass up the click event either when clicked/double cicked OR when long clicked
+  * This prevents some of the more distant parts of a single message view (like the timestamp or chathead view) from
+  * passing up the click event, which can feel a bit confusing.
+  *
+  * Check the message view as well - it has further filtering on which views
+  */
 trait ClickableViewPart extends MessageViewPart with ViewHelper {
-  import ClickableViewPart._
   import com.waz.threading.Threading.Implicits.Ui
   val zms = inject[Signal[ZMessaging]]
   val likes = inject[LikesController]
@@ -72,7 +77,7 @@ trait ClickableViewPart extends MessageViewPart with ViewHelper {
   }
 
   def onDoubleClick() = messageAndLikes.head.map { mAndL =>
-    if (isLikeable(mAndL.message.msgType)) {
+    if (MessageView.clickableTypes.contains(mAndL.message.msgType)) {
       likes.onViewDoubleClicked ! mAndL
       getParent.asInstanceOf[View].performClick() //perform click to change focus
     }
@@ -81,22 +86,6 @@ trait ClickableViewPart extends MessageViewPart with ViewHelper {
   this.onClick ({ onSingleClick }, { onDoubleClick })
 
   this.onLongClick(getParent.asInstanceOf[View].performLongClick())
-}
-
-object ClickableViewPart {
-  import Message.Type._
-  val likableTypes = Set(
-    ANY_ASSET,
-    ASSET,
-    AUDIO_ASSET,
-    LOCATION,
-    TEXT,
-    TEXT_EMOJI_ONLY,
-    RICH_MEDIA,
-    VIDEO_ASSET
-  )
-
-  def isLikeable(mt: Message.Type) = likableTypes.contains(mt)
 }
 
 // Marker for view parts that should be laid out as in FrameLayout (instead of LinearLayout)
