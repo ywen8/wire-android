@@ -109,4 +109,9 @@ class SingleImageViewToolbar(context: Context, attrs: AttributeSet, style: Int) 
     }
   })
 
+  viewButton.onClick(message.foreach{m =>
+    collectionController.focusedItem.currentValue.foreach(collectionController.targetItem ! _)
+    collectionController.focusedItem ! None
+    collectionController.closeCollection
+  })
 }

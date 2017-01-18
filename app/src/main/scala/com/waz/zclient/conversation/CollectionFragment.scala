@@ -21,16 +21,14 @@ import android.content.Context
 import android.os.Bundle
 import android.support.v4.app.FragmentManager
 import android.support.v7.widget.Toolbar
-import android.view.MenuItem.OnMenuItemClickListener
 import android.view.View.OnClickListener
 import android.view.{LayoutInflater, MenuItem, View, ViewGroup}
 import android.widget.TextView
 import com.waz.ZLog._
 import com.waz.api.Message
-import com.waz.model.{AssetId, MessageData}
+import com.waz.model.AssetId
 import com.waz.threading.Threading
 import com.waz.utils.events.Signal
-import com.waz.zclient.controllers.collections.CollectionsObserver
 import com.waz.zclient.conversation.CollectionAdapter.AdapterState
 import com.waz.zclient.conversation.CollectionController._
 import com.waz.zclient.pages.BaseFragment
@@ -39,7 +37,7 @@ import com.waz.zclient.utils.ViewUtils
 import com.waz.zclient.{FragmentHelper, OnBackPressedListener, R}
 import org.threeten.bp.{LocalDateTime, ZoneId}
 
-class CollectionFragment extends BaseFragment[CollectionFragment.Container] with FragmentHelper with OnBackPressedListener with CollectionsObserver  {
+class CollectionFragment extends BaseFragment[CollectionFragment.Container] with FragmentHelper with OnBackPressedListener  {
 
   private implicit lazy val context: Context = getContext
 
@@ -47,18 +45,6 @@ class CollectionFragment extends BaseFragment[CollectionFragment.Container] with
 
   lazy val controller = inject[CollectionController]
   var adapter: CollectionAdapter = null
-
-
-  override def onStart(): Unit = {
-    super.onStart()
-    controller.addObserver(this)
-  }
-
-  override def onStop(): Unit = {
-    super.onStop()
-    controller.removeObserver(this)
-  }
-
 
   override def onDestroy(): Unit = {
     if (adapter != null) adapter.closeCursors()
@@ -94,7 +80,7 @@ class CollectionFragment extends BaseFragment[CollectionFragment.Container] with
       case _ => closeSingleImage()
     }
 
-    adapter = new CollectionAdapter(recyclerView.viewDim, controller)
+    adapter = new CollectionAdapter(recyclerView.viewDim)
     recyclerView.init(adapter)
 
     def setNavigationIconVisibility(visible: Boolean) = {
@@ -145,7 +131,7 @@ class CollectionFragment extends BaseFragment[CollectionFragment.Container] with
       override def onMenuItemClick(item: MenuItem): Boolean = {
         item.getItemId match {
           case R.id.close =>
-            getControllerFactory.getCollectionsController.closeCollection()
+            controller.closeCollection()
             return true
         }
         false
@@ -165,21 +151,9 @@ class CollectionFragment extends BaseFragment[CollectionFragment.Container] with
       case _ =>
     }
     if (!adapter.onBackPressed)
-      getControllerFactory.getCollectionsController.closeCollection()
+      controller.closeCollection()
     true
   }
-
-  override def openCollection(): Unit = {}
-
-  override def shareCollectionItem(messageData: MessageData): Unit = {}
-
-  override def closeCollectionShare(): Unit = {}
-
-  override def previousItemRequested(): Unit = {}
-
-  override def nextItemRequested(): Unit = {}
-
-  override def closeCollection(): Unit = {}
 }
 
 object CollectionFragment {

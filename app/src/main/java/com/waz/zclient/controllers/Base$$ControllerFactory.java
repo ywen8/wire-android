@@ -162,6 +162,7 @@ public abstract class Base$$ControllerFactory implements IControllerFactory {
   protected boolean isTornDown;
 
   protected Context context;
+  protected Activity activity;
 
   public Base$$ControllerFactory(Context context) {
     this.context = context;
@@ -549,6 +550,7 @@ public abstract class Base$$ControllerFactory implements IControllerFactory {
 
   @Override
   public void setActivity(Activity activity) {
+    this.activity = activity;
     getGlobalLayoutController().setActivity(activity);
     getOrientationController().setActivity(activity);
     getSpotifyController().setActivity(activity);
@@ -632,7 +634,7 @@ public abstract class Base$$ControllerFactory implements IControllerFactory {
     public ICollectionsController getCollectionsController() {
         verifyLifecycle();
         if (collectionsController == null) {
-            collectionsController = ((Injectable) this.context).inject(CollectionController.Manifest(), ((WireContext) this.context).injector());
+            collectionsController = CollectionController.injectedCollectionController(((Injectable) activity), ((WireContext) activity).injector());
         }
         return collectionsController;
     }
