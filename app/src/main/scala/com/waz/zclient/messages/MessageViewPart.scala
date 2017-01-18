@@ -25,6 +25,7 @@ import android.view.View
 import android.widget.{LinearLayout, RelativeLayout}
 import com.waz.ZLog.ImplicitTag._
 import com.waz.api.Message
+import com.waz.api.impl.AccentColor
 import com.waz.model._
 import com.waz.service.ZMessaging
 import com.waz.service.messages.MessageAndLikes
@@ -36,6 +37,7 @@ import com.waz.zclient.messages.MessageView.MsgBindOptions
 import com.waz.zclient.messages.parts.EphemeralDotsDrawable
 import com.waz.zclient.ui.text.{GlyphTextView, TypefaceTextView}
 import com.waz.zclient.ui.theme.ThemeUtils
+import com.waz.zclient.ui.utils.ColorUtils
 import com.waz.zclient.utils.ContextUtils.{getColor, getDimenPx}
 import com.waz.zclient.utils.ZTimeFormatter.getSeparatorTime
 import com.waz.zclient.utils._
@@ -180,6 +182,10 @@ class UserPartView(context: Context, attrs: AttributeSet, style: Int) extends Li
 
   user.map(_.getDisplayName).on(Threading.Ui)(tvName.setTransformedText)
 
+  user.map(_.accent).on(Threading.Ui) { a =>
+    tvName.setTextColor(getNameColor(a))
+  }
+
   stateGlyph.map(_.isDefined) { tvStateGlyph.setVisible }
 
   stateGlyph.collect { case Some(glyph) => glyph } { tvStateGlyph.setText }
@@ -187,6 +193,27 @@ class UserPartView(context: Context, attrs: AttributeSet, style: Int) extends Li
   override def set(msg: MessageAndLikes, part: Option[MessageContent], opts: MsgBindOptions): Unit = {
     super.set(msg, part, opts)
     userId ! msg.message.userId
+  }
+
+  def getNameColor(accent: Int): Int = {
+    val alpha = if (ThemeUtils.isDarkTheme(context)) accent match {
+      case 1 => 0.8f
+      case 2 => 0.72f
+      case 4 => 0.72f
+      case 5 => 0.8f
+      case 6 => 0.8f
+      case 7 => 1f
+      case _ => 1f
+    } else accent match {
+      case 1 => 0.8f
+      case 2 => 0.72f
+      case 4 => 0.56f
+      case 5 => 0.80f
+      case 6 => 0.80f
+      case 7 => 0.64f
+      case _ => 1f
+    }
+    ColorUtils.injectAlpha(alpha, AccentColor(accent).getColor())
   }
 }
 
