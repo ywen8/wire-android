@@ -33,10 +33,13 @@ import com.waz.zclient.R;
 import com.waz.zclient.core.api.scala.ModelObserver;
 import com.waz.zclient.utils.ViewUtils;
 
+import java.util.Set;
+
 public class MessageBottomSheetDialog extends BottomSheetDialog {
 
     private final Message message;
     private final Callback callback;
+    private Set<MessageAction> chosenOperations = null;
 
     public enum MessageAction {
         FORWARD(R.id.message_bottom_menu_item_forward, R.string.glyph__forward, R.string.message_bottom_menu_action_forward),
@@ -68,6 +71,14 @@ public class MessageBottomSheetDialog extends BottomSheetDialog {
         init(isMemberOfConversation);
     }
 
+    public MessageBottomSheetDialog(@NonNull Context context, int theme, @NonNull Message message, boolean isMemberOfConversation, Callback callback, Set<MessageAction> operations) {
+        super(context, theme);
+        this.message = message;
+        this.callback = callback;
+        chosenOperations = operations;
+        init(isMemberOfConversation);
+    }
+
     private void updateOptions(LinearLayout view, boolean isMemberOfConversation) {
         view.removeAllViews();
         if (isMemberOfConversation && isLikeAllowed()) {
@@ -93,7 +104,9 @@ public class MessageBottomSheetDialog extends BottomSheetDialog {
             addAction(view, MessageAction.FORWARD);
             addAction(view, MessageAction.FORWARD_MULTIPLE);
         }
-        addAction(view, MessageAction.DELETE_LOCAL);
+        if (isDeleteLocalAllowed()) {
+            addAction(view, MessageAction.DELETE_LOCAL);
+        }
         if (isDeleteForEveryoneAllowed(isMemberOfConversation)) {
             addAction(view, MessageAction.DELETE_GLOBAL);
         }
@@ -139,6 +152,9 @@ public class MessageBottomSheetDialog extends BottomSheetDialog {
     }
 
     private boolean isLikeAllowed() {
+        if (chosenOperations != null && !chosenOperations.contains(MessageAction.LIKE)) {
+            return false;
+        }
         if (message.isEphemeral()) {
             return false;
         }
@@ -158,6 +174,9 @@ public class MessageBottomSheetDialog extends BottomSheetDialog {
     }
 
     private boolean isSaveAllowed() {
+        if (chosenOperations != null && !chosenOperations.contains(MessageAction.SAVE)) {
+            return false;
+        }
         if (message.isEphemeral()) {
             return false;
         }
@@ -178,6 +197,9 @@ public class MessageBottomSheetDialog extends BottomSheetDialog {
     }
 
     private boolean isOpenFileAllowed() {
+        if (chosenOperations != null && !chosenOperations.contains(MessageAction.OPEN_FILE)) {
+            return false;
+        }
         if (message.isEphemeral()) {
             return false;
         }
@@ -194,6 +216,9 @@ public class MessageBottomSheetDialog extends BottomSheetDialog {
     }
 
     private boolean isCopyAllowed() {
+        if (chosenOperations != null && !chosenOperations.contains(MessageAction.COPY)) {
+            return false;
+        }
         if (message.isEphemeral()) {
             return false;
         }
@@ -208,6 +233,9 @@ public class MessageBottomSheetDialog extends BottomSheetDialog {
     }
 
     private boolean isForwardAllowed() {
+        if (chosenOperations != null && !chosenOperations.contains(MessageAction.FORWARD)) {
+            return false;
+        }
         if (message.isEphemeral()) {
             return false;
         }
@@ -233,6 +261,9 @@ public class MessageBottomSheetDialog extends BottomSheetDialog {
     }
 
     private boolean isEditAllowed(boolean isMemberOfConversation) {
+        if (chosenOperations != null && !chosenOperations.contains(MessageAction.EDIT)) {
+            return false;
+        }
         if (!isMemberOfConversation ||
             message.isEphemeral() ||
             !message.getUser().isMe()) {
@@ -249,6 +280,9 @@ public class MessageBottomSheetDialog extends BottomSheetDialog {
     }
 
     private boolean isDeleteForEveryoneAllowed(boolean isMemberOfConversation) {
+        if (chosenOperations != null && !chosenOperations.contains(MessageAction.DELETE_GLOBAL)) {
+            return false;
+        }
         if (!isMemberOfConversation ||
             !message.getUser().isMe()) {
             return false;
@@ -267,6 +301,13 @@ public class MessageBottomSheetDialog extends BottomSheetDialog {
             default:
                 return false;
         }
+    }
+
+    private boolean isDeleteLocalAllowed() {
+        if (chosenOperations != null && !chosenOperations.contains(MessageAction.DELETE_LOCAL)) {
+            return false;
+        }
+        return true;
     }
 
     public interface Callback {

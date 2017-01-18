@@ -32,6 +32,7 @@ import com.waz.service.messages.MessageAndLikes
 import com.waz.threading.Threading
 import com.waz.utils.events.{EventContext, Signal}
 import com.waz.zclient.controllers.global.SelectionController
+import com.waz.zclient.conversation.CollectionController
 import com.waz.zclient.messages.MessageView.MsgBindOptions
 import com.waz.zclient.messages.ScrollController.Scroll
 import com.waz.zclient.ui.utils.KeyboardUtils
@@ -50,6 +51,18 @@ class MessagesListView(context: Context, attrs: AttributeSet, style: Int) extend
   }
   val adapter = new MessagesListAdapter(viewDim)
   val scrollController = new ScrollController(adapter, viewDim.map(_.height))
+
+  val collectionController = inject[CollectionController]
+
+  collectionController.targetItem.flatMap{
+    case Some(messageData) => adapter.positionForMessage(messageData)
+    case _ => Signal.empty[Option[Int]]
+  }.on(Threading.Ui){ pos =>
+    pos.foreach{ p =>
+      smoothScrollToPosition(p)
+      collectionController.targetItem ! None
+    }
+  }
 
   setHasFixedSize(true)
   setLayoutManager(layoutManager)

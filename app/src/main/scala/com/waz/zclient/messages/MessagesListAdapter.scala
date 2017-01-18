@@ -23,7 +23,7 @@ import android.view.ViewGroup
 import com.waz.ZLog.ImplicitTag._
 import com.waz.ZLog._
 import com.waz.model.ConversationData.ConversationType
-import com.waz.model.{ConvId, Dim2, MessageId}
+import com.waz.model.{ConvId, Dim2, MessageData, MessageId}
 import com.waz.service.ZMessaging
 import com.waz.threading.Threading
 import com.waz.utils.events.{EventContext, Signal}
@@ -118,6 +118,10 @@ class MessagesListAdapter(listDim: Signal[Dim2])(implicit inj: Injector, ec: Eve
 
   override def onCreateViewHolder(parent: ViewGroup, viewType: Int): MessageViewHolder =
     MessageViewHolder(MessageView(parent, viewType), adapter)
+
+  def positionForMessage(messageData: MessageData) = {
+    cursor.flatMap(a => a._1.positionForMessage(messageData))
+  }
 
   lazy val notifier = new RecyclerNotifier {
     // view depends on two message entries,

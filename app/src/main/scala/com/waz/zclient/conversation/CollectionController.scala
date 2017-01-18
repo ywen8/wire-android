@@ -31,9 +31,6 @@ import com.waz.zclient.{Injectable, Injector}
 
 trait ICollectionsController {
 
-  val focusedItem: SourceSignal[Option[MessageData]]
-  val conversationName: Signal[String]
-
   def openCollection(): Unit
 
   def closeCollection(): Unit
@@ -69,9 +66,11 @@ class CollectionController(implicit injector: Injector) extends Injectable with 
 
   val conversation = zms.zip(currentConv) flatMap { case (zms, convId) => zms.convsStorage.signal(convId) }
 
-  override val conversationName = conversation map (data => if (data.convType == IConversation.Type.GROUP) data.name.filter(!_.isEmpty).getOrElse(data.generatedName) else data.generatedName)
+  val conversationName = conversation map (data => if (data.convType == IConversation.Type.GROUP) data.name.filter(!_.isEmpty).getOrElse(data.generatedName) else data.generatedName)
 
-  override val focusedItem: SourceSignal[Option[MessageData]] = Signal(None)
+  val focusedItem: SourceSignal[Option[MessageData]] = Signal(None)
+
+  val targetItem: SourceSignal[Option[MessageData]] = Signal(None)
 
   private def performOnObservers(func: (CollectionsObserver) => Unit) = {
     val collectionObservers: CopyOnWriteArraySet[CollectionsObserver] = new CopyOnWriteArraySet[CollectionsObserver](observers)
@@ -100,9 +99,6 @@ class CollectionController(implicit injector: Injector) extends Injectable with 
 
 class StubCollectionController extends ICollectionsController{
 
-  override val focusedItem: SourceSignal[Option[MessageData]] = Signal(None)
-  override val conversationName: Signal[String] = Signal("")
-
   override def openCollection(): Unit = {}
 
   override def closeCollection(): Unit = {}
@@ -123,6 +119,9 @@ class StubCollectionController extends ICollectionsController{
 object CollectionController {
 
   val GridColumns = 4
+  def injectedCollectionController(injectable: Injectable)(implicit injector: Injector): CollectionController =  {
+    injectable.inject[CollectionController]
+  }
 
   trait ContentType {
     val msgTypes: Seq[Message.Type]
