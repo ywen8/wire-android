@@ -224,7 +224,7 @@ class RoundedImageAssetDrawable (
     shader.setLocalMatrix(matrix)
     val rect = new RectF(0.0f, 0.0f, getBounds.width, getBounds.height)
     bitmapPaint.setShader(shader)
-    canvas.drawRoundRect(rect, 10, 10, bitmapPaint)
+    canvas.drawRoundRect(rect, cornerRadius, cornerRadius, bitmapPaint)
   }
 }
 

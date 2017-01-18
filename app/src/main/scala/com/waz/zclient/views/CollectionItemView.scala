@@ -41,7 +41,7 @@ import com.waz.zclient.messages.{MessageViewPart, MsgPart}
 import com.waz.zclient.pages.main.conversation.views.AspectRatioImageView
 import com.waz.zclient.utils.ZTimeFormatter._
 import com.waz.zclient.utils.{ViewUtils, _}
-import com.waz.zclient.views.ImageController.WireImage
+import com.waz.zclient.views.ImageController.{ImageSource, WireImage}
 import com.waz.zclient.{R, ViewHelper}
 import org.threeten.bp.{LocalDateTime, ZoneId}
 
@@ -92,15 +92,24 @@ object CollectionNormalItemView{
   val DefaultBindingOptions = MsgBindOptions(0, isSelf = false, isLast = false, isLastSelf = false, isFirstUnread = false, listDimensions = Dim2.Empty, ConversationData.ConversationType.Unknown)
 }
 
-class CollectionImageView(context: Context) extends AspectRatioImageView(context) with CollectionItemView{
+class CollectionImageView(context: Context) extends AspectRatioImageView(context) with CollectionItemView {
+
+  object CollectionImageView {
+    val CornerRadius = 10
+  }
+  import CollectionImageView._
+
   val padding = getResources.getDimensionPixelSize(R.dimen.collections__image_padding)
   setCropToPadding(true)
   setPadding(padding, padding, padding, padding)
 
-  messageData.on(Threading.Ui) { md =>
-    val imageDrawable = new RoundedImageAssetDrawable(Signal(WireImage(md.assetId)), scaleType = ImageAssetDrawable.ScaleType.CenterCrop, cornerRadius = 10)
-    setImageDrawable(imageDrawable)
-  }
+  val image: Signal[ImageSource] = messageData.map(md => WireImage(md.assetId))
+
+  private val dotsDrawable = new ProgressDotsDrawable
+  private val imageDrawable = new RoundedImageAssetDrawable(image, scaleType = ImageAssetDrawable.ScaleType.CenterCrop, cornerRadius = CornerRadius)
+
+  setBackground(dotsDrawable)
+  setImageDrawable(imageDrawable)
 
   def setMessageData(messageData: MessageData, width: Int, color: Int) = {
     setAspectRatio(1)
