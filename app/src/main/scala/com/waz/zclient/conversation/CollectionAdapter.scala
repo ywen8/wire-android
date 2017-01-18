@@ -83,6 +83,12 @@ class CollectionAdapter(viewDim: Signal[Dim2])(implicit context: Context, inject
 
   val adapterState = Signal[AdapterState](AdapterState(contentMode.currentValue.get, 0, loading = true))
 
+  Signal(conv, adapterState).on(Threading.Ui){
+    case (Some(c), AdapterState(AllContent, 0, false)) => collectionController.openedCollection ! Some(CollectionInfo(c, empty = true))
+    case (Some(c), AdapterState(AllContent, count, false)) => collectionController.openedCollection ! Some(CollectionInfo(c, empty = false))
+    case _ =>
+  }
+
   val collectionCursors = scala.collection.mutable.Map[ContentType, Option[RecyclerCursor]](
     AllContent -> None,
     Images -> None,
