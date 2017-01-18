@@ -108,7 +108,7 @@ public class DeveloperPreferences extends BasePreferenceFragment<DeveloperPrefer
             info.append("\nNetworkStore.hasWifiConnection(): ");
             info.append(ns.hasWifiConnection());
         }
-        Timber.d(info.toString());
+        Timber.i(info.toString());
         networkDebugInfoPreference.setSummary(info.toString());
     }
 
