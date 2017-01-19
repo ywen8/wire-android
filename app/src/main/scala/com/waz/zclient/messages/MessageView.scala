@@ -82,8 +82,15 @@ class MessageView(context: Context, attrs: AttributeSet, style: Int)
     val isOneToOne = ConversationType.isOneToOne(opts.convType)
 
     val contentParts = {
-      if (msg.msgType != Message.Type.RICH_MEDIA) Seq(PartDesc(MsgPart(msg.msgType, isOneToOne)))
-      else msg.content map { content => PartDesc(MsgPart(content.tpe), Some(content)) }
+      if (msg.msgType == Message.Type.RICH_MEDIA){
+        if (msg.content.size > 1){
+          Seq(PartDesc(MsgPart(Message.Type.TEXT, isOneToOne))) ++ (msg.content map { content => PartDesc(MsgPart(content.tpe), Some(content)) }).filter(_.tpe == WebLink)
+        } else {
+          msg.content map { content => PartDesc(MsgPart(content.tpe), Some(content)) }
+        }
+      }
+      else
+        Seq(PartDesc(MsgPart(msg.msgType, isOneToOne)))
     } .filter(_.tpe != MsgPart.Empty)
 
     val parts =
