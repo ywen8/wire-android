@@ -131,6 +131,8 @@ class CollectionFragment extends BaseFragment[CollectionFragment.Container] with
       override def onMenuItemClick(item: MenuItem): Boolean = {
         item.getItemId match {
           case R.id.close =>
+            controller.focusedItem ! None
+            controller.targetItem ! None
             controller.closeCollection()
             return true
         }
