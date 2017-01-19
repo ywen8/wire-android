@@ -53,4 +53,6 @@
     <item name="emoji_keyboard_item" type="id" />
 
     <item name="content" type="id"/>
+
+    <item name="collection_image_view" type="id"/>
 </resources>

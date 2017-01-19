@@ -93,6 +93,7 @@ object CollectionNormalItemView{
 }
 
 class CollectionImageView(context: Context) extends AspectRatioImageView(context) with CollectionItemView {
+  setId(R.id.collection_image_view)
 
   object CollectionImageView {
     val CornerRadius = 10
