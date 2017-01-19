@@ -21,8 +21,6 @@ import android.app.Activity;
 import android.content.Context;
 import android.view.View;
 
-import com.waz.zclient.Injectable;
-import com.waz.zclient.WireContext;
 import com.waz.zclient.controllers.accentcolor.AccentColorController;
 import com.waz.zclient.controllers.accentcolor.IAccentColorController;
 import com.waz.zclient.controllers.background.BackgroundController;
@@ -81,8 +79,6 @@ import com.waz.zclient.controllers.verification.IVerificationController;
 import com.waz.zclient.controllers.verification.VerificationController;
 import com.waz.zclient.controllers.vibrator.IVibratorController;
 import com.waz.zclient.controllers.vibrator.VibratorController;
-import com.waz.zclient.conversation.CollectionController;
-import com.waz.zclient.conversation.ICollectionsController;
 import com.waz.zclient.pages.main.conversation.controller.ConversationScreenController;
 import com.waz.zclient.pages.main.conversation.controller.IConversationScreenController;
 import com.waz.zclient.pages.main.conversationpager.controller.ISlidingPaneController;
@@ -157,12 +153,9 @@ public abstract class Base$$ControllerFactory implements IControllerFactory {
 
   protected IUsernamesController usernamesController;
 
-  protected ICollectionsController collectionsController;
-
   protected boolean isTornDown;
 
   protected Context context;
-  protected Activity activity;
 
   public Base$$ControllerFactory(Context context) {
     this.context = context;
@@ -550,7 +543,6 @@ public abstract class Base$$ControllerFactory implements IControllerFactory {
 
   @Override
   public void setActivity(Activity activity) {
-    this.activity = activity;
     getGlobalLayoutController().setActivity(activity);
     getOrientationController().setActivity(activity);
     getSpotifyController().setActivity(activity);
@@ -628,14 +620,5 @@ public abstract class Base$$ControllerFactory implements IControllerFactory {
             usernamesController = new UsernamesController();
         }
         return usernamesController;
-    }
-
-    @Override
-    public ICollectionsController getCollectionsController() {
-        verifyLifecycle();
-        if (collectionsController == null) {
-            collectionsController = CollectionController.injectedCollectionController(((Injectable) activity), ((WireContext) activity).injector());
-        }
-        return collectionsController;
     }
 }

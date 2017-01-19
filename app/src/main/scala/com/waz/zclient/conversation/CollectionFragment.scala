@@ -133,7 +133,7 @@ class CollectionFragment extends BaseFragment[CollectionFragment.Container] with
           case R.id.close =>
             controller.focusedItem ! None
             controller.targetItem ! None
-            controller.closeCollection()
+            controller.closeCollection
             return true
         }
         false
@@ -153,7 +153,7 @@ class CollectionFragment extends BaseFragment[CollectionFragment.Container] with
       case _ =>
     }
     if (!adapter.onBackPressed)
-      controller.closeCollection()
+      controller.closeCollection
     true
   }
 }

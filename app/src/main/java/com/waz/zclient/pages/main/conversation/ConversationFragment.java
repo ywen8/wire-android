@@ -98,6 +98,7 @@ import com.waz.zclient.controllers.singleimage.SingleImageObserver;
 import com.waz.zclient.controllers.streammediaplayer.StreamMediaBarObserver;
 import com.waz.zclient.controllers.tracking.events.conversation.EditedMessageEvent;
 import com.waz.zclient.controllers.tracking.events.navigation.OpenedMoreActionsEvent;
+import com.waz.zclient.conversation.CollectionController;
 import com.waz.zclient.core.api.scala.ModelObserver;
 import com.waz.zclient.core.controllers.tracking.attributes.OpenedMediaAction;
 import com.waz.zclient.core.controllers.tracking.attributes.RangedAttribute;
@@ -451,7 +452,7 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
             public boolean onMenuItemClick(MenuItem item) {
                 switch (item.getItemId()) {
                     case R.id.action_collection:
-                        getControllerFactory().getCollectionsController().openCollection();
+                        getCollectionController().openCollection();
                         return true;
                 }
                 return false;
@@ -1275,6 +1276,10 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
                 getControllerFactory().getTrackingController().tagEvent(OpenedMediaActionEvent.cursorAction(OpenedMediaAction.GIPHY, conversation));
                 break;
         }
+    }
+
+    private CollectionController getCollectionController() {
+        return ((BaseScalaActivity) getActivity()).injectJava(CollectionController.class);
     }
 
     private GlobalCameraController getCameraController() {
