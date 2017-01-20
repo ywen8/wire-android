@@ -365,6 +365,7 @@ public class ConversationManagerFragment extends BaseFragment<ConversationManage
             getStoreFactory().getParticipantsStore().setCurrentConversation(toConversation);
             conversationModelObserver.setAndUpdate(toConversation);
         }
+        getControllerFactory().getCollectionsController().closeCollection();
     }
 
     @Override

@@ -17,6 +17,8 @@
  */
 package com.waz.zclient.conversation
 
+import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.view.GestureDetector.SimpleOnGestureListener
 import android.view.View.{OnLayoutChangeListener, OnLongClickListener, OnTouchListener}
@@ -69,7 +71,7 @@ class SingleImageCollectionFragment extends BaseFragment[CollectionFragment.Cont
       override def onTouch(v: View, event: MotionEvent): Boolean = gestureDetector.onTouchEvent(event)
     })
 
-    imageView.setImageBitmap(null)
+    imageView.setImageDrawable(new ColorDrawable(Color.TRANSPARENT))
     view
   }
 
