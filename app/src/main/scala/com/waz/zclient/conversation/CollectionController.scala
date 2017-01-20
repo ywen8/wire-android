@@ -25,8 +25,9 @@ import com.waz.api.{IConversation, Message, TypeFilter}
 import com.waz.model._
 import com.waz.service.ZMessaging
 import com.waz.threading.SerialDispatchQueue
-import com.waz.utils.events.{Signal, SourceSignal}
+import com.waz.utils.events.{EventStream, Signal, SourceSignal}
 import com.waz.zclient.controllers.collections.CollectionsObserver
+import com.waz.zclient.conversation.CollectionController.CollectionInfo
 import com.waz.zclient.{Injectable, Injector}
 
 class CollectionController(implicit injector: Injector) extends Injectable {
@@ -51,6 +52,12 @@ class CollectionController(implicit injector: Injector) extends Injectable {
 
   val focusedItem: SourceSignal[Option[MessageData]] = Signal(None)
 
+  val openedCollection = Signal[Option[CollectionInfo]]()
+
+  val openContextMenuForMessage = EventStream[MessageData]()
+
+  val clickedMessage = EventStream[MessageData]()
+
   val targetItem: SourceSignal[Option[MessageData]] = Signal(None)
 
   private def performOnObservers(func: (CollectionsObserver) => Unit) = {
@@ -63,7 +70,7 @@ class CollectionController(implicit injector: Injector) extends Injectable {
 
   def openCollection = performOnObservers(_.openCollection())
 
-  def closeCollection = performOnObservers(_.closeCollection())
+  def closeCollection = { performOnObservers(_.closeCollection()); openedCollection ! None }
 
   def requestPreviousItem(): Unit = performOnObservers(_.previousItemRequested())
 
@@ -84,6 +91,8 @@ object CollectionController {
   def injectedCollectionController(injectable: Injectable)(implicit injector: Injector): CollectionController =  {
     injectable.inject[CollectionController]
   }
+
+  case class CollectionInfo(conversation: ConversationData, empty: Boolean)
 
   trait ContentType {
     val msgTypes: Seq[Message.Type]
