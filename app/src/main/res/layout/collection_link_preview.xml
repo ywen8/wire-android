@@ -21,6 +21,7 @@
 <com.waz.zclient.views.CollectionWebLinkPartView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/collection_link_preview_view"
     android:layout_width="match_parent"
     android:layout_height="@dimen/collections__item_view_height"
     android:layout_marginTop="@dimen/collections__item_top_margin"
