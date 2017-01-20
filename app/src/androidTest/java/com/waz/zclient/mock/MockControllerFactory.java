@@ -19,6 +19,7 @@ package com.waz.zclient.mock;
 
 import android.app.Activity;
 import android.view.View;
+
 import com.waz.zclient.controllers.IControllerFactory;
 import com.waz.zclient.controllers.accentcolor.IAccentColorController;
 import com.waz.zclient.controllers.background.IBackgroundController;
@@ -80,12 +81,9 @@ import com.waz.zclient.controllers.stubs.StubVibratorController;
 import com.waz.zclient.controllers.theme.IThemeController;
 import com.waz.zclient.controllers.tracking.ITrackingController;
 import com.waz.zclient.controllers.usernames.IUsernamesController;
-import com.waz.zclient.controllers.usernames.UsernamesController;
 import com.waz.zclient.controllers.userpreferences.IUserPreferencesController;
 import com.waz.zclient.controllers.verification.IVerificationController;
 import com.waz.zclient.controllers.vibrator.IVibratorController;
-import com.waz.zclient.conversation.ICollectionsController;
-import com.waz.zclient.conversation.StubCollectionController;
 import com.waz.zclient.pages.main.conversation.controller.IConversationScreenController;
 import com.waz.zclient.pages.main.conversationpager.controller.ISlidingPaneController;
 import com.waz.zclient.pages.main.pickuser.controller.IPickUserController;
@@ -158,8 +156,6 @@ public class MockControllerFactory implements IControllerFactory {
   protected IPickUserController pickUserController = spy(StubPickUserController.class);
 
   protected IUsernamesController usernamesController = spy(StubUsernamesController.class);
-
-  protected ICollectionsController collectionsController = spy(StubCollectionController.class);
 
   @Override
   public IFocusController getFocusController() {
@@ -343,8 +339,4 @@ public class MockControllerFactory implements IControllerFactory {
         return usernamesController;
     }
 
-    @Override
-    public ICollectionsController getCollectionsController() {
-        return null;
-    }
 }

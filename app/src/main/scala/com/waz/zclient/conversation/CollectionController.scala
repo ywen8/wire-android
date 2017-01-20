@@ -29,26 +29,7 @@ import com.waz.utils.events.{Signal, SourceSignal}
 import com.waz.zclient.controllers.collections.CollectionsObserver
 import com.waz.zclient.{Injectable, Injector}
 
-trait ICollectionsController {
-
-  def openCollection(): Unit
-
-  def closeCollection(): Unit
-
-  def requestPreviousItem(): Unit
-
-  def requestNextItem(): Unit
-
-  def openShareCollectionItem(messageData: MessageData): Unit
-
-  def closeShareCollectionItem(): Unit
-
-  def addObserver(collectionsObserver: CollectionsObserver): Unit
-
-  def removeObserver(collectionsObserver: CollectionsObserver): Unit
-}
-
-class CollectionController(implicit injector: Injector) extends Injectable with ICollectionsController {
+class CollectionController(implicit injector: Injector) extends Injectable {
 
   private implicit val tag: LogTag = logTagFor[CollectionController]
 
@@ -80,40 +61,21 @@ class CollectionController(implicit injector: Injector) extends Injectable with 
     }
   }
 
-  override def openCollection = performOnObservers(_.openCollection())
+  def openCollection = performOnObservers(_.openCollection())
 
-  override def closeCollection = performOnObservers(_.closeCollection())
+  def closeCollection = performOnObservers(_.closeCollection())
 
-  override def requestPreviousItem(): Unit = performOnObservers(_.previousItemRequested())
+  def requestPreviousItem(): Unit = performOnObservers(_.previousItemRequested())
 
-  override def requestNextItem(): Unit = performOnObservers(_.nextItemRequested())
+  def requestNextItem(): Unit = performOnObservers(_.nextItemRequested())
 
-  override def openShareCollectionItem(messageData: MessageData): Unit = performOnObservers(_.shareCollectionItem(messageData))
+  def openShareCollectionItem(messageData: MessageData): Unit = performOnObservers(_.shareCollectionItem(messageData))
 
-  override def closeShareCollectionItem(): Unit = {performOnObservers(_.closeCollectionShare())}
+  def closeShareCollectionItem(): Unit = {performOnObservers(_.closeCollectionShare())}
 
-  override def addObserver(collectionsObserver: CollectionsObserver): Unit = observers.add(collectionsObserver)
+  def addObserver(collectionsObserver: CollectionsObserver): Unit = observers.add(collectionsObserver)
 
-  override def removeObserver(collectionsObserver: CollectionsObserver): Unit = observers.remove(collectionsObserver)
-}
-
-class StubCollectionController extends ICollectionsController{
-
-  override def openCollection(): Unit = {}
-
-  override def closeCollection(): Unit = {}
-
-  override def requestPreviousItem(): Unit = {}
-
-  override def requestNextItem(): Unit = {}
-
-  override def openShareCollectionItem(messageData: MessageData): Unit = {}
-
-  override def closeShareCollectionItem(): Unit = {}
-
-  override def addObserver(collectionsObserver: CollectionsObserver): Unit = {}
-
-  override def removeObserver(collectionsObserver: CollectionsObserver): Unit = {}
+  def removeObserver(collectionsObserver: CollectionsObserver): Unit = observers.remove(collectionsObserver)
 }
 
 object CollectionController {

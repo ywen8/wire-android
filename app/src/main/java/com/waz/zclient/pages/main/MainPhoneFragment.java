@@ -32,6 +32,7 @@ import com.waz.api.IConversation;
 import com.waz.api.Message;
 import com.waz.api.User;
 import com.waz.model.MessageData;
+import com.waz.zclient.BaseScalaActivity;
 import com.waz.zclient.OnBackPressedListener;
 import com.waz.zclient.R;
 import com.waz.zclient.controllers.accentcolor.AccentColorObserver;
@@ -43,6 +44,7 @@ import com.waz.zclient.controllers.giphy.GiphyObserver;
 import com.waz.zclient.controllers.navigation.Page;
 import com.waz.zclient.controllers.onboarding.OnboardingControllerObserver;
 import com.waz.zclient.controllers.singleimage.SingleImageObserver;
+import com.waz.zclient.conversation.CollectionController;
 import com.waz.zclient.conversation.CollectionFragment;
 import com.waz.zclient.conversation.ShareToMultipleFragment;
 import com.waz.zclient.core.controllers.tracking.attributes.RangedAttribute;
@@ -110,7 +112,7 @@ public class MainPhoneFragment extends BaseFragment<MainPhoneFragment.Container>
         getControllerFactory().getGiphyController().addObserver(this);
         getControllerFactory().getConfirmationController().addConfirmationObserver(this);
         getControllerFactory().getAccentColorController().addAccentColorObserver(this);
-        getControllerFactory().getCollectionsController().addObserver(this);
+        getCollectionController().addObserver(this);
 
         getControllerFactory().getAccentColorController().addAccentColorObserver(backgroundLayout);
         getControllerFactory().getBackgroundController().addBackgroundObserver(backgroundLayout);
@@ -129,7 +131,7 @@ public class MainPhoneFragment extends BaseFragment<MainPhoneFragment.Container>
         getControllerFactory().getOnboardingController().removeOnboardingControllerObserver(this);
         getControllerFactory().getConfirmationController().removeConfirmationObserver(this);
         getControllerFactory().getAccentColorController().removeAccentColorObserver(this);
-        getControllerFactory().getCollectionsController().removeObserver(this);
+        getCollectionController().removeObserver(this);
 
         getControllerFactory().getAccentColorController().removeAccentColorObserver(backgroundLayout);
         getControllerFactory().getBackgroundController().removeBackgroundObserver(backgroundLayout);
@@ -148,6 +150,10 @@ public class MainPhoneFragment extends BaseFragment<MainPhoneFragment.Container>
         getChildFragmentManager().findFragmentById(R.id.fl_fragment_main_content).onActivityResult(requestCode,
                                                                                                    resultCode,
                                                                                                    data);
+    }
+
+    private CollectionController getCollectionController() {
+        return ((BaseScalaActivity) getActivity()).injectJava(CollectionController.class);
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////

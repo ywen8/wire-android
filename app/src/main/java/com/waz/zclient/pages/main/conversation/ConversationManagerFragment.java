@@ -36,6 +36,7 @@ import com.waz.api.UsersList;
 import com.waz.api.Verification;
 import com.waz.api.Message;
 import com.waz.model.MessageData;
+import com.waz.zclient.BaseScalaActivity;
 import com.waz.zclient.OnBackPressedListener;
 import com.waz.zclient.R;
 import com.waz.zclient.controllers.collections.CollectionsObserver;
@@ -46,6 +47,7 @@ import com.waz.zclient.controllers.location.LocationObserver;
 import com.waz.zclient.controllers.navigation.Page;
 import com.waz.zclient.controllers.tracking.events.group.AddedMemberToGroupEvent;
 import com.waz.zclient.controllers.tracking.events.group.CreatedGroupConversationEvent;
+import com.waz.zclient.conversation.CollectionController;
 import com.waz.zclient.conversation.CollectionFragment;
 import com.waz.zclient.core.api.scala.ModelObserver;
 import com.waz.zclient.core.controllers.tracking.attributes.RangedAttribute;
@@ -141,7 +143,7 @@ public class ConversationManagerFragment extends BaseFragment<ConversationManage
             getStoreFactory().getParticipantsStore().setCurrentConversation(currentConversation);
         }
         getControllerFactory().getLocationController().addObserver(this);
-        getControllerFactory().getCollectionsController().addObserver(this);
+        getCollectionController().addObserver(this);
     }
 
     @Override
@@ -153,8 +155,12 @@ public class ConversationManagerFragment extends BaseFragment<ConversationManage
         getControllerFactory().getConversationScreenController().removeConversationControllerObservers(this);
         getStoreFactory().getParticipantsStore().removeParticipantsStoreObserver(this);
         getStoreFactory().getConversationStore().removeConversationStoreObserver(this);
-        getControllerFactory().getCollectionsController().removeObserver(this);
+        getCollectionController().removeObserver(this);
         super.onStop();
+    }
+
+    private CollectionController getCollectionController() {
+        return ((BaseScalaActivity) getActivity()).injectJava(CollectionController.class);
     }
 
     @Override
@@ -365,7 +371,7 @@ public class ConversationManagerFragment extends BaseFragment<ConversationManage
             getStoreFactory().getParticipantsStore().setCurrentConversation(toConversation);
             conversationModelObserver.setAndUpdate(toConversation);
         }
-        getControllerFactory().getCollectionsController().closeCollection();
+        getCollectionController().closeCollection();
     }
 
     @Override

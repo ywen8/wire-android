@@ -49,7 +49,6 @@ import com.waz.zclient.controllers.usernames.IUsernamesController;
 import com.waz.zclient.controllers.userpreferences.IUserPreferencesController;
 import com.waz.zclient.controllers.verification.IVerificationController;
 import com.waz.zclient.controllers.vibrator.IVibratorController;
-import com.waz.zclient.conversation.ICollectionsController;
 import com.waz.zclient.pages.main.conversation.controller.IConversationScreenController;
 import com.waz.zclient.pages.main.conversationpager.controller.ISlidingPaneController;
 import com.waz.zclient.pages.main.pickuser.controller.IPickUserController;
@@ -128,6 +127,4 @@ public interface IControllerFactory {
   IVibratorController getVibratorController();
 
   IUsernamesController getUsernameController();
-
-  ICollectionsController getCollectionsController();
 }
