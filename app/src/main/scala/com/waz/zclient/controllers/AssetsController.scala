@@ -63,6 +63,16 @@ class AssetsController(implicit context: Context, inj: Injector, ec: EventContex
   lazy val singleImage              = inject[ISingleImageController]
   lazy val drawingController        = inject[IDrawingController]
 
+  //TODO make a preference controller for handling UI preferences in conjunction with SE preferences
+  val downloadOnWifiEnabled = for {
+    z <- zms
+    pref <- z.prefs.preference(getString(R.string.pref_options_image_download_key), getString(R.string.zms_image_download_value_always)).signal
+  } yield {
+    pref == getString(R.string.zms_image_download_value_wifi)
+  }
+  downloadOnWifiEnabled.disableAutowiring()
+
+
   val onFileOpened = EventStream[AssetData]()
   val onFileSaved = EventStream[AssetData]()
   val onVideoPlayed = EventStream[AssetData]()
