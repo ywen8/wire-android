@@ -31,7 +31,9 @@ import com.waz.threading.Threading
 import com.waz.utils.events.Signal
 import com.waz.zclient.conversation.CollectionAdapter.AdapterState
 import com.waz.zclient.conversation.CollectionController._
+import com.waz.zclient.messages.controllers.MessageActionsController
 import com.waz.zclient.pages.BaseFragment
+import com.waz.zclient.pages.main.conversation.views.MessageBottomSheetDialog.MessageAction
 import com.waz.zclient.ui.theme.ThemeUtils
 import com.waz.zclient.utils.ViewUtils
 import com.waz.zclient.{FragmentHelper, OnBackPressedListener, R}
@@ -44,6 +46,7 @@ class CollectionFragment extends BaseFragment[CollectionFragment.Container] with
   private implicit val tag: LogTag = logTagFor[CollectionFragment]
 
   lazy val controller = inject[CollectionController]
+  lazy val messageActionsController = inject[MessageActionsController]
   var adapter: CollectionAdapter = null
 
   override def onDestroy(): Unit = {
@@ -73,6 +76,11 @@ class CollectionFragment extends BaseFragment[CollectionFragment.Container] with
     val emptyView: View = ViewUtils.getView(view, R.id.ll__collection__empty)
     val toolbar: Toolbar = ViewUtils.getView(view, R.id.t_toolbar)
     emptyView.setVisibility(View.GONE)
+
+    messageActionsController.onMessageAction.on(Threading.Ui){
+      case (MessageAction.REVEAL, _) => controller.closeCollection; controller.focusedItem ! None
+      case _ =>
+    }
 
     controller.focusedItem.on(Threading.Ui) {
       case Some(md) if md.msgType == Message.Type.ASSET => showSingleImage()
@@ -131,7 +139,6 @@ class CollectionFragment extends BaseFragment[CollectionFragment.Container] with
         item.getItemId match {
           case R.id.close =>
             controller.focusedItem ! None
-            controller.targetItem ! None
             controller.closeCollection
             return true
         }

@@ -63,7 +63,7 @@ trait CollectionItemView extends ViewHelper {
   this.onLongClick {
     messageData.currentValue.foreach(collectionController.openContextMenuForMessage ! _)
     performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
-    messageAndLikesResolver.currentValue.exists(messageActions.showDialog)
+    messageAndLikesResolver.currentValue.exists(messageActions.showDialog(_, fromCollection = true))
   }
 }
 

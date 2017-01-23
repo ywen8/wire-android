@@ -98,16 +98,12 @@ class SingleImageViewToolbar(context: Context, attrs: AttributeSet, style: Int) 
       val options = new util.HashSet[MessageAction]()
       options.add(MessageAction.DELETE_LOCAL)
       options.add(MessageAction.DELETE_GLOBAL)
-      val dialog = new MessageBottomSheetDialog(context, R.style.message__bottom_sheet__base, msg, true, messageActionCallback, options)
+      val dialog = new MessageBottomSheetDialog(context, R.style.message__bottom_sheet__base, msg, true, true, messageActionCallback, options)
       dialog.show()
     } else {
       messageActionsController.onMessageAction ! (MessageAction.DELETE_LOCAL, msg)
     }
   })
 
-  viewButton.onClick(message.currentValue.foreach{m =>
-    collectionController.focusedItem.currentValue.foreach(collectionController.targetItem ! _)
-    collectionController.focusedItem ! None
-    collectionController.closeCollection
-  })
+  viewButton.onClick(message.currentValue.foreach { msg => messageActionsController.onMessageAction ! (MessageAction.REVEAL, msg)})
 }

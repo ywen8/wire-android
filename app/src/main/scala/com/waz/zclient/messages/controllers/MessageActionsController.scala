@@ -64,6 +64,8 @@ class MessageActionsController(implicit injector: Injector, ctx: Context, ec: Ev
   val onDeleteConfirmed = EventStream[(Message, Boolean)]() // Boolean == isRecall(true) or localDelete(false)
   val onAssetSaved = EventStream[Asset]()
 
+  val messageToReveal = Signal[Option[MessageData]]()
+
   private var dialog = Option.empty[MessageBottomSheetDialog]
 
   private val callback = new Callback {
@@ -78,6 +80,7 @@ class MessageActionsController(implicit injector: Injector, ctx: Context, ec: Ev
     case (MessageAction.LIKE, message)             => toggleLike(message)
     case (MessageAction.UNLIKE, message)           => toggleLike(message)
     case (MessageAction.SAVE, message)             => saveMessage(message)
+    case (MessageAction.REVEAL, message)           => revealMessageInConversation(message)
     case _ => // should be handled somewhere else
   }
 
@@ -89,7 +92,7 @@ class MessageActionsController(implicit injector: Injector, ctx: Context, ec: Ev
     zs.membersStorage.isActiveMember(conv, zs.selfUserId)
   }
 
-  def showDialog(data: MessageAndLikes): Boolean = {
+  def showDialog(data: MessageAndLikes, fromCollection: Boolean = false): Boolean = {
     val msg = data.message
     if (msg.isEphemeral) return false
     (for {
@@ -99,7 +102,7 @@ class MessageActionsController(implicit injector: Injector, ctx: Context, ec: Ev
     } yield {
       dialog.foreach(_.dismiss())
       dialog = Some(
-        returning(new MessageBottomSheetDialog(context, R.style.message__bottom_sheet__base, message, isMember, callback)) { d =>
+        returning(new MessageBottomSheetDialog(context, R.style.message__bottom_sheet__base, message, isMember, fromCollection, callback)) { d =>
           d.setOnDismissListener(onDismissed)
           d.show()
         }
@@ -207,6 +210,10 @@ class MessageActionsController(implicit injector: Injector, ctx: Context, ec: Ev
         })
       }
     }
+
+  private def revealMessageInConversation(message: Message) = {
+    zms.flatMap(z => Signal.future(z.messagesStorage.get(MessageId(message.getId)))){ messageToReveal ! _ }
+  }
 }
 
 /**

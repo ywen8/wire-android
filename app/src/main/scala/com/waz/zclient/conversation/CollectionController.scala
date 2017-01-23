@@ -58,8 +58,6 @@ class CollectionController(implicit injector: Injector) extends Injectable {
 
   val clickedMessage = EventStream[MessageData]()
 
-  val targetItem: SourceSignal[Option[MessageData]] = Signal(None)
-
   private def performOnObservers(func: (CollectionsObserver) => Unit) = {
     val collectionObservers: CopyOnWriteArraySet[CollectionsObserver] = new CopyOnWriteArraySet[CollectionsObserver](observers)
     import scala.collection.JavaConversions._

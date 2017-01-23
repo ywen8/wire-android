@@ -50,6 +50,7 @@ public class MessageBottomSheetDialog extends BottomSheetDialog {
         UNLIKE(R.id.message_bottom_menu_item_unlike, R.string.glyph__liked, R.string.message_bottom_menu_action_unlike),
         SAVE(R.id.message_bottom_menu_item_save, R.string.glyph__download, R.string.message_bottom_menu_action_save),
         OPEN_FILE(R.id.message_bottom_menu_item_open_file, R.string.glyph__file, R.string.message_bottom_menu_action_open),
+        REVEAL(R.id.message_bottom_menu_item_reveal, R.string.glyph__view, R.string.message_bottom_menu_action_reveal),
         EDIT(R.id.message_bottom_menu_item_edit, R.string.glyph__edit, R.string.message_bottom_menu_action_edit);
 
         public int resId;
@@ -63,22 +64,22 @@ public class MessageBottomSheetDialog extends BottomSheetDialog {
         }
     }
 
-    public MessageBottomSheetDialog(@NonNull Context context, int theme, @NonNull Message message, boolean isMemberOfConversation, Callback callback) {
+    public MessageBottomSheetDialog(@NonNull Context context, int theme, @NonNull Message message, boolean isMemberOfConversation, boolean isCollection, Callback callback) {
         super(context, theme);
         this.message = message;
         this.callback = callback;
-        init(isMemberOfConversation);
+        init(isMemberOfConversation, isCollection);
     }
 
-    public MessageBottomSheetDialog(@NonNull Context context, int theme, @NonNull Message message, boolean isMemberOfConversation, Callback callback, Set<MessageAction> operations) {
+    public MessageBottomSheetDialog(@NonNull Context context, int theme, @NonNull Message message, boolean isMemberOfConversation, boolean isCollection, Callback callback, Set<MessageAction> operations) {
         super(context, theme);
         this.message = message;
         this.callback = callback;
         chosenOperations = operations;
-        init(isMemberOfConversation);
+        init(isMemberOfConversation, isCollection);
     }
 
-    private void updateOptions(LinearLayout view, boolean isMemberOfConversation) {
+    private void updateOptions(LinearLayout view, boolean isMemberOfConversation, boolean isCollection) {
         view.removeAllViews();
         if (isMemberOfConversation && isLikeAllowed()) {
             if (message.isLikedByThisUser()) {
@@ -90,7 +91,7 @@ public class MessageBottomSheetDialog extends BottomSheetDialog {
         if (isCopyAllowed()) {
             addAction(view, MessageAction.COPY);
         }
-        if (isEditAllowed(isMemberOfConversation)) {
+        if (isEditAllowed(isMemberOfConversation, isCollection)) {
             addAction(view, MessageAction.EDIT);
         }
         if (isSaveAllowed()) {
@@ -108,23 +109,27 @@ public class MessageBottomSheetDialog extends BottomSheetDialog {
         if (isDeleteForEveryoneAllowed(isMemberOfConversation)) {
             addAction(view, MessageAction.DELETE_GLOBAL);
         }
+
+        if (isRevealAllowed(isCollection)) {
+            addAction(view, MessageAction.REVEAL);
+        }
     }
 
     @SuppressLint("InflateParams")
-    private void init(final boolean isMemberOfConversation) {
+    private void init(final boolean isMemberOfConversation, final boolean isCollection) {
         final LinearLayout view = (LinearLayout) getLayoutInflater().inflate(R.layout.message__bottom__menu, null);
 
         ModelObserver<Asset> assetModelObserver = new ModelObserver<Asset>() {
             @Override
             public void updated(Asset model) {
                 if (!model.isEmpty()) {
-                    updateOptions(view, isMemberOfConversation);
+                    updateOptions(view, isMemberOfConversation, isCollection);
                 }
             }
         };
 
         assetModelObserver.setAndUpdate(message.getAsset());
-        updateOptions(view, isMemberOfConversation);
+        updateOptions(view, isMemberOfConversation, isCollection);
         setContentView(view);
     }
 
@@ -258,13 +263,14 @@ public class MessageBottomSheetDialog extends BottomSheetDialog {
         }
     }
 
-    private boolean isEditAllowed(boolean isMemberOfConversation) {
+    private boolean isEditAllowed(boolean isMemberOfConversation, boolean isCollection) {
         if (chosenOperations != null && !chosenOperations.contains(MessageAction.EDIT)) {
             return false;
         }
         if (!isMemberOfConversation ||
             message.isEphemeral() ||
-            !message.getUser().isMe()) {
+            !message.getUser().isMe() ||
+            isCollection) {
             return false;
         }
         switch (message.getMessageType()) {
@@ -303,6 +309,13 @@ public class MessageBottomSheetDialog extends BottomSheetDialog {
 
     private boolean isDeleteLocalAllowed() {
         if (chosenOperations != null && !chosenOperations.contains(MessageAction.DELETE_LOCAL)) {
+            return false;
+        }
+        return true;
+    }
+
+    private boolean isRevealAllowed(Boolean isCollection) {
+        if (!isCollection || (chosenOperations != null && !chosenOperations.contains(MessageAction.REVEAL))) {
             return false;
         }
         return true;

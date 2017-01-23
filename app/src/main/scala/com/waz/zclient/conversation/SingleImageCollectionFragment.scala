@@ -24,6 +24,7 @@ import android.os.Bundle
 import android.support.v4.view.ViewPager.OnPageChangeListener
 import android.support.v4.view.{PagerAdapter, ViewPager}
 import android.util.AttributeSet
+import android.view.View.OnLongClickListener
 import android.view.ViewGroup.LayoutParams
 import android.view._
 import com.waz.api.MessageFilter
@@ -187,6 +188,12 @@ object SingleImageCollectionFragment {
     onLayoutChanged.on(Threading.Ui){
       _ => messageData.currentValue.foreach(md => setAsset(md.assetId))
     }
+
+    setOnLongClickListener(new OnLongClickListener {
+      override def onLongClick(v: View): Boolean = {
+        //messageAndLikes.currentValue.foreach(messageActions.showDialog(_, fromCollection = true))
+      }
+    })
 
     private def setAsset(assetId: AssetId): Unit =
       setImageDrawable(new ImageAssetDrawable(Signal(WireImage(assetId)), scaleType = ImageAssetDrawable.ScaleType.CenterInside))
