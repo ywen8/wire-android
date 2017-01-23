@@ -43,8 +43,11 @@ import com.waz.api.SyncState;
 import com.waz.api.User;
 import com.waz.api.UsersList;
 import com.waz.api.Verification;
+import com.waz.model.MessageData;
+import com.waz.zclient.BaseScalaActivity;
 import com.waz.zclient.OnBackPressedListener;
 import com.waz.zclient.R;
+import com.waz.zclient.controllers.collections.CollectionsObserver;
 import com.waz.zclient.controllers.drawing.DrawingController;
 import com.waz.zclient.controllers.drawing.DrawingObserver;
 import com.waz.zclient.controllers.drawing.IDrawingController;
@@ -53,6 +56,8 @@ import com.waz.zclient.controllers.location.LocationObserver;
 import com.waz.zclient.controllers.navigation.Page;
 import com.waz.zclient.controllers.navigation.PagerControllerObserver;
 import com.waz.zclient.controllers.usernames.UsernamesControllerObserver;
+import com.waz.zclient.conversation.CollectionController;
+import com.waz.zclient.conversation.CollectionFragment;
 import com.waz.zclient.core.api.scala.ModelObserver;
 import com.waz.zclient.core.controllers.tracking.events.media.SentPictureEvent;
 import com.waz.zclient.core.stores.connect.IConnectStore;
@@ -107,7 +112,8 @@ public class RootFragment extends BaseFragment<RootFragment.Container> implement
                                                                        ParticipantsStoreObserver,
                                                                        UsernamesControllerObserver,
                                                                        ConversationFragment.Container,
-                                                                       ConversationListManagerFragment.Container {
+                                                                       ConversationListManagerFragment.Container,
+                                                                       CollectionsObserver {
     public static final String TAG = RootFragment.class.getName();
     private static final Interpolator RIGHT_VIEW_ALPHA_INTERPOLATOR = new Quart.EaseOut();
     private View leftView;
@@ -233,6 +239,7 @@ public class RootFragment extends BaseFragment<RootFragment.Container> implement
         getStoreFactory().getParticipantsStore().addParticipantsStoreObserver(this);
         getControllerFactory().getLocationController().addObserver(this);
         onPagerEnabledStateHasChanged(getControllerFactory().getNavigationController().isPagerEnabled());
+        getCollectionController().addObserver(this);
     }
 
     @Override
@@ -249,6 +256,7 @@ public class RootFragment extends BaseFragment<RootFragment.Container> implement
         getControllerFactory().getPickUserController().removePickUserScreenControllerObserver(this);
         getControllerFactory().getGiphyController().removeObserver(this);
         getControllerFactory().getDrawingController().removeDrawingObserver(this);
+        getCollectionController().removeObserver(this);
         super.onStop();
     }
 
@@ -377,6 +385,51 @@ public class RootFragment extends BaseFragment<RootFragment.Container> implement
                      fragment,
                      tag)
             .commitAllowingStateLoss();
+    }
+
+    private CollectionController getCollectionController() {
+        return ((BaseScalaActivity) getActivity()).injectJava(CollectionController.class);
+    }
+
+    @Override
+    public void openCollection() {
+        getChildFragmentManager().beginTransaction()
+            .setCustomAnimations(R.anim.slide_in_from_bottom_pick_user,
+                R.anim.slide_out_to_bottom_pick_user,
+                R.anim.slide_in_from_bottom_pick_user,
+                R.anim.slide_out_to_bottom_pick_user)
+            .replace(R.id.fl__root__right_view,
+                CollectionFragment.newInstance(),
+                CollectionFragment.TAG())
+            .addToBackStack(CollectionFragment.TAG())
+            .commit();
+        getControllerFactory().getNavigationController().setRightPage(Page.COLLECTION, TAG);
+    }
+
+    @Override
+    public void closeCollection() {
+        getChildFragmentManager().popBackStack(CollectionFragment.TAG(), FragmentManager.POP_BACK_STACK_INCLUSIVE);
+        getControllerFactory().getNavigationController().setRightPage(Page.MESSAGE_STREAM, TAG);
+    }
+
+    @Override
+    public void shareCollectionItem(MessageData messageData) {
+
+    }
+
+    @Override
+    public void closeCollectionShare() {
+
+    }
+
+    @Override
+    public void nextItemRequested() {
+
+    }
+
+    @Override
+    public void previousItemRequested() {
+
     }
 
     @Override
