@@ -36,6 +36,9 @@
 
     <com.waz.zclient.views.SingleImageViewToolbar
         android:layout_width="match_parent"
-        android:layout_height="@dimen/collections__header_height"/>
+        android:layout_height="@dimen/collections__header_height"
+        android:orientation="horizontal"
+        android:background="?lowerCollectionToolbar"
+        android:baselineAligned="false"/>
 
 </LinearLayout>

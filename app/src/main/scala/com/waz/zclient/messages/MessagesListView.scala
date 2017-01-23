@@ -57,14 +57,9 @@ class MessagesListView(context: Context, attrs: AttributeSet, style: Int) extend
   collectionController.targetItem.flatMap{
     case Some(messageData) => adapter.positionForMessage(messageData)
     case _ => Signal.empty[Option[Int]]
-  }.on(Threading.Ui){ pos =>
+  }.on(Threading.Background){ pos =>
     pos.foreach{ p =>
-      val currentPos = layoutManager.findFirstVisibleItemPosition()
-      if (Math.abs(p - currentPos) > 20) {
-        scrollToPosition(p)
-      } else {
-        smoothScrollToPosition(p)
-      }
+      scrollController.scrollToPositionRequested ! p
       collectionController.targetItem ! None
     }
   }

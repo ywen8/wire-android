@@ -29,6 +29,8 @@ class ScrollController(adapter: MessagesListView.Adapter, listHeight: Signal[Int
 
   var shouldScrollToBottom = false
 
+  val scrollToPositionRequested = EventStream[Int]
+
   def onScrolled(lastVisiblePosition: Int) = shouldScrollToBottom = lastVisiblePosition == lastPosition
 
   def onDragging(): Unit = shouldScrollToBottom = false
@@ -63,7 +65,8 @@ class ScrollController(adapter: MessagesListView.Adapter, listHeight: Signal[Int
     onListLoaded map { case UnreadIndex(pos) => Scroll(pos, smooth = false) },
     onScrollToBottomRequested.map(_ => Scroll(lastPosition, smooth = true)),
     listHeight.onChanged.filter(_ => shouldScrollToBottom).map(_ => Scroll(lastPosition, smooth = false)),
-    onMessageAdded.filter(_ => shouldScrollToBottom).map(_ => Scroll(lastPosition, smooth = true))
+    onMessageAdded.filter(_ => shouldScrollToBottom).map(_ => Scroll(lastPosition, smooth = true)),
+    scrollToPositionRequested.map(pos => Scroll(pos, smooth = true))
   ) .filter(_.position >= 0)
 }
 
