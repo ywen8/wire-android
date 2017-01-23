@@ -24,6 +24,7 @@ import android.support.v4.content.ContextCompat
 import android.util.AttributeSet
 import android.widget.LinearLayout
 import com.waz.api.Message
+import com.waz.model.Liking
 import com.waz.service.ZMessaging
 import com.waz.service.messages.MessageAndLikes
 import com.waz.threading.Threading
@@ -51,36 +52,33 @@ class SingleImageViewToolbar(context: Context, attrs: AttributeSet, style: Int) 
   private val deleteButton: GlyphButton = findById(R.id.toolbar_delete)
   private val viewButton: GlyphButton = findById(R.id.toolbar_view)
 
-  private val updateSig: SourceSignal[Boolean] = Signal[Boolean](false)
-
-  private val messageSig = Signal(zms, collectionController.focusedItem, updateSig).flatMap {
-    case (z, Some(msg), _) => Signal.future(z.msgAndLikes.combineWithLikes(msg))
-    case _ => Signal.empty[MessageAndLikes]
+  val message = collectionController.focusedItem.map(_.map(_.id)) collect {
+    case Some(id) => ZMessaging.currentUi.messages.cachedOrNew(id)
   }
+  message.disableAutowiring()
 
-  messageSig.on(Threading.Ui){ updateLikeButton }
-
-  zms.on(Threading.Ui){ z =>
-    z.msgAndLikes.onUpdate{
-      _ => updateSig.mutate(!_)
+  val likedBySelf = collectionController.focusedItem flatMap {
+    case Some(m) => zms.flatMap { z =>
+      z.reactionsStorage.signal((m.id, z.selfUserId)).map(_.action == Liking.like).orElse(Signal const false)
     }
+    case None => Signal.const(false)
   }
 
-  messageActionsController.onDeleteConfirmed.on(Threading.Ui){
+  likedBySelf.on(Threading.Ui){ updateLikeButton }
+
+  messageActionsController.onDeleteConfirmed.on(Threading.Background){
     _ => collectionController.focusedItem ! None
   }
 
-  private def message: Option[Message] = messageSig.currentValue.map(ZMessaging.currentUi.messages.cachedOrUpdated(_))
-
-  private def updateLikeButton(messageAndLikes: MessageAndLikes): Unit = {
-    if (messageAndLikes.likedBySelf) {
+  private def updateLikeButton(liked: Boolean): Unit = {
+    if (liked) {
       likeButton.setText(R.string.glyph__liked)
     } else {
       likeButton.setText(R.string.glyph__like)
     }
   }
 
-  private val messageActionCallback = new Callback {
+  private lazy val messageActionCallback = new Callback {
     override def onAction(action: MessageAction, message: Message): Unit = {
       messageActionsController.onMessageAction ! (action, message)
     }
@@ -92,12 +90,11 @@ class SingleImageViewToolbar(context: Context, attrs: AttributeSet, style: Int) 
   deleteButton.setPressedBackgroundColor(ContextCompat.getColor(getContext, R.color.light_graphite))
   viewButton.setPressedBackgroundColor(ContextCompat.getColor(getContext, R.color.light_graphite))
 
-  likeButton.onClick( message.foreach(msg => messageActionCallback.onAction(MessageAction.LIKE, msg)))
-  downloadButton.onClick( message.foreach(msg => messageActionCallback.onAction(MessageAction.SAVE, msg)))
+  likeButton.onClick( message.currentValue.foreach(msg => messageActionsController.onMessageAction ! (MessageAction.LIKE, msg)))
+  downloadButton.onClick( message.currentValue.foreach(msg => messageActionsController.onMessageAction ! (MessageAction.SAVE, msg)))
+  shareButton.onClick( message.currentValue.foreach(msg => messageActionsController.onMessageAction ! (MessageAction.FORWARD, msg)))
 
-  shareButton.onClick( message.foreach(msg => messageActionCallback.onAction(MessageAction.FORWARD, msg)))
-
-  deleteButton.onClick( message.foreach{msg =>
+  deleteButton.onClick( message.currentValue.foreach{msg =>
     if (msg.getUser.isMe) {
       val options = new util.HashSet[MessageAction]()
       options.add(MessageAction.DELETE_LOCAL)
@@ -105,11 +102,11 @@ class SingleImageViewToolbar(context: Context, attrs: AttributeSet, style: Int) 
       val dialog = new MessageBottomSheetDialog(context, R.style.message__bottom_sheet__base, msg, true, messageActionCallback, options)
       dialog.show()
     } else {
-      messageActionCallback.onAction(MessageAction.DELETE_LOCAL, msg)
+      messageActionsController.onMessageAction ! (MessageAction.DELETE_LOCAL, msg)
     }
   })
 
-  viewButton.onClick(message.foreach{m =>
+  viewButton.onClick(message.currentValue.foreach{m =>
     collectionController.focusedItem.currentValue.foreach(collectionController.targetItem ! _)
     collectionController.focusedItem ! None
     collectionController.closeCollection
