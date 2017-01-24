@@ -28,8 +28,8 @@ import com.waz.api._
 import com.waz.avs.{VideoPreview, VideoRenderer}
 import com.waz.model.VoiceChannelData.ConnectionState
 import com.waz.model._
+import com.waz.service.call.CallInfo
 import com.waz.service.call.FlowManagerService.{StateAndReason, UnknownState}
-import com.waz.service.call.{CallInfo, CallingService}
 import com.waz.threading.Threading
 import com.waz.utils._
 import com.waz.utils.events.{ClockSignal, Signal}
@@ -46,12 +46,6 @@ class CurrentCallController(implicit inj: Injector, cxt: WireContext) extends In
 
   private implicit val eventContext = cxt.eventContext
 
-  private var _isV3Call = false
-  isV3Call(_isV3Call = _)
-
-  private var _v3ServiceAndCurrentConvId = Option.empty[(CallingService, ConvId)]
-  v3ServiceAndCurrentConvId(v => _v3ServiceAndCurrentConvId = Some(v))
-
   val showOngoingControls = callState.map {
     case OTHER_CALLING | OTHERS_CONNECTED | TRANSFER_CALLING | TRANSFER_READY => false
     case _ => true
@@ -60,7 +54,7 @@ class CurrentCallController(implicit inj: Injector, cxt: WireContext) extends In
   val videoSendState = isV3Call.flatMap {
     case true => v3Call.map(_.videoSendState)
     case _ => currentChannel map (_.video.videoSendState)
-  }
+  }.disableAutowiring()
 
   val flowManager = zms map (_.flowmanager)
 
@@ -100,7 +94,7 @@ class CurrentCallController(implicit inj: Injector, cxt: WireContext) extends In
   val callEstablished = isV3Call.flatMap {
     case true => v3Call.map(_.state == SELF_CONNECTED)
     case _ => currentChannel map (_.deviceState == ConnectionState.Connected)
-  }
+  }.disableAutowiring()
 
   val onCallEstablished = callEstablished.onChanged
 
@@ -200,16 +194,10 @@ class CurrentCallController(implicit inj: Injector, cxt: WireContext) extends In
     }
   }
 
-  //Set the following signals to keep track of updates as the following methods rely on their values
-  v2ServiceAndCurrentConvId.disableAutowiring()
-  videoCall.disableAutowiring()
-  muted.disableAutowiring()
-  videoSendState.disableAutowiring()
-  callEstablished.disableAutowiring()
-
   def dismissCall(): Unit = {
-    verbose(s"dismiss call. isV3?: ${_isV3Call}")
-    if (_isV3Call) _v3ServiceAndCurrentConvId.foreach {
+    verbose(s"dismiss call. isV3?: ${isV3Call.currentValue.getOrElse(false)}")
+
+    if (isV3Call.currentValue.getOrElse(false)) v3ServiceAndCurrentConvId.currentValue.foreach {
       case (cs, id) => cs.endCall(id)
     }
     else v2ServiceAndCurrentConvId.currentValue.foreach {
@@ -218,8 +206,8 @@ class CurrentCallController(implicit inj: Injector, cxt: WireContext) extends In
   }
 
   def leaveCall(): Unit = {
-    verbose(s"leave call. isV3?: ${_isV3Call}")
-    if (_isV3Call) _v3ServiceAndCurrentConvId.foreach {
+    verbose(s"leave call. isV3?: ${isV3Call.currentValue.getOrElse(false)}")
+    if (isV3Call.currentValue.getOrElse(false)) v3ServiceAndCurrentConvId.currentValue.foreach {
       case (cs, id) => cs.endCall(id)
     }
     else v2ServiceAndCurrentConvId.currentValue.foreach {
@@ -240,8 +228,8 @@ class CurrentCallController(implicit inj: Injector, cxt: WireContext) extends In
   }
 
   def toggleMuted(): Unit =
-    if (_isV3Call)
-      _v3ServiceAndCurrentConvId.foreach(_._1.setCallMuted(!muted.currentValue.getOrElse(false)))
+    if (isV3Call.currentValue.getOrElse(false))
+      v3ServiceAndCurrentConvId.currentValue.foreach(_._1.setCallMuted(!muted.currentValue.getOrElse(false)))
     else
       v2ServiceAndCurrentConvId.currentValue.foreach {
         case (vcs, id) => if (muted.currentValue.getOrElse(false)) vcs.unmuteVoiceChannel(id) else vcs.muteVoiceChannel(id)
@@ -249,8 +237,8 @@ class CurrentCallController(implicit inj: Injector, cxt: WireContext) extends In
 
   def toggleVideo(): Unit = {
     val state = videoSendState.currentValue.getOrElse(DONT_SEND)
-    if (_isV3Call)
-      _v3ServiceAndCurrentConvId.foreach {
+    if (isV3Call.currentValue.getOrElse(false))
+      v3ServiceAndCurrentConvId.currentValue.foreach {
         case (s, cId) => s.setVideoSendActive(cId, if(state == SEND) false else true)
       }
     else v2ServiceAndCurrentConvId.currentValue.foreach {

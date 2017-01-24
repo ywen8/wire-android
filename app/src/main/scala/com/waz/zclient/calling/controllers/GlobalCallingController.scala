@@ -44,7 +44,7 @@ class GlobalCallingController(implicit inj: Injector, cxt: WireContext, eventCon
     *
     * Note, any signals which are PART of another signal (zipped or flatmapped) which needs to be aware of Nones should also
     * be careful to handle Nones themselves. This is because if a signal is collected, and the value is None, the individual
-    * signal becomes empty, and so prevents the group of signals - of which it is a part of - from firing.
+    * signal becomes empty, and so prevents the group of signals - of which it is a part of - from firing...
     */
 
   val zmsOpt = inject[Signal[Option[ZMessaging]]]
@@ -57,7 +57,7 @@ class GlobalCallingController(implicit inj: Injector, cxt: WireContext, eventCon
   val isV3Call = v3CallOpt.map {
     case Some(IsActive()) => true
     case _ => false
-  }
+  }.disableAutowiring()
 
   val convIdOpt = isV3Call.flatMap {
     case true => v3CallOpt.map(_.flatMap(_.convId))
@@ -110,7 +110,7 @@ class GlobalCallingController(implicit inj: Injector, cxt: WireContext, eventCon
       case Some(c) => c.muted
       case _ => false
     }
-  }
+  }.disableAutowiring()
 
   val videoCall = isV3Call.flatMap {
     case true => v3CallOpt.map {
@@ -121,10 +121,10 @@ class GlobalCallingController(implicit inj: Injector, cxt: WireContext, eventCon
       case Some(c) => c.video.isVideoCall
       case _ => false
     }
-  }
+  }.disableAutowiring()
 
   /**
-    * And here is where their proper is important.
+    * ...And from here on is where only their proper value is important.
     */
 
   private var _wasUiActiveOnCallStart = false
@@ -184,20 +184,20 @@ class GlobalCallingController(implicit inj: Injector, cxt: WireContext, eventCon
 
   val v2Service = zms.map(_.voice)
 
-  val v3Service = zms.map(_.calling)
+  val v3Service = zms.map(_.calling).disableAutowiring()
   val v3Call = v3Service.flatMap(_.currentCall)
 
   val convId = convIdOpt.collect { case Some(c) => c }
 
-  val v2ServiceAndCurrentConvId = for {
+  val v2ServiceAndCurrentConvId = (for {
     vcs <- v2Service
     cId <- convId
-  } yield (vcs, cId)
+  } yield (vcs, cId)).disableAutowiring()
 
-  val v3ServiceAndCurrentConvId = for {
+  val v3ServiceAndCurrentConvId = (for {
     svc <- v3Service
     c <- convId
-  } yield (svc, c)
+  } yield (svc, c)).disableAutowiring()
 
   val currentChannel = currentChannelOpt.collect { case Some(c) => c }
 

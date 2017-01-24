@@ -17,9 +17,11 @@
  */
 package com.waz.zclient.calling.controllers
 
+import com.waz.ZLog.ImplicitTag._
+import com.waz.ZLog._
 import com.waz.api.VoiceChannelState
 import com.waz.model.ConvId
-import com.waz.service.call.CallingService
+import com.waz.utils.events.Signal
 import com.waz.zclient._
 import com.waz.zclient.common.controllers.{CameraPermission, PermissionsController, RecordAudioPermission}
 
@@ -37,38 +39,33 @@ class CallPermissionsController(implicit inj: Injector, cxt: WireContext) extend
 
   val permissionsController = inject[PermissionsController]
 
-  val autoAnswerPreference = prefs.flatMap(p => p.uiPreferenceBooleanSignal(p.autoAnswerCallPrefKey).signal)
-  val callV3Preference = prefs.flatMap(p => p.uiPreferenceBooleanSignal(p.callingV3Key).signal)
-
-  val incomingCall = callState.map {
-    case VoiceChannelState.OTHER_CALLING => true
-    case _ => false
-  }
-
-  incomingCall.zip(autoAnswerPreference) {
-    case (true, true) => acceptCall()
+  val useV3 = prefs.flatMap(p => p.uiPreferenceStringSignal(p.callingV3Key).signal).flatMap {
+    case "0" => Signal.const(false) // v2
+    case "1" => v3Service.flatMap(_.requestedCallVersion).map { v =>
+      verbose(s"Relying on backend switch: using calling version: $v")
+      v == 3 // use BE switch
+    }
+    case "2" => Signal.const(true) // v3
     case _ =>
+      warn("Unexpected calling v3 preference, defaulting to v2")
+      Signal.const(false)
+  }.disableAutowiring()
+
+  (for {
+    incomingCall <- callState.map {
+      case VoiceChannelState.OTHER_CALLING => true
+      case _ => false
+    }
+    autoAnswer <- prefs.flatMap(p => p.uiPreferenceBooleanSignal(p.autoAnswerCallPrefKey).signal)
+  } yield (incomingCall, autoAnswer)) {
+    case (true, true) => acceptCall()
+    case _ => //
   }
-
-  private var _isV3Call = false
-  isV3Call(_isV3Call = _)
-
-  private var v3Pref = false
-  callV3Preference(v3Pref = _)
-
-  private var _v3Service = Option.empty[CallingService]
-  v3Service(s => _v3Service = Some(s))
-
-  private var _v3ServiceAndCurrentConvId = Option.empty[(CallingService, ConvId)]
-  v3ServiceAndCurrentConvId(v => _v3ServiceAndCurrentConvId = Some(v))
-
-  private var _convId = Option.empty[ConvId]
-  convId (c => _convId = Some(c))
 
   def startCall(convId: ConvId, withVideo: Boolean): Unit = {
     permissionsController.requiring(if (withVideo) Set(CameraPermission, RecordAudioPermission) else Set(RecordAudioPermission)) {
-      if (v3Pref)
-        _v3Service.foreach(_.startCall(convId, withVideo))
+      if (callV3Preference.currentValue.getOrElse(false))
+        v3Service.currentValue.foreach(_.startCall(convId, withVideo))
       else
         v2Service.currentValue.foreach(_.joinVoiceChannel(convId, withVideo))
 
@@ -78,8 +75,8 @@ class CallPermissionsController(implicit inj: Injector, cxt: WireContext) extend
 
   def acceptCall(): Unit = {
     //TODO handle permissions for v3
-    if (_isV3Call) {
-      (videoCall.currentValue.getOrElse(false), _v3ServiceAndCurrentConvId) match {
+    if (isV3Call.currentValue.getOrElse(false)) {
+      (videoCall.currentValue.getOrElse(false), v3ServiceAndCurrentConvId.currentValue) match {
         case (withVideo, Some((vcs, id))) =>
           permissionsController.requiring(if (withVideo) Set(CameraPermission, RecordAudioPermission) else Set(RecordAudioPermission)) {
             vcs.acceptCall(id)
