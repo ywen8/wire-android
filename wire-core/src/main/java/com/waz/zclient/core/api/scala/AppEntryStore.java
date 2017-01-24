@@ -358,6 +358,9 @@ public class AppEntryStore implements IAppEntryStore, ErrorsList.ErrorListener {
 
     @Override
     public void triggerStateUpdate() {
+        if (currentState == null) {
+            return;
+        }
         setStateInternal(currentState, true);
     }
 
