@@ -18,9 +18,10 @@
 package com.waz.zclient.calling.controllers
 
 import com.waz.ZLog.ImplicitTag._
-import com.waz.ZLog._
+import com.waz.ZLog.{verbose, warn}
 import com.waz.api.VoiceChannelState
 import com.waz.model.ConvId
+import com.waz.service.call.{CallingService, VoiceChannelService}
 import com.waz.utils.events.Signal
 import com.waz.zclient._
 import com.waz.zclient.common.controllers.{CameraPermission, PermissionsController, RecordAudioPermission}
@@ -64,37 +65,34 @@ class CallPermissionsController(implicit inj: Injector, cxt: WireContext) extend
 
   def startCall(convId: ConvId, withVideo: Boolean): Unit = {
     permissionsController.requiring(if (withVideo) Set(CameraPermission, RecordAudioPermission) else Set(RecordAudioPermission)) {
-      if (callV3Preference.currentValue.getOrElse(false))
+      if (useV3.currentValue.getOrElse(false))
         v3Service.currentValue.foreach(_.startCall(convId, withVideo))
       else
         v2Service.currentValue.foreach(_.joinVoiceChannel(convId, withVideo))
-
     }(R.string.calling__cannot_start__title,
       if (withVideo) R.string.calling__cannot_start__no_video_permission__message else R.string.calling__cannot_start__no_permission__message)
   }
 
   def acceptCall(): Unit = {
-    //TODO handle permissions for v3
-    if (isV3Call.currentValue.getOrElse(false)) {
-      (videoCall.currentValue.getOrElse(false), v3ServiceAndCurrentConvId.currentValue) match {
-        case (withVideo, Some((vcs, id))) =>
-          permissionsController.requiring(if (withVideo) Set(CameraPermission, RecordAudioPermission) else Set(RecordAudioPermission)) {
-            vcs.acceptCall(id)
-          }(R.string.calling__cannot_start__title,
-            if (withVideo) R.string.calling__cannot_start__no_video_permission__message else R.string.calling__cannot_start__no_permission__message,
-            vcs.endCall(id))
-        case _ =>
-      }
-    } else {
-      (videoCall.currentValue.getOrElse(false), v2ServiceAndCurrentConvId.currentValue) match {
-        case (withVideo, Some((vcs, id))) =>
-          permissionsController.requiring(if (withVideo) Set(CameraPermission, RecordAudioPermission) else Set(RecordAudioPermission)) {
-            vcs.joinVoiceChannel(id, withVideo)
-          }(R.string.calling__cannot_start__title,
-            if (withVideo) R.string.calling__cannot_start__no_video_permission__message else R.string.calling__cannot_start__no_permission__message,
-            vcs.silenceVoiceChannel(id))
-        case _ =>
-      }
+    val withVideo = videoCall.currentValue.getOrElse(false)
+    val v3 = isV3Call.currentValue.getOrElse(false)
+
+    def withV3(f: (CallingService, ConvId) => Unit) = v3ServiceAndCurrentConvId.currentValue.foreach { case (cs, id) => f(cs, id) }
+    def withV2(f: (VoiceChannelService, ConvId) => Unit) = v2ServiceAndCurrentConvId.currentValue.foreach { case (vcs, id) => vcs.joinVoiceChannel(id, withVideo) }
+
+    def acceptCall(): Unit = v3 match {
+      case true => withV3 { (cs, id) => cs.acceptCall(id) }
+      case _    => withV2 { (vcs, id) => vcs.joinVoiceChannel(id, withVideo) }
     }
+
+    def rejectCall(): Unit = v3 match {
+      case true => withV3 { (cs, id) => cs.endCall(id) }
+      case _    => withV2 { (vcs, id) => vcs.silenceVoiceChannel(id) }
+    }
+
+    permissionsController.requiring(if (videoCall.currentValue.getOrElse(false)) Set(CameraPermission, RecordAudioPermission) else Set(RecordAudioPermission)) {
+      acceptCall()
+    } (R.string.calling__cannot_start__title, if (withVideo) R.string.calling__cannot_start__no_video_permission__message else R.string.calling__cannot_start__no_permission__message,
+      rejectCall())
   }
 }
