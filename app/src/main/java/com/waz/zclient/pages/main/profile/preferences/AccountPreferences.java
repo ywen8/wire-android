@@ -127,6 +127,9 @@ public class AccountPreferences extends BasePreferenceFragment<AccountPreference
         usernamePreference.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
             @Override
             public boolean onPreferenceClick(Preference preference) {
+                if (getStoreFactory() == null || getStoreFactory().isTornDown() || getStoreFactory().getProfileStore().getSelfUser() == null) {
+                    return false;
+                }
                 String username = getStoreFactory().getProfileStore().getSelfUser().getUsername();
                 changeUsername(username, true);
                 return true;
