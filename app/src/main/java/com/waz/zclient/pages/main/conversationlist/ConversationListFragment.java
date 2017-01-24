@@ -487,6 +487,9 @@ public class ConversationListFragment extends BaseFragment<ConversationListFragm
                     new Handler().post(new Runnable() {
                         @Override
                         public void run() {
+                            if (swipeListView == null || getStoreFactory().isTornDown()) {
+                                return;
+                            }
                             int pos = getStoreFactory().getConversationStore().getPositionInList(finalToConversation);
                             int selectionPos =
                                 pos - LIST_VIEW_POSITION_OFFSET < 0 ? 0 : pos - LIST_VIEW_POSITION_OFFSET;
