@@ -42,6 +42,7 @@ import com.waz.zclient.messages.{MessageViewPart, MsgPart}
 import com.waz.zclient.pages.main.conversation.views.AspectRatioImageView
 import com.waz.zclient.utils.ZTimeFormatter._
 import com.waz.zclient.utils.{ViewUtils, _}
+import com.waz.zclient.views.ImageAssetDrawable.RequestBuilder
 import com.waz.zclient.views.ImageController.{ImageSource, WireImage}
 import com.waz.zclient.{R, ViewHelper}
 import org.threeten.bp.{LocalDateTime, ZoneId}
@@ -111,7 +112,7 @@ class CollectionImageView(context: Context) extends AspectRatioImageView(context
   val image: Signal[ImageSource] = messageData.map(md => WireImage(md.assetId))
 
   private val dotsDrawable = new ProgressDotsDrawable
-  private val imageDrawable = new RoundedImageAssetDrawable(image, scaleType = ImageAssetDrawable.ScaleType.CenterCrop, cornerRadius = CornerRadius)
+  private val imageDrawable = new RoundedImageAssetDrawable(image, scaleType = ImageAssetDrawable.ScaleType.CenterCrop, cornerRadius = CornerRadius, request = RequestBuilder.Single)
 
   setBackground(dotsDrawable)
   setImageDrawable(imageDrawable)
