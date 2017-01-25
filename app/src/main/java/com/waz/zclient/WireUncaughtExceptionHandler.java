@@ -33,9 +33,9 @@ class WireUncaughtExceptionHandler implements Thread.UncaughtExceptionHandler {
     @Override
     public void uncaughtException(Thread thread, Throwable throwable) {
         try {
-            Throwable cause = throwable.getCause();
-            if (cause == null) {
-                cause = throwable;
+            Throwable cause = throwable;
+            while (cause.getCause() != null) {
+                cause = cause.getCause();
             }
             StackTraceElement[] stack = cause.getStackTrace();
 
