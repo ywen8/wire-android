@@ -24,6 +24,7 @@ import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Path;
+import android.graphics.Rect;
 import android.graphics.RectF;
 import android.util.AttributeSet;
 import android.view.GestureDetector;
@@ -283,71 +284,105 @@ public class DrawingCanvasView extends View {
         }
     }
 
-    public float getBackgroundBitmapToCanvasWidthRatio() {
-        return (float) canvas.getWidth() / backgroundBitmap.getWidth();
-    }
+    public Rect getImageTrimValues() {
+        int top = bitmap.getHeight();
+        int left = bitmap.getWidth();
+        int right = 0;
+        int bottom = 0;
 
-    public int getBackgroundBitmapTop() {
-        float ratio = getBackgroundBitmapToCanvasWidthRatio();
-        return (int) ((canvas.getHeight() - (ratio * backgroundBitmap.getHeight())) / 2);
-    }
+        boolean checkLeftRight = true;
+        boolean checkTopBottom = true;
 
-    public int getLandscapeBackgroundBitmapHeight() {
-        return (int) (backgroundBitmap.getHeight() * getBackgroundBitmapToCanvasWidthRatio());
-    }
+        int bitmapTop = 0;
+        int bitmapBottom = 0;
+        int bitmapLeft = 0;
+        int bitmapRight = 0;
+        if (includeBackgroundImage) {
+            if (isBackgroundBitmapLandscape) {
+                left = 0;
+                right = bitmap.getWidth();
+                checkLeftRight = false;
 
-    public int getTopTrimValue(boolean isLandscape) {
-        if (!isLandscape) {
-            return 0;
+                bitmapTop = bitmap.getHeight() / 2 - backgroundBitmap.getHeight() / 2;
+                top = bitmapTop;
+                bitmapBottom = bitmap.getHeight() / 2 + backgroundBitmap.getHeight() / 2;
+                bottom = bitmapBottom;
+            } else {
+                top = 0;
+                bottom = bitmap.getHeight();
+                checkTopBottom = false;
+
+                float ratio = (float) canvas.getHeight() / backgroundBitmap.getHeight();
+                int imageWidth = (int) (backgroundBitmap.getWidth() * ratio);
+
+                bitmapLeft = bitmap.getWidth() / 2 - imageWidth / 2;
+                left = bitmapLeft;
+                bitmapRight = bitmap.getWidth() / 2 + imageWidth / 2;
+                right = bitmapRight;
+            }
         }
-
-        int topTrimValue = bitmap.getHeight();
 
         for (SketchCanvasHistory.HistoryItem historyItem: canvasHistory.getHistoryItems()) {
             if (historyItem instanceof SketchCanvasHistory.FilledScreen) {
-                topTrimValue = 0;
+                top = 0;
+                bottom = bitmap.getHeight();
+                left = 0;
+                right = bitmap.getWidth();
                 break;
             } else if (historyItem instanceof SketchCanvasHistory.Stroke) {
                 RectF bounds = ((SketchCanvasHistory.Stroke) historyItem).getBounds();
-                if (isLandscape) {
-                    topTrimValue = Math.min(topTrimValue, (int) bounds.top);
-                } else {
-                    topTrimValue = Math.min(topTrimValue, (int) bounds.top);
+                if (checkTopBottom) {
+                    top = Math.min(top, (int) bounds.top);
+                    bottom = Math.max(bottom, (int) bounds.bottom);
+                }
+                if (checkLeftRight) {
+                    left = Math.min(left, (int) bounds.left);
+                    right = Math.max(right, (int) bounds.right);
                 }
             } else if (historyItem instanceof SketchCanvasHistory.Emoji) {
                 SketchCanvasHistory.Emoji emoji = (SketchCanvasHistory.Emoji) historyItem;
-                topTrimValue = (int) Math.min(topTrimValue, emoji.y - emoji.paint.getTextSize());
-            }
-        }
-        return Math.max(topTrimValue - trimBuffer, 0);
-    }
-
-    public int getBottomTrimValue(boolean isLandscape) {
-        if (!isLandscape) {
-            return bitmap.getHeight();
-        }
-
-        int bottomTrimValue = 0;
-        for (SketchCanvasHistory.HistoryItem historyItem: canvasHistory.getHistoryItems()) {
-            if (historyItem instanceof SketchCanvasHistory.FilledScreen) {
-                bottomTrimValue = bitmap.getHeight();
-                break;
-            } else if (historyItem instanceof SketchCanvasHistory.Stroke) {
-                RectF bounds = ((SketchCanvasHistory.Stroke) historyItem).getBounds();
-                if (isLandscape) {
-                    bottomTrimValue = Math.max(bottomTrimValue, (int) bounds.bottom);
-                } else {
-                    bottomTrimValue = Math.max(bottomTrimValue, (int) bounds.bottom);
+                if (checkTopBottom) {
+                    top = Math.min(top, (int) (emoji.y - emoji.paint.getTextSize()));
+                    bottom = Math.max(bottom, (int) (emoji.y));
                 }
-            } else if (historyItem instanceof SketchCanvasHistory.Emoji) {
-                bottomTrimValue = (int) Math.max(bottomTrimValue, ((SketchCanvasHistory.Emoji) historyItem).y);
+                if (checkLeftRight) {
+                    left = Math.min(left, (int) emoji.x);
+                    right = Math.max(right, (int) (emoji.x + emoji.paint.getTextSize()));
+                }
+            } else if (historyItem instanceof SketchCanvasHistory.Text) {
+                SketchCanvasHistory.Text text = (SketchCanvasHistory.Text) historyItem;
+                if (checkTopBottom) {
+                    top = Math.min(top, (int) (text.y - text.paint.getTextSize()));
+                    bottom = Math.max(bottom, (int) (text.y));
+                }
+                if (checkLeftRight) {
+                    left = Math.min(left, (int) text.x);
+                    right = Math.max(right, (int) (text.x + text.paint.getTextSize()));
+                }
             }
         }
-        return Math.min(bottomTrimValue + trimBuffer, bitmap.getHeight());
-    }
-
-    public boolean isBackgroundImageLandscape() {
-        return isBackgroundBitmapLandscape;
+        int topTrimBuffer = trimBuffer;
+        int bottomTrimBuffer = trimBuffer;
+        int leftTrimBuffer = trimBuffer;
+        int rightTrimBuffer = trimBuffer;
+        if (includeBackgroundImage) {
+            if (left >= bitmapLeft) {
+                leftTrimBuffer = 0;
+            }
+            if (right <= bitmapRight) {
+                rightTrimBuffer = 0;
+            }
+            if (top >= bitmapTop) {
+                topTrimBuffer = 0;
+            }
+            if (bottom <= bitmapBottom) {
+                bottomTrimBuffer = 0;
+            }
+        }
+        return new Rect(Math.max(0, left - leftTrimBuffer),
+                        Math.max(0, top - topTrimBuffer),
+                        Math.min(bitmap.getWidth(), right + rightTrimBuffer),
+                        Math.min(bitmap.getHeight(), bottom + bottomTrimBuffer));
     }
 
     public void setDrawingColor(int color) {
@@ -429,7 +464,6 @@ public class DrawingCanvasView extends View {
         int horizontalMargin;
         int imageHeight;
         int imageWidth;
-        float ratio;
 
         if (isBackgroundBitmapLandscape) {
             horizontalMargin = 0;
@@ -438,7 +472,7 @@ public class DrawingCanvasView extends View {
             src = new RectF(0, 0, backgroundBitmap.getWidth(), backgroundBitmap.getHeight());
             dest = new RectF(0, 0, imageWidth, imageHeight);
         } else {
-            ratio = (float) canvas.getHeight() / backgroundBitmap.getHeight();
+            float ratio = (float) canvas.getHeight() / backgroundBitmap.getHeight();
             imageWidth = (int) (backgroundBitmap.getWidth() * ratio);
             imageHeight = canvas.getHeight();
             horizontalMargin = (canvas.getWidth() / 2) - (imageWidth / 2);

@@ -23,6 +23,7 @@ import android.content.Intent;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.Color;
+import android.graphics.Rect;
 import android.hardware.Sensor;
 import android.hardware.SensorManager;
 import android.media.ExifInterface;
@@ -70,7 +71,6 @@ import com.waz.zclient.utils.PermissionUtils;
 import com.waz.zclient.utils.TrackingUtils;
 import com.waz.zclient.utils.ViewUtils;
 import com.waz.zclient.utils.debug.ShakeEventListener;
-import net.hockeyapp.android.ExceptionHandler;
 
 import java.util.Locale;
 
@@ -551,32 +551,12 @@ public class DrawingFragment extends BaseFragment<DrawingFragment.Container> imp
     private ImageAsset getFinalSketchImage() {
         Bitmap finalBitmap = getBitmapDrawing();
         try {
-            int x;
-            int y;
-            int width;
-            int height;
-            if (drawingCanvasView.isBackgroundImageLandscape()) {
-                x = 0;
-                y = drawingCanvasView.getTopTrimValue(true);
-                width = finalBitmap.getWidth();
-                height = drawingCanvasView.getBottomTrimValue(true) - y;
-
-                if (height < drawingCanvasView.getLandscapeBackgroundBitmapHeight()) {
-                    y = drawingCanvasView.getBackgroundBitmapTop();
-                    height = drawingCanvasView.getLandscapeBackgroundBitmapHeight();
-                }
-            } else {
-                x = 0;
-                y = drawingCanvasView.getTopTrimValue(false);
-                width = finalBitmap.getWidth();
-                height = drawingCanvasView.getBottomTrimValue(false) - y;
-            }
-            MemoryImageCache.reserveImageMemory(width, height);
-            finalBitmap = Bitmap.createBitmap(finalBitmap, x, y, width, height);
-        } catch (OutOfMemoryError outOfMemoryError) {
-            ExceptionHandler.saveException(outOfMemoryError, null);
+            Rect bitmapTrim = drawingCanvasView.getImageTrimValues();
+            MemoryImageCache.reserveImageMemory(bitmapTrim.width(), bitmapTrim.height());
+            finalBitmap = Bitmap.createBitmap(finalBitmap, bitmapTrim.left, bitmapTrim.top, bitmapTrim.width(), bitmapTrim.height());
+        } catch (Throwable t) {
+            // ignore
         }
-
         return ImageAssetFactory.getImageAsset(finalBitmap, ExifInterface.ORIENTATION_NORMAL);
     }
 
