@@ -31,6 +31,7 @@ import com.waz.zclient.ZApplication;
 import com.waz.zclient.controllers.userpreferences.IUserPreferencesController;
 import com.waz.zclient.core.stores.IStoreFactory;
 import com.waz.zclient.core.stores.api.IZMessagingApiStore;
+import timber.log.Timber;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -64,6 +65,9 @@ public class SpotifyController implements ISpotifyController {
 
     @Override
     public void login(Activity activity) {
+        if (spotify == null || spotify.getClientId() == null) {
+            Timber.w("Something went wrong, unable to login to Spotify");
+        }
         userPreferenceController.incrementSpotifyLoginTriesCount();
         AuthenticationRequest.Builder builder = new AuthenticationRequest.Builder(spotify.getClientId(),
                                                                                   AuthenticationResponse.Type.CODE,
