@@ -31,6 +31,7 @@ import android.os.Environment;
 import android.provider.DocumentsContract;
 import android.provider.MediaStore;
 import android.webkit.MimeTypeMap;
+import timber.log.Timber;
 
 import java.util.List;
 
@@ -156,6 +157,8 @@ public class AssetUtils {
                 final int columnIndex = cursor.getColumnIndexOrThrow(column);
                 return cursor.getString(columnIndex);
             }
+        } catch (Exception e) {
+            Timber.w(e, "Unable to get data column");
         } finally {
             if (cursor != null) {
                 cursor.close();

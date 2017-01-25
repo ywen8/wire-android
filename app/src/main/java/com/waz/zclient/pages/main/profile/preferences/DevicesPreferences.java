@@ -116,6 +116,9 @@ public class DevicesPreferences extends BasePreferenceFragment<DevicesPreference
         otrClientSubscription = otrClient.subscribe(new Subscriber<OtrClient>() {
             @Override
             public void next(OtrClient value) {
+                if (getActivity() == null) {
+                    return;
+                }
                 currentOtrClientPreferenceGroup.setTitle(getString(R.string.pref_devices_current_device_category_title));
                 currentOtrClientPreferenceGroup.removeAll();
 
