@@ -162,11 +162,14 @@
     <string translatable="false" name="pref_dev_version_info_id_key">USER_PREFS_DEV_VERSIONS_ID</string>
     <string translatable="false" name="pref_dev_version_info_id_title">Versions</string>
     <string translatable="false" name="pref_dev_assets_v3_key">@string/zms_assets_v3</string>
-    <string translatable="false" name="pref_dev_assets_v3_title">Send assets using API v3</string>
+    <string translatable="false" name="pref_dev_assets_v3_title">Assets v3</string>
+    <string translatable="false" name="pref_dev_assets_v3_summary">Send assets using the Assets v3 API</string>
+    <string translatable="false" name="pref_dev_calling_v3_key">@string/zms_calling_v3</string>
+    <string translatable="false" name="pref_dev_calling_v3_title">Calling v3</string>
+    <string translatable="false" name="pref_dev_calling_v3_dialog_title">Select a calling version</string>
     <string translatable="false" name="pref_dev_net_debug_key">USER_PREFS_DEV_NET_DEBUG_ID</string>
     <string translatable="false" name="pref_dev_net_debug_title">Press for network info</string>
     <string translatable="false" name="pref_dev_net_debug_summary">Do it!</string>
-
 
     <!--Notifications preferences-->
     <string translatable="false" name="pref_dev_category_notifications_key">PREF_NOTIFICATIONS_CATEGORY</string>

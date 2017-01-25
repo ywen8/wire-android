@@ -18,64 +18,122 @@
 package com.waz.zclient.calling.controllers
 
 import _root_.com.waz.api.VoiceChannelState._
-import _root_.com.waz.model.VoiceChannelData
 import _root_.com.waz.service.ZMessaging
 import _root_.com.waz.utils.events.{EventContext, Signal}
 import android.os.PowerManager
+import com.waz.api.{IConversation, KindOfCall, VoiceChannelState}
+import com.waz.model.{UserId, VoiceChannelData}
+import com.waz.service.call.CallInfo
+import com.waz.service.call.CallInfo._
 import com.waz.threading.Threading
 import com.waz.zclient.calling.CallingActivity
+import com.waz.zclient.media.SoundController
 import com.waz.zclient.{Injectable, Injector, WireContext}
 
 class GlobalCallingController(implicit inj: Injector, cxt: WireContext, eventContext: EventContext) extends Injectable {
 
-  val zms = inject[Signal[Option[ZMessaging]]]
-
   private val screenManager = new ScreenManager
+  private val soundController = inject[SoundController]
 
-  val channels = zms.flatMap(_.fold(Signal.const[(Option[VoiceChannelData], Option[VoiceChannelData])]((None, None)))(_.voiceContent.ongoingAndTopIncomingChannel))
+  /**
+    * Opt Signals - these signals should be used where empty states (i.e, Nones) are important to the devices state. For example
+    * if we have no zms instance, we should not have an active call. If we don't have a conversation, we shouldn't have an active
+    * call. If there is no active call, for whatever reason, there should be no calling activity, and so on. The other signals
+    * derived from these ones using `collect` will not propagate empty values, but that's okay since the calling UI should be
+    * torn down before they can be of use to us anyway.
+    *
+    * Note, any signals which are PART of another signal (zipped or flatmapped) which needs to be aware of Nones should also
+    * be careful to handle Nones themselves. This is because if a signal is collected, and the value is None, the individual
+    * signal becomes empty, and so prevents the group of signals - of which it is a part of - from firing...
+    */
 
-  val callExists = channels map {
-    case (None, None) => false
-    case _ => true
+  val zmsOpt = inject[Signal[Option[ZMessaging]]]
+
+  val v3CallOpt: Signal[Option[CallInfo]] = zmsOpt.flatMap {
+    case Some(z) => z.calling.currentCall.map(Some(_))
+    case _ => Signal.const(None)
   }
 
-  val voiceService = zms map (_.map(_.voice))
+  val isV3Call = v3CallOpt.map {
+    case Some(IsActive()) => true
+    case _ => false
+  }.disableAutowiring()
+
+  val convIdOpt = isV3Call.flatMap {
+    case true => v3CallOpt.map(_.flatMap(_.convId))
+    case false => zmsOpt.flatMap {
+      case Some(z) => z.voiceContent.ongoingAndTopIncomingChannel
+      case _ => Signal.const((Option.empty[VoiceChannelData], Option.empty[VoiceChannelData]))
+    }.map {
+      case (ongoing, incoming) => ongoing.orElse(incoming).map(_.id)
+    }
+  }
 
   //Note, we can't rely on the channels from ongoingAndTopIncoming directly, as they only update the presence of a channel, not their internal state
-  val convId = channels map {
-    case (ongoing, incoming) => ongoing.orElse(incoming).map(_.id)
+  val currentChannelOpt: Signal[Option[VoiceChannelData]] = (for {
+    zms <- zmsOpt
+    convId <- convIdOpt
+  } yield (zms, convId)).flatMap {
+    case (Some(z), Some(cId)) => z.voice.voiceChannelSignal(cId).map(Some(_))
+    case _ => Signal.const(None)
   }
 
-  val currentChannel: Signal[Option[VoiceChannelData]] = voiceService.zip(convId) flatMap {
-    case (Some(voiceService), Some(convId)) => voiceService.voiceChannelSignal(convId) map (Some(_))
-    case _ => Signal.const[Option[VoiceChannelData]](None)
+  val callStateOpt: Signal[Option[VoiceChannelState]] = isV3Call.flatMap {
+    case true => v3CallOpt.map(_.map(_.state))
+    case _ => currentChannelOpt.map(_.map(_.state))
   }
 
-  val voiceServiceAndCurrentConvId = voiceService.zip(currentChannel) map {
-    case (Some(vcs), vd) => vd.map(data => (vcs, data.id))
-    case _ => None
+  val activeCall = zmsOpt.flatMap {
+    case Some(z) => callStateOpt.map {
+      case Some(SELF_CALLING | SELF_JOINING | SELF_CONNECTED | OTHER_CALLING | OTHERS_CONNECTED) => true
+      case _ => false
+    }
+    case _ => Signal.const(false)
   }
 
-  val videoCall = currentChannel flatMap  {
-    case (Some(data)) => Signal.const(data.video.isVideoCall)
-    case _ => Signal.empty[Boolean] //empty signal to prevent 'empty' UI state on call tear-down
-  }
-
-  val callState = currentChannel map {
-    case Some(ch) => Some(ch.state)
-    case _ => None
-  }
-
-  val activeCall = callState.map {
-    case Some(SELF_CALLING | SELF_JOINING | SELF_CONNECTED | OTHER_CALLING | OTHERS_CONNECTED) => true
+  val outgoingCall = callStateOpt.map {
+    case Some(st) if st == SELF_CALLING => true
     case _ => false
   }
 
-  var wasUiActiveOnCallStart = false
+  val incomingCall = callStateOpt.map {
+    case Some(st) if st == OTHER_CALLING => true
+    case _ => false
+  }
+
+  val muted = isV3Call.flatMap {
+    case true => v3CallOpt.map {
+      case Some(c) => c.muted
+      case _ => false
+    }
+    case _ => currentChannelOpt map {
+      case Some(c) => c.muted
+      case _ => false
+    }
+  }.disableAutowiring()
+
+  val videoCall = isV3Call.flatMap {
+    case true => v3CallOpt.map {
+      case Some(c) => c.isVideoCall
+      case _ => false
+    }
+    case _ => currentChannelOpt.map {
+      case Some(c) => c.video.isVideoCall
+      case _ => false
+    }
+  }.disableAutowiring()
+
+  /**
+    * ...And from here on is where only their proper value is important.
+    */
+
+  private var _wasUiActiveOnCallStart = false
+
+  def wasUiActiveOnCallStart = _wasUiActiveOnCallStart
 
   val onCallStarted = activeCall.onChanged.filter(_ == true).map { _ =>
-    val active = zms.flatMap(_.fold(Signal.const(false))(_.lifecycle.uiActive)).currentValue.getOrElse(false)
-    wasUiActiveOnCallStart = active
+    val active = zmsOpt.flatMap(_.fold(Signal.const(false))(_.lifecycle.uiActive)).currentValue.getOrElse(false)
+    _wasUiActiveOnCallStart = active
     active
   }
 
@@ -83,15 +141,88 @@ class GlobalCallingController(implicit inj: Injector, cxt: WireContext, eventCon
     CallingActivity.start(cxt)
   }(EventContext.Global)
 
-  activeCall.onChanged.filter(_ == false).on(Threading.Ui){ _ =>
+  activeCall.onChanged.filter(_ == false).on(Threading.Ui) { _ =>
     screenManager.releaseWakeLock()
   }(EventContext.Global)
 
-  videoCall.zip(callState) {
+  (for {
+    v <- videoCall
+    st <- callStateOpt
+  } yield (v, st)) {
     case (true, _) => screenManager.setStayAwake()
-    case (false, Some(st)) if st == OTHER_CALLING => screenManager.setStayAwake()
-    case (false, Some(st)) if st == SELF_CALLING | st == SELF_JOINING || st == SELF_CONNECTED => screenManager.setProximitySensorEnabled()
+    case (false, Some(OTHER_CALLING)) => screenManager.setStayAwake()
+    case (false, Some(SELF_CALLING | SELF_JOINING | SELF_CONNECTED)) => screenManager.setProximitySensorEnabled()
     case _ => screenManager.releaseWakeLock()
+  }
+
+  (for {
+    m <- muted
+    i <- incomingCall
+  } yield (m, i)) { case (m, i) =>
+    soundController.setIncomingRingTonePlaying(!m && i)
+  }
+
+  (for {
+    v <- videoCall
+    o <- outgoingCall
+  } yield (v, o)) { case (v, o) =>
+    soundController.setOutgoingRingTonePlaying(o, v)
+  }
+
+
+  /**
+    * From here on, put signals where we're not too worried if we handle empty states or not
+    * (mostly stuff that wouldn't affect proper closing of a call).
+    *
+    * Most of the stuff here is just because it saves re-defining the signals in one of the sub-CallControllers
+    */
+
+  val zms = zmsOpt.collect { case Some(z) => z }
+
+  val userStorage = zms map (_.usersStorage)
+  val prefs = zms.map(_.prefs)
+
+  val v2Service = zms.map(_.voice)
+
+  val v3Service = zms.map(_.calling).disableAutowiring()
+  val v3Call = v3Service.flatMap(_.currentCall)
+
+  val convId = convIdOpt.collect { case Some(c) => c }
+
+  val v2ServiceAndCurrentConvId = (for {
+    vcs <- v2Service
+    cId <- convId
+  } yield (vcs, cId)).disableAutowiring()
+
+  val v3ServiceAndCurrentConvId = (for {
+    svc <- v3Service
+    c <- convId
+  } yield (svc, c)).disableAutowiring()
+
+  val currentChannel = currentChannelOpt.collect { case Some(c) => c }
+
+  val callState = callStateOpt.collect { case Some(s) => s }
+
+  val conversation = zms.zip(convId) flatMap { case (z, cId) => z.convsStorage.signal(cId) }
+  val conversationName = conversation map (data => if (data.convType == IConversation.Type.GROUP) data.name.filter(!_.isEmpty).getOrElse(data.generatedName) else data.generatedName)
+
+  val selfUser = zms flatMap (_.users.selfUser)
+
+  val callerId = isV3Call.flatMap {
+    case true => v3Call flatMap { case info =>
+      (info.others, info.state) match {
+        case (_, SELF_CALLING) => selfUser.map(_.id)
+        case (others, OTHER_CALLING) if others.size == 1 => Signal.const(others.head)
+        case _ => Signal.empty[UserId] //TODO Dean do I need this information for other call states?
+      }
+    }
+    case _ => currentChannel map (_.caller) flatMap (_.fold(Signal.empty[UserId])(Signal(_)))
+  }
+  val callerData = userStorage.zip(callerId).flatMap { case (storage, id) => storage.signal(id) }
+
+  val groupCall = isV3Call.flatMap {
+    case true => Signal.const(false)
+    case _ => currentChannel map (_.tracking.kindOfCall == KindOfCall.GROUP)
   }
 }
 
@@ -107,7 +238,7 @@ private class ScreenManager(implicit injector: Injector) extends Injectable {
   def setStayAwake() = {
     (stayAwake, wakeLock) match {
       case (_, None) | (false, Some(_)) =>
-        this.stayAwake = true;
+        this.stayAwake = true
         createWakeLock();
       case _ => //already set
     }
@@ -116,18 +247,18 @@ private class ScreenManager(implicit injector: Injector) extends Injectable {
   def setProximitySensorEnabled() = {
     (stayAwake, wakeLock) match {
       case (_, None) | (true, Some(_)) =>
-        this.stayAwake = false;
+        this.stayAwake = false
         createWakeLock();
       case _ => //already set
     }
   }
 
   private def createWakeLock() = {
-    var flags = if (stayAwake)
+    val flags = if (stayAwake)
       PowerManager.SCREEN_BRIGHT_WAKE_LOCK | PowerManager.FULL_WAKE_LOCK | PowerManager.ACQUIRE_CAUSES_WAKEUP
-    else PowerManager.PROXIMITY_SCREEN_OFF_WAKE_LOCK;
-    releaseWakeLock();
-    wakeLock = powerManager.map(_.newWakeLock(flags, TAG));
+    else PowerManager.PROXIMITY_SCREEN_OFF_WAKE_LOCK
+    releaseWakeLock()
+    wakeLock = powerManager.map(_.newWakeLock(flags, TAG))
     wakeLock.foreach(_.acquire())
   }
 

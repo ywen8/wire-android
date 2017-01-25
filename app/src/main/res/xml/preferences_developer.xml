@@ -57,6 +57,17 @@
         android:defaultValue="false"
         android:key="@string/pref_dev_assets_v3_key"
         android:title="@string/pref_dev_assets_v3_title"
+        android:summary="@string/pref_dev_assets_v3_summary"
+        />
+
+    <ListPreference
+        android:key="@string/pref_dev_calling_v3_key"
+        android:title="@string/pref_dev_calling_v3_title"
+        android:defaultValue="2"
+        android:dialogTitle="@string/pref_dev_calling_v3_dialog_title"
+        android:entries="@array/calling_v3_preference_titles"
+        android:entryValues="@array/calling_v3_preferences"
+        android:summary="%s"
         />
 
     <PreferenceCategory

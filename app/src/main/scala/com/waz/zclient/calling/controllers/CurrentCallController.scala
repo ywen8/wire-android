@@ -20,158 +20,151 @@ package com.waz.zclient.calling.controllers
 import _root_.com.waz.zclient.utils.LayoutSpec
 import android.media.AudioManager
 import android.os.Vibrator
+import com.waz.ZLog.ImplicitTag._
+import com.waz.ZLog._
 import com.waz.api.VideoSendState.{DONT_SEND, SEND}
 import com.waz.api.VoiceChannelState._
 import com.waz.api._
 import com.waz.avs.{VideoPreview, VideoRenderer}
 import com.waz.model.VoiceChannelData.ConnectionState
 import com.waz.model._
+import com.waz.service.call.CallInfo
 import com.waz.service.call.FlowManagerService.{StateAndReason, UnknownState}
 import com.waz.threading.Threading
 import com.waz.utils._
 import com.waz.utils.events.{ClockSignal, Signal}
 import com.waz.zclient._
 import com.waz.zclient.utils.events.ButtonSignal
-import org.threeten.bp.Duration
 import org.threeten.bp.Duration._
 import org.threeten.bp.Instant._
-import timber.log.Timber
-
+import org.threeten.bp.{Duration, Instant}
 
 class CurrentCallController(implicit inj: Injector, cxt: WireContext) extends Injectable { self =>
 
-  Timber.d(s"CurrentCallController starting in context: $cxt")
+  val glob = inject[GlobalCallingController]
+  import glob._
 
-  val globController = inject[GlobalCallingController]
+  private implicit val eventContext = cxt.eventContext
 
-  implicit val eventContext = cxt.eventContext
-
-  val zms = globController.zms.collect { case Some(zms) => zms }
-
-  val wasUiActiveOnCallStart = globController.wasUiActiveOnCallStart
-
-  val videoCall = globController.videoCall
-
-  val convId = globController.convId.collect { case Some(convId) => convId }
-
-  val currentChannel = globController.currentChannel.collect { case Some(ch) => ch }
-
-  val voiceService = globController.voiceService
-
-  val voiceServiceAndCurrentConvId = globController.voiceServiceAndCurrentConvId.collect { case Some(vcAndConv) => vcAndConv }
-
-  val callState = globController.callState.collect { case Some(state) => state }
-
-  val activeCall = globController.activeCall
-
-  val showOngoingControls = callState.flatMap {
-    case OTHER_CALLING | OTHERS_CONNECTED | TRANSFER_CALLING | TRANSFER_READY => Signal(false)
-    case SELF_CALLING | SELF_JOINING | SELF_CONNECTED => Signal(true)
-    case _ => Signal.empty[Boolean]
+  val showOngoingControls = callState.map {
+    case OTHER_CALLING | OTHERS_CONNECTED | TRANSFER_CALLING | TRANSFER_READY => false
+    case _ => true
   }
 
-  val selfUser = zms flatMap (_.users.selfUser)
+  val videoSendState = isV3Call.flatMap {
+    case true => v3Call.map(_.videoSendState)
+    case _ => currentChannel map (_.video.videoSendState)
+  }.disableAutowiring()
 
-  val userStorage = zms map (_.usersStorage)
+  val flowManager = zms map (_.flowmanager)
 
-  val deviceState = currentChannel map (_.deviceState)
-
-  val conversation = zms.zip(convId) flatMap { case (zms, convId) => zms.convsStorage.signal(convId) }
-
-  val conversationName = conversation map (data => if (data.convType == IConversation.Type.GROUP) data.name.filter(!_.isEmpty).getOrElse(data.generatedName) else data.generatedName)
-
-  val groupCall = currentChannel map (_.tracking.kindOfCall == KindOfCall.GROUP)
-
-  val silenced = currentChannel map (_.silenced)
-
-  val muted = currentChannel map (_.muted)
-
-  val videoSendState = currentChannel map (_.video.videoSendState)
-
-  val captureDevices = currentChannel map (_.video.captureDevices)
+  //TODO I don't think v2 needs to keep track of this state, might be able to use FM directly for both
+  val captureDevices = isV3Call.flatMap {
+    case true => flowManager.flatMap(fm => Signal.future(fm.getVideoCaptureDevices))
+    case _ => currentChannel map (_.video.captureDevices)
+  }
 
   //TODO when I have a proper field for front camera, make sure it's always set as the first one
   val currentCaptureDeviceIndex = Signal(0)
 
   val currentCaptureDevice = captureDevices.zip(currentCaptureDeviceIndex).map {
-    case (devices, devIndex) if devices.size > 0 => Some(devices(devIndex % devices.size))
+    case (devices, devIndex) if devices.nonEmpty => Some(devices(devIndex % devices.size))
     case _ => None
   }
 
-  voiceServiceAndCurrentConvId.zip(currentCaptureDevice) {
-    case ((vcs, convId), Some(dev)) => vcs.setVideoCaptureDevice(convId, dev.id)
+  (for {
+    isV3 <- isV3Call
+    fm <- flowManager
+    v2 <- v2Service
+    conv <- conversation
+    device <- currentCaptureDevice
+  } yield (isV3, fm, v2, conv, device)) {
+    case (isV3, fm, v2, conv, Some(currentDevice)) =>
+      if (isV3) fm.setVideoCaptureDevice(conv.remoteId, currentDevice.id)
+      else v2.setVideoCaptureDevice(conv.id, currentDevice.id) //need to be set through service for voice channel state
     case _ =>
   }
 
   val otherUser = Signal(groupCall, userStorage, convId).flatMap {
-    case (isGroupCall, usersStorage, convId) if isGroupCall == false =>
+    case (isGroupCall, usersStorage, convId) if !isGroupCall =>
       usersStorage.optSignal(UserId(convId.str)) // one-to-one conversation has the same id as the other user, so we can access it directly
     case _ => Signal.const[Option[UserData]](None) //Need a none signal to help with further signals
   }
 
-  val callEstablished = currentChannel map (_.deviceState == ConnectionState.Connected)
+  val callEstablished = isV3Call.flatMap {
+    case true => v3Call.map(_.state == SELF_CONNECTED)
+    case _ => currentChannel map (_.deviceState == ConnectionState.Connected)
+  }.disableAutowiring()
 
   val onCallEstablished = callEstablished.onChanged
 
-  val outgoingCall = currentChannel map (_.state == SELF_CALLING)
-
-  val callerId = currentChannel map (_.caller) flatMap (_.fold(Signal.empty[UserId])(Signal(_)))
-
-  val callerData = userStorage.zip(callerId).flatMap { case (storage, id) => storage.signal(id) }
-
-  val duration = currentChannel flatMap {
-    case ch if ch.deviceState == ConnectionState.Connected => new ClockSignal(Duration.ofSeconds(1).asScala).map(_ => ch.tracking.established.fold2(ZERO, between(_, now)))
-    case _ => Signal.const(ZERO)
-  } map { duration =>
-    val seconds = ((duration.toMillis / 1000) % 60).toInt
-    val minutes = ((duration.toMillis / 1000) / 60).toInt
-    f"$minutes%02d:$seconds%02d"
+  val duration = {
+    def timeSince(est: Option[Instant]) = new ClockSignal(Duration.ofSeconds(1).asScala).map(_ => est.fold2(ZERO, between(_, now)))
+    isV3Call.flatMap {
+      case true => v3Call.flatMap(c => timeSince(c.estabTime))
+      case _ => currentChannel flatMap {
+        case ch if ch.deviceState == ConnectionState.Connected => timeSince(ch.tracking.established)
+        case _ => Signal.const(ZERO)
+      }
+    } map { duration =>
+      val seconds = ((duration.toMillis / 1000) % 60).toInt
+      val minutes = ((duration.toMillis / 1000) / 60).toInt
+      f"$minutes%02d:$seconds%02d"
+    }
   }
 
-  val subtitleText = Signal(outgoingCall, videoCall, callState, duration) map {
-    case (true, true, SELF_CALLING, _) => cxt.getString(R.string.calling__header__outgoing_video_subtitle)
-    case (true, false, SELF_CALLING, _) => cxt.getString(R.string.calling__header__outgoing_subtitle)
-    case (false, true, OTHER_CALLING, _) => cxt.getString(R.string.calling__header__incoming_subtitle__video)
-    case (false, false, OTHER_CALLING | OTHERS_CONNECTED, _) => cxt.getString(R.string.calling__header__incoming_subtitle)
-    case (_, _, SELF_JOINING, _) => cxt.getString(R.string.calling__header__joining)
-    case (false, false, SELF_CONNECTED, duration) => duration
+  val subtitleText = (for {
+    video <- videoCall
+    state <- callState
+    dur <- duration
+  } yield (video, state, dur)) map {
+    case (true,  SELF_CALLING,                     _)        => cxt.getString(R.string.calling__header__outgoing_video_subtitle)
+    case (false, SELF_CALLING,                     _)        => cxt.getString(R.string.calling__header__outgoing_subtitle)
+    case (true,  OTHER_CALLING,                    _)        => cxt.getString(R.string.calling__header__incoming_subtitle__video)
+    case (false, OTHER_CALLING | OTHERS_CONNECTED, _)        => cxt.getString(R.string.calling__header__incoming_subtitle)
+    case (_,     SELF_JOINING,                     _)        => cxt.getString(R.string.calling__header__joining)
+    case (false, SELF_CONNECTED,                   duration) => duration
     case _ => ""
   }
 
   val otherParticipants = currentChannel.zip(selfUser) map {
-    case (ch, selfUser) if (ch.state == SELF_CONNECTED) => for (p <- ch.participants if selfUser.id != p.userId && p.state == ConnectionState.Connected) yield p
+    case (ch, selfUser) if ch.state == SELF_CONNECTED => for (p <- ch.participants if selfUser.id != p.userId && p.state == ConnectionState.Connected) yield p
     case _ => Vector.empty
   }
 
-  val otherSendingVideo = otherParticipants map {
-    case Vector(other) => other.sendsVideo
-    case _ => false
+  val otherSendingVideo = isV3Call.flatMap {
+    case true => v3Call.map(_.videoReceiveState == CallInfo.VideoReceiveState.Started)
+    case _ => otherParticipants map {
+      case Vector(other) => other.sendsVideo
+      case _ => false
+    }
   }
-
-  val flowManager = zms map (_.flowmanager)
 
   val avsStateAndChangeReason = flowManager.flatMap(_.stateOfReceivedVideo)
   val cameraFailed = flowManager.flatMap(_.cameraFailedSig)
 
-  val stateMessageText = Signal(callState, cameraFailed, avsStateAndChangeReason, conversationName, otherSendingVideo) map { values =>
-    Timber.d(s"(callState, avsStateAndChangeReason, conversationName, otherSending): $values")
-    values match {
-      case (SELF_CALLING, true, _, _, _) => Option(cxt.getString(R.string.calling__self_preview_unavailable_long))
-      case (SELF_JOINING, _, _, _, _) => Option(cxt.getString(R.string.ongoing__connecting))
-      case (SELF_CONNECTED, _, StateAndReason(AvsVideoState.STOPPED, AvsVideoReason.BAD_CONNECTION), _, true) => Option(cxt.getString(R.string.ongoing__poor_connection_message))
-      case (SELF_CONNECTED, _, _, otherUserName, false) => Option(cxt.getString(R.string.ongoing__other_turned_off_video, otherUserName))
-      case (SELF_CONNECTED, _, UnknownState, otherUserName, true) => Option(cxt.getString(R.string.ongoing__other_unable_to_send_video, otherUserName))
-      case _ => None
-    }
+  val stateMessageText = Signal(callState, cameraFailed, avsStateAndChangeReason, conversationName, otherSendingVideo).map { values =>
+      verbose(s"$values")
+      values match {
+        case (SELF_CALLING,   true, _, _, _)                                                                    => Option(cxt.getString(R.string.calling__self_preview_unavailable_long))
+        case (SELF_JOINING,   _, _, _, _)                                                                       => Option(cxt.getString(R.string.ongoing__connecting))
+        case (SELF_CONNECTED, _, StateAndReason(AvsVideoState.STOPPED, AvsVideoReason.BAD_CONNECTION), _, true) => Option(cxt.getString(R.string.ongoing__poor_connection_message))
+        case (SELF_CONNECTED, _, _, otherUserName, false)                                                       => Option(cxt.getString(R.string.ongoing__other_turned_off_video, otherUserName))
+        case (SELF_CONNECTED, _, UnknownState, otherUserName, true)                                             => Option(cxt.getString(R.string.ongoing__other_unable_to_send_video, otherUserName))
+        case _ => None
+      }
   }
 
-  val participantIdsToDisplay = Signal(otherParticipants, groupCall, callerData, otherUser).map { values =>
-    Timber.d(s"(otherParticipants, groupCall, callerData, otherUser): $values")
-    values match {
-      case (parts, true, callerData, _) if parts.isEmpty => Vector(callerData.id)
-      case (parts, false, _, Some(otherUser)) if parts.isEmpty => Vector(otherUser.id)
-      case (parts, _, _, _) => parts.map(_.userId)
-      case _ => Vector.empty[UserId]
+  val participantIdsToDisplay = isV3Call.flatMap {
+    case true => v3Call.map(_.others.toVector)
+    case _ => Signal(otherParticipants, groupCall, callerData, otherUser).map { values =>
+      verbose(s"(otherParticipants, groupCall, callerData, otherUser): $values")
+      values match {
+        case (parts, true, callerData, _) if parts.isEmpty => Vector(callerData.id)
+        case (parts, false, _, Some(otherUser)) if parts.isEmpty => Vector(otherUser.id)
+        case (parts, _, _, _) => parts.map(_.userId)
+        case _ => Vector.empty[UserId]
+      }
     }
   }
 
@@ -185,8 +178,8 @@ class CurrentCallController(implicit inj: Injector, cxt: WireContext) extends In
 
   def setVideoPreview(view: Option[VideoPreview]): Unit = {
     flowManager.on(Threading.Ui) { fm =>
-      Timber.d(s"Setting VideoPreview on Flowmanager, view: $view")
-      fm.setVideoPreview(view.getOrElse(null))
+      verbose(s"Setting VideoPreview on Flowmanager, view: $view")
+      fm.setVideoPreview(view.orNull)
     }
   }
 
@@ -196,26 +189,28 @@ class CurrentCallController(implicit inj: Injector, cxt: WireContext) extends In
       (rConvId, userId) <- flowId
     } yield (fm, rConvId, userId)).on(Threading.Ui) {
       case (fm, rConvId, userId) =>
-        Timber.d(s"Setting ViewRenderer on Flowmanager, rConvId: $rConvId, userId: $userId, view: $view")
+        verbose(s"Setting ViewRenderer on Flowmanager, rConvId: $rConvId, userId: $userId, view: $view")
         view.foreach(fm.setVideoView(rConvId, userId, _))
     }
   }
 
-  //Set the following signals to keep track of updates as the following methods rely on their values
-  voiceServiceAndCurrentConvId.disableAutowiring()
-  videoCall.disableAutowiring()
-  muted.disableAutowiring()
-  videoSendState.disableAutowiring()
-  callEstablished.disableAutowiring()
-
   def dismissCall(): Unit = {
-    voiceServiceAndCurrentConvId.currentValue.foreach {
+    verbose(s"dismiss call. isV3?: ${isV3Call.currentValue.getOrElse(false)}")
+
+    if (isV3Call.currentValue.getOrElse(false)) v3ServiceAndCurrentConvId.currentValue.foreach {
+      case (cs, id) => cs.endCall(id)
+    }
+    else v2ServiceAndCurrentConvId.currentValue.foreach {
       case (vcs, id) => vcs.silenceVoiceChannel(id)
     }
   }
 
   def leaveCall(): Unit = {
-    voiceServiceAndCurrentConvId.currentValue.foreach {
+    verbose(s"leave call. isV3?: ${isV3Call.currentValue.getOrElse(false)}")
+    if (isV3Call.currentValue.getOrElse(false)) v3ServiceAndCurrentConvId.currentValue.foreach {
+      case (cs, id) => cs.endCall(id)
+    }
+    else v2ServiceAndCurrentConvId.currentValue.foreach {
       case (vcs, id) => vcs.leaveVoiceChannel(id)
     }
   }
@@ -232,15 +227,22 @@ class CurrentCallController(implicit inj: Injector, cxt: WireContext) extends In
     }
   }
 
-  def toggleMuted(): Unit = {
-    voiceServiceAndCurrentConvId.currentValue.foreach {
-      case (vcs, id) => if (muted.currentValue.getOrElse(false)) vcs.unmuteVoiceChannel(id) else vcs.muteVoiceChannel(id)
-    }
-  }
+  def toggleMuted(): Unit =
+    if (isV3Call.currentValue.getOrElse(false))
+      v3ServiceAndCurrentConvId.currentValue.foreach(_._1.setCallMuted(!muted.currentValue.getOrElse(false)))
+    else
+      v2ServiceAndCurrentConvId.currentValue.foreach {
+        case (vcs, id) => if (muted.currentValue.getOrElse(false)) vcs.unmuteVoiceChannel(id) else vcs.muteVoiceChannel(id)
+      }
 
   def toggleVideo(): Unit = {
-    voiceServiceAndCurrentConvId.currentValue.foreach {
-      case (vcs, id) => vcs.setVideoSendState(id, if (videoSendState.currentValue.getOrElse(DONT_SEND) == SEND) DONT_SEND else SEND)
+    val state = videoSendState.currentValue.getOrElse(DONT_SEND)
+    if (isV3Call.currentValue.getOrElse(false))
+      v3ServiceAndCurrentConvId.currentValue.foreach {
+        case (s, cId) => s.setVideoSendActive(cId, if(state == SEND) false else true)
+      }
+    else v2ServiceAndCurrentConvId.currentValue.foreach {
+      case (vcs, id) => vcs.setVideoSendState(id, if (state == SEND) DONT_SEND else SEND)
     }
   }
 
