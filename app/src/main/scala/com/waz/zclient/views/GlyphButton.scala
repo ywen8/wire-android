@@ -45,15 +45,15 @@ class GlyphButton(val context: Context, val attrs: AttributeSet, val defStyleAtt
     this(context, null)
   }
 
-  def setPressedBackgroundColor(color: Int) {
+  def setPressedBackgroundColor(color: Int): Unit = {
     setBackgroundColor(Color.TRANSPARENT, color)
   }
 
-  def setSolidBackgroundColor(color: Int) {
+  def setSolidBackgroundColor(color: Int): Unit = {
     setBackgroundColor(color, color)
   }
 
-  private def setBackgroundColor(defaultColor: Int, pColor: Int) {
+  private def setBackgroundColor(defaultColor: Int, pColor: Int): Unit = {
     var pressedColor = pColor
     if (ThemeUtils.isDarkTheme(getContext)) {
       alphaPressed = GlyphButton.PRESSED_ALPHA__DARK
@@ -80,7 +80,7 @@ class GlyphButton(val context: Context, val attrs: AttributeSet, val defStyleAtt
     invalidate()
   }
 
-  def initTextColor(selectedColor: Int) {
+  def initTextColor(selectedColor: Int): Unit = {
     var pressedColor: Int = getResources.getColor(R.color.text__primary_dark_40)
     var focusedColor: Int = pressedColor
     var enabledColor: Int = getResources.getColor(R.color.text__primary_dark)

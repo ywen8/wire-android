@@ -85,7 +85,7 @@ class MessagesListView(context: Context, attrs: AttributeSet, style: Int) extend
     }
   }
 
-  scrollController.onScroll { case Scroll(pos, smooth) =>
+  scrollController.onScroll.on(Threading.Ui) { case Scroll(pos, smooth) =>
     verbose(s"Scrolling to pos: $pos, smooth: $smooth")
     val scrollTo = math.min(adapter.getItemCount - 1, pos)
     if (smooth) {

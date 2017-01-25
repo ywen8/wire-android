@@ -55,7 +55,7 @@ class SingleImageViewToolbar(context: Context, attrs: AttributeSet, style: Int) 
   val message = collectionController.focusedItem.map(_.map(_.id)) collect {
     case Some(id) => ZMessaging.currentUi.messages.cachedOrNew(id)
   }
-  message.disableAutowiring()
+  message { _ =>  }
 
   val likedBySelf = collectionController.focusedItem flatMap {
     case Some(m) => zms.flatMap { z =>

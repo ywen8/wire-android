@@ -150,7 +150,7 @@ class CollectionAdapter(viewDim: Signal[Dim2])(implicit context: Context, inject
     getItem(position).foreach{ md =>
       holder match {
         case f: FileViewHolder => f.setMessageData(md)
-        case c: CollectionImageViewHolder => c.setMessageData(md, viewDim.currentValue.fold(0)(_.width) / CollectionController.GridColumns, ResourceUtils.getRandomAccentColor(context))
+        case c: CollectionImageViewHolder => c.setMessageData(md, viewDim.currentValue.fold(0)(_.width) / CollectionController.GridColumns, ResourceUtils.getRandomAccentColor(context)); c.view.setTag(position)
         case l: LinkPreviewViewHolder => l.setMessageData(md)
         case l: SimpleLinkViewHolder => l.setMessageData(md)
       }
@@ -185,7 +185,9 @@ class CollectionAdapter(viewDim: Signal[Dim2])(implicit context: Context, inject
   val imageListener = new OnClickListener {
     override def onClick(v: View): Unit = {
       v match {
-        case collectionItemView: CollectionItemView => collectionController.focusedItem ! collectionItemView.messageData.currentValue
+        case collectionItemView: CollectionItemView => {
+          collectionController.focusedItem ! collectionItemView.messageData.currentValue
+        }
         case _ =>
       }
     }

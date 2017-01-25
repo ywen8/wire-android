@@ -111,7 +111,7 @@ public class TouchImageView extends ImageView {
     private Context context;
     private Fling fling;
 
-    private ScaleType scaleType;
+    private ImageView.ScaleType scaleType;
 
     private boolean imageRenderedAtLeastOnce;
     private boolean onDrawReady;
@@ -136,7 +136,7 @@ public class TouchImageView extends ImageView {
 
     private ScaleGestureDetector scaleDetector;
     private GestureDetector gestureDetector;
-    private OnTouchListener userTouchListener = null;
+    private View.OnTouchListener userTouchListener = null;
 
     public TouchImageView(Context context) {
         super(context);
@@ -210,7 +210,7 @@ public class TouchImageView extends ImageView {
     }
 
     @Override
-    public void setScaleType(ScaleType type) {
+    public void setScaleType(ImageView.ScaleType type) {
         if (type == ScaleType.FIT_START || type == ScaleType.FIT_END) {
             throw new UnsupportedOperationException("TouchImageView does not support FIT_START or FIT_END");
         }
@@ -230,7 +230,7 @@ public class TouchImageView extends ImageView {
     }
 
     @Override
-    public ScaleType getScaleType() {
+    public ImageView.ScaleType getScaleType() {
         return scaleType;
     }
 
@@ -335,7 +335,7 @@ public class TouchImageView extends ImageView {
      * @param focusY
      * @param scaleType
      */
-    public void setZoom(float scale, float focusX, float focusY, ScaleType scaleType) {
+    public void setZoom(float scale, float focusX, float focusY, ImageView.ScaleType scaleType) {
         //
         // setZoom can be called before the image is on the screen, but at this point,
         // image and view sizes have not yet been calculated in onMeasure. Thus, we should
@@ -765,7 +765,7 @@ public class TouchImageView extends ImageView {
      *
      * @author Ortiz
      */
-    private class PrivateOnTouchListener implements OnTouchListener {
+    private class PrivateOnTouchListener implements View.OnTouchListener {
 
         //
         // Remember last point position for dragging

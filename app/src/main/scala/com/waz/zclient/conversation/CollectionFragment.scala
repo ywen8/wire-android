@@ -51,10 +51,9 @@ class CollectionFragment extends BaseFragment[CollectionFragment.Container] with
     super.onDestroy()
   }
 
-  private def showSingleImage(assetId: AssetId) = {
+  private def showSingleImage() = {
     getChildFragmentManager.findFragmentByTag(SingleImageCollectionFragment.TAG) match {
-      case null => getChildFragmentManager.beginTransaction.add(R.id.fl__collection_content, SingleImageCollectionFragment.newInstance(assetId), SingleImageCollectionFragment.TAG).addToBackStack(SingleImageCollectionFragment.TAG).commit
-      case fragment: SingleImageCollectionFragment => fragment.setAsset(assetId)
+      case null => getChildFragmentManager.beginTransaction.add(R.id.fl__collection_content, SingleImageCollectionFragment.newInstance(), SingleImageCollectionFragment.TAG).addToBackStack(SingleImageCollectionFragment.TAG).commit
       case _ =>
     }
   }
@@ -76,7 +75,7 @@ class CollectionFragment extends BaseFragment[CollectionFragment.Container] with
     emptyView.setVisibility(View.GONE)
 
     controller.focusedItem.on(Threading.Ui) {
-      case Some(md) if md.msgType == Message.Type.ASSET => showSingleImage(md.assetId)
+      case Some(md) if md.msgType == Message.Type.ASSET => showSingleImage()
       case _ => closeSingleImage()
     }
 
