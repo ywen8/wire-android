@@ -25,9 +25,10 @@ import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.view.{ViewGroup, WindowManager}
 import com.waz.threading.Threading
 import com.waz.zclient._
-import com.waz.zclient.calling.controllers.{GlobalCallingController, CurrentCallController}
+import com.waz.zclient.calling.controllers.{CurrentCallController, GlobalCallingController}
 import com.waz.zclient.calling.views.VideoCallingView
 import com.waz.zclient.common.controllers.PermissionActivity
+import com.waz.zclient.tracking.CallingTrackingController
 import timber.log.Timber
 
 class CallingActivity extends AppCompatActivity with ActivityHelper with PermissionActivity {

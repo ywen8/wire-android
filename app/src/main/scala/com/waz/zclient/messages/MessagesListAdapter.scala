@@ -31,7 +31,7 @@ import com.waz.zclient.controllers.global.SelectionController
 import com.waz.zclient.messages.MessageView.MsgBindOptions
 import com.waz.zclient.messages.MessagesListView.UnreadIndex
 import com.waz.zclient.messages.RecyclerCursor.RecyclerNotifier
-import com.waz.zclient.tracking.TrackingController
+import com.waz.zclient.tracking.MainTrackingController$
 import com.waz.zclient.{Injectable, Injector}
 
 class MessagesListAdapter(listDim: Signal[Dim2])(implicit inj: Injector, ec: EventContext)
@@ -40,8 +40,6 @@ class MessagesListAdapter(listDim: Signal[Dim2])(implicit inj: Injector, ec: Eve
   verbose("MessagesListAdapter created")
 
   val zms = inject[Signal[ZMessaging]]
-  //TODO the tracking controller needs a better home to make it globally accessible - but for now relies on context based services...
-  inject[TrackingController]
   val listController = inject[MessagesController]
   val selectedConversation = inject[SelectionController].selectedConv
   val ephemeralCount = Signal(Set.empty[MessageId])

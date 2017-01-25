@@ -33,7 +33,6 @@ import com.waz.api.InitListener;
 import com.waz.api.Invitations;
 import com.waz.api.KindOfAccess;
 import com.waz.api.KindOfVerification;
-import com.waz.api.Logging;
 import com.waz.api.LoginListener;
 import com.waz.api.PermissionProvider;
 import com.waz.api.Search;
@@ -223,11 +222,6 @@ public class StubZMessagingApiStore implements IZMessagingApiStore {
 
             @Override
             public Spotify getSpotify() {
-                return null;
-            }
-
-            @Override
-            public Logging getLogging() {
                 return null;
             }
 

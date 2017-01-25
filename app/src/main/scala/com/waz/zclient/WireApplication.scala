@@ -42,7 +42,7 @@ import com.waz.zclient.notifications.controllers.{CallingNotificationsController
 import com.waz.zclient.pages.main.conversation.controller.IConversationScreenController
 import com.waz.zclient.pages.main.conversationpager.controller.ISlidingPaneController
 import com.waz.zclient.pages.main.pickuser.controller.IPickUserController
-import com.waz.zclient.tracking.TrackingController
+import com.waz.zclient.tracking.{CallingTrackingController, GlobalTrackingController, MainTrackingController}
 import com.waz.zclient.utils.{BackendPicker, BuildConfigUtils, Callback}
 import com.waz.zclient.views.ImageController
 
@@ -87,6 +87,9 @@ object WireApplication {
     bind [MessageNotificationsController]  to new MessageNotificationsController()
     bind [ImageNotificationsController]    to new ImageNotificationsController()
     bind [CallingNotificationsController]  to new CallingNotificationsController()
+
+    bind [GlobalTrackingController]        to new GlobalTrackingController()
+    bind [CallingTrackingController]       to new CallingTrackingController()
   }
 
   def services(ctx: WireContext) = new Module {
@@ -113,9 +116,15 @@ object WireApplication {
     bind [MessageActionsController]  to new MessageActionsController()
     bind [MessagesController]        to new MessagesController()
     bind [LikesController]           to new LikesController()
-    bind [TrackingController]        to new TrackingController()
     bind [CollectionController]      to new CollectionController()
     bind [SharingController]         to new SharingController()
+
+    /**
+      * Since tracking controllers will immediately instantiate other necessary controllers, we keep them separated
+      * based on the activity responsible for generating their events (we don't want to instantiate an uneccessary
+      * MessageActionsController in the CallingActivity, for example
+      */
+    bind [MainTrackingController]    to new MainTrackingController()
   }
 }
 
@@ -152,6 +161,10 @@ class WireApplication extends MultiDexApplication with WireContext with Injectab
     inject[MessageNotificationsController]
     inject[ImageNotificationsController]
     inject[CallingNotificationsController]
+
+    //TODO - is this early enough for app launch events?
+    inject[GlobalTrackingController]
+    inject[CallingTrackingController]
   }
 
   override def onTerminate(): Unit = {
