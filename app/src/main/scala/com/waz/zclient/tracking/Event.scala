@@ -86,11 +86,12 @@ case class OpenedFileEvent(fileMimeType: String, fileSizeInBytes: Int) extends F
 
 
 abstract class MessageEvent(name: String, playedByReceiver: Boolean, withOtto: Boolean, convType: ConversationType) extends Event(name) {
-  override val attributes = Map(
+  protected val baseAttributes = Map(
     Attribute.USER              -> (if (playedByReceiver) "receiver" else "sender"),
     Attribute.WITH_BOT          -> String.valueOf(withOtto),
     Attribute.CONVERSATION_TYPE -> convType.name
   )
+  override val attributes = baseAttributes
 }
 
 abstract class DurationMessageEvent(name: String, durationSec: Int, playedByReceiver: Boolean, withOtto: Boolean, convType: ConversationType)
@@ -101,13 +102,9 @@ abstract class DurationMessageEvent(name: String, durationSec: Int, playedByRece
 case class PlayedVideoMessageEvent(duration: Int, playedByReceiver: Boolean, isOtto: Boolean, convType: ConversationType)
   extends DurationMessageEvent("media.played_video_message", duration, playedByReceiver, isOtto, convType)
 
-case class PlayedAudioMessageEvent(fileMimeType: String, durationSec: Int, playedByReceiver: Boolean, isOtto: Boolean, convType: ConversationType) extends Event("media.played_audio_message") {
-  override val attributes = Map(
-    TYPE              -> AssetUtils.assetMimeTypeToExtension(fileMimeType),
-    USER              -> (if (playedByReceiver) "receiver" else "sender"),
-    WITH_BOT          -> String.valueOf(isOtto),
-    CONVERSATION_TYPE -> convType.name
-  )
+case class PlayedAudioMessageEvent(fileMimeType: String, durationSec: Int, playedByReceiver: Boolean, isOtto: Boolean, convType: ConversationType)
+  extends DurationMessageEvent("media.played_audio_message", durationSec, playedByReceiver, isOtto, convType) {
+  override val attributes = baseAttributes + (TYPE -> AssetUtils.assetMimeTypeToExtension(fileMimeType))
 }
 
 case class PlayedYouTubeMessageEvent(playedByReceiver: Boolean, isOtto: Boolean, convType: ConversationType)
@@ -129,19 +126,13 @@ abstract class CollectionsEvent(name: String, conversationType: ConversationType
   }
 }
 case class OpenedCollectionsEvent(isEmpty: Boolean, conversationType: ConversationType, withBot: Boolean) extends CollectionsEvent("collections.opened_collections", conversationType, withBot){
-  override val attributes = baseAttributes ++ Map(
-    IS_EMPTY -> String.valueOf(isEmpty)
-  )
+  override val attributes = baseAttributes + (IS_EMPTY -> String.valueOf(isEmpty))
 }
 case class OpenedItemCollectionsEvent(messageType: Message.Type, conversationType: ConversationType, withBot: Boolean) extends CollectionsEvent("collections.opened_item", conversationType, withBot){
-  override val attributes = baseAttributes ++ Map(
-    TYPE -> trackingType(messageType)
-  )
+  override val attributes = baseAttributes + (TYPE -> trackingType(messageType))
 }
 case class OpenedItemMenuCollectionsEvent(messageType: Message.Type, conversationType: ConversationType, withBot: Boolean) extends CollectionsEvent("collections.opened_item_menu", conversationType, withBot){
-  override val attributes = baseAttributes ++ Map(
-    TYPE -> trackingType(messageType)
-  )
+  override val attributes = baseAttributes + (TYPE -> trackingType(messageType))
 }
 case class DidItemActionCollectionsEvent(messageAction: MessageAction, messageType: Message.Type, conversationType: ConversationType, withBot: Boolean) extends CollectionsEvent("collections.did_item_action", conversationType, withBot){
   import MessageAction._
