@@ -47,7 +47,7 @@ object Flavor {
   lazy val Prod = Flavor("", "com.wire", BuildConfig.Prod, Placeholders.Prod, Some("proguard-android-optimize-wire.txt"), SigningConfig.Release)
   lazy val Internal = Flavor("-internal", "com.wire.internal", BuildConfig.Internal, Placeholders.Internal, Some("proguard-rules.txt"))
   lazy val Avs = Flavor("-avs", "com.wire.avs", BuildConfig.Avs, Placeholders.Avs, Some("proguard-rules.txt"))
-  lazy val QAAvs = Flavor("-qaavs", "com.wire.qaavs", BuildConfig.QAAvs, Placeholders.QAAvs, Some("proguard-rules.txt"))
+  lazy val QA = Flavor("-qa", "com.wire.qa", BuildConfig.QA, Placeholders.QA, Some("proguard-rules.txt"))
   lazy val Experimental = Flavor("-exp", "com.wire.x", BuildConfig.Experimental, Placeholders.Experimental, Some("proguard-rules.txt"))
 }
 
@@ -121,8 +121,8 @@ object Placeholders {
     hockeyAppKey = "f20c645784bf28e3aec68269566c388f"
   )
 
-  lazy val QAAvs = Placeholders(
-    applicationLabel = "Wire QA AVS",
+  lazy val QA = Placeholders(
+    applicationLabel = "Wire QA",
     internalFeatures = false,
     applicationIcon = "@drawable/ic_launcher_wire_playground",
     hockeyAppKey = "76c0b10e19e596ccd2dc021123fbf562"

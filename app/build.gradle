@@ -215,10 +215,10 @@ android {
             buildConfigField 'int', 'LOG_LEVEL_AVS', logLevelVerbose()
         }
 
-        qaavs {
-            applicationId "com.wire.qaavs"
-            versionName majorVersion + android.defaultConfig.versionCode + "-qaavs"
-            manifestPlaceholders = [applicationLabel       : "Wire QA AVS",
+        qa {
+            applicationId "com.wire.qa"
+            versionName majorVersion + android.defaultConfig.versionCode + "-qa"
+            manifestPlaceholders = [applicationLabel       : "Wire QA",
                                     allowBackup            : "true",
                                     applicationIcon        : "@drawable/ic_launcher_wire_playground",
                                     sharedUserId           : "",
@@ -236,7 +236,7 @@ android {
             buildConfigField 'boolean', 'SHOW_ADDRESS_BOOK_INVITATIONS', 'false'
             buildConfigField 'boolean', 'IS_TEST_GALLERY_ALLOWED', 'true'
             buildConfigField 'boolean', 'SHOW_BACKEND_PICKER', 'true'
-            buildConfigField 'int', 'LOG_LEVEL_UI', logLevelSupress()
+            buildConfigField 'int', 'LOG_LEVEL_UI', logLevelVerbose()
             buildConfigField 'int', 'LOG_LEVEL_SE', logLevelVerbose()
             buildConfigField 'int', 'LOG_LEVEL_AVS', logLevelVerbose()
         }

@@ -122,7 +122,7 @@ object BuildConfig {
     logLevelSe = LogLevel.Verbose,
     logLevelAvs = LogLevel.Verbose)
 
-  lazy val QAAvs = BuildConfig(
+  lazy val QA = BuildConfig(
     showMentioning = false,
     loadTimeLogger = false,
     logLevelUi = LogLevel.Supress,

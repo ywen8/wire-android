@@ -36,7 +36,7 @@ dependencies {
             dev = true;
             break;
         }
-        if (taskName.contains("Internal") || taskName.contains("Experimental") || taskName.contains("Qaavs") || taskName.contains("Avs")) {
+        if (taskName.contains("Internal") || taskName.contains("Experimental") || taskName.contains("Qa") || taskName.contains("Avs")) {
             internal = true;
             dev = false;
             break;
