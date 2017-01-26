@@ -102,7 +102,7 @@ public class MessageBottomSheetDialog extends BottomSheetDialog {
         }
         if (isForwardAllowed()) {
             addAction(view, MessageAction.FORWARD);
-            //addAction(view, MessageAction.FORWARD_MULTIPLE); //TODO: remove when FORWARD_MULTIPLE is working
+            addAction(view, MessageAction.FORWARD_MULTIPLE);
         }
         if (isDeleteLocalAllowed()) {
             addAction(view, MessageAction.DELETE_LOCAL);

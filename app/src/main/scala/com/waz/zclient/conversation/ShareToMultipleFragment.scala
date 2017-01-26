@@ -33,8 +33,9 @@ import android.widget._
 import com.waz.api.ConversationsList.ConversationsListState
 import com.waz.api._
 import com.waz.model.{AssetData, AssetType, MessageData, MessageId}
+import com.waz.service.ZMessaging
 import com.waz.threading.Threading
-import com.waz.utils.events.{Signal, SourceSignal}
+import com.waz.utils.events.{EventStream, Signal, SourceSignal}
 import com.waz.zclient.controllers.AssetsController
 import com.waz.zclient.controllers.global.AccentColorController
 import com.waz.zclient.core.stores.conversation.{ConversationChangeRequester, ConversationStoreObserver}
@@ -43,11 +44,13 @@ import com.waz.zclient.pages.BaseDialogFragment
 import com.waz.zclient.ui.text.TypefaceTextView
 import com.waz.zclient.ui.views.CursorIconButton
 import com.waz.zclient.utils.ViewUtils
-import com.waz.zclient.{FragmentHelper, OnBackPressedListener, R}
+import com.waz.zclient._
+import com.waz.zclient.core.api.scala.ModelObserver
 
 
 class ShareToMultipleFragment extends BaseDialogFragment[ShareToMultipleFragment.Container] with FragmentHelper with OnBackPressedListener {
 
+  lazy val zms = inject[Signal[ZMessaging]]
   lazy val assetsController = inject[AssetsController]
   lazy val messagesController = inject[MessagesController]
   lazy val accentColorController = inject[AccentColorController]
@@ -65,7 +68,7 @@ class ShareToMultipleFragment extends BaseDialogFragment[ShareToMultipleFragment
     }
     val assetDataSignal: SourceSignal[Option[AssetData]] = Signal[Option[AssetData]]()
     val messageTextSignal: SourceSignal[Option[String]] = Signal[Option[String]]()
-    val clickSignal: SourceSignal[Unit] = Signal[Unit]()
+    val onClickEvent = EventStream[Unit]()
 
     accentColorController.accentColor.on(Threading.Ui) {
       color => sendButton.setSolidBackgroundColor(color.getColor())
@@ -104,7 +107,7 @@ class ShareToMultipleFragment extends BaseDialogFragment[ShareToMultipleFragment
     (for{
       ad <- assetDataSignal
       mt <- messageTextSignal
-      _ <- clickSignal
+      _ <-  Signal.wrap(onClickEvent)
     } yield (ad, mt)).on(Threading.Ui) {
       case (None, None) =>
         dialog.show()
@@ -114,16 +117,23 @@ class ShareToMultipleFragment extends BaseDialogFragment[ShareToMultipleFragment
         onBackPressed()
         Toast.makeText(getContext, R.string.message_footer__status__sending, Toast.LENGTH_SHORT).show()
       case (Some(assetData), _) =>
-        if (dialog.isShowing) dialog.dismiss()
-        (assetData.assetType, assetData.source) match {
-          case (Some(AssetType.Image), Some(uri)) =>
-            sendImageAsset(uri, adapter.selectedConversations.toSet)
-          case (_, Some(uri)) =>
-            sendAsset(uri, adapter.selectedConversations.toSet)
-          case _ =>
+        if (!dialog.isShowing) dialog.show()
+        val uriResolver = zms.flatMap(z => Signal.future(z.assets.getContentUri(assetData.id)))
+        uriResolver.on(Threading.Ui){ optUri =>
+          if (dialog.isShowing) dialog.dismiss()
+          optUri match {
+            case Some(uri) =>
+              if (assetData.assetType.contains(AssetType.Image)){
+                sendImageAsset(uri, adapter.selectedConversations.toSet)
+              } else {
+                sendAsset(uri, adapter.selectedConversations.toSet)
+              }
+              onBackPressed()
+              Toast.makeText(getContext, R.string.multi_share_toast_sending, Toast.LENGTH_SHORT).show()
+            case _ =>
+              Toast.makeText(getContext, R.string.multi_share_toast_failed, Toast.LENGTH_SHORT).show()
+          }
         }
-        onBackPressed()
-        Toast.makeText(getContext, R.string.message_footer__status__sending, Toast.LENGTH_SHORT).show()
     }
 
     sendButton.setOnClickListener(new OnClickListener {
@@ -131,7 +141,7 @@ class ShareToMultipleFragment extends BaseDialogFragment[ShareToMultipleFragment
         if (adapter.selectedConversations.isEmpty) {
           return
         }
-        clickSignal ! (())
+        onClickEvent ! (())
       }
     })
     view
@@ -193,7 +203,7 @@ class ShareToMultipleFragment extends BaseDialogFragment[ShareToMultipleFragment
   }
 }
 
-class ShareToMultipleAdapter(context: Context) extends ListAdapter with ConversationStoreObserver{
+class ShareToMultipleAdapter(context: Context)(implicit injector: Injector) extends BaseAdapter with ConversationStoreObserver with Injectable {
 
   var conversationsList: Option[ConversationsList] = None
   val selectedConversations = new scala.collection.mutable.HashSet[IConversation]
@@ -264,9 +274,15 @@ class SelectableConversationRow(context: Context, attrs: AttributeSet, defStyleA
   val checkBox = ViewUtils.getView(this, R.id.rb__conversation_selected).asInstanceOf[CheckBox]
   checkBox.setOnCheckedChangeListener(checkBoxListener)
 
+  val convObserver: ModelObserver[IConversation] = new ModelObserver[IConversation] {
+    override def updated(conversation: IConversation): Unit = {
+      nameView.setText(conversation.getName)
+      checkBox.setTag(conversation)
+    }
+  }
+
   def setConversation(conversation: IConversation, checked: Boolean): Unit = {
-    nameView.setText(conversation.getName)
-    checkBox.setTag(conversation)
+    convObserver.setAndUpdate(conversation)
     checkBox.setChecked(checked)
   }
 }

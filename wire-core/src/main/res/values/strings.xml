@@ -1110,4 +1110,7 @@
     <string name="collection_send_to">SEND TO…</string>
     <string name="collection_all">Show all %1$s</string>
 
+    <string name="multi_share_toast_sending">@string/message_footer__status__sending</string>
+    <string name="multi_share_toast_failed">Sending failed</string>
+
 </resources>
