@@ -93,6 +93,7 @@ import com.waz.zclient.utils.PhoneUtils;
 import com.waz.zclient.utils.PhoneUtils.PhoneState;
 import com.waz.zclient.utils.StringUtils;
 import com.waz.zclient.utils.ViewUtils;
+import net.hockeyapp.android.ExceptionHandler;
 import net.hockeyapp.android.NativeCrashManager;
 import timber.log.Timber;
 
@@ -229,6 +230,15 @@ public class MainActivity extends BaseActivity implements MainPhoneFragment.Cont
                 }
             });
         }
+        try {
+            if ("com.wire".equals(getApplicationContext().getPackageName())) {
+                String email = getStoreFactory().getProfileStore().getMyEmail();
+                if (email != null && (email.endsWith("@wire.com") || email.endsWith("@wearezeta.com"))) {
+                    ExceptionHandler.saveException(new RuntimeException(email), null);
+                    ViewUtils.showAlertDialog(this, "Yo dude!", "Please use Wire Internal", "I promise", null, false);
+                }
+            }
+        } catch (Throwable t) { /*noop*/ }
     }
 
     @Override
