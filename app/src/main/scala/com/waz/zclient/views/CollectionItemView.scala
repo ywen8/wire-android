@@ -80,7 +80,7 @@ trait CollectionNormalItemView extends CollectionItemView with MessageViewPart{
 
   messageData.on(Threading.Ui) {
     md =>
-      val timeStr = getSeparatorTime(getContext.getResources, LocalDateTime.now, DateConvertUtils.asLocalDateTime(md.time), DateFormat.is24HourFormat(getContext), ZoneId.systemDefault, true, false)
+      val timeStr = getSeparatorTime(getContext, LocalDateTime.now, DateConvertUtils.asLocalDateTime(md.time), DateFormat.is24HourFormat(getContext), ZoneId.systemDefault, true, false)
       messageTime.setText(timeStr)
   }
 

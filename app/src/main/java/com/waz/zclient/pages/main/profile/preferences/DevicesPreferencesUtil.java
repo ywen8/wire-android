@@ -68,7 +68,7 @@ public class DevicesPreferencesUtil {
 
     private static String getActivationSummary(Context context, OtrClient otrClient) {
         LocalDateTime now = LocalDateTime.now(ZoneId.systemDefault());
-        String time = ZTimeFormatter.getSeparatorTime(context.getResources(),
+        String time = ZTimeFormatter.getSeparatorTime(context,
                                                       now,
                                                       LocalDateTime.ofInstant(otrClient.getRegTime(),
                                                                               ZoneId.systemDefault()),
