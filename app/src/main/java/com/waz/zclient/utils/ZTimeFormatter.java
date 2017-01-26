@@ -18,10 +18,13 @@
 package com.waz.zclient.utils;
 
 import android.content.Context;
+import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.support.annotation.Nullable;
 import android.text.format.DateFormat;
 import com.waz.zclient.R;
+import net.hockeyapp.android.CrashManagerListener;
+import net.hockeyapp.android.ExceptionHandler;
 import org.threeten.bp.Duration;
 import org.threeten.bp.Instant;
 import org.threeten.bp.LocalDateTime;
@@ -29,29 +32,41 @@ import org.threeten.bp.ZoneId;
 import org.threeten.bp.format.DateTimeFormatter;
 
 import java.util.Date;
+import java.util.Locale;
 
 public class ZTimeFormatter {
 
-    public static String getSeparatorTime(@Nullable Resources resources, LocalDateTime now, LocalDateTime then, boolean is24HourFormat, ZoneId timeZone, boolean epocIsJustNow) {
-        return getSeparatorTime(resources, now, then, is24HourFormat, timeZone, epocIsJustNow, true);
+    public static String getSeparatorTime(@Nullable Context context, LocalDateTime now, LocalDateTime then, boolean is24HourFormat, ZoneId timeZone, boolean epocIsJustNow) {
+        return getSeparatorTime(context, now, then, is24HourFormat, timeZone, epocIsJustNow, true);
     }
 
-    public static String getSeparatorTime(@Nullable Resources resources, LocalDateTime now, LocalDateTime then, boolean is24HourFormat, ZoneId timeZone, boolean epocIsJustNow, boolean showWeekday) {
-        if (resources == null) {
+    public static String getSeparatorTime(@Nullable Context context, LocalDateTime now, LocalDateTime then, boolean is24HourFormat, ZoneId timeZone, boolean epocIsJustNow, boolean showWeekday) {
+        return getSeparatorTime(context, now, then, is24HourFormat, timeZone, epocIsJustNow, showWeekday, false);
+    }
+
+    private static String getSeparatorTime(@Nullable Context context, LocalDateTime now, LocalDateTime then, boolean is24HourFormat, ZoneId timeZone, boolean epocIsJustNow, boolean showWeekday, boolean defaultLocale) {
+        if (context == null) {
             return "";
+        }
+        Resources res;
+        if (defaultLocale) {
+            res = getEnglishResources(context);
+        } else {
+            res = context.getResources();
         }
 
         final boolean isLastTwoMins = now.minusMinutes(2).isBefore(then) || (epocIsJustNow && then.atZone(timeZone).toInstant().toEpochMilli() == 0);
         final boolean isLastSixtyMins = now.minusMinutes(60).isBefore(then);
 
         if (isLastTwoMins) {
-            return resources.getString(R.string.timestamp__just_now);
+            return res.getString(R.string.timestamp__just_now);
         } else if (isLastSixtyMins) {
             int minutes = (int) Duration.between(then, now).toMinutes();
-            return resources.getQuantityString(R.plurals.timestamp__x_minutes_ago, minutes, minutes);
+            return res.getQuantityString(R.plurals.timestamp__x_minutes_ago, minutes, minutes);
         }
 
-        final String time = getTimeFormatString(resources, is24HourFormat);
+        final String time = is24HourFormat ? res.getString(R.string.timestamp_pattern__24h_format) :
+                            res.getString(R.string.timestamp_pattern__12h_format);
         final boolean isSameDay = now.toLocalDate().atStartOfDay().isBefore(then);
         final boolean isThisYear = now.getYear() == then.getYear();
         final String pattern;
@@ -59,40 +74,94 @@ public class ZTimeFormatter {
             pattern = time;
         } else if (isThisYear) {
             if (showWeekday) {
-                pattern = resources.getString(R.string.timestamp_pattern__date_and_time__no_year, time);
+                pattern = res.getString(R.string.timestamp_pattern__date_and_time__no_year, time);
             } else {
-                pattern = resources.getString(R.string.timestamp_pattern__date_and_time__no_year_no_weekday, time);
+                pattern = res.getString(R.string.timestamp_pattern__date_and_time__no_year_no_weekday, time);
             }
         } else {
             if (showWeekday) {
-                pattern = resources.getString(R.string.timestamp_pattern__date_and_time__with_year, time);
+                pattern = res.getString(R.string.timestamp_pattern__date_and_time__with_year, time);
             } else {
-                pattern = resources.getString(R.string.timestamp_pattern__date_and_time__with_year_no_weekday, time);
+                pattern = res.getString(R.string.timestamp_pattern__date_and_time__with_year_no_weekday, time);
             }
         }
-        return DateTimeFormatter.ofPattern(pattern).format(then.atZone(timeZone));
+        try {
+            return DateTimeFormatter.ofPattern(pattern).format(then.atZone(timeZone));
+        } catch (Exception e) {
+            ExceptionHandler.saveException(e, Thread.currentThread(),
+                                           new CrashManagerListener() {
+                                               @Override
+                                               public String getDescription() {
+                                                   return pattern;
+                                               }
+                                           });
+            if (!defaultLocale) {
+                return getSeparatorTime(context, now, then, is24HourFormat, timeZone, epocIsJustNow, showWeekday, true);
+            } else {
+                return "";
+            }
+        }
     }
 
     public static String getSingleMessageTime(Context context, Date date) {
+        return getSingleMessageTime(context, date, false);
+    }
+
+    private static String getSingleMessageTime(Context context, Date date, boolean defaultLocale) {
         boolean is24HourFormat = DateFormat.is24HourFormat(context);
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(getTimeFormatString(context.getResources(), is24HourFormat));
-        return formatter.format(DateConvertUtils.asLocalDateTime(date).atZone(ZoneId.systemDefault()));
-    }
+        Resources resources = defaultLocale ? getEnglishResources(context) : context.getResources();
 
+        final String pattern = is24HourFormat ? resources.getString(R.string.timestamp_pattern__24h_format) :
+                               resources.getString(R.string.timestamp_pattern__12h_format);
+        try {
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern(pattern);
+            return formatter.format(DateConvertUtils.asLocalDateTime(date).atZone(ZoneId.systemDefault()));
+        } catch (Exception e) {
+            ExceptionHandler.saveException(e, Thread.currentThread(),
+                                           new CrashManagerListener() {
+                                               @Override
+                                               public String getDescription() {
+                                                   return pattern;
+                                               }
+                                           });
+            if (!defaultLocale) {
+                return getSingleMessageTime(context, date, true);
+            } else {
+                return "";
+            }
+        }
+    }
     public static String getCurrentWeek(Context context) {
-        String pattern = context.getResources().getString(R.string.timestamp_pattern__week);
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(pattern);
-        return formatter.format(DateConvertUtils.asLocalDateTime(Instant.now()).atZone(ZoneId.systemDefault()));
+        return getCurrentWeek(context, false);
     }
 
-    private static String getTimeFormatString(@Nullable Resources resources, boolean is24HourFormat) {
-        if (resources == null) {
-            return "";
-        }
-        if (is24HourFormat) {
-            return resources.getString(R.string.timestamp_pattern__24h_format);
-        } else {
-            return resources.getString(R.string.timestamp_pattern__12h_format);
+    private static String getCurrentWeek(Context context, boolean defaultLocale) {
+        final String pattern = context.getResources().getString(R.string.timestamp_pattern__week);
+        try {
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern(pattern);
+            return formatter.format(DateConvertUtils.asLocalDateTime(Instant.now()).atZone(ZoneId.systemDefault()));
+        } catch (Exception e) {
+            ExceptionHandler.saveException(e, Thread.currentThread(),
+                                           new CrashManagerListener() {
+                                               @Override
+                                               public String getDescription() {
+                                                   return pattern;
+                                               }
+                                           });
+            if (!defaultLocale) {
+                return getCurrentWeek(context, true);
+            } else {
+                return "";
+            }
         }
     }
+
+    private static Resources getEnglishResources(Context context) {
+        Configuration conf = context.getResources().getConfiguration();
+        conf = new Configuration(conf);
+        conf.setLocale(Locale.ENGLISH);
+        Context localizedContext = context.createConfigurationContext(conf);
+        return localizedContext.getResources();
+    }
+
 }
