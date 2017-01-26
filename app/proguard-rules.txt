@@ -128,3 +128,7 @@
 -dontwarn com.coremedia.iso.boxes.**
 -dontwarn com.googlecode.mp4parser.authoring.tracks.mjpeg.**
 -dontwarn com.googlecode.mp4parser.authoring.tracks.ttml.**
+
+## JNA classes for calling v3
+-keep class * extends com.sun.jna.** { *; }
+-keep class com.sun.jna.** { *; }
