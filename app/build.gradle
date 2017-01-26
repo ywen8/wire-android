@@ -225,7 +225,7 @@ android {
                                     use_audio_link         : "false",
                                     internal_features      : "true",
                                     localyticsAppKey       : getApiKey("localyticsAppKey"),
-                                    hockeyAppKey           : getApiKey("hockeyAppKeyQaavs")]
+                                    hockeyAppKey           : getApiKey("hockeyAppKeyQa")]
 
             buildConfigField 'boolean', 'USE_HOCKEY_UPDATE', 'true'
             buildConfigField 'boolean', 'SHOW_GRIDOVERLAY', 'true'
