@@ -938,7 +938,7 @@
     <string name="otr__device_inbox__header">Your account was used on:</string>
     <string name="otr__device_inbox__name">From: [[%s]]</string>
 
-    <string name="advanced_image_download_wifi_info">The picture will appear when you are on WI-FI again</string>
+    <string name="advanced_image_download_wifi_info">The picture will appear when you are on Wi-Fi again</string>
     <string name="change_settings">Change Settings</string>
     <string name="single_image__save_to_disk__error">Unable to save image, no access to external storage</string>
     <string name="conversation_list__label_action__contacts">PEOPLE</string>
