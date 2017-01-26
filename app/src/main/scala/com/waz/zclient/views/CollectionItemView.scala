@@ -31,14 +31,14 @@ import com.waz.model._
 import com.waz.service.ZMessaging
 import com.waz.service.messages.MessageAndLikes
 import com.waz.threading.Threading
-import com.waz.utils.events.{EventContext, Signal, SourceSignal}
+import com.waz.utils.events.{EventContext, EventStream, Signal, SourceSignal}
 import com.waz.zclient.controllers.BrowserController
 import com.waz.zclient.conversation.CollectionController
 import com.waz.zclient.messages.MessageView.MsgBindOptions
 import com.waz.zclient.messages.controllers.MessageActionsController
 import com.waz.zclient.messages.parts.WebLinkPartView
 import com.waz.zclient.messages.parts.assets.FileAssetPartView
-import com.waz.zclient.messages.{MessageViewPart, MsgPart}
+import com.waz.zclient.messages.{ClickableViewPart, MessageViewPart, MsgPart}
 import com.waz.zclient.pages.main.conversation.views.AspectRatioImageView
 import com.waz.zclient.utils.ZTimeFormatter._
 import com.waz.zclient.utils.{ViewUtils, _}
@@ -67,7 +67,7 @@ trait CollectionItemView extends ViewHelper {
   }
 }
 
-trait CollectionNormalItemView extends CollectionItemView with MessageViewPart{
+trait CollectionNormalItemView extends CollectionItemView with ClickableViewPart{
   lazy val messageTime: TextView = ViewUtils.getView(this, R.id.ttv__collection_item__time)
   lazy val messageUser: TextView = ViewUtils.getView(this, R.id.ttv__collection_item__user_name)
 
@@ -87,6 +87,10 @@ trait CollectionNormalItemView extends CollectionItemView with MessageViewPart{
 
   messageAndLikesResolver.on(Threading.Ui) { mal => set(mal, content, CollectionNormalItemView.DefaultBindingOptions) }
 
+  onClicked.on(Threading.Ui){
+    _ => messageData.currentValue.foreach(collectionController.clickedMessage ! _)
+  }
+
   def setMessageData(messageData: MessageData, content: Option[MessageContent]): Unit = {
     this.content = content
     this.messageData ! messageData
@@ -99,6 +103,8 @@ object CollectionNormalItemView{
 
 class CollectionImageView(context: Context) extends AspectRatioImageView(context) with CollectionItemView {
   setId(R.id.collection_image_view)
+
+  val onClicked = EventStream[Unit]()
 
   object CollectionImageView {
     val CornerRadius = 10
@@ -116,6 +122,14 @@ class CollectionImageView(context: Context) extends AspectRatioImageView(context
 
   setBackground(dotsDrawable)
   setImageDrawable(imageDrawable)
+
+  this.onClick{
+    onClicked ! (())
+  }
+
+  onClicked{
+    _ => messageData.currentValue.foreach(collectionController.clickedMessage ! _)
+  }
 
   def setMessageData(messageData: MessageData, width: Int, color: Int) = {
     setAspectRatio(1)
@@ -156,11 +170,9 @@ class CollectionSimpleWebLinkPartView(context: Context, attrs: AttributeSet, sty
 
   urlText.on(Threading.Ui){ urlTextView.setText}
 
-  this.onClick {
-    messageData.currentValue.foreach(collectionController.clickedMessage ! _)
+  onClicked{ _ =>
     urlText.currentValue foreach { c => browser.openUrl(Uri.parse(c)) }
   }
-
 }
 
 abstract class CollectionItemViewHolder(view: CollectionNormalItemView)(implicit eventContext: EventContext) extends RecyclerView.ViewHolder(view){
@@ -186,7 +198,9 @@ case class LinkPreviewViewHolder(view: CollectionNormalItemView)(implicit eventC
 case class SimpleLinkViewHolder(view: CollectionNormalItemView)(implicit eventContext: EventContext) extends CollectionItemViewHolder(view)
 
 case class CollectionImageViewHolder(view: CollectionImageView, listener: OnClickListener)(implicit eventContext: EventContext) extends RecyclerView.ViewHolder(view) {
-  view.setOnClickListener(listener)
+  view.onClicked { _ =>
+    listener.onClick(view)
+  }
 
   def setMessageData(messageData: MessageData, width: Int, color: Int) = {
     view.setMessageData(messageData, width, color)

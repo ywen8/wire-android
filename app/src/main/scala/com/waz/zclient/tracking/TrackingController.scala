@@ -61,7 +61,7 @@ class TrackingController(implicit injector: Injector, ctx: Context, ec: EventCon
     case (action, message) if collectionsController.openedCollection.currentValue.exists(_.nonEmpty) =>
       collectionsController.openedCollection.currentValue.foreach(_.foreach{ info=>
         trackingData(info.conversation.id).map{ data =>
-          tagEvent(DidItemActionCollectionsEvent(action, message.getMessageType.name(), data.convType, data.withOtto))
+          tagEvent(DidItemActionCollectionsEvent(action, message.getMessageType, data.convType, data.withOtto))
         }
       })
     case (action, message) => tagEvent(OpenedMessageActionEvent(action, message.getMessageType.name))
@@ -113,13 +113,13 @@ class TrackingController(implicit injector: Injector, ctx: Context, ec: EventCon
 
   collectionsController.openContextMenuForMessage{
     m => trackingData(m.id).map{ data =>
-      tagEvent(OpenedItemMenuCollectionsEvent(m.msgType.name(), data.convType, data.withOtto))
+      tagEvent(OpenedItemMenuCollectionsEvent(m.msgType, data.convType, data.withOtto))
     }
   }
 
   collectionsController.clickedMessage{
     m => trackingData(m.id).map{ data =>
-      tagEvent(OpenedItemMenuCollectionsEvent(m.msgType.name(), data.convType, data.withOtto))
+      tagEvent(OpenedItemCollectionsEvent(m.msgType, data.convType, data.withOtto))
     }
   }
 
