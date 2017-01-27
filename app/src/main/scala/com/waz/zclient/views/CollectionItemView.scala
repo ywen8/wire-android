@@ -151,6 +151,14 @@ class CollectionFileAssetPartView(context: Context, attrs: AttributeSet, style: 
   override def layoutList = {
     case _: CollectionFileAssetPartView => R.layout.collection_message_file_asset_content
   }
+
+  this.onClick{
+    deliveryState.currentValue.foreach(assetActionButton.onClicked ! _)
+  }
+
+  assetActionButton.onClicked{ _ =>
+    messageData.currentValue.foreach(collectionController.clickedMessage ! _)
+  }
 }
 
 class CollectionSimpleWebLinkPartView(context: Context, attrs: AttributeSet, style: Int) extends CardView(context: Context, attrs: AttributeSet, style: Int) with CollectionNormalItemView{
@@ -168,7 +176,7 @@ class CollectionSimpleWebLinkPartView(context: Context, attrs: AttributeSet, sty
   val urlText =
     message.map(msg => msg.content.find(c => URLUtil.isValidUrl(c.content)).map(_.content).getOrElse(msg.contentString))
 
-  urlText.on(Threading.Ui){ urlTextView.setText}
+  urlText.on(Threading.Ui){ urlTextView.setText }
 
   onClicked{ _ =>
     urlText.currentValue foreach { c => browser.openUrl(Uri.parse(c)) }

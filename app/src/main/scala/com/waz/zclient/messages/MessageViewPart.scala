@@ -75,13 +75,13 @@ trait ClickableViewPart extends MessageViewPart with ViewHelper {
 
   def onSingleClick() = {
     onClicked ! ({})
-    getParent.asInstanceOf[View].performClick()
+    Option(getParent.asInstanceOf[View]).foreach(_.performClick())
   }
 
   def onDoubleClick() = messageAndLikes.head.map { mAndL =>
     if (MessageView.clickableTypes.contains(mAndL.message.msgType)) {
       likes.onViewDoubleClicked ! mAndL
-      getParent.asInstanceOf[View].performClick() //perform click to change focus
+      Option(getParent.asInstanceOf[View]).foreach(_.performClick()) //perform click to change focus
     }
   }
 
