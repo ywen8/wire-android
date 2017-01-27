@@ -18,7 +18,6 @@
 package com.waz.zclient.messages
 
 import com.waz.api.Message
-import com.waz.model.ConversationData.ConversationType
 
 sealed trait MsgPart
 sealed trait SeparatorPart extends MsgPart
@@ -65,8 +64,9 @@ object MsgPart {
       case RENAME => Rename
       case MISSED_CALL => MissedCall
       case RECALLED => Empty // recalled messages only have an icon in header
-      case CONNECT_ACCEPTED | INCOMING_CALL => Empty // those are never used in messages (only in notifications)
+      case CONNECT_ACCEPTED => Empty // those are never used in messages (only in notifications)
       case RICH_MEDIA => Empty // RICH_MEDIA will be handled separately
+      case SUCCESSFUL_CALL => Empty
       case UNKNOWN => Unknown
     }
   }
