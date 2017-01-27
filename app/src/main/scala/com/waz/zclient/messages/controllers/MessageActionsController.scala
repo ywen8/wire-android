@@ -78,7 +78,6 @@ class MessageActionsController(implicit injector: Injector, ctx: Context, ec: Ev
     case (MessageAction.LIKE, message)             => toggleLike(message)
     case (MessageAction.UNLIKE, message)           => toggleLike(message)
     case (MessageAction.SAVE, message)             => saveMessage(message)
-    case (MessageAction.FORWARD_MULTIPLE, message) => forwardMessageToMultipleConversations(message)
     case _ => // should be handled somewhere else
   }
 
@@ -177,11 +176,6 @@ class MessageActionsController(implicit injector: Injector, ctx: Context, ec: Ev
         }
       })
     }
-  }
-
-  private def forwardMessageToMultipleConversations(message: Message) = {
-    val shareDialog = ShareToMultipleFragment.newInstance(MessageId(message.getId))
-    shareDialog.show(fragmentManager, ShareToMultipleFragment.TAG)
   }
 
   private def saveMessage(message: Message) =

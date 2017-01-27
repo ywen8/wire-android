@@ -49,6 +49,7 @@ public class IntentUtils {
     public static final String APP_PAGE_HOST_TOKEN = "app-page";
     public static final String EXTRA_LAUNCH_FROM_SAVE_IMAGE_NOTIFICATION = "EXTRA_LAUNCH_FROM_SAVE_IMAGE_NOTIFICATION";
     private static final String EXTRA_LAUNCH_CONVERSATION_ID = "EXTRA_LAUNCH_CONVERSATION_ID";
+    private static final String EXTRA_LAUNCH_CONVERSATION_IDS = "EXTRA_LAUNCH_CONVERSATION_IDS";
     private static final String EXTRA_LAUNCH_FROM_NOTIFICATION = "EXTRA_LAUNCH_FROM_NOTIFICATION";
     private static final String EXTRA_LAUNCH_FROM_SHARING = "EXTRA_LAUNCH_FROM_SHARING";
     private static final String EXTRA_LAUNCH_CONVERSATION_MESSAGE = "EXTRA_LAUNCH_CONVERSATION_MESSAGE";
@@ -172,6 +173,7 @@ public class IntentUtils {
         intent.removeExtra(EXTRA_LAUNCH_FROM_NOTIFICATION);
         intent.removeExtra(EXTRA_LAUNCH_START_CALL);
         intent.removeExtra(EXTRA_LAUNCH_CONVERSATION_ID);
+        intent.removeExtra(EXTRA_LAUNCH_CONVERSATION_IDS);
         intent.removeExtra(EXTRA_LAUNCH_CONVERSATION_MESSAGE);
     }
 
@@ -186,12 +188,38 @@ public class IntentUtils {
     }
 
     public static Intent getAppLaunchIntent(@NonNull Context context,
-                                            String conversationId,
-                                            List<Uri> sharedFiles) {
+                                            List<String> conversationIds,
+                                            @Nullable String sharedText) {
+        Intent intent = new Intent(context, MainActivity.class);
+        intent.putExtra(EXTRA_LAUNCH_FROM_SHARING, true);
+        intent.putExtra(EXTRA_LAUNCH_CONVERSATION_MESSAGE, sharedText != null ? sharedText : "");
+        intent.putStringArrayListExtra(EXTRA_LAUNCH_CONVERSATION_IDS, new ArrayList<>(conversationIds));
+        if (conversationIds.size() == 1) {
+            intent.putExtra(EXTRA_LAUNCH_CONVERSATION_ID, conversationIds.get(0));
+        }
+        return intent;
+    }
+
+    public static Intent getAppLaunchIntent(@NonNull Context context,
+                                                 String conversationId,
+                                                 List<Uri> sharedFiles) {
         Intent intent = new Intent(context, MainActivity.class);
         intent.putExtra(EXTRA_LAUNCH_FROM_SHARING, true);
         intent.putParcelableArrayListExtra(EXTRA_LAUNCH_CONVERSATION_FILES, new ArrayList<>(sharedFiles));
         intent.putExtra(EXTRA_LAUNCH_CONVERSATION_ID, conversationId);
+        return intent;
+    }
+
+    public static Intent getAppLaunchIntent(@NonNull Context context,
+                                            List<String> conversationIds,
+                                            List<Uri> sharedFiles) {
+        Intent intent = new Intent(context, MainActivity.class);
+        intent.putExtra(EXTRA_LAUNCH_FROM_SHARING, true);
+        intent.putParcelableArrayListExtra(EXTRA_LAUNCH_CONVERSATION_FILES, new ArrayList<>(sharedFiles));
+        intent.putStringArrayListExtra(EXTRA_LAUNCH_CONVERSATION_IDS, new ArrayList<>(conversationIds));
+        if (conversationIds.size() == 1) {
+            intent.putExtra(EXTRA_LAUNCH_CONVERSATION_ID, conversationIds.get(0));
+        }
         return intent;
     }
 
@@ -267,6 +295,10 @@ public class IntentUtils {
 
     public static String getLaunchConversationId(Intent intent) {
         return intent.getStringExtra(EXTRA_LAUNCH_CONVERSATION_ID);
+    }
+
+    public static List<String> getLaunchConversationIds(Intent intent) {
+        return intent.getStringArrayListExtra(EXTRA_LAUNCH_CONVERSATION_IDS);
     }
 
     public static String getLaunchConversationSharedText(Intent intent) {

@@ -17,15 +17,10 @@
  */
 package com.waz.zclient.conversation
 
-import android.app.ProgressDialog
-import android.content.{Context, DialogInterface}
-import android.net.Uri
+import android.content.Context
 import android.os.Bundle
-import android.support.v4.app.DialogFragment
-import android.support.v7.app.AlertDialog
 import android.support.v7.widget.RecyclerView.ViewHolder
 import android.support.v7.widget.{LinearLayoutManager, RecyclerView, Toolbar}
-import android.text.format.Formatter
 import android.view.View.OnClickListener
 import android.view._
 import android.widget.LinearLayout.LayoutParams
@@ -37,10 +32,10 @@ import com.waz.service.ZMessaging
 import com.waz.threading.Threading
 import com.waz.utils.events.{EventContext, EventStream, Signal, SourceSignal}
 import com.waz.zclient._
-import com.waz.zclient.controllers.AssetsController
 import com.waz.zclient.controllers.global.AccentColorController
+import com.waz.zclient.controllers.{AssetsController, SharingController}
 import com.waz.zclient.messages.MessagesController
-import com.waz.zclient.pages.BaseDialogFragment
+import com.waz.zclient.pages.BaseFragment
 import com.waz.zclient.pages.main.pickuser.views.SearchBoxView
 import com.waz.zclient.pages.main.pickuser.views.SearchBoxView.Callback
 import com.waz.zclient.ui.text.TypefaceTextView
@@ -49,12 +44,13 @@ import com.waz.zclient.ui.views.CursorIconButton
 import com.waz.zclient.utils.ViewUtils
 
 
-class ShareToMultipleFragment extends BaseDialogFragment[ShareToMultipleFragment.Container] with FragmentHelper with OnBackPressedListener {
+class ShareToMultipleFragment extends BaseFragment[ShareToMultipleFragment.Container] with FragmentHelper {
 
   lazy val zms = inject[Signal[ZMessaging]]
   lazy val assetsController = inject[AssetsController]
   lazy val messagesController = inject[MessagesController]
   lazy val accentColorController = inject[AccentColorController]
+  lazy val sharingController = inject[SharingController]
 
   override def onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState: Bundle): View = {
     val view = inflater.inflate(R.layout.fragment_collection_share, container, false)
@@ -62,15 +58,7 @@ class ShareToMultipleFragment extends BaseDialogFragment[ShareToMultipleFragment
     val sendButton = ViewUtils.getView(view, R.id.cib__send_button).asInstanceOf[CursorIconButton]
     val toolbar = ViewUtils.getView(view, R.id.t_toolbar).asInstanceOf[Toolbar]
     val searchBox = ViewUtils.getView(view, R.id.multi_share_search_box).asInstanceOf[SearchBoxView]
-    val messageId = getArguments.getString(ShareToMultipleFragment.MSG_ID_ARG)
-    val messageData = messagesController.getMessage(MessageId(messageId)).flatMap{
-      case Some(md) => Signal(md)
-      case _ => Signal[MessageData]()
-    }
-    val assetDataSignal: SourceSignal[Option[AssetData]] = Signal[Option[AssetData]]()
-    val messageTextSignal: SourceSignal[Option[String]] = Signal[Option[String]]()
     val onClickEvent = EventStream[Unit]()
-
     val filterText = Signal[String]("")
     val adapter = new ShareToMultipleAdapter(getContext, filterText)
 
@@ -102,64 +90,18 @@ class ShareToMultipleFragment extends BaseDialogFragment[ShareToMultipleFragment
 
     toolbar.setNavigationIcon(if (getControllerFactory.getThemeController.isDarkTheme) R.drawable.ic_action_close_light else R.drawable.ic_action_close_dark)
     toolbar.setNavigationOnClickListener(new OnClickListener {
-      override def onClick(v: View): Unit = onBackPressed()
+      override def onClick(v: View): Unit = getActivity.onBackPressed()
     })
 
     listView.setLayoutManager(new LinearLayoutManager(getContext))
     listView.setAdapter(adapter)
 
-    sendButton.setVisibility(View.GONE)
-    messageData.on(Threading.Ui) {
-      _ => sendButton.setVisibility(View.VISIBLE)
-    }
-
-    messageData.on(Threading.Background)(md => md.msgType match {
-      case Message.Type.ANY_ASSET | Message.Type.ASSET | Message.Type.VIDEO_ASSET | Message.Type.AUDIO_ASSET =>
-        assetDataSignal ! None
-        messageTextSignal ! None
-        assetsController.assetSignal(md.assetId).on(Threading.Background)(a => assetDataSignal ! Some(a._1))
-      case _ =>
-        messageTextSignal ! Some(md.contentString)
-        assetDataSignal ! None
-    })
-
-    val dialog = new ProgressDialog(getContext)
-    dialog.setTitle(getString(R.string.conversation__action_mode__fwd__dialog__title))
-    dialog.setMessage(getString(R.string.conversation__action_mode__fwd__dialog__message))
-    dialog.setIndeterminate(true)
-    dialog.setCancelable(true)
-    dialog.setOnCancelListener(null)
-
-    (for{
-      ad <- assetDataSignal
-      mt <- messageTextSignal
-      _ <-  Signal.wrap(onClickEvent)
-    } yield (ad, mt)).on(Threading.Ui) {
-      case (None, None) =>
-        dialog.show()
-      case (None, Some(text)) =>
-        if (dialog.isShowing) dialog.dismiss()
-        sendMessage(text, adapter.selectedConversations.currentValue.getOrElse(Set()))
-        onBackPressed()
-        Toast.makeText(getContext, R.string.message_footer__status__sending, Toast.LENGTH_SHORT).show()
-      case (Some(assetData), _) =>
-        if (!dialog.isShowing) dialog.show()
-        val uriResolver = zms.flatMap(z => Signal.future(z.assets.getContentUri(assetData.id)))
-        uriResolver.on(Threading.Ui){ optUri =>
-          if (dialog.isShowing) dialog.dismiss()
-          optUri match {
-            case Some(uri) =>
-              if (assetData.assetType.contains(AssetType.Image)){
-                sendImageAsset(uri, adapter.selectedConversations.currentValue.getOrElse(Set()))
-              } else {
-                sendAsset(uri, adapter.selectedConversations.currentValue.getOrElse(Set()))
-              }
-              onBackPressed()
-              Toast.makeText(getContext, R.string.multi_share_toast_sending, Toast.LENGTH_SHORT).show()
-            case _ =>
-              Toast.makeText(getContext, R.string.multi_share_toast_failed, Toast.LENGTH_SHORT).show()
-          }
-        }
+    onClickEvent { _ =>
+      sharingController.sharableContent.on(Threading.Ui) { result =>
+        result.foreach(res => sharingController.onContentShared(getActivity, res, adapter.selectedConversations.currentValue.getOrElse(Set())))
+        Toast.makeText(getContext, R.string.multi_share_toast_sending, Toast.LENGTH_SHORT).show()
+        getActivity.finish()
+      }
     }
 
     sendButton.setOnClickListener(new OnClickListener {
@@ -171,66 +113,6 @@ class ShareToMultipleFragment extends BaseDialogFragment[ShareToMultipleFragment
       }
     })
     view
-  }
-
-  override def onCreate(savedInstanceState: Bundle): Unit = {
-    super.onCreate(savedInstanceState)
-    setStyle(DialogFragment.STYLE_NO_FRAME, R.style.Theme_Dark_Preferences)
-  }
-
-
-  override def onResume(): Unit = {
-    super.onResume()
-    val searchBox = ViewUtils.getView(getView, R.id.multi_share_search_box).asInstanceOf[SearchBoxView]
-    val listView = ViewUtils.getView(getView, R.id.lv__conversation_list).asInstanceOf[RecyclerView]
-    searchBox.post(new Runnable {
-      override def run(): Unit = {
-        listView.requestFocus()
-        searchBox.clearFocus()
-      }
-    })
-    //searchBox.clearFocus()
-  }
-
-  //TODO this was copied from ConversationFragment...
-  private val assetErrorHandler: MessageContent.Asset.ErrorHandler = new MessageContent.Asset.ErrorHandler() {
-    def noWifiAndFileIsLarge(sizeInBytes: Long, net: NetworkMode, answer: MessageContent.Asset.Answer): Unit = {
-      if (getActivity == null) {
-        answer.ok()
-        return
-      }
-      val dialog: AlertDialog = ViewUtils.showAlertDialog(getActivity, R.string.asset_upload_warning__large_file__title, R.string.asset_upload_warning__large_file__message_default, R.string.asset_upload_warning__large_file__button_accept, R.string.asset_upload_warning__large_file__button_cancel, new DialogInterface.OnClickListener() {
-        def onClick(dialog: DialogInterface, which: Int): Unit = {
-          answer.ok()
-        }
-      }, new DialogInterface.OnClickListener() {
-        def onClick(dialog: DialogInterface, which: Int): Unit = {
-          answer.cancel()
-        }
-      })
-      dialog.setCancelable(false)
-      if (sizeInBytes > 0) {
-        val fileSize: String = Formatter.formatFileSize(getContext, sizeInBytes)
-        dialog.setMessage(getString(R.string.asset_upload_warning__large_file__message, fileSize))
-      }
-    }
-  }
-
-  private def sendMessage(content: String, conversations: Set[ConvId]): Unit ={
-    zms(z => { conversations.foreach( z.convsUi.sendMessage(_, new MessageContent.Text(content))) })
-  }
-
-  private def sendAsset(assetUri: Uri, conversations: Set[ConvId]): Unit ={
-    zms(z => { conversations.foreach( z.convsUi.sendMessage(_, new MessageContent.Asset(AssetFactory.fromContentUri(assetUri), assetErrorHandler))) })
-  }
-
-  private def sendImageAsset(assetUri: Uri, conversations: Set[ConvId]): Unit ={
-    zms(z => { conversations.foreach( z.convsUi.sendMessage(_, new MessageContent.Image(ImageAssetFactory.getImageAsset(assetUri)))) })
-  }
-
-  override def onBackPressed(): Boolean = {
-    getDialog.dismiss()
-    true
   }
 }
 
@@ -334,6 +216,10 @@ object ShareToMultipleFragment {
     bundle.putString(MSG_ID_ARG, messageId.str)
     fragment.setArguments(bundle)
     fragment
+  }
+
+  def newInstance(): ShareToMultipleFragment = {
+    new ShareToMultipleFragment
   }
 
   trait Container

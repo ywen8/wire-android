@@ -145,11 +145,7 @@ object SingleImageCollectionFragment {
 
     def getItem(position: Int): Option[MessageData] = {
       recyclerCursor.flatMap{
-        case c =>
-          if (c.count > position)
-            Some(c.apply(position).message)
-          else
-            None
+        case c if c.count > position => Some(c.apply(position).message)
         case _ => None
       }
     }

@@ -53,11 +53,13 @@ import com.waz.model.ConvId;
 import com.waz.threading.Threading;
 import com.waz.zclient.calling.CallingActivity;
 import com.waz.zclient.calling.controllers.CallPermissionsController;
+import com.waz.zclient.controllers.SharingController;
 import com.waz.zclient.controllers.accentcolor.AccentColorChangeRequester;
 import com.waz.zclient.controllers.accentcolor.AccentColorObserver;
 import com.waz.zclient.controllers.calling.CallingObserver;
 import com.waz.zclient.controllers.navigation.NavigationControllerObserver;
 import com.waz.zclient.controllers.navigation.Page;
+import com.waz.zclient.controllers.sharing.SharedContentType;
 import com.waz.zclient.controllers.tracking.events.connect.AcceptedGenericInviteEvent;
 import com.waz.zclient.controllers.tracking.events.exception.ExceptionEvent;
 import com.waz.zclient.controllers.tracking.events.otr.VerifiedConversationEvent;
@@ -487,10 +489,18 @@ public class MainActivity extends BaseActivity implements MainPhoneFragment.Cont
             }
         } else if (IntentUtils.isLaunchFromSharingIntent(intent)) {
             final IConversation conversation = getStoreFactory().getConversationStore()
-                                                                .getConversation(IntentUtils.getLaunchConversationId(intent));
-            if (conversation != null) {
-                String sharedText = IntentUtils.getLaunchConversationSharedText(intent);
-                List<Uri> sharedFileUris = IntentUtils.getLaunchConversationSharedFiles(intent);
+                .getConversation(IntentUtils.getLaunchConversationId(intent));
+            List<String> targetConversations = IntentUtils.getLaunchConversationIds(intent);
+            String sharedText = IntentUtils.getLaunchConversationSharedText(intent);
+            List<Uri> sharedFileUris = IntentUtils.getLaunchConversationSharedFiles(intent);
+            SharingController sharingController = injectJava(SharingController.class);
+
+            if (targetConversations.size() == 1 && conversation != null) {
+                if (!TextUtils.isEmpty(sharedText)) {
+                    getControllerFactory().getSharingController().setSharedContentType(SharedContentType.TEXT);
+                } else {
+                    getControllerFactory().getSharingController().setSharedContentType(SharedContentType.FILE);
+                }
                 getControllerFactory().getSharingController().setSharedText(sharedText);
                 getControllerFactory().getSharingController().setSharedUris(sharedFileUris);
                 getControllerFactory().getSharingController().setSharingConversationId(conversation.getId());
@@ -502,7 +512,10 @@ public class MainActivity extends BaseActivity implements MainPhoneFragment.Cont
                         getStoreFactory().getConversationStore().setCurrentConversation(conversation, ConversationChangeRequester.SHARING);
                     }
                 }, LAUNCH_CONVERSATION_CHANGE_DELAY);
+            } else {
+                sharingController.sendContent(sharedText, sharedFileUris, targetConversations, this);
             }
+
             IntentUtils.clearLaunchIntentExtra(intent);
         }
 
