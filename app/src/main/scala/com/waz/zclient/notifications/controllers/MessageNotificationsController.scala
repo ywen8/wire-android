@@ -64,7 +64,6 @@ import com.waz.zclient.utils.IntentUtils._
 import com.waz.zclient.utils.RingtoneUtils
 import com.waz.zms.NotificationsAndroidService
 import org.threeten.bp.Instant
-
 import scala.concurrent.duration._
 
 class MessageNotificationsController(implicit inj: Injector, cxt: Context, eventContext: EventContext) extends Injectable {
@@ -127,19 +126,19 @@ class MessageNotificationsController(implicit inj: Injector, cxt: Context, event
   private def attachNotificationLed(notification: Notification) = {
     var color = sharedPreferences.getInt(UserPreferencesController.USER_PREFS_LAST_ACCENT_COLOR, -1)
     if (color == -1) {
-      color = context.getResources.getColor(R.color.accent_default)
+      color = getColor(R.color.accent_default)
     }
     notification.ledARGB = color
-    notification.ledOnMS = context.getResources.getInteger(R.integer.notifications__system__led_on)
-    notification.ledOffMS = context.getResources.getInteger(R.integer.notifications__system__led_off)
+    notification.ledOnMS = getInt(R.integer.notifications__system__led_on)
+    notification.ledOffMS = getInt(R.integer.notifications__system__led_off)
     notification.flags |= Notification.FLAG_SHOW_LIGHTS
   }
 
   private def attachNotificationSound(notification: Notification, ns: Seq[NotificationInfo], silent: Boolean) = {
-    val soundSetting = sharedPreferences.getString(context.getString(R.string.pref_options_sounds_key), context.getString(R.string.pref_options_sounds_default))
+    val soundSetting = sharedPreferences.getString(getString(R.string.pref_options_sounds_key), getString(R.string.pref_options_sounds_default))
     notification.sound =
-      if (context.getString(R.string.pref_sound_value_none) == soundSetting || silent) null
-      else if ((context.getString(R.string.pref_sound_value_some) == soundSetting) && ns.size > 1) null
+      if (getString(R.string.pref_sound_value_none) == soundSetting || silent) null
+      else if ((getString(R.string.pref_sound_value_some) == soundSetting) && ns.size > 1) null
       else ns.lastOption.fold(null.asInstanceOf[Uri])(getMessageSoundUri)
   }
 
@@ -155,14 +154,14 @@ class MessageNotificationsController(implicit inj: Injector, cxt: Context, event
            CONNECT_REQUEST |
            RENAME |
            LIKE =>
-        val value = sharedPreferences.getString(context.getString(R.string.pref_options_ringtones_text_key), null);
+        val value = sharedPreferences.getString(getString(R.string.pref_options_ringtones_text_key), null);
         if (value != null && value.isEmpty) {
           null
         } else {
           getSelectedSoundUri(value, R.raw.new_message_gcm)
         }
       case KNOCK =>
-        val value = sharedPreferences.getString(context.getString(R.string.pref_options_ringtones_ping_key), null)
+        val value = sharedPreferences.getString(getString(R.string.pref_options_ringtones_ping_key), null)
         if (value != null && value.isEmpty) {
           null
         } else {

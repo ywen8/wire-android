@@ -26,9 +26,8 @@ import android.widget.LinearLayout
 import com.waz.api.Message
 import com.waz.model.Liking
 import com.waz.service.ZMessaging
-import com.waz.service.messages.MessageAndLikes
 import com.waz.threading.Threading
-import com.waz.utils.events.{Signal, SourceSignal}
+import com.waz.utils.events.Signal
 import com.waz.zclient.conversation.CollectionController
 import com.waz.zclient.messages.controllers.MessageActionsController
 import com.waz.zclient.pages.main.conversation.views.MessageBottomSheetDialog

@@ -31,7 +31,6 @@ import com.waz.zclient.controllers.global.SelectionController
 import com.waz.zclient.messages.MessageView.MsgBindOptions
 import com.waz.zclient.messages.MessagesListView.UnreadIndex
 import com.waz.zclient.messages.RecyclerCursor.RecyclerNotifier
-import com.waz.zclient.tracking.MainTrackingController$
 import com.waz.zclient.{Injectable, Injector}
 
 class MessagesListAdapter(listDim: Signal[Dim2])(implicit inj: Injector, ec: EventContext)

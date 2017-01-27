@@ -19,22 +19,17 @@ package com.waz.zclient.messages.parts
 
 import android.content.Context
 import android.util.AttributeSet
-import android.view.ViewGroup
-import android.view.ViewGroup.{LayoutParams, MarginLayoutParams}
-import android.view.ViewGroup.LayoutParams.{MATCH_PARENT, WRAP_CONTENT}
-import android.widget.GridLayout.{UNDEFINED, spec}
+import android.view.ViewGroup.MarginLayoutParams
 import android.widget.{GridLayout, LinearLayout}
 import com.waz.ZLog.ImplicitTag._
 import com.waz.ZLog._
 import com.waz.api.Message
-import com.waz.model.{MessageContent, UserId}
+import com.waz.model.UserId
 import com.waz.service.ZMessaging
-import com.waz.service.messages.MessageAndLikes
 import com.waz.threading.Threading
 import com.waz.utils.events.Signal
 import com.waz.utils.returning
 import com.waz.zclient.common.views.ChatheadView
-import com.waz.zclient.messages.MessageView.MsgBindOptions
 import com.waz.zclient.messages.UsersController.DisplayName.{Me, Other}
 import com.waz.zclient.messages._
 import com.waz.zclient.utils.ContextUtils._
