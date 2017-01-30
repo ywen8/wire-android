@@ -25,38 +25,34 @@ import android.text.format.Formatter
 import com.waz.api._
 import com.waz.model.ConvId
 import com.waz.service.ZMessaging
-import com.waz.utils.events.{EventContext, Signal}
+import com.waz.threading.Threading
+import com.waz.utils.events.{EventContext, EventStream, Signal}
 import com.waz.zclient.controllers.SharingController.{FileContent, ImageContent, SharableContent, TextContent}
 import com.waz.zclient.utils.{IntentUtils, ViewUtils}
 import com.waz.zclient.{Injectable, Injector, R}
 
 import scala.collection.JavaConverters._
+import scala.concurrent.Future
 
 class SharingController(implicit injector: Injector, eventContext: EventContext) extends Injectable{
-  lazy val zms = inject[Signal[ZMessaging]]
+  import com.waz.threading.Threading.Implicits.Ui
+
+  private lazy val context = inject[Activity]
+  private lazy val zms = inject[Signal[ZMessaging]]
 
   val sharableContent = Signal[Option[SharableContent]](None)
 
-  def sendText(content: String, conversations: Set[ConvId]): Unit ={
-    zms(z => { conversations.foreach( z.convsUi.sendMessage(_, new MessageContent.Text(content))) })
-  }
+  val sendEvent = EventStream[(SharableContent, Set[ConvId])]()
 
-  def sendFile(assetUris: Seq[Uri], conversations: Set[ConvId], activity: Activity): Unit ={
-    zms(z => {
+  sendEvent{
+    case (TextContent(content), conversations) =>
+      zms.head.flatMap(z => Future.traverse(conversations)( z.convsUi.sendMessage(_, new MessageContent.Text(content)) ))
+    case (FileContent(assetUris), conversations) =>
       for {
         conv <- conversations
         uri <- assetUris
-      } yield z.convsUi.sendMessage(conv, new MessageContent.Asset(AssetFactory.fromContentUri(uri), assetErrorHandler(activity)))
-    })
-  }
-
-  def sendImage(assetUris: Seq[Uri], conversations: Set[ConvId]): Unit ={
-    zms(z => {
-      for {
-        conv <- conversations
-        uri <- assetUris
-      } yield z.convsUi.sendMessage(conv, new MessageContent.Image(ImageAssetFactory.getImageAsset(uri)))
-    })
+      } yield zms.head.flatMap(z => z.convsUi.sendMessage(conv, new MessageContent.Asset(AssetFactory.fromContentUri(uri), assetErrorHandler(context))))
+    case _ =>
   }
 
   private def assetErrorHandler(activity: Activity): MessageContent.Asset.ErrorHandler = new MessageContent.Asset.ErrorHandler() {
@@ -95,12 +91,18 @@ class SharingController(implicit injector: Injector, eventContext: EventContext)
     }
   }
 
+  def clearSharableContent(): Unit ={
+    sharableContent ! None
+  }
+
   //java helpers
   def sendContent(text: String, uris: java.util.List[Uri], conversations: java.util.List[String], activity: Activity): Unit ={
     val convIds = conversations.asScala.map(ConvId(_)).toSet
     (Option(text), Option(uris)) match {
-      case (Some(t), _) => sendText(t, convIds)
-      case (_, Some(u)) if !u.isEmpty => sendFile(uris.asScala, convIds, activity)
+      case (Some(t), _) =>
+        sendEvent ! (TextContent(t), convIds)
+      case (_, Some(u)) if !u.isEmpty =>
+        sendEvent ! (FileContent(uris.asScala), convIds)
       case _ =>
     }
   }

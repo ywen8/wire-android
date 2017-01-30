@@ -126,7 +126,7 @@ class ShareToMultipleAdapter(context: Context, filter: Signal[String])(implicit 
     f <- filter
   } yield
     conversationsSignal.conversations.toSeq
-      .filter(c => c.convType != ConversationType.Self && !c.hidden && c.displayName.toLowerCase.contains(f.toLowerCase))
+      .filter(c => (c.convType == ConversationType.Group || c.convType == ConversationType.OneToOne) && !c.hidden && c.displayName.toLowerCase.contains(f.toLowerCase))
       .sortWith((a, b) => a.lastEventTime.isAfter(b.lastEventTime))
 
   conversations.on(Threading.Ui) {
