@@ -162,7 +162,7 @@ class WireApplication extends MultiDexApplication with WireContext with Injectab
     inject[ImageNotificationsController]
     inject[CallingNotificationsController]
 
-    //TODO - is this early enough for app launch events?
+    //TODO [AN-4942] - is this early enough for app launch events?
     inject[GlobalTrackingController]
     inject[CallingTrackingController]
   }
