@@ -144,7 +144,7 @@ class UnreadDot(context: Context, attrs: AttributeSet, style: Int) extends View(
 
   accent { color =>
     dotPaint.setColor(color.getColor())
-    invalidate()
+    postInvalidate()
   }
 
   show.onChanged.on(Threading.Ui)(_ => invalidate())
