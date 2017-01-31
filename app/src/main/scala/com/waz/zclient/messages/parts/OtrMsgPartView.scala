@@ -50,6 +50,8 @@ class OtrMsgPartView(context: Context, attrs: AttributeSet, style: Int) extends 
 
   val memberNames = users.memberDisplayNames(message)
 
+  val memberIsJustSelf = users.memberIsJustSelf(message)
+
   val shieldIcon = msgType map {
     case OTR_ERROR | OTR_IDENTITY_CHANGED | HISTORY_LOST  => Some(R.drawable.red_alert)
     case OTR_VERIFIED                                     => Some(R.drawable.shield_full)
@@ -64,7 +66,10 @@ class OtrMsgPartView(context: Context, attrs: AttributeSet, style: Int) extends 
     case OTR_VERIFIED         => Signal const getString(R.string.content__otr__all_fingerprints_verified)
     case OTR_ERROR            => affectedUserName map { getString(R.string.content__otr__message_error, _) }
     case OTR_IDENTITY_CHANGED => affectedUserName map { getString(R.string.content__otr__identity_changed_error, _) }
-    case OTR_UNVERIFIED       => memberNames map { getString(R.string.content__otr__unverified_device__message, _) }
+    case OTR_UNVERIFIED       => memberIsJustSelf flatMap {
+      case true => Signal const getString(R.string.content__otr__your_unverified_device__message)
+      case false => memberNames map { getString(R.string.content__otr__unverified_device__message, _) }
+    }
     case OTR_DEVICE_ADDED     => memberNames map { getString(R.string.content__otr__added_new_device__message, _) }
     case _                    => Signal const ""
   }
