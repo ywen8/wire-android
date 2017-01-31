@@ -145,7 +145,7 @@ lazy val experimental = flavorOf(app, "flavor-experimental", Flavor.Experimental
 lazy val candidate    = flavorOf(app, "flavor-candidate", Flavor.Candidate.settings: _*)
 lazy val prod         = flavorOf(app, "flavor-prod", Flavor.Prod.settings: _*)
 lazy val avs          = flavorOf(app, "flavor-avs", Flavor.Avs.settings: _*)
-lazy val qaavs        = flavorOf(app, "flavor-qaavs", Flavor.QAAvs.settings: _*)
+lazy val qa           = flavorOf(app, "flavor-qa", Flavor.QA.settings: _*)
 
 lazy val root = Project("zclient", file(".")).aggregate(wireCore, wireUi, app)
 
@@ -157,4 +157,4 @@ addCommandAlias("releaseExp", s""";set zmsVersion in Global := "$zmsDevVersion";
 addCommandAlias("releaseProd", s""";set zmsVersion in Global := "$zmsReleaseVersion";flavor-prod/android:packageRelease""")
 addCommandAlias("releaseRC", s""";set zmsVersion in Global := "$zmsReleaseVersion";flavor-candidate/android:packageRelease""")
 addCommandAlias("releaseAVS", s""";set zmsVersion in Global := "$zmsReleaseVersion";flavor-avs/android:packageRelease""")
-addCommandAlias("releaseQAAVS", s""";set zmsVersion in Global := "$zmsReleaseVersion";flavor-qaavs/android:packageRelease""")
+addCommandAlias("releaseQA", s""";set zmsVersion in Global := "$zmsReleaseVersion";flavor-qa/android:packageRelease""")
