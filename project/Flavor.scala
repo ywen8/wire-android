@@ -124,7 +124,7 @@ object Placeholders {
   lazy val QA = Placeholders(
     applicationLabel = "Wire QA",
     internalFeatures = false,
-    applicationIcon = "@drawable/ic_launcher_wire_playground",
+    applicationIcon = "@drawable/ic_launcher_wire_qa",
     hockeyAppKey = "76c0b10e19e596ccd2dc021123fbf562"
   )
 

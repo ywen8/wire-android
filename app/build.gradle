@@ -220,7 +220,7 @@ android {
             versionName majorVersion + android.defaultConfig.versionCode + "-qa"
             manifestPlaceholders = [applicationLabel       : "Wire QA",
                                     allowBackup            : "true",
-                                    applicationIcon        : "@drawable/ic_launcher_wire_playground",
+                                    applicationIcon        : "@drawable/ic_launcher_wire_qa",
                                     sharedUserId           : "",
                                     use_audio_link         : "false",
                                     internal_features      : "true",
