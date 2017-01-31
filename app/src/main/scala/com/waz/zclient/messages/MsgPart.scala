@@ -59,7 +59,7 @@ object MsgPart {
       case LOCATION => Location
       case MEMBER_JOIN | MEMBER_LEAVE => if (isOneToOne) Empty else MemberChange //Member change information is not very interesting in One-To-One conversations
       case CONNECT_REQUEST => ConnectRequest
-      case OTR_ERROR | OTR_DEVICE_ADDED | OTR_IDENTITY_CHANGED | OTR_UNVERIFIED | OTR_VERIFIED | HISTORY_LOST | STARTED_USING_DEVICE => OtrMessage
+      case OTR_ERROR | OTR_DEVICE_ADDED | OTR_IDENTITY_CHANGED | OTR_UNVERIFIED | OTR_VERIFIED | HISTORY_LOST | STARTED_USING_DEVICE | OTR_MEMBER_ADDED => OtrMessage
       case KNOCK => Ping
       case RENAME => Rename
       case MISSED_CALL => MissedCall
