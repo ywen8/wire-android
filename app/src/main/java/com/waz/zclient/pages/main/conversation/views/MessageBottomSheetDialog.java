@@ -42,16 +42,15 @@ public class MessageBottomSheetDialog extends BottomSheetDialog {
     private Set<MessageAction> chosenOperations = null;
 
     public enum MessageAction {
-        FORWARD(R.id.message_bottom_menu_item_forward, R.string.glyph__forward, R.string.message_bottom_menu_action_forward),
+        FORWARD(R.id.message_bottom_menu_item_forward, R.string.glyph__share, R.string.message_bottom_menu_action_forward),
         COPY(R.id.message_bottom_menu_item_copy, R.string.glyph__copy, R.string.message_bottom_menu_action_copy),
         DELETE_LOCAL(R.id.message_bottom_menu_item_delete_local, R.string.glyph__delete_me, R.string.message_bottom_menu_action_delete_local),
         DELETE_GLOBAL(R.id.message_bottom_menu_item_delete_global, R.string.glyph__delete_everywhere, R.string.message_bottom_menu_action_delete_global),
         LIKE(R.id.message_bottom_menu_item_like, R.string.glyph__like, R.string.message_bottom_menu_action_like),
         UNLIKE(R.id.message_bottom_menu_item_unlike, R.string.glyph__liked, R.string.message_bottom_menu_action_unlike),
         SAVE(R.id.message_bottom_menu_item_save, R.string.glyph__download, R.string.message_bottom_menu_action_save),
-        OPEN_FILE(R.id.message_bottom_menu_item_open_file, R.string.glyph__view, R.string.message_bottom_menu_action_open),
-        EDIT(R.id.message_bottom_menu_item_edit, R.string.glyph__edit, R.string.message_bottom_menu_action_edit),
-        FORWARD_MULTIPLE(R.id.message_bottom_menu_item_forward_multiple, R.string.glyph__forward, R.string.message_bottom_menu_action_forward_multiple);
+        OPEN_FILE(R.id.message_bottom_menu_item_open_file, R.string.glyph__file, R.string.message_bottom_menu_action_open),
+        EDIT(R.id.message_bottom_menu_item_edit, R.string.glyph__edit, R.string.message_bottom_menu_action_edit);
 
         public int resId;
         public int glyphResId;
@@ -102,7 +101,6 @@ public class MessageBottomSheetDialog extends BottomSheetDialog {
         }
         if (isForwardAllowed()) {
             addAction(view, MessageAction.FORWARD);
-            //addAction(view, MessageAction.FORWARD_MULTIPLE); //TODO: remove when FORWARD_MULTIPLE is working
         }
         if (isDeleteLocalAllowed()) {
             addAction(view, MessageAction.DELETE_LOCAL);

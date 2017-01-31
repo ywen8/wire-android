@@ -115,6 +115,7 @@ object WireApplication {
     bind [LikesController]           to new LikesController()
     bind [TrackingController]        to new TrackingController()
     bind [CollectionController]      to new CollectionController()
+    bind [SharingController]         to new SharingController()
   }
 }
 

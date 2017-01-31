@@ -34,13 +34,12 @@
         android:layout_height="?attr/actionBarSize"
         app:contentInsetStart="@dimen/content__padding_left"
         style="?conversationToolbar"
-        android:title="@string/collection_send_to"
         >
 
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
-            android:layout_gravity="start|center_vertical"
+            android:layout_gravity="center|center_vertical"
             android:gravity="center_vertical"
             android:orientation="vertical"
             >
@@ -53,7 +52,7 @@
                 android:maxLines="1"
                 android:ellipsize="end"
                 android:background="@null"
-                app:font="@string/wire__typeface__bold"
+                app:font="@string/wire__typeface__regular"
                 style="?conversationToolbar"
                 android:text="@string/collection_send_to"
                 />
@@ -62,12 +61,18 @@
 
     </android.support.v7.widget.Toolbar>
 
-    <ListView
+    <com.waz.zclient.pages.main.pickuser.views.SearchBoxView
+        android:id="@+id/multi_share_search_box"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/collections__multi_share_footer_height"
+        style="?wireBackground"
+        />
+
+    <android.support.v7.widget.RecyclerView
         android:id="@+id/lv__conversation_list"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1"
-        android:choiceMode="multipleChoice"/>
+        android:layout_weight="1"/>
 
     <RelativeLayout
         android:layout_width="match_parent"

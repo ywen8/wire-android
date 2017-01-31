@@ -25,23 +25,27 @@ import android.support.annotation.NonNull;
 import android.support.v4.app.ShareCompat;
 import android.util.AttributeSet;
 import android.view.View;
+
 import com.waz.api.Self;
 import com.waz.api.User;
+import com.waz.zclient.controllers.SharingController;
 import com.waz.zclient.controllers.accentcolor.AccentColorObserver;
 import com.waz.zclient.controllers.confirmation.TwoButtonConfirmationCallback;
 import com.waz.zclient.controllers.sharing.SharedContentType;
+import com.waz.zclient.conversation.ShareToMultipleFragment;
 import com.waz.zclient.core.stores.api.ZMessagingApiStoreObserver;
 import com.waz.zclient.pages.main.sharing.SharingConversationListManagerFragment;
 import com.waz.zclient.utils.AssetUtils;
 import com.waz.zclient.utils.ViewUtils;
 import com.waz.zclient.views.menus.ConfirmationMenu;
-import timber.log.Timber;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
+import timber.log.Timber;
 
 public class ShareActivity extends BaseActivity implements SharingConversationListManagerFragment.Container,
                                                            AccentColorObserver,
@@ -61,8 +65,8 @@ public class ShareActivity extends BaseActivity implements SharingConversationLi
         if (savedInstanceState == null) {
             getSupportFragmentManager().beginTransaction()
                                        .add(R.id.fl_main_content,
-                                            SharingConversationListManagerFragment.newInstance(),
-                                            SharingConversationListManagerFragment.TAG)
+                                            ShareToMultipleFragment.newInstance(),
+                                            ShareToMultipleFragment.TAG())
                                        .commit();
         }
 
@@ -163,8 +167,7 @@ public class ShareActivity extends BaseActivity implements SharingConversationLi
             return;
         }
         if (intentReader.getType().equals("text/plain")) {
-            getControllerFactory().getSharingController().setSharedContentType(SharedContentType.TEXT);
-            getControllerFactory().getSharingController().setSharedText(String.valueOf(intentReader.getText()));
+            getSharingController().publishTextContent(String.valueOf(intentReader.getText()));
         } else {
             final Set<Uri> sharedFileUris = new HashSet<>();
             Uri stream = intentReader.getStream();
@@ -188,7 +191,7 @@ public class ShareActivity extends BaseActivity implements SharingConversationLi
             } else {
                 contentType = SharedContentType.FILE;
             }
-            getControllerFactory().getSharingController().setSharedContentType(contentType);
+
             List<Uri> sanitisedUris = new ArrayList<>();
             for (Uri uri : sharedFileUris) {
                 String path = AssetUtils.getPath(getApplicationContext(), uri);
@@ -199,8 +202,15 @@ public class ShareActivity extends BaseActivity implements SharingConversationLi
                     sanitisedUris.add(Uri.fromFile(new File(path)));
                 }
             }
-            getControllerFactory().getSharingController().setSharedUris(sanitisedUris);
 
+            switch (contentType) {
+                case IMAGE:
+                    getSharingController().publishImageContent(sanitisedUris);
+                    break;
+                case FILE:
+                    getSharingController().publishFileContent(sanitisedUris);
+                    break;
+            }
         }
     }
 
@@ -217,5 +227,9 @@ public class ShareActivity extends BaseActivity implements SharingConversationLi
     @Override
     public void onForceClientUpdate() {
 
+    }
+
+    private SharingController getSharingController() {
+        return injectJava(SharingController.class);
     }
 }

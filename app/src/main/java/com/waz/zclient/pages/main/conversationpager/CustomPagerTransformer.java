@@ -28,7 +28,8 @@ public class CustomPagerTransformer implements ViewPager.PageTransformer {
              DEPTH,
              ZOOM,
              SLIDE_OVER,
-             SLIDE_IN
+             SLIDE_IN,
+             SLIDE
 
     })
     public @interface TransformType { }
@@ -37,6 +38,7 @@ public class CustomPagerTransformer implements ViewPager.PageTransformer {
     public static final int ZOOM = 2;
     public static final int SLIDE_OVER = 3;
     public static final int SLIDE_IN = 4;
+    public static final int SLIDE = 5;
 
     @TransformType private final int transformType;
 
@@ -128,6 +130,21 @@ public class CustomPagerTransformer implements ViewPager.PageTransformer {
                 } else {
                     alpha = 1;
                     scale = 1;
+                    translationX = 0;
+                }
+                break;
+            case SLIDE:
+                alpha = 1;
+                scale = 1;
+                if (position >= -1 && position <= 1) {
+                    float vMargin = page.getHeight() * (1 - scale) / 2;
+                    float hMargin = page.getWidth() * (1 - scale) / 2;
+                    if (position < 0) {
+                        translationX = (hMargin - vMargin / 2);
+                    } else {
+                        translationX = (-hMargin + vMargin / 2);
+                    }
+                } else {
                     translationX = 0;
                 }
                 break;

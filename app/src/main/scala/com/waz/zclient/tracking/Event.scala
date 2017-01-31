@@ -118,26 +118,35 @@ abstract class CollectionsEvent(name: String, conversationType: ConversationType
     WITH_BOT          -> String.valueOf(withBot),
     CONVERSATION_TYPE -> conversationType.name
   )
+
+  protected def trackingType(messageType: Message.Type): String = {
+    messageType match {
+      case Message.Type.ASSET => "image"
+      case Message.Type.RICH_MEDIA => "link"
+      case Message.Type.ANY_ASSET => "file"
+      case m => m.name()
+    }
+  }
 }
 case class OpenedCollectionsEvent(isEmpty: Boolean, conversationType: ConversationType, withBot: Boolean) extends CollectionsEvent("collections.opened_collections", conversationType, withBot){
   override val attributes = baseAttributes ++ Map(
     IS_EMPTY -> String.valueOf(isEmpty)
   )
 }
-case class OpenedItemCollectionsEvent(messageType: String, conversationType: ConversationType, withBot: Boolean) extends CollectionsEvent("collections.opened_item", conversationType, withBot){
+case class OpenedItemCollectionsEvent(messageType: Message.Type, conversationType: ConversationType, withBot: Boolean) extends CollectionsEvent("collections.opened_item", conversationType, withBot){
   override val attributes = baseAttributes ++ Map(
-    TYPE -> messageType
+    TYPE -> trackingType(messageType)
   )
 }
-case class OpenedItemMenuCollectionsEvent(messageType: String, conversationType: ConversationType, withBot: Boolean) extends CollectionsEvent("collections.opened_item_menu", conversationType, withBot){
+case class OpenedItemMenuCollectionsEvent(messageType: Message.Type, conversationType: ConversationType, withBot: Boolean) extends CollectionsEvent("collections.opened_item_menu", conversationType, withBot){
   override val attributes = baseAttributes ++ Map(
-    TYPE -> messageType
+    TYPE -> trackingType(messageType)
   )
 }
-case class DidItemActionCollectionsEvent(messageAction: MessageAction, messageType: String, conversationType: ConversationType, withBot: Boolean) extends CollectionsEvent("collections.did_item_action", conversationType, withBot){
+case class DidItemActionCollectionsEvent(messageAction: MessageAction, messageType: Message.Type, conversationType: ConversationType, withBot: Boolean) extends CollectionsEvent("collections.did_item_action", conversationType, withBot){
   import MessageAction._
   override val attributes = baseAttributes ++ Map(
-    TYPE   -> messageType,
+    TYPE   -> trackingType(messageType),
     ACTION -> (messageAction match {
       case DELETE_GLOBAL => "delete_for_everyone"
       case DELETE_LOCAL  => "delete_for_me"

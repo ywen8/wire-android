@@ -1107,7 +1107,11 @@
     <string name="collection_header_today">TODAY</string>
     <string name="collection_header_yesterday">YESTERDAY</string>
     <string name="collection_empty">NO ITEMS IN COLLECTION</string>
-    <string name="collection_send_to">SEND TO…</string>
+    <string name="collection_send_to">Send to…</string>
     <string name="collection_all">Show all %1$s</string>
+
+    <string name="multi_share_toast_sending">@string/message_footer__status__sending</string>
+    <string name="multi_share_toast_failed">Sending failed</string>
+    <string name="multi_share_search_hint">SEARCH BY CONVERSATION NAME</string>
 
 </resources>

@@ -17,258 +17,192 @@
  */
 package com.waz.zclient.conversation
 
-import android.app.ProgressDialog
-import android.content.{Context, DialogInterface}
-import android.database.DataSetObserver
-import android.net.Uri
+import android.content.Context
 import android.os.Bundle
-import android.support.v4.app.DialogFragment
-import android.support.v7.app.AlertDialog
-import android.support.v7.widget.Toolbar
-import android.text.format.Formatter
-import android.util.AttributeSet
+import android.support.v7.widget.RecyclerView.ViewHolder
+import android.support.v7.widget.{LinearLayoutManager, RecyclerView, Toolbar}
 import android.view.View.OnClickListener
 import android.view._
+import android.widget.LinearLayout.LayoutParams
 import android.widget._
-import com.waz.api.ConversationsList.ConversationsListState
 import com.waz.api._
-import com.waz.model.{AssetData, AssetType, MessageData, MessageId}
+import com.waz.model.ConversationData.ConversationType
+import com.waz.model.{MessageContent => _, _}
+import com.waz.service.ZMessaging
 import com.waz.threading.Threading
-import com.waz.utils.events.{Signal, SourceSignal}
-import com.waz.zclient.controllers.AssetsController
+import com.waz.utils.events.{EventContext, EventStream, Signal, SourceSignal}
+import com.waz.zclient._
 import com.waz.zclient.controllers.global.AccentColorController
-import com.waz.zclient.core.stores.conversation.{ConversationChangeRequester, ConversationStoreObserver}
+import com.waz.zclient.controllers.{AssetsController, SharingController}
 import com.waz.zclient.messages.MessagesController
-import com.waz.zclient.pages.BaseDialogFragment
+import com.waz.zclient.pages.BaseFragment
+import com.waz.zclient.pages.main.pickuser.views.SearchBoxView
+import com.waz.zclient.pages.main.pickuser.views.SearchBoxView.Callback
 import com.waz.zclient.ui.text.TypefaceTextView
+import com.waz.zclient.ui.utils.KeyboardUtils
 import com.waz.zclient.ui.views.CursorIconButton
 import com.waz.zclient.utils.ViewUtils
-import com.waz.zclient.{FragmentHelper, OnBackPressedListener, R}
 
 
-class ShareToMultipleFragment extends BaseDialogFragment[ShareToMultipleFragment.Container] with FragmentHelper with OnBackPressedListener {
+class ShareToMultipleFragment extends BaseFragment[ShareToMultipleFragment.Container] with FragmentHelper {
 
+  lazy val zms = inject[Signal[ZMessaging]]
   lazy val assetsController = inject[AssetsController]
   lazy val messagesController = inject[MessagesController]
   lazy val accentColorController = inject[AccentColorController]
+  lazy val sharingController = inject[SharingController]
 
   override def onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState: Bundle): View = {
     val view = inflater.inflate(R.layout.fragment_collection_share, container, false)
-    val listView = ViewUtils.getView(view, R.id.lv__conversation_list).asInstanceOf[ListView]
+    val listView = ViewUtils.getView(view, R.id.lv__conversation_list).asInstanceOf[RecyclerView]
     val sendButton = ViewUtils.getView(view, R.id.cib__send_button).asInstanceOf[CursorIconButton]
-    val adapter = new ShareToMultipleAdapter(getContext)
     val toolbar = ViewUtils.getView(view, R.id.t_toolbar).asInstanceOf[Toolbar]
-    val messageId = getArguments.getString(ShareToMultipleFragment.MSG_ID_ARG)
-    val messageData = messagesController.getMessage(MessageId(messageId)).flatMap{
-      case Some(md) => Signal(md)
-      case _ => Signal[MessageData]()
-    }
-    val assetDataSignal: SourceSignal[Option[AssetData]] = Signal[Option[AssetData]]()
-    val messageTextSignal: SourceSignal[Option[String]] = Signal[Option[String]]()
-    val clickSignal: SourceSignal[Unit] = Signal[Unit]()
+    val searchBox = ViewUtils.getView(view, R.id.multi_share_search_box).asInstanceOf[SearchBoxView]
+    val onClickEvent = EventStream[Unit]()
+    val filterText = Signal[String]("")
+    val adapter = new ShareToMultipleAdapter(getContext, filterText)
+
+    searchBox.setHintText(getString(R.string.multi_share_search_hint))
+    searchBox.setCallback(new Callback {
+      override def onClearButton(): Unit = {
+        searchBox.reset()
+        KeyboardUtils.hideKeyboard(getContext, searchBox.getWindowToken)
+      }
+
+      override def onFocusChange(hasFocus: Boolean): Unit = {}
+
+      override def onKeyboardDoneAction(): Unit = {
+        KeyboardUtils.hideKeyboard(getContext, searchBox.getWindowToken)
+      }
+
+      override def afterTextChanged(s: String): Unit = {
+        filterText ! s
+      }
+
+      override def onRemovedTokenSpan(user: User): Unit = {}
+    })
 
     accentColorController.accentColor.on(Threading.Ui) {
-      color => sendButton.setSolidBackgroundColor(color.getColor())
+      color =>
+        sendButton.setSolidBackgroundColor(color.getColor())
+        searchBox.setAccentColor(color.getColor())
     }
 
     toolbar.setNavigationIcon(if (getControllerFactory.getThemeController.isDarkTheme) R.drawable.ic_action_close_light else R.drawable.ic_action_close_dark)
     toolbar.setNavigationOnClickListener(new OnClickListener {
-      override def onClick(v: View): Unit = onBackPressed()
+      override def onClick(v: View): Unit = getActivity.onBackPressed()
     })
 
+    listView.setLayoutManager(new LinearLayoutManager(getContext))
     listView.setAdapter(adapter)
-    getStoreFactory.getConversationStore.addConversationStoreObserverAndUpdate(adapter)
 
-    sendButton.setVisibility(View.GONE)
-    messageData.on(Threading.Ui) {
-      _ => sendButton.setVisibility(View.VISIBLE)
-    }
-
-    messageData.on(Threading.Background)(md => md.msgType match {
-      case Message.Type.ANY_ASSET | Message.Type.ASSET | Message.Type.VIDEO_ASSET | Message.Type.AUDIO_ASSET =>
-        assetDataSignal ! None
-        messageTextSignal ! None
-        assetsController.assetSignal(md.assetId).on(Threading.Background)(a => assetDataSignal ! Some(a._1))
-      case _ =>
-        messageTextSignal ! Some(md.contentString)
-        assetDataSignal ! None
-    })
-
-    val dialog = new ProgressDialog(getContext)
-    dialog.setTitle(getString(R.string.conversation__action_mode__fwd__dialog__title))
-    dialog.setMessage(getString(R.string.conversation__action_mode__fwd__dialog__message))
-    dialog.setIndeterminate(true)
-    dialog.setCancelable(true)
-    dialog.setOnCancelListener(null)
-
-    (for{
-      ad <- assetDataSignal
-      mt <- messageTextSignal
-      _ <- clickSignal
-    } yield (ad, mt)).on(Threading.Ui) {
-      case (None, None) =>
-        dialog.show()
-      case (None, Some(text)) =>
-        if (dialog.isShowing) dialog.dismiss()
-        sendMessage(text, adapter.selectedConversations.toSet)
-        onBackPressed()
-        Toast.makeText(getContext, R.string.message_footer__status__sending, Toast.LENGTH_SHORT).show()
-      case (Some(assetData), _) =>
-        if (dialog.isShowing) dialog.dismiss()
-        (assetData.assetType, assetData.source) match {
-          case (Some(AssetType.Image), Some(uri)) =>
-            sendImageAsset(uri, adapter.selectedConversations.toSet)
-          case (_, Some(uri)) =>
-            sendAsset(uri, adapter.selectedConversations.toSet)
-          case _ =>
-        }
-        onBackPressed()
-        Toast.makeText(getContext, R.string.message_footer__status__sending, Toast.LENGTH_SHORT).show()
+    onClickEvent { _ =>
+      sharingController.sharableContent.on(Threading.Ui) { result =>
+        result.foreach(res => sharingController.onContentShared(getActivity, res, adapter.selectedConversations.currentValue.getOrElse(Set())))
+        Toast.makeText(getContext, R.string.multi_share_toast_sending, Toast.LENGTH_SHORT).show()
+        getActivity.finish()
+      }
     }
 
     sendButton.setOnClickListener(new OnClickListener {
       override def onClick(v: View): Unit = {
-        if (adapter.selectedConversations.isEmpty) {
+        if (adapter.selectedConversations.currentValue.forall(_.isEmpty)) {
           return
         }
-        clickSignal ! (())
+        onClickEvent ! (())
       }
     })
     view
   }
-
-  override def onCreate(savedInstanceState: Bundle): Unit = {
-    super.onCreate(savedInstanceState)
-    setStyle(DialogFragment.STYLE_NO_FRAME, R.style.Theme_Dark_Preferences)
-  }
-
-  //TODO this was copied from ConversationFragment...
-  private val assetErrorHandler: MessageContent.Asset.ErrorHandler = new MessageContent.Asset.ErrorHandler() {
-    def noWifiAndFileIsLarge(sizeInBytes: Long, net: NetworkMode, answer: MessageContent.Asset.Answer): Unit = {
-      if (getActivity == null) {
-        answer.ok()
-        return
-      }
-      val dialog: AlertDialog = ViewUtils.showAlertDialog(getActivity, R.string.asset_upload_warning__large_file__title, R.string.asset_upload_warning__large_file__message_default, R.string.asset_upload_warning__large_file__button_accept, R.string.asset_upload_warning__large_file__button_cancel, new DialogInterface.OnClickListener() {
-        def onClick(dialog: DialogInterface, which: Int): Unit = {
-          answer.ok()
-        }
-      }, new DialogInterface.OnClickListener() {
-        def onClick(dialog: DialogInterface, which: Int): Unit = {
-          answer.cancel()
-        }
-      })
-      dialog.setCancelable(false)
-      if (sizeInBytes > 0) {
-        val fileSize: String = Formatter.formatFileSize(getContext, sizeInBytes)
-        dialog.setMessage(getString(R.string.asset_upload_warning__large_file__message, fileSize))
-      }
-    }
-  }
-
-  private def sendAsset(assetUri: Uri, conversations: Set[IConversation]): Unit = {
-    conversations.foreach{
-      conversation =>
-        getStoreFactory.getConversationStore.sendMessage(conversation, AssetFactory.fromContentUri(assetUri), assetErrorHandler)
-    }
-  }
-
-  private def sendImageAsset(assetUri: Uri, conversations: Set[IConversation]): Unit = {
-    conversations.foreach{
-      conversation =>
-        getStoreFactory.getConversationStore.sendMessage(conversation, ImageAssetFactory.getImageAsset(assetUri))
-    }
-  }
-
-  private def sendMessage(content: String, conversations: Set[IConversation]): Unit = {
-    conversations.foreach{
-      conversation =>
-        getStoreFactory.getConversationStore.sendMessage(conversation, content)
-    }
-  }
-
-  override def onBackPressed(): Boolean = {
-    getDialog.dismiss()
-    true
-  }
 }
 
-class ShareToMultipleAdapter(context: Context) extends ListAdapter with ConversationStoreObserver{
+class ShareToMultipleAdapter(context: Context, filter: Signal[String])(implicit injector: Injector, eventContext: EventContext) extends RecyclerView.Adapter[RecyclerView.ViewHolder] with Injectable {
+  setHasStableIds(true)
 
-  var conversationsList: Option[ConversationsList] = None
-  val selectedConversations = new scala.collection.mutable.HashSet[IConversation]
+  lazy val zms = inject[Signal[ZMessaging]]
+  lazy val conversations = for{
+    z <- zms
+    conversationsSignal <- z.convsContent.conversationsSignal
+    f <- filter
+  } yield
+    conversationsSignal.conversations.toSeq
+      .filter(c => (c.convType == ConversationType.Group || c.convType == ConversationType.OneToOne) && !c.hidden && c.displayName.toLowerCase.contains(f.toLowerCase))
+      .sortWith((a, b) => a.lastEventTime.isAfter(b.lastEventTime))
+
+  conversations.on(Threading.Ui) {
+    _ => notifyDataSetChanged()
+  }
+
+  val selectedConversations: SourceSignal[Set[ConvId]] = Signal(Set())
+
   private val checkBoxListener = new CompoundButton.OnCheckedChangeListener {
     override def onCheckedChanged(buttonView: CompoundButton, isChecked: Boolean): Unit = {
-      if (isChecked) {
-        selectedConversations.add(buttonView.getTag.asInstanceOf[IConversation])
-      } else {
-        selectedConversations.remove(buttonView.getTag.asInstanceOf[IConversation])
+      Option(buttonView.getTag.asInstanceOf[ConvId]).foreach{ convId =>
+        if (isChecked) {
+          selectedConversations.mutate( _ + convId)
+        } else {
+          selectedConversations.mutate( _ - convId)
+        }
       }
     }
   }
 
-  override def isEnabled(position: Int): Boolean = {
-    false
-  }
+  def getItem(position: Int): Option[ConversationData] = conversations.currentValue.map(_(position))
 
-  override def areAllItemsEnabled(): Boolean = false
+  override def getItemCount: Int = conversations.currentValue.fold(0)(_.size)
 
-  override def getItemId(position: Int): Long = position
-
-  override def getCount: Int = conversationsList.map(_.size()).getOrElse(0)
-
-  override def getView(position: Int, convertView: View, parent: ViewGroup): View = {
-    var view = convertView
-    if (convertView == null) {
-      view = new SelectableConversationRow(context, checkBoxListener)
+  override def onBindViewHolder(holder: ViewHolder, position: Int): Unit = {
+    getItem(position) match {
+      case Some(conv) =>
+        holder.asInstanceOf[SelectableConversationRowViewHolder].setConversation(conv.id, selectedConversations.currentValue.exists(_.contains(conv.id)))
+      case _ =>
     }
-    view.asInstanceOf[SelectableConversationRow].setConversation(getItem(position), selectedConversations.contains(getItem(position)))
-    view
   }
 
-  override def registerDataSetObserver(observer: DataSetObserver): Unit = {}
+  override def onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder = {
+    val view = new SelectableConversationRow(context, checkBoxListener)
+    parent.addView(view)
+    SelectableConversationRowViewHolder(view)
+  }
 
-  override def getItem(position: Int): IConversation = conversationsList.get.get(position)
-
-  override def unregisterDataSetObserver(observer: DataSetObserver): Unit = {}
-
-  override def getViewTypeCount: Int = 1
+  override def getItemId(position: Int): Long = getItem(position).fold(0)(_.id.hashCode()).toLong
 
   override def getItemViewType(position: Int): Int = 1
-
-  override def isEmpty: Boolean = conversationsList.exists(_.size() > 0)
-
-  override def hasStableIds: Boolean = true
-
-  override def onConversationListUpdated(conversationsList: ConversationsList): Unit = {
-    this.conversationsList = Some(conversationsList)
-  }
-
-  override def onVerificationStateChanged(conversationId: String, previousVerification: Verification, currentVerification: Verification): Unit = {}
-
-  override def onCurrentConversationHasChanged(fromConversation: IConversation, toConversation: IConversation, conversationChangerSender: ConversationChangeRequester): Unit = {}
-
-  override def onMenuConversationHasChanged(fromConversation: IConversation): Unit = {}
-
-  override def onConversationListStateHasChanged(state: ConversationsListState): Unit = {}
-
-  override def onConversationSyncingStateHasChanged(syncState: SyncState): Unit = {}
 }
 
-class SelectableConversationRow(context: Context, attrs: AttributeSet, defStyleAttr: Int, checkBoxListener: CompoundButton.OnCheckedChangeListener) extends LinearLayout(context, attrs, defStyleAttr) {
-  def this(context: Context, attrs: AttributeSet, checkBoxListener: CompoundButton.OnCheckedChangeListener) = this(context, attrs, 0, checkBoxListener)
-  def this(context: Context, checkBoxListener: CompoundButton.OnCheckedChangeListener) =  this(context, null, checkBoxListener)
+case class SelectableConversationRowViewHolder(view: SelectableConversationRow)(implicit eventContext: EventContext, injector: Injector) extends RecyclerView.ViewHolder(view) with Injectable{
+  lazy val zms = inject[Signal[ZMessaging]]
+
+  val conversationId = Signal[ConvId]()
+
+  zms.flatMap(z => conversationId.flatMap(convId => z.convsContent.conversationsSignal.map(_.conversations.find(_.id == convId)))).on(Threading.Ui){
+    case Some(conversationData) => view.nameView.setText(conversationData.displayName)
+    case _ => view.nameView.setText("")
+  }
+
+  def setConversation(convId: ConvId, checked: Boolean): Unit = {
+    view.checkBox.setTag(null)
+    view.checkBox.setChecked(checked)
+    view.checkBox.setTag(convId)
+    conversationId ! convId
+  }
+}
+
+class SelectableConversationRow(context: Context, checkBoxListener: CompoundButton.OnCheckedChangeListener) extends LinearLayout(context, null, 0) {
+
+  setPadding(
+    getResources.getDimensionPixelSize(R.dimen.wire__padding__12),
+    getResources.getDimensionPixelSize(R.dimen.list_tile_top_padding),
+    getResources.getDimensionPixelSize(R.dimen.wire__padding__12),
+    getResources.getDimensionPixelSize(R.dimen.list_tile_bottom_padding))
+  setLayoutParams(new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, getResources.getDimensionPixelSize(R.dimen.list_row_height)))
+  setOrientation(LinearLayout.HORIZONTAL)
 
   LayoutInflater.from(context).inflate(R.layout.row_selectable_conversation, this, true)
   val nameView = ViewUtils.getView(this, R.id.ttv__conversation_name).asInstanceOf[TypefaceTextView]
   val checkBox = ViewUtils.getView(this, R.id.rb__conversation_selected).asInstanceOf[CheckBox]
-  checkBox.setOnCheckedChangeListener(checkBoxListener)
 
-  def setConversation(conversation: IConversation, checked: Boolean): Unit = {
-    nameView.setText(conversation.getName)
-    checkBox.setTag(conversation)
-    checkBox.setChecked(checked)
-  }
+  checkBox.setOnCheckedChangeListener(checkBoxListener)
 }
 
 object ShareToMultipleFragment {
@@ -282,6 +216,10 @@ object ShareToMultipleFragment {
     bundle.putString(MSG_ID_ARG, messageId.str)
     fragment.setArguments(bundle)
     fragment
+  }
+
+  def newInstance(): ShareToMultipleFragment = {
+    new ShareToMultipleFragment
   }
 
   trait Container

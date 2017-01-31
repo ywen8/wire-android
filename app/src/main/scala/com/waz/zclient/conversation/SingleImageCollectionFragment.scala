@@ -17,23 +17,35 @@
  */
 package com.waz.zclient.conversation
 
+import android.content.Context
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
-import android.view.GestureDetector.SimpleOnGestureListener
-import android.view.View.{OnLayoutChangeListener, OnLongClickListener, OnTouchListener}
+import android.support.v4.view.ViewPager.OnPageChangeListener
+import android.support.v4.view.{PagerAdapter, ViewPager}
+import android.util.AttributeSet
+import android.view.ViewGroup.LayoutParams
 import android.view._
-import com.waz.model.AssetId
+import com.waz.api.MessageFilter
+import com.waz.model.{AssetId, MessageData}
 import com.waz.service.ZMessaging
-import com.waz.service.messages.MessageAndLikes
-import com.waz.utils.events.Signal
+import com.waz.threading.Threading
+import com.waz.utils.events._
+import com.waz.zclient._
+import com.waz.zclient.controllers.global.SelectionController
+import com.waz.zclient.conversation.CollectionController.{AllContent, ContentType, Images}
+import com.waz.zclient.conversation.SingleImageCollectionFragment.ImageSwipeAdapter
+import com.waz.zclient.messages.RecyclerCursor
+import com.waz.zclient.messages.RecyclerCursor.RecyclerNotifier
 import com.waz.zclient.messages.controllers.MessageActionsController
 import com.waz.zclient.pages.BaseFragment
+import com.waz.zclient.pages.main.conversationpager.CustomPagerTransformer
 import com.waz.zclient.utils.ViewUtils
 import com.waz.zclient.views.ImageAssetDrawable
 import com.waz.zclient.views.ImageController.WireImage
 import com.waz.zclient.views.images.TouchImageView
-import com.waz.zclient.{FragmentHelper, OnBackPressedListener, R}
+
+import scala.collection.mutable
 
 class SingleImageCollectionFragment extends BaseFragment[CollectionFragment.Container] with FragmentHelper with OnBackPressedListener {
 
@@ -41,77 +53,152 @@ class SingleImageCollectionFragment extends BaseFragment[CollectionFragment.Cont
   lazy val messageActions = inject[MessageActionsController]
   lazy val collectionController = inject[CollectionController]
 
-  lazy val messageAndLikes = zms.zip(collectionController.focusedItem).flatMap{
-    case (z, Some(md)) => Signal.future(z.msgAndLikes.combineWithLikes(md))
-    case _ => Signal[MessageAndLikes]()
-  }
-
   override def onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState: Bundle): View = {
     val view = inflater.inflate(R.layout.fragment_single_image_collections, container, false)
-    val imageView: TouchImageView = ViewUtils.getView(view, R.id.tiv__image_view)
-    messageAndLikes.disableAutowiring()
-    imageView.setOnLongClickListener(new OnLongClickListener {
-      override def onLongClick(v: View): Boolean = {
-        true
+    val viewPager: ViewPager = ViewUtils.getView(view, R.id.image_view_pager)
+    val imageSwipeAdapter = new ImageSwipeAdapter(getContext)
+    viewPager.setAdapter(imageSwipeAdapter)
+
+    val focusedItemPosition = collectionController.focusedItem.flatMap{
+      case Some(messageData) =>
+        imageSwipeAdapter.cursor.flatMap(c => c.positionForMessage(messageData))
+      case _ => Signal.empty[Option[Int]]
+    }
+
+    focusedItemPosition.on(Threading.Ui){
+      case Some(position) => viewPager.setCurrentItem(position, false)
+      case _ =>
+    }
+
+    viewPager.addOnPageChangeListener(new OnPageChangeListener {
+      override def onPageScrollStateChanged(state: Int): Unit = {}
+      override def onPageScrolled(position: Int, positionOffset: Float, positionOffsetPixels: Int): Unit = {}
+      override def onPageSelected(position: Int): Unit = {
+        collectionController.focusedItem ! imageSwipeAdapter.getItem(position)
       }
     })
-    val gestureDetector = new GestureDetector(getContext, new SimpleOnGestureListener(){
-      override def onFling(e1: MotionEvent, e2: MotionEvent, velocityX: Float, velocityY: Float): Boolean = {
-        if (imageView.isZoomed) return true
-        if (velocityX > SingleImageCollectionFragment.MIN_FLING_THRESHOLD) {
-          collectionController.requestPreviousItem()
-        } else if (velocityX < -SingleImageCollectionFragment.MIN_FLING_THRESHOLD) {
-          collectionController.requestNextItem()
-        }
-        true
-      }
-    })
+    viewPager.setPageTransformer(false, new CustomPagerTransformer (CustomPagerTransformer.SLIDE))
 
-    imageView.setOnTouchListener(new OnTouchListener {
-      override def onTouch(v: View, event: MotionEvent): Boolean = gestureDetector.onTouchEvent(event)
-    })
-
-    imageView.setImageDrawable(new ColorDrawable(Color.TRANSPARENT))
     view
   }
 
-  override def onViewCreated(view: View, savedInstanceState: Bundle): Unit = {
-    super.onViewCreated(view, savedInstanceState)
 
-    val imageView: TouchImageView = ViewUtils.getView(view, R.id.tiv__image_view)
-    lazy val onLayoutChangeListener: OnLayoutChangeListener = new OnLayoutChangeListener {
-      override def onLayoutChange(v: View, left: Int, top: Int, right: Int, bottom: Int, oldLeft: Int, oldTop: Int, oldRight: Int, oldBottom: Int): Unit = {
-        if (v.getWidth > 0) {
-          val assetId = AssetId(getArguments.getString(SingleImageCollectionFragment.ARG_ASSET_ID))
-          setAsset(assetId)
-          imageView.removeOnLayoutChangeListener(onLayoutChangeListener)
-        }
-      }
-    }
-    imageView.addOnLayoutChangeListener(onLayoutChangeListener)
+  override def onDestroy(): Unit = {
+    super.onDestroy()
+  }
+
+
+  override def onDestroyView(): Unit = {
+    val viewPager: ViewPager = ViewUtils.getView(getView, R.id.image_view_pager)
+    viewPager.getAdapter.asInstanceOf[ImageSwipeAdapter].recyclerCursor.foreach(_.close())
+    viewPager.setAdapter(null)
+    super.onDestroyView()
   }
 
   override def onBackPressed(): Boolean = true
-
-  def setAsset(assetId: AssetId): Unit = {
-    val imageView: TouchImageView = ViewUtils.getView(getView, R.id.tiv__image_view)
-    imageView.setImageDrawable(new ImageAssetDrawable(Signal(WireImage(assetId)), scaleType = ImageAssetDrawable.ScaleType.CenterInside))
-  }
 }
 
 object SingleImageCollectionFragment {
 
   val TAG = SingleImageCollectionFragment.getClass.getSimpleName
 
-  val ARG_ASSET_ID = "ARG_ASSET_ID"
+  def newInstance(): SingleImageCollectionFragment = new SingleImageCollectionFragment
 
-  private val MIN_FLING_THRESHOLD = 1000
+  class ImageSwipeAdapter(context: Context)(implicit injector: Injector, ev: EventContext) extends PagerAdapter with Injectable{ self =>
 
-  def newInstance(assetId: AssetId): SingleImageCollectionFragment = {
-    val fragment = new SingleImageCollectionFragment
-    val bundle = new Bundle()
-    bundle.putString(ARG_ASSET_ID, assetId.str)
-    fragment.setArguments(bundle)
-    fragment
+    private val discardedImages = mutable.Queue[SwipeImageView]()
+
+    private val zms = inject[Signal[ZMessaging]]
+    private val selectedConversation = inject[SelectionController].selectedConv
+
+    val contentMode = Signal[ContentType](AllContent)
+
+    val conv = for {
+      zs <- zms
+      convId <- selectedConversation
+      conv <- Signal future zs.convsStorage.get(convId)
+    } yield conv
+
+    val notifier = new RecyclerNotifier(){
+      override def notifyDataSetChanged(): Unit = self.notifyDataSetChanged()
+
+      override def notifyItemRangeInserted(index: Int, length: Int): Unit = self.notifyDataSetChanged()
+
+      override def notifyItemRangeChanged(index: Int, length: Int): Unit = self.notifyDataSetChanged()
+
+      override def notifyItemRangeRemoved(pos: Int, count: Int): Unit = self.notifyDataSetChanged()
+    }
+
+    var recyclerCursor: Option[RecyclerCursor] = None
+    val cursor = for {
+      zs <- zms
+      Some(c) <- conv
+    } yield new RecyclerCursor(c.id, zs, notifier, Some(MessageFilter(Some(Images.typeFilter))))
+
+    cursor.on(Threading.Ui) { c =>
+      if (!recyclerCursor.contains(c)) {
+        recyclerCursor.foreach(_.close())
+        recyclerCursor = Some(c)
+        notifier.notifyDataSetChanged()
+      }
+    }
+
+    def getItem(position: Int): Option[MessageData] = {
+      recyclerCursor.flatMap{
+        case c if c.count > position => Some(c.apply(position).message)
+        case _ => None
+      }
+    }
+
+    override def instantiateItem(container: ViewGroup, position: Int): AnyRef = {
+      val imageView = if (discardedImages.nonEmpty) discardedImages.dequeue() else new SwipeImageView(context)
+      imageView.setLayoutParams(new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT))
+      imageView.setImageDrawable(new ColorDrawable(Color.TRANSPARENT))
+      getItem(position).foreach{ messageData => imageView.setMessageData(messageData) }
+      imageView.setTag(position)
+      container.addView(imageView)
+      imageView
+    }
+
+    override def destroyItem(container: ViewGroup, position: Int, obj: scala.Any): Unit = {
+      val view = obj.asInstanceOf[SwipeImageView]
+      view.resetZoom()
+      discardedImages.enqueue(view)
+      container.removeView(view)
+    }
+
+    override def isViewFromObject(view: View, obj: scala.Any): Boolean = {
+      view.getTag.equals(obj.asInstanceOf[View].getTag)
+    }
+
+    override def getCount: Int = recyclerCursor.fold(0)(_.count)
   }
+
+  class SwipeImageView(context: Context, attrs: AttributeSet, style: Int)(implicit injector: Injector, ev: EventContext) extends TouchImageView(context, attrs, style){
+    def this(context: Context, attrs: AttributeSet)(implicit injector: Injector, ev: EventContext) = this(context, attrs, 0)
+    def this(context: Context)(implicit injector: Injector, ev: EventContext) = this(context, null, 0)
+
+    private val messageData: SourceSignal[MessageData] = Signal[MessageData]()
+    private val onLayoutChanged = EventStream[Unit]()
+
+    messageData.on(Threading.Ui){
+      md => setAsset(md.assetId)
+    }
+    onLayoutChanged.on(Threading.Ui){
+      _ => messageData.currentValue.foreach(md => setAsset(md.assetId))
+    }
+
+    private def setAsset(assetId: AssetId): Unit =
+      setImageDrawable(new ImageAssetDrawable(Signal(WireImage(assetId)), scaleType = ImageAssetDrawable.ScaleType.CenterInside))
+
+    override def onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int): Unit = {
+      super.onLayout(changed, left, top, right, bottom)
+      onLayoutChanged ! (())
+    }
+
+    def setMessageData(messageData: MessageData): Unit = {
+      this.messageData ! messageData
+    }
+  }
+
 }
