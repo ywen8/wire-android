@@ -97,7 +97,7 @@ public class MessageBottomSheetDialog extends BottomSheetDialog {
         if (isSaveAllowed()) {
             addAction(view, MessageAction.SAVE);
         }
-        if (isOpenFileAllowed()) {
+        if (isOpenFileAllowed(isCollection)) {
             addAction(view, MessageAction.OPEN_FILE);
         }
         if (isForwardAllowed()) {
@@ -199,11 +199,14 @@ public class MessageBottomSheetDialog extends BottomSheetDialog {
         }
     }
 
-    private boolean isOpenFileAllowed() {
+    private boolean isOpenFileAllowed(boolean isCollection) {
         if (chosenOperations != null && !chosenOperations.contains(MessageAction.OPEN_FILE)) {
             return false;
         }
         if (message.isEphemeral()) {
+            return false;
+        }
+        if (isCollection) {
             return false;
         }
         switch (message.getMessageType()) {
