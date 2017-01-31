@@ -28,6 +28,6 @@
     <drawable name="placeholder3" tools:ignore="UnusedResources">@drawable/ic_launcher_wire_dev</drawable>
     <drawable name="placeholder4" tools:ignore="UnusedResources">@drawable/ic_launcher_wire_candidate</drawable>
     <drawable name="placeholder5" tools:ignore="UnusedResources">@drawable/ic_launcher_wire_playground</drawable>
-
+    <drawable name="placeholder6" tools:ignore="UnusedResources">@drawable/ic_launcher_wire_qa</drawable>
 
 </resources>
