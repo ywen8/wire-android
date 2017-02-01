@@ -19,7 +19,7 @@ package com.waz.zclient.messages.controllers
 
 import android.app.{Activity, ProgressDialog}
 import android.content.DialogInterface.OnDismissListener
-import android.content.{ClipData, ClipboardManager, Context, DialogInterface}
+import android.content._
 import android.net.Uri
 import android.support.v4.app.{FragmentManager, ShareCompat}
 import android.support.v7.app.AlertDialog
@@ -35,7 +35,6 @@ import com.waz.utils.events.{EventContext, EventStream, Signal}
 import com.waz.zclient.common.controllers.{PermissionsController, WriteExternalStoragePermission}
 import com.waz.zclient.controllers.global.KeyboardController
 import com.waz.zclient.controllers.userpreferences.IUserPreferencesController
-import com.waz.zclient.conversation.ShareToMultipleFragment
 import com.waz.zclient.notifications.controllers.ImageNotificationsController
 import com.waz.zclient.pages.main.conversation.controller.IConversationScreenController
 import com.waz.zclient.pages.main.conversation.views.MessageBottomSheetDialog
@@ -197,6 +196,7 @@ class MessageActionsController(implicit injector: Injector, ctx: Context, ec: Ev
           def onLoaded(uri: Uri): Unit = {
             onAssetSaved ! asset
             Toast.makeText(context, com.waz.zclient.ui.R.string.content__file__action__save_completed, Toast.LENGTH_SHORT).show()
+            context.sendBroadcast(returning(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE))(_.setData(uri)))
             dialog.dismiss()
           }
 
