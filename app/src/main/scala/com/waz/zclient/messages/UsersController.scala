@@ -58,6 +58,13 @@ class UsersController(implicit injector: Injector, context: Context) extends Inj
 
   def accentColor(id: UserId): Signal[AccentColor] = user(id).map(u => AccentColor(u.accent))
 
+  def memberIsJustSelf(message: Signal[MessageData]): Signal[Boolean] ={
+    for {
+      zms <- zMessaging
+      msg <- message
+    } yield msg.members.size == 1 && msg.members.contains(zms.selfUserId)
+  }
+
   def memberDisplayNames(message: Signal[MessageData]) =
     for {
       zms <- zMessaging

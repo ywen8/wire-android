@@ -237,7 +237,7 @@ public class ConversationManagerFragment extends BaseFragment<ConversationManage
                                  R.anim.slide_out_to_bottom_pick_user)
             .replace(R.id.fl__conversation_manager__message_list_container,
                      ParticipantFragment.newInstance(IConnectStore.UserRequester.PARTICIPANTS,
-                                                     TabbedParticipantBodyFragment.USER_PAGE),
+                         showDeviceTabIfSingle ? TabbedParticipantBodyFragment.DEVICE_PAGE : TabbedParticipantBodyFragment.USER_PAGE),
                      ParticipantFragment.TAG)
             .addToBackStack(ParticipantFragment.TAG)
             .commit();
