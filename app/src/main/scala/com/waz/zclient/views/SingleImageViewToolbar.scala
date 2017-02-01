@@ -83,23 +83,16 @@ class SingleImageViewToolbar(context: Context, attrs: AttributeSet, style: Int) 
     }
   }
 
-  likeButton.setPressedBackgroundColor(ContextCompat.getColor(getContext, R.color.light_graphite))
-  downloadButton.setPressedBackgroundColor(ContextCompat.getColor(getContext, R.color.light_graphite))
-  shareButton.setPressedBackgroundColor(ContextCompat.getColor(getContext, R.color.light_graphite))
-  deleteButton.setPressedBackgroundColor(ContextCompat.getColor(getContext, R.color.light_graphite))
-  viewButton.setPressedBackgroundColor(ContextCompat.getColor(getContext, R.color.light_graphite))
+  Seq(likeButton, downloadButton, shareButton, deleteButton, viewButton)
+    .foreach(_.setPressedBackgroundColor(ContextCompat.getColor(getContext, R.color.light_graphite)))
 
   likeButton.onClick( message.currentValue.foreach(msg => messageActionsController.onMessageAction ! (MessageAction.LIKE, msg)))
   downloadButton.onClick( message.currentValue.foreach(msg => messageActionsController.onMessageAction ! (MessageAction.SAVE, msg)))
   shareButton.onClick( message.currentValue.foreach(msg => messageActionsController.onMessageAction ! (MessageAction.FORWARD, msg)))
 
-  deleteButton.onClick( message.currentValue.foreach{msg =>
+  deleteButton.onClick( message.currentValue.foreach{ msg =>
     if (msg.getUser.isMe) {
-      val options = new util.HashSet[MessageAction]()
-      options.add(MessageAction.DELETE_LOCAL)
-      options.add(MessageAction.DELETE_GLOBAL)
-      val dialog = new MessageBottomSheetDialog(context, R.style.message__bottom_sheet__base, msg, true, true, messageActionCallback, options)
-      dialog.show()
+      messageActionsController.showDeleteDialog(msg)
     } else {
       messageActionsController.onMessageAction ! (MessageAction.DELETE_LOCAL, msg)
     }

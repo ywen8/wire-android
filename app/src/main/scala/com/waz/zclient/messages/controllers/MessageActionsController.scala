@@ -17,6 +17,8 @@
  */
 package com.waz.zclient.messages.controllers
 
+import java.util
+
 import android.app.{Activity, ProgressDialog}
 import android.content.DialogInterface.OnDismissListener
 import android.content.{ClipData, ClipboardManager, Context, DialogInterface}
@@ -81,6 +83,7 @@ class MessageActionsController(implicit injector: Injector, ctx: Context, ec: Ev
     case (MessageAction.UNLIKE, message)           => toggleLike(message)
     case (MessageAction.SAVE, message)             => saveMessage(message)
     case (MessageAction.REVEAL, message)           => revealMessageInConversation(message)
+    case (MessageAction.DELETE, message)           => promptDeleteMessage(message)
     case _ => // should be handled somewhere else
   }
 
@@ -111,6 +114,14 @@ class MessageActionsController(implicit injector: Injector, ctx: Context, ec: Ev
     true
   }
 
+  def showDeleteDialog(message: Message): Unit = {
+    val options = new util.HashSet[MessageAction]()
+    options.add(MessageAction.DELETE_LOCAL)
+    options.add(MessageAction.DELETE_GLOBAL)
+    val dialog = new MessageBottomSheetDialog(context, R.style.message__bottom_sheet__base, message, true, true, callback, options)
+    dialog.show()
+  }
+
   private def toggleLike(message: Message) = {
     if (message.isLikedByThisUser)
       message.unlike()
@@ -137,6 +148,10 @@ class MessageActionsController(implicit injector: Injector, ctx: Context, ec: Ev
       message.recall()
       onDeleteConfirmed ! (message, true)
     }
+
+  private def promptDeleteMessage(message: Message) = {
+    showDeleteDialog(message);
+  }
 
   private def showDeleteDialog(title: Int)(onSuccess: => Unit) =
     new AlertDialog.Builder(context)

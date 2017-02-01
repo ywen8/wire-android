@@ -44,6 +44,7 @@ public class MessageBottomSheetDialog extends BottomSheetDialog {
     public enum MessageAction {
         FORWARD(R.id.message_bottom_menu_item_forward, R.string.glyph__share, R.string.message_bottom_menu_action_forward),
         COPY(R.id.message_bottom_menu_item_copy, R.string.glyph__copy, R.string.message_bottom_menu_action_copy),
+        DELETE(R.id.message_bottom_menu_item_delete, R.string.glyph__trash, R.string.message_bottom_menu_action_delete),
         DELETE_LOCAL(R.id.message_bottom_menu_item_delete_local, R.string.glyph__delete_me, R.string.message_bottom_menu_action_delete_local),
         DELETE_GLOBAL(R.id.message_bottom_menu_item_delete_global, R.string.glyph__delete_everywhere, R.string.message_bottom_menu_action_delete_global),
         LIKE(R.id.message_bottom_menu_item_like, R.string.glyph__like, R.string.message_bottom_menu_action_like),
@@ -68,7 +69,7 @@ public class MessageBottomSheetDialog extends BottomSheetDialog {
         super(context, theme);
         this.message = message;
         this.callback = callback;
-        init(isMemberOfConversation, isCollection);
+        init(isMemberOfConversation, isCollection, true);
     }
 
     public MessageBottomSheetDialog(@NonNull Context context, int theme, @NonNull Message message, boolean isMemberOfConversation, boolean isCollection, Callback callback, Set<MessageAction> operations) {
@@ -76,10 +77,10 @@ public class MessageBottomSheetDialog extends BottomSheetDialog {
         this.message = message;
         this.callback = callback;
         chosenOperations = operations;
-        init(isMemberOfConversation, isCollection);
+        init(isMemberOfConversation, isCollection, false);
     }
 
-    private void updateOptions(LinearLayout view, boolean isMemberOfConversation, boolean isCollection) {
+    private void updateOptions(LinearLayout view, boolean isMemberOfConversation, boolean isCollection, boolean deleteCollapsed) {
         view.removeAllViews();
         if (isMemberOfConversation && isLikeAllowed()) {
             if (message.isLikedByThisUser()) {
@@ -103,11 +104,15 @@ public class MessageBottomSheetDialog extends BottomSheetDialog {
         if (isForwardAllowed()) {
             addAction(view, MessageAction.FORWARD);
         }
-        if (isDeleteLocalAllowed()) {
-            addAction(view, MessageAction.DELETE_LOCAL);
-        }
-        if (isDeleteForEveryoneAllowed(isMemberOfConversation)) {
-            addAction(view, MessageAction.DELETE_GLOBAL);
+        if (deleteCollapsed && isDeleteLocalAllowed() && isDeleteForEveryoneAllowed(isMemberOfConversation)) {
+            addAction(view, MessageAction.DELETE);
+        } else {
+            if (isDeleteLocalAllowed()) {
+                addAction(view, MessageAction.DELETE_LOCAL);
+            }
+            if (isDeleteForEveryoneAllowed(isMemberOfConversation)) {
+                addAction(view, MessageAction.DELETE_GLOBAL);
+            }
         }
 
         if (isRevealAllowed(isCollection)) {
@@ -116,20 +121,20 @@ public class MessageBottomSheetDialog extends BottomSheetDialog {
     }
 
     @SuppressLint("InflateParams")
-    private void init(final boolean isMemberOfConversation, final boolean isCollection) {
+    private void init(final boolean isMemberOfConversation, final boolean isCollection, final boolean deleteCollapsed) {
         final LinearLayout view = (LinearLayout) getLayoutInflater().inflate(R.layout.message__bottom__menu, null);
 
         ModelObserver<Asset> assetModelObserver = new ModelObserver<Asset>() {
             @Override
             public void updated(Asset model) {
                 if (!model.isEmpty()) {
-                    updateOptions(view, isMemberOfConversation, isCollection);
+                    updateOptions(view, isMemberOfConversation, isCollection, deleteCollapsed);
                 }
             }
         };
 
         assetModelObserver.setAndUpdate(message.getAsset());
-        updateOptions(view, isMemberOfConversation, isCollection);
+        updateOptions(view, isMemberOfConversation, isCollection, deleteCollapsed);
         setContentView(view);
     }
 
