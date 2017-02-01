@@ -349,6 +349,8 @@
         <item quantity="one">Show device</item>
         <item quantity="other">Show people</item>
     </plurals>
+    <string name="conversation__degraded_confirmation__negative_action_self">Show your devices</string>
+    <string name="conversation_degraded_confirmation__header__you">You</string>
 
     <!-- Profile and Participants -->
     <plurals name="participants__sub_header_xx_people">

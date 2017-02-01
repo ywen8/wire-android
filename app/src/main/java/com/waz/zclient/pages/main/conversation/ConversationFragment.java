@@ -66,6 +66,7 @@ import com.waz.api.MessageContent;
 import com.waz.api.MessagesList;
 import com.waz.api.NetworkMode;
 import com.waz.api.OtrClient;
+import com.waz.api.Self;
 import com.waz.api.SyncIndicator;
 import com.waz.api.SyncState;
 import com.waz.api.UpdateListener;
@@ -137,6 +138,7 @@ import com.waz.zclient.pages.main.conversationpager.controller.SlidingPaneObserv
 import com.waz.zclient.pages.main.onboarding.OnBoardingHintFragment;
 import com.waz.zclient.pages.main.onboarding.OnBoardingHintType;
 import com.waz.zclient.pages.main.pickuser.controller.IPickUserController;
+import com.waz.zclient.pages.main.profile.ZetaPreferencesActivity;
 import com.waz.zclient.pages.main.profile.camera.CameraContext;
 import com.waz.zclient.ui.animation.interpolators.penner.Expo;
 import com.waz.zclient.ui.audiomessage.AudioMessageRecordingView;
@@ -227,6 +229,7 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
     private boolean isVideoMessageButtonClicked;
     private MessageBottomSheetDialog messageBottomSheetDialog;
     private MessagesListView listView;
+    private Self self = null;
 
     public static ConversationFragment newInstance() {
         return new ConversationFragment();
@@ -342,6 +345,13 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
             if (sizeInBytes > 0) {
                 dialog.setMessage(getString(R.string.asset_upload_warning__large_file__message__video));
             }
+        }
+    };
+
+    private final ModelObserver<Self> selfModelObserver = new ModelObserver<Self>() {
+        @Override
+        public void updated(Self model) {
+            self = model;
         }
     };
 
@@ -542,6 +552,7 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
         getControllerFactory().getSlidingPaneController().addObserver(this);
 
         extendedCursorContainer.setCallback(this);
+        selfModelObserver.setAndUpdate(getStoreFactory().getZMessagingApiStore().getApi().getSelf());
     }
 
     @Override
@@ -604,6 +615,8 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
         getControllerFactory().getSlidingPaneController().removeObserver(this);
         getControllerFactory().getConversationScreenController().setConversationStreamUiReady(false);
         getControllerFactory().getRequestPermissionsController().removeObserver(this);
+
+        selfModelObserver.pauseListening();
         super.onStop();
     }
 
@@ -622,6 +635,7 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
         conversationModelObserver.clear();
         toolbarTitle = null;
         toolbar = null;
+        selfModelObserver.clear();
         super.onDestroyView();
     }
 
@@ -1620,11 +1634,12 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
         final Map<User, String> userNameMap = new HashMap<>();
         int tmpUnverifiedDevices = 0;
         int userCount = 0;
+        final boolean onlySelfChanged;
         for (User user : users) {
-            userCount++;
             if (user.getVerified() == Verification.VERIFIED) {
                 continue;
             }
+            userCount++;
             userNameMap.put(user, user.getDisplayName());
             for (OtrClient client : user.getOtrClients()) {
                 if (client.getVerified() == Verification.VERIFIED) {
@@ -1633,6 +1648,21 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
                 tmpUnverifiedDevices++;
             }
         }
+
+        if (self != null && self.getUser().getVerified() != Verification.VERIFIED) {
+            onlySelfChanged = userCount == 0;
+            userCount++;
+            userNameMap.put(self.getUser(), getString(R.string.conversation_degraded_confirmation__header__you));
+            for (OtrClient client : self.getUser().getOtrClients()) {
+                if (client.getVerified() == Verification.VERIFIED) {
+                    continue;
+                }
+                tmpUnverifiedDevices++;
+            }
+        } else {
+            onlySelfChanged = false;
+        }
+
         final List<String> userNameList = new ArrayList<>(userNameMap.values());
         final int userNameCount = userNameList.size();
 
@@ -1679,13 +1709,19 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
                 if (confirmed || canceled) {
                     return;
                 }
-                final View anchorView = ViewUtils.getView(getActivity(), R.id.cursor_menu_item_participant);
-                getControllerFactory().getConversationScreenController().showParticipants(anchorView, true);
+                if (onlySelfChanged) {
+                    getContext().startActivity(ZetaPreferencesActivity.getOtrDevicesPreferencesIntent(getContext()));
+                } else {
+                    final View anchorView = ViewUtils.getView(getActivity(), R.id.cursor_menu_item_participant);
+                    getControllerFactory().getConversationScreenController().showParticipants(anchorView, true);
+                }
+
             }
         };
         final String positiveButton = getString(R.string.conversation__degraded_confirmation__positive_action);
-        final String negativeButton = getResources().getQuantityString(R.plurals.conversation__degraded_confirmation__negative_action,
-                                                                       userCount);
+        final String negativeButton = onlySelfChanged ?
+            getString(R.string.conversation__degraded_confirmation__negative_action_self) :
+            getResources().getQuantityString(R.plurals.conversation__degraded_confirmation__negative_action, userCount);
         final ConfirmationRequest request = new ConfirmationRequest.Builder(IConfirmationController.SEND_MESSAGES_TO_DEGRADED_CONVERSATION)
             .withHeader(header)
             .withMessage(message)
