@@ -53,11 +53,11 @@ class OtrMsgPartView(context: Context, attrs: AttributeSet, style: Int) extends 
   val memberIsJustSelf = users.memberIsJustSelf(message)
 
   val shieldIcon = msgType map {
-    case OTR_ERROR | OTR_IDENTITY_CHANGED | HISTORY_LOST  => Some(R.drawable.red_alert)
-    case OTR_VERIFIED                                     => Some(R.drawable.shield_full)
-    case OTR_UNVERIFIED | OTR_DEVICE_ADDED                => Some(R.drawable.shield_half)
-    case STARTED_USING_DEVICE                             => None
-    case _                                                => None
+    case OTR_ERROR | OTR_IDENTITY_CHANGED | HISTORY_LOST      => Some(R.drawable.red_alert)
+    case OTR_VERIFIED                                         => Some(R.drawable.shield_full)
+    case OTR_UNVERIFIED | OTR_DEVICE_ADDED | OTR_MEMBER_ADDED => Some(R.drawable.shield_half)
+    case STARTED_USING_DEVICE                                 => None
+    case _                                                    => None
   }
 
   val msgString = msgType flatMap {
@@ -71,6 +71,7 @@ class OtrMsgPartView(context: Context, attrs: AttributeSet, style: Int) extends 
       case false => memberNames map { getString(R.string.content__otr__unverified_device__message, _) }
     }
     case OTR_DEVICE_ADDED     => memberNames map { getString(R.string.content__otr__added_new_device__message, _) }
+    case OTR_MEMBER_ADDED     => Signal const getString(R.string.content__otr__new_member__message)
     case _                    => Signal const ""
   }
 
@@ -82,8 +83,8 @@ class OtrMsgPartView(context: Context, attrs: AttributeSet, style: Int) extends 
   Signal(message, msgString, accentColor.accentColor, memberIsJustSelf).on(Threading.Ui) {
     case (msg, text, color, isMe) => setTextWithLink(text, color.getColor()) {
       (msg.msgType, isMe) match {
-        case (OTR_UNVERIFIED | OTR_DEVICE_ADDED, true)  => screenController.openOtrDevicePreferences()
-        case (OTR_UNVERIFIED | OTR_DEVICE_ADDED, false) => screenController.showParticipants(this, showDeviceTabIfSingle = true)
+        case (OTR_UNVERIFIED | OTR_DEVICE_ADDED | OTR_MEMBER_ADDED, true)  => screenController.openOtrDevicePreferences()
+        case (OTR_UNVERIFIED | OTR_DEVICE_ADDED | OTR_MEMBER_ADDED, false) => screenController.showParticipants(this, showDeviceTabIfSingle = true)
         case (STARTED_USING_DEVICE, _)                  => screenController.openOtrDevicePreferences()
         case (OTR_ERROR, _)                             => browserController.openUrl(Uri parse getString(R.string.url_otr_decryption_error_1))
         case (OTR_IDENTITY_CHANGED, _)                  => browserController.openUrl(Uri parse getString(R.string.url_otr_decryption_error_2))
