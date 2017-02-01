@@ -45,6 +45,12 @@ class UsersController(implicit injector: Injector, context: Context) extends Inj
     user <- zms.users.userSignal(UserId(conv.id.str))
   } yield if (ConversationType.isOneToOne(conv.convType)) Some(user) else None
 
+  def displayNameStringIncludingSelf(id: UserId): Signal[String] =
+    for {
+      zms <- zMessaging
+      user <- zms.users.userSignal(id)
+    } yield user.getDisplayName
+
   def displayNameString(id: UserId): Signal[String] =
     displayName(id) map {
       case Me => getString(R.string.content__system__you)
