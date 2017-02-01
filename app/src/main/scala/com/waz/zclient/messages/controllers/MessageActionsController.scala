@@ -17,6 +17,8 @@
  */
 package com.waz.zclient.messages.controllers
 
+import java.util
+
 import android.app.{Activity, ProgressDialog}
 import android.content.DialogInterface.OnDismissListener
 import android.content._
@@ -63,6 +65,8 @@ class MessageActionsController(implicit injector: Injector, ctx: Context, ec: Ev
   val onDeleteConfirmed = EventStream[(Message, Boolean)]() // Boolean == isRecall(true) or localDelete(false)
   val onAssetSaved = EventStream[Asset]()
 
+  val messageToReveal = Signal[Option[MessageData]]()
+
   private var dialog = Option.empty[MessageBottomSheetDialog]
 
   private val callback = new Callback {
@@ -77,6 +81,8 @@ class MessageActionsController(implicit injector: Injector, ctx: Context, ec: Ev
     case (MessageAction.LIKE, message)             => toggleLike(message)
     case (MessageAction.UNLIKE, message)           => toggleLike(message)
     case (MessageAction.SAVE, message)             => saveMessage(message)
+    case (MessageAction.REVEAL, message)           => revealMessageInConversation(message)
+    case (MessageAction.DELETE, message)           => promptDeleteMessage(message)
     case _ => // should be handled somewhere else
   }
 
@@ -88,7 +94,7 @@ class MessageActionsController(implicit injector: Injector, ctx: Context, ec: Ev
     zs.membersStorage.isActiveMember(conv, zs.selfUserId)
   }
 
-  def showDialog(data: MessageAndLikes): Boolean = {
+  def showDialog(data: MessageAndLikes, fromCollection: Boolean = false): Boolean = {
     val msg = data.message
     if (msg.isEphemeral) return false
     (for {
@@ -98,13 +104,21 @@ class MessageActionsController(implicit injector: Injector, ctx: Context, ec: Ev
     } yield {
       dialog.foreach(_.dismiss())
       dialog = Some(
-        returning(new MessageBottomSheetDialog(context, R.style.message__bottom_sheet__base, message, isMember, callback)) { d =>
+        returning(new MessageBottomSheetDialog(context, R.style.message__bottom_sheet__base, message, isMember, fromCollection, callback)) { d =>
           d.setOnDismissListener(onDismissed)
           d.show()
         }
       )
     }).recoverWithLog()
     true
+  }
+
+  def showDeleteDialog(message: Message): Unit = {
+    val options = new util.HashSet[MessageAction]()
+    options.add(MessageAction.DELETE_LOCAL)
+    options.add(MessageAction.DELETE_GLOBAL)
+    val dialog = new MessageBottomSheetDialog(context, R.style.message__bottom_sheet__base, message, true, true, callback, options)
+    dialog.show()
   }
 
   private def toggleLike(message: Message) = {
@@ -133,6 +147,10 @@ class MessageActionsController(implicit injector: Injector, ctx: Context, ec: Ev
       message.recall()
       onDeleteConfirmed ! (message, true)
     }
+
+  private def promptDeleteMessage(message: Message) = {
+    showDeleteDialog(message);
+  }
 
   private def showDeleteDialog(title: Int)(onSuccess: => Unit) =
     new AlertDialog.Builder(context)
@@ -207,6 +225,10 @@ class MessageActionsController(implicit injector: Injector, ctx: Context, ec: Ev
         })
       }
     }
+
+  private def revealMessageInConversation(message: Message) = {
+    zms.flatMap(z => Signal.future(z.messagesStorage.get(MessageId(message.getId)))){ messageToReveal ! _ }
+  }
 }
 
 /**

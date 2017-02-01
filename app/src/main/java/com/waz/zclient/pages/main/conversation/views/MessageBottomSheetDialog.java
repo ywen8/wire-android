@@ -44,12 +44,14 @@ public class MessageBottomSheetDialog extends BottomSheetDialog {
     public enum MessageAction {
         FORWARD(R.id.message_bottom_menu_item_forward, R.string.glyph__share, R.string.message_bottom_menu_action_forward),
         COPY(R.id.message_bottom_menu_item_copy, R.string.glyph__copy, R.string.message_bottom_menu_action_copy),
+        DELETE(R.id.message_bottom_menu_item_delete, R.string.glyph__trash, R.string.message_bottom_menu_action_delete),
         DELETE_LOCAL(R.id.message_bottom_menu_item_delete_local, R.string.glyph__delete_me, R.string.message_bottom_menu_action_delete_local),
         DELETE_GLOBAL(R.id.message_bottom_menu_item_delete_global, R.string.glyph__delete_everywhere, R.string.message_bottom_menu_action_delete_global),
         LIKE(R.id.message_bottom_menu_item_like, R.string.glyph__like, R.string.message_bottom_menu_action_like),
         UNLIKE(R.id.message_bottom_menu_item_unlike, R.string.glyph__liked, R.string.message_bottom_menu_action_unlike),
         SAVE(R.id.message_bottom_menu_item_save, R.string.glyph__download, R.string.message_bottom_menu_action_save),
         OPEN_FILE(R.id.message_bottom_menu_item_open_file, R.string.glyph__file, R.string.message_bottom_menu_action_open),
+        REVEAL(R.id.message_bottom_menu_item_reveal, R.string.glyph__view, R.string.message_bottom_menu_action_reveal),
         EDIT(R.id.message_bottom_menu_item_edit, R.string.glyph__edit, R.string.message_bottom_menu_action_edit);
 
         public int resId;
@@ -63,22 +65,22 @@ public class MessageBottomSheetDialog extends BottomSheetDialog {
         }
     }
 
-    public MessageBottomSheetDialog(@NonNull Context context, int theme, @NonNull Message message, boolean isMemberOfConversation, Callback callback) {
+    public MessageBottomSheetDialog(@NonNull Context context, int theme, @NonNull Message message, boolean isMemberOfConversation, boolean isCollection, Callback callback) {
         super(context, theme);
         this.message = message;
         this.callback = callback;
-        init(isMemberOfConversation);
+        init(isMemberOfConversation, isCollection, true);
     }
 
-    public MessageBottomSheetDialog(@NonNull Context context, int theme, @NonNull Message message, boolean isMemberOfConversation, Callback callback, Set<MessageAction> operations) {
+    public MessageBottomSheetDialog(@NonNull Context context, int theme, @NonNull Message message, boolean isMemberOfConversation, boolean isCollection, Callback callback, Set<MessageAction> operations) {
         super(context, theme);
         this.message = message;
         this.callback = callback;
         chosenOperations = operations;
-        init(isMemberOfConversation);
+        init(isMemberOfConversation, isCollection, false);
     }
 
-    private void updateOptions(LinearLayout view, boolean isMemberOfConversation) {
+    private void updateOptions(LinearLayout view, boolean isMemberOfConversation, boolean isCollection, boolean deleteCollapsed) {
         view.removeAllViews();
         if (isMemberOfConversation && isLikeAllowed()) {
             if (message.isLikedByThisUser()) {
@@ -90,41 +92,49 @@ public class MessageBottomSheetDialog extends BottomSheetDialog {
         if (isCopyAllowed()) {
             addAction(view, MessageAction.COPY);
         }
-        if (isEditAllowed(isMemberOfConversation)) {
+        if (isEditAllowed(isMemberOfConversation, isCollection)) {
             addAction(view, MessageAction.EDIT);
         }
         if (isSaveAllowed()) {
             addAction(view, MessageAction.SAVE);
         }
-        if (isOpenFileAllowed()) {
+        if (isOpenFileAllowed(isCollection)) {
             addAction(view, MessageAction.OPEN_FILE);
         }
         if (isForwardAllowed()) {
             addAction(view, MessageAction.FORWARD);
         }
-        if (isDeleteLocalAllowed()) {
-            addAction(view, MessageAction.DELETE_LOCAL);
+        if (deleteCollapsed && isDeleteLocalAllowed() && isDeleteForEveryoneAllowed(isMemberOfConversation)) {
+            addAction(view, MessageAction.DELETE);
+        } else {
+            if (isDeleteLocalAllowed()) {
+                addAction(view, MessageAction.DELETE_LOCAL);
+            }
+            if (isDeleteForEveryoneAllowed(isMemberOfConversation)) {
+                addAction(view, MessageAction.DELETE_GLOBAL);
+            }
         }
-        if (isDeleteForEveryoneAllowed(isMemberOfConversation)) {
-            addAction(view, MessageAction.DELETE_GLOBAL);
+
+        if (isRevealAllowed(isCollection)) {
+            addAction(view, MessageAction.REVEAL);
         }
     }
 
     @SuppressLint("InflateParams")
-    private void init(final boolean isMemberOfConversation) {
+    private void init(final boolean isMemberOfConversation, final boolean isCollection, final boolean deleteCollapsed) {
         final LinearLayout view = (LinearLayout) getLayoutInflater().inflate(R.layout.message__bottom__menu, null);
 
         ModelObserver<Asset> assetModelObserver = new ModelObserver<Asset>() {
             @Override
             public void updated(Asset model) {
                 if (!model.isEmpty()) {
-                    updateOptions(view, isMemberOfConversation);
+                    updateOptions(view, isMemberOfConversation, isCollection, deleteCollapsed);
                 }
             }
         };
 
         assetModelObserver.setAndUpdate(message.getAsset());
-        updateOptions(view, isMemberOfConversation);
+        updateOptions(view, isMemberOfConversation, isCollection, deleteCollapsed);
         setContentView(view);
     }
 
@@ -194,11 +204,14 @@ public class MessageBottomSheetDialog extends BottomSheetDialog {
         }
     }
 
-    private boolean isOpenFileAllowed() {
+    private boolean isOpenFileAllowed(boolean isCollection) {
         if (chosenOperations != null && !chosenOperations.contains(MessageAction.OPEN_FILE)) {
             return false;
         }
         if (message.isEphemeral()) {
+            return false;
+        }
+        if (isCollection) {
             return false;
         }
         switch (message.getMessageType()) {
@@ -258,13 +271,14 @@ public class MessageBottomSheetDialog extends BottomSheetDialog {
         }
     }
 
-    private boolean isEditAllowed(boolean isMemberOfConversation) {
+    private boolean isEditAllowed(boolean isMemberOfConversation, boolean isCollection) {
         if (chosenOperations != null && !chosenOperations.contains(MessageAction.EDIT)) {
             return false;
         }
         if (!isMemberOfConversation ||
             message.isEphemeral() ||
-            !message.getUser().isMe()) {
+            !message.getUser().isMe() ||
+            isCollection) {
             return false;
         }
         switch (message.getMessageType()) {
@@ -303,6 +317,13 @@ public class MessageBottomSheetDialog extends BottomSheetDialog {
 
     private boolean isDeleteLocalAllowed() {
         if (chosenOperations != null && !chosenOperations.contains(MessageAction.DELETE_LOCAL)) {
+            return false;
+        }
+        return true;
+    }
+
+    private boolean isRevealAllowed(Boolean isCollection) {
+        if (!isCollection || (chosenOperations != null && !chosenOperations.contains(MessageAction.REVEAL))) {
             return false;
         }
         return true;

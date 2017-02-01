@@ -24,11 +24,13 @@ import android.os.Bundle
 import android.support.v4.view.ViewPager.OnPageChangeListener
 import android.support.v4.view.{PagerAdapter, ViewPager}
 import android.util.AttributeSet
+import android.view.View.OnLongClickListener
 import android.view.ViewGroup.LayoutParams
 import android.view._
 import com.waz.api.MessageFilter
 import com.waz.model.{AssetId, MessageData}
 import com.waz.service.ZMessaging
+import com.waz.service.messages.MessageAndLikes
 import com.waz.threading.Threading
 import com.waz.utils.events._
 import com.waz.zclient._
@@ -174,12 +176,20 @@ object SingleImageCollectionFragment {
     override def getCount: Int = recyclerCursor.fold(0)(_.count)
   }
 
-  class SwipeImageView(context: Context, attrs: AttributeSet, style: Int)(implicit injector: Injector, ev: EventContext) extends TouchImageView(context, attrs, style){
+  class SwipeImageView(context: Context, attrs: AttributeSet, style: Int)(implicit injector: Injector, ev: EventContext) extends TouchImageView(context, attrs, style) with Injectable{
     def this(context: Context, attrs: AttributeSet)(implicit injector: Injector, ev: EventContext) = this(context, attrs, 0)
     def this(context: Context)(implicit injector: Injector, ev: EventContext) = this(context, null, 0)
 
+    lazy val zms = inject[Signal[ZMessaging]]
+    lazy val messageActions = inject[MessageActionsController]
+
     private val messageData: SourceSignal[MessageData] = Signal[MessageData]()
     private val onLayoutChanged = EventStream[Unit]()
+    private val messageAndLikes = zms.zip(messageData).flatMap{
+      case (z, md) => Signal.future(z.msgAndLikes.combineWithLikes(md))
+      case _ => Signal[MessageAndLikes]()
+    }
+    messageAndLikes.disableAutowiring()
 
     messageData.on(Threading.Ui){
       md => setAsset(md.assetId)
@@ -187,6 +197,13 @@ object SingleImageCollectionFragment {
     onLayoutChanged.on(Threading.Ui){
       _ => messageData.currentValue.foreach(md => setAsset(md.assetId))
     }
+
+    setOnLongClickListener(new OnLongClickListener {
+      override def onLongClick(v: View): Boolean = {
+        messageAndLikes.currentValue.foreach(messageActions.showDialog(_, fromCollection = true))
+        true
+      }
+    })
 
     private def setAsset(assetId: AssetId): Unit =
       setImageDrawable(new ImageAssetDrawable(Signal(WireImage(assetId)), scaleType = ImageAssetDrawable.ScaleType.CenterInside))

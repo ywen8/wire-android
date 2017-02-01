@@ -35,6 +35,7 @@ import com.waz.zclient.controllers.global.SelectionController
 import com.waz.zclient.conversation.CollectionController
 import com.waz.zclient.messages.MessageView.MsgBindOptions
 import com.waz.zclient.messages.ScrollController.Scroll
+import com.waz.zclient.messages.controllers.MessageActionsController
 import com.waz.zclient.ui.utils.KeyboardUtils
 import com.waz.zclient.{Injectable, Injector, ViewHelper}
 
@@ -52,15 +53,15 @@ class MessagesListView(context: Context, attrs: AttributeSet, style: Int) extend
   val adapter = new MessagesListAdapter(viewDim)
   val scrollController = new ScrollController(adapter, viewDim.map(_.height))
 
-  val collectionController = inject[CollectionController]
+  val messageActionsController = inject[MessageActionsController]
 
-  collectionController.targetItem.flatMap{
+  messageActionsController.messageToReveal.flatMap{
     case Some(messageData) => adapter.positionForMessage(messageData)
     case _ => Signal.empty[Option[Int]]
   }.on(Threading.Background){ pos =>
     pos.foreach{ p =>
       scrollController.scrollToPositionRequested ! p
-      collectionController.targetItem ! None
+      messageActionsController.messageToReveal ! None
     }
   }
 

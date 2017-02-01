@@ -39,6 +39,7 @@
 
     <item name="message_bottom_menu_item_forward" type="id" />
     <item name="message_bottom_menu_item_copy" type="id" />
+    <item name="message_bottom_menu_item_delete" type="id" />
     <item name="message_bottom_menu_item_delete_local" type="id" />
     <item name="message_bottom_menu_item_delete_global" type="id" />
     <item name="message_bottom_menu_item_edit" type="id" />
@@ -47,6 +48,7 @@
     <item name="message_bottom_menu_item_save" type="id" />
     <item name="message_bottom_menu_item_open_file" type="id" />
     <item name="message_bottom_menu_item_forward_multiple" type="id" />
+    <item name="message_bottom_menu_item_reveal" type="id" />
 
     <item name="video_calling_view" type="id" />
 
