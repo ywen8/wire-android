@@ -17,13 +17,14 @@
  */
 package com.waz.zclient.tracking
 
-import com.waz.api.Message
+import com.waz.api._
 import com.waz.model.ConversationData._
 import com.waz.zclient.core.controllers.tracking.attributes.Attribute._
 import com.waz.zclient.core.controllers.tracking.attributes.RangedAttribute._
 import com.waz.zclient.core.controllers.tracking.attributes.{Attribute, RangedAttribute}
 import com.waz.zclient.pages.main.conversation.views.MessageBottomSheetDialog.MessageAction
 import com.waz.zclient.utils.AssetUtils
+import org.threeten.bp.Duration
 
 sealed abstract class Event(val name: String) {
   val attributes       = Map.empty[Attribute, String]
@@ -86,11 +87,12 @@ case class OpenedFileEvent(fileMimeType: String, fileSizeInBytes: Int) extends F
 
 
 abstract class MessageEvent(name: String, playedByReceiver: Boolean, withOtto: Boolean, convType: ConversationType) extends Event(name) {
-  override val attributes = Map(
+  protected val baseAttributes = Map(
     Attribute.USER              -> (if (playedByReceiver) "receiver" else "sender"),
     Attribute.WITH_BOT          -> String.valueOf(withOtto),
     Attribute.CONVERSATION_TYPE -> convType.name
   )
+  override val attributes = baseAttributes
 }
 
 abstract class DurationMessageEvent(name: String, durationSec: Int, playedByReceiver: Boolean, withOtto: Boolean, convType: ConversationType)
@@ -101,13 +103,9 @@ abstract class DurationMessageEvent(name: String, durationSec: Int, playedByRece
 case class PlayedVideoMessageEvent(duration: Int, playedByReceiver: Boolean, isOtto: Boolean, convType: ConversationType)
   extends DurationMessageEvent("media.played_video_message", duration, playedByReceiver, isOtto, convType)
 
-case class PlayedAudioMessageEvent(fileMimeType: String, durationSec: Int, playedByReceiver: Boolean, isOtto: Boolean, convType: ConversationType) extends Event("media.played_audio_message") {
-  override val attributes = Map(
-    TYPE              -> AssetUtils.assetMimeTypeToExtension(fileMimeType),
-    USER              -> (if (playedByReceiver) "receiver" else "sender"),
-    WITH_BOT          -> String.valueOf(isOtto),
-    CONVERSATION_TYPE -> convType.name
-  )
+case class PlayedAudioMessageEvent(fileMimeType: String, durationSec: Int, playedByReceiver: Boolean, isOtto: Boolean, convType: ConversationType)
+  extends DurationMessageEvent("media.played_audio_message", durationSec, playedByReceiver, isOtto, convType) {
+  override val attributes = baseAttributes + (TYPE -> AssetUtils.assetMimeTypeToExtension(fileMimeType))
 }
 
 case class PlayedYouTubeMessageEvent(playedByReceiver: Boolean, isOtto: Boolean, convType: ConversationType)
@@ -129,19 +127,13 @@ abstract class CollectionsEvent(name: String, conversationType: ConversationType
   }
 }
 case class OpenedCollectionsEvent(isEmpty: Boolean, conversationType: ConversationType, withBot: Boolean) extends CollectionsEvent("collections.opened_collections", conversationType, withBot){
-  override val attributes = baseAttributes ++ Map(
-    IS_EMPTY -> String.valueOf(isEmpty)
-  )
+  override val attributes = baseAttributes + (IS_EMPTY -> String.valueOf(isEmpty))
 }
 case class OpenedItemCollectionsEvent(messageType: Message.Type, conversationType: ConversationType, withBot: Boolean) extends CollectionsEvent("collections.opened_item", conversationType, withBot){
-  override val attributes = baseAttributes ++ Map(
-    TYPE -> trackingType(messageType)
-  )
+  override val attributes = baseAttributes + (TYPE -> trackingType(messageType))
 }
 case class OpenedItemMenuCollectionsEvent(messageType: Message.Type, conversationType: ConversationType, withBot: Boolean) extends CollectionsEvent("collections.opened_item_menu", conversationType, withBot){
-  override val attributes = baseAttributes ++ Map(
-    TYPE -> trackingType(messageType)
-  )
+  override val attributes = baseAttributes + (TYPE -> trackingType(messageType))
 }
 case class DidItemActionCollectionsEvent(messageAction: MessageAction, messageType: Message.Type, conversationType: ConversationType, withBot: Boolean) extends CollectionsEvent("collections.did_item_action", conversationType, withBot){
   import MessageAction._
@@ -157,3 +149,63 @@ case class DidItemActionCollectionsEvent(messageAction: MessageAction, messageTy
     })
   )
 }
+
+class CallEvent(name: String, isV3: Boolean, isGroupCall: Boolean, withOtto: Boolean) extends Event(name) {
+  val baseAttributes = Map(
+    CALLING_VERSION   -> (if (isV3) "C3" else "C2"),
+    CONVERSATION_TYPE -> (if (isGroupCall) "GROUP" else "ONE_TO_ONE"),
+    WITH_OTTO         -> String.valueOf(withOtto)
+  )
+  override val attributes = baseAttributes
+}
+
+object ReceivedCallEvent {
+  def apply(isV3: Boolean, isVideo: Boolean, isGroupCall: Boolean, wasUiActiveOnCallStart: Boolean, withOtto: Boolean) =
+    new CallEvent(if (isVideo) "calling.received_video_call" else "calling.received_call", isV3, isGroupCall, withOtto) {
+      override val attributes = baseAttributes + (CALLING_APP_IS_ACTIVE -> String.valueOf(wasUiActiveOnCallStart))
+  }
+}
+
+object StartedCallEvent {
+  def apply(isV3: Boolean, isVideo: Boolean, isGroupCall: Boolean, withOtto: Boolean) =
+    new CallEvent(if (isVideo) "calling.initiated_video_call" else "calling.initiated_call", isV3, isGroupCall, withOtto)
+}
+
+class JoinedCallEvent(name: String, isV3: Boolean, isGroupCall: Boolean, convParticipants: Int, incoming: Boolean, wasUiActiveOnCallStart: Boolean, withOtto: Boolean) extends Event(name) {
+  val baseAttributes = Map(
+    CALLING_VERSION                   -> (if (isV3) "C3" else "C2"),
+    CONVERSATION_TYPE                 -> (if (isGroupCall) "GROUP" else "ONE_TO_ONE"),
+    WITH_OTTO                         -> String.valueOf(withOtto),
+    CALLING_CONVERSATION_PARTICIPANTS -> String.valueOf(convParticipants),
+    CALLING_DIRECTION                 -> (if (incoming) "INCOMING" else "OUTGOING")
+  ) ++ (if (incoming) Map(CALLING_APP_IS_ACTIVE -> String.valueOf(wasUiActiveOnCallStart)) else Map.empty)
+
+  override val attributes = baseAttributes
+}
+
+object JoinedCallEvent {
+
+  def apply(isV3: Boolean, isVideo: Boolean, isGroupCall: Boolean, convParticipants: Int, incoming: Boolean, wasUiActiveOnCallStart: Boolean, withOtto: Boolean) =
+    new JoinedCallEvent(if (isVideo) "calling.joined_video_call" else "calling.joined_call", isV3, isGroupCall, convParticipants, incoming, wasUiActiveOnCallStart, withOtto)
+}
+
+object EstablishedCallEvent {
+
+  def apply(isV3: Boolean, isVideo: Boolean, isGroupCall: Boolean, convParticipants: Int, incoming: Boolean, wasUiActiveOnCallStart: Boolean, withOtto: Boolean, setupDuration: Duration) =
+    new JoinedCallEvent(if (isVideo) "calling.established_video_call" else "calling.established_call", isV3, isGroupCall, convParticipants, incoming, wasUiActiveOnCallStart, withOtto) {
+      override val rangedAttributes = Map (CALLING_SETUP_TIME -> setupDuration.getSeconds.toInt)
+    }
+}
+
+object EndedCallEvent {
+
+  def apply(isV3: Boolean, isVideo: Boolean, cause: String, isGroupCall: Boolean, convParticipants: Int, maxCallParticipants: Int, incoming: Boolean, wasUiActiveOnCallStart: Boolean, withOtto: Boolean, callDuration: Duration) =
+    new JoinedCallEvent(if (isVideo) "calling.ended_video_call" else "calling.ended_call", isV3, isGroupCall, convParticipants, incoming, wasUiActiveOnCallStart, withOtto) {
+      override val attributes = baseAttributes ++ Map(
+        CALLING_END_REASON            -> cause,
+        CALLING_MAX_CALL_PARTICIPANTS -> String.valueOf(maxCallParticipants)
+      )
+      override val rangedAttributes = Map (VOICE_CALL_DURATION -> callDuration.getSeconds.toInt)
+    }
+}
+

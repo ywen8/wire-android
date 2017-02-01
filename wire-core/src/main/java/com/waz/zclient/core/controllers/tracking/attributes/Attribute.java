@@ -50,6 +50,7 @@ public enum Attribute {
     TOS_SOURCE("source"),
     RESET_PASSWORD_LOCATION("resetLocation"),
 
+    CALLING_VERSION("version"),
     CALLING_DIRECTION("direction"),
     CONVERSATION_TYPE("conversation_type"),
     CALLING_CONVERSATION_PARTICIPANTS("conversation_participants"),

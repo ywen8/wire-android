@@ -24,7 +24,7 @@ import android.widget.LinearLayout
 import com.waz.threading.Threading
 import com.waz.zclient.common.views.ChatheadView
 import com.waz.zclient.messages.UsersController.DisplayName.{Me, Other}
-import com.waz.zclient.messages.{ClickableViewPart, MessageViewPart, MsgPart, UsersController}
+import com.waz.zclient.messages.{ClickableViewPart, MsgPart, UsersController}
 import com.waz.zclient.ui.text.{GlyphTextView, TypefaceTextView}
 import com.waz.zclient.ui.utils.TextViewUtils
 import com.waz.zclient.utils.ContextUtils._

@@ -25,7 +25,7 @@ import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.view.{ViewGroup, WindowManager}
 import com.waz.threading.Threading
 import com.waz.zclient._
-import com.waz.zclient.calling.controllers.{GlobalCallingController, CurrentCallController}
+import com.waz.zclient.calling.controllers.{CurrentCallController, GlobalCallingController}
 import com.waz.zclient.calling.views.VideoCallingView
 import com.waz.zclient.common.controllers.PermissionActivity
 import timber.log.Timber

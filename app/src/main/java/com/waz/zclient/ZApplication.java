@@ -23,14 +23,12 @@ import android.support.annotation.Nullable;
 import com.jakewharton.threetenabp.AndroidThreeTen;
 import com.localytics.android.Localytics;
 import com.localytics.android.LocalyticsActivityLifecycleCallbacks;
-import com.waz.api.CallingEventsHandler;
 import com.waz.api.LogLevel;
 import com.waz.api.NotificationsHandler;
 import com.waz.api.TrackingEventsHandler;
 import com.waz.api.impl.AccentColors;
 import com.waz.zclient.controllers.IControllerFactory;
 import com.waz.zclient.controllers.notifications.AppTrackingEventsHandler;
-import com.waz.zclient.controllers.notifications.CallingTrackingEventsHandler;
 import com.waz.zclient.core.stores.IStoreFactory;
 import com.waz.zclient.ui.text.TypefaceFactory;
 import com.waz.zclient.ui.text.TypefaceLoader;
@@ -44,13 +42,9 @@ import java.util.Map;
 
 public class ZApplication extends WireApplication implements NotificationsHandler.NotificationsHandlerFactory,
                                                              ServiceContainer {
-    // Tags
-    public static final String TAG = ZApplication.class.getName();
 
     private static final String FONT_FOLDER = "fonts";
 
-    // Plays calling sounds/vibrations
-    private CallingEventsHandler callingEventsHandler;
     private TrackingEventsHandler trackingEventsHandler;
 
     private TypefaceLoader typefaceloader = new TypefaceLoader() {
@@ -129,17 +123,6 @@ public class ZApplication extends WireApplication implements NotificationsHandle
         // Register LocalyticsActivityLifecycleCallbacks
         registerActivityLifecycleCallbacks(new LocalyticsActivityLifecycleCallbacks(this));
         Localytics.setPushDisabled(false);
-    }
-
-    @Override
-    public CallingEventsHandler getCallingEventsHandler() {
-        if (callingEventsHandler == null) {
-            callingEventsHandler = new CallingTrackingEventsHandler(getStoreFactory().getZMessagingApiStore().getApi(),
-                                                                    getStoreFactory(),
-                                                                    getControllerFactory().getVibratorController(),
-                                                                    getControllerFactory().getTrackingController());
-        }
-        return callingEventsHandler;
     }
 
     @Override

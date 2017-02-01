@@ -19,7 +19,6 @@ package com.waz.zclient.views
 
 import android.animation.ValueAnimator
 import android.animation.ValueAnimator.AnimatorUpdateListener
-import android.graphics.PorterDuff.Mode
 import android.graphics._
 import android.graphics.drawable.Drawable
 import android.net.Uri

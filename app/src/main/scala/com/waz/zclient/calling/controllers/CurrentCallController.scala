@@ -106,17 +106,17 @@ class CurrentCallController(implicit inj: Injector, cxt: WireContext) extends In
         case ch if ch.deviceState == ConnectionState.Connected => timeSince(ch.tracking.established)
         case _ => Signal.const(ZERO)
       }
-    } map { duration =>
-      val seconds = ((duration.toMillis / 1000) % 60).toInt
-      val minutes = ((duration.toMillis / 1000) / 60).toInt
-      f"$minutes%02d:$seconds%02d"
     }
   }
 
   val subtitleText = (for {
     video <- videoCall
     state <- callState
-    dur <- duration
+    dur <- duration map { duration =>
+      val seconds = ((duration.toMillis / 1000) % 60).toInt
+      val minutes = ((duration.toMillis / 1000) / 60).toInt
+      f"$minutes%02d:$seconds%02d"
+    }
   } yield (video, state, dur)) map {
     case (true,  SELF_CALLING,                     _)        => cxt.getString(R.string.calling__header__outgoing_video_subtitle)
     case (false, SELF_CALLING,                     _)        => cxt.getString(R.string.calling__header__outgoing_subtitle)
