@@ -146,13 +146,7 @@ class FooterPartView(context: Context, attrs: AttributeSet, style: Int) extends 
     lastMsgId = msgId
   }
 
-  controller.expiring.on(Threading.Ui) { expirig =>
-    if (expirig) {
-      likeButton.setVisibility(View.INVISIBLE)
-    } else {
-      likeButton.setVisibility(View.VISIBLE)
-    }
-  }
+  controller.expiring.on(Threading.Ui)(likeButton.setGone)
 
   override def onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int): Unit = {
     super.onLayout(changed, left, top, right, bottom)

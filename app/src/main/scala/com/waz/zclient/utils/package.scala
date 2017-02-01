@@ -39,6 +39,8 @@ package object utils {
 
     def setVisible(isVisible: Boolean): Unit = view.setVisibility(if (isVisible) VISIBLE else GONE)
 
+    def setGone(isGone: Boolean): Unit = view.setVisibility(if (isGone) GONE else VISIBLE)
+
     def isVisible = view.getVisibility == VISIBLE
 
     def setMarginTop(m: Int) = {

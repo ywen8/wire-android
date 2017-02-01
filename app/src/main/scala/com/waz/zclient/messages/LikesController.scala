@@ -35,12 +35,12 @@ class LikesController(implicit ec: EventContext, injector: Injector) extends Inj
   onViewDoubleClicked(toggleLike)
 
   private def toggleLike(msgAndLikes: MessageAndLikes): Unit = {
-    reactions.head.map { reacts =>
-      val msg = msgAndLikes.message
-      if (!msg.isEphemeral) {
+    if (!msgAndLikes.message.isEphemeral) {
+      reactions.head.map { reacts =>
+        val msg = msgAndLikes.message
         if (msgAndLikes.likedBySelf) reacts.unlike(msg.convId, msg.id)
         else reacts.like(msg.convId, msg.id)
-      }
-    }(Threading.Background)
+      }(Threading.Background)
+    }
   }
 }
