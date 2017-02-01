@@ -37,8 +37,10 @@ class LikesController(implicit ec: EventContext, injector: Injector) extends Inj
   private def toggleLike(msgAndLikes: MessageAndLikes): Unit = {
     reactions.head.map { reacts =>
       val msg = msgAndLikes.message
-      if (msgAndLikes.likedBySelf) reacts.unlike(msg.convId, msg.id)
-      else reacts.like(msg.convId, msg.id)
+      if (!msg.isEphemeral) {
+        if (msgAndLikes.likedBySelf) reacts.unlike(msg.convId, msg.id)
+        else reacts.like(msg.convId, msg.id)
+      }
     }(Threading.Background)
   }
 }
