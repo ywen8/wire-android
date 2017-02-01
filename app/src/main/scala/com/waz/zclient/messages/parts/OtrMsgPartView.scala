@@ -79,9 +79,8 @@ class OtrMsgPartView(context: Context, attrs: AttributeSet, style: Int) extends 
     case Some(icon) => setIcon(icon)
   }
 
-  Signal(message, msgString, accentColor.accentColor, users.selfUserId).on(Threading.Ui) {
-    case (msg, text, color, selfUserId) => setTextWithLink(text, color.getColor()) {
-      def isMe = msg.members.size == 1 && msg.members.contains(selfUserId)
+  Signal(message, msgString, accentColor.accentColor, memberIsJustSelf).on(Threading.Ui) {
+    case (msg, text, color, isMe) => setTextWithLink(text, color.getColor()) {
       (msg.msgType, isMe) match {
         case (OTR_UNVERIFIED | OTR_DEVICE_ADDED, true)  => screenController.openOtrDevicePreferences()
         case (OTR_UNVERIFIED | OTR_DEVICE_ADDED, false) => screenController.showParticipants(this, showDeviceTabIfSingle = true)
