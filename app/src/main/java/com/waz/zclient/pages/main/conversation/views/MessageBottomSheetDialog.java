@@ -82,6 +82,15 @@ public class MessageBottomSheetDialog extends BottomSheetDialog {
 
     private void updateOptions(LinearLayout view, boolean isMemberOfConversation, boolean isCollection, boolean deleteCollapsed) {
         view.removeAllViews();
+        if (isCopyAllowed()) {
+            addAction(view, MessageAction.COPY);
+        }
+        if (isOpenFileAllowed(isCollection)) {
+            addAction(view, MessageAction.OPEN_FILE);
+        }
+        if (isEditAllowed(isMemberOfConversation, isCollection)) {
+            addAction(view, MessageAction.EDIT);
+        }
         if (isMemberOfConversation && isLikeAllowed()) {
             if (message.isLikedByThisUser()) {
                 addAction(view, MessageAction.UNLIKE);
@@ -89,22 +98,13 @@ public class MessageBottomSheetDialog extends BottomSheetDialog {
                 addAction(view, MessageAction.LIKE);
             }
         }
-        if (isCopyAllowed()) {
-            addAction(view, MessageAction.COPY);
-        }
-        if (isEditAllowed(isMemberOfConversation, isCollection)) {
-            addAction(view, MessageAction.EDIT);
-        }
         if (isSaveAllowed()) {
             addAction(view, MessageAction.SAVE);
-        }
-        if (isOpenFileAllowed(isCollection)) {
-            addAction(view, MessageAction.OPEN_FILE);
         }
         if (isForwardAllowed()) {
             addAction(view, MessageAction.FORWARD);
         }
-        if (deleteCollapsed && isDeleteLocalAllowed() && isDeleteForEveryoneAllowed(isMemberOfConversation)) {
+        if (deleteCollapsed && (isDeleteLocalAllowed() || isDeleteForEveryoneAllowed(isMemberOfConversation))) {
             addAction(view, MessageAction.DELETE);
         } else {
             if (isDeleteLocalAllowed()) {
