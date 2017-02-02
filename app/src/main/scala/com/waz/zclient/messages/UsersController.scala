@@ -82,7 +82,7 @@ class UsersController(implicit injector: Injector, context: Context) extends Inj
         case Seq(name) => name
         case _ =>
           val n = names.length
-          s"${names.take(n - 1).mkString(itemSeparator + " ")} $lastSeparator  ${names.last}"
+          s"${names.take(n - 1).mkString(itemSeparator + " ")} $lastSeparator ${names.last}"
       }
 
   def userHandle(id: UserId): Signal[Option[Handle]] = user(id).map(_.handle)
