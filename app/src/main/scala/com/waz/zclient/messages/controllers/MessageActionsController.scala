@@ -149,7 +149,10 @@ class MessageActionsController(implicit injector: Injector, ctx: Context, ec: Ev
     }
 
   private def promptDeleteMessage(message: Message) = {
-    showDeleteDialog(message);
+    if (message.getUser.isMe)
+      showDeleteDialog(message)
+    else
+      deleteMessage(message)
   }
 
   private def showDeleteDialog(title: Int)(onSuccess: => Unit) =
