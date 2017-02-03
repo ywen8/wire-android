@@ -698,7 +698,7 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
             conversationModelObserver.setAndUpdate(toConversation);
         }
 
-        if (isPreviewShown) {
+        if (isPreviewShown && fromConversation != null && !toConversation.getId().equals(fromConversation.getId())) {
             onCancelPreview();
         }
 
