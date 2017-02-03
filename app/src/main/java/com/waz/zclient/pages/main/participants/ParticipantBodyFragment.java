@@ -182,7 +182,10 @@ public class ParticipantBodyFragment extends BaseFragment<ParticipantBodyFragmen
     @Override
     public void onDestroyView() {
         imageAssetImageView = null;
-        participantsGridView = null;
+        if (participantsGridView != null) {
+            participantsGridView.setOnScrollListener(null);
+            participantsGridView = null;
+        }
         participantsAdapter = null;
         footerMenu = null;
         topBorder = null;
@@ -463,7 +466,9 @@ public class ParticipantBodyFragment extends BaseFragment<ParticipantBodyFragmen
 
         @Override
         public void onScroll(AbsListView absListView, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
-
+            if (participantsGridView == null) {
+                return;
+            }
             if (currentScrollState != SCROLL_STATE_IDLE) {
 
                 boolean scrolledToBottom = false;
@@ -472,6 +477,7 @@ public class ParticipantBodyFragment extends BaseFragment<ParticipantBodyFragmen
                     scrolledToBottom = lastParticipantAboveFooter();
                 }
 
+                //NPE
                 getControllerFactory().getConversationScreenController().onScrollParticipantsList(participantsGridView.computeVerticalScrollOffset(),
                                                                                                   scrolledToBottom);
             }
