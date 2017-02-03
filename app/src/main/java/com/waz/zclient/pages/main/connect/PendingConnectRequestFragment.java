@@ -332,6 +332,27 @@ public class PendingConnectRequestFragment extends BaseFragment<PendingConnectRe
         footerMenu.setLeftActionLabelText(getString(R.string.send_connect_request__connect_button__text));
     }
 
+    private void setFooterForIgnoredConnectRequest(final User user) {
+        footerMenu.setVisibility(View.VISIBLE);
+        footerMenu.setRightActionText("");
+        footerMenu.setRightActionLabelText("");
+
+        footerMenu.setCallback(new FooterMenuCallback() {
+            @Override
+            public void onLeftActionClicked() {
+                IConversation conversation = user.acceptConnection();
+                getContainer().onAcceptedConnectRequest(conversation);
+            }
+
+            @Override
+            public void onRightActionClicked() {
+            }
+        });
+
+        footerMenu.setLeftActionText(getString(R.string.glyph__plus));
+        footerMenu.setLeftActionLabelText(getString(R.string.send_connect_request__connect_button__text));
+    }
+
     //////////////////////////////////////////////////////////////////////////////////////////
     //
     //  ConversationStoreObserver
@@ -389,7 +410,7 @@ public class PendingConnectRequestFragment extends BaseFragment<PendingConnectRe
                 setFooterForIncomingConnectRequest(user);
                 break;
             case IGNORED:
-                setFooterForIncomingConnectRequest(user);
+                setFooterForIgnoredConnectRequest(user);
                 break;
             case PENDING_FROM_USER:
                 setFooterForOutgoingConnectRequest(user);
