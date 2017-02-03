@@ -241,7 +241,9 @@ public class AppEntryStore implements IAppEntryStore, ErrorsList.ErrorListener {
         if (ignoreSelfUpdates || appEntryStateCallback == null) {
             return;
         }
-
+        if  (currentState == AppEntryState.PHONE_EMAIL_PASSWORD) {
+            return;
+        }
         if (entryPoint == AppEntryState.PHONE_SIGN_IN && self.accountActivated()) {
             appEntryStateCallback.tagAppEntryEvent(EmailVerification.success(EmailVerification.Context.POST_LOGIN));
             if (self.getPicture().isEmpty()) {
