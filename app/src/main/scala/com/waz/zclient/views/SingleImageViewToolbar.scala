@@ -17,8 +17,6 @@
  */
 package com.waz.zclient.views
 
-import java.util
-
 import android.content.Context
 import android.support.v4.content.ContextCompat
 import android.util.AttributeSet
@@ -30,10 +28,10 @@ import com.waz.threading.Threading
 import com.waz.utils.events.Signal
 import com.waz.zclient.conversation.CollectionController
 import com.waz.zclient.messages.controllers.MessageActionsController
-import com.waz.zclient.pages.main.conversation.views.MessageBottomSheetDialog
 import com.waz.zclient.pages.main.conversation.views.MessageBottomSheetDialog.{Callback, MessageAction}
 import com.waz.zclient.utils.RichView
 import com.waz.zclient.{R, ViewHelper}
+import com.waz.ZLog.ImplicitTag._
 
 class SingleImageViewToolbar(context: Context, attrs: AttributeSet, style: Int) extends LinearLayout(context, attrs, style) with ViewHelper {
   def this(context: Context, attrs: AttributeSet) = this(context, attrs, 0)

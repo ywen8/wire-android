@@ -40,8 +40,9 @@ import com.waz.ui.MemoryImageCache.BitmapRequest.Round
 import com.waz.utils.NameParts
 import com.waz.utils.events.{EventContext, Signal}
 import com.waz.zclient.ui.utils.TypefaceUtils
-import com.waz.zclient.{Injectable, Injector, R, ViewHelper}
 import com.waz.zclient.utils.ContextUtils._
+import com.waz.zclient.{Injectable, Injector, R, ViewHelper}
+import com.waz.ZLog.ImplicitTag._
 
 class ChatheadView(val context: Context, val attrs: AttributeSet, val defStyleAttr: Int) extends View(context, attrs, defStyleAttr) with ViewHelper {
 
