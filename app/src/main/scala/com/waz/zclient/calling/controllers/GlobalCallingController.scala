@@ -29,6 +29,7 @@ import com.waz.threading.Threading
 import com.waz.zclient.calling.CallingActivity
 import com.waz.zclient.media.SoundController
 import com.waz.zclient.{Injectable, Injector, WireContext}
+import com.waz.ZLog.ImplicitTag._
 
 class GlobalCallingController(implicit inj: Injector, cxt: WireContext, eventContext: EventContext) extends Injectable {
 

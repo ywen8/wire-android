@@ -38,7 +38,7 @@ import com.waz.zclient.messages.MessageView.MsgBindOptions
 import com.waz.zclient.messages.controllers.MessageActionsController
 import com.waz.zclient.messages.parts.WebLinkPartView
 import com.waz.zclient.messages.parts.assets.FileAssetPartView
-import com.waz.zclient.messages.{ClickableViewPart, MessageViewPart, MsgPart}
+import com.waz.zclient.messages.{ClickableViewPart, MsgPart}
 import com.waz.zclient.pages.main.conversation.views.AspectRatioImageView
 import com.waz.zclient.utils.ZTimeFormatter._
 import com.waz.zclient.utils.{ViewUtils, _}
@@ -46,6 +46,7 @@ import com.waz.zclient.views.ImageAssetDrawable.RequestBuilder
 import com.waz.zclient.views.ImageController.{ImageSource, WireImage}
 import com.waz.zclient.{R, ViewHelper}
 import org.threeten.bp.{LocalDateTime, ZoneId}
+import com.waz.ZLog.ImplicitTag._
 
 trait CollectionItemView extends ViewHelper {
   protected lazy val civZms = inject[Signal[ZMessaging]]

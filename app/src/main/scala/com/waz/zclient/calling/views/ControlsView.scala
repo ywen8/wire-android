@@ -44,7 +44,7 @@ import com.waz.zclient.ui.calling.CallControlButtonView
 import com.waz.zclient.ui.text.TypefaceFactory
 import com.waz.zclient.ui.utils.{ResourceUtils, TypefaceUtils}
 import com.waz.zclient.{R, ViewHelper}
-
+import com.waz.ZLog.ImplicitTag._
 
 class ControlsView(val context: Context, val attrs: AttributeSet, val defStyleAttr: Int) extends FrameLayout(context, attrs, defStyleAttr) with ViewHelper {
 
