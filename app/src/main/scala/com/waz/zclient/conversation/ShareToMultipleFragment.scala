@@ -204,7 +204,8 @@ class SelectableConversationRow(context: Context, checkBoxListener: CompoundButt
 
   checkBox.setOnCheckedChangeListener(checkBoxListener)
   nameView.setOnClickListener(new OnClickListener() {
-    override def onClick(v: View) : Unit = checkBox.toggle()})
+    override def onClick(v: View): Unit = checkBox.toggle()
+  })
 }
 
 object ShareToMultipleFragment {
