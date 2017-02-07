@@ -223,7 +223,7 @@ public class IntentUtils {
     }
 
     public static Intent getAppLaunchIntent(@NonNull Context context) {
-        return getAppLaunchIntent(context, null);
+        return getAppLaunchIntent(context, new ArrayList<String>(), (String) null);
     }
 
     public static PendingIntent getNotificationAppLaunchIntent(@NonNull Context context) {
