@@ -203,6 +203,8 @@ class SelectableConversationRow(context: Context, checkBoxListener: CompoundButt
   val checkBox = ViewUtils.getView(this, R.id.rb__conversation_selected).asInstanceOf[CheckBox]
 
   checkBox.setOnCheckedChangeListener(checkBoxListener)
+  nameView.setOnClickListener(new OnClickListener() {
+    override def onClick(v: View) : Unit = checkBox.toggle()})
 }
 
 object ShareToMultipleFragment {
