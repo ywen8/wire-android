@@ -26,18 +26,21 @@ import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
+
 import com.waz.zclient.LaunchActivity;
 import com.waz.zclient.MainActivity;
 import com.waz.zclient.PopupActivity;
 import com.waz.zclient.R;
 import com.waz.zclient.controllers.notifications.ShareSavedImageActivity;
-import hugo.weaving.DebugLog;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
+
+import hugo.weaving.DebugLog;
 
 public class IntentUtils {
 
@@ -48,7 +51,6 @@ public class IntentUtils {
     public static final String INVITE_HOST_TOKEN = "connect";
     public static final String APP_PAGE_HOST_TOKEN = "app-page";
     public static final String EXTRA_LAUNCH_FROM_SAVE_IMAGE_NOTIFICATION = "EXTRA_LAUNCH_FROM_SAVE_IMAGE_NOTIFICATION";
-    private static final String EXTRA_LAUNCH_CONVERSATION_ID = "EXTRA_LAUNCH_CONVERSATION_ID";
     private static final String EXTRA_LAUNCH_CONVERSATION_IDS = "EXTRA_LAUNCH_CONVERSATION_IDS";
     private static final String EXTRA_LAUNCH_FROM_NOTIFICATION = "EXTRA_LAUNCH_FROM_NOTIFICATION";
     private static final String EXTRA_LAUNCH_FROM_SHARING = "EXTRA_LAUNCH_FROM_SHARING";
@@ -172,7 +174,6 @@ public class IntentUtils {
         intent.removeExtra(EXTRA_LAUNCH_FROM_SHARING);
         intent.removeExtra(EXTRA_LAUNCH_FROM_NOTIFICATION);
         intent.removeExtra(EXTRA_LAUNCH_START_CALL);
-        intent.removeExtra(EXTRA_LAUNCH_CONVERSATION_ID);
         intent.removeExtra(EXTRA_LAUNCH_CONVERSATION_IDS);
         intent.removeExtra(EXTRA_LAUNCH_CONVERSATION_MESSAGE);
     }
@@ -183,7 +184,7 @@ public class IntentUtils {
         Intent intent = new Intent(context, MainActivity.class);
         intent.putExtra(EXTRA_LAUNCH_FROM_SHARING, true);
         intent.putExtra(EXTRA_LAUNCH_CONVERSATION_MESSAGE, sharedText != null ? sharedText : "");
-        intent.putExtra(EXTRA_LAUNCH_CONVERSATION_ID, conversationId);
+        intent.putStringArrayListExtra(EXTRA_LAUNCH_CONVERSATION_IDS, new ArrayList<>(Collections.singletonList(conversationId)));
         return intent;
     }
 
@@ -194,9 +195,6 @@ public class IntentUtils {
         intent.putExtra(EXTRA_LAUNCH_FROM_SHARING, true);
         intent.putExtra(EXTRA_LAUNCH_CONVERSATION_MESSAGE, sharedText != null ? sharedText : "");
         intent.putStringArrayListExtra(EXTRA_LAUNCH_CONVERSATION_IDS, new ArrayList<>(conversationIds));
-        if (conversationIds.size() == 1) {
-            intent.putExtra(EXTRA_LAUNCH_CONVERSATION_ID, conversationIds.get(0));
-        }
         return intent;
     }
 
@@ -206,7 +204,7 @@ public class IntentUtils {
         Intent intent = new Intent(context, MainActivity.class);
         intent.putExtra(EXTRA_LAUNCH_FROM_SHARING, true);
         intent.putParcelableArrayListExtra(EXTRA_LAUNCH_CONVERSATION_FILES, new ArrayList<>(sharedFiles));
-        intent.putExtra(EXTRA_LAUNCH_CONVERSATION_ID, conversationId);
+        intent.putStringArrayListExtra(EXTRA_LAUNCH_CONVERSATION_IDS, new ArrayList<>(Collections.singletonList(conversationId)));
         return intent;
     }
 
@@ -217,9 +215,6 @@ public class IntentUtils {
         intent.putExtra(EXTRA_LAUNCH_FROM_SHARING, true);
         intent.putParcelableArrayListExtra(EXTRA_LAUNCH_CONVERSATION_FILES, new ArrayList<>(sharedFiles));
         intent.putStringArrayListExtra(EXTRA_LAUNCH_CONVERSATION_IDS, new ArrayList<>(conversationIds));
-        if (conversationIds.size() == 1) {
-            intent.putExtra(EXTRA_LAUNCH_CONVERSATION_ID, conversationIds.get(0));
-        }
         return intent;
     }
 
@@ -239,7 +234,7 @@ public class IntentUtils {
         Intent intent = new Intent(context, MainActivity.class);
         intent.putExtra(EXTRA_LAUNCH_FROM_NOTIFICATION, true);
         intent.putExtra(EXTRA_LAUNCH_START_CALL, false);
-        intent.putExtra(EXTRA_LAUNCH_CONVERSATION_ID, conversationId);
+        intent.putStringArrayListExtra(EXTRA_LAUNCH_CONVERSATION_IDS, new ArrayList<>(Collections.singletonList(conversationId)));
         return PendingIntent.getActivity(context, requestCode, intent, 0);
     }
 
@@ -247,14 +242,14 @@ public class IntentUtils {
         Intent intent = new Intent(context, MainActivity.class);
         intent.putExtra(EXTRA_LAUNCH_FROM_NOTIFICATION, true);
         intent.putExtra(EXTRA_LAUNCH_START_CALL, true);
-        intent.putExtra(EXTRA_LAUNCH_CONVERSATION_ID, conversationId);
+        intent.putStringArrayListExtra(EXTRA_LAUNCH_CONVERSATION_IDS, new ArrayList<>(Collections.singletonList(conversationId)));
         return PendingIntent.getActivity(context, requestCode, intent, 0);
     }
 
     public static PendingIntent getNotificationReplyIntent(Context context, String conversationId, int requestCode) {
         Intent intent = new Intent(context, PopupActivity.class);
         intent.putExtra(EXTRA_LAUNCH_FROM_NOTIFICATION, true);
-        intent.putExtra(EXTRA_LAUNCH_CONVERSATION_ID, conversationId);
+        intent.putStringArrayListExtra(EXTRA_LAUNCH_CONVERSATION_IDS, new ArrayList<>(Collections.singletonList(conversationId)));
         return PendingIntent.getActivity(context, requestCode, intent, 0);
     }
 
@@ -294,7 +289,8 @@ public class IntentUtils {
     }
 
     public static String getLaunchConversationId(Intent intent) {
-        return intent.getStringExtra(EXTRA_LAUNCH_CONVERSATION_ID);
+        List<String> convIds = intent.getStringArrayListExtra(EXTRA_LAUNCH_CONVERSATION_IDS);
+        return convIds.isEmpty() ? null : convIds.get(0);
     }
 
     public static List<String> getLaunchConversationIds(Intent intent) {
