@@ -497,9 +497,11 @@ public class MainActivity extends BaseActivity implements MainPhoneFragment.Cont
             SharingController sharingController = injectJava(SharingController.class);
 
             if (targetConversations != null) {
-                if (targetConversations.size() == 1) {
+                if (targetConversations.size() == 1 && targetConversations.get(0) != null) {
+                    String conversationId = targetConversations.get(0);
                     final IConversation conversation = getStoreFactory().getConversationStore()
-                        .getConversation(targetConversations.get(0));
+                        .getConversation(conversationId);
+
                     if (!TextUtils.isEmpty(sharedText)) {
                         getControllerFactory().getSharingController().setSharedContentType(SharedContentType.TEXT);
                     } else {
@@ -507,7 +509,7 @@ public class MainActivity extends BaseActivity implements MainPhoneFragment.Cont
                     }
                     getControllerFactory().getSharingController().setSharedText(sharedText);
                     getControllerFactory().getSharingController().setSharedUris(sharedFileUris);
-                    getControllerFactory().getSharingController().setSharingConversationId(conversation.getId());
+                    getControllerFactory().getSharingController().setSharingConversationId(conversationId);
 
                     // Only want to swipe over when app has loaded
                     new Handler().postDelayed(new Runnable() {

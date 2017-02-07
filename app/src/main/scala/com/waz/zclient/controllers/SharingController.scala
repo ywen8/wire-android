@@ -96,7 +96,7 @@ class SharingController(implicit injector: Injector, eventContext: EventContext)
 
   //java helpers
   def sendContent(text: String, uris: java.util.List[Uri], conversations: java.util.List[String], activity: Activity): Unit ={
-    val convIds = conversations.asScala.map(ConvId(_)).toSet
+    val convIds = conversations.asScala.filter(_ != null).map(ConvId(_)).toSet
     (Option(text), Option(uris)) match {
       case (Some(t), _) =>
         sendEvent ! (TextContent(t), convIds)
