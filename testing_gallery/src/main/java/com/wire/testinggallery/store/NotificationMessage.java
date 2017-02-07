@@ -18,6 +18,8 @@
 package com.wire.testinggallery.store;
 
 
+import android.app.Notification;
+
 import com.google.gson.Gson;
 
 public class NotificationMessage {
@@ -25,11 +27,13 @@ public class NotificationMessage {
     private String title;
     private String text;
     private String[] textLines;
+    private transient Notification notification;
 
-    public NotificationMessage(int id, String title, String text, CharSequence[] textLinesSequence) {
+    public NotificationMessage(int id, String title, String text, CharSequence[] textLinesSequence, Notification notification) {
         this.id = id;
         this.title = title;
         this.text = text;
+        this.notification = notification;
         if (textLinesSequence != null) {
             textLines = new String[textLinesSequence.length];
             for (int i = 0; i < textLinesSequence.length; i++) {
@@ -52,6 +56,10 @@ public class NotificationMessage {
 
     public String[] getTextLines() {
         return textLines;
+    }
+
+    public Notification getNotification() {
+        return notification;
     }
 
     public String toJsonString() {
