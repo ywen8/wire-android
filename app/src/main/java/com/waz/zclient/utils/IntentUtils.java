@@ -26,20 +26,21 @@ import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
+
 import com.waz.zclient.LaunchActivity;
 import com.waz.zclient.MainActivity;
 import com.waz.zclient.PopupActivity;
 import com.waz.zclient.R;
 import com.waz.zclient.controllers.notifications.ShareSavedImageActivity;
-import hugo.weaving.DebugLog;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
+
+import hugo.weaving.DebugLog;
 
 public class IntentUtils {
 
