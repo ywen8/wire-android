@@ -236,7 +236,7 @@
         <ignore path="src/main/res/drawable/search_result_counter_background.xml"/>
         <ignore path="src/main/res/drawable/rounded_rectangle_solid_white.xml"/>
         <ignore path="src/main/res/drawable/checkbox.xml"/>
-        <ignore path="src/main/res/drawable/rounded_rectangle.xml"/>
+        <ignore path="src/main/res/drawable/rounded_graphite_rectangle.xml"/>
         <ignore path="src/main/res/layout/share_*"/>
 
         <!--TODO Dean - leaving these here as design comes up with a new container-->
