@@ -54,34 +54,21 @@ trait ViewFinder {
   def stub[V <: View](id: Int) : V = findById[ViewStub](id).inflate().asInstanceOf[V]
 }
 
-trait DelayedViewEventContext extends View with EventContext {
-  import com.waz.ZLog.ImplicitTag._
-  import com.waz.threading.Threading.Implicits.Ui
-
-  import scala.concurrent.duration._
-
-  private var attached = false
-  private var stopFuture = CancellableFuture.cancelled[Any]()
+trait ViewEventContext extends View with EventContext {
 
   override def onAttachedToWindow(): Unit = {
     super.onAttachedToWindow()
 
-    attached = true
-    stopFuture.cancel()
     onContextStart()
   }
 
   override def onDetachedFromWindow(): Unit = {
+    onContextStop()
     super.onDetachedFromWindow()
-
-    attached = false
-    stopFuture = CancellableFuture.delayed(1.second) {
-      if (!attached) onContextStop()
-    }
   }
 }
 
-trait ViewHelper extends View with ViewFinder with Injectable with DelayedViewEventContext {
+trait ViewHelper extends View with ViewFinder with Injectable with ViewEventContext {
   lazy implicit val wContext = WireContext(getContext)
   lazy implicit val injector = wContext.injector
 
