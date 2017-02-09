@@ -32,7 +32,6 @@ import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
 import android.view.View;
 import com.waz.zclient.ui.R;
-import net.hockeyapp.android.ExceptionHandler;
 
 public class DrawingCanvasView extends View {
 
@@ -113,7 +112,6 @@ public class DrawingCanvasView extends View {
             bitmap = Bitmap.createBitmap(w, h, bitmapConfig);
             canvas = new Canvas(bitmap);
         } catch (OutOfMemoryError outOfMemoryError) {
-            ExceptionHandler.saveException(outOfMemoryError, null);
             // Fallback to non-alpha canvas if in memory trouble
             if (bitmapConfig == Bitmap.Config.ARGB_8888) {
                 bitmapConfig = Bitmap.Config.RGB_565;

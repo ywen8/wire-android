@@ -28,8 +28,6 @@ import android.text.style.URLSpan;
 import android.text.util.Linkify;
 import android.util.AttributeSet;
 import com.waz.zclient.ui.R;
-import net.hockeyapp.android.CrashManagerListener;
-import net.hockeyapp.android.ExceptionHandler;
 
 /**
  * This view will automatically linkify the text passed to {@link LinkTextView#setTextLink(String)}, but will not steal
@@ -76,12 +74,7 @@ public class LinkTextView extends TypefaceTextView {
                 stripUnderlines();
             }
         } catch (Throwable t) {
-            ExceptionHandler.saveException(t, new CrashManagerListener() {
-                @Override
-                public String getDescription() {
-                    return "Error linkifying text - handled exception";
-                }
-            });
+            // ignore
         }
     }
 

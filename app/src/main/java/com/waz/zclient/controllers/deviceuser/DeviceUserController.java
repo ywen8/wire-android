@@ -20,8 +20,6 @@ package com.waz.zclient.controllers.deviceuser;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.telephony.TelephonyManager;
-import net.hockeyapp.android.CrashManagerListener;
-import net.hockeyapp.android.ExceptionHandler;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -90,12 +88,7 @@ public class DeviceUserController implements IDeviceUserController {
                     countryCode = tm.getNetworkCountryIso();
                 }
             } catch (Exception e) {
-                ExceptionHandler.saveException(e, new CrashManagerListener() {
-                    @Override
-                    public String getDescription() {
-                        return "fetchSIMPhoneNumber, logged try/fail (non-fatal)";
-                    }
-                });
+                // ignore
             }
         }
     }
