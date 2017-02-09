@@ -41,6 +41,10 @@ public class DocumentResolver {
         return query(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, null);
     }
 
+    public Uri getAudioPath() {
+        return query(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, null);
+    }
+
     public Uri getImagePath() {
         return query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, null);
     }

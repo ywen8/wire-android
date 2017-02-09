@@ -19,6 +19,7 @@ package com.wire.testinggallery.service;
 
 import android.app.Activity;
 import android.app.Notification;
+import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -42,6 +43,10 @@ public class SystemNotificationListenerService extends NotificationListenerServi
     private static final String COMMAND = "command";
     private static final String COMMAND_GET = "get";
     private static final String COMMAND_CLEAR = "clear";
+    private static final String COMMAND_REPLY = "reply";
+    private static final String COMMAND_CALL = "call";
+    private static final int CALL_ACTION = 0;
+    private static final int REPLY_ACTION = 1;
 
     private NotificationMessage recentNotificationMessage;
 
@@ -93,23 +98,45 @@ public class SystemNotificationListenerService extends NotificationListenerServi
         if (textObj != null) {
             text = textObj.toString();
         }
-        return new NotificationMessage(id, title, text, sequence);
+        return new NotificationMessage(id, title, text, sequence, notification);
     }
 
     class SystemNotificationListenerReceiver extends BroadcastReceiver {
 
         @Override
         public void onReceive(Context context, Intent intent) {
-            if (intent.getStringExtra(COMMAND).equals(COMMAND_CLEAR)) {
-                SystemNotificationListenerService.this.cancelAllNotifications();
-                setResultCode(Activity.RESULT_OK);
-            } else if (intent.getStringExtra(COMMAND).equals(COMMAND_GET)) {
-                setResultCode(Activity.RESULT_OK);
-                if (recentNotificationMessage != null) {
-                    setResultData(recentNotificationMessage.toJsonString());
-                } else {
-                    setResultData("");
-                }
+            String command = intent.getStringExtra(COMMAND);
+            switch (command) {
+                case COMMAND_CLEAR:
+                    SystemNotificationListenerService.this.cancelAllNotifications();
+                    setResultCode(Activity.RESULT_OK);
+                    break;
+                case COMMAND_GET:
+                    setResultCode(Activity.RESULT_OK);
+                    if (recentNotificationMessage != null) {
+                        setResultData(recentNotificationMessage.toJsonString());
+                    } else {
+                        setResultData("");
+                    }
+                    break;
+                case COMMAND_REPLY:
+                    try {
+                        recentNotificationMessage.getNotification().actions[REPLY_ACTION].actionIntent.send();
+                        setResultCode(Activity.RESULT_OK);
+                    } catch (PendingIntent.CanceledException e) {
+                        setResultCode(Activity.RESULT_CANCELED);
+                    }
+                    break;
+                case COMMAND_CALL:
+                    try {
+                        recentNotificationMessage.getNotification().actions[CALL_ACTION].actionIntent.send();
+                        setResultCode(Activity.RESULT_OK);
+                    } catch (PendingIntent.CanceledException e) {
+                        setResultCode(Activity.RESULT_CANCELED);
+                    }
+                    break;
+                default:
+                    throw new RuntimeException(String.format("Cannot identify the notification command [%s]", command));
             }
         }
     }
