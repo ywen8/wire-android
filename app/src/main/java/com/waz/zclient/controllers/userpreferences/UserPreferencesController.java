@@ -22,17 +22,16 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import com.waz.zclient.R;
-import com.waz.zclient.camera.CameraFacing;
 import com.waz.zclient.utils.StringUtils;
 import org.json.JSONArray;
 import org.json.JSONException;
 import timber.log.Timber;
 
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.HashSet;
 import java.util.UUID;
-import java.util.Collection;
 
 public class UserPreferencesController implements IUserPreferencesController {
 
@@ -114,17 +113,6 @@ public class UserPreferencesController implements IUserPreferencesController {
     }
 
     @Override
-    public void setRecentCameraDirection(CameraFacing cameraFacing) {
-        userPreferences.edit().putInt(USER_PREFS_RECENT_CAMERA_DIRECTION, cameraFacing.facing).apply();
-    }
-
-    @Override
-    public CameraFacing getRecentCameraDirection() {
-        return CameraFacing.getFacing(userPreferences.getInt(USER_PREFS_RECENT_CAMERA_DIRECTION,
-                                                             CameraFacing.BACK.facing));
-    }
-
-    @Override
     public void setReferralToken(String token) {
         userPreferences.edit().putString(USER_PREFS_REFERRAL_TOKEN, token).apply();
     }
@@ -152,11 +140,6 @@ public class UserPreferencesController implements IUserPreferencesController {
     @Override
     public String getPersonalInvitationToken() {
         return userPreferences.getString(USER_PREFS_PERSONAL_INVITATION_TOKEN, null);
-    }
-
-    @Override
-    public boolean showStatusBar() {
-        return userPreferences.getBoolean(context.getString(R.string.pref_dev_status_bar_key), true);
     }
 
     @Override
@@ -255,24 +238,6 @@ public class UserPreferencesController implements IUserPreferencesController {
             userPreferences.edit().putString(USER_PREF_APP_CRASH_DETAILS, null).apply();
         }
         return details;
-    }
-
-    @Override
-    public String getSavedFlashState() {
-        return userPreferences.getString(USER_PREF_FLASH_STATE, "");
-    }
-
-    @Override
-    public void setSavedFlashState(String state) {
-        userPreferences.edit().putString(USER_PREF_FLASH_STATE, state).apply();
-    }
-
-    @Override
-    public boolean isImageDownloadPolicyWifiOnly() {
-        String downloadPolicyWifi = context.getString(R.string.zms_image_download_value_wifi);
-        String defaultPolicy = context.getString(R.string.zms_image_download_value_always);
-        String prefKey = context.getString(R.string.pref_options_image_download_key);
-        return downloadPolicyWifi.equals(userPreferences.getString(prefKey, defaultPolicy));
     }
 
     @Override

@@ -143,9 +143,6 @@
     <string translatable="false" name="wire_theme_dark">dark</string>
 
     <!-- Developer preferences -->
-    <string translatable="false" name="pref_dev_status_bar_key">PREF_KEY_STATUS_BAR</string>
-    <string translatable="false" name="pref_dev_status_bar_title">Status bar</string>
-    <string translatable="false" name="pref_dev_status_bar_summary">App restart needed</string>
     <string translatable="false" name="pref_dev_avs_post_session_id_key">USER_PREFS_POST_SESSION_ID</string>
     <string translatable="false" name="pref_dev_avs_post_session_id_title">Post call session id</string>
     <string translatable="false" name="pref_dev_avs_post_session_id_summary">Post session id into conversation</string>
