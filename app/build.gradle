@@ -328,6 +328,8 @@ dependencies {
     compile deps.psLocation
     compile deps.cardview
 
+    compile deps.stetho
+
     // For using local files in app/libs
     //compile (name:'avs', ext:'aar')
     //compile (name:'audio-notifications', ext:'aar')

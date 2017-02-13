@@ -18,7 +18,9 @@
 
 -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
-    <application>
+    <application xmlns:tools="http://schemas.android.com/tools"
+        android:name="com.waz.zclient.StethoApplication"
+        tools:replace="android:name">
         <activity android:name="net.hockeyapp.android.UpdateActivity" />
     </application>
 </manifest>

@@ -133,6 +133,8 @@ ext {
             // Internal
             audioNotifications   : "com.wire:audio-notifications:$audioVersion",
 
+            stetho               : 'com.facebook.stetho:stetho:1.4.2',
+
             // Test dependencies
             junit               : 'junit:junit:4.12',
             testutils           : "com.wire:testutils:$zMessagingDevVersionBase",
