@@ -80,6 +80,7 @@ import com.waz.zclient.ui.startui.ConversationQuickMenuCallback;
 import com.waz.zclient.ui.text.TypefaceTextView;
 import com.waz.zclient.ui.utils.KeyboardUtils;
 import com.waz.zclient.ui.views.ZetaButton;
+import com.waz.zclient.utils.IntentUtils;
 import com.waz.zclient.utils.LayoutSpec;
 import com.waz.zclient.utils.PermissionUtils;
 import com.waz.zclient.utils.StringUtils;
@@ -140,7 +141,6 @@ public class PickUserFragment extends BaseFragment<PickUserFragment.Container> i
     private boolean searchBoxIsEmpty = true;
     private long showLoadingBarDelay;
     private boolean lastInputIsKeyboardDoneAction;
-    private String shareBody;
     private AlertDialog dialog;
     private static final boolean SHOW_INVITE = true;
 
@@ -1013,29 +1013,16 @@ public class PickUserFragment extends BaseFragment<PickUserFragment.Container> i
     }
 
     private void sendGenericInvite(final boolean fromSearch) {
-        if (getControllerFactory() == null ||
-            getControllerFactory().isTornDown() ||
-            getStoreFactory() == null ||
-            getStoreFactory().isTornDown()) {
+        if (getControllerFactory() == null || getControllerFactory().isTornDown() ||
+            getStoreFactory() == null || getStoreFactory().isTornDown()) {
             return;
         }
-
-        String name = "";
-        String username = "";
-        if (getStoreFactory().getProfileStore().getSelfUser() != null &&
-            getStoreFactory().getProfileStore().getSelfUser().getDisplayName() != null) {
-            name = getStoreFactory().getProfileStore().getSelfUser().getDisplayName();
-            username = getStoreFactory().getProfileStore().getSelfUser().getUsername();
-        }
-
-        shareBody = getString(R.string.people_picker__invite__share_text__body, StringUtils.formatHandle(username));
-        String shareSubject = getString(R.string.people_picker__invite__share_text__header, name);
-        String shareChooserMessage = getString(R.string.people_picker__invite__share_details_dialog);
-        Intent sharingIntent = new Intent(Intent.ACTION_SEND);
-        sharingIntent.setType("text/plain");
-        sharingIntent.putExtra(Intent.EXTRA_SUBJECT, shareSubject);
-        sharingIntent.putExtra(Intent.EXTRA_TEXT, shareBody);
-        startActivity(Intent.createChooser(sharingIntent, shareChooserMessage));
+        User self = getStoreFactory().getProfileStore().getSelfUser();
+        String name = self != null && self.getDisplayName() != null ? self.getDisplayName() : "";
+        String username = self != null && self.getUsername() != null ? self.getUsername() : "";
+        Intent sharingIntent = IntentUtils.getInviteIntent(getString(R.string.people_picker__invite__share_text__header, name),
+                                                           getString(R.string.people_picker__invite__share_text__body, StringUtils.formatHandle(username)));
+        startActivity(Intent.createChooser(sharingIntent, getString(R.string.people_picker__invite__share_details_dialog)));
         OpenedGenericInviteMenuEvent.EventContext eventContext = fromSearch ?
                                                                  OpenedGenericInviteMenuEvent.EventContext.NO_RESULTS :
                                                                  OpenedGenericInviteMenuEvent.EventContext.BANNER;

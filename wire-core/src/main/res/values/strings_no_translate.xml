@@ -129,6 +129,7 @@
     <string translatable="false" name="pref_options_requested_category_key">pref_options_requested_category_key</string>
     <string translatable="false" name="pref_support_website_key">pref_support_website_key</string>
     <string translatable="false" name="pref_support_contact_key">pref_support_contact_key</string>
+    <string translatable="false" name="pref_invite_key">pref_invite_key</string>
 
     <!-- Other-->
     <string translatable="false" name="empty_string" />

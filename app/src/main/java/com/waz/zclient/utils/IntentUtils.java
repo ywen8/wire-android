@@ -351,4 +351,12 @@ public class IntentUtils {
         browserIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         return browserIntent;
     }
+
+    public static Intent getInviteIntent(String subject, String body) {
+        Intent intent = new Intent(Intent.ACTION_SEND);
+        intent.setType("text/plain");
+        intent.putExtra(Intent.EXTRA_SUBJECT, subject);
+        intent.putExtra(Intent.EXTRA_TEXT, body);
+        return intent;
+    }
 }

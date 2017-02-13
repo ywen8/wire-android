@@ -140,6 +140,9 @@ public class StringUtils {
     }
 
     public static String formatHandle(String username) {
+        if (StringUtils.isBlank(username)) {
+            return "";
+        }
         return "@" + username;
     }
 
