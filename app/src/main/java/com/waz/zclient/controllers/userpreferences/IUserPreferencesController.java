@@ -18,7 +18,6 @@
 package com.waz.zclient.controllers.userpreferences;
 
 import android.support.annotation.IntDef;
-import com.waz.zclient.camera.CameraFacing;
 
 import java.util.Collection;
 import java.util.List;
@@ -41,10 +40,6 @@ public interface IUserPreferencesController {
 
     boolean showContactsDialog();
 
-    void setRecentCameraDirection(CameraFacing cameraFacing);
-
-    CameraFacing getRecentCameraDirection();
-
     void setReferralToken(String token);
 
     String getReferralToken();
@@ -56,8 +51,6 @@ public interface IUserPreferencesController {
     void setPersonalInvitationToken(String token);
 
     String getPersonalInvitationToken();
-
-    boolean showStatusBar();
 
     String getLastCallSessionId();
 
@@ -86,12 +79,6 @@ public interface IUserPreferencesController {
     String getCrashException();
 
     String getCrashDetails();
-
-    String getSavedFlashState();
-
-    void setSavedFlashState(String state);
-
-    boolean isImageDownloadPolicyWifiOnly();
 
     boolean hasUserLoggedIn(String userId);
 

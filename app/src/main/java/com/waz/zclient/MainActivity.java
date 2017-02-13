@@ -35,7 +35,6 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.text.TextUtils;
 import android.view.Window;
-import android.view.WindowManager;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.localytics.android.Localytics;
@@ -166,10 +165,6 @@ public class MainActivity extends BaseActivity implements MainPhoneFragment.Cont
         FragmentManager fragmentManager = getSupportFragmentManager();
 
         initializeControllers();
-
-        if (!getControllerFactory().getUserPreferencesController().showStatusBar()) {
-            getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
-        }
 
         if (savedInstanceState == null) {
             FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();

@@ -17,12 +17,11 @@
  */
 package com.waz.zclient.controllers.stubs;
 
-import com.waz.zclient.camera.CameraFacing;
 import com.waz.zclient.controllers.userpreferences.IUserPreferencesController;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
-import java.util.Collection;
 
 public class StubUserPreferencesController implements IUserPreferencesController {
   @Override
@@ -56,16 +55,6 @@ public class StubUserPreferencesController implements IUserPreferencesController
   }
 
   @Override
-  public CameraFacing getRecentCameraDirection() {
-    return null;
-  }
-
-  @Override
-  public boolean isImageDownloadPolicyWifiOnly() {
-    return false;
-  }
-
-  @Override
   public void setPersonalInvitationToken(String token) {
     ;
   }
@@ -93,11 +82,6 @@ public class StubUserPreferencesController implements IUserPreferencesController
   @Override
   public String getLastCallSessionId() {
     return null;
-  }
-
-  @Override
-  public boolean showStatusBar() {
-    return false;
   }
 
   @Override
@@ -146,16 +130,6 @@ public class StubUserPreferencesController implements IUserPreferencesController
   }
 
   @Override
-  public void setSavedFlashState(String state) {
-    ;
-  }
-
-  @Override
-  public void setRecentCameraDirection(CameraFacing cameraFacing) {
-    ;
-  }
-
-  @Override
   public int getSpotifyLoginTriesCount() {
     return 0;
   }
@@ -183,11 +157,6 @@ public class StubUserPreferencesController implements IUserPreferencesController
   @Override
   public void tearDown() {
     ;
-  }
-
-  @Override
-  public String getSavedFlashState() {
-    return null;
   }
 
   @Override

@@ -23,13 +23,6 @@
     >
 
     <CheckBoxPreference
-        android:defaultValue="true"
-        android:key="@string/pref_dev_status_bar_key"
-        android:title="@string/pref_dev_status_bar_title"
-        android:summary="@string/pref_dev_status_bar_summary"
-        />
-
-    <CheckBoxPreference
         android:defaultValue="false"
         android:key="@string/pref_dev_avs_post_session_id_key"
         android:title="@string/pref_dev_avs_post_session_id_title"
@@ -82,10 +75,10 @@
             android:title="@string/pref_dev_gcm_enabled_title"
             />
 
-        <!--Default of 15 minutes (900000 millis)-->
+        <!--Default of ~9 minutes (550000 millis)-->
         <!--TODO - make a proper time picker preference-->
         <EditTextPreference
-            android:defaultValue="900000"
+            android:defaultValue="550000"
             android:inputType="number"
             android:key="@string/pref_dev_websocket_ping_interval_key"
             android:summary="@string/pref_dev_websocket_ping_interval_summary"
