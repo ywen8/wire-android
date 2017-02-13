@@ -22,26 +22,18 @@ import android.content.Intent;
 import android.os.Bundle;
 import com.waz.zclient.controllers.tracking.screens.ApplicationScreen;
 import com.waz.zclient.controllers.tracking.screens.RegistrationScreen;
-import com.waz.zclient.core.controllers.tracking.attributes.RangedAttribute;
 import com.waz.zclient.core.controllers.tracking.events.AVSMetricEvent;
 import com.waz.zclient.core.controllers.tracking.events.Event;
 
 public interface ITrackingController {
 
     void appLaunched(Intent intent);
-    void appResumed();
-    void appPaused();
     void tearDown();
     void tagEvent(Event event);
     void tagAVSMetricEvent(AVSMetricEvent event);
 
     void loadFromSavedInstance(Bundle savedInstanceState);
     void saveToSavedInstance(Bundle outState);
-
-    // Session data
-    void updateSessionAggregates(RangedAttribute attribute, String... params);
-    void markAsFirstSession();
-    void searchedForPeople();
 
     // Registration
     void onRegistrationScreen(RegistrationScreen screen);

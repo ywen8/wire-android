@@ -47,7 +47,6 @@ import com.waz.zclient.controllers.singleimage.SingleImageObserver;
 import com.waz.zclient.conversation.CollectionController;
 import com.waz.zclient.conversation.CollectionFragment;
 import com.waz.zclient.conversation.ShareToMultipleFragment;
-import com.waz.zclient.core.controllers.tracking.attributes.RangedAttribute;
 import com.waz.zclient.pages.BaseFragment;
 import com.waz.zclient.pages.main.backgroundmain.views.BackgroundFrameLayout;
 import com.waz.zclient.pages.main.conversation.SingleImageFragment;
@@ -291,7 +290,6 @@ public class MainPhoneFragment extends BaseFragment<MainPhoneFragment.Container>
                                  .addToBackStack(SingleImageMessageFragment.TAG)
                                  .commit();
         getControllerFactory().getNavigationController().setRightPage(Page.SINGLE_MESSAGE, TAG);
-        getControllerFactory().getTrackingController().updateSessionAggregates(RangedAttribute.IMAGE_CONTENT_CLICKS);
     }
 
     @Override
@@ -303,7 +301,6 @@ public class MainPhoneFragment extends BaseFragment<MainPhoneFragment.Container>
                                  .addToBackStack(SingleImageUserFragment.TAG)
                                  .commit();
         getControllerFactory().getNavigationController().setRightPage(Page.SINGLE_MESSAGE, TAG);
-        getControllerFactory().getTrackingController().updateSessionAggregates(RangedAttribute.IMAGE_CONTENT_CLICKS);
     }
 
     @Override

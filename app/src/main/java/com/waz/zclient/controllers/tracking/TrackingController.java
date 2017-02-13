@@ -33,7 +33,6 @@ import com.waz.api.ZMessagingApi;
 import com.waz.zclient.BuildConfig;
 import com.waz.zclient.ZApplication;
 import com.waz.zclient.controllers.tracking.events.launch.AppLaunch;
-import com.waz.zclient.controllers.tracking.events.session.Session;
 import com.waz.zclient.controllers.tracking.screens.ApplicationScreen;
 import com.waz.zclient.controllers.tracking.screens.RegistrationScreen;
 import com.waz.zclient.controllers.userpreferences.UserPreferencesController;
@@ -41,8 +40,6 @@ import com.waz.zclient.core.controllers.tracking.attributes.Attribute;
 import com.waz.zclient.core.controllers.tracking.attributes.RangedAttribute;
 import com.waz.zclient.core.controllers.tracking.events.AVSMetricEvent;
 import com.waz.zclient.core.controllers.tracking.events.Event;
-import net.hockeyapp.android.CrashManagerListener;
-import net.hockeyapp.android.ExceptionHandler;
 import timber.log.Timber;
 
 import java.util.ArrayList;
@@ -54,13 +51,11 @@ import java.util.Set;
 
 public class TrackingController implements ITrackingController {
 
-    private static final long PAUSE_DURATION_THRESHOLD_MS = 15 * 1000;
     private static final String SAVED_STATE_SENT_TAGS = "SAVED_STATE_SENT_TAGS";
     private static final String QA_LOG_TAG = "TrackingController";
 
     protected TrackingData trackingData;
     protected List<Event> eventQueue;
-    private SessionEventAggregator sessionEventAggregator;
     private Set<String> sentEvents;
     private Context context;
     private SharedPreferences sentEventPreferences;
@@ -77,7 +72,6 @@ public class TrackingController implements ITrackingController {
         if (context != null) {
             return;
         }
-        this.sessionEventAggregator = new SessionEventAggregator(activity.getApplicationContext());
         ZMessagingApi api = ZApplication.from(activity).getStoreFactory().getZMessagingApiStore().getApi();
         this.trackingData = api.getTrackingData();
         this.context = activity.getApplicationContext();
@@ -280,16 +274,6 @@ public class TrackingController implements ITrackingController {
     }
 
     @Override
-    public void appResumed() {
-        pushAggregateSessionData();
-    }
-
-    @Override
-    public void appPaused() {
-        sessionEventAggregator.markPauseTime();
-    }
-
-    @Override
     public void tearDown() {
         if (trackingData != null) {
             trackingData.removeUpdateListener(trackingDataUpdateListener);
@@ -314,75 +298,6 @@ public class TrackingController implements ITrackingController {
     @Override
     public void saveToSavedInstance(Bundle outState) {
         outState.putStringArray(SAVED_STATE_SENT_TAGS, sentEvents.toArray(new String[sentEvents.size()]));
-    }
-
-    ////////////////////////////////////////////
-    //
-    // Session tracking
-    //
-    ////////////////////////////////////////////
-
-    @Override
-    public void updateSessionAggregates(RangedAttribute attribute, String... params) {
-        if (sessionEventAggregator == null) {
-            return;
-        }
-        try {
-            sessionEventAggregator.incrementEventCount(attribute, params);
-        } catch (Exception e) {
-            ExceptionHandler.saveException(e, new CrashManagerListener() {
-                @Override
-                public String getDescription() {
-                    return "try/catch logged";
-                }
-            });
-        }
-    }
-
-    @Override
-    public void markAsFirstSession() {
-        sessionEventAggregator.markAsFirstSession();
-    }
-
-    @Override
-    public void searchedForPeople() {
-        if (sessionEventAggregator == null) {
-            return;
-        }
-        sessionEventAggregator.searchedForPeople();
-    }
-
-    private void pushAggregateSessionData() {
-        if (sessionEventAggregator.getElapsedTimeSincePause() <= PAUSE_DURATION_THRESHOLD_MS) {
-            return;
-        }
-
-        Session sessionEvent = new Session(sessionEventAggregator.getEventCount(RangedAttribute.CONNECT_REQUESTS_SENT),
-                                           sessionEventAggregator.getEventCount(RangedAttribute.CONNECT_REQUESTS_ACCEPTED),
-                                           sessionEventAggregator.getEventCount(RangedAttribute.VOICE_CALLS_INITIATED),
-                                           sessionEventAggregator.getEventCount(RangedAttribute.INCOMING_CALLS_ACCEPTED),
-                                           sessionEventAggregator.getEventCount(RangedAttribute.INCOMING_CALLS_SILENCED),
-                                           sessionEventAggregator.getEventCount(RangedAttribute.GROUP_CONVERSATIONS_STARTED),
-                                           sessionEventAggregator.getEventCount(RangedAttribute.USERS_ADDED_TO_CONVERSATIONS),
-                                           sessionEventAggregator.getEventCount(RangedAttribute.TEXT_MESSAGES_SENT),
-                                           sessionEventAggregator.getEventCount(RangedAttribute.YOUTUBE_LINKS_SENT),
-                                           sessionEventAggregator.getEventCount(RangedAttribute.SOUNDCLOUD_LINKS_SENT),
-                                           sessionEventAggregator.getEventCount(RangedAttribute.PINGS_SENT),
-                                           sessionEventAggregator.getEventCount(RangedAttribute.IMAGES_SENT),
-                                           sessionEventAggregator.getEventCount(RangedAttribute.IMAGE_CONTENT_CLICKS),
-                                           sessionEventAggregator.getEventCount(RangedAttribute.SOUNDCLOUD_CONTENT_CLICKS),
-                                           sessionEventAggregator.getEventCount(RangedAttribute.YOUTUBE_CONTENT_CLICKS),
-                                           sessionEventAggregator.getEventCount(RangedAttribute.CONVERSATION_RENAMES),
-                                           sessionEventAggregator.getEventCount(RangedAttribute.SESSION_DURATION),
-                                           sessionEventAggregator.getEventCount(RangedAttribute.OPENED_SEARCH),
-                                           sessionEventAggregator.isFirstSession(),
-                                           sessionEventAggregator.hasSearchedForPeople()
-        );
-
-        tagEvent(sessionEvent);
-
-        sessionEventAggregator.restartSession();
-        Localytics.upload();
     }
 
     // //////////////////////////////////////////////////////

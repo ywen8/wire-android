@@ -193,8 +193,6 @@ public class AppEntryActivity extends BaseActivity implements VerifyPhoneFragmen
             HockeyCrashReporting.deleteCrashReports(getApplicationContext());
             NativeCrashManager.deleteDumpFiles(getApplicationContext());
         }
-        getControllerFactory().getTrackingController().appResumed();
-
     }
 
     @Override
@@ -208,7 +206,6 @@ public class AppEntryActivity extends BaseActivity implements VerifyPhoneFragmen
 
     @Override
     protected void onPause() {
-        getControllerFactory().getTrackingController().appPaused();
         isPaused = true;
         super.onPause();
     }

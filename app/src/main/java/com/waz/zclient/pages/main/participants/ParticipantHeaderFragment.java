@@ -46,7 +46,6 @@ import com.waz.zclient.R;
 import com.waz.zclient.controllers.accentcolor.AccentColorObserver;
 import com.waz.zclient.controllers.currentfocus.IFocusController;
 import com.waz.zclient.controllers.globallayout.KeyboardVisibilityObserver;
-import com.waz.zclient.core.controllers.tracking.attributes.RangedAttribute;
 import com.waz.zclient.core.stores.connect.ConnectStoreObserver;
 import com.waz.zclient.core.stores.connect.IConnectStore;
 import com.waz.zclient.core.stores.network.NetworkAction;
@@ -393,12 +392,8 @@ public class ParticipantHeaderFragment extends BaseFragment<ParticipantHeaderFra
             return;
         }
         if (!TextUtils.isEmpty(text.trim())) {
-            getStoreFactory().getConversationStore().getCurrentConversation().setConversationName(
-                text);
-            headerReadOnlyTextView.setText(
-                text);
-            getControllerFactory().getTrackingController().updateSessionAggregates(
-                RangedAttribute.CONVERSATION_RENAMES);
+            getStoreFactory().getConversationStore().getCurrentConversation().setConversationName(text);
+            headerReadOnlyTextView.setText(text);
         }
     }
 

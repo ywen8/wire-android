@@ -68,7 +68,6 @@ import com.waz.zclient.controllers.userpreferences.IUserPreferencesController;
 import com.waz.zclient.controllers.userpreferences.UserPreferencesController;
 import com.waz.zclient.core.api.scala.AppEntryStore;
 import com.waz.zclient.core.controllers.tracking.attributes.OpenedMediaAction;
-import com.waz.zclient.core.controllers.tracking.attributes.RangedAttribute;
 import com.waz.zclient.core.controllers.tracking.events.Event;
 import com.waz.zclient.core.controllers.tracking.events.media.OpenedMediaActionEvent;
 import com.waz.zclient.core.controllers.tracking.events.session.LoggedOutEvent;
@@ -257,7 +256,6 @@ public class MainActivity extends BaseActivity implements MainPhoneFragment.Cont
             HockeyCrashReporting.deleteCrashReports(getApplicationContext());
             NativeCrashManager.deleteDumpFiles(getApplicationContext());
         }
-        getControllerFactory().getTrackingController().appResumed();
         Localytics.setInAppMessageDisplayActivity(this);
         Localytics.handleTestMode(getIntent());
         if (getControllerFactory().getThemeController().isRestartPending()) {
@@ -284,7 +282,6 @@ public class MainActivity extends BaseActivity implements MainPhoneFragment.Cont
         Localytics.dismissCurrentInAppMessage();
         Localytics.clearInAppMessageDisplayActivity();
         getControllerFactory().getNavigationController().markActivityPaused();
-        getControllerFactory().getTrackingController().appPaused();
         super.onPause();
     }
 
@@ -865,8 +862,6 @@ public class MainActivity extends BaseActivity implements MainPhoneFragment.Cont
                                                                                 return;
                                                                             }
                                                                             startCall(withVideo);
-                                                                            getControllerFactory().getTrackingController()
-                                                                                                  .updateSessionAggregates(RangedAttribute.VOICE_CALLS_INITIATED);
                                                                         }
                                                                     },
                                                                     getResources().getInteger(R.integer.calling__new_outgoing_call__delay_after_hangup));

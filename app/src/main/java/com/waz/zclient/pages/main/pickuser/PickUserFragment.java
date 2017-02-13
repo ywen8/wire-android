@@ -174,7 +174,6 @@ public class PickUserFragment extends BaseFragment<PickUserFragment.Container> i
                 return;
             }
             getControllerFactory().getPickUserController().setSearchFilter(searchBoxView.getSearchFilter());
-            getControllerFactory().getTrackingController().searchedForPeople();
         }
     };
 
