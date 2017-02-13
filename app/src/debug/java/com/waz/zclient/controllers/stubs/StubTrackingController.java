@@ -23,21 +23,13 @@ import android.os.Bundle;
 import com.waz.zclient.controllers.tracking.ITrackingController;
 import com.waz.zclient.controllers.tracking.screens.ApplicationScreen;
 import com.waz.zclient.controllers.tracking.screens.RegistrationScreen;
-import com.waz.zclient.core.controllers.tracking.attributes.RangedAttribute;
 import com.waz.zclient.core.controllers.tracking.events.AVSMetricEvent;
 import com.waz.zclient.core.controllers.tracking.events.Event;
-import java.lang.Override;
-import java.lang.String;
 
 public class StubTrackingController implements ITrackingController {
   @Override
   public ApplicationScreen getApplicationScreen() {
     return null;
-  }
-
-  @Override
-  public void markAsFirstSession() {
-    ;
   }
 
   @Override
@@ -51,20 +43,9 @@ public class StubTrackingController implements ITrackingController {
   }
 
   @Override
-  public void searchedForPeople() {
-    ;
-  }
-
-  @Override
   public void tearDown() {
     ;
   }
-
-  @Override
-  public void appPaused() {
-    ;
-  }
-
   @Override
   public void tagAVSMetricEvent(AVSMetricEvent event) {
     ;
@@ -82,16 +63,6 @@ public class StubTrackingController implements ITrackingController {
 
   @Override
   public void loadFromSavedInstance(Bundle savedInstanceState) {
-    ;
-  }
-
-  @Override
-  public void updateSessionAggregates(RangedAttribute attribute, String[] params) {
-    ;
-  }
-
-  @Override
-  public void appResumed() {
     ;
   }
 

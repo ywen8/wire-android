@@ -19,10 +19,9 @@ package com.waz.zclient.controllers.tracking;
 
 import android.content.Intent;
 import android.os.Bundle;
-import com.waz.zclient.core.controllers.tracking.attributes.RangedAttribute;
-import com.waz.zclient.core.controllers.tracking.events.Event;
 import com.waz.zclient.controllers.tracking.screens.ApplicationScreen;
 import com.waz.zclient.controllers.tracking.screens.RegistrationScreen;
+import com.waz.zclient.core.controllers.tracking.events.Event;
 import timber.log.Timber;
 
 import java.util.List;
@@ -35,16 +34,6 @@ public class LoggingTrackingController extends TrackingController {
     @Override
     public void appLaunched(Intent intent) {
         super.appLaunched(intent);
-    }
-
-    @Override
-    public void appResumed() {
-        super.appResumed();
-    }
-
-    @Override
-    public void appPaused() {
-        super.appPaused();
     }
 
     @Override
@@ -84,21 +73,6 @@ public class LoggingTrackingController extends TrackingController {
     @Override
     public void saveToSavedInstance(Bundle outState) {
         super.saveToSavedInstance(outState);
-    }
-
-    @Override
-    public void updateSessionAggregates(RangedAttribute attribute, String... params) {
-        super.updateSessionAggregates(attribute, params);
-    }
-
-    @Override
-    public void markAsFirstSession() {
-        super.markAsFirstSession();
-    }
-
-    @Override
-    public void searchedForPeople() {
-        super.searchedForPeople();
     }
 
     @Override

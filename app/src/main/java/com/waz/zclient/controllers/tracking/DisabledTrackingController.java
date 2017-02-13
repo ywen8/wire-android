@@ -20,25 +20,14 @@ package com.waz.zclient.controllers.tracking;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
-import com.waz.zclient.core.controllers.tracking.attributes.RangedAttribute;
-import com.waz.zclient.core.controllers.tracking.events.AVSMetricEvent;
-import com.waz.zclient.core.controllers.tracking.events.Event;
 import com.waz.zclient.controllers.tracking.screens.ApplicationScreen;
 import com.waz.zclient.controllers.tracking.screens.RegistrationScreen;
+import com.waz.zclient.core.controllers.tracking.events.AVSMetricEvent;
+import com.waz.zclient.core.controllers.tracking.events.Event;
 
 public class DisabledTrackingController implements ITrackingController {
     @Override
     public void appLaunched(Intent intent) {
-
-    }
-
-    @Override
-    public void appResumed() {
-
-    }
-
-    @Override
-    public void appPaused() {
 
     }
 
@@ -64,21 +53,6 @@ public class DisabledTrackingController implements ITrackingController {
 
     @Override
     public void saveToSavedInstance(Bundle outState) {
-
-    }
-
-    @Override
-    public void updateSessionAggregates(RangedAttribute attribute, String... params) {
-
-    }
-
-    @Override
-    public void markAsFirstSession() {
-
-    }
-
-    @Override
-    public void searchedForPeople() {
 
     }
 

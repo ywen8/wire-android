@@ -28,7 +28,7 @@ import com.waz.threading.Threading
 import com.waz.utils.RichInstant
 import com.waz.utils.events.EventContext
 import com.waz.zclient.calling.controllers.GlobalCallingController
-import com.waz.zclient.core.controllers.tracking.attributes.{CompletedMediaType, RangedAttribute}
+import com.waz.zclient.core.controllers.tracking.attributes.CompletedMediaType
 import com.waz.zclient.core.controllers.tracking.events.media.CompletedMediaActionEvent
 import com.waz.zclient.{Injectable, Injector}
 import org.threeten.bp.Instant
@@ -92,7 +92,6 @@ class CallingTrackingController(implicit injector: Injector, ctx: Context, ec: E
               tagEvent(JoinedCallEvent(v3Call, isVideoCall, isGroupCall, convMemCount, incoming, wasUiActive, withOtto))
 
             case SELF_CONNECTED =>
-              updateSessionAggregates(RangedAttribute.VOICE_CALLS_INITIATED)
               tagEvent(EstablishedCallEvent(v3Call, isVideoCall, isGroupCall, convMemCount, incoming, wasUiActive, withOtto, estDuration))
               startedJoining = None
 

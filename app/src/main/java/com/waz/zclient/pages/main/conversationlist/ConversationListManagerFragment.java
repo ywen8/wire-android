@@ -61,7 +61,6 @@ import com.waz.zclient.controllers.tracking.events.group.CreatedGroupConversatio
 import com.waz.zclient.controllers.tracking.events.group.LeaveGroupConversationEvent;
 import com.waz.zclient.controllers.usernames.UsernamesControllerObserver;
 import com.waz.zclient.core.controllers.tracking.attributes.ConversationType;
-import com.waz.zclient.core.controllers.tracking.attributes.RangedAttribute;
 import com.waz.zclient.core.controllers.tracking.events.onboarding.KeptGeneratedUsernameEvent;
 import com.waz.zclient.core.controllers.tracking.events.onboarding.OpenedUsernameSettingsEvent;
 import com.waz.zclient.core.controllers.tracking.events.onboarding.SeenUsernameTakeOverScreenEvent;
@@ -442,7 +441,6 @@ public class ConversationListManagerFragment extends BaseFragment<ConversationLi
             getStoreFactory().getConversationStore().createGroupConversation(users, requester);
             getControllerFactory().getTrackingController().tagEvent(new CreatedGroupConversationEvent(false,
                                                                                                       (users.size() + 1)));
-            getControllerFactory().getTrackingController().updateSessionAggregates(RangedAttribute.GROUP_CONVERSATIONS_STARTED);
             getControllerFactory().getTrackingController().tagEvent(new OpenedConversationEvent(ConversationType.GROUP_CONVERSATION.name()));
         }
     }
@@ -522,8 +520,6 @@ public class ConversationListManagerFragment extends BaseFragment<ConversationLi
                         .replace(R.id.fl__conversation_list_main, pickUserFragment, PickUserFragment.TAG)
                         .addToBackStack(PickUserFragment.TAG)
                         .commit();
-
-                    getControllerFactory().getTrackingController().updateSessionAggregates(RangedAttribute.OPENED_SEARCH);
                 }
                 break;
             case PICK_USER:

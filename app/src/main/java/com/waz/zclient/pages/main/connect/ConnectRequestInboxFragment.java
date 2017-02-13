@@ -33,7 +33,6 @@ import com.waz.api.User;
 import com.waz.api.Verification;
 import com.waz.zclient.R;
 import com.waz.zclient.controllers.accentcolor.AccentColorObserver;
-import com.waz.zclient.core.controllers.tracking.attributes.RangedAttribute;
 import com.waz.zclient.core.stores.connect.InboxLinkConversation;
 import com.waz.zclient.core.stores.conversation.ConversationChangeRequester;
 import com.waz.zclient.core.stores.conversation.ConversationStoreObserver;
@@ -175,8 +174,6 @@ public class ConnectRequestInboxFragment extends BaseFragment<ConnectRequestInbo
     }
 
     private void onAcceptedUser(IConversation conversation) {
-        getControllerFactory().getTrackingController().updateSessionAggregates(RangedAttribute.CONNECT_REQUESTS_ACCEPTED);
-
         if (inboxAdapter.getCount() <= 1) {
             getContainer().onAcceptedUser(conversation);
         } else {

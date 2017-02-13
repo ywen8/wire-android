@@ -37,7 +37,6 @@ import com.waz.zclient.controllers.tracking.events.optionsmenu.OptionsMenuItemSe
 import com.waz.zclient.core.controllers.tracking.attributes.CompletedMediaType;
 import com.waz.zclient.core.controllers.tracking.attributes.ConversationType;
 import com.waz.zclient.core.controllers.tracking.attributes.OpenedMediaAction;
-import com.waz.zclient.core.controllers.tracking.attributes.RangedAttribute;
 import com.waz.zclient.core.controllers.tracking.events.media.CompletedMediaActionEvent;
 import com.waz.zclient.core.controllers.tracking.events.media.OpenedMediaActionEvent;
 import com.waz.zclient.core.controllers.tracking.events.media.SentAudioMessageEvent;
@@ -301,7 +300,6 @@ public class TrackingUtils {
                                                                   conversation.isOtto(),
                                                                   conversation.isEphemeral(),
                                                                   String.valueOf(conversation.getEphemeralExpiration().duration().toSeconds())));
-        trackingController.updateSessionAggregates(RangedAttribute.IMAGES_SENT);
     }
 
     public static void onSentLocationMessage(ITrackingController trackingController, IConversation conversation) {
@@ -327,7 +325,6 @@ public class TrackingUtils {
                                                                   conversation.isOtto(),
                                                                   conversation.isEphemeral(),
                                                                   String.valueOf(conversation.getEphemeralExpiration().duration().toSeconds())));
-        trackingController.updateSessionAggregates(RangedAttribute.IMAGES_SENT);
     }
 
     public static void onSentPhotoMessage(ITrackingController trackingController,
@@ -346,7 +343,6 @@ public class TrackingUtils {
                                                                   conversation.isOtto(),
                                                                   conversation.isEphemeral(),
                                                                   String.valueOf(conversation.getEphemeralExpiration().duration().toSeconds())));
-        trackingController.updateSessionAggregates(RangedAttribute.IMAGES_SENT);
     }
 
 

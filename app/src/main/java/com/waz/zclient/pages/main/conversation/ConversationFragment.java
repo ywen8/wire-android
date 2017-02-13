@@ -47,7 +47,6 @@ import android.widget.AbsListView;
 import android.widget.FrameLayout;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.waz.api.AssetFactory;
@@ -102,7 +101,6 @@ import com.waz.zclient.controllers.tracking.events.navigation.OpenedMoreActionsE
 import com.waz.zclient.conversation.CollectionController;
 import com.waz.zclient.core.api.scala.ModelObserver;
 import com.waz.zclient.core.controllers.tracking.attributes.OpenedMediaAction;
-import com.waz.zclient.core.controllers.tracking.attributes.RangedAttribute;
 import com.waz.zclient.core.controllers.tracking.events.filetransfer.SelectedTooLargeFileEvent;
 import com.waz.zclient.core.controllers.tracking.events.media.CancelledRecordingAudioMessageEvent;
 import com.waz.zclient.core.controllers.tracking.events.media.OpenedActionHintEvent;
@@ -155,13 +153,12 @@ import com.waz.zclient.utils.TrackingUtils;
 import com.waz.zclient.utils.ViewUtils;
 import com.waz.zclient.views.LoadingIndicatorView;
 import com.waz.zclient.views.MentioningFragment;
+import timber.log.Timber;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import timber.log.Timber;
 
 public class ConversationFragment extends BaseFragment<ConversationFragment.Container> implements ConversationStoreObserver,
                                                                                                   CallingObserver,
@@ -1246,7 +1243,6 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
                         if (ctrl != null) {
                             ctrl.playPingFromMe();
                         }
-                        getControllerFactory().getTrackingController().updateSessionAggregates(RangedAttribute.PINGS_SENT);
                     }
                 });
                 TrackingUtils.onSentPingMessage(getControllerFactory().getTrackingController(),
@@ -1375,8 +1371,6 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
                                         getStoreFactory().getConversationStore().getCurrentConversation());
 
         getStoreFactory().getNetworkStore().doIfHasInternetOrNotifyUser(null);
-        getControllerFactory().getTrackingController().updateSessionAggregates(RangedAttribute.TEXT_MESSAGES_SENT,
-                                                                               message);
         getControllerFactory().getSharingController().maybeResetSharedText(getStoreFactory().getConversationStore().getCurrentConversation());
     }
 
