@@ -20,12 +20,16 @@ package com.waz.zclient.controllers.tracking;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
-import com.waz.zclient.controllers.tracking.screens.ApplicationScreen;
-import com.waz.zclient.controllers.tracking.screens.RegistrationScreen;
+import com.waz.zclient.BuildConfig;
 import com.waz.zclient.core.controllers.tracking.events.AVSMetricEvent;
 import com.waz.zclient.core.controllers.tracking.events.Event;
+import com.waz.zclient.controllers.tracking.screens.ApplicationScreen;
+import com.waz.zclient.controllers.tracking.screens.RegistrationScreen;
+import timber.log.Timber;
 
 public class DisabledTrackingController implements ITrackingController {
+    private static final String QA_LOG_TAG = "TrackingController";
+
     @Override
     public void appLaunched(Intent intent) {
 
@@ -38,7 +42,13 @@ public class DisabledTrackingController implements ITrackingController {
 
     @Override
     public void tagEvent(Event event) {
-
+        if (BuildConfig.DISABLE_TRACKING_KEEP_LOGGING) {
+            // Log tracking for candidate builds
+            Timber.tag(QA_LOG_TAG).e("Tag event=[name='%s',\nattributes='%s',\nrangedAttributes='%s']",
+                                     event.getName(),
+                                     event.getAttributes().toString(),
+                                     event.getRangedAttributes().toString());
+        }
     }
 
     @Override

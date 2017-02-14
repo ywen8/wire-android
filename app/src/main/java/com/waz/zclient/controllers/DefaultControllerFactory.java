@@ -51,7 +51,9 @@ public class DefaultControllerFactory extends Base$$ControllerFactory {
 
         if (trackingEnabled) {
             if (trackingController == null || !(trackingController instanceof TrackingController)) {
-                if (BuildConfig.DEBUG) {
+                if (BuildConfig.DISABLE_TRACKING_KEEP_LOGGING) {
+                    trackingController = new DisabledTrackingController();
+                } else if (BuildConfig.DEBUG) {
                     trackingController = new LoggingTrackingController();
                 } else {
                     trackingController = new TrackingController();
