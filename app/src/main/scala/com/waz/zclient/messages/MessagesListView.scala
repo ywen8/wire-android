@@ -88,15 +88,20 @@ class MessagesListView(context: Context, attrs: AttributeSet, style: Int) extend
   scrollController.onScroll.on(Threading.Ui) { case Scroll(pos, smooth) =>
     verbose(s"Scrolling to pos: $pos, smooth: $smooth")
     val scrollTo = math.min(adapter.getItemCount - 1, pos)
-    if (smooth) {
-      val current = layoutManager.findFirstVisibleItemPosition()
-      // jump closer to target position before scrolling, don't want to smooth scroll through many messages
-      if (math.abs(current - pos) > MaxSmoothScroll)
-        layoutManager.scrollToPosition(if (pos > current) pos - MaxSmoothScroll else pos + MaxSmoothScroll)
-
-      smoothScrollToPosition(pos) //TODO figure out how to provide an offset, we should scroll to top of the message
+    val alreadyScrolledToCorrectPosition = layoutManager.findLastCompletelyVisibleItemPosition() == pos
+    if (alreadyScrolledToCorrectPosition) {
+      scrollController.shouldScrollToBottom = true
     } else {
-      layoutManager.scrollToPosition(scrollTo)
+      if (smooth) {
+        val current = layoutManager.findFirstVisibleItemPosition()
+        // jump closer to target position before scrolling, don't want to smooth scroll through many messages
+        if (math.abs(current - pos) > MaxSmoothScroll)
+          layoutManager.scrollToPosition(if (pos > current) pos - MaxSmoothScroll else pos + MaxSmoothScroll)
+
+        smoothScrollToPosition(pos) //TODO figure out how to provide an offset, we should scroll to top of the message
+      } else {
+        layoutManager.scrollToPosition(scrollTo)
+      }
     }
   }
 
