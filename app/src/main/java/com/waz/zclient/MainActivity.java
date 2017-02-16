@@ -811,7 +811,7 @@ public class MainActivity extends BaseActivity implements MainPhoneFragment.Cont
         return getStoreFactory().getZMessagingApiStore().getApi().getActiveVoiceChannels();
     }
 
-    private void startCall(boolean withVideo) {
+    private void startCall(final boolean withVideo) {
         final IConversation currentConversation = getStoreFactory().getConversationStore().getCurrentConversation();
         if (currentConversation == null) {
             return;
@@ -826,7 +826,25 @@ public class MainActivity extends BaseActivity implements MainPhoneFragment.Cont
                                       true);
             return;
         }
-        injectJava(CallPermissionsController.class).startCall(new ConvId(voiceChannel.getConversation().getId()), withVideo);
+        if (currentConversation.getType() == IConversation.Type.GROUP &&
+            currentConversation.getUsers().size() >= 5) {
+            int users = currentConversation.getUsers().size();
+            ViewUtils.showAlertDialog(this,
+                                      getString(R.string.group_calling_title),
+                                      getString(R.string.group_calling_message, users),
+                                      getString(R.string.group_calling_confirm),
+                                      getString(R.string.group_calling_cancel),
+                                      new DialogInterface.OnClickListener() {
+                                          @Override
+                                          public void onClick(DialogInterface dialog, int which) {
+                                              injectJava(CallPermissionsController.class).startCall(new ConvId(voiceChannel.getConversation().getId()), withVideo);
+                                          }
+                                      },
+                                      null);
+            return;
+        } else {
+            injectJava(CallPermissionsController.class).startCall(new ConvId(voiceChannel.getConversation().getId()), withVideo);
+        }
     }
 
 
