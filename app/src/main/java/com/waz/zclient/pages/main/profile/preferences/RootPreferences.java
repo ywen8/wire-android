@@ -18,6 +18,7 @@
 package com.waz.zclient.pages.main.profile.preferences;
 
 import android.app.FragmentTransaction;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.preference.Preference;
 import android.support.v7.preference.PreferenceManager;
@@ -26,19 +27,25 @@ import com.waz.api.CoreList;
 import com.waz.api.InitListener;
 import com.waz.api.OtrClient;
 import com.waz.api.Self;
+import com.waz.api.User;
 import com.waz.zclient.BuildConfig;
 import com.waz.zclient.R;
 import com.waz.zclient.controllers.accentcolor.AccentColorObserver;
+import com.waz.zclient.controllers.tracking.events.connect.OpenedGenericInviteMenuEvent;
+import com.waz.zclient.controllers.tracking.screens.ApplicationScreen;
 import com.waz.zclient.core.api.scala.ModelObserver;
 import com.waz.zclient.pages.BasePreferenceFragment;
 import com.waz.zclient.pages.main.profile.ZetaPreferencesActivity;
 import com.waz.zclient.pages.main.profile.preferences.dialogs.AvsOptionsDialogFragment;
+import com.waz.zclient.utils.IntentUtils;
+import com.waz.zclient.utils.StringUtils;
 
 public class RootPreferences extends BasePreferenceFragment<RootPreferences.Container> implements AvsOptionsDialogFragment.Container,
                                                                                                   AccentColorObserver {
 
     public static final String TAG = RootPreferences.class.getSimpleName();
     private BadgeablePreferenceScreenLike devicesPreferenceScreenLike;
+    private ButtonPreference inviteButtonPreference;
 
     private CoreList<OtrClient> otrClients;
     private final ModelObserver<CoreList<OtrClient>> otrClientsObserver = new ModelObserver<CoreList<OtrClient>>() {
@@ -81,6 +88,15 @@ public class RootPreferences extends BasePreferenceFragment<RootPreferences.Cont
         } else {
             addPreferencesFromResource(R.xml.preference_root);
         }
+        inviteButtonPreference = (ButtonPreference) findPreference(getString(R.string.pref_invite_key));
+        inviteButtonPreference.setAccentColor(getControllerFactory().getAccentColorController().getColor());
+        inviteButtonPreference.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+            @Override
+            public boolean onPreferenceClick(Preference preference) {
+                sendGenericInvite();
+                return true;
+            }
+        });
 
         devicesPreferenceScreenLike = (BadgeablePreferenceScreenLike) findPreference(getString(R.string.pref_devices_screen_key));
         devicesPreferenceScreenLike.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
@@ -147,6 +163,24 @@ public class RootPreferences extends BasePreferenceFragment<RootPreferences.Cont
     @Override
     public void onAccentColorHasChanged(Object sender, int color) {
         devicesPreferenceScreenLike.setAccentColor(color);
+        inviteButtonPreference.setAccentColor(color);
+    }
+
+    private void sendGenericInvite() {
+        if (getControllerFactory() == null || getControllerFactory().isTornDown() ||
+            getStoreFactory() == null || getStoreFactory().isTornDown()) {
+            return;
+        }
+
+        User self = getStoreFactory().getProfileStore().getSelfUser();
+        String name = self != null && self.getDisplayName() != null ? self.getDisplayName() : "";
+        String username = self != null && self.getUsername() != null ? self.getUsername() : "";
+
+        Intent sharingIntent = IntentUtils.getInviteIntent(getString(R.string.people_picker__invite__share_text__header, name),
+                                                           getString(R.string.people_picker__invite__share_text__body, StringUtils.formatHandle(username)));
+        startActivity(Intent.createChooser(sharingIntent, getString(R.string.people_picker__invite__share_details_dialog)));
+        getControllerFactory().getTrackingController().tagEvent(new OpenedGenericInviteMenuEvent(OpenedGenericInviteMenuEvent.EventContext.SETTINGS));
+        getControllerFactory().getTrackingController().onApplicationScreen(ApplicationScreen.SEND_GENERIC_INVITE_MENU);
     }
 
     public interface Container {

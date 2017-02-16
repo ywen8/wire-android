@@ -58,4 +58,10 @@
         android:icon="@drawable/ic_action_about"
         />
 
+    <com.waz.zclient.pages.main.profile.preferences.ButtonPreference
+        android:key="@string/pref_invite_key"
+        android:title="@string/pref_invite_title"
+        android:layout="@layout/layout_preference_invite"
+        />
+
 </PreferenceScreen>

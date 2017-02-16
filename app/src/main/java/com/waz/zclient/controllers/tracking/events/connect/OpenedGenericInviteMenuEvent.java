@@ -26,7 +26,8 @@ public class OpenedGenericInviteMenuEvent extends Event {
     public enum EventContext {
         NO_RESULTS("no_results"),
         BANNER("banner"),
-        ADDRESSBOOK("addressbook");
+        ADDRESSBOOK("addressbook"),
+        SETTINGS("settings");
 
         private final String name;
 

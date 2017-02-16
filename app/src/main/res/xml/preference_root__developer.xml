@@ -61,11 +61,18 @@
     <com.waz.zclient.pages.main.profile.preferences.BadgeablePreferenceScreenLike
         android:key="@string/pref_developer_screen_key"
         android:title="@string/pref_developer_screen_title"
+        android:icon="@drawable/ic_action_dev"
         />
 
     <Preference
         android:key="@string/pref_dev_avs_screen_key"
         android:title="@string/pref_dev_avs_screen_title"
+        />
+
+    <com.waz.zclient.pages.main.profile.preferences.ButtonPreference
+        android:key="@string/pref_invite_key"
+        android:title="@string/pref_invite_title"
+        android:layout="@layout/layout_preference_invite"
         />
 
 </PreferenceScreen>
