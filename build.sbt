@@ -30,7 +30,6 @@ resolvers in Global ++= Seq (
   "Maven central 1" at "http://repo1.maven.org/maven2",
   "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots",
   "Sonatype OSS Releases" at "https://oss.sonatype.org/content/repositories/releases",
-  "Bintray consp1razy" at "http://dl.bintray.com/consp1racy/maven",
   "Localytics" at "http://maven.localytics.com/public"
 )
 
