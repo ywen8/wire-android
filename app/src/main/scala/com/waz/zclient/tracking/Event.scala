@@ -17,12 +17,14 @@
   */
 package com.waz.zclient.tracking
 
+import android.support.annotation.NonNull
 import com.waz.api._
 import com.waz.model.ConversationData._
 import com.waz.model.Mime
 import com.waz.zclient.core.controllers.tracking.attributes.Attribute._
 import com.waz.zclient.core.controllers.tracking.attributes.RangedAttribute._
 import com.waz.zclient.core.controllers.tracking.attributes.{Attribute, RangedAttribute}
+import com.waz.zclient.core.controllers.tracking.events.Event
 import com.waz.zclient.pages.main.conversation.views.MessageBottomSheetDialog.MessageAction
 import com.waz.zclient.utils.AssetUtils
 import org.threeten.bp.Duration
@@ -275,4 +277,14 @@ case class FailedFileUploadEvent(error: ErrorResponse) extends Event("file.faile
     EXCEPTION_DETAILS -> s"${error.getLabel}, ${error.getMessage}"
   )
 }
+
+object WebSocketConnectionEvent {
+  def apply(name: String, duration: concurrent.duration.FiniteDuration) = new Event(name) {
+    override val attributes = Map(DURATION -> duration.toMillis.toString)
+  }
+  def lostOnPingEvent(duration: concurrent.duration.FiniteDuration) = apply("notification.web_socket_lost_on_ping", duration)
+  def closedEvent(duration: concurrent.duration.FiniteDuration) = apply("notification.web_socket_closed", duration)
+}
+
+
 
