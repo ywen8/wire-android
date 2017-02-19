@@ -17,14 +17,12 @@
   */
 package com.waz.zclient.tracking
 
-import android.support.annotation.NonNull
 import com.waz.api._
 import com.waz.model.ConversationData._
 import com.waz.model.Mime
 import com.waz.zclient.core.controllers.tracking.attributes.Attribute._
 import com.waz.zclient.core.controllers.tracking.attributes.RangedAttribute._
 import com.waz.zclient.core.controllers.tracking.attributes.{Attribute, RangedAttribute}
-import com.waz.zclient.core.controllers.tracking.events.Event
 import com.waz.zclient.pages.main.conversation.views.MessageBottomSheetDialog.MessageAction
 import com.waz.zclient.utils.AssetUtils
 import org.threeten.bp.Duration

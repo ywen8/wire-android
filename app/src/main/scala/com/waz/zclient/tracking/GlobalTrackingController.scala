@@ -49,7 +49,6 @@ import com.waz.utils._
 import com.waz.utils.returning
 import com.waz.zclient.controllers.tracking.events.launch.AppLaunch
 import com.waz.zclient.controllers.tracking.screens.{ApplicationScreen, RegistrationScreen}
-import com.waz.zclient.core.controllers.tracking.events.notifications.{WebSocketConnectionLostEvent, WebSocketConnectionLostOnPingEvent}
 import com.waz.zclient.utils.ContextUtils._
 
 import scala.collection.JavaConverters._
