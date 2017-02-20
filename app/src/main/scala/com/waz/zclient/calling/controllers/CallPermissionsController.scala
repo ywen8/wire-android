@@ -46,7 +46,7 @@ class CallPermissionsController(implicit inj: Injector, cxt: WireContext) extend
 
   private def useV3(convId: ConvId) = isGroupCall(convId).flatMap {
     case true => Future.successful(false)
-    case _ => prefs.head.flatMap(p => p.uiPreferenceStringSignal(p.callingV3Key).apply()).flatMap {
+    case _ => prefs.head.flatMap(p => p.uiPreferenceStringSignal(p.callingV3Key, "1").apply()).flatMap {
       case "0" => Future.successful(false) // v2
       case "1" => v3Service.flatMap(_.requestedCallVersion).head.map { v =>
         info(s"Relying on backend switch: using calling version: $v")
