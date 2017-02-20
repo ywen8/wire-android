@@ -141,17 +141,24 @@ object CollectionUtils {
         return acc
       }
       val endIndex = Math.min(beginIndex + query.length, normalizedMessage.length)
+      if (beginIndex > 0 && normalizedMessage.charAt(beginIndex - 1).isLetterOrDigit){
+        return getQueryPosition(normalizedMessage, query, endIndex, acc)
+      }
       getQueryPosition(normalizedMessage, query, endIndex, acc ++ Seq((beginIndex, endIndex)))
     }
-    val matches = queries.flatMap(getQueryPosition(normalizedMessage, _)).filter(_._1 >= 0)
-    if (matches.isEmpty) {
+    val matches = queries.map(getQueryPosition(normalizedMessage, _))
+    if (matches.exists(_.isEmpty)) {
       return (new SpannableString(originalMessage), 0)
     }
-    val minPos = if (beginThreshold == -1) 0 else Math.max(matches.map(_._1).min - beginThreshold, 0)
+    val flatMatches = matches.flatten.filter(_._1 >= 0)
+    if (flatMatches.isEmpty) {
+      return (new SpannableString(originalMessage), 0)
+    }
+    val minPos = if (beginThreshold == -1) 0 else Math.max(flatMatches.map(_._1).min - beginThreshold, 0)
     val ellipsis = if (minPos > 0) "..." else ""
     val spannableString = new SpannableString(ellipsis + originalMessage.substring(minPos))
     val offset = minPos - ellipsis.length
-    matches.foreach(pos => spannableString.setSpan(new BackgroundColorSpan(color), pos._1 - offset, pos._2 - offset, 0))
-    (spannableString, matches.size)
+    flatMatches.foreach(pos => spannableString.setSpan(new BackgroundColorSpan(color), pos._1 - offset, pos._2 - offset, 0))
+    (spannableString, flatMatches.size)
   }
 }
