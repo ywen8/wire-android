@@ -22,6 +22,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.ShareCompat;
 import android.util.AttributeSet;
@@ -37,6 +38,7 @@ import com.waz.zclient.conversation.ShareToMultipleFragment;
 import com.waz.zclient.core.stores.api.ZMessagingApiStoreObserver;
 import com.waz.zclient.pages.main.sharing.SharingConversationListManagerFragment;
 import com.waz.zclient.utils.AssetUtils;
+import com.waz.zclient.utils.PermissionUtils;
 import com.waz.zclient.utils.ViewUtils;
 import com.waz.zclient.views.menus.ConfirmationMenu;
 
@@ -54,6 +56,9 @@ public class ShareActivity extends BaseActivity implements SharingConversationLi
 
     private static final String TAG = ShareActivity.class.getName();
 
+    private static final int EXTERNAL_STORAGE_PERMISSION_CODE = 1;
+    private static final String[] EXTERNAL_STORAGE_PERMISSIONS = {android.Manifest.permission.READ_EXTERNAL_STORAGE};
+
     private ConfirmationMenu confirmationMenu;
 
     @Override
@@ -63,12 +68,18 @@ public class ShareActivity extends BaseActivity implements SharingConversationLi
 
         confirmationMenu = ViewUtils.getView(this, R.id.cm__conversation_list__login_prompt);
 
+        if (!PermissionUtils.hasSelfPermissions(this, EXTERNAL_STORAGE_PERMISSIONS)) {
+            ActivityCompat.requestPermissions(this,
+                EXTERNAL_STORAGE_PERMISSIONS,
+                EXTERNAL_STORAGE_PERMISSION_CODE);
+        }
+
         if (savedInstanceState == null) {
             getSupportFragmentManager().beginTransaction()
-                                       .add(R.id.fl_main_content,
-                                            ShareToMultipleFragment.newInstance(),
-                                            ShareToMultipleFragment.TAG())
-                                       .commit();
+                .add(R.id.fl_main_content,
+                    ShareToMultipleFragment.newInstance(),
+                    ShareToMultipleFragment.TAG())
+                .commit();
         }
 
         handleIncomingIntent();
@@ -242,5 +253,14 @@ public class ShareActivity extends BaseActivity implements SharingConversationLi
 
     private SharingController getSharingController() {
         return injectJava(SharingController.class);
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        ShareToMultipleFragment fragment = ((ShareToMultipleFragment) getSupportFragmentManager().findFragmentByTag(ShareToMultipleFragment.TAG()));
+        if (fragment != null) {
+            fragment.updatePreview();
+        }
     }
 }

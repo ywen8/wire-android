@@ -38,7 +38,7 @@ import com.waz.service.ZMessaging
 import com.waz.threading.Threading
 import com.waz.utils.events.{EventContext, EventStream, Signal, SourceSignal}
 import com.waz.zclient._
-import com.waz.zclient.controllers.SharingController.{FileContent, ImageContent, TextContent}
+import com.waz.zclient.controllers.SharingController.{FileContent, ImageContent, SharableContent, TextContent}
 import com.waz.zclient.controllers.global.AccentColorController
 import com.waz.zclient.controllers.{AssetsController, SharingController}
 import com.waz.zclient.messages.{MessagesController, UsersController}
@@ -63,6 +63,8 @@ class ShareToMultipleFragment extends BaseFragment[ShareToMultipleFragment.Conta
   lazy val accentColorController = inject[AccentColorController]
   lazy val sharingController = inject[SharingController]
   lazy val usersController = inject[UsersController]
+
+  val updatePreviewEvent = EventStream[Unit]
 
   override def onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState: Bundle): View = {
     val view = inflater.inflate(R.layout.fragment_collection_share, container, false)
@@ -111,7 +113,7 @@ class ShareToMultipleFragment extends BaseFragment[ShareToMultipleFragment.Conta
     listView.setAdapter(adapter)
 
     //TODO: It's possible for an app to share multiple uris at once but we're only showing the preview for one
-    sharingController.sharableContent.on(Threading.Ui) {
+    def showMessagePreview(content: Option[SharableContent]): Unit = content match{
       case Some(TextContent(text)) =>
         contentLayout.removeAllViews()
 
@@ -151,6 +153,14 @@ class ShareToMultipleFragment extends BaseFragment[ShareToMultipleFragment.Conta
       case _ =>
     }
 
+    sharingController.sharableContent.on(Threading.Ui) {
+      showMessagePreview
+    }
+
+    updatePreviewEvent.on(Threading.Ui) { _ =>
+      sharingController.sharableContent.currentValue.foreach(showMessagePreview)
+    }
+
     onClickEvent { _ =>
       val selectedConvs = adapter.selectedConversations.currentValue.getOrElse(Set())
       if (selectedConvs.nonEmpty) {
@@ -173,6 +183,8 @@ class ShareToMultipleFragment extends BaseFragment[ShareToMultipleFragment.Conta
       override def onEphemeralExpirationSelected(expiration: EphemeralExpiration, close: Boolean): Unit = {
         sharingController.ephemeralExpiration ! expiration
         ephemeralToggle.ephemeralExpiration ! expiration
+        if (close)
+          bottomContainer.closedAnimated()
       }
     }
 
@@ -202,6 +214,10 @@ class ShareToMultipleFragment extends BaseFragment[ShareToMultipleFragment.Conta
       return true
     }
     false
+  }
+
+  def updatePreview(): Unit ={
+    updatePreviewEvent ! (())
   }
 }
 

@@ -26,13 +26,13 @@ import com.waz.ZLog._
 import com.waz.api._
 import com.waz.model.ConvId
 import com.waz.service.ZMessaging
+import com.waz.utils.RichFuture
 import com.waz.utils.events.{EventContext, EventStream, Signal}
 import com.waz.zclient.controllers.SharingController.{FileContent, ImageContent, SharableContent, TextContent}
 import com.waz.zclient.utils.{IntentUtils, ViewUtils}
 import com.waz.zclient.{Injectable, Injector, R}
 
 import scala.collection.JavaConverters._
-import scala.concurrent.Future
 
 class SharingController(implicit injector: Injector, eventContext: EventContext) extends Injectable{
   import com.waz.threading.Threading.Implicits.Ui
@@ -48,16 +48,17 @@ class SharingController(implicit injector: Injector, eventContext: EventContext)
 
   sendEvent{
     case (TextContent(content), conversations, expiration) =>
-      zms.head.flatMap(z => Future.traverse(conversations){ convId =>
+      zms.head.flatMap(z => RichFuture.traverseSequential(conversations.toSeq){ convId =>
         z.convsUi.setEphemeral(convId, expiration).flatMap(_ =>
           z.convsUi.sendMessage(convId, new MessageContent.Text(content))) })
     case (FileContent(assetUris), conversations, expiration) =>
-      for {
-        conv <- conversations
-        uri <- assetUris
-      } yield zms.head.flatMap(z =>
-        z.convsUi.setEphemeral(conv, expiration).flatMap(_ =>
-          z.convsUi.sendMessage(conv, new MessageContent.Asset(AssetFactory.fromContentUri(uri), assetErrorHandler(context)))))
+      RichFuture.traverseSequential(conversations.toSeq){conv =>
+        RichFuture.traverseSequential(assetUris){ uri =>
+          zms.head.flatMap(z =>
+            z.convsUi.setEphemeral(conv, expiration).flatMap(_ =>
+              z.convsUi.sendMessage(conv, new MessageContent.Asset(AssetFactory.fromContentUri(uri), assetErrorHandler(context)))))
+        }
+      }
     case _ =>
   }
 
