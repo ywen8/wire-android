@@ -96,7 +96,6 @@ class MessageActionsController(implicit injector: Injector, ctx: Context, ec: Ev
 
   def showDialog(data: MessageAndLikes, fromCollection: Boolean = false): Boolean = {
     val msg = data.message
-    if (msg.isEphemeral) return false
     (for {
       isMember <- isConvMember(msg.convId)
       _ <- keyboardController.hideKeyboardIfVisible()   // TODO: keyboard should be handled in more generic way
