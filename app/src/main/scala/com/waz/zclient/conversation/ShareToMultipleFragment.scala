@@ -29,6 +29,7 @@ import android.view.View.OnClickListener
 import android.view._
 import android.widget.LinearLayout.LayoutParams
 import android.widget._
+import com.waz.ZLog.ImplicitTag._
 import com.waz.api
 import com.waz.api.{AssetFactory, EphemeralExpiration}
 import com.waz.model.ConversationData.ConversationType
@@ -42,15 +43,14 @@ import com.waz.zclient.controllers.global.AccentColorController
 import com.waz.zclient.controllers.{AssetsController, SharingController}
 import com.waz.zclient.messages.{MessagesController, UsersController}
 import com.waz.zclient.pages.BaseFragment
-import com.waz.zclient.ui.text.{GlyphTextView, TypefaceEditText, TypefaceTextView}
-import com.waz.zclient.ui.utils.ColorUtils
+import com.waz.zclient.pages.extendedcursor.ephemeral.EphemeralLayout
+import com.waz.zclient.ui.text.{TypefaceEditText, TypefaceTextView}
+import com.waz.zclient.ui.utils.{BitmapUtils, ColorUtils}
 import com.waz.zclient.ui.views.CursorIconButton
 import com.waz.zclient.utils.ViewUtils
-import com.waz.ZLog.ImplicitTag._
-import com.waz.zclient.pages.extendedcursor.ephemeral.EphemeralLayout
-import com.waz.zclient.views.{AnimatedBottomContainer, BlurredImageAssetDrawable, EphemeralCursorButton}
 import com.waz.zclient.views.ImageAssetDrawable.{RequestBuilder, ScaleType}
 import com.waz.zclient.views.ImageController.{ImageSource, WireImage}
+import com.waz.zclient.views.{AnimatedBottomContainer, BlurredImageAssetDrawable, EphemeralCursorButton}
 
 import scala.util.Success
 
@@ -73,6 +73,7 @@ class ShareToMultipleFragment extends BaseFragment[ShareToMultipleFragment.Conta
     val profileImageView = ViewUtils.getView(view, R.id.user_photo).asInstanceOf[ImageView]
     val bottomContainer = ViewUtils.getView(view, R.id.ephemeral_container).asInstanceOf[AnimatedBottomContainer]
     val ephemeralToggle = ViewUtils.getView(view, R.id.ephemeral_toggle).asInstanceOf[EphemeralCursorButton]
+    val vignetteOverlay = ViewUtils.getView(view, R.id.iv_background_vignette_overlay).asInstanceOf[ImageView]
 
     val onClickEvent = EventStream[Unit]()
     val filterText = Signal[String]("")
@@ -84,10 +85,17 @@ class ShareToMultipleFragment extends BaseFragment[ShareToMultipleFragment.Conta
       case _ => Signal.empty[ImageSource]
     })
 
-    sendButton.setSolidBackgroundColor(ContextCompat.getColor(getContext, R.color.light_graphite))
+    Signal(accentColorController.accentColor, adapter.selectedConversations).on(Threading.Ui){
+      case (color, convs) if convs.nonEmpty =>
+        sendButton.setSolidBackgroundColor(color.getColor())
+      case _ =>
+        sendButton.setSolidBackgroundColor(ContextCompat.getColor(getContext, R.color.light_graphite))
+    }
 
-    profileImageView.setImageDrawable(new BlurredImageAssetDrawable(userImage, scaleType = ScaleType.CenterCrop, request = RequestBuilder.Single, blurRadius = 15, context = getContext))
-    profileImageView.setColorFilter(darkenColor, PorterDuff.Mode.DARKEN)
+    profileImageView.setImageDrawable(new BlurredImageAssetDrawable(userImage, scaleType = ScaleType.CenterCrop, request = RequestBuilder.Single, blurRadius = 20, context = getContext))
+
+    vignetteOverlay.setImageBitmap(BitmapUtils.getVignetteBitmap(getResources))
+    vignetteOverlay.setColorFilter(darkenColor, PorterDuff.Mode.DARKEN)
 
     searchBox.addTextChangedListener(new TextWatcher {
       override def beforeTextChanged(s: CharSequence, start: Int, count: Int, after: Int): Unit = {}

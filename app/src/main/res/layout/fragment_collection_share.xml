@@ -32,6 +32,13 @@
         android:scaleType="centerCrop"
         />
 
+    <ImageView
+        android:id="@+id/iv_background_vignette_overlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="fitXY"
+        />
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -53,10 +60,11 @@
             android:layout_height="@dimen/collections__multi_share_search_height"
             android:background="@drawable/rounded_graphite_rectangle"
             android:layout_margin="@dimen/wire__padding__8"
-            android:drawableStart="@drawable/ic_action_search_light"
-            android:paddingLeft="@dimen/wire__padding__4"
-            android:paddingRight="@dimen/wire__padding__4"
-            android:textSize="@dimen/wire__text_size__regular"
+            android:drawableStart="?attr/conversationToolbarCollection"
+            android:drawablePadding="@dimen/wire__padding__8"
+            android:paddingLeft="@dimen/wire__padding__12"
+            android:paddingRight="@dimen/wire__padding__12"
+            android:textSize="@dimen/wire__text_size__small"
             android:inputType="textNoSuggestions|textVisiblePassword"
             android:hint="@string/multi_share_search_hint"
             android:fontFamily="sans-serif-light"
