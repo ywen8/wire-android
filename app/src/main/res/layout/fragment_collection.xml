@@ -66,9 +66,8 @@
                 style="?conversationToolbar"
                 android:textSize="@dimen/wire__text_size__small"
                 />
+
         </LinearLayout>
-
-
 
     </android.support.v7.widget.Toolbar>
 
@@ -76,14 +75,93 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/search__edit_text__height"
+            android:descendantFocusability="beforeDescendants"
+            android:focusableInTouchMode="true"
+            >
+
+            <com.waz.zclient.ui.text.TypefaceEditText
+                android:id="@+id/search_box"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:textColor="?wirePrimaryTextColor"
+                android:paddingLeft="@dimen/search__box__padding"
+                android:paddingRight="@dimen/search__box__padding"
+                android:drawablePadding="@dimen/search__box_drawable__padding"
+                android:drawableStart="?conversationToolbarCollection"
+                android:background="?searchBackgroundDividerDrawable"
+                android:textSize="@dimen/wire__text_size__regular"
+                android:maxLines="1"
+                android:imeOptions="actionDone"
+                android:inputType="text"
+                app:font="@string/wire__typeface__light"
+                />
+
+            <com.waz.zclient.ui.text.GlyphTextView
+                android:id="@+id/search_close"
+                android:layout_width="@dimen/search__box__close_size"
+                android:layout_height="@dimen/search__box__close_size"
+                android:textSize="@dimen/wire__text_size__regular"
+                android:textColor="?wirePrimaryTextColor"
+                android:text="@string/glyph__dismiss"
+                android:layout_alignParentEnd="true"
+                android:layout_centerVertical="true"
+                android:layout_marginStart="@dimen/search__box_close__margin"
+                android:layout_marginEnd="@dimen/search__box_close__margin"
+                android:visibility="gone"
+                />
+
+            <com.waz.zclient.ui.text.TypefaceTextView
+                android:id="@+id/search_hint"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:textAlignment="center"
+                android:textColor="?wireSecondaryTextColor"
+                android:text="@string/search__box__hint_text"
+                app:font="@string/wire__typeface__regular"
+                android:textSize="@dimen/wire__text_size__small"
+                android:clickable="false"
+                android:focusable="false"
+                />
+
+        </RelativeLayout>
+
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/search_results_list"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginStart="@dimen/wire__padding__regular"
+            android:layout_marginTop="@dimen/search__edit_text__height"
+            android:paddingBottom="@dimen/collections__content_bottom_padding"
+            android:clipToPadding="false"
+            android:visibility="gone"
+            />
+
         <com.waz.zclient.conversation.CollectionRecyclerView
-            android:id="@+id/rv__collection"
+            android:id="@+id/collection_list"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_marginLeft="@dimen/wire__padding__regular"
             android:layout_marginRight="@dimen/wire__padding__regular"
+            android:layout_marginTop="@dimen/search__edit_text__height"
             android:paddingBottom="@dimen/collections__content_bottom_padding"
             android:clipToPadding="false"
+            android:visibility="visible"
+            />
+
+        <com.waz.zclient.ui.text.TypefaceTextView
+            android:id="@+id/no_search_results"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="@dimen/search__no_results__top_margin"
+            android:text="@string/search__no_results"
+            android:textSize="@dimen/wire__text_size__regular"
+            app:font="@string/wire__typeface__light"
             />
 
         <LinearLayout

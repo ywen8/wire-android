@@ -19,7 +19,7 @@ package com.waz.zclient.messages
 
 import com.waz.ZLog.ImplicitTag._
 import com.waz.ZLog._
-import com.waz.api.MessageFilter
+import com.waz.api.{ContentSearchQuery, MessageFilter}
 import com.waz.content.ConvMessagesIndex._
 import com.waz.content.{ConvMessagesIndex, MessagesCursor}
 import com.waz.model.{ConvId, MessageData}
@@ -44,6 +44,7 @@ class RecyclerCursor(val conv: ConvId, zms: ZMessaging, val adapter: RecyclerNot
   val index = messageFilter.fold(storage.msgsIndex(conv))(f => storage.msgsFilteredIndex(conv, f))
   val lastReadTime = Signal.future(index).flatMap(_.signals.lastReadTime)
   val countSignal = Signal[Int]()
+  val cursorLoaded = Signal[Boolean](false)
 
   private val window = new IndexWindow(this, adapter)
   private var closed = false
@@ -86,6 +87,7 @@ class RecyclerCursor(val conv: ConvId, zms: ZMessaging, val adapter: RecyclerNot
     verbose(s"setCursor: c: $c, count: ${c.size}")
     if (!closed) {
       self.cursor ! Some(c)
+      cursorLoaded ! true
       window.cursorChanged(c)
       notifyFromHistory(c.createTime)
       countSignal ! c.size
