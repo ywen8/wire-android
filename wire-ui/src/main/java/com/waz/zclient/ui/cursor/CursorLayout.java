@@ -67,13 +67,13 @@ public class CursorLayout extends FrameLayout implements
     private static final long TOOLTIP_DURATION = 1500;
 
     private static List<CursorMenuItem> mainCursorItems = Arrays.asList(CursorMenuItem.CAMERA,
+                                                                        CursorMenuItem.VIDEO_MESSAGE,
                                                                         CursorMenuItem.SKETCH,
                                                                         CursorMenuItem.GIF,
-                                                                        CursorMenuItem.PING,
                                                                         CursorMenuItem.AUDIO_MESSAGE,
                                                                         CursorMenuItem.MORE);
 
-    private static List<CursorMenuItem> secondaryCursorItems = Arrays.asList(CursorMenuItem.VIDEO_MESSAGE,
+    private static List<CursorMenuItem> secondaryCursorItems = Arrays.asList(CursorMenuItem.PING,
                                                                              CursorMenuItem.FILE,
                                                                              CursorMenuItem.LOCATION,
                                                                              CursorMenuItem.DUMMY,
