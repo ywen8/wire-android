@@ -54,7 +54,7 @@
             android:layout_height="@dimen/collections__multi_share__image_preview__height">
         </RelativeLayout>
 
-        <com.waz.zclient.ui.text.TypefaceEditText
+        <com.waz.zclient.views.PickerSpannableEditText
             android:id="@+id/multi_share_search_box"
             android:layout_width="match_parent"
             android:layout_height="@dimen/collections__multi_share_search_height"
@@ -64,10 +64,14 @@
             android:drawablePadding="@dimen/wire__padding__8"
             android:paddingLeft="@dimen/wire__padding__12"
             android:paddingRight="@dimen/wire__padding__12"
-            android:textSize="@dimen/wire__text_size__small"
+            android:textSize="@dimen/wire__text_size__regular"
             android:inputType="textNoSuggestions|textVisiblePassword"
             android:hint="@string/multi_share_search_hint"
             android:fontFamily="sans-serif-light"
+            android:gravity="center_vertical"
+            android:imeOptions="actionGo"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
             />
 
         <View

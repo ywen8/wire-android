@@ -23,7 +23,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     >
 
-    <com.waz.zclient.pages.main.pickuser.PickUserEditText
+    <com.waz.zclient.views.PickerSpannableEditText
         android:id="@+id/puet_pickuser__searchbox"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -39,6 +39,7 @@
         android:paddingStart="@dimen/people_picker__input__padding_left"
         android:paddingEnd="@dimen/people_picker__input__margin_right"
         android:textColorHint="@color/text__secondary_light"
+        android:background="@null"
         app:hintTextSize="@dimen/wire__text_size__small"
         style="?startUiSearchField"
         />

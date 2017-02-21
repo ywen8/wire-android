@@ -19,8 +19,10 @@ package com.waz.zclient.pages.main.pickuser;
 
 import android.content.Context;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
+import android.graphics.RectF;
 import android.text.TextPaint;
 import android.text.TextUtils;
 import com.waz.zclient.R;
@@ -45,12 +47,17 @@ public class UserTokenSpan extends SpannableEditText.TokenSpan {
     private int textOffsetTop;
     private int spaceForCursor;
 
+    private float backgroundRadius;
+    private float backgroundHeight;
+    private float backgroundBottomPadding;
+
     // When true, shows cross button and truncates text
     private boolean deleteMode;
     // make clickable area slightly bigger than delete button
 
     private TextPaint textPaint;
     private TextPaint deleteModeTextPaint;
+    private Paint backgroundPaint;
 
     public UserTokenSpan(String userId, String userName, Context context, boolean deleteMode, int lineWidth) {
         this.userId = userId;
@@ -62,9 +69,12 @@ public class UserTokenSpan extends SpannableEditText.TokenSpan {
         paddingRightFix = context.getResources().getDimensionPixelSize(R.dimen.people_picker__input_person_token__padding_right_fix);
         textOffsetTop = 0;
         spaceForCursor = context.getResources().getDimensionPixelSize(R.dimen.people_picker__input_person_token__extra_space_for_cursor);
+        backgroundRadius = context.getResources().getDimensionPixelSize(R.dimen.wire__padding__8);
+        backgroundHeight = context.getResources().getDimensionPixelSize(R.dimen.wire__padding__16);
+        backgroundBottomPadding = context.getResources().getDimensionPixelSize(R.dimen.wire__padding__4);
 
         int tokenBackgroundColor = context.getResources().getColor(R.color.people_picker__input_person_token__background_color);
-        int textColor = context.getResources().getColor(R.color.text__primary_dark);
+        int textColor = context.getResources().getColor(R.color.text__primary_light);
         int textSize = context.getResources().getDimensionPixelSize(R.dimen.wire__text_size__regular);
 
         // Paints
@@ -72,13 +82,16 @@ public class UserTokenSpan extends SpannableEditText.TokenSpan {
         textPaint.setAntiAlias(true);
         textPaint.setColor(textColor);
         textPaint.setTextSize(textSize);
-        textPaint.setTypeface(TypefaceUtils.getTypeface(context.getResources().getString(R.string.wire__typeface__light)));
+        textPaint.setTypeface(TypefaceUtils.getTypeface(context.getResources().getString(R.string.wire__typeface__regular)));
 
         deleteModeTextPaint = new TextPaint();
         deleteModeTextPaint.setAntiAlias(true);
         deleteModeTextPaint.setColor(tokenBackgroundColor);
         deleteModeTextPaint.setTextSize(textSize);
         deleteModeTextPaint.setTypeface(TypefaceUtils.getTypeface(context.getResources().getString(R.string.wire__typeface__light)));
+
+        backgroundPaint = new Paint();
+        backgroundPaint.setColor(Color.WHITE);
 
         // Measure bounds of text and delete icon
         textBounds = new Rect();
@@ -112,19 +125,21 @@ public class UserTokenSpan extends SpannableEditText.TokenSpan {
         float textPosX = x + paddingHorizontal;
         float textPosY = y + textOffsetTop;
 
-        if (deleteMode) {
-            CharSequence truncatedText = TextUtils.ellipsize(userName,
-                                                             textPaint,
-                                                             availableTextSpace(),
-                                                             TextUtils.TruncateAt.END);
+        CharSequence truncatedText = TextUtils.ellipsize(userName,
+            textPaint,
+            availableTextSpace(),
+            TextUtils.TruncateAt.END);
 
+        canvas.drawRoundRect(
+            textPosX - paddingHorizontal,
+            textPosY - backgroundHeight,
+            textPosX + textBounds.width() + paddingHorizontal,
+            textPosY + backgroundBottomPadding,
+            backgroundRadius, backgroundRadius, backgroundPaint);
+
+        if (deleteMode) {
             canvas.drawText(truncatedText.toString(), textPosX, textPosY, deleteModeTextPaint);
         } else {
-            CharSequence truncatedText = TextUtils.ellipsize(userName,
-                                                             textPaint,
-                                                             availableTextSpace(),
-                                                             TextUtils.TruncateAt.END);
-
             canvas.drawText(truncatedText.toString(), textPosX, textPosY, textPaint);
         }
     }

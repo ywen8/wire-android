@@ -24,7 +24,6 @@ import android.support.v4.content.ContextCompat
 import android.support.v7.widget.RecyclerView.ViewHolder
 import android.support.v7.widget.{LinearLayoutManager, RecyclerView}
 import android.text.format.Formatter
-import android.text.{Editable, TextWatcher}
 import android.view.View.OnClickListener
 import android.view._
 import android.widget.LinearLayout.LayoutParams
@@ -44,13 +43,13 @@ import com.waz.zclient.controllers.{AssetsController, SharingController}
 import com.waz.zclient.messages.{MessagesController, UsersController}
 import com.waz.zclient.pages.BaseFragment
 import com.waz.zclient.pages.extendedcursor.ephemeral.EphemeralLayout
-import com.waz.zclient.ui.text.{TypefaceEditText, TypefaceTextView}
+import com.waz.zclient.ui.text.TypefaceTextView
 import com.waz.zclient.ui.utils.{BitmapUtils, ColorUtils}
 import com.waz.zclient.ui.views.CursorIconButton
 import com.waz.zclient.utils.ViewUtils
 import com.waz.zclient.views.ImageAssetDrawable.{RequestBuilder, ScaleType}
 import com.waz.zclient.views.ImageController.{ImageSource, WireImage}
-import com.waz.zclient.views.{AnimatedBottomContainer, BlurredImageAssetDrawable, EphemeralCursorButton}
+import com.waz.zclient.views._
 
 import scala.util.Success
 
@@ -70,7 +69,7 @@ class ShareToMultipleFragment extends BaseFragment[ShareToMultipleFragment.Conta
     val view = inflater.inflate(R.layout.fragment_collection_share, container, false)
     val listView = ViewUtils.getView(view, R.id.lv__conversation_list).asInstanceOf[RecyclerView]
     val sendButton = ViewUtils.getView(view, R.id.cib__send_button).asInstanceOf[CursorIconButton]
-    val searchBox = ViewUtils.getView(view, R.id.multi_share_search_box).asInstanceOf[TypefaceEditText]
+    val searchBox = ViewUtils.getView(view, R.id.multi_share_search_box).asInstanceOf[PickerSpannableEditText]
     val contentLayout = ViewUtils.getView(view, R.id.content_container).asInstanceOf[RelativeLayout]
     val profileImageView = ViewUtils.getView(view, R.id.user_photo).asInstanceOf[ImageView]
     val bottomContainer = ViewUtils.getView(view, R.id.ephemeral_container).asInstanceOf[AnimatedBottomContainer]
@@ -90,8 +89,25 @@ class ShareToMultipleFragment extends BaseFragment[ShareToMultipleFragment.Conta
     Signal(accentColorController.accentColor, adapter.selectedConversations).on(Threading.Ui){
       case (color, convs) if convs.nonEmpty =>
         sendButton.setSolidBackgroundColor(color.getColor())
+        searchBox.setAccentColor(color.getColor())
+      case (color, _) =>
+        sendButton.setSolidBackgroundColor(ColorUtils.injectAlpha(0.4f, color.getColor()))
+        searchBox.setAccentColor(color.getColor())
       case _ =>
-        sendButton.setSolidBackgroundColor(ContextCompat.getColor(getContext, R.color.light_graphite))
+    }
+
+    val convSignal = for {
+      z <- zms
+      convs <- z.convsContent.conversationsSignal
+      selected <- Signal.wrap(adapter.conversationSelectEvent)
+     } yield (convs.conversations.find(c => c.id == selected._1), selected._2)
+
+    convSignal.on(Threading.Ui){
+      case (Some(convData), true) =>
+        searchBox.addElement(PickableConversation(convData))
+      case (Some(convData), false) =>
+        searchBox.removeElement(PickableConversation(convData))
+      case _ =>
     }
 
     profileImageView.setImageDrawable(new BlurredImageAssetDrawable(userImage, scaleType = ScaleType.CenterCrop, request = RequestBuilder.Single, blurRadius = 20, context = getContext))
@@ -99,14 +115,14 @@ class ShareToMultipleFragment extends BaseFragment[ShareToMultipleFragment.Conta
     vignetteOverlay.setImageBitmap(BitmapUtils.getVignetteBitmap(getResources))
     vignetteOverlay.setColorFilter(darkenColor, PorterDuff.Mode.DARKEN)
 
-    searchBox.addTextChangedListener(new TextWatcher {
-      override def beforeTextChanged(s: CharSequence, start: Int, count: Int, after: Int): Unit = {}
-
-      override def onTextChanged(s: CharSequence, start: Int, before: Int, count: Int): Unit = {
-        filterText ! s.toString
+    searchBox.setCallback(new PickerSpannableEditText.Callback {
+      override def onRemovedTokenSpan(element: PickableElement) = {
+        adapter.conversationSelectEvent ! (ConvId(element.id), false)
       }
 
-      override def afterTextChanged(s: Editable): Unit = {}
+      override def afterTextChanged(s: String) = {
+        filterText ! searchBox.getSearchFilter
+      }
     })
 
     listView.setLayoutManager(new LinearLayoutManager(getContext))
@@ -221,6 +237,31 @@ class ShareToMultipleFragment extends BaseFragment[ShareToMultipleFragment.Conta
   }
 }
 
+object ShareToMultipleFragment {
+  val TAG = ShareToMultipleFragment.getClass.getSimpleName
+
+  val MSG_ID_ARG = "MSG_ID_ARG"
+
+  def newInstance(messageId: MessageId): ShareToMultipleFragment = {
+    val fragment = new ShareToMultipleFragment
+    val bundle = new Bundle()
+    bundle.putString(MSG_ID_ARG, messageId.str)
+    fragment.setArguments(bundle)
+    fragment
+  }
+
+  def newInstance(): ShareToMultipleFragment = {
+    new ShareToMultipleFragment
+  }
+
+  trait Container
+}
+
+case class PickableConversation(conversationData: ConversationData) extends PickableElement{
+  override def id = conversationData.id.str
+  override def name = conversationData.displayName
+}
+
 class ShareToMultipleAdapter(context: Context, filter: Signal[String])(implicit injector: Injector, eventContext: EventContext) extends RecyclerView.Adapter[RecyclerView.ViewHolder] with Injectable {
   setHasStableIds(true)
 
@@ -240,14 +281,20 @@ class ShareToMultipleAdapter(context: Context, filter: Signal[String])(implicit 
 
   val selectedConversations: SourceSignal[Set[ConvId]] = Signal(Set())
 
+  val conversationSelectEvent = EventStream[(ConvId, Boolean)]()
+  conversationSelectEvent.on(Threading.Ui){ event =>
+    if (event._2) {
+      selectedConversations.mutate( _ + event._1)
+    } else {
+      selectedConversations.mutate( _ - event._1)
+    }
+    notifyDataSetChanged()
+  }
+
   private val checkBoxListener = new CompoundButton.OnCheckedChangeListener {
     override def onCheckedChanged(buttonView: CompoundButton, isChecked: Boolean): Unit = {
       Option(buttonView.getTag.asInstanceOf[ConvId]).foreach{ convId =>
-        if (isChecked) {
-          selectedConversations.mutate( _ + convId)
-        } else {
-          selectedConversations.mutate( _ - convId)
-        }
+        conversationSelectEvent ! (convId, isChecked)
       }
     }
   }
@@ -314,24 +361,4 @@ class SelectableConversationRow(context: Context, checkBoxListener: CompoundButt
   nameView.setOnClickListener(new OnClickListener() {
     override def onClick(v: View): Unit = checkBox.toggle()
   })
-}
-
-object ShareToMultipleFragment {
-  val TAG = ShareToMultipleFragment.getClass.getSimpleName
-
-  val MSG_ID_ARG = "MSG_ID_ARG"
-
-  def newInstance(messageId: MessageId): ShareToMultipleFragment = {
-    val fragment = new ShareToMultipleFragment
-    val bundle = new Bundle()
-    bundle.putString(MSG_ID_ARG, messageId.str)
-    fragment.setArguments(bundle)
-    fragment
-  }
-
-  def newInstance(): ShareToMultipleFragment = {
-    new ShareToMultipleFragment
-  }
-
-  trait Container
 }

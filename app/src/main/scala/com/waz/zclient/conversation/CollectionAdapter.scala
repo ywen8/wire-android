@@ -57,7 +57,7 @@ import com.waz.zclient.ui.text.GlyphTextView
 import com.waz.zclient.ui.utils.ResourceUtils
 import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.utils.ViewUtils
-import com.waz.zclient.views._
+import com.waz.zclient.views.{CollectionItemViewHolder, _}
 import com.waz.zclient.{Injectable, Injector, R, ViewHelper}
 import org.threeten.bp._
 import org.threeten.bp.temporal.ChronoUnit
@@ -148,10 +148,10 @@ class CollectionAdapter(viewDim: Signal[Dim2])(implicit context: Context, inject
   override def onBindViewHolder(holder: ViewHolder, position: Int): Unit = {
     getItem(position).foreach{ md =>
       holder match {
-        case f: FileViewHolder => f.setMessageData(md)
         case c: CollectionImageViewHolder => c.setMessageData(md, viewDim.currentValue.fold(0)(_.width) / CollectionController.GridColumns, ResourceUtils.getRandomAccentColor(context)); c.view.setTag(position)
-        case l: LinkPreviewViewHolder => l.setMessageData(md)
-        case l: SimpleLinkViewHolder => l.setMessageData(md)
+        case l: CollectionItemViewHolder if getItemViewType(position) == CollectionAdapter.VIEW_TYPE_LINK_PREVIEW => l.setMessageData(md, md.content.find(_.openGraph.nonEmpty))
+        case l: CollectionItemViewHolder => l.setMessageData(md)
+        case _ =>
       }
     }
   }
@@ -194,11 +194,8 @@ class CollectionAdapter(viewDim: Signal[Dim2])(implicit context: Context, inject
 
   override def onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder =
     viewType match {
-      case CollectionAdapter.VIEW_TYPE_FILE => FileViewHolder(inflateCollectionView(CollectionAdapter.VIEW_TYPE_FILE, parent))
       case CollectionAdapter.VIEW_TYPE_IMAGE => CollectionImageViewHolder(inflateCollectionImageView(parent), imageListener)
-      case CollectionAdapter.VIEW_TYPE_LINK_PREVIEW => LinkPreviewViewHolder(inflateCollectionView(CollectionAdapter.VIEW_TYPE_LINK_PREVIEW, parent))
-      case CollectionAdapter.VIEW_TYPE_SIMPLE_LINK => SimpleLinkViewHolder(inflateCollectionView(CollectionAdapter.VIEW_TYPE_SIMPLE_LINK, parent))
-      case _ => returning(null.asInstanceOf[ViewHolder])(_ => error(s"Unexpected ViewType: $viewType"))
+      case otherType => CollectionItemViewHolder(inflateCollectionView(otherType, parent))
     }
 
   private def inflateCollectionImageView(parent: ViewGroup): CollectionImageView = {
@@ -215,6 +212,8 @@ class CollectionAdapter(viewDim: Signal[Dim2])(implicit context: Context, inject
         ViewHelper.inflate[CollectionNormalItemView](R.layout.collection_link_preview, parent, addToParent = false)
       case CollectionAdapter.VIEW_TYPE_SIMPLE_LINK =>
         ViewHelper.inflate[CollectionNormalItemView](R.layout.collection_simple_link, parent, addToParent = false)
+      case _ =>
+        returning(null.asInstanceOf[CollectionNormalItemView])(_ => error(s"Unexpected ViewType: $viewType"))
     }
     parent.addView(view)
     view

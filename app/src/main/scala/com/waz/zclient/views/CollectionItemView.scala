@@ -184,7 +184,7 @@ class CollectionSimpleWebLinkPartView(context: Context, attrs: AttributeSet, sty
   }
 }
 
-abstract class CollectionItemViewHolder(view: CollectionNormalItemView)(implicit eventContext: EventContext) extends RecyclerView.ViewHolder(view){
+case class CollectionItemViewHolder(view: CollectionNormalItemView)(implicit eventContext: EventContext) extends RecyclerView.ViewHolder(view){
 
   def setMessageData(messageData: MessageData, content: Option[MessageContent]): Unit = {
     view.setMessageData(messageData, content)
@@ -194,17 +194,6 @@ abstract class CollectionItemViewHolder(view: CollectionNormalItemView)(implicit
     setMessageData(messageData, None)
   }
 }
-
-case class FileViewHolder(view: CollectionNormalItemView)(implicit eventContext: EventContext) extends CollectionItemViewHolder(view)
-
-case class LinkPreviewViewHolder(view: CollectionNormalItemView)(implicit eventContext: EventContext) extends CollectionItemViewHolder(view) {
-  override def setMessageData(messageData: MessageData): Unit = {
-    val content = messageData.content.find(_.openGraph.nonEmpty)
-    setMessageData(messageData, content)
-  }
-}
-
-case class SimpleLinkViewHolder(view: CollectionNormalItemView)(implicit eventContext: EventContext) extends CollectionItemViewHolder(view)
 
 case class CollectionImageViewHolder(view: CollectionImageView, listener: OnClickListener)(implicit eventContext: EventContext) extends RecyclerView.ViewHolder(view) {
   view.onClicked { _ =>
