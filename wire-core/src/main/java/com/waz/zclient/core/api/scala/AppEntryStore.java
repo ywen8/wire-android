@@ -22,6 +22,7 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.text.TextUtils;
 import com.waz.api.AccentColor;
+import com.waz.api.CoreList;
 import com.waz.api.Credentials;
 import com.waz.api.CredentialsFactory;
 import com.waz.api.CredentialsUpdateListener;
@@ -33,6 +34,7 @@ import com.waz.api.Invitations;
 import com.waz.api.KindOfAccess;
 import com.waz.api.KindOfVerification;
 import com.waz.api.LoginListener;
+import com.waz.api.OtrClient;
 import com.waz.api.Self;
 import com.waz.api.UpdateListener;
 import com.waz.api.ZMessagingApi;
@@ -46,12 +48,12 @@ import com.waz.zclient.core.controllers.tracking.events.registration.EnteredPhon
 import com.waz.zclient.core.controllers.tracking.events.registration.OpenedEmailSignUpEvent;
 import com.waz.zclient.core.controllers.tracking.events.registration.OpenedPhoneSignUpEvent;
 import com.waz.zclient.core.controllers.tracking.events.registration.PhoneVerification;
+import com.waz.zclient.core.controllers.tracking.events.registration.RequestedPhoneVerificationCallEvent;
 import com.waz.zclient.core.controllers.tracking.events.registration.ResentEmailVerificationEvent;
 import com.waz.zclient.core.controllers.tracking.events.registration.ResentPhoneVerificationEvent;
 import com.waz.zclient.core.controllers.tracking.events.registration.SucceededWithRegistrationEvent;
 import com.waz.zclient.core.controllers.tracking.events.registration.VerifiedEmailEvent;
 import com.waz.zclient.core.controllers.tracking.events.registration.VerifiedPhoneEvent;
-import com.waz.zclient.core.controllers.tracking.events.registration.RequestedPhoneVerificationCallEvent;
 import com.waz.zclient.core.controllers.tracking.events.session.LoggedInEvent;
 import com.waz.zclient.core.stores.appentry.AppEntryError;
 import com.waz.zclient.core.stores.appentry.AppEntryState;
@@ -74,6 +76,7 @@ public class AppEntryStore implements IAppEntryStore, ErrorsList.ErrorListener {
 
     private Context context;
     private Self self;
+    private CoreList<OtrClient> otherOtrClients;
     private ZMessagingApi zMessagingApi;
     private ErrorsList errors;
     private AppEntryStateCallback appEntryStateCallback;
@@ -98,6 +101,13 @@ public class AppEntryStore implements IAppEntryStore, ErrorsList.ErrorListener {
         @Override
         public void updated() {
             onSelfUpdated();
+        }
+    };
+
+    private UpdateListener otrClientsUpdateListender = new UpdateListener() {
+        @Override
+        public void updated() {
+            Timber.i("otrClientsUpdateListender size=%d", otherOtrClients.size());
         }
     };
 
@@ -238,6 +248,13 @@ public class AppEntryStore implements IAppEntryStore, ErrorsList.ErrorListener {
 
     // Here we handle email verification click on a different device
     private void onSelfUpdated() {
+        if (otherOtrClients == null || otherOtrClients.size() == 0) {
+            if (otherOtrClients != null) {
+                otherOtrClients.removeUpdateListener(otrClientsUpdateListender);
+            }
+            otherOtrClients = self.getOtherOtrClients();
+            otherOtrClients.addUpdateListener(otrClientsUpdateListender);
+        }
         if (ignoreSelfUpdates || appEntryStateCallback == null) {
             return;
         }
@@ -268,24 +285,27 @@ public class AppEntryStore implements IAppEntryStore, ErrorsList.ErrorListener {
 
     /* returns true if bound to new self */
     private boolean bindSelf(Self self) {
-
         // always unregister old self
         if (this.self != null &&
             this.self != self) {
             this.self.removeUpdateListener(selfUpdateListener);
+            if (otherOtrClients != null) {
+                otherOtrClients.removeUpdateListener(otrClientsUpdateListender);
+            }
+        } else if (this.self == self) {
+            return false;
         }
 
         if (self == null) {
             this.self = null;
-            return false;
-        }
-
-        if (this.self == self) {
+            otherOtrClients = null;
             return false;
         }
 
         this.self = self;
         this.self.addUpdateListener(selfUpdateListener);
+        otherOtrClients = self.getOtherOtrClients();
+        otherOtrClients.addUpdateListener(otrClientsUpdateListender);
         return true;
     }
 
@@ -392,7 +412,7 @@ public class AppEntryStore implements IAppEntryStore, ErrorsList.ErrorListener {
                 appEntryStateCallback.onShowPhoneCodePage();
                 break;
             case PHONE_SIGNED_IN:
-                if (self.getEmail().isEmpty()) {
+                if (self.getEmail().isEmpty() && otherOtrClients != null && otherOtrClients.size() > 0) {
                     setState(AppEntryState.PHONE_EMAIL_PASSWORD);
                     break;
                 }
@@ -405,7 +425,7 @@ public class AppEntryStore implements IAppEntryStore, ErrorsList.ErrorListener {
             // TODO: This state was needed because SyncEngine isEmailVerified() was not entirely reliable,
             // accountActivated() flag should not have this problem, we should remove this special state.
             case PHONE_SIGNED_IN_RESUMING:
-                if (self.getEmail().isEmpty()) {
+                if (self.getEmail().isEmpty() && otherOtrClients != null && otherOtrClients.size() > 0) {
                     setState(AppEntryState.PHONE_EMAIL_PASSWORD);
                     break;
                 }
@@ -471,6 +491,10 @@ public class AppEntryStore implements IAppEntryStore, ErrorsList.ErrorListener {
                 entryPoint = null;
                 context.getSharedPreferences(PREF_REGISTRATION, Context.MODE_PRIVATE).edit().clear().apply();
                 self.removeUpdateListener(selfUpdateListener);
+
+                if (otherOtrClients != null) {
+                    otherOtrClients.removeUpdateListener(otrClientsUpdateListender);
+                }
                 appEntryStateCallback.onEnterApplication();
                 break;
             case EMAIL_INVITATION:
