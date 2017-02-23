@@ -83,6 +83,7 @@ import com.waz.zclient.pages.main.connectivity.ConnectivityFragment;
 import com.waz.zclient.pages.main.grid.GridFragment;
 import com.waz.zclient.pages.main.profile.ZetaPreferencesActivity;
 import com.waz.zclient.pages.startup.UpdateFragment;
+import com.waz.zclient.tracking.GlobalTrackingController;
 import com.waz.zclient.tracking.UiTrackingController;
 import com.waz.zclient.utils.BuildConfigUtils;
 import com.waz.zclient.utils.Emojis;
@@ -184,12 +185,12 @@ public class MainActivity extends BaseActivity implements MainPhoneFragment.Cont
             HockeyCrashReporting.checkForUpdates(this);
         }
 
-        getControllerFactory().getTrackingController().appLaunched(getIntent());
+        injectJava(GlobalTrackingController.class).appLaunched(getIntent());
         String appCrash = getControllerFactory().getUserPreferencesController().getCrashException();
         String appCrashDetails = getControllerFactory().getUserPreferencesController().getCrashDetails();
         if (appCrash != null) {
             Event exceptionEvent = ExceptionEvent.exception(appCrash, appCrashDetails);
-            getControllerFactory().getTrackingController().tagEvent(exceptionEvent);
+            injectJava(GlobalTrackingController.class).tagEvent(exceptionEvent);
         }
         getControllerFactory().getLoadTimeLoggerController().appStart();
     }
@@ -250,7 +251,7 @@ public class MainActivity extends BaseActivity implements MainPhoneFragment.Cont
         if (trackingEnabled) {
             HockeyCrashReporting.checkForCrashes(getApplicationContext(),
                                                  getControllerFactory().getUserPreferencesController().getDeviceId(),
-                                                 getControllerFactory().getTrackingController());
+                                                 injectJava(GlobalTrackingController.class));
         } else {
             HockeyCrashReporting.deleteCrashReports(getApplicationContext());
             NativeCrashManager.deleteDumpFiles(getApplicationContext());
@@ -352,12 +353,12 @@ public class MainActivity extends BaseActivity implements MainPhoneFragment.Cont
             onPasswordWasReset();
         }
 
-        getControllerFactory().getTrackingController().appLaunched(intent);
+        injectJava(GlobalTrackingController.class).appLaunched(intent);
         String appCrash = getControllerFactory().getUserPreferencesController().getCrashException();
         String appCrashDetails = getControllerFactory().getUserPreferencesController().getCrashDetails();
         if (appCrash != null) {
             Event exceptionEvent = ExceptionEvent.exception(appCrash, appCrashDetails);
-            getControllerFactory().getTrackingController().tagEvent(exceptionEvent);
+            injectJava(GlobalTrackingController.class).tagEvent(exceptionEvent);
         }
         setIntent(intent);
 
@@ -564,7 +565,7 @@ public class MainActivity extends BaseActivity implements MainPhoneFragment.Cont
             return;
         }
         getStoreFactory().getConnectStore().requestConnection(token);
-        getControllerFactory().getTrackingController().tagEvent(new AcceptedGenericInviteEvent());
+        injectJava(GlobalTrackingController.class).tagEvent(new AcceptedGenericInviteEvent());
     }
 
     private void handleReferral() {
@@ -576,7 +577,7 @@ public class MainActivity extends BaseActivity implements MainPhoneFragment.Cont
             return;
         }
         getStoreFactory().getConnectStore().requestConnection(referralToken);
-        getControllerFactory().getTrackingController().tagEvent(new AcceptedGenericInviteEvent());
+        injectJava(GlobalTrackingController.class).tagEvent(new AcceptedGenericInviteEvent());
     }
 
     //////////////////////////////////////////////////////////////////////////////////////////
@@ -658,7 +659,7 @@ public class MainActivity extends BaseActivity implements MainPhoneFragment.Cont
 
         switch (page) {
             case CONVERSATION_LIST:
-                getControllerFactory().getTrackingController().onApplicationScreen(ApplicationScreen.CONVERSATION_LIST);
+                injectJava(GlobalTrackingController.class).onApplicationScreen(ApplicationScreen.CONVERSATION_LIST);
                 break;
             case MESSAGE_STREAM:
                 IConversation currentConversation =  getStoreFactory().getConversationStore().getCurrentConversation();
@@ -670,31 +671,31 @@ public class MainActivity extends BaseActivity implements MainPhoneFragment.Cont
                     ((conversationName.toLowerCase(Locale.getDefault()).contains("otto") &&
                       conversationName.toLowerCase(Locale.getDefault()).contains("bot")) ||
                      TextUtils.equals(currentConversation.getOtherParticipant().getEmail(), "ottobot@wire.com"))) {
-                    getControllerFactory().getTrackingController().onApplicationScreen(ApplicationScreen.CONVERSATION__BOT);
+                    injectJava(GlobalTrackingController.class).onApplicationScreen(ApplicationScreen.CONVERSATION__BOT);
                 } else {
-                    getControllerFactory().getTrackingController().onApplicationScreen(ApplicationScreen.CONVERSATION);
+                    injectJava(GlobalTrackingController.class).onApplicationScreen(ApplicationScreen.CONVERSATION);
                 }
                 break;
             case CAMERA:
-                getControllerFactory().getTrackingController().onApplicationScreen(ApplicationScreen.CAMERA);
+                injectJava(GlobalTrackingController.class).onApplicationScreen(ApplicationScreen.CAMERA);
                 break;
             case DRAWING:
-                getControllerFactory().getTrackingController().onApplicationScreen(ApplicationScreen.DRAW_SKETCH);
+                injectJava(GlobalTrackingController.class).onApplicationScreen(ApplicationScreen.DRAW_SKETCH);
                 break;
             case CONNECT_REQUEST_INBOX:
-                getControllerFactory().getTrackingController().onApplicationScreen(ApplicationScreen.CONVERSATION__INBOX);
+                injectJava(GlobalTrackingController.class).onApplicationScreen(ApplicationScreen.CONVERSATION__INBOX);
                 break;
             case PENDING_CONNECT_REQUEST_AS_CONVERSATION:
-                getControllerFactory().getTrackingController().onApplicationScreen(ApplicationScreen.CONVERSATION__PENDING);
+                injectJava(GlobalTrackingController.class).onApplicationScreen(ApplicationScreen.CONVERSATION__PENDING);
                 break;
             case PARTICIPANT:
-                getControllerFactory().getTrackingController().onApplicationScreen(ApplicationScreen.CONVERSATION__PARTICIPANTS);
+                injectJava(GlobalTrackingController.class).onApplicationScreen(ApplicationScreen.CONVERSATION__PARTICIPANTS);
                 break;
             case PICK_USER_ADD_TO_CONVERSATION:
-                getControllerFactory().getTrackingController().onApplicationScreen(ApplicationScreen.START_UI__ADD_TO_CONVERSATION);
+                injectJava(GlobalTrackingController.class).onApplicationScreen(ApplicationScreen.START_UI__ADD_TO_CONVERSATION);
                 break;
             case PICK_USER:
-                getControllerFactory().getTrackingController().onApplicationScreen(ApplicationScreen.START_UI);
+                injectJava(GlobalTrackingController.class).onApplicationScreen(ApplicationScreen.START_UI);
                 break;
         }
     }
@@ -754,8 +755,8 @@ public class MainActivity extends BaseActivity implements MainPhoneFragment.Cont
     public void logout() {
         getSupportFragmentManager().popBackStackImmediate();
         // TODO: Remove old SignOut event AN-4232
-        getControllerFactory().getTrackingController().tagEvent(new SignOut());
-        getControllerFactory().getTrackingController().tagEvent(new LoggedOutEvent());
+        injectJava(GlobalTrackingController.class).tagEvent(new SignOut());
+        injectJava(GlobalTrackingController.class).tagEvent(new LoggedOutEvent());
         getStoreFactory().getZMessagingApiStore().logout();
         getControllerFactory().getUsernameController().logout();
     }
@@ -787,9 +788,9 @@ public class MainActivity extends BaseActivity implements MainPhoneFragment.Cont
         handleOnStartCall(withVideo);
         IConversation conversation = getStoreFactory().getConversationStore().getCurrentConversation();
         if (withVideo) {
-            getControllerFactory().getTrackingController().tagEvent(OpenedMediaActionEvent.cursorAction(OpenedMediaAction.VIDEO_CALL, conversation));
+            injectJava(GlobalTrackingController.class).tagEvent(OpenedMediaActionEvent.cursorAction(OpenedMediaAction.VIDEO_CALL, conversation));
         } else {
-            getControllerFactory().getTrackingController().tagEvent(OpenedMediaActionEvent.cursorAction(OpenedMediaAction.AUDIO_CALL, conversation));
+            injectJava(GlobalTrackingController.class).tagEvent(OpenedMediaActionEvent.cursorAction(OpenedMediaAction.AUDIO_CALL, conversation));
         }
     }
 
@@ -979,7 +980,7 @@ public class MainActivity extends BaseActivity implements MainPhoneFragment.Cont
             return;
         }
         if (previousVerification != Verification.VERIFIED && currentVerification == Verification.VERIFIED) {
-            getControllerFactory().getTrackingController().tagEvent(new VerifiedConversationEvent());
+            injectJava(GlobalTrackingController.class).tagEvent(new VerifiedConversationEvent());
         }
     }
 
