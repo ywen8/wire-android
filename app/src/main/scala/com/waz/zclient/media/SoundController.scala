@@ -140,8 +140,8 @@ class SoundController(implicit inj: Injector, cxt: Context) extends Injectable {
   def setCustomSoundUrisFromPreferences(preferences: SharedPreferences) = {
     Seq(
       (R.string.pref_options_ringtones_ringtone_key, R.raw.ringing_from_them, Seq(R.raw.ringing_from_me, R.raw.ringing_from_me_video, R.raw.ringing_from_them_incall)),
-      (R.string.pref_options_ringtones_text_key,     R.raw.ping_from_them,    Seq(R.raw.ping_from_me)),
-      (R.string.pref_options_ringtones_ping_key,     R.raw.new_message,       Seq(R.raw.first_message, R.raw.new_message_gcm))
+      (R.string.pref_options_ringtones_ping_key,     R.raw.ping_from_them,    Seq(R.raw.ping_from_me)),
+      (R.string.pref_options_ringtones_text_key,     R.raw.new_message,       Seq(R.raw.first_message, R.raw.new_message_gcm))
     ).map { case (uriPrefKey, mainId, otherIds) => (Option(preferences.getString(getString(uriPrefKey), null)), mainId, otherIds) }.foreach {
       case (Some(uri), mainId, otherIds) =>
         val isDefault = isDefaultValue(cxt, uri, R.raw.ringing_from_them)
