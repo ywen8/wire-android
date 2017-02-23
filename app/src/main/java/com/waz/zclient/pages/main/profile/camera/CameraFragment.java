@@ -37,16 +37,16 @@ import com.waz.api.ImageAssetFactory;
 import com.waz.zclient.OnBackPressedListener;
 import com.waz.zclient.R;
 import com.waz.zclient.camera.CameraPreviewObserver;
-import com.waz.zclient.camera.views.CameraPreviewTextureView;
 import com.waz.zclient.camera.FlashMode;
+import com.waz.zclient.camera.views.CameraPreviewTextureView;
 import com.waz.zclient.controllers.accentcolor.AccentColorObserver;
 import com.waz.zclient.controllers.camera.CameraActionObserver;
 import com.waz.zclient.controllers.drawing.DrawingController;
 import com.waz.zclient.controllers.drawing.IDrawingController;
 import com.waz.zclient.controllers.orientation.OrientationControllerObserver;
 import com.waz.zclient.pages.BaseFragment;
-import com.waz.zclient.pages.main.conversation.AssetIntentsManager;
 import com.waz.zclient.pages.extendedcursor.image.ImagePreviewLayout;
+import com.waz.zclient.pages.main.conversation.AssetIntentsManager;
 import com.waz.zclient.pages.main.profile.camera.controls.CameraBottomControl;
 import com.waz.zclient.pages.main.profile.camera.controls.CameraTopControl;
 import com.waz.zclient.ui.animation.interpolators.penner.Expo;
@@ -202,7 +202,6 @@ public class CameraFragment extends BaseFragment<CameraFragment.Container> imple
         if (LayoutSpec.isPhone(getActivity())) {
             getControllerFactory().getOrientationController().addOrientationControllerObserver(this);
         }
-        getStoreFactory().getInAppNotificationStore().setUserSendingPicture(true);
     }
 
     @Override
@@ -216,7 +215,6 @@ public class CameraFragment extends BaseFragment<CameraFragment.Container> imple
     public void onStop() {
         getControllerFactory().getAccentColorController().removeAccentColorObserver(this);
         getControllerFactory().getOrientationController().removeOrientationControllerObserver(this);
-        getStoreFactory().getInAppNotificationStore().setUserSendingPicture(false);
 
         super.onStop();
     }

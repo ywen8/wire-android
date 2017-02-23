@@ -18,12 +18,8 @@
 package com.waz.zclient.core.stores.stub;
 
 import com.waz.api.ErrorsList;
-import com.waz.api.IConversation;
-import com.waz.api.Message;
 import com.waz.zclient.core.stores.inappnotification.IInAppNotificationStore;
 import com.waz.zclient.core.stores.inappnotification.InAppNotificationStoreObserver;
-import java.lang.Override;
-import java.lang.String;
 
 public class StubInAppNotificationStore implements IInAppNotificationStore {
   @Override
@@ -37,22 +33,7 @@ public class StubInAppNotificationStore implements IInAppNotificationStore {
   }
 
   @Override
-  public ErrorsList getErrorList() {
-    return null;
-  }
-
-  @Override
-  public void setUserSendingPicture(boolean userSendingPicture) {
-    ;
-  }
-
-  @Override
   public void tearDown() {
-    ;
-  }
-
-  @Override
-  public void setIsLandscape(boolean isInLandscape) {
     ;
   }
 
@@ -62,32 +43,8 @@ public class StubInAppNotificationStore implements IInAppNotificationStore {
   }
 
   @Override
-  public boolean shouldShowChatheads(IConversation currentConversation, Message message) {
-    return false;
-  }
-
-  @Override
   public void removeInAppNotificationObserver(InAppNotificationStoreObserver messageListener) {
     ;
   }
 
-  @Override
-  public void setUserLookingAtPeoplePicker(boolean userLookingAtPeoplePicker) {
-    ;
-  }
-
-  @Override
-  public void onScrolledAwayFromBottom() {
-    ;
-  }
-
-  @Override
-  public void onScrolledToBottom() {
-    ;
-  }
-
-  @Override
-  public void setUserLookingAtParticipants(boolean userLookingAtParticipants) {
-    ;
-  }
 }

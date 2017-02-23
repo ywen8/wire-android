@@ -46,10 +46,6 @@
     <string translatable="false" name="forced_update__sub_header__font">@string/wire__typeface__regular</string>
     <string translatable="false" name="forced_update__button__font">@string/wire__typeface__regular</string>
     <string translatable="false" name="mediaplayer__font">@string/wire__typeface__light</string>
-    <string translatable="false" name="message_notification_chathead__username__font">@string/wire__typeface__light</string>
-    <string translatable="false" name="message_notification_chathead__username__text_transform">UPPER</string>
-    <string translatable="false" name="message_notification_chathead__label__font">@string/wire__typeface__light</string>
-    <string translatable="false" name="message_notification_chathead__label__text_transform"></string>
     <string translatable="false" name="network_indicator__font">@string/wire__typeface__bold</string>
     <string translatable="false" name="onboarding_hint__font">@string/wire__typeface__light</string>
     <string translatable="false" name="onboarding_hint__discover_change_profile_picture__text_font">@string/wire__typeface__light</string>

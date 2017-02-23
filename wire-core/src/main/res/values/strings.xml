@@ -328,16 +328,6 @@
     <string name="content__message__connect_request__auto_connect__footer">AUTO-CONNECTED. _LEARN MORE_</string>
     <string name="content__message__connect_request__user_info">%1$s in Contacts</string>
 
-
-    <!-- In-App Notifications -->
-    <string name="in_app_notification__footer__photo">Shared a photo</string>
-    <string name="in_app_notification__footer__file">Shared a file</string>
-    <string name="in_app_notification__footer__video">Shared a video</string>
-    <string name="in_app_notification__footer__audio">Shared an audio message</string>
-    <string name="in_app_notification__footer__location">Shared a location</string>
-    <string name="in_app_notification__footer__ping">Pinged</string>
-    <string name="in_app_notification__footer__pinged_again">Pinged again</string>
-
     <!-- Otr-->
     <plurals name="conversation__degraded_confirmation__header__single_user">
         <item quantity="one">%1$s started using a new device.</item>

@@ -592,16 +592,6 @@
     <dimen name="mediaplayer__logo__padding">4dp</dimen>
     <dimen name="mediaplayer__controls_border_width">1dp</dimen>
 
-    <dimen name="message_notification_chathead__avatar__width">36dp</dimen>
-    <dimen name="message_notification_chathead__avatar__height">36dp</dimen>
-    <dimen name="message_notification_chathead__avatar__margin_right">6dp</dimen>
-    <dimen name="message_notification_chathead__background__padding_right">16dp</dimen>
-    <dimen name="message_notification_chathead__background__height">36dp</dimen>
-    <dimen name="message_notification_chathead__username__font_size">@dimen/wire__text_size__small</dimen>
-    <dimen name="message_notification_chathead__label__margin_bottom">3dp</dimen>
-    <dimen name="message_notification_chathead__username__padding_top">4dp</dimen>
-    <dimen name="message_notification_chathead__label__font_size">@dimen/wire__text_size__small</dimen>
-
     <dimen name="network_indicator__font__size">10dp</dimen>
     <dimen name="network_indicator__expanded_height">30dp</dimen>
     <dimen name="network_indicator__collapse_height">2dp</dimen>
@@ -628,9 +618,6 @@
 
     <!-- Screen height of a "large" screen. Screens smaller than this will not show logo on registration page -->
     <dimen name="new_reg__title_ab_test__hide_logo__screen_height">580dp</dimen>
-
-    <dimen name="notification__chathead__margin_top">70dp</dimen>
-    <dimen name="notification__chathead__margin_left">14dp</dimen>
 
     <dimen name="onboarding_hint__discover_change_profile_picture__text_size">@dimen/wire__text_size__small</dimen>
     <dimen name="onboarding_hint__discover_change_accent_color__margin_bottom">60dp</dimen>

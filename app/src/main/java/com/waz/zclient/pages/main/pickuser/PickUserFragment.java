@@ -1149,7 +1149,6 @@ public class PickUserFragment extends BaseFragment<PickUserFragment.Container> i
 
     private void closeStartUI() {
         KeyboardUtils.hideKeyboard(getActivity());
-        getStoreFactory().getInAppNotificationStore().setUserLookingAtPeoplePicker(false);
         getControllerFactory().getPickUserController().setSearchFilter("");
         getControllerFactory().getPickUserController().hidePickUser(getCurrentPickerDestination(), true);
     }

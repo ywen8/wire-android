@@ -145,9 +145,7 @@
     <integer name="new_reg__phone_number__min_length">5</integer>
 
     <integer name="notification__timespan_messages_considered_arriving_simultaneously">1000</integer>
-    <integer name="notification__chathead_animation__duration">400</integer>
     <integer name="notifications__system__led_off">1000</integer>
-    <integer name="notification__chathead__show_duration">3500</integer>
     <integer name="notifications__system__led_on">300</integer>
 
     <integer name="onboarding__show_hint__discover_search__count">0</integer>

@@ -19,8 +19,6 @@ package com.waz.zclient.core.stores.inappnotification;
 
 import android.support.annotation.Nullable;
 import com.waz.api.ErrorsList;
-import com.waz.api.IConversation;
-import com.waz.api.Message;
 import com.waz.zclient.core.stores.IStore;
 
 public interface IInAppNotificationStore extends IStore {
@@ -31,24 +29,7 @@ public interface IInAppNotificationStore extends IStore {
     /* removes an observer of incoming messages */
     void removeInAppNotificationObserver(InAppNotificationStoreObserver messageListener);
 
-    void setUserLookingAtPeoplePicker(boolean userLookingAtPeoplePicker);
-
-    void setUserLookingAtParticipants(boolean userLookingAtParticipants);
-
-    void setUserSendingPicture(boolean userSendingPicture);
-
-    void setIsLandscape(boolean isInLandscape);
-
     void dismissError(String errorId);
 
     @Nullable ErrorsList.ErrorDescription getError(String errorId);
-
-    ErrorsList getErrorList();
-
-    boolean shouldShowChatheads(IConversation currentConversation, Message message);
-
-    void onScrolledToBottom();
-
-    void onScrolledAwayFromBottom();
-
 }

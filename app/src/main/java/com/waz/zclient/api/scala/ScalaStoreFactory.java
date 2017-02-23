@@ -92,7 +92,7 @@ public class ScalaStoreFactory extends StoreFactory {
 
     @Override
     protected IInAppNotificationStore createInAppNotificationStore() {
-        return new ScalaInAppNotificationStore(context, getZMessagingApiStore().getApi());
+        return new ScalaInAppNotificationStore(getZMessagingApiStore().getApi());
     }
 
     @Override

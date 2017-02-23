@@ -255,9 +255,6 @@
     <color name="mediaplayer__seekbar_circle_color">@color/light_graphite_40</color>
     <color name="mediaplayer__seekbar_circle_progress_color">@color/accent_default</color>
 
-    <color name="message_notification__username_font_color">@color/white_64</color>
-    <color name="message_notification__font_color">@color/white</color>
-
     <color name="network_indicator__header__color">@color/accent_yellow</color>
     <color name="network_indicator__font__color">@color/white</color>
 

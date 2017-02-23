@@ -666,7 +666,7 @@ public class ParticipantBodyFragment extends BaseFragment<ParticipantBodyFragmen
         String cancel = getString(R.string.confirmation_menu__cancel);
         String checkboxLabel = getString(R.string.confirmation_menu__delete_conversation__checkbox__label);
 
-        ConfirmationRequest request = new ConfirmationRequest.Builder(IConfirmationController.LEAVE_CONVERSATION)
+        ConfirmationRequest request = new ConfirmationRequest.Builder()
             .withHeader(header)
             .withMessage(text)
             .withPositiveButton(confirm)

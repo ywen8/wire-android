@@ -311,7 +311,6 @@ public class ParticipantFragment extends BaseFragment<ParticipantFragment.Contai
             conversationChangeRequester == ConversationChangeRequester.START_CONVERSATION_FOR_VIDEO_CALL ||
             conversationChangeRequester == ConversationChangeRequester.START_CONVERSATION_FOR_CALL ||
             conversationChangeRequester == ConversationChangeRequester.START_CONVERSATION_FOR_CAMERA) {
-            getStoreFactory().getInAppNotificationStore().setUserLookingAtPeoplePicker(false);
             getChildFragmentManager().popBackStackImmediate(PickUserFragment.TAG,
                                                             FragmentManager.POP_BACK_STACK_INCLUSIVE);
             getControllerFactory().getPickUserController().hidePickUserWithoutAnimations(
@@ -444,7 +443,7 @@ public class ParticipantFragment extends BaseFragment<ParticipantFragment.Contai
         String cancel = getString(R.string.confirmation_menu__cancel);
         OptionsTheme optionsTheme = getControllerFactory().getThemeController().getThemeDependentOptionsTheme();
 
-        ConfirmationRequest request = new ConfirmationRequest.Builder(IConfirmationController.BLOCK_CONNECTED)
+        ConfirmationRequest request = new ConfirmationRequest.Builder()
             .withHeader(header)
             .withMessage(text)
             .withPositiveButton(confirm)
@@ -509,7 +508,7 @@ public class ParticipantFragment extends BaseFragment<ParticipantFragment.Contai
         String confirm = getString(R.string.confirmation_menu__confirm_delete);
         String cancel = getString(R.string.confirmation_menu__cancel);
 
-        ConfirmationRequest.Builder builder = new ConfirmationRequest.Builder(IConfirmationController.REMOVE_USER_FROM_CONVERSATION)
+        ConfirmationRequest.Builder builder = new ConfirmationRequest.Builder()
             .withHeader(header)
             .withMessage(text)
             .withPositiveButton(confirm)
@@ -622,7 +621,6 @@ public class ParticipantFragment extends BaseFragment<ParticipantFragment.Contai
         }
 
         if (getControllerFactory().getPickUserController().isShowingPickUser(getCurrentPickerDestination())) {
-            getStoreFactory().getInAppNotificationStore().setUserLookingAtPeoplePicker(false);
             getControllerFactory().getPickUserController().hidePickUser(getCurrentPickerDestination(), true);
             return true;
         }
@@ -699,7 +697,6 @@ public class ParticipantFragment extends BaseFragment<ParticipantFragment.Contai
 
     @Override
     public void onAddPeopleToConversation() {
-        getStoreFactory().getInAppNotificationStore().setUserLookingAtPeoplePicker(true);
         getControllerFactory().getPickUserController().showPickUser(IPickUserController.Destination.PARTICIPANTS, null);
     }
 
@@ -934,7 +931,7 @@ public class ParticipantFragment extends BaseFragment<ParticipantFragment.Contai
         String confirm = getString(R.string.confirmation_menu__confirm_remove);
         String cancel = getString(R.string.confirmation_menu__cancel);
 
-        ConfirmationRequest request = new ConfirmationRequest.Builder(IConfirmationController.REMOVE_USER_FROM_CONVERSATION)
+        ConfirmationRequest request = new ConfirmationRequest.Builder()
             .withHeader(header)
             .withMessage(text)
             .withPositiveButton(confirm)
@@ -1020,7 +1017,6 @@ public class ParticipantFragment extends BaseFragment<ParticipantFragment.Contai
     public void onSelectedUsers(List<User> users, ConversationChangeRequester requester) {
         IConversation currentConversation = getStoreFactory().getConversationStore().getCurrentConversation();
         if (currentConversation.getType() == IConversation.Type.ONE_TO_ONE) {
-            getStoreFactory().getInAppNotificationStore().setUserLookingAtPeoplePicker(false);
             getControllerFactory().getPickUserController().hidePickUser(getCurrentPickerDestination(), false);
             dismissDialog();
             getStoreFactory().getConversationStore().createGroupConversation(users, requester);
@@ -1035,7 +1031,6 @@ public class ParticipantFragment extends BaseFragment<ParticipantFragment.Contai
                                                                                                       (users.size() + 1)));
         } else if (currentConversation.getType() == IConversation.Type.GROUP) {
             currentConversation.addMembers(users);
-            getStoreFactory().getInAppNotificationStore().setUserLookingAtPeoplePicker(false);
             getControllerFactory().getPickUserController().hidePickUser(getCurrentPickerDestination(), false);
             if (!getStoreFactory().getNetworkStore().hasInternetConnection()) {
                 ViewUtils.showAlertDialog(getActivity(),
@@ -1227,7 +1222,7 @@ public class ParticipantFragment extends BaseFragment<ParticipantFragment.Contai
         String confirm = getString(R.string.confirmation_menu__confirm_leave);
         String cancel = getString(R.string.confirmation_menu__cancel);
 
-        ConfirmationRequest request = new ConfirmationRequest.Builder(IConfirmationController.LEAVE_CONVERSATION)
+        ConfirmationRequest request = new ConfirmationRequest.Builder()
             .withHeader(header)
             .withMessage(text)
             .withPositiveButton(confirm)

@@ -178,7 +178,6 @@ public class RootFragment extends BaseFragment<RootFragment.Container> implement
 
         boolean isInLandscape = ViewUtils.isInLandscape(newConfig);
         getControllerFactory().getNavigationController().setIsLandscape(isInLandscape);
-        getStoreFactory().getInAppNotificationStore().setIsLandscape(isInLandscape);
 
         slidingPaneLayout.setSideBarWidth(newConfig);
         if (isInLandscape) {

@@ -227,8 +227,6 @@ public class ConversationManagerFragment extends BaseFragment<ConversationManage
         this.getControllerFactory().getOnboardingController().incrementParticipantsShowCount();
         this.getControllerFactory().getNavigationController().setRightPage(Page.PARTICIPANT, TAG);
 
-        getStoreFactory().getInAppNotificationStore().setUserLookingAtParticipants(true);
-
         getChildFragmentManager()
             .beginTransaction()
             .setCustomAnimations(R.anim.slide_in_from_bottom_pick_user,
@@ -246,7 +244,6 @@ public class ConversationManagerFragment extends BaseFragment<ConversationManage
     @Override
     public void onHideParticipants(boolean backOrCloseButtonPressed, boolean hideByConversationChange, boolean isSingleConversation) {
         this.getControllerFactory().getNavigationController().setRightPage(Page.MESSAGE_STREAM, TAG);
-        getStoreFactory().getInAppNotificationStore().setUserLookingAtParticipants(false);
         getChildFragmentManager().popBackStack(ParticipantFragment.TAG, FragmentManager.POP_BACK_STACK_INCLUSIVE);
     }
 
@@ -555,7 +552,6 @@ public class ConversationManagerFragment extends BaseFragment<ConversationManage
     public void onSelectedUsers(List<User> users, ConversationChangeRequester requester) {
         // TODO https://wearezeta.atlassian.net/browse/AN-3730
         getControllerFactory().getPickUserController().hidePickUser(getCurrentPickerDestination(), false);
-        getStoreFactory().getInAppNotificationStore().setUserLookingAtPeoplePicker(false);
 
         IConversation currentConversation = getStoreFactory().getConversationStore().getCurrentConversation();
         if (currentConversation.getType() == IConversation.Type.ONE_TO_ONE) {
@@ -677,7 +673,6 @@ public class ConversationManagerFragment extends BaseFragment<ConversationManage
                                           LocationFragment.TAG)
                                  .addToBackStack(LocationFragment.TAG)
                                  .commit();
-        getStoreFactory().getInAppNotificationStore().setUserSendingPicture(true);
         getControllerFactory().getNavigationController().setRightPage(Page.SHARE_LOCATION, TAG);
     }
 
@@ -687,7 +682,6 @@ public class ConversationManagerFragment extends BaseFragment<ConversationManage
             getStoreFactory().getConversationStore().sendMessage(location);
         }
         getControllerFactory().getNavigationController().setRightPage(Page.MESSAGE_STREAM, TAG);
-        getStoreFactory().getInAppNotificationStore().setUserSendingPicture(false);
         getChildFragmentManager().popBackStack(LocationFragment.TAG, FragmentManager.POP_BACK_STACK_INCLUSIVE);
     }
 

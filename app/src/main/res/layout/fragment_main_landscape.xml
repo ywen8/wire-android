@@ -45,11 +45,8 @@
         android:layout_gravity="bottom"
         />
 
-    <!--
-        the in app notifications - always visible
-     -->
     <FrameLayout
-        android:id="@+id/fl_fragment_main_in_app_notification"
+        android:id="@+id/fl_dialog_container"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         />

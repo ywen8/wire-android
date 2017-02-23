@@ -19,7 +19,7 @@ package com.waz.zclient.messages
 
 import com.waz.ZLog.ImplicitTag._
 import com.waz.ZLog._
-import com.waz.api.{ContentSearchQuery, MessageFilter}
+import com.waz.api.MessageFilter
 import com.waz.content.ConvMessagesIndex._
 import com.waz.content.{ConvMessagesIndex, MessagesCursor}
 import com.waz.model.{ConvId, MessageData}

@@ -255,7 +255,7 @@ public class PendingConnectRequestManagerFragment extends BaseFragment<PendingCo
         String confirm = getString(R.string.confirmation_menu__confirm_block);
         String cancel = getString(R.string.confirmation_menu__cancel);
 
-        ConfirmationRequest request = new ConfirmationRequest.Builder(IConfirmationController.BLOCK_PENDING)
+        ConfirmationRequest request = new ConfirmationRequest.Builder()
             .withHeader(header)
             .withMessage(text)
             .withPositiveButton(confirm)

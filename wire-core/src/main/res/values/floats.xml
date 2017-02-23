@@ -44,9 +44,6 @@
     <item type="dimen" format="float" name="mediaplayer__font_hint_darken_overlay">0.64</item>
     <item name="mediaplayer__text__artist__alpha" format="float" type="dimen">0.7</item>
 
-    <item name="message_notification_chathead__background__darken_perc" format="float" type="dimen">0.76</item>
-
-    <item type="dimen" format="float" name="notification__chathead__alpha">0</item>
     <item name="notifications__incoming_call__chathead__font_proportion" format="float" type="dimen">0.33</item>
 
     <item type="dimen" format="float" name="participants__header__input_field__alpha">0</item>

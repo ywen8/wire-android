@@ -199,7 +199,6 @@ public class GiphySharingPreviewFragment extends BaseFragment<GiphySharingPrevie
         KeyboardUtils.hideKeyboard(getActivity());
         giphyGridViewAdapter.setScrollGifCallback(this);
         getControllerFactory().getAccentColorController().addAccentColorObserver(this);
-        getStoreFactory().getInAppNotificationStore().setUserSendingPicture(true);
         getStoreFactory().getNetworkStore().addNetworkStoreObserver(this);
         giphyTitle.setText(getStoreFactory().getConversationStore().getCurrentConversation().getName());
     }
@@ -223,7 +222,6 @@ public class GiphySharingPreviewFragment extends BaseFragment<GiphySharingPrevie
 
     @Override
     public void onStop() {
-        getStoreFactory().getInAppNotificationStore().setUserSendingPicture(false);
         getControllerFactory().getAccentColorController().removeAccentColorObserver(this);
         getStoreFactory().getNetworkStore().removeNetworkStoreObserver(this);
 
