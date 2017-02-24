@@ -27,7 +27,7 @@ import com.spotify.sdk.android.player.Config;
 import com.waz.api.KindOfSpotifyAccount;
 import com.waz.api.Spotify;
 import com.waz.api.ZMessagingApi;
-import com.waz.zclient.ZApplication;
+import com.waz.zclient.WireApplication;
 import com.waz.zclient.controllers.userpreferences.IUserPreferencesController;
 import com.waz.zclient.core.stores.IStoreFactory;
 import com.waz.zclient.core.stores.api.IZMessagingApiStore;
@@ -165,7 +165,7 @@ public class SpotifyController implements ISpotifyController {
 
     @Override
     public void setActivity(Activity activity) {
-        final IStoreFactory storeFactory = ZApplication.from(activity).getStoreFactory();
+        final IStoreFactory storeFactory = ((WireApplication) activity.getApplication()).storeFactory();
         if (storeFactory == null || storeFactory.isTornDown()) {
             return;
         }

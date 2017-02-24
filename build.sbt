@@ -97,7 +97,7 @@ lazy val app = Project("zclient-app", file("app"))
       val p = packagingOptions.value
       p.copy(excludes = p.excludes ++ Seq("META-INF/DEPENDENCIES", "META-INF/DEPENDENCIES.txt", "META-INF/LICENSE.txt", "META-INF/NOTICE", "META-INF/NOTICE.txt", "META-INF/LICENSE", "LICENSE.txt", "META-INF/LICENSE.txt", "META-INF/services/javax.annotation.processing.Processor"))
     },
-    dexMainClasses ++= Seq("com.waz.zclient.ZApplication", "com.waz.zclient.MainActivity"),
+    dexMainClasses ++= Seq("com.waz.zclient.WireApplication", "com.waz.zclient.MainActivity"),
     proguardScala := useProguard.value,
     dexInputs := {
       val di = dexInputs.value

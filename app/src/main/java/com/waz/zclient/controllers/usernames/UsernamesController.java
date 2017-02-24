@@ -22,7 +22,7 @@ import com.waz.api.Self;
 import com.waz.api.UsernameValidation;
 import com.waz.api.Usernames;
 import com.waz.api.ValidatedUsernames;
-import com.waz.zclient.ZApplication;
+import com.waz.zclient.WireApplication;
 import com.waz.zclient.core.api.scala.ModelObserver;
 import com.waz.zclient.utils.StringUtils;
 import java.util.ArrayList;
@@ -40,7 +40,7 @@ public class UsernamesController implements IUsernamesController {
     private static final int RANDOM_ATTEMPTS = 20;
     private static final int MAX_RANDOM_TRAILLING_NUMBER = 1000;
 
-    private ZApplication application = null;
+    private WireApplication application = null;
     private Random randomGenerator;
     private Set<UsernamesControllerObserver> usernamesControllerObservers = Collections.newSetFromMap(
         new WeakHashMap<UsernamesControllerObserver, Boolean>());
@@ -110,8 +110,8 @@ public class UsernamesController implements IUsernamesController {
         if (application != null) {
             return;
         }
-        application = ZApplication.from(activity);
-        validatedUsernamesModelObserver.setAndUpdate(application.getStoreFactory().getZMessagingApiStore().getApi().getUsernames().getValidatedUsernames());
+        application = ((WireApplication) activity.getApplication());
+        validatedUsernamesModelObserver.setAndUpdate(application.storeFactory().getZMessagingApiStore().getApi().getUsernames().getValidatedUsernames());
     }
 
     @Override
@@ -175,7 +175,7 @@ public class UsernamesController implements IUsernamesController {
         generatedUsername = null;
         currentSearch = baseName;
         currentAttemptsArray = null;
-        Usernames usernames = application.getStoreFactory().getZMessagingApiStore().getApi().getUsernames();
+        Usernames usernames = application.storeFactory().getZMessagingApiStore().getApi().getUsernames();
         String baseGeneratedUsername = usernames.generateUsernameFromName(baseName, application);
         String randomUsername = usernames.generateUsernameFromName("", application);
 

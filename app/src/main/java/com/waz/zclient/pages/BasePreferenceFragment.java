@@ -27,10 +27,9 @@ import android.support.v7.preference.PreferenceManager;
 import android.support.v7.preference.XpPreferenceFragment;
 import android.text.TextUtils;
 import android.view.View;
-import com.waz.zclient.BaseActivity;
 import com.waz.zclient.BaseScalaActivity;
 import com.waz.zclient.ServiceContainer;
-import com.waz.zclient.ZApplication;
+import com.waz.zclient.WireApplication;
 import com.waz.zclient.controllers.IControllerFactory;
 import com.waz.zclient.controllers.userpreferences.UserPreferencesController;
 import com.waz.zclient.core.controllers.tracking.events.Event;
@@ -53,10 +52,7 @@ public abstract class BasePreferenceFragment<T> extends XpPreferenceFragment imp
         } else {
             container = (T) activity;
         }
-        onPostAttach(activity);
     }
-
-    protected void onPostAttach(Activity activity) { }
 
     @Override
     @CallSuper
@@ -84,7 +80,7 @@ public abstract class BasePreferenceFragment<T> extends XpPreferenceFragment imp
     @Override
     public void onStop() {
         preferenceManager.getSharedPreferences().unregisterOnSharedPreferenceChangeListener(this);
-        super.onStart();
+        super.onStop();
     }
 
     @Override
@@ -103,17 +99,17 @@ public abstract class BasePreferenceFragment<T> extends XpPreferenceFragment imp
     @Override
     public void onDestroy() {
         preferenceManager = null;
-        super.onDestroyView();
+        super.onDestroy();
     }
 
     @Override
     public final IStoreFactory getStoreFactory() {
-        return getActivity() != null ? ZApplication.from(getActivity()).getStoreFactory() : null;
+        return getActivity() != null ? ((WireApplication) getActivity().getApplication()).storeFactory() : null;
     }
 
     @Override
     public final IControllerFactory getControllerFactory() {
-        return getActivity() != null ? ZApplication.from(getActivity()).getControllerFactory() : null;
+        return getActivity() != null ? ((WireApplication) getActivity().getApplication()).controllerFactory() : null;
     }
 
     @Override
