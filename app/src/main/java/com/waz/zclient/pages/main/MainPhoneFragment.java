@@ -28,6 +28,7 @@ import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import com.waz.api.ErrorsList;
 import com.waz.api.IConversation;
 import com.waz.api.Message;
 import com.waz.api.User;
@@ -47,23 +48,26 @@ import com.waz.zclient.controllers.singleimage.SingleImageObserver;
 import com.waz.zclient.conversation.CollectionController;
 import com.waz.zclient.conversation.CollectionFragment;
 import com.waz.zclient.conversation.ShareToMultipleFragment;
+import com.waz.zclient.core.stores.inappnotification.InAppNotificationStoreObserver;
+import com.waz.zclient.core.stores.inappnotification.KnockingEvent;
 import com.waz.zclient.pages.BaseFragment;
 import com.waz.zclient.pages.main.backgroundmain.views.BackgroundFrameLayout;
 import com.waz.zclient.pages.main.conversation.SingleImageFragment;
 import com.waz.zclient.pages.main.conversation.SingleImageMessageFragment;
 import com.waz.zclient.pages.main.conversation.SingleImageUserFragment;
 import com.waz.zclient.pages.main.conversation.VideoPlayerFragment;
+import com.waz.zclient.pages.main.conversationlist.ConfirmationFragment;
 import com.waz.zclient.pages.main.conversationpager.ConversationPagerFragment;
 import com.waz.zclient.pages.main.giphy.GiphySharingPreviewFragment;
-import com.waz.zclient.pages.main.inappnotification.InAppNotificationFragment;
 import com.waz.zclient.pages.main.onboarding.OnBoardingHintFragment;
 import com.waz.zclient.pages.main.onboarding.OnBoardingHintType;
+import com.waz.zclient.utils.SyncErrorUtils;
 import com.waz.zclient.utils.ViewUtils;
 import com.waz.zclient.views.menus.ConfirmationMenu;
+import net.hockeyapp.android.ExceptionHandler;
 
 public class MainPhoneFragment extends BaseFragment<MainPhoneFragment.Container> implements OnBackPressedListener,
                                                                                             ConversationPagerFragment.Container,
-                                                                                            InAppNotificationFragment.Container,
                                                                                             OnBoardingHintFragment.Container,
                                                                                             OnboardingControllerObserver,
                                                                                             SingleImageObserver,
@@ -71,7 +75,9 @@ public class MainPhoneFragment extends BaseFragment<MainPhoneFragment.Container>
                                                                                             GiphyObserver,
                                                                                             ConfirmationObserver,
                                                                                             AccentColorObserver,
-                                                                                            CollectionsObserver {
+                                                                                            CollectionsObserver,
+                                                                                            ConfirmationFragment.Container,
+                                                                                            InAppNotificationStoreObserver {
 
     public static final String TAG = MainPhoneFragment.class.getName();
     private ConfirmationMenu confirmationMenu;
@@ -88,9 +94,6 @@ public class MainPhoneFragment extends BaseFragment<MainPhoneFragment.Container>
         View view = inflater.inflate(R.layout.fragment_main, container, false);
 
         if (savedInstanceState == null) {
-            getChildFragmentManager().beginTransaction().add(R.id.fl_fragment_main_in_app_notification,
-                                                             InAppNotificationFragment.newInstance(),
-                                                             InAppNotificationFragment.TAG).commit();
             getChildFragmentManager().beginTransaction().replace(R.id.fl_fragment_main_content,
                                                                  ConversationPagerFragment.newInstance(),
                                                                  ConversationPagerFragment.TAG).commit();
@@ -106,6 +109,7 @@ public class MainPhoneFragment extends BaseFragment<MainPhoneFragment.Container>
     @Override
     public void onStart() {
         super.onStart();
+        getStoreFactory().getInAppNotificationStore().addInAppNotificationObserver(this);
         getControllerFactory().getSingleImageController().addSingleImageObserver(this);
         getControllerFactory().getOnboardingController().addOnboardingControllerObserver(this);
         getControllerFactory().getGiphyController().addObserver(this);
@@ -130,6 +134,7 @@ public class MainPhoneFragment extends BaseFragment<MainPhoneFragment.Container>
         getControllerFactory().getOnboardingController().removeOnboardingControllerObserver(this);
         getControllerFactory().getConfirmationController().removeConfirmationObserver(this);
         getControllerFactory().getAccentColorController().removeAccentColorObserver(this);
+        getStoreFactory().getInAppNotificationStore().removeInAppNotificationObserver(this);
         getCollectionController().removeObserver(this);
 
         getControllerFactory().getAccentColorController().removeAccentColorObserver(backgroundLayout);
@@ -187,6 +192,8 @@ public class MainPhoneFragment extends BaseFragment<MainPhoneFragment.Container>
                 return true;
             } else if (topFragment instanceof CollectionFragment) {
                 return  ((CollectionFragment) topFragment).onBackPressed();
+            } else if (topFragment instanceof ConfirmationFragment) {
+                return ((ConfirmationFragment) topFragment).onBackPressed();
             }
 
         }
@@ -194,13 +201,7 @@ public class MainPhoneFragment extends BaseFragment<MainPhoneFragment.Container>
         // Back press is first delivered to the notification fragment, and if it's not consumed there,
         // it's then delivered to the main content.
 
-        Fragment fragment = getChildFragmentManager().findFragmentById(R.id.fl_fragment_main_in_app_notification);
-        if (fragment instanceof OnBackPressedListener &&
-            ((OnBackPressedListener) fragment).onBackPressed()) {
-            return true;
-        }
-
-        fragment = getChildFragmentManager().findFragmentById(R.id.fl_fragment_main_content);
+        Fragment fragment = getChildFragmentManager().findFragmentById(R.id.fl_fragment_main_content);
         if (fragment instanceof OnBackPressedListener &&
             ((OnBackPressedListener) fragment).onBackPressed()) {
             return true;
@@ -430,6 +431,78 @@ public class MainPhoneFragment extends BaseFragment<MainPhoneFragment.Container>
             return;
         }
         confirmationMenu.setButtonColor(color);
+    }
+
+    @Override
+    public void onIncomingMessage(Message message) {
+        // ignore
+    }
+
+    @Override
+    public void onIncomingKnock(KnockingEvent knock) {
+        // ignore
+    }
+
+    @Override
+    public void onSyncError(ErrorsList.ErrorDescription error) {
+        if (getActivity() == null) {
+            return;
+        }
+
+        switch (error.getType()) {
+            case CANNOT_ADD_UNCONNECTED_USER_TO_CONVERSATION:
+            case CANNOT_ADD_USER_TO_FULL_CONVERSATION:
+            case CANNOT_CREATE_GROUP_CONVERSATION_WITH_UNCONNECTED_USER:
+                getChildFragmentManager().beginTransaction()
+                                         .setCustomAnimations(R.anim.fade_in, R.anim.fade_out, R.anim.fade_in, R.anim.fade_out)
+                                         .replace(R.id.fl_dialog_container,
+                                                  ConfirmationFragment.newMessageOnlyInstance(getResources().getString(R.string.in_app_notification__sync_error__create_group_convo__title),
+                                                                                              SyncErrorUtils.getGroupErrorMessage(getContext(), error),
+                                                                                              getResources().getString(R.string.in_app_notification__sync_error__create_convo__button),
+                                                                                              error.getId()),
+                                                  ConfirmationFragment.TAG
+                                                 )
+                                         .addToBackStack(ConfirmationFragment.TAG)
+                                         .commit();
+                break;
+            case CANNOT_ADD_USER_TO_FULL_CALL:
+            case CANNOT_CALL_CONVERSATION_WITH_TOO_MANY_MEMBERS:
+            case CANNOT_SEND_VIDEO:
+            case PLAYBACK_FAILURE:
+                ExceptionHandler.saveException(new RuntimeException("Unhandled error " + error.getType()), null);
+                break;
+            case CANNOT_SEND_MESSAGE_TO_UNVERIFIED_CONVERSATION:
+            case RECORDING_FAILURE:
+            case CANNOT_SEND_ASSET_FILE_NOT_FOUND:
+            case CANNOT_SEND_ASSET_TOO_LARGE:
+                // Handled in ConversationFragment
+                break;
+            default:
+                ExceptionHandler.saveException(new RuntimeException("Unexpected error " + error.getType()), null);
+
+        }
+    }
+
+    @Override
+    public void onDialogConfirm(String dialogId) {
+        getChildFragmentManager().popBackStackImmediate(ConfirmationFragment.TAG,
+                                                        FragmentManager.POP_BACK_STACK_INCLUSIVE);
+        dismissError(dialogId);
+    }
+
+    @Override
+    public void onDialogCancel(String dialogId) {
+        getChildFragmentManager().popBackStackImmediate(ConfirmationFragment.TAG,
+                                                        FragmentManager.POP_BACK_STACK_INCLUSIVE);
+        dismissError(dialogId);
+    }
+
+    private void dismissError(String errorId) {
+        if (getActivity() == null ||
+            getStoreFactory().isTornDown()) {
+            return;
+        }
+        getStoreFactory().getInAppNotificationStore().dismissError(errorId);
     }
 
     public interface Container {

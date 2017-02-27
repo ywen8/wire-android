@@ -23,7 +23,7 @@ import android.content.Context
 import android.graphics.Color
 import android.util.{AttributeSet, TypedValue}
 import com.waz.api.Message
-import com.waz.model.{MessageContent, MessageData, MessageId}
+import com.waz.model.{MessageContent, MessageData}
 import com.waz.service.messages.MessageAndLikes
 import com.waz.threading.Threading
 import com.waz.utils.events.Signal

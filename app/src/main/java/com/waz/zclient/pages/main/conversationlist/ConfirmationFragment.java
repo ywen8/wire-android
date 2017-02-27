@@ -36,7 +36,6 @@ public class ConfirmationFragment extends BaseFragment<ConfirmationFragment.Cont
     public static final String FIELD_MESSAGE = "message";
     public static final String FIELD_CONFIRM = "confirm";
     public static final String OPTIONAL_FIELD_CANCEL = "cancel";
-    public static final String OPTIONAL_FIELD_TIMEOUT = "timeout";
     public static final String OPTIONAL_FIELD_DIALOG_ID = "dialog_id";
     public static final String OPTIONAL_FIELD_USE_BLACK_BACKGROUND = "black_background";
 
@@ -44,27 +43,6 @@ public class ConfirmationFragment extends BaseFragment<ConfirmationFragment.Cont
 
     private String dialogId;
     private ConfirmationMenu confirmationMenu;
-
-    public static ConfirmationFragment newInstance(String title,
-                                                   String message,
-                                                   String confirm,
-                                                   String cancel,
-                                                   int timeout,
-                                                   String dialogId,
-                                                   boolean useBlackBackground) {
-        ConfirmationFragment confirmationFragment = new ConfirmationFragment();
-        Bundle args = new Bundle();
-        args.putString(FIELD_TITLE, title);
-        args.putString(FIELD_MESSAGE, message);
-        args.putString(FIELD_CONFIRM, confirm);
-        args.putString(OPTIONAL_FIELD_CANCEL, cancel);
-        args.putInt(OPTIONAL_FIELD_TIMEOUT, timeout);
-        args.putString(OPTIONAL_FIELD_DIALOG_ID, dialogId);
-        args.putBoolean(OPTIONAL_FIELD_USE_BLACK_BACKGROUND, useBlackBackground);
-        confirmationFragment.setArguments(args);
-
-        return confirmationFragment;
-    }
 
     public static ConfirmationFragment newMessageOnlyInstance(String title,
                                                               String message,
@@ -138,6 +116,7 @@ public class ConfirmationFragment extends BaseFragment<ConfirmationFragment.Cont
 
     @Override
     public boolean onBackPressed() {
+        confirmationMenu.animateToShow(false);
         getContainer().onDialogCancel(dialogId);
         return true;
     }

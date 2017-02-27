@@ -1726,7 +1726,7 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
         final String negativeButton = onlySelfChanged ?
             getString(R.string.conversation__degraded_confirmation__negative_action_self) :
             getResources().getQuantityString(R.plurals.conversation__degraded_confirmation__negative_action, userCount);
-        final ConfirmationRequest request = new ConfirmationRequest.Builder(IConfirmationController.SEND_MESSAGES_TO_DEGRADED_CONVERSATION)
+        final ConfirmationRequest request = new ConfirmationRequest.Builder()
             .withHeader(header)
             .withMessage(message)
             .withPositiveButton(positiveButton)
@@ -1896,7 +1896,6 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
         getStoreFactory().getConversationStore().sendMessage(assetForUpload, assetErrorHandlerVideo);
 
         getControllerFactory().getNavigationController().setRightPage(Page.MESSAGE_STREAM, TAG);
-        getStoreFactory().getInAppNotificationStore().setUserSendingPicture(false);
         extendedCursorContainer.close(true);
     }
 

@@ -1032,7 +1032,6 @@ public class ParticipantsDialogFragment extends BaseFragment<ParticipantsDialogF
     public void onSelectedUsers(List<User> users, ConversationChangeRequester requester) {
         // TODO https://wearezeta.atlassian.net/browse/AN-3730
         getControllerFactory().getPickUserController().hidePickUser(getCurrentPickerDestination(), false);
-        getStoreFactory().getInAppNotificationStore().setUserLookingAtPeoplePicker(false);
 
         IConversation currentConversation = getStoreFactory().getConversationStore().getCurrentConversation();
         if (currentConversation.getType() == IConversation.Type.ONE_TO_ONE) {

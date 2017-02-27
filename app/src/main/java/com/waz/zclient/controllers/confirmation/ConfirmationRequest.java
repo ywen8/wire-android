@@ -22,8 +22,6 @@ import android.text.TextUtils;
 import com.waz.zclient.ui.theme.OptionsTheme;
 
 public class ConfirmationRequest {
-    @IConfirmationController.ConfirmationMenuRequestType
-    public int requester;
     public String header;
     public String message;
     public String positiveButton;
@@ -41,9 +39,8 @@ public class ConfirmationRequest {
 
         private final ConfirmationRequest confirmationRequest;
 
-        public Builder(@IConfirmationController.ConfirmationMenuRequestType int requester) {
+        public Builder() {
             confirmationRequest = new ConfirmationRequest();
-            confirmationRequest.requester = requester;
             confirmationRequest.checkboxLabel = "";
         }
 

@@ -26,7 +26,6 @@ import android.view.ViewGroup;
 import com.waz.zclient.OnBackPressedListener;
 import com.waz.zclient.R;
 import com.waz.zclient.pages.BaseFragment;
-import com.waz.zclient.pages.main.conversationlist.ConfirmationFragment;
 import com.waz.zclient.pages.main.conversationlist.ConversationListManagerFragment;
 import timber.log.Timber;
 
@@ -36,8 +35,7 @@ public class FirstPageFragment extends BaseFragment<FirstPageFragment.Container>
     public static final String TAG = FirstPageFragment.class.getName();
 
     public enum Page {
-        CONVERSATION_LIST(ConversationListManagerFragment.class, ConversationListManagerFragment.TAG),
-        CONTACTS_SHARING_DIALOG(ConfirmationFragment.class, ConfirmationFragment.TAG);
+        CONVERSATION_LIST(ConversationListManagerFragment.class, ConversationListManagerFragment.TAG);
 
         Page(Class<? extends Fragment> clazz, String tag) {
             this.clazz = clazz;

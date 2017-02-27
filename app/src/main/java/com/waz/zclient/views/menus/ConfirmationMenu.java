@@ -67,7 +67,7 @@ public class ConfirmationMenu extends LinearLayout {
     private View backgroundView;
     private View messageContainerView;
     private boolean confirmed;
-    private boolean canceled;
+    private boolean cancelled;
     private ConfirmationCallback callback;
     private OptionsTheme optionsTheme;
     private boolean noRoundBackground;
@@ -95,7 +95,7 @@ public class ConfirmationMenu extends LinearLayout {
                     animateToShow(false);
                     break;
                 case R.id.cancel:
-                    canceled = true;
+                    cancelled = true;
                     callback.canceled();
                     animateToShow(false);
                 default:
@@ -202,7 +202,7 @@ public class ConfirmationMenu extends LinearLayout {
     public void animateToShow(boolean show) {
         if (show) {
             confirmed = false;
-            canceled = false;
+            cancelled = false;
 
             // Init views and post animations to get measured height of message container
             backgroundView.setAlpha(0);
@@ -254,7 +254,7 @@ public class ConfirmationMenu extends LinearLayout {
                     setVisibility(GONE);
                     boolean checkboxIsSelected = checkBoxView.getVisibility() == VISIBLE && checkBoxView.isSelected();
                     if (callback != null) {
-                        callback.onHideAnimationEnd(confirmed, canceled, checkboxIsSelected);
+                        callback.onHideAnimationEnd(confirmed, cancelled, checkboxIsSelected);
                     }
                 }
             });

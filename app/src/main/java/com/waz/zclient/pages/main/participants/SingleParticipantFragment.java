@@ -371,7 +371,7 @@ public class SingleParticipantFragment extends BaseFragment<SingleParticipantFra
         String cancel = getString(R.string.confirmation_menu__cancel);
         OptionsTheme optionsTheme = getControllerFactory().getThemeController().getThemeDependentOptionsTheme();
 
-        ConfirmationRequest request = new ConfirmationRequest.Builder(IConfirmationController.BLOCK_CONNECTED)
+        ConfirmationRequest request = new ConfirmationRequest.Builder()
             .withHeader(header)
             .withMessage(text)
             .withPositiveButton(confirm)

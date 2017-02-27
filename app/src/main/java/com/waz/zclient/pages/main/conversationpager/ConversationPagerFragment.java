@@ -174,7 +174,6 @@ public class ConversationPagerFragment extends BaseFragment<ConversationPagerFra
                 break;
             case UPDATER:
                 break;
-            case CHAT_HEAD:
             case CONVERSATION_LIST_UNARCHIVED_CONVERSATION:
             case CONVERSATION_LIST:
                 new Handler().postDelayed(new Runnable() {

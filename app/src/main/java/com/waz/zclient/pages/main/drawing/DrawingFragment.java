@@ -385,7 +385,6 @@ public class DrawingFragment extends BaseFragment<DrawingFragment.Container> imp
     public void onStart() {
         super.onStart();
         colorLayout.setOnWidthChangedListener(this);
-        getStoreFactory().getInAppNotificationStore().setUserSendingPicture(true);
         shakeEventListener = new ShakeEventListener();
         shakeEventListener.setOnShakeListener(new ShakeEventListener.OnShakeListener() {
             @Override
@@ -420,7 +419,6 @@ public class DrawingFragment extends BaseFragment<DrawingFragment.Container> imp
         getControllerFactory().getAccentColorController().removeAccentColorObserver(this);
         getControllerFactory().getGlobalLayoutController().removeKeyboardVisibilityObserver(this);
         getControllerFactory().getRequestPermissionsController().removeObserver(this);
-        getStoreFactory().getInAppNotificationStore().setUserSendingPicture(false);
         sensorManager.unregisterListener(shakeEventListener);
         super.onStop();
     }

@@ -125,6 +125,7 @@ class FooterPartView(context: Context, attrs: AttributeSet, style: Int) extends 
       TextViewUtils.linkifyText(timeStampAndStatus, color, false, controller.linkCallback)
     }
   }
+  message
 
   private var lastShow = false
   private var lastMsgId = MessageId()

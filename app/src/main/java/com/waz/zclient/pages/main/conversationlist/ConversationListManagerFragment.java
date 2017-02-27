@@ -31,8 +31,6 @@ import android.widget.FrameLayout;
 import android.widget.Toast;
 import com.waz.api.ConversationsList;
 import com.waz.api.CredentialsUpdateListener;
-import com.waz.api.ErrorType;
-import com.waz.api.ErrorsList;
 import com.waz.api.IConversation;
 import com.waz.api.ImageAsset;
 import com.waz.api.Message;
@@ -69,8 +67,6 @@ import com.waz.zclient.core.stores.conversation.ConversationChangeRequester;
 import com.waz.zclient.core.stores.conversation.ConversationStoreObserver;
 import com.waz.zclient.core.stores.conversation.InboxLoadRequester;
 import com.waz.zclient.core.stores.conversation.OnInboxLoadedListener;
-import com.waz.zclient.core.stores.inappnotification.InAppNotificationStoreObserver;
-import com.waz.zclient.core.stores.inappnotification.KnockingEvent;
 import com.waz.zclient.media.SoundController;
 import com.waz.zclient.newreg.fragments.FirstTimeAssignUsernameFragment;
 import com.waz.zclient.pages.BaseFragment;
@@ -120,7 +116,6 @@ public class ConversationListManagerFragment extends BaseFragment<ConversationLi
                                                                                                    UsernamesControllerObserver,
                                                                                                    ConfirmationObserver,
                                                                                                    AccentColorObserver,
-                                                                                                   InAppNotificationStoreObserver,
                                                                                                    FirstTimeAssignUsernameFragment.Container {
     public static final String TAG = ConversationListManagerFragment.class.getName();
 
@@ -196,7 +191,6 @@ public class ConversationListManagerFragment extends BaseFragment<ConversationLi
     @Override
     public void onStart() {
         super.onStart();
-        getStoreFactory().getInAppNotificationStore().addInAppNotificationObserver(this);
         getControllerFactory().getCameraController().addCameraActionObserver(this);
         getControllerFactory().getAccentColorController().addAccentColorObserver(this);
         getControllerFactory().getPickUserController().addPickUserScreenControllerObserver(this);
@@ -233,7 +227,6 @@ public class ConversationListManagerFragment extends BaseFragment<ConversationLi
 
     @Override
     public void onStop() {
-        getStoreFactory().getInAppNotificationStore().removeInAppNotificationObserver(this);
         getControllerFactory().getCameraController().removeCameraActionObserver(this);
         getStoreFactory().getConversationStore().removeConversationStoreObserver(this);
         getControllerFactory().getPickUserController().removePickUserScreenControllerObserver(this);
@@ -315,7 +308,6 @@ public class ConversationListManagerFragment extends BaseFragment<ConversationLi
         // Hide possibly open self profile
         getControllerFactory().getPickUserController().hideUserProfile();
         // Hide possibly open start ui
-        getStoreFactory().getInAppNotificationStore().setUserLookingAtPeoplePicker(false);
         if (!getControllerFactory().getPickUserController()
                                    .hidePickUser(getCurrentPickerDestination(), false)) {
             getControllerFactory().getNavigationController().setLeftPage(Page.CONVERSATION_LIST, TAG);
@@ -371,7 +363,6 @@ public class ConversationListManagerFragment extends BaseFragment<ConversationLi
         new Handler().postDelayed(new Runnable() {
             @Override
             public void run() {
-                getStoreFactory().getInAppNotificationStore().setUserLookingAtPeoplePicker(false);
                 getControllerFactory().getPickUserController().hidePickUserWithoutAnimations(
                     getCurrentPickerDestination());
                 if (rootView != null) {
@@ -411,7 +402,6 @@ public class ConversationListManagerFragment extends BaseFragment<ConversationLi
 
     @Override
     public void showIncomingPendingConnectRequest(IConversation conversation) {
-        getStoreFactory().getInAppNotificationStore().setUserLookingAtPeoplePicker(false);
         getControllerFactory().getPickUserController().hidePickUser(getCurrentPickerDestination(), false);
 
         getStoreFactory().getConversationStore().setCurrentConversation(conversation,
@@ -475,7 +465,6 @@ public class ConversationListManagerFragment extends BaseFragment<ConversationLi
         }
 
         if (getControllerFactory().getPickUserController().isShowingPickUser(getCurrentPickerDestination())) {
-            getStoreFactory().getInAppNotificationStore().setUserLookingAtPeoplePicker(false);
             getControllerFactory().getPickUserController().hidePickUser(getCurrentPickerDestination(), true);
             return true;
         }
@@ -734,10 +723,8 @@ public class ConversationListManagerFragment extends BaseFragment<ConversationLi
             // TODO: START is set as left page on tablet, fix
             case START:
             case CONVERSATION_LIST:
-                getStoreFactory().getInAppNotificationStore().setUserLookingAtPeoplePicker(false);
                 break;
             case PICK_USER:
-                getStoreFactory().getInAppNotificationStore().setUserLookingAtPeoplePicker(true);
                 getControllerFactory().getPickUserController().showPickUser(IPickUserController.Destination.CONVERSATION_LIST, null);
                 break;
             case BLOCK_USER:
@@ -1037,7 +1024,7 @@ public class ConversationListManagerFragment extends BaseFragment<ConversationLi
         String cancel = getString(R.string.confirmation_menu__cancel);
 
 
-        ConfirmationRequest request = new ConfirmationRequest.Builder(IConfirmationController.LEAVE_CONVERSATION)
+        ConfirmationRequest request = new ConfirmationRequest.Builder()
             .withHeader(header)
             .withMessage(text)
             .withPositiveButton(confirm)
@@ -1115,7 +1102,7 @@ public class ConversationListManagerFragment extends BaseFragment<ConversationLi
             checkboxLabel = getString(R.string.confirmation_menu__delete_conversation__checkbox__label);
         }
 
-        ConfirmationRequest request = new ConfirmationRequest.Builder(IConfirmationController.DELETE_CONVERSATION)
+        ConfirmationRequest request = new ConfirmationRequest.Builder()
             .withHeader(header)
             .withMessage(text)
             .withPositiveButton(confirm)
@@ -1172,7 +1159,7 @@ public class ConversationListManagerFragment extends BaseFragment<ConversationLi
         String confirm = getString(R.string.confirmation_menu__confirm_block);
         String cancel = getString(R.string.confirmation_menu__cancel);
 
-        ConfirmationRequest request = new ConfirmationRequest.Builder(IConfirmationController.BLOCK_CONNECTED)
+        ConfirmationRequest request = new ConfirmationRequest.Builder()
             .withHeader(header)
             .withMessage(text)
             .withPositiveButton(confirm)
@@ -1194,30 +1181,6 @@ public class ConversationListManagerFragment extends BaseFragment<ConversationLi
     public void onConnectRequestInboxConversationsLoaded(List<IConversation> conversations,
                                                          InboxLoadRequester inboxLoadRequester) {
 
-    }
-
-    @Override
-    public void onIncomingMessage(Message message) {
-
-    }
-
-    @Override
-    public void onIncomingKnock(KnockingEvent knock) {
-
-    }
-
-    @Override
-    public void onSyncError(ErrorsList.ErrorDescription errorDescription) {
-        if (errorDescription.getType() != ErrorType.CANNOT_SEND_MESSAGE_TO_UNVERIFIED_CONVERSATION) {
-            return;
-        }
-
-        if (getControllerFactory().getNavigationController().getCurrentPage() == Page.MESSAGE_STREAM) {
-            return;
-        }
-
-        Toast.makeText(getActivity(), "New to unverified - will dismiss!", Toast.LENGTH_SHORT).show();
-        errorDescription.dismiss();
     }
 
     public void hideFirstAssignUsernameScreen() {

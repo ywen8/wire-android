@@ -21,24 +21,6 @@ import android.support.annotation.IntDef;
 
 public interface IConfirmationController {
 
-    @IntDef({BLOCK_PENDING,
-             BLOCK_CONNECTED,
-             LEAVE_CONVERSATION,
-             REMOVE_USER_FROM_CONVERSATION,
-             ADD_USER_TO_CONVERSATION,
-             DELETE_CONVERSATION,
-             SEND_MESSAGES_TO_DEGRADED_CONVERSATION
-    })
-    @interface ConfirmationMenuRequestType { }
-
-    int BLOCK_PENDING = 0;
-    int BLOCK_CONNECTED = 1;
-    int LEAVE_CONVERSATION = 2;
-    int REMOVE_USER_FROM_CONVERSATION = 3;
-    int ADD_USER_TO_CONVERSATION = 4;
-    int DELETE_CONVERSATION = 5;
-    int SEND_MESSAGES_TO_DEGRADED_CONVERSATION = 6;
-
     @IntDef({CONVERSATION_LIST,
              PARTICIPANTS,
              USER_PROFILE,
