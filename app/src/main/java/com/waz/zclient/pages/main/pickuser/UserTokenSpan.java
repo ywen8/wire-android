@@ -131,10 +131,10 @@ public class UserTokenSpan extends SpannableEditText.TokenSpan {
             TextUtils.TruncateAt.END);
 
         canvas.drawRoundRect(
-            textPosX - paddingHorizontal,
-            textPosY - backgroundHeight,
-            textPosX + textBounds.width() + paddingHorizontal,
-            textPosY + backgroundBottomPadding,
+            new RectF(textPosX - paddingHorizontal,
+                textPosY - backgroundHeight,
+                textPosX + textBounds.width() + paddingHorizontal,
+                textPosY + backgroundBottomPadding),
             backgroundRadius, backgroundRadius, backgroundPaint);
 
         if (deleteMode) {
