@@ -81,6 +81,10 @@ class ImagePartView(context: Context, attrs: AttributeSet, style: Int) extends F
 
   private def openDrawingFragment(drawingMethod: DrawingMethod) =
     message.currentValue foreach (assets.openDrawingFragment(_, drawingMethod))
+
+  override def onDoubleClick() = {
+    message.head.map(assets.showSingleImage(_, this))(Threading.Ui)
+  }
 }
 
 class WifiWarningPartView(context: Context, attrs: AttributeSet, style: Int) extends LinearLayout(context, attrs, style) with MessageViewPart with ViewHelper {
