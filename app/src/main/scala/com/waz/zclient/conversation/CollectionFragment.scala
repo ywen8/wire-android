@@ -110,6 +110,7 @@ class CollectionFragment extends BaseFragment[CollectionFragment.Container] with
 
     messageActionsController.onMessageAction.on(Threading.Ui){
       case (MessageAction.REVEAL, _) =>
+        KeyboardUtils.closeKeyboardIfShown(getActivity)
         controller.closeCollection
         controller.focusedItem.mutate {
           case Some(m) if m.msgType == Message.Type.ASSET => None
