@@ -18,7 +18,6 @@
 package com.waz.zclient.core.api.scala;
 
 import android.content.Context;
-import com.waz.api.CommonConnections;
 import com.waz.api.ErrorResponse;
 import com.waz.api.IConversation;
 import com.waz.api.InvitationTokenFactory;
@@ -40,7 +39,6 @@ public class ScalaConnectStore extends ConnectStore {
     private ZMessagingApi zMessagingApi;
     private Context context;
     private Invitations invites;
-    private CommonConnections commonConnections;
 
     Set<Invitations.ConnectionCallback> connectionCallbacks;
     Map<UserRequester, User> users;
@@ -56,9 +54,6 @@ public class ScalaConnectStore extends ConnectStore {
     @Override
     public void tearDown() {
         removeUserListener();
-        removeCommonConnectionsListener();
-
-        commonConnections = null;
         users = null;
         invites = null;
         context = null;
@@ -100,21 +95,8 @@ public class ScalaConnectStore extends ConnectStore {
     }
 
     @Override
-    public void loadCommonConnections(CommonConnections commonConnections) {
-        removeCommonConnectionsListener();
-        this.commonConnections = commonConnections;
-        commonConnections.addUpdateListener(commonConnectionsListener);
-        commonConnectionsListener.updated();
-    }
-
-    @Override
     public IConversation connectToNewUser(User user, String firstMessage) {
         return user.connect(firstMessage);
-    }
-
-    @Override
-    public void requestInviteUri(Invitations.InvitationUriCallback callback) {
-        invites.generateInvitationUri(callback);
     }
 
     @Override
@@ -166,12 +148,6 @@ public class ScalaConnectStore extends ConnectStore {
         }
     }
 
-    private void removeCommonConnectionsListener() {
-        if (commonConnections != null) {
-            commonConnections.removeUpdateListener(commonConnectionsListener);
-        }
-    }
-
     private UpdateListener searchUserListener = new UpdateListener() {
         @Override
         public void updated() {
@@ -211,13 +187,4 @@ public class ScalaConnectStore extends ConnectStore {
         }
     };
 
-
-    private final UpdateListener commonConnectionsListener = new UpdateListener() {
-        @Override
-        public void updated() {
-            if (commonConnections != null) {
-                notifyCommonConnectionsUpdated(commonConnections);
-            }
-        }
-    };
 }

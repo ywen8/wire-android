@@ -26,7 +26,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.widget.TextView;
-import com.waz.api.CommonConnections;
 import com.waz.api.IConversation;
 import com.waz.api.UpdateListener;
 import com.waz.api.User;
@@ -401,8 +400,6 @@ public class PendingConnectRequestFragment extends BaseFragment<PendingConnectRe
         imageAssetImageViewProfile.connectImageAsset(user.getPicture());
         userDetailsView.setUser(user);
 
-        // Load common users
-        getStoreFactory().getConnectStore().loadCommonConnections(user.getCommonConnections());
         displayNameTextView.setText(user.getName());
 
         switch (user.getConnectionStatus()) {
@@ -416,11 +413,6 @@ public class PendingConnectRequestFragment extends BaseFragment<PendingConnectRe
                 setFooterForOutgoingConnectRequest(user);
                 break;
         }
-    }
-
-    @Override
-    public void onCommonConnectionsUpdated(CommonConnections commonConnections) {
-        // do nothing
     }
 
     @Override

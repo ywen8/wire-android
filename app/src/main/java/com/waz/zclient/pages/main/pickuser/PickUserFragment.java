@@ -821,7 +821,7 @@ public class PickUserFragment extends BaseFragment<PickUserFragment.Container> i
                 String myName = me != null ? me.getName() : "";
                 String message = getString(R.string.connect__message, user.getName(), myName);
                 user.connect(message);
-                getControllerFactory().getTrackingController().tagEvent(new SentConnectRequestEvent(SentConnectRequestEvent.EventContext.INVITE_CONTACT_LIST, user.getCommonConnections().getTotalCount()));
+                getControllerFactory().getTrackingController().tagEvent(new SentConnectRequestEvent(SentConnectRequestEvent.EventContext.INVITE_CONTACT_LIST, user.getCommonConnectionsCount()));
                 break;
         }
     }

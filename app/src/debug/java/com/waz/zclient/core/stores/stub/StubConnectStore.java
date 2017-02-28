@@ -17,9 +17,7 @@
  */
 package com.waz.zclient.core.stores.stub;
 
-import com.waz.api.CommonConnections;
 import com.waz.api.IConversation;
-import com.waz.api.Invitations;
 import com.waz.api.User;
 import com.waz.zclient.core.stores.connect.ConnectStoreObserver;
 import com.waz.zclient.core.stores.connect.IConnectStore;
@@ -31,17 +29,7 @@ public class StubConnectStore implements IConnectStore {
   }
 
   @Override
-  public void loadCommonConnections(CommonConnections commonConnections) {
-    ;
-  }
-
-  @Override
   public void blockUser(User user) {
-    ;
-  }
-
-  @Override
-  public void requestInviteUri(Invitations.InvitationUriCallback callback) {
     ;
   }
 

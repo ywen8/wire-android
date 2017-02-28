@@ -211,8 +211,6 @@
     <dimen name="chathead__border_width">2dp</dimen>
     <dimen name="chathead__large_border_width">3dp</dimen>
 
-    <dimen name="connect_request__common_users__height">88dp</dimen>
-    <dimen name="connect_request__common_users__title__margin_bottom">14dp</dimen>
     <dimen name="connect_request__common_users__chathead__vertical_padding">8dp</dimen>
     <dimen name="connect_request__common_users__pending_connection__margin_bottom">88dp</dimen>
     <dimen name="connect_request__padding">8dp</dimen>
@@ -221,8 +219,6 @@
     <dimen name="connect_request__footer_menu__height">72dp</dimen>
     <dimen name="connect_request__footer_menu__padding_bottom">@dimen/wire__padding__big</dimen>
     <dimen name="connect_request__separator__padding_horizontal">0dp</dimen>
-    <dimen name="connect_request__common_users__chathead__width">36dp</dimen>
-    <dimen name="connect_request__common_users__chathead_name__width">60dp</dimen>
 
     <!-- Message bottom menu -->
     <dimen name="message__bottom__menu__peek_height">500dp</dimen>
