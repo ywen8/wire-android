@@ -19,6 +19,7 @@ package com.waz.zclient.pages.main.pickuser;
 
 import android.support.annotation.IntDef;
 import android.support.v7.widget.RecyclerView;
+import android.util.SparseArray;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -37,9 +38,10 @@ import com.waz.zclient.pages.main.pickuser.views.viewholders.SectionExpanderView
 import com.waz.zclient.pages.main.pickuser.views.viewholders.SectionHeaderViewHolder;
 import com.waz.zclient.pages.main.pickuser.views.viewholders.TopUsersViewHolder;
 import com.waz.zclient.pages.main.pickuser.views.viewholders.UserViewHolder;
-
-import java.util.HashMap;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Set;
 
 public class SearchResultAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
@@ -76,13 +78,49 @@ public class SearchResultAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
     private SearchResultOnItemTouchListener topUsersOnItemTouchListener;
     private int itemCount;
     private int accentColor;
-    private Map<Integer, int[]> positionsMap;
+    private SparseArray<int[]> positionsMap;
     private ContactRowView.Callback contactsCallback;
     private boolean contactsCollapsed = true;
     private boolean groupsCollapsed = true;
+    private List<SearchContact> mergedContacts = new ArrayList<>();
+
+    private class SearchContact {
+        @ItemType public int itemType;
+        public int index;
+        public String name;
+
+        SearchContact(int itemType, int index, String name) {
+            this.itemType = itemType;
+            this.index = index;
+            this.name = name;
+        }
+    }
+
+    private void updateMergedContacts() {
+        mergedContacts.clear();
+        if (contacts != null) {
+            for (int i = 0; i < contacts.size(); i++) {
+                ContactDetails details = contacts.get(i).getDetails();
+                if (details != null) {
+                    mergedContacts.add(new SearchContact(ITEM_TYPE_CONTACT, i, details.getDisplayName()));
+                }
+            }
+        }
+        if (connectedUsers != null) {
+            for (int i = 0; i < connectedUsers.length; i++) {
+                mergedContacts.add(new SearchContact(ITEM_TYPE_CONNECTED_USER, i, connectedUsers[i].getDisplayName()));
+            }
+        }
+        Collections.sort(mergedContacts, new Comparator<SearchContact>() {
+            @Override
+            public int compare(SearchContact o1, SearchContact o2) {
+                return o1.name.compareToIgnoreCase(o2.name);
+            }
+        });
+    }
 
     public SearchResultAdapter(final Callback callback) {
-        positionsMap = new HashMap<>();
+        positionsMap = new SparseArray<>();
         if (callback == null) {
             return;
         }
@@ -169,7 +207,8 @@ public class SearchResultAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
                 ((UserViewHolder) holder).bind(otherUser, otherIsSelected);
                 break;
             case ITEM_TYPE_CONNECTED_USER:
-                User connectedUser = connectedUsers[position - ROW_COUNT_SECTION_HEADER];
+                int index = mergedContacts.get(position - ROW_COUNT_SECTION_HEADER).index;
+                User connectedUser = connectedUsers[index];
                 boolean contactIsSelected = callback.getSelectedUsers().contains(connectedUser);
                 ((UserViewHolder) holder).bind(connectedUser, contactIsSelected);
                 break;
@@ -193,16 +232,21 @@ public class SearchResultAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
                     contacts.getInitials().isEmpty()) {
                     break;
                 }
-                position = showSearch ? position - ROW_COUNT_SECTION_HEADER : position;
-                int[] contactMapping = getContactMapping(position);
-                String contactInitial = getContactInitial(position);
-                int contactInternalPosition = contactMapping[2];
-                Contact contact = contacts.getContactForInitial(contactInitial, contactInternalPosition);
-                ((AddressBookContactViewHolder) holder).bind(contact, contactsCallback, accentColor);
+                if (showSearch) {
+                    position = mergedContacts.get(position - ROW_COUNT_SECTION_HEADER).index;
+                    Contact contact = contacts.get(position);
+                    ((AddressBookContactViewHolder) holder).bind(contact, contactsCallback, accentColor);
+                } else {
+                    int[] contactMapping = getContactMapping(position);
+                    String contactInitial = getContactInitial(position);
+                    int contactInternalPosition = contactMapping[2];
+                    Contact contact = contacts.getContactForInitial(contactInitial, contactInternalPosition);
+                    ((AddressBookContactViewHolder) holder).bind(contact, contactsCallback, accentColor);
+                }
                 break;
             case ITEM_TYPE_EXPAND_BUTTON:
                 if (getSectionForPosition(position) == ITEM_TYPE_CONNECTED_USER) {
-                    ((SectionExpanderViewHolder) holder).bind(connectedUsers.length, new View.OnClickListener() {
+                    ((SectionExpanderViewHolder) holder).bind(mergedContacts.size(), new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
                             setContactsCollapsed(false);
@@ -237,7 +281,7 @@ public class SearchResultAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
                 } else if (position == getContactsSectionLength() - 1 && isContactsCollapsed()) {
                     type = ITEM_TYPE_EXPAND_BUTTON;
                 } else {
-                    type = ITEM_TYPE_CONNECTED_USER;
+                    type = mergedContacts.get(position - ROW_COUNT_SECTION_HEADER).itemType;
                 }
             } else if (hasConversations() &&
                        getConversationInternalPosition(position) < getGroupsSectionLength()) {
@@ -250,17 +294,7 @@ public class SearchResultAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
                 } else {
                     type = ITEM_TYPE_CONVERSATION;
                 }
-            } else if (hasContacts() &&
-                       getSearchContactInternalPosition(position) < positionsMap.size() + ROW_COUNT_SECTION_HEADER) {
-                int contactsPos = getSearchContactInternalPosition(position);
-                if (contactsPos == 0) {
-                    type = ITEM_TYPE_SECTION_HEADER;
-                } else {
-                    contactsPos -= 1;
-                    type = getContactItemViewType(contactsPos);
-                }
-            } else if (hasOtherUsers() &&
-                       getOtherUserInternalPosition(position) < otherUsers.length + ROW_COUNT_SECTION_HEADER) {
+            } else {
                 // Other users
                 type = getOtherUserInternalPosition(position) == 0 ? ITEM_TYPE_SECTION_HEADER : ITEM_TYPE_OTHER_USER;
             }
@@ -303,6 +337,7 @@ public class SearchResultAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
     public void setContacts(Contacts contacts) {
         this.contacts = contacts;
         updateContactsPositionMapping();
+        updateMergedContacts();
         updateItemCount();
         notifyDataSetChanged();
     }
@@ -312,6 +347,7 @@ public class SearchResultAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
         this.connectedUsers = connectedUsers;
         this.otherUsers = otherUsers;
         this.conversations = conversations;
+        updateMergedContacts();
         updateItemCount();
         notifyDataSetChanged();
     }
@@ -379,9 +415,6 @@ public class SearchResultAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
         if (hasConversations()) {
             position = position - getGroupsSectionLength();
         }
-        if (hasContacts()) {
-            position = position - positionsMap.size() - ROW_COUNT_SECTION_HEADER;
-        }
         return position;
     }
 
@@ -394,11 +427,7 @@ public class SearchResultAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
             } else if (hasConversations() &&
                        getConversationInternalPosition(position) == 0) {
                 type = ITEM_TYPE_CONVERSATION;
-            } else if (hasContacts() &&
-                       getSearchContactInternalPosition(position) == 0) {
-                type = ITEM_TYPE_CONTACT;
-            }
-            else if (hasOtherUsers() &&
+            } else if (hasOtherUsers() &&
                        getOtherUserInternalPosition(position) == 0) {
                 type = ITEM_TYPE_OTHER_USER;
             }
@@ -421,11 +450,7 @@ public class SearchResultAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
             } else if (hasConversations() &&
                 getConversationInternalPosition(position) < getGroupsSectionLength()) {
                 type = ITEM_TYPE_CONVERSATION;
-            } else if (hasContacts() &&
-                getSearchContactInternalPosition(position) < contacts.size() + ROW_COUNT_SECTION_HEADER) {
-                type = ITEM_TYPE_CONTACT;
-            }
-            else if (hasOtherUsers() &&
+            } else if (hasOtherUsers() &&
                 getOtherUserInternalPosition(position) < otherUsers.length + ROW_COUNT_SECTION_HEADER) {
                 type = ITEM_TYPE_OTHER_USER;
             }
@@ -451,9 +476,6 @@ public class SearchResultAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
                 itemCount += getGroupsSectionLength();
             }
 
-            if (hasContacts()) {
-                itemCount += positionsMap.size() + ROW_COUNT_SECTION_HEADER;
-            }
 
             if (hasOtherUsers()) {
                 itemCount += otherUsers.length + ROW_COUNT_SECTION_HEADER;
@@ -511,7 +533,7 @@ public class SearchResultAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
     }
 
     public boolean isContactsCollapsed() {
-        return connectedUsers.length > COLLAPSED_LIMIT && contactsCollapsed;
+        return mergedContacts.size() > COLLAPSED_LIMIT && contactsCollapsed;
     }
 
     public void setContactsCollapsed(boolean collapsed) {
@@ -521,7 +543,7 @@ public class SearchResultAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
     }
 
     private int getContactsListLength() {
-        return isContactsCollapsed() ? COLLAPSED_LIMIT : connectedUsers.length;
+        return isContactsCollapsed() ? COLLAPSED_LIMIT : mergedContacts.size();
     }
 
     private int getContactsSectionLength() {
