@@ -136,22 +136,6 @@ class GlobalTrackingController(implicit inj: Injector, cxt: WireContext, eventCo
     pref && !BuildConfig.DISABLE_TRACKING_KEEP_LOGGING
   }
 
-  private def setCustomDims(): Future[Unit] = loadCustomDimensions.map { attrs =>
-    val dims = getCustomDimensions(attrs, cxt)
-    //TODO print ALL custom dimensions, in a more type-safe(?) way...
-    verbose(
-      s""" Custom dimensions:
-          | Day:        ${dims.head}
-          | Hour:       ${dims(1)}
-          | Contacts:   ${dims(2)}
-          | Groups:     ${dims(3)}
-          | Color:      ${dims(4)}
-          | AB Testing: ${dims(5)}
-      """.stripMargin)
-
-    if (isTrackingEnabled) dims.zipWithIndex.foreach { case (value, i) => Localytics.setCustomDimension(i, value) }
-  }
-
   /**
     * Register tracking event listeners on SE services in this method. We need a method here, since whenever the signal
     * zms fires, we want to discard the previous reference to the subscriber. Not doing so will cause this class to keep
@@ -265,7 +249,7 @@ class GlobalTrackingController(implicit inj: Injector, cxt: WireContext, eventCo
   }
 
   //-1 is the default value for non-logged in users (when zms is not defined)
-  private def loadCustomDimensions: Future[CustomAttributes] = {
+  private def setCustomDims(): Future[Unit] = {
     import ConversationType._
     for {
       zms    <- zmsOpt.head
@@ -288,9 +272,11 @@ class GlobalTrackingController(implicit inj: Injector, cxt: WireContext, eventCo
         }
       }
 
-      val autoConnected = users.iterator.map(u => (u.isAutoConnect && ! u.isWireBot)?).sum
+      val autoConnected = if (self == UserId.Zero) -1 else users.iterator.map(u => (u.isAutoConnect && ! u.isWireBot)?).sum
 
-      CustomAttributes(groups, archived, muted, contacts, blocked, autoConnected, voice, video, texts + rich, images)
+      val dims = CustomDimensions(groups, archived, muted, contacts, blocked, autoConnected, voice, video, (texts + rich) max -1, images)
+
+      if (isTrackingEnabled) dims.prepareList(cxt).zipWithIndex.foreach { case (value, i) => Localytics.setCustomDimension(i, value) }
     }
   }.logFailure(reportHockey = true)
 
@@ -307,6 +293,7 @@ class GlobalTrackingController(implicit inj: Injector, cxt: WireContext, eventCo
 }
 
 object GlobalTrackingController {
+  
   val SAVED_STATE_SENT_TAGS = "SAVED_STATE_SENT_TAGS"
 
   private implicit class RichBoolean(val b: Boolean) extends AnyVal {
@@ -334,7 +321,7 @@ object GlobalTrackingController {
 
   case class AssetTrackingData(conversationType: ConversationType, withOtto: Boolean, isEphemeral: Boolean, expiration: EphemeralExpiration, assetSize: Long, mime:Mime)
 
-  case class CustomAttributes(groups:        Int,
+  case class CustomDimensions(groups:        Int,
                               archived:      Int,
                               muted:         Int,
                               contacts:      Int,
@@ -343,39 +330,54 @@ object GlobalTrackingController {
                               voiceCalls:    Int,
                               videoCalls:    Int,
                               textsSent:     Int,
-                              imagesSent:    Int)
+                              imagesSent:    Int) {
+    override def toString =
+      s"""CustomDimensions:
+        |groups:        $groups
+        |archived:      $archived
+        |muted:         $muted
+        |contacts:      $contacts
+        |blocked:       $blocked
+        |autoConnected: $autoConnected
+        |voiceCalls:    $voiceCalls
+        |videoCalls:    $videoCalls
+        |textsSent:     $textsSent
+        |imagesSent:    $imagesSent
+      """.stripMargin
 
-  protected def getCustomDimensions(attrs: CustomAttributes, context: Context): List[String] = {
+    def prepareList(context: Context): List[String] = {
 
-    import RangedAttribute._
+      import RangedAttribute._
 
-    val preferences = context.getSharedPreferences(UserPreferencesController.USER_PREFS_TAG, Context.MODE_PRIVATE)
+      val preferences = context.getSharedPreferences(UserPreferencesController.USER_PREFS_TAG, Context.MODE_PRIVATE)
 
-    val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE).asInstanceOf[ConnectivityManager]
-    val telephonyManager = context.getSystemService(Context.TELEPHONY_SERVICE).asInstanceOf[TelephonyManager]
-    val networkInfo = connectivityManager.getActiveNetworkInfo
+      val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE).asInstanceOf[ConnectivityManager]
+      val telephonyManager = context.getSystemService(Context.TELEPHONY_SERVICE).asInstanceOf[TelephonyManager]
+      val networkInfo = connectivityManager.getActiveNetworkInfo
 
-    val mode = NetworkModeService.computeMode(networkInfo, telephonyManager) match {
-      case NetworkMode._2G  => "2G"
-      case NetworkMode.EDGE => "EDGE"
-      case NetworkMode._3G  => "3G"
-      case NetworkMode._4G  => "4G"
-      case NetworkMode.WIFI => "WIFI"
-      case _ => "unknown"
+      val mode = NetworkModeService.computeMode(networkInfo, telephonyManager) match {
+        case NetworkMode._2G  => "2G"
+        case NetworkMode.EDGE => "EDGE"
+        case NetworkMode._3G  => "3G"
+        case NetworkMode._4G  => "4G"
+        case NetworkMode.WIFI => "WIFI"
+        case _ => "unknown"
+      }
+
+      //First element -1 is placeholder for outdated custom dimension ("interactions with bot")
+      List("-1") ++ List(
+        autoConnected -> NUMBER_OF_CONTACTS,
+        contacts      -> NUMBER_OF_CONTACTS,
+        groups        -> NUMBER_OF_GROUP_CONVERSATIONS,
+        voiceCalls    -> NUMBER_OF_VOICE_CALLS,
+        videoCalls    -> NUMBER_OF_VIDEO_CALLS,
+        textsSent     -> TEXT_MESSAGES_SENT,
+        imagesSent    -> IMAGES_SENT
+      ).map {case (count, attr) => createRangedAttribute(count, attr.rangeSteps)} ++ List(
+        Integer.toString(preferences.getInt(UserPreferencesController.USER_PERFS_AB_TESTING_GROUP, 0)),
+        mode
+      )
     }
-
-    List(
-      attrs.autoConnected -> NUMBER_OF_CONTACTS,
-      attrs.contacts      -> NUMBER_OF_CONTACTS,
-      attrs.groups        -> NUMBER_OF_GROUP_CONVERSATIONS,
-      attrs.voiceCalls    -> NUMBER_OF_VOICE_CALLS,
-      attrs.videoCalls    -> NUMBER_OF_VIDEO_CALLS,
-      attrs.textsSent     -> TEXT_MESSAGES_SENT,
-      attrs.imagesSent    -> IMAGES_SENT
-    ).map {case (count, attr) => createRangedAttribute(count, attr.rangeSteps)} ++ List(
-      Integer.toString(preferences.getInt(UserPreferencesController.USER_PERFS_AB_TESTING_GROUP, 0)),
-      mode
-    )
   }
 
   /**
