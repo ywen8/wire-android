@@ -69,9 +69,9 @@ public class UserTokenSpan extends SpannableEditText.TokenSpan {
         paddingRightFix = context.getResources().getDimensionPixelSize(R.dimen.people_picker__input_person_token__padding_right_fix);
         textOffsetTop = 0;
         spaceForCursor = context.getResources().getDimensionPixelSize(R.dimen.people_picker__input_person_token__extra_space_for_cursor);
-        backgroundRadius = context.getResources().getDimensionPixelSize(R.dimen.wire__padding__8);
         backgroundHeight = context.getResources().getDimensionPixelSize(R.dimen.wire__padding__16);
         backgroundBottomPadding = context.getResources().getDimensionPixelSize(R.dimen.wire__padding__4);
+        backgroundRadius = backgroundBottomPadding + backgroundHeight/2;
 
         int tokenBackgroundColor = context.getResources().getColor(R.color.people_picker__input_person_token__background_color);
         int textColor = context.getResources().getColor(R.color.text__primary_light);

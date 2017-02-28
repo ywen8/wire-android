@@ -51,6 +51,7 @@ import com.waz.zclient.views.ImageAssetDrawable.{RequestBuilder, ScaleType}
 import com.waz.zclient.views.ImageController.{ImageSource, WireImage}
 import com.waz.zclient.views._
 
+import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Success
 
 
@@ -264,14 +265,13 @@ case class PickableConversation(conversationData: ConversationData) extends Pick
 
 class ShareToMultipleAdapter(context: Context, filter: Signal[String])(implicit injector: Injector, eventContext: EventContext) extends RecyclerView.Adapter[RecyclerView.ViewHolder] with Injectable {
   setHasStableIds(true)
-
   lazy val zms = inject[Signal[ZMessaging]]
   lazy val conversations = for{
     z <- zms
-    conversationsSignal <- z.convsContent.conversationsSignal
+    conversations <- Signal.future(z.convsContent.storage.getAll)
     f <- filter
   } yield
-    conversationsSignal.conversations.toSeq
+    conversations
       .filter(c => (c.convType == ConversationType.Group || c.convType == ConversationType.OneToOne) && !c.hidden && c.displayName.toLowerCase.contains(f.toLowerCase))
       .sortWith((a, b) => a.lastEventTime.isAfter(b.lastEventTime))
 
@@ -327,8 +327,21 @@ case class SelectableConversationRowViewHolder(view: SelectableConversationRow)(
 
   val conversationId = Signal[ConvId]()
 
-  zms.flatMap(z => conversationId.flatMap(convId => z.convsContent.conversationsSignal.map(_.conversations.find(_.id == convId)))).on(Threading.Ui){
-    case Some(conversationData) => view.nameView.setText(conversationData.displayName)
+  val convSignal = for {
+    z <- zms
+    cid <- conversationId
+    conversations <- z.convsStorage.convsSignal
+    conversation <- Signal(conversations.conversations.find(_.id == cid))
+  } yield conversation
+
+  convSignal.on(Threading.Ui){
+    case Some(conversationData) =>
+      val name = conversationData.displayName
+      if (name.isEmpty) {
+        import Threading.Implicits.Background
+        zms.head.flatMap(_.conversations.forceNameUpdate(conversationData.id))
+      }
+      view.nameView.setText(conversationData.displayName)
     case _ => view.nameView.setText("")
   }
 
