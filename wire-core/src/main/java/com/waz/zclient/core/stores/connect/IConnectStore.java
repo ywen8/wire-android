@@ -17,9 +17,7 @@
  */
 package com.waz.zclient.core.stores.connect;
 
-import com.waz.api.CommonConnections;
 import com.waz.api.IConversation;
-import com.waz.api.Invitations;
 import com.waz.api.User;
 import com.waz.zclient.core.stores.IStore;
 
@@ -32,8 +30,6 @@ public interface IConnectStore extends IStore {
     // Displaying a connect request
     void loadUser(String userId, UserRequester userRequester);
 
-    void loadCommonConnections(CommonConnections commonConnections);
-
     void addConnectRequestObserver(ConnectStoreObserver connectStoreObserver);
 
     void removeConnectRequestObserver(ConnectStoreObserver connectStoreObserver);
@@ -44,8 +40,6 @@ public interface IConnectStore extends IStore {
     void blockUser(User user);
 
     IConversation unblockUser(User user);
-
-    void requestInviteUri(Invitations.InvitationUriCallback callback);
 
     void requestConnection(String token);
 

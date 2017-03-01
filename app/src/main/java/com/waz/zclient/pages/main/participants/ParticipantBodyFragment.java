@@ -28,7 +28,6 @@ import android.view.animation.Animation;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.LinearLayout;
-import com.waz.api.CommonConnections;
 import com.waz.api.IConversation;
 import com.waz.api.Message;
 import com.waz.api.NetworkMode;
@@ -612,11 +611,6 @@ public class ParticipantBodyFragment extends BaseFragment<ParticipantBodyFragmen
                 }
             }
         });
-    }
-
-    @Override
-    public void onCommonConnectionsUpdated(CommonConnections commonConnections) {
-
     }
 
     @Override

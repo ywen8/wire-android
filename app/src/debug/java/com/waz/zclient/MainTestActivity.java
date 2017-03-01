@@ -17,7 +17,6 @@
  */
 package com.waz.zclient;
 
-import com.waz.api.CommonConnections;
 import com.waz.api.IConversation;
 import com.waz.api.Self;
 import com.waz.api.User;
@@ -62,11 +61,6 @@ public class MainTestActivity extends TestActivity implements MainPhoneFragment.
 
     @Override
     public void onConnectUserUpdated(User user, IConnectStore.UserRequester usertype) {
-
-    }
-
-    @Override
-    public void onCommonConnectionsUpdated(CommonConnections commonConnections) {
 
     }
 

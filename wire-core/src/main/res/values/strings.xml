@@ -311,8 +311,6 @@
 
     <!-- Connect request -->
     <string name="connect__message">Hi %1$s,\nLet\'s connect on Wire.\n%2$s</string>
-    <string name="connect_request__common_users__label">You both know</string>
-    <string name="connect_request__common_users__connection_counter">+%1$s</string>
     <plurals name="connect_request__common_users__summary">
         <item quantity="one">%1$d person in common</item>
         <item quantity="other">%1$d people in common</item>

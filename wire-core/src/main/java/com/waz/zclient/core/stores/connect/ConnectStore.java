@@ -17,7 +17,6 @@
  */
 package com.waz.zclient.core.stores.connect;
 
-import com.waz.api.CommonConnections;
 import com.waz.api.IConversation;
 import com.waz.api.User;
 
@@ -41,12 +40,6 @@ public abstract class ConnectStore implements IConnectStore {
     protected void notifyConnectUserUpdated(User user, UserRequester userRequester) {
         for (ConnectStoreObserver connectStoreObserver : connectStoreObservers) {
             connectStoreObserver.onConnectUserUpdated(user, userRequester);
-        }
-    }
-
-    protected void notifyCommonConnectionsUpdated(CommonConnections commonConnections) {
-        for (ConnectStoreObserver connectStoreObserver : connectStoreObservers) {
-            connectStoreObserver.onCommonConnectionsUpdated(commonConnections);
         }
     }
 

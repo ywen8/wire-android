@@ -34,7 +34,6 @@ import android.view.animation.Animation;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.TextView;
-import com.waz.api.CommonConnections;
 import com.waz.api.IConversation;
 import com.waz.api.Message;
 import com.waz.api.NetworkMode;
@@ -526,11 +525,6 @@ public class ParticipantHeaderFragment extends BaseFragment<ParticipantHeaderFra
                 }
             }
         });
-    }
-
-    @Override
-    public void onCommonConnectionsUpdated(CommonConnections commonConnections) {
-
     }
 
     @Override

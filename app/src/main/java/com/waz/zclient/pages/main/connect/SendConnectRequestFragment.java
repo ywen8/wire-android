@@ -25,7 +25,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.widget.TextView;
-import com.waz.api.CommonConnections;
 import com.waz.api.IConversation;
 import com.waz.api.User;
 import com.waz.zclient.R;
@@ -248,8 +247,6 @@ public class SendConnectRequestFragment extends BaseFragment<SendConnectRequestF
         displayNameTextView.setText(user.getName());
         userDetailsView.setUser(user);
 
-        getStoreFactory().getConnectStore().loadCommonConnections(user.getCommonConnections());
-
         connectButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -296,11 +293,6 @@ public class SendConnectRequestFragment extends BaseFragment<SendConnectRequestF
             footerMenu.setVisibility(View.GONE);
             connectButton.setVisibility(View.VISIBLE);
         }
-    }
-
-    @Override
-    public void onCommonConnectionsUpdated(CommonConnections commonConnections) {
-
     }
 
     @Override

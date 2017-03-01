@@ -39,7 +39,6 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.localytics.android.Localytics;
 import com.waz.api.ActiveVoiceChannels;
-import com.waz.api.CommonConnections;
 import com.waz.api.ConversationsList;
 import com.waz.api.IConversation;
 import com.waz.api.NetworkMode;
@@ -711,9 +710,6 @@ public class MainActivity extends BaseActivity implements MainPhoneFragment.Cont
     //
     //////////////////////////////////////////////////////////////////////////////////////////
     public void onConnectUserUpdated(User user, IConnectStore.UserRequester usertype) {}
-
-    @Override
-    public void onCommonConnectionsUpdated(CommonConnections commonConnections) {}
 
     @Override
     public void onInviteRequestSent(IConversation conversation) {
