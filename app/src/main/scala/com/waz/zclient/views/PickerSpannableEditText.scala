@@ -119,7 +119,7 @@ class PickerSpannableEditText(val context: Context, val attrs: AttributeSet, val
   }
 
   override protected def setHintCursorSize(cursorDrawable: ShapeDrawable): Unit = {
-    if (hasText || Build.VERSION.SDK_INT <= 22) {
+    if (hasText || Build.VERSION.SDK_INT <= 22 || getHint.length() == 0) {
       return
     }
     val padding: Int = ViewUtils.toPx(getContext, PickerSpannableEditText.EXTRA_PADDING_DP)

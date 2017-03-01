@@ -46,12 +46,10 @@ import com.waz.zclient.pages.extendedcursor.ephemeral.EphemeralLayout
 import com.waz.zclient.ui.text.TypefaceTextView
 import com.waz.zclient.ui.utils.{BitmapUtils, ColorUtils}
 import com.waz.zclient.ui.views.CursorIconButton
-import com.waz.zclient.utils.ViewUtils
+import com.waz.zclient.utils.{RichView, ViewUtils}
 import com.waz.zclient.views.ImageAssetDrawable.{RequestBuilder, ScaleType}
 import com.waz.zclient.views.ImageController.{ImageSource, WireImage}
 import com.waz.zclient.views._
-
-import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Success
 
 
@@ -71,6 +69,7 @@ class ShareToMultipleFragment extends BaseFragment[ShareToMultipleFragment.Conta
     val listView = ViewUtils.getView(view, R.id.lv__conversation_list).asInstanceOf[RecyclerView]
     val sendButton = ViewUtils.getView(view, R.id.cib__send_button).asInstanceOf[CursorIconButton]
     val searchBox = ViewUtils.getView(view, R.id.multi_share_search_box).asInstanceOf[PickerSpannableEditText]
+    val searchHint = ViewUtils.getView(view, R.id.multi_share_search_box_hint).asInstanceOf[TypefaceTextView]
     val contentLayout = ViewUtils.getView(view, R.id.content_container).asInstanceOf[RelativeLayout]
     val profileImageView = ViewUtils.getView(view, R.id.user_photo).asInstanceOf[ImageView]
     val bottomContainer = ViewUtils.getView(view, R.id.ephemeral_container).asInstanceOf[AnimatedBottomContainer]
@@ -129,6 +128,11 @@ class ShareToMultipleFragment extends BaseFragment[ShareToMultipleFragment.Conta
     listView.setLayoutManager(new LinearLayoutManager(getContext))
     listView.setAdapter(adapter)
 
+    Signal(filterText, adapter.selectedConversations).on(Threading.Ui){
+      case (filter, convs) => searchHint.setVisible(filter.isEmpty && convs.isEmpty)
+      case _ =>
+    }
+
     //TODO: It's possible for an app to share multiple uris at once but we're only showing the preview for one
     def showMessagePreview(content: Option[SharableContent]): Unit = content match{
       case Some(TextContent(text)) =>
@@ -164,8 +168,11 @@ class ShareToMultipleFragment extends BaseFragment[ShareToMultipleFragment.Conta
           case _ =>
         }(Threading.Ui))
         assetForUpload.foreach(_.sizeInBytes.onComplete{
-          case Success(Some(size)) => contentView.findViewById(R.id.file_info).asInstanceOf[TextView].setText(Formatter.formatFileSize(getContext, size))
-          case _ =>
+          case Success(Some(size)) =>
+            val textView = contentView.findViewById(R.id.file_info).asInstanceOf[TextView]
+            textView.setVisibility(View.GONE)
+            textView.setText(Formatter.formatFileSize(getContext, size))
+          case _ => contentView.findViewById(R.id.file_info).asInstanceOf[TextView].setVisibility(View.GONE)
         }(Threading.Ui))
       case _ =>
     }

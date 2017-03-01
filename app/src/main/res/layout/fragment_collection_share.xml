@@ -54,25 +54,45 @@
             android:layout_height="@dimen/collections__multi_share__image_preview__height">
         </RelativeLayout>
 
-        <com.waz.zclient.views.PickerSpannableEditText
-            android:id="@+id/multi_share_search_box"
+        <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="@dimen/collections__multi_share_search_height"
-            android:background="@drawable/rounded_graphite_rectangle"
             android:layout_margin="@dimen/wire__padding__8"
-            android:drawableStart="?attr/conversationToolbarCollection"
-            android:drawablePadding="@dimen/wire__padding__8"
-            android:paddingLeft="@dimen/wire__padding__12"
-            android:paddingRight="@dimen/wire__padding__12"
-            android:textSize="@dimen/wire__text_size__regular"
-            android:inputType="textNoSuggestions|textVisiblePassword"
-            android:hint="@string/multi_share_search_hint"
-            android:fontFamily="sans-serif-light"
-            android:gravity="center_vertical"
-            android:imeOptions="actionGo"
-            android:focusable="true"
-            android:focusableInTouchMode="true"
-            />
+            >
+
+            <com.waz.zclient.views.PickerSpannableEditText
+                android:id="@+id/multi_share_search_box"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@drawable/rounded_graphite_rectangle"
+                android:drawableStart="?attr/conversationToolbarCollection"
+                android:drawablePadding="@dimen/wire__padding__8"
+                android:paddingLeft="@dimen/wire__padding__12"
+                android:paddingRight="@dimen/wire__padding__12"
+                android:textSize="@dimen/wire__text_size__regular"
+                android:inputType="textNoSuggestions|textVisiblePassword"
+                android:fontFamily="sans-serif-light"
+                android:gravity="center_vertical"
+                android:imeOptions="actionGo"
+                android:focusable="true"
+                android:focusableInTouchMode="true"
+                android:hint=""
+                />
+
+            <com.waz.zclient.ui.text.TypefaceTextView
+                android:id="@+id/multi_share_search_box_hint"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:text="@string/multi_share_search_hint"
+                android:textColor="?wireSecondaryTextColor"
+                app:font="@string/wire__typeface__regular"
+                android:textSize="@dimen/wire__text_size__small"
+                android:clickable="false"
+                android:focusable="false"
+                />
+
+        </RelativeLayout>
 
         <View
             android:layout_width="match_parent"
