@@ -654,7 +654,7 @@
     <dimen name="people_picker__input__margin_right">44dp</dimen>
     <dimen name="people_picker__error_icon__padding">16dp</dimen>
     <dimen name="people_picker__error_icon_text__top_padding">8dp</dimen>
-    <dimen name="people_picker__input_person_token__padding_horizontal">8dp</dimen>
+    <dimen name="people_picker__input_person_token__padding_horizontal">10dp</dimen>
     <dimen name="people_picker__input_person_token__padding_right_fix">2dp</dimen>
     <dimen name="people_picker__input_person_token__extra_space_for_cursor">2dp</dimen>
     <dimen name="people_picker__button__clickarea__padding">8dp</dimen>

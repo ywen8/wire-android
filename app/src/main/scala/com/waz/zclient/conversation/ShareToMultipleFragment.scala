@@ -18,7 +18,7 @@
 package com.waz.zclient.conversation
 
 import android.content.Context
-import android.graphics.{Color, PorterDuff}
+import android.graphics.{BitmapFactory, Color, PorterDuff}
 import android.os.Bundle
 import android.support.v4.content.ContextCompat
 import android.support.v7.widget.RecyclerView.ViewHolder
@@ -30,7 +30,8 @@ import android.widget.LinearLayout.LayoutParams
 import android.widget._
 import com.waz.ZLog.ImplicitTag._
 import com.waz.api
-import com.waz.api.{AssetFactory, EphemeralExpiration}
+import com.waz.api.{AssetFactory, EphemeralExpiration, ImageAssetFactory}
+import com.waz.model.AssetMetaData.Image.Tag
 import com.waz.model.ConversationData.ConversationType
 import com.waz.model.{MessageContent => _, _}
 import com.waz.service.ZMessaging
@@ -48,8 +49,9 @@ import com.waz.zclient.ui.utils.{BitmapUtils, ColorUtils}
 import com.waz.zclient.ui.views.CursorIconButton
 import com.waz.zclient.utils.{RichView, ViewUtils}
 import com.waz.zclient.views.ImageAssetDrawable.{RequestBuilder, ScaleType}
-import com.waz.zclient.views.ImageController.{ImageSource, WireImage}
+import com.waz.zclient.views.ImageController.{DataImage, ImageSource, ImageUri, WireImage}
 import com.waz.zclient.views._
+
 import scala.util.Success
 
 
@@ -153,7 +155,11 @@ class ShareToMultipleFragment extends BaseFragment[ShareToMultipleFragment.Conta
 
         inflater.inflate(R.layout.share_preview_image, contentLayout)
         val contentImageView = contentLayout.findViewById(R.id.image_content).asInstanceOf[ImageView]
-        contentImageView.setImageURI(uris.head)
+
+        val imageAsset = AssetData.newImageAssetFromUri(tag = Tag.Medium, uri = uris.head)
+        val drawable = new ImageAssetDrawable(Signal(DataImage(imageAsset)), ScaleType.CenterCrop, RequestBuilder.Regular)
+        contentImageView.setImageDrawable(drawable)
+
       case Some(FileContent(uris)) =>
         contentLayout.removeAllViews()
 
