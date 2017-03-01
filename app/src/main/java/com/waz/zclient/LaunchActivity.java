@@ -22,6 +22,7 @@ import android.os.Bundle;
 import android.text.TextUtils;
 import com.waz.api.InitListener;
 import com.waz.api.Self;
+import com.waz.zclient.tracking.GlobalTrackingController;
 import com.waz.zclient.utils.BackendPicker;
 import com.waz.zclient.utils.Callback;
 import com.waz.zclient.utils.IntentUtils;
@@ -44,13 +45,13 @@ public class LaunchActivity extends BaseActivity implements InitListener {
     @Override
     public void onBaseActivityStart() {
         persistInviteToken();
-        getControllerFactory().getTrackingController().appLaunched(getIntent());
 
         new BackendPicker(getApplicationContext()).withBackend(this, new Callback<Void>() {
             @Override
             public void callback(Void aVoid) {
                 LaunchActivity.super.onBaseActivityStart();
                 getStoreFactory().getZMessagingApiStore().getApi().onInit(LaunchActivity.this);
+                injectJava(GlobalTrackingController.class).appLaunched(getIntent());
             }
         });
     }
