@@ -676,6 +676,7 @@
     <dimen name="contactlist__generic_invite_button__margin_vertical">14dp</dimen>
     <dimen name="contactlist__user_selection_button__bottom_margin">6dp</dimen>
     <dimen name="people_picker__border_line__height">@dimen/wire__divider__height__thin</dimen>
+    <dimen name="people_picker__expander__padding_top">8dp</dimen>
 
     <dimen name="sharing_indicator__font__size">10dp</dimen>
     <dimen name="sharing_indicator__expanded_height">30dp</dimen>
