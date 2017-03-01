@@ -25,7 +25,7 @@
        android:orientation="horizontal"
     >
     <!-- Mute Button -->
-    <com.waz.zclient.ui.calling.CallControlButtonView
+    <com.waz.zclient.calling.views.CallControlButtonView
         android:id="@+id/ccbv__button_left"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -47,7 +47,7 @@
         />
 
     <!-- Dismiss Button -->
-    <com.waz.zclient.ui.calling.CallControlButtonView
+    <com.waz.zclient.calling.views.CallControlButtonView
         android:id="@+id/ccbv__button_middle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -72,7 +72,7 @@
         />
 
     <!-- Speaker or Video Button -->
-    <com.waz.zclient.ui.calling.CallControlButtonView
+    <com.waz.zclient.calling.views.CallControlButtonView
         android:id="@+id/ccbv__button_right"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

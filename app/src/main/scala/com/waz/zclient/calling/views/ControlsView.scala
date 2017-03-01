@@ -28,6 +28,7 @@ import android.view._
 import android.widget.{FrameLayout, LinearLayout}
 import com.facebook.rebound._
 import com.waz.ZLog
+import com.waz.ZLog.ImplicitTag._
 import com.waz.api.VideoSendState._
 import com.waz.api.impl.AccentColor
 import com.waz.model.AssetData
@@ -40,11 +41,9 @@ import com.waz.utils.NameParts
 import com.waz.utils.events.{EventStream, Signal}
 import com.waz.zclient.calling.controllers.{CallPermissionsController, CurrentCallController}
 import com.waz.zclient.ui.animation.interpolators.penner.{Expo, Quart}
-import com.waz.zclient.ui.calling.CallControlButtonView
 import com.waz.zclient.ui.text.TypefaceFactory
 import com.waz.zclient.ui.utils.{ResourceUtils, TypefaceUtils}
 import com.waz.zclient.{R, ViewHelper}
-import com.waz.ZLog.ImplicitTag._
 
 class ControlsView(val context: Context, val attrs: AttributeSet, val defStyleAttr: Int) extends FrameLayout(context, attrs, defStyleAttr) with ViewHelper {
 
@@ -77,7 +76,6 @@ private class OutgoingControlsView(val context: Context, val attrs: AttributeSet
   import com.waz.zclient.utils.RichView
 
   def this(context: Context, attrs: AttributeSet) = this(context, attrs, 0)
-
   def this(context: Context) = this(context, null)
 
   LayoutInflater.from(context).inflate(R.layout.calling__controls__ongoing, this, true)

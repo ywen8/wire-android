@@ -25,8 +25,11 @@ import android.util.AttributeSet
 import android.view.View._
 import android.view.{View, ViewGroup}
 import android.widget.SeekBar
+import com.waz.utils.Managed
 import com.waz.zclient.ui.utils.ResourceUtils
 import com.waz.zclient.ui.views.OnDoubleClickListener
+
+import scala.Proxy.Typed
 
 package object utils {
 

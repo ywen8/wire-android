@@ -22,7 +22,7 @@ import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.view.ViewGroup.LayoutParams
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
-import android.view.{ViewGroup, WindowManager}
+import android.view.{View, ViewGroup, WindowManager}
 import com.waz.threading.Threading
 import com.waz.zclient._
 import com.waz.zclient.calling.controllers.{CurrentCallController, GlobalCallingController}
@@ -33,8 +33,6 @@ import timber.log.Timber
 class CallingActivity extends AppCompatActivity with ActivityHelper with PermissionActivity {
 
   private lazy val controller = inject[CurrentCallController]
-
-  private lazy val backgroundLayout: ViewGroup = findById(R.id.background)
 
   private var isContentSet = false
 
