@@ -420,7 +420,7 @@ android.applicationVariants.all { variant ->
     if (project.hasProperty("applicationName")) {
         appName = applicationName
     } else {
-        appName = "zclient"
+        appName = "wire"
     }
 
     variant.outputs.each { output ->
