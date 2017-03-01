@@ -412,3 +412,20 @@ def logLevelWarn() { return '5' }
 def logLevelError() { return '6' }
 
 def logLevelSupress() { return '99' }
+
+//add pretty naming to apk filename
+android.applicationVariants.all { variant ->
+    def appName
+    //Check if an applicationName property is supplied; if not use the name of the parent project.
+    if (project.hasProperty("applicationName")) {
+        appName = applicationName
+    } else {
+        appName = "zclient"
+    }
+
+    variant.outputs.each { output ->
+        def newApkName
+        newApkName = "${appName}-${output.baseName}-${rootProject.ext.majorVersion}${android.defaultConfig.versionCode}.apk"
+        output.outputFile = new File(output.outputFile.parent, newApkName)
+    }
+}
