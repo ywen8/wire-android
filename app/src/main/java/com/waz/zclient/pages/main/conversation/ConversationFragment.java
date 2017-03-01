@@ -1408,7 +1408,9 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
 
     @Override
     public void onCursorClicked() {
-        listView.scrollToBottom();
+        if (!cursorLayout.isEditingMessage()) {
+            listView.scrollToBottom();
+        }
     }
 
     @Override
