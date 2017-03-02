@@ -38,6 +38,7 @@ public enum AppEntryError {
     ADD_TO_PROFILE_GENERIC_ERROR    (0, "",                 R.string.profile_generic_error_header, R.string.profile_generic_error_message),
     TOO_MANY_ATTEMPTS               (429, "",               R.string.new_reg_phone_too_man_attempts_header, R.string.new_reg_phone_too_man_attempts_message /*too many login attempts*/),
     SERVER_CONNECTIVITY_ERROR       (600, "",               R.string.new_reg_server_connectivity_error_header, R.string.new_reg_server_connectivity_error_message),
+    PHONE_BUDGET_EXHAUSTED          (403, "phone-budget-exhausted", R.string.new_reg_phone_budget_exhausted_title, R.string.new_reg_phone_budget_exhausted_message),
 
     NO_INTERNET                     (598, "",               R.string.new_reg_internet_connectivity_error_header, R.string.new_reg_internet_connectivity_error_message),
     PHONE_INVALID                   (400, "invalid-phone",  -1, -1), /* not displayed to user */
