@@ -272,8 +272,13 @@ public class AppEntryStore implements IAppEntryStore, ErrorsList.ErrorListener {
         }
 
         if (entryPoint == AppEntryState.EMAIL_REGISTER && self.accountActivated()) {
-            appEntryStateCallback.tagAppEntryEvent(new VerifiedEmailEvent(OutcomeAttribute.SUCCESS, "", getEmailRegistrationContext()));
-            appEntryStateCallback.tagAppEntryEvent(new SucceededWithRegistrationEvent(getEmailRegistrationContext()));
+            if (currentState == AppEntryState.EMAIL_VERIFY_EMAIL) {
+                // Check state so following registration events are triggered only once
+                appEntryStateCallback.tagAppEntryEvent(new VerifiedEmailEvent(OutcomeAttribute.SUCCESS,
+                                                                              "",
+                                                                              getEmailRegistrationContext()));
+                appEntryStateCallback.tagAppEntryEvent(new SucceededWithRegistrationEvent(getEmailRegistrationContext()));
+            }
             if (self.getPicture().isEmpty()) {
                 setState(AppEntryState.EMAIL_SET_PICTURE);
                 return;
