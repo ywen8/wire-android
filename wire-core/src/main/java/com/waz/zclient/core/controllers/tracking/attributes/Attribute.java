@@ -87,6 +87,7 @@ public enum Attribute {
     EFFECT("effect"),
     LENGTH("length"),
     BY_USERNAME("by_username_only"),
+    DURATION("duration"),
 
     AVS("avs"),
 

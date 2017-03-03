@@ -162,6 +162,7 @@ class GlobalTrackingController(implicit inj: Injector, cxt: WireContext, eventCo
     val assets      = zms.assetsStorage
     val convsUI     = zms.convsUi
     val handlesSync = zms.handlesSync
+    val connStats   = zms.websocket.connectionStats
 
     convsUI.assetUploadStarted.map(_.id) { assetTrackingData(_).map {
       case AssetTrackingData(convType, withOtto, isEphemeral, exp, assetSize, m) =>
@@ -246,6 +247,14 @@ class GlobalTrackingController(implicit inj: Injector, cxt: WireContext, eventCo
         }
       }
     }
+
+    connStats.flatMap { stats => Signal.wrap(stats.lostOnPingDuration) } { duration =>
+      tagEvent(WebSocketConnectionEvent.lostOnPingEvent(duration))
+    }
+
+    connStats.flatMap { stats => Signal.wrap(stats.aliveDuration) } { duration =>
+      tagEvent(WebSocketConnectionEvent.closedEvent(duration))
+    }
   }
 
   //-1 is the default value for non-logged in users (when zms is not defined)
@@ -293,7 +302,7 @@ class GlobalTrackingController(implicit inj: Injector, cxt: WireContext, eventCo
 }
 
 object GlobalTrackingController {
-  
+
   val SAVED_STATE_SENT_TAGS = "SAVED_STATE_SENT_TAGS"
 
   private implicit class RichBoolean(val b: Boolean) extends AnyVal {

@@ -276,3 +276,13 @@ case class FailedFileUploadEvent(error: ErrorResponse) extends Event("file.faile
   )
 }
 
+object WebSocketConnectionEvent {
+  def apply(name: String, duration: concurrent.duration.FiniteDuration) = new Event(name) {
+    override val attributes = Map(DURATION -> duration.toMillis.toString)
+  }
+  def lostOnPingEvent(duration: concurrent.duration.FiniteDuration) = apply("notification.web_socket_lost_on_ping", duration)
+  def closedEvent(duration: concurrent.duration.FiniteDuration) = apply("notification.web_socket_closed", duration)
+}
+
+
+
