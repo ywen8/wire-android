@@ -18,87 +18,183 @@
 package com.waz.zclient.conversation
 
 import android.content.Context
+import android.graphics.{BitmapFactory, Color, PorterDuff}
 import android.os.Bundle
+import android.support.v4.content.ContextCompat
 import android.support.v7.widget.RecyclerView.ViewHolder
-import android.support.v7.widget.{LinearLayoutManager, RecyclerView, Toolbar}
+import android.support.v7.widget.{LinearLayoutManager, RecyclerView}
+import android.text.format.Formatter
 import android.view.View.OnClickListener
 import android.view._
 import android.widget.LinearLayout.LayoutParams
 import android.widget._
-import com.waz.api._
+import com.waz.ZLog.ImplicitTag._
+import com.waz.api
+import com.waz.api.{AssetFactory, EphemeralExpiration, ImageAssetFactory}
+import com.waz.model.AssetMetaData.Image.Tag
 import com.waz.model.ConversationData.ConversationType
 import com.waz.model.{MessageContent => _, _}
 import com.waz.service.ZMessaging
 import com.waz.threading.Threading
 import com.waz.utils.events.{EventContext, EventStream, Signal, SourceSignal}
 import com.waz.zclient._
+import com.waz.zclient.controllers.SharingController.{FileContent, ImageContent, SharableContent, TextContent}
 import com.waz.zclient.controllers.global.AccentColorController
 import com.waz.zclient.controllers.{AssetsController, SharingController}
-import com.waz.zclient.messages.MessagesController
+import com.waz.zclient.messages.{MessagesController, UsersController}
 import com.waz.zclient.pages.BaseFragment
-import com.waz.zclient.pages.main.pickuser.views.SearchBoxView
-import com.waz.zclient.pages.main.pickuser.views.SearchBoxView.Callback
+import com.waz.zclient.pages.extendedcursor.ephemeral.EphemeralLayout
 import com.waz.zclient.ui.text.TypefaceTextView
-import com.waz.zclient.ui.utils.KeyboardUtils
+import com.waz.zclient.ui.utils.{BitmapUtils, ColorUtils}
 import com.waz.zclient.ui.views.CursorIconButton
-import com.waz.zclient.utils.ViewUtils
-import com.waz.ZLog.ImplicitTag._
+import com.waz.zclient.utils.{RichView, ViewUtils}
+import com.waz.zclient.views.ImageAssetDrawable.{RequestBuilder, ScaleType}
+import com.waz.zclient.views.ImageController.{DataImage, ImageSource, ImageUri, WireImage}
+import com.waz.zclient.views._
 
-class ShareToMultipleFragment extends BaseFragment[ShareToMultipleFragment.Container] with FragmentHelper {
+import scala.util.Success
+
+
+class ShareToMultipleFragment extends BaseFragment[ShareToMultipleFragment.Container] with FragmentHelper with OnBackPressedListener {
 
   lazy val zms = inject[Signal[ZMessaging]]
   lazy val assetsController = inject[AssetsController]
   lazy val messagesController = inject[MessagesController]
   lazy val accentColorController = inject[AccentColorController]
   lazy val sharingController = inject[SharingController]
+  lazy val usersController = inject[UsersController]
+
+  val updatePreviewEvent = EventStream[Unit]
 
   override def onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState: Bundle): View = {
     val view = inflater.inflate(R.layout.fragment_collection_share, container, false)
     val listView = ViewUtils.getView(view, R.id.lv__conversation_list).asInstanceOf[RecyclerView]
     val sendButton = ViewUtils.getView(view, R.id.cib__send_button).asInstanceOf[CursorIconButton]
-    val toolbar = ViewUtils.getView(view, R.id.t_toolbar).asInstanceOf[Toolbar]
-    val searchBox = ViewUtils.getView(view, R.id.multi_share_search_box).asInstanceOf[SearchBoxView]
+    val searchBox = ViewUtils.getView(view, R.id.multi_share_search_box).asInstanceOf[PickerSpannableEditText]
+    val searchHint = ViewUtils.getView(view, R.id.multi_share_search_box_hint).asInstanceOf[TypefaceTextView]
+    val contentLayout = ViewUtils.getView(view, R.id.content_container).asInstanceOf[RelativeLayout]
+    val profileImageView = ViewUtils.getView(view, R.id.user_photo).asInstanceOf[ImageView]
+    val bottomContainer = ViewUtils.getView(view, R.id.ephemeral_container).asInstanceOf[AnimatedBottomContainer]
+    val ephemeralToggle = ViewUtils.getView(view, R.id.ephemeral_toggle).asInstanceOf[EphemeralCursorButton]
+    val vignetteOverlay = ViewUtils.getView(view, R.id.iv_background_vignette_overlay).asInstanceOf[ImageView]
+
     val onClickEvent = EventStream[Unit]()
     val filterText = Signal[String]("")
     val adapter = new ShareToMultipleAdapter(getContext, filterText)
+    val darkenColor: Int = ColorUtils.injectAlpha(0.4f, Color.BLACK)
 
-    searchBox.setHintText(getString(R.string.multi_share_search_hint))
-    searchBox.setCallback(new Callback {
-      override def onClearButton(): Unit = {
-        searchBox.reset()
-        KeyboardUtils.hideKeyboard(getContext, searchBox.getWindowToken)
-      }
-
-      override def onFocusChange(hasFocus: Boolean): Unit = {}
-
-      override def onKeyboardDoneAction(): Unit = {
-        KeyboardUtils.hideKeyboard(getContext, searchBox.getWindowToken)
-      }
-
-      override def afterTextChanged(s: String): Unit = {
-        filterText ! s
-      }
-
-      override def onRemovedTokenSpan(user: User): Unit = {}
+    val userImage = usersController.selfUserId.flatMap(usersController.user).flatMap(_.picture match {
+      case Some(assetId) => Signal.const[ImageSource](WireImage(assetId))
+      case _ => Signal.empty[ImageSource]
     })
 
-    accentColorController.accentColor.on(Threading.Ui) {
-      color =>
+    Signal(accentColorController.accentColor, adapter.selectedConversations).on(Threading.Ui){
+      case (color, convs) if convs.nonEmpty =>
         sendButton.setSolidBackgroundColor(color.getColor())
         searchBox.setAccentColor(color.getColor())
+      case (color, _) =>
+        sendButton.setSolidBackgroundColor(ColorUtils.injectAlpha(0.4f, color.getColor()))
+        searchBox.setAccentColor(color.getColor())
+      case _ =>
     }
 
-    toolbar.setNavigationIcon(if (getControllerFactory.getThemeController.isDarkTheme) R.drawable.ic_action_close_light else R.drawable.ic_action_close_dark)
-    toolbar.setNavigationOnClickListener(new OnClickListener {
-      override def onClick(v: View): Unit = getActivity.onBackPressed()
+    val convSignal = for {
+      z <- zms
+      convs <- z.convsContent.conversationsSignal
+      selected <- Signal.wrap(adapter.conversationSelectEvent)
+     } yield (convs.conversations.find(c => c.id == selected._1), selected._2)
+
+    convSignal.on(Threading.Ui){
+      case (Some(convData), true) =>
+        searchBox.addElement(PickableConversation(convData))
+      case (Some(convData), false) =>
+        searchBox.removeElement(PickableConversation(convData))
+      case _ =>
+    }
+
+    profileImageView.setImageDrawable(new BlurredImageAssetDrawable(userImage, scaleType = ScaleType.CenterCrop, request = RequestBuilder.Single, blurRadius = 20, context = getContext))
+
+    vignetteOverlay.setImageBitmap(BitmapUtils.getVignetteBitmap(getResources))
+    vignetteOverlay.setColorFilter(darkenColor, PorterDuff.Mode.DARKEN)
+
+    searchBox.setCallback(new PickerSpannableEditText.Callback {
+      override def onRemovedTokenSpan(element: PickableElement) = {
+        adapter.conversationSelectEvent ! (ConvId(element.id), false)
+      }
+
+      override def afterTextChanged(s: String) = {
+        filterText ! searchBox.getSearchFilter
+      }
     })
 
     listView.setLayoutManager(new LinearLayoutManager(getContext))
     listView.setAdapter(adapter)
 
+    Signal(filterText, adapter.selectedConversations).on(Threading.Ui){
+      case (filter, convs) => searchHint.setVisible(filter.isEmpty && convs.isEmpty)
+      case _ =>
+    }
+
+    //TODO: It's possible for an app to share multiple uris at once but we're only showing the preview for one
+    def showMessagePreview(content: Option[SharableContent]): Unit = content match{
+      case Some(TextContent(text)) =>
+        contentLayout.removeAllViews()
+
+        contentLayout.setLayoutParams(new LinearLayout.LayoutParams(
+          ViewGroup.LayoutParams.MATCH_PARENT,
+          getContext.getResources.getDimensionPixelSize(R.dimen.collections__multi_share__text_preview__height)))
+
+        val contentTextView = inflater.inflate(R.layout.share_preview_text, contentLayout)
+        contentTextView.findViewById(R.id.text_content).asInstanceOf[TypefaceTextView].setText(text)
+      case Some(ImageContent(uris)) =>
+        contentLayout.removeAllViews()
+
+        contentLayout.setLayoutParams(new LinearLayout.LayoutParams(
+          ViewGroup.LayoutParams.MATCH_PARENT,
+          getContext.getResources.getDimensionPixelSize(R.dimen.collections__multi_share__image_preview__height)))
+
+        inflater.inflate(R.layout.share_preview_image, contentLayout)
+        val contentImageView = contentLayout.findViewById(R.id.image_content).asInstanceOf[ImageView]
+
+        val imageAsset = AssetData.newImageAssetFromUri(tag = Tag.Medium, uri = uris.head)
+        val drawable = new ImageAssetDrawable(Signal(DataImage(imageAsset)), ScaleType.CenterCrop, RequestBuilder.Regular)
+        contentImageView.setImageDrawable(drawable)
+
+      case Some(FileContent(uris)) =>
+        contentLayout.removeAllViews()
+
+        contentLayout.setLayoutParams(new LinearLayout.LayoutParams(
+          ViewGroup.LayoutParams.MATCH_PARENT,
+          getContext.getResources.getDimensionPixelSize(R.dimen.collections__multi_share__file_preview__height)))
+
+        val contentView = inflater.inflate(R.layout.share_preview_file, contentLayout)
+        val assetForUpload = Option(AssetFactory.fromContentUri(uris.head).asInstanceOf[api.impl.AssetForUpload])
+        assetForUpload.foreach(_.name.onComplete{
+          case Success(Some(name)) => contentView.findViewById(R.id.file_name).asInstanceOf[TextView].setText(name)
+          case _ =>
+        }(Threading.Ui))
+        assetForUpload.foreach(_.sizeInBytes.onComplete{
+          case Success(Some(size)) =>
+            val textView = contentView.findViewById(R.id.file_info).asInstanceOf[TextView]
+            textView.setVisibility(View.GONE)
+            textView.setText(Formatter.formatFileSize(getContext, size))
+          case _ => contentView.findViewById(R.id.file_info).asInstanceOf[TextView].setVisibility(View.GONE)
+        }(Threading.Ui))
+      case _ =>
+    }
+
+    sharingController.sharableContent.on(Threading.Ui) {
+      showMessagePreview
+    }
+
+    updatePreviewEvent.on(Threading.Ui) { _ =>
+      sharingController.sharableContent.currentValue.foreach(showMessagePreview)
+    }
+
     onClickEvent { _ =>
-      sharingController.sharableContent.on(Threading.Ui) { result =>
-        result.foreach(res => sharingController.onContentShared(getActivity, res, adapter.selectedConversations.currentValue.getOrElse(Set())))
+      val selectedConvs = adapter.selectedConversations.currentValue.getOrElse(Set())
+      if (selectedConvs.nonEmpty) {
+        sharingController.onContentShared(getActivity, adapter.selectedConversations.currentValue.getOrElse(Set()))
         Toast.makeText(getContext, R.string.multi_share_toast_sending, Toast.LENGTH_SHORT).show()
         getActivity.finish()
       }
@@ -112,20 +208,83 @@ class ShareToMultipleFragment extends BaseFragment[ShareToMultipleFragment.Conta
         onClickEvent ! (())
       }
     })
+
+    val ephemeralCallback = new EphemeralLayout.Callback(){
+      override def onEphemeralExpirationSelected(expiration: EphemeralExpiration, close: Boolean): Unit = {
+        sharingController.ephemeralExpiration ! expiration
+        ephemeralToggle.ephemeralExpiration ! expiration
+        if (close)
+          bottomContainer.closedAnimated()
+      }
+    }
+
+    ephemeralToggle.setOnClickListener(new OnClickListener{
+      override def onClick(v: View): Unit = {
+        bottomContainer.isExpanded.currentValue match {
+          case Some(true) =>
+            bottomContainer.closedAnimated()
+          case Some(false) =>
+            val ephemeralLayout = inflater.inflate(R.layout.ephemeral_keyboard_layout, null, false).asInstanceOf[EphemeralLayout]
+            sharingController.ephemeralExpiration.currentValue.foreach(ephemeralLayout.setSelectedExpiration)
+            ephemeralLayout.setCallback(ephemeralCallback)
+            bottomContainer.addView(ephemeralLayout)
+            bottomContainer.openAnimated()
+          case _ =>
+        }
+      }
+    })
+
     view
   }
+
+  override def onBackPressed(): Boolean = {
+    val bottomContainer = ViewUtils.getView(getView, R.id.ephemeral_container).asInstanceOf[AnimatedBottomContainer]
+    if (bottomContainer.isExpanded.currentValue.exists(a => a)) {
+      bottomContainer.closedAnimated()
+      return true
+    }
+    false
+  }
+
+  def updatePreview(): Unit ={
+    updatePreviewEvent ! (())
+  }
+}
+
+object ShareToMultipleFragment {
+  val TAG = ShareToMultipleFragment.getClass.getSimpleName
+
+  val MSG_ID_ARG = "MSG_ID_ARG"
+
+  def newInstance(messageId: MessageId): ShareToMultipleFragment = {
+    val fragment = new ShareToMultipleFragment
+    val bundle = new Bundle()
+    bundle.putString(MSG_ID_ARG, messageId.str)
+    fragment.setArguments(bundle)
+    fragment
+  }
+
+  def newInstance(): ShareToMultipleFragment = {
+    new ShareToMultipleFragment
+  }
+
+  trait Container
+}
+
+case class PickableConversation(conversationData: ConversationData) extends PickableElement{
+  override def id = conversationData.id.str
+  override def name = conversationData.displayName
 }
 
 class ShareToMultipleAdapter(context: Context, filter: Signal[String])(implicit injector: Injector, eventContext: EventContext) extends RecyclerView.Adapter[RecyclerView.ViewHolder] with Injectable {
   setHasStableIds(true)
-
   lazy val zms = inject[Signal[ZMessaging]]
   lazy val conversations = for{
     z <- zms
-    conversationsSignal <- z.convsContent.conversationsSignal
+    conversations <- Signal.future(z.convsContent.storage.getAll)
     f <- filter
   } yield
-    conversationsSignal.conversations.toSeq
+    conversations
       .filter(c => (c.convType == ConversationType.Group || c.convType == ConversationType.OneToOne) && !c.hidden && c.displayName.toLowerCase.contains(f.toLowerCase))
       .sortWith((a, b) => a.lastEventTime.isAfter(b.lastEventTime))
 
@@ -135,14 +294,20 @@ class ShareToMultipleAdapter(context: Context, filter: Signal[String])(implicit 
 
   val selectedConversations: SourceSignal[Set[ConvId]] = Signal(Set())
 
+  val conversationSelectEvent = EventStream[(ConvId, Boolean)]()
+  conversationSelectEvent.on(Threading.Ui){ event =>
+    if (event._2) {
+      selectedConversations.mutate( _ + event._1)
+    } else {
+      selectedConversations.mutate( _ - event._1)
+    }
+    notifyDataSetChanged()
+  }
+
   private val checkBoxListener = new CompoundButton.OnCheckedChangeListener {
     override def onCheckedChanged(buttonView: CompoundButton, isChecked: Boolean): Unit = {
       Option(buttonView.getTag.asInstanceOf[ConvId]).foreach{ convId =>
-        if (isChecked) {
-          selectedConversations.mutate( _ + convId)
-        } else {
-          selectedConversations.mutate( _ - convId)
-        }
+        conversationSelectEvent ! (convId, isChecked)
       }
     }
   }
@@ -175,8 +340,21 @@ case class SelectableConversationRowViewHolder(view: SelectableConversationRow)(
 
   val conversationId = Signal[ConvId]()
 
-  zms.flatMap(z => conversationId.flatMap(convId => z.convsContent.conversationsSignal.map(_.conversations.find(_.id == convId)))).on(Threading.Ui){
-    case Some(conversationData) => view.nameView.setText(conversationData.displayName)
+  val convSignal = for {
+    z <- zms
+    cid <- conversationId
+    conversations <- z.convsStorage.convsSignal
+    conversation <- Signal(conversations.conversations.find(_.id == cid))
+  } yield conversation
+
+  convSignal.on(Threading.Ui){
+    case Some(conversationData) =>
+      val name = conversationData.displayName
+      if (name.isEmpty) {
+        import Threading.Implicits.Background
+        zms.head.flatMap(_.conversations.forceNameUpdate(conversationData.id))
+      }
+      view.nameView.setText(conversationData.displayName)
     case _ => view.nameView.setText("")
   }
 
@@ -201,29 +379,12 @@ class SelectableConversationRow(context: Context, checkBoxListener: CompoundButt
   LayoutInflater.from(context).inflate(R.layout.row_selectable_conversation, this, true)
   val nameView = ViewUtils.getView(this, R.id.ttv__conversation_name).asInstanceOf[TypefaceTextView]
   val checkBox = ViewUtils.getView(this, R.id.rb__conversation_selected).asInstanceOf[CheckBox]
+  val buttonDrawable = ContextCompat.getDrawable(getContext, R.drawable.checkbox)
+  buttonDrawable.setLevel(1)
+  checkBox.setButtonDrawable(buttonDrawable)
 
   checkBox.setOnCheckedChangeListener(checkBoxListener)
   nameView.setOnClickListener(new OnClickListener() {
     override def onClick(v: View): Unit = checkBox.toggle()
   })
-}
-
-object ShareToMultipleFragment {
-  val TAG = ShareToMultipleFragment.getClass.getSimpleName
-
-  val MSG_ID_ARG = "MSG_ID_ARG"
-
-  def newInstance(messageId: MessageId): ShareToMultipleFragment = {
-    val fragment = new ShareToMultipleFragment
-    val bundle = new Bundle()
-    bundle.putString(MSG_ID_ARG, messageId.str)
-    fragment.setArguments(bundle)
-    fragment
-  }
-
-  def newInstance(): ShareToMultipleFragment = {
-    new ShareToMultipleFragment
-  }
-
-  trait Container
 }

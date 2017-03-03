@@ -40,6 +40,7 @@ import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.localytics.android.Localytics;
 import com.waz.api.ActiveVoiceChannels;
 import com.waz.api.ConversationsList;
+import com.waz.api.EphemeralExpiration;
 import com.waz.api.IConversation;
 import com.waz.api.NetworkMode;
 import com.waz.api.Self;
@@ -486,6 +487,7 @@ public class MainActivity extends BaseActivity implements MainPhoneFragment.Cont
             List<String> targetConversations = IntentUtils.getLaunchConversationIds(intent);
             String sharedText = IntentUtils.getLaunchConversationSharedText(intent);
             List<Uri> sharedFileUris = IntentUtils.getLaunchConversationSharedFiles(intent);
+            EphemeralExpiration expiration = IntentUtils.getEphemeralExpiration(intent);
             SharingController sharingController = injectJava(SharingController.class);
 
             if (targetConversations != null) {
@@ -502,6 +504,9 @@ public class MainActivity extends BaseActivity implements MainPhoneFragment.Cont
                     getControllerFactory().getSharingController().setSharedText(sharedText);
                     getControllerFactory().getSharingController().setSharedUris(sharedFileUris);
                     getControllerFactory().getSharingController().setSharingConversationId(conversationId);
+                    if (conversation != null) {
+                        conversation.setEphemeralExpiration(expiration);
+                    }
 
                     // Only want to swipe over when app has loaded
                     new Handler().postDelayed(new Runnable() {
@@ -511,7 +516,7 @@ public class MainActivity extends BaseActivity implements MainPhoneFragment.Cont
                         }
                     }, LAUNCH_CONVERSATION_CHANGE_DELAY);
                 } else {
-                    sharingController.sendContent(sharedText, sharedFileUris, targetConversations, this);
+                    sharingController.sendContent(sharedText, sharedFileUris, targetConversations, expiration, this);
                 }
             }
 
