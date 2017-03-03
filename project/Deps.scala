@@ -22,7 +22,7 @@ object Deps {
 
   lazy val zmsDevVersion = "93.1390"
   // Release version number must be like this X.0(.Y)
-  lazy val zmsReleaseVersion = "89.0.323"
+  lazy val zmsReleaseVersion = "93.1.330"
 
   lazy val avsVersion = Option(System.getenv("AVS_VERSION")).getOrElse("2.7.19")
   lazy val avsName = Option(System.getenv("AVS_NAME")).getOrElse("avs")

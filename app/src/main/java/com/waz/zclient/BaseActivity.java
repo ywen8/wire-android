@@ -53,7 +53,9 @@ public class BaseActivity extends BaseScalaActivity implements ServiceContainer,
 
     @Override
     public void onBaseActivityStart() {
-        ((WireApplication) getApplication()).ensureInitialized();
+        ((ZApplication) getApplication()).ensureInitialized();
+
+        super.onBaseActivityStart();
 
         getControllerFactory().setActivity(this);
         if (!started) {
@@ -89,12 +91,12 @@ public class BaseActivity extends BaseScalaActivity implements ServiceContainer,
 
     @Override
     public IStoreFactory getStoreFactory() {
-        return ((WireApplication) getApplication()).storeFactory();
+        return ZApplication.from(this).getStoreFactory();
     }
 
     @Override
     public IControllerFactory getControllerFactory() {
-        return ((WireApplication) getApplication()).controllerFactory();
+        return ZApplication.from(this).getControllerFactory();
     }
 
     @Override

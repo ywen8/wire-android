@@ -19,7 +19,7 @@ package com.waz.zclient;
 
 import com.facebook.stetho.Stetho;
 
-public class StethoApplication extends WireApplication {
+public class StethoApplication extends ZApplication {
 
     @Override
     public void onCreate() {

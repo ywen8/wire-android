@@ -55,8 +55,12 @@ public class BackendPicker {
         }
     }
 
-    public boolean hasBackendConfig() {
-        return getBackendConfig() != null;
+    public void withBackend(final Callback<Void> callback) {
+        BackendConfig be = getBackendConfig();
+        if (be != null) {
+            ZMessaging.useBackend(be);
+            callback.callback(null);
+        }
     }
 
     private void showDialog(Activity activity, final Callback<Void> callback) {
@@ -76,8 +80,10 @@ public class BackendPicker {
     }
 
     private boolean shouldShowBackendPicker() {
-        return BuildConfig.SHOW_BACKEND_PICKER &&
-               !PreferenceManager.getDefaultSharedPreferences(context).contains(CUSTOM_BACKEND_PREFERENCE);
+        if (!BuildConfig.SHOW_BACKEND_PICKER) {
+            return false;
+        }
+        return !PreferenceManager.getDefaultSharedPreferences(context).contains(CUSTOM_BACKEND_PREFERENCE);
     }
 
     @Nullable
