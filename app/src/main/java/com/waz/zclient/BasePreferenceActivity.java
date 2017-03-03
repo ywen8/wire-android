@@ -161,12 +161,12 @@ public abstract class BasePreferenceActivity extends BaseScalaActivity implement
 
     @Override
     public final IStoreFactory getStoreFactory() {
-        return ((WireApplication) getApplication()).storeFactory();
+        return ZApplication.from(this).getStoreFactory();
     }
 
     @Override
     public final IControllerFactory getControllerFactory() {
-        return ((WireApplication) getApplication()).controllerFactory();
+        return ZApplication.from(this).getControllerFactory();
     }
 
     @Override

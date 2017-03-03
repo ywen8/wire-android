@@ -70,7 +70,7 @@
         />
 
     <application
-        android:name=".WireApplication"
+        android:name=".ZApplication"
         android:allowBackup="${allowBackup}"
         android:hardwareAccelerated="true"
         android:icon="${applicationIcon}"

@@ -29,7 +29,7 @@ import android.text.TextUtils;
 import android.view.View;
 import com.waz.zclient.BaseScalaActivity;
 import com.waz.zclient.ServiceContainer;
-import com.waz.zclient.WireApplication;
+import com.waz.zclient.ZApplication;
 import com.waz.zclient.controllers.IControllerFactory;
 import com.waz.zclient.controllers.userpreferences.UserPreferencesController;
 import com.waz.zclient.core.controllers.tracking.events.Event;
@@ -52,7 +52,10 @@ public abstract class BasePreferenceFragment<T> extends XpPreferenceFragment imp
         } else {
             container = (T) activity;
         }
+        onPostAttach(activity);
     }
+
+    protected void onPostAttach(Activity activity) { }
 
     @Override
     @CallSuper
@@ -80,7 +83,7 @@ public abstract class BasePreferenceFragment<T> extends XpPreferenceFragment imp
     @Override
     public void onStop() {
         preferenceManager.getSharedPreferences().unregisterOnSharedPreferenceChangeListener(this);
-        super.onStop();
+        super.onStart();
     }
 
     @Override
@@ -99,17 +102,17 @@ public abstract class BasePreferenceFragment<T> extends XpPreferenceFragment imp
     @Override
     public void onDestroy() {
         preferenceManager = null;
-        super.onDestroy();
+        super.onDestroyView();
     }
 
     @Override
     public final IStoreFactory getStoreFactory() {
-        return getActivity() != null ? ((WireApplication) getActivity().getApplication()).storeFactory() : null;
+        return getActivity() != null ? ZApplication.from(getActivity()).getStoreFactory() : null;
     }
 
     @Override
     public final IControllerFactory getControllerFactory() {
-        return getActivity() != null ? ((WireApplication) getActivity().getApplication()).controllerFactory() : null;
+        return getActivity() != null ? ZApplication.from(getActivity()).getControllerFactory() : null;
     }
 
     @Override

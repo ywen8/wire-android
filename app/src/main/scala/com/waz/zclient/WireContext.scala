@@ -43,7 +43,9 @@ trait WireContext extends Context {
 
   def eventContext: EventContext
 
-  implicit lazy val injector: Injector = ContextModule(this) :: Global :: AppModule
+  implicit lazy val injector: Injector = {
+    WireApplication.APP_INSTANCE.contextModule(this) :: getApplicationContext.asInstanceOf[WireApplication].module
+  }
 }
 
 trait ViewFinder {

@@ -21,7 +21,7 @@ import android.app.Activity;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import com.waz.zclient.ServiceContainer;
-import com.waz.zclient.WireApplication;
+import com.waz.zclient.ZApplication;
 import com.waz.zclient.controllers.IControllerFactory;
 import com.waz.zclient.core.stores.IStoreFactory;
 
@@ -38,7 +38,10 @@ public class BaseDialogFragment<T> extends DialogFragment implements ServiceCont
         } else {
             container = (T) activity;
         }
+        onPostAttach(activity);
     }
+
+    protected void onPostAttach(Activity activity) { }
 
     @Override
     public final void onDetach() {
@@ -55,11 +58,11 @@ public class BaseDialogFragment<T> extends DialogFragment implements ServiceCont
 
     @Override
     public final IStoreFactory getStoreFactory() {
-        return getActivity() != null ? ((WireApplication) getActivity().getApplication()).storeFactory() : null;
+        return getActivity() != null ? ZApplication.from(getActivity()).getStoreFactory() : null;
     }
 
     @Override
     public final IControllerFactory getControllerFactory() {
-        return getActivity() != null ? ((WireApplication) getActivity().getApplication()).controllerFactory() : null;
+        return getActivity() != null ? ZApplication.from(getActivity()).getControllerFactory() : null;
     }
 }
