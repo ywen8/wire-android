@@ -45,13 +45,13 @@ public class LaunchActivity extends BaseActivity implements InitListener {
     @Override
     public void onBaseActivityStart() {
         persistInviteToken();
-        injectJava(GlobalTrackingController.class).appLaunched(getIntent());
 
         new BackendPicker(getApplicationContext()).withBackend(this, new Callback<Void>() {
             @Override
             public void callback(Void aVoid) {
                 LaunchActivity.super.onBaseActivityStart();
                 getStoreFactory().getZMessagingApiStore().getApi().onInit(LaunchActivity.this);
+                injectJava(GlobalTrackingController.class).appLaunched(getIntent());
             }
         });
     }
