@@ -24,10 +24,12 @@ import android.view.Gravity
 import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
 import android.widget.LinearLayout
 import com.waz.utils.returning
+import com.waz.zclient.calling.views.CallControlButtonView.ButtonColor
 import com.waz.zclient.ui.text.{GlyphTextView, TypefaceTextView}
 import com.waz.zclient.ui.theme.{OptionsDarkTheme, OptionsLightTheme}
 import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.{R, ViewHelper}
+import com.waz.zclient.utils.RichView
 
 import scala.util.Try
 
@@ -39,7 +41,6 @@ class CallControlButtonView(val context: Context, val attrs: AttributeSet, val d
   setGravity(Gravity.CENTER)
   setBackgroundColor(ContextCompat.getColor(getContext, R.color.transparent))
 
-  private val circleIconStyle = Option(attrs).map(_.getStyleAttribute).getOrElse(0)
   private val (
     circleIconDimension,
     buttonLabelWidth,
@@ -57,14 +58,10 @@ class CallControlButtonView(val context: Context, val attrs: AttributeSet, val d
 
   private var _isPressed: Boolean = false
 
-  private val buttonView = returning(new GlyphTextView(getContext, null, circleIconStyle)) { b =>
+  private val buttonView = returning(new GlyphTextView(getContext, null, defStyleAttr)) { b =>
     b.setLayoutParams(new LinearLayout.LayoutParams(circleIconDimension, circleIconDimension))
     b.setTextSize(TypedValue.COMPLEX_UNIT_PX, getDimenPx(R.dimen.wire__icon_button__text_size))
     b.setGravity(Gravity.CENTER)
-    if (circleIconStyle == 0) {
-      b.setTextColor(new OptionsDarkTheme(getContext).getTextColorPrimarySelector)
-      b.setBackground(getDrawable(R.drawable.selector__icon_button__background__calling))
-    }
     addView(b)
   }
 
@@ -97,4 +94,37 @@ class CallControlButtonView(val context: Context, val attrs: AttributeSet, val d
 
   def setText(stringId: Int): Unit = buttonLabelView.setText(getResources.getText(stringId))
 
+  import ButtonColor._
+  def setColor(color: ButtonColor) = {
+
+    val (drawable, textColor) = color match {
+      case Green       => (R.drawable.selector__icon_button__background__green,   R.color.selector__icon_button__text_color__dark)
+      case Red         => (R.drawable.selector__icon_button__background__red,     R.color.selector__icon_button__text_color__dark)
+      case Transparent => (R.drawable.selector__icon_button__background__calling, R.color.wire__text_color_primary_dark_selector)
+    }
+
+    buttonView.setTextColor(getColorStateList(textColor))
+    buttonView.setBackground(getDrawable(drawable))
+  }
+
+}
+
+object CallControlButtonView {
+
+  object ButtonColor extends Enumeration {
+    val Green, Red, Transparent = Value
+  }
+  type ButtonColor = ButtonColor.Value
+
+  case class ButtonSettings(glyphId: Int, labelStringId: Int, onClick: () => Unit, color: ButtonColor = ButtonColor.Transparent) {
+    def set(button: CallControlButtonView, controlsView: OutgoingControlsView) = {
+      button.setGlyph(glyphId)
+      button.setText(labelStringId)
+      button.setColor(color)
+      button.onClick {
+        onClick()
+        controlsView.callOnClick()
+      }
+    }
+  }
 }

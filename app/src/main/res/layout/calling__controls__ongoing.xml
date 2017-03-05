@@ -55,7 +55,6 @@
         app:labelWidth="@dimen/calling__controls__button_label__dimension"
         app:labelFont="@string/wire__typeface__light"
         app:labelTextSize="@dimen/wire__text_size__small"
-        style="?circularIconButtonRed"
         />
 
     <!-- Dummy view to make buttons align to edges -->

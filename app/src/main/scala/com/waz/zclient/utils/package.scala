@@ -95,6 +95,7 @@ package object utils {
     import android.content.Context
 
     def getColor(resId: Int)(implicit context: Context) = context.getResources.getColor(resId)
+    def getColorStateList(resId: Int)(implicit context: Context) = context.getResources.getColorStateList(resId)
 
     def getInt(resId: Int)(implicit context: Context) = context.getResources.getInteger(resId)
 
