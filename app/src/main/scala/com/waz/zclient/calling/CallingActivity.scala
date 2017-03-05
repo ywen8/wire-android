@@ -22,13 +22,14 @@ import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.view.ViewGroup.LayoutParams
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
-import android.view.{View, ViewGroup, WindowManager}
+import android.view.WindowManager
+import com.waz.ZLog.ImplicitTag._
+import com.waz.ZLog.verbose
 import com.waz.threading.Threading
 import com.waz.zclient._
 import com.waz.zclient.calling.controllers.{CurrentCallController, GlobalCallingController}
 import com.waz.zclient.calling.views.VideoCallingView
 import com.waz.zclient.common.controllers.PermissionActivity
-import timber.log.Timber
 
 class CallingActivity extends AppCompatActivity with ActivityHelper with PermissionActivity {
 
@@ -42,7 +43,7 @@ class CallingActivity extends AppCompatActivity with ActivityHelper with Permiss
 
     controller.glob.activeCall.on(Threading.Ui) {
       case false =>
-        Timber.d("call no longer exists, finishing activity")
+        verbose("call no longer exists, finishing activity")
         finish()
       case _ =>
     }

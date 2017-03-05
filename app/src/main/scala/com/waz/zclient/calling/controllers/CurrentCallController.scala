@@ -34,10 +34,13 @@ import com.waz.threading.Threading
 import com.waz.utils._
 import com.waz.utils.events.{ClockSignal, Signal}
 import com.waz.zclient._
+import com.waz.zclient.calling.controllers.CurrentCallController.ButtonSettings
+import com.waz.zclient.calling.views.{CallControlButtonView, ControlsView, OutgoingControlsView}
 import com.waz.zclient.utils.events.ButtonSignal
 import org.threeten.bp.Duration._
 import org.threeten.bp.Instant._
 import org.threeten.bp.{Duration, Instant}
+import com.waz.zclient.utils.RichView
 
 class CurrentCallController(implicit inj: Injector, cxt: WireContext) extends Injectable { self =>
 
@@ -252,10 +255,36 @@ class CurrentCallController(implicit inj: Injector, cxt: WireContext) extends In
 
   val isTablet = Signal(LayoutSpec.isTablet(cxt))
 
+  val leftButtonSettings =
+    Signal(ButtonSettings(R.string.glyph__microphone_off, R.string.incoming__controls__ongoing__mute, () => toggleMuted()))
+
+  val middleButtonSettings =
+    Signal(ButtonSettings(R.string.glyph__end_call, R.string.incoming__controls__ongoing__hangup, () => leaveCall()))
+
+  val rightButtonSettings = videoCall.map {
+    case true =>  ButtonSettings(R.string.glyph__video,        R.string.incoming__controls__ongoing__video,   () => toggleVideo())
+    case false => ButtonSettings(R.string.glyph__speaker_loud, R.string.incoming__controls__ongoing__speaker, () => speakerButton.press())
+  }
+
   val rightButtonShown = Signal(videoCall, callEstablished, captureDevices, isTablet) map {
     case (true, false, _, _) => false
     case (true, true, captureDevices, _) => captureDevices.size >= 0
     case (false, _, _, isTablet) => !isTablet //Tablets don't have ear-pieces, so you can't switch between speakers
     case _ => false
   }
+}
+
+object CurrentCallController {
+
+  case class ButtonSettings(glyphId: Int, labelStringId: Int, onClick: () => Unit) {
+    def set(button: CallControlButtonView, controlsView: OutgoingControlsView) = {
+      button.setGlyph(glyphId)
+      button.setText(labelStringId)
+      button.onClick {
+        onClick()
+        controlsView.callOnClick()
+      }
+    }
+  }
+
 }

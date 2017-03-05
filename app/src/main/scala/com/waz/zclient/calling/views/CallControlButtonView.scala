@@ -42,8 +42,6 @@ class CallControlButtonView(val context: Context, val attrs: AttributeSet, val d
   private val circleIconStyle = Option(attrs).map(_.getStyleAttribute).getOrElse(0)
   private val (
     circleIconDimension,
-    circleIconGlyph,
-    labelText,
     buttonLabelWidth,
     labelTextSize,
     labelFont
@@ -51,19 +49,16 @@ class CallControlButtonView(val context: Context, val attrs: AttributeSet, val d
     returning {
       (
         a.getDimensionPixelSize(R.styleable.CallControlButtonView_circleIconDimension, 0),
-        a.getString(R.styleable.CallControlButtonView_circleIconGlyph),
-        a.getString(R.styleable.CallControlButtonView_labelText),
         a.getDimensionPixelSize(R.styleable.CallControlButtonView_labelWidth, 0),
         a.getDimensionPixelSize(R.styleable.CallControlButtonView_labelTextSize, 0),
         a.getString(R.styleable.CallControlButtonView_labelFont))
     } (_ => a.recycle())
-  }.getOrElse((0, "", "", 0, 0, ""))
+  }.getOrElse((0, 0, 0, ""))
 
   private var _isPressed: Boolean = false
 
   private val buttonView = returning(new GlyphTextView(getContext, null, circleIconStyle)) { b =>
     b.setLayoutParams(new LinearLayout.LayoutParams(circleIconDimension, circleIconDimension))
-    b.setText(circleIconGlyph)
     b.setTextSize(TypedValue.COMPLEX_UNIT_PX, getDimenPx(R.dimen.wire__icon_button__text_size))
     b.setGravity(Gravity.CENTER)
     if (circleIconStyle == 0) {
@@ -75,7 +70,6 @@ class CallControlButtonView(val context: Context, val attrs: AttributeSet, val d
 
   private val buttonLabelView =
     returning(new TypefaceTextView(getContext, null, R.attr.callingControlButtonLabel)) { b =>
-      b.setText(labelText)
       b.setTextSize(TypedValue.COMPLEX_UNIT_PX, labelTextSize)
       b.setTypeface(labelFont)
       b.setGravity(Gravity.CENTER)
@@ -97,11 +91,10 @@ class CallControlButtonView(val context: Context, val attrs: AttributeSet, val d
       buttonView.setTextColor(new OptionsDarkTheme(getContext).getTextColorPrimarySelector)
       buttonView.setBackground(ContextCompat.getDrawable(getContext, R.drawable.selector__icon_button__background__calling))
     }
-    }
+  }
 
   def setGlyph(glyphId: Int): Unit = buttonView.setText(getResources.getText(glyphId))
 
   def setText(stringId: Int): Unit = buttonLabelView.setText(getResources.getText(stringId))
-
 
 }
