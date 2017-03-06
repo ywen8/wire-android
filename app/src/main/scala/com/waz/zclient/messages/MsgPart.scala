@@ -36,7 +36,7 @@ object MsgPart {
   case object WebLink extends MsgPart
   case object YouTube extends MsgPart
   case object Location extends MsgPart
-  case object SoundCloud extends MsgPart
+  case object SoundMedia extends MsgPart
   case object MemberChange extends MsgPart
   case object ConnectRequest extends MsgPart
   case object Footer extends MsgPart
@@ -79,9 +79,10 @@ object MsgPart {
       case ASSET => Image
       case WEB_LINK => WebLink
       case ANY_ASSET => FileAsset
-      case SOUNDCLOUD => SoundCloud
+      case SOUNDCLOUD => SoundMedia
+      case SPOTIFY => SoundMedia
       case YOUTUBE => YouTube
-      case GOOGLE_MAPS | SPOTIFY | TWITTER => Text
+      case GOOGLE_MAPS | TWITTER => Text
     }
   }
 

@@ -236,7 +236,7 @@ object MessageView {
              WebLink |
              YouTube |
              Location |
-             SoundCloud => FileLike
+             SoundMedia => FileLike
         case Image | VideoAsset => ImageLike
         case MsgPart.MemberChange |
              MsgPart.OtrMessage |
