@@ -19,7 +19,6 @@ package com.waz.zclient.core.stores.appentry;
 
 import com.waz.zclient.core.R;
 
-//TODO clean this up as specified in https://wearezeta.atlassian.net/browse/AN-2026
 public enum AppEntryError {
     EMAIL_EXISTS                    (409, "key-exists",     R.string.new_reg_email_exists_header, R.string.new_reg_email_exists_message),
     EMAIL_INVALID                   (400, "invalid-email",  R.string.new_reg_email_invalid_header, R.string.new_reg_email_invalid_message),

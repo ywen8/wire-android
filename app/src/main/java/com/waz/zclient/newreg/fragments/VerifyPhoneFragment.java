@@ -175,7 +175,7 @@ public class VerifyPhoneFragment extends BaseFragment<VerifyPhoneFragment.Contai
             @Override
             public void onError(AppEntryError appEntryError) {
                 Toast.makeText(getActivity(),
-                               appEntryError.errorCode,
+                               appEntryError.headerResource,
                                Toast.LENGTH_LONG)
                      .show();
             }
