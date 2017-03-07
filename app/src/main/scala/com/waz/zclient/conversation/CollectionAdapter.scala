@@ -127,6 +127,14 @@ class CollectionAdapter(viewDim: Signal[Dim2])(implicit context: Context, inject
     override def onChanged(): Unit = {
       adapterState ! AdapterState(contentMode.currentValue.get, getItemCount, messages.isEmpty)
     }
+
+    override def onItemRangeInserted(positionStart: Int, itemCount: Int) = onChanged()
+
+    override def onItemRangeChanged(positionStart: Int, itemCount: Int) = onChanged()
+
+    override def onItemRangeRemoved(positionStart: Int, itemCount: Int) = onChanged()
+
+    override def onItemRangeMoved(fromPosition: Int, toPosition: Int, itemCount: Int) = onChanged()
   })
 
   override def getItemCount: Int = messages.fold(0)(_.count)
