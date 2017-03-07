@@ -100,6 +100,8 @@
     <string name="new_reg__code_resent__call">Stand by for a call</string>
     <string name="new_reg__invalid_code__auto_verification__manual">Something went wrong.\nPlease confirm that phone number and code are correct.</string>
     <string name="new_reg__default_country">de</string> <!-- consider updating this for every new language -->
+    <string name="new_reg_phone_budget_exhausted_title">Too many requests</string>
+    <string name="new_reg_phone_budget_exhausted_message">Please try again later.</string>
 
     <string name="new_reg_phone__title__variant_1">Call, messaging, share.\nIn private or with groups.</string>
     <string name="new_reg_phone__title__variant_2">Private and secure calls,\nmessaging and sharing.</string>
