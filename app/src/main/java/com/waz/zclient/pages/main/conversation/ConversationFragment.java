@@ -1632,8 +1632,6 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
         if (getControllerFactory().getNavigationController().getCurrentPage() != Page.MESSAGE_STREAM) {
             return;
         }
-
-        errorDescription.dismiss();
         KeyboardUtils.hideKeyboard(getActivity());
 
         final IConversation currentConversation = errorDescription.getConversation();
@@ -1699,6 +1697,7 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
             public void positiveButtonClicked(boolean checkboxIsSelected) {
                 final Iterable<? extends Message> messages = errorDescription.getMessages();
                 for (Message message : messages) {
+                    errorDescription.dismiss();
                     message.retry();
                 }
             }

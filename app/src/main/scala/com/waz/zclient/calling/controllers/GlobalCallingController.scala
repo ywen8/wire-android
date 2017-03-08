@@ -164,14 +164,6 @@ class GlobalCallingController(implicit inj: Injector, cxt: WireContext, eventCon
     soundController.setIncomingRingTonePlaying(!m && i)
   }
 
-  (for {
-    v <- videoCall
-    o <- outgoingCall
-  } yield (v, o)) { case (v, o) =>
-    soundController.setOutgoingRingTonePlaying(o, v)
-  }
-
-
   /**
     * From here on, put signals where we're not too worried if we handle empty states or not
     * (mostly stuff that wouldn't affect proper closing of a call).
@@ -243,6 +235,14 @@ class GlobalCallingController(implicit inj: Injector, cxt: WireContext, eventCon
       case true  => R.string.conversation__degraded_confirmation__place_call
       case false => R.string.conversation__degraded_confirmation__accept_call
     }.map(getString)
+  }
+
+  (for {
+    v <- videoCall
+    o <- outgoingCall
+    d <- convDegraded
+  } yield (v, o & !d)) { case (v, play) =>
+    soundController.setOutgoingRingTonePlaying(play, v)
   }
 
   //Use Audio view to show conversation degraded screen for calling
