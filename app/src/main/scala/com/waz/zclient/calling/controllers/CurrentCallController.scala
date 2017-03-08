@@ -268,9 +268,8 @@ class CurrentCallController(implicit inj: Injector, cxt: WireContext) extends In
 
   val leftButtonSettings = convDegraded.flatMap {
     case true =>
-      outgoingCall.map {
-        case true  => ButtonSettings(R.string.glyph__close,    R.string.confirmation_menu__cancel,             () => leaveCall())
-        case false => ButtonSettings(R.string.glyph__end_call, R.string.incoming__controls__incoming__decline, () => dismissCall(), ButtonColor.Red)
+      outgoingCall.map { outgoing =>
+        ButtonSettings(R.string.glyph__close, R.string.confirmation_menu__cancel, () => if (outgoing) leaveCall() else dismissCall())
       }
     case false => Signal(ButtonSettings(R.string.glyph__microphone_off, R.string.incoming__controls__ongoing__mute, () => toggleMuted()))
   }
