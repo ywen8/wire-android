@@ -626,8 +626,11 @@ public class AppEntryStore implements IAppEntryStore, ErrorsList.ErrorListener {
                                                                                                    int errorCode,
                                                                                                    String message,
                                                                                                    String label) {
-                                                           // Recently sent SMS, take user to phoneVerificationCode page
-                                                           if (AppEntryError.PHONE_PENDING_LOGIN.correspondsTo(errorCode, label)) {
+
+                                                           if (AppEntryError.PHONE_INVALID_FORMAT.correspondsTo(errorCode, label)) {
+                                                               errorCallback.onError(AppEntryError.PHONE_INVALID_FORMAT);
+                                                               // Recently sent SMS, take user to phoneVerificationCode page
+                                                           } else if (AppEntryError.PHONE_PENDING_LOGIN.correspondsTo(errorCode, label)) {
                                                                setState(AppEntryState.PHONE_SET_CODE);
                                                                // This phone number was never registered, redirect to registration
                                                            } else if (AppEntryError.PHONE_INVALID.correspondsTo(errorCode, label)) {
@@ -1060,10 +1063,11 @@ public class AppEntryStore implements IAppEntryStore, ErrorsList.ErrorListener {
 
                                 @Override
                                 public void onFailed(int errorCode, String message, String label) {
-                                    if (AppEntryError.SERVER_CONNECTIVITY_ERROR.correspondsTo(errorCode, "")) {
+                                    if (AppEntryError.EMAIL_INVALID_REQUEST.correspondsTo(errorCode, label)) {
+                                        errorCallback.onError(AppEntryError.EMAIL_INVALID_REQUEST);
+                                    } else if (AppEntryError.SERVER_CONNECTIVITY_ERROR.correspondsTo(errorCode, "")) {
                                         errorCallback.onError(AppEntryError.SERVER_CONNECTIVITY_ERROR);
-                                    } else if (AppEntryError.EMAIL_INVALID_LOGIN_CREDENTIALS.correspondsTo(errorCode,
-                                                                                                           "")) {
+                                    } else if (AppEntryError.EMAIL_INVALID_LOGIN_CREDENTIALS.correspondsTo(errorCode, "")) {
                                         errorCallback.onError(AppEntryError.EMAIL_INVALID_LOGIN_CREDENTIALS);
                                     } else if (AppEntryError.TOO_MANY_ATTEMPTS.correspondsTo(errorCode, "")) {
                                         errorCallback.onError(AppEntryError.TOO_MANY_ATTEMPTS);
