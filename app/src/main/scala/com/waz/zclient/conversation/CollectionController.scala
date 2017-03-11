@@ -17,9 +17,6 @@
  */
 package com.waz.zclient.conversation
 
-import java.util
-import java.util.concurrent.CopyOnWriteArraySet
-
 import android.text.SpannableString
 import android.text.style.BackgroundColorSpan
 import com.waz.ZLog._
@@ -46,7 +43,7 @@ class CollectionController(implicit injector: Injector) extends Injectable {
 
   val assetStorage = zms.map(_.assetsStorage)
 
-  private val observers: java.util.Set[CollectionsObserver] = new util.HashSet[CollectionsObserver]
+  private var observers = Set.empty[CollectionsObserver]
 
   val conversation = zms.zip(currentConv) flatMap { case (zms, convId) => zms.convsStorage.signal(convId) }
 
@@ -62,29 +59,21 @@ class CollectionController(implicit injector: Injector) extends Injectable {
 
   val contentSearchQuery = Signal[ContentSearchQuery](ContentSearchQuery.empty)
 
-  private def performOnObservers(func: (CollectionsObserver) => Unit) = {
-    val collectionObservers: CopyOnWriteArraySet[CollectionsObserver] = new CopyOnWriteArraySet[CollectionsObserver](observers)
-    import scala.collection.JavaConversions._
-    for (observer <- collectionObservers) {
-      func(observer)
-    }
-  }
+  def openCollection() = observers foreach { _.openCollection() }
 
-  def openCollection = performOnObservers(_.openCollection())
+  def closeCollection() = { observers foreach { _.closeCollection() }; openedCollection ! None }
 
-  def closeCollection = { performOnObservers(_.closeCollection()); openedCollection ! None }
+  def requestPreviousItem(): Unit = observers foreach { _.previousItemRequested() }
 
-  def requestPreviousItem(): Unit = performOnObservers(_.previousItemRequested())
+  def requestNextItem(): Unit = observers foreach { _.nextItemRequested() }
 
-  def requestNextItem(): Unit = performOnObservers(_.nextItemRequested())
+  def openShareCollectionItem(messageData: MessageData): Unit = observers foreach { _.shareCollectionItem(messageData) }
 
-  def openShareCollectionItem(messageData: MessageData): Unit = performOnObservers(_.shareCollectionItem(messageData))
+  def closeShareCollectionItem(): Unit = observers foreach { _.closeCollectionShare() }
 
-  def closeShareCollectionItem(): Unit = {performOnObservers(_.closeCollectionShare())}
+  def addObserver(collectionsObserver: CollectionsObserver): Unit = observers += collectionsObserver
 
-  def addObserver(collectionsObserver: CollectionsObserver): Unit = observers.add(collectionsObserver)
-
-  def removeObserver(collectionsObserver: CollectionsObserver): Unit = observers.remove(collectionsObserver)
+  def removeObserver(collectionsObserver: CollectionsObserver): Unit = observers -= collectionsObserver
 
   def clearSearch() = {
     focusedItem ! None
