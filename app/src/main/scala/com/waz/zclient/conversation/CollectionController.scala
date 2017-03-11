@@ -59,6 +59,14 @@ class CollectionController(implicit injector: Injector) extends Injectable {
 
   val contentSearchQuery = Signal[ContentSearchQuery](ContentSearchQuery.empty)
 
+  val matchingTextSearchMessages = for {
+    z <- zms
+    convId <- currentConv
+    query <- contentSearchQuery
+    res <- if (query.isEmpty) Signal.const(Set.empty[MessageId])
+           else Signal future z.messagesIndexStorage.matchingMessages(query, Some(convId))
+  } yield res
+
   def openCollection() = observers foreach { _.openCollection() }
 
   def closeCollection() = { observers foreach { _.closeCollection() }; openedCollection ! None }
