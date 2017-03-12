@@ -123,10 +123,8 @@ class RecyclerCursor(val conv: ConvId, zms: ZMessaging, val adapter: RecyclerNot
 
   def lastReadIndex() = cursor.currentValue.flatMap(_.map(_.lastReadIndex)).getOrElse(-1)
 
-  def positionForMessage(messageData: MessageData): Signal[Option[Int]] = {
-    cursor.map(_.fold(Option.empty[Int])(_.getPositionForMessage(messageData)))
-  }
-
+  def positionForMessage(messageData: MessageData) =
+    cursor.collect { case Some(c) => c } .head.flatMap(_.asyncIndexOf(messageData.time, binarySearch = true))
 }
 
 object RecyclerCursor {
