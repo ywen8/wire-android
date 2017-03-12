@@ -49,8 +49,10 @@ import com.waz.zclient.views.images.TouchImageView
 import com.waz.ZLog.ImplicitTag._
 
 import scala.collection.mutable
+import scala.concurrent.Future
 
 class SingleImageCollectionFragment extends BaseFragment[CollectionFragment.Container] with FragmentHelper with OnBackPressedListener {
+  import Threading.Implicits.Ui
 
   lazy val zms = inject[Signal[ZMessaging]]
   lazy val messageActions = inject[MessageActionsController]
@@ -58,38 +60,30 @@ class SingleImageCollectionFragment extends BaseFragment[CollectionFragment.Cont
 
   override def onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState: Bundle): View = {
     val view = inflater.inflate(R.layout.fragment_single_image_collections, container, false)
-    val viewPager: ViewPager = ViewUtils.getView(view, R.id.image_view_pager)
+    val pager: ViewPager = ViewUtils.getView(view, R.id.image_view_pager)
     val imageSwipeAdapter = new ImageSwipeAdapter(getContext)
-    viewPager.setAdapter(imageSwipeAdapter)
+    pager.setAdapter(imageSwipeAdapter)
 
-    val focusedItemPosition = collectionController.focusedItem.flatMap{
-      case Some(messageData) =>
-        imageSwipeAdapter.cursor.flatMap(c => c.positionForMessage(messageData))
-      case _ => Signal.empty[Option[Int]]
-    }
-
-    focusedItemPosition.on(Threading.Ui){
-      case Some(position) => viewPager.setCurrentItem(position, false)
-      case _ =>
-    }
-
-    viewPager.addOnPageChangeListener(new OnPageChangeListener {
+    pager.addOnPageChangeListener(new OnPageChangeListener {
       override def onPageScrollStateChanged(state: Int): Unit = {}
       override def onPageScrolled(position: Int, positionOffset: Float, positionOffsetPixels: Int): Unit = {}
       override def onPageSelected(position: Int): Unit = {
         collectionController.focusedItem ! imageSwipeAdapter.getItem(position)
       }
     })
-    viewPager.setPageTransformer(false, new CustomPagerTransformer (CustomPagerTransformer.SLIDE))
+    pager.setPageTransformer(false, new CustomPagerTransformer (CustomPagerTransformer.SLIDE))
+
+    getFocusedItem(imageSwipeAdapter) foreach { pos =>
+      if (pos >= 0) pager.setCurrentItem(pos, false)
+    }
 
     view
   }
 
-
-  override def onDestroy(): Unit = {
-    super.onDestroy()
+  private def getFocusedItem(adapter: ImageSwipeAdapter) = collectionController.focusedItem.head flatMap {
+    case Some(msg) => adapter.cursor.head flatMap { c => c.positionForMessage(msg) }
+    case None => Future.successful(-1)
   }
-
 
   override def onDestroyView(): Unit = {
     val viewPager: ViewPager = ViewUtils.getView(getView, R.id.image_view_pager)
