@@ -56,7 +56,7 @@ class AudioAssetPartView(context: Context, attrs: AttributeSet, style: Int) exte
       if (pl) controller.onAudioPlayed ! a
   }
 
-  assetActionButton.onClicked.filter(_ == DeliveryState.Complete) { _ =>
+  assetActionButton.onClicked.filter(state => state == DeliveryState.Complete || state == DeliveryState.DownloadFailed) { _ =>
     playControls.currentValue.foreach(_.playOrPause())
   }
 
