@@ -187,7 +187,8 @@ class MessageActionsController(implicit injector: Injector, ctx: Context, ec: Ev
       asset.getContentUri(new Asset.LoadCallback[Uri]() {
         def onLoaded(uri: Uri): Unit = {
           dialog.dismiss()
-          intentBuilder.setType(asset.getMimeType)
+          val mimeType = asset.getMimeType
+          intentBuilder.setType(if (mimeType.equals("text/plain")) "text/*" else mimeType)
           intentBuilder.addStream(uri)
           intentBuilder.startChooser()
         }
