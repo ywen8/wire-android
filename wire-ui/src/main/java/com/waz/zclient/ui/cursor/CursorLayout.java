@@ -504,9 +504,8 @@ public class CursorLayout extends FrameLayout implements
         newCursorEditText.setSelection(text.length());
     }
 
-    public void appendText(String text) {
-        newCursorEditText.append(text);
-        newCursorEditText.setSelection(newCursorEditText.getText().length());
+    public void insertText(String text) {
+        newCursorEditText.getText().insert(newCursorEditText.getSelectionStart(), text);
     }
 
     public void notifyKeyboardVisibilityChanged(boolean keyboardIsVisible, View currentFocus) {

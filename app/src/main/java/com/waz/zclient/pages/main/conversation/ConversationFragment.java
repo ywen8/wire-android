@@ -1982,7 +1982,7 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
 
     @Override
     public void onEmojiSelected(String emoji) {
-        cursorLayout.appendText(emoji);
+        cursorLayout.insertText(emoji);
         getControllerFactory().getUserPreferencesController().addRecentEmoji(emoji);
     }
 
