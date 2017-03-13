@@ -64,6 +64,7 @@ import com.waz.api.MessageContent;
 import com.waz.api.SyncState;
 import com.waz.api.Verification;
 import com.waz.zclient.BaseScalaActivity;
+import com.waz.zclient.BuildConfig;
 import com.waz.zclient.OnBackPressedListener;
 import com.waz.zclient.R;
 import com.waz.zclient.controllers.accentcolor.AccentColorObserver;
@@ -488,13 +489,22 @@ public class LocationFragment extends BaseFragment<LocationFragment.Container> i
                 }
                 break;
             case R.id.ttv__location_send_button:
-                if (getStoreFactory() == null || getStoreFactory().isTornDown() || currentLatLng == null) {
+                if (getStoreFactory() == null || getStoreFactory().isTornDown()) {
                     return;
                 }
-                MessageContent.Location location = new MessageContent.Location((float) currentLatLng.longitude,
-                                                                               (float) currentLatLng.latitude,
-                                                                               currentLocationName,
-                                                                               (int) map.getCameraPosition().zoom);
+                MessageContent.Location location;
+                if (currentLatLng == null) {
+                    if (!BuildConfig.DEBUG) {
+                        return;
+                    }
+                    location = new MessageContent.Location(0.0f, 0.0f, "", 0);
+                } else {
+                    location = new MessageContent.Location((float) currentLatLng.longitude,
+                        (float) currentLatLng.latitude,
+                        currentLocationName,
+                        (int) map.getCameraPosition().zoom);
+                }
+
                 getControllerFactory().getLocationController().hideShareLocation(location);
                 TrackingUtils.onSentLocationMessage(((BaseScalaActivity) getActivity()).injectJava(GlobalTrackingController.class),
                                                     getStoreFactory().getConversationStore().getCurrentConversation());
