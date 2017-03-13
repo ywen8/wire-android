@@ -22,6 +22,7 @@ import com.waz.zclient.core.R;
 public enum AppEntryError {
     EMAIL_EXISTS                    (409, "key-exists",     R.string.new_reg_email_exists_header, R.string.new_reg_email_exists_message),
     EMAIL_INVALID                   (400, "invalid-email",  R.string.new_reg_email_invalid_header, R.string.new_reg_email_invalid_message),
+    EMAIL_INVALID_REQUEST           (400, "invalid-request",R.string.new_reg_email_invalid_header, R.string.new_reg_email_invalid_message),
     EMAIL_GENERIC_ERROR             (0,   "",               R.string.new_reg_email_generic_error_header, R.string.new_reg_email_generic_error_message),
     EMAIL_REGISTER_GENERIC_ERROR    (0,   "",               R.string.new_reg_email_register_generic_error_header, R.string.new_reg_email_register_generic_error_message /* something wrong with email, name, or password */),
     EMAIL_INVALID_LOGIN_CREDENTIALS (403, "",               R.string.new_reg_email_invalid_login_credentials_header, R.string.new_reg_email_invalid_login_credentials_message/* invalid email / password combination*/),
