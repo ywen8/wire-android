@@ -200,6 +200,7 @@ object ImageAssetDrawable {
   object RequestBuilder {
     val Regular: RequestBuilder = BitmapRequest.Regular(_)
     val Single: RequestBuilder = BitmapRequest.Single(_)
+    val Round: RequestBuilder = BitmapRequest.Round(_)
   }
 
   sealed trait State {
