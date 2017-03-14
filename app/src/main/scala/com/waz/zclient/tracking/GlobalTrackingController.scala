@@ -31,6 +31,8 @@ import com.waz.api.impl.ErrorResponse
 import com.waz.api.{EphemeralExpiration, NetworkMode}
 import com.waz.content.UsersStorage
 import com.waz.model.ConversationData.ConversationType
+import com.waz.model.UserData.ConnectionStatus
+import com.waz.model.UserData.ConnectionStatus.Blocked
 import com.waz.model.{UserId, _}
 import com.waz.service.downloads.DownloadRequest.WireAssetRequest
 import com.waz.service.{NetworkModeService, ZMessaging}
@@ -272,16 +274,23 @@ class GlobalTrackingController(implicit inj: Injector, cxt: WireContext, eventCo
       images <- zms.fold(Future.successful(-1))(_.messagesStorage.countSentByType(self, ASSET))
     } yield {
 
-      val (groups, archived, muted, contacts, blocked) = if (self == UserId.Zero) (-1, -1, -1, -1, -1)
+      val (groups, archived, muted) = if (self == UserId.Zero) (-1, -1, -1)
       else {
         convs.iterator.map { c =>
-          ((c.convType == Group)?, c.archived?, c.muted?, (c.convType == OneToOne && !c.hidden)?, (c.convType == OneToOne && c.hidden)?)
-        }.foldLeft((0, 0, 0, 0, 0)) { case ((accG, accA, accM, accC, accB), (g, a, m, c, b)) =>
-          (accG + g, accA + a, accM + m, accC + c, accB + b)
+          ((c.convType == Group)?, c.archived?, c.muted?)
+        }.foldLeft((0, 0, 0)) { case ((accG, accA, accM), (g, a, m)) =>
+          (accG + g, accA + a, accM + m)
         }
       }
 
-      val autoConnected = if (self == UserId.Zero) -1 else users.iterator.map(u => (u.isAutoConnect && ! u.isWireBot)?).sum
+      val (contacts, autoConnected, blocked) = if (self == UserId.Zero) (-1, -1, -1)
+      else {
+        users.filter(u => !u.isWireBot && !u.isSelf).iterator.map { u =>
+          ((u.isConnected && u.connection != Blocked)?, u.isAutoConnect?, (u.connection == Blocked)?)
+        }.foldLeft((0, 0, 0)) { case ((accC, accA, accB), (c, a, b)) =>
+          (accC + c, accA + a, accB + b)
+        }
+      }
 
       val dims = CustomDimensions(groups, archived, muted, contacts, blocked, autoConnected, voice, video, (texts + rich) max -1, images)
 
@@ -364,7 +373,7 @@ object GlobalTrackingController {
       val telephonyManager = context.getSystemService(Context.TELEPHONY_SERVICE).asInstanceOf[TelephonyManager]
       val networkInfo = connectivityManager.getActiveNetworkInfo
 
-      val mode = NetworkModeService.computeMode(networkInfo, telephonyManager) match {
+      val networkMode = NetworkModeService.computeMode(networkInfo, telephonyManager) match {
         case NetworkMode._2G  => "2G"
         case NetworkMode.EDGE => "EDGE"
         case NetworkMode._3G  => "3G"
@@ -373,18 +382,17 @@ object GlobalTrackingController {
         case _ => "unknown"
       }
 
-      //First element -1 is placeholder for outdated custom dimension ("interactions with bot")
-      List("-1") ++ List(
-        autoConnected -> NUMBER_OF_CONTACTS,
-        contacts      -> NUMBER_OF_CONTACTS,
-        groups        -> NUMBER_OF_GROUP_CONVERSATIONS,
-        voiceCalls    -> NUMBER_OF_VOICE_CALLS,
-        videoCalls    -> NUMBER_OF_VIDEO_CALLS,
-        textsSent     -> TEXT_MESSAGES_SENT,
-        imagesSent    -> IMAGES_SENT
-      ).map {case (count, attr) => createRangedAttribute(count, attr.rangeSteps)} ++ List(
+      List(
+        (-1).toString, //Placeholder for outdated custom dimension ("interactions with bot")
+        createRangedAttribute(autoConnected, NUMBER_OF_CONTACTS.rangeSteps),
+        contacts.toString,
+        createRangedAttribute(groups,        NUMBER_OF_GROUP_CONVERSATIONS.rangeSteps),
+        createRangedAttribute(voiceCalls,    NUMBER_OF_VOICE_CALLS.rangeSteps),
+        createRangedAttribute(videoCalls,    NUMBER_OF_VIDEO_CALLS.rangeSteps),
+        createRangedAttribute(textsSent,     TEXT_MESSAGES_SENT.rangeSteps),
+        createRangedAttribute(imagesSent,    IMAGES_SENT.rangeSteps),
         Integer.toString(preferences.getInt(UserPreferencesController.USER_PERFS_AB_TESTING_GROUP, 0)),
-        mode
+        networkMode
       )
     }
   }
