@@ -26,6 +26,7 @@ import com.waz.ZLog
 import com.waz.ZLog._
 import com.waz.utils.events._
 import com.waz.utils.returning
+import net.xpece.android.support.preference.Preference
 
 import scala.language.implicitConversions
 
@@ -187,4 +188,9 @@ class ViewHolder[T <: View](id: Int, finder: ViewFinder) {
   def get: T = view.getOrElse { returning(finder.findById(id)) { t => view = Some(t) } }
 
   def clear() = view = Option.empty
+}
+
+trait PreferenceHelper extends Preference with Injectable with EventContext {
+  lazy implicit val wContext = WireContext(getContext)
+  lazy implicit val injector = wContext.injector
 }

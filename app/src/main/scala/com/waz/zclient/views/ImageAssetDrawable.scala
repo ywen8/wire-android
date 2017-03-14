@@ -66,12 +66,12 @@ class ImageAssetDrawable(
     }
   })
 
-  val state = for {
+  val state = (for {
     im <- src
     d <- dims if d.width > 0
     p <- padding
     state <- bitmapState(im, d.width - p.l - p.r)
-  } yield state
+  } yield state).disableAutowiring()
 
   state.on(Threading.Ui) { st =>
     invalidateSelf()
