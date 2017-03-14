@@ -382,7 +382,7 @@ public class SearchResultAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
         return conversations != null && getGroupsListLength() > 0;
     }
 
-    private int getConversationInternalPosition(int position) {
+    public int getConversationInternalPosition(int position) {
         if (hasConnectedUsers()) {
             position = position - getContactsSectionLength();
         }
@@ -408,7 +408,7 @@ public class SearchResultAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
         return position;
     }
 
-    private int getOtherUserInternalPosition(int position) {
+    public int getOtherUserInternalPosition(int position) {
         if (hasConnectedUsers()) {
             position = position - getContactsSectionLength();
         }

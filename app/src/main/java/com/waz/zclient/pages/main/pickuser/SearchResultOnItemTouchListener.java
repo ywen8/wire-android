@@ -52,7 +52,7 @@ public class SearchResultOnItemTouchListener implements RecyclerView.OnItemTouch
                     callback.onUserClicked(((UserRowView) rowView).getUser(), position, rowView);
                 }
                 if (rowView instanceof ConversationRowView) {
-                    callback.onConversationClicked(((ConversationRowView) rowView).getConversation());
+                    callback.onConversationClicked(((ConversationRowView) rowView).getConversation(), position);
                 }
                 return true;
             }
@@ -87,7 +87,7 @@ public class SearchResultOnItemTouchListener implements RecyclerView.OnItemTouch
     public interface Callback {
         void onUserClicked(User user, int position, View anchorView);
 
-        void onConversationClicked(IConversation conversation);
+        void onConversationClicked(IConversation conversation, int position);
 
         void onUserDoubleClicked(User user, int position, View anchorView);
     }
