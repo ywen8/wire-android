@@ -52,12 +52,12 @@ class ScrollController(adapter: MessagesListView.Adapter, listHeight: Signal[Int
   adapter.registerAdapterDataObserver(new RecyclerView.AdapterDataObserver {
     override def onChanged(): Unit = {
       if (prevConv != adapter.getConvId || prevCount == 0) {
-        shouldScrollToBottom = adapter.getUnreadIndex.index == adapter.getItemCount && targetPosition.isEmpty
+        shouldScrollToBottom = adapter.getUnreadIndex.index == adapter.getItemCount
         targetPosition match {
           case Some(pos) =>
             scrollToPositionRequested ! pos
           case _ =>
-            onListLoaded !adapter.getUnreadIndex
+            onListLoaded ! adapter.getUnreadIndex
         }
       }
 
