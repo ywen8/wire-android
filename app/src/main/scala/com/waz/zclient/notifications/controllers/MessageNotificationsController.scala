@@ -300,7 +300,7 @@ class MessageNotificationsController(implicit inj: Injector, cxt: Context, event
 
     val header = n.tpe match {
       case TEXT | CONNECT_REQUEST => getHeader(testPrefix = true, singleUser = singleUserInBatch)
-      case CONNECT_ACCEPTED       => if (multiple) getString(R.string.notification__message__name__prefix__other, n.convName.getOrElse("")) else ""
+      case CONNECT_ACCEPTED       => ""
       case _                      => getHeader()
     }
 
@@ -317,7 +317,7 @@ class MessageNotificationsController(implicit inj: Injector, cxt: Context, event
       case MEMBER_LEAVE             => getString(R.string.notification__message__group__remove)
       case MEMBER_JOIN              => getString(R.string.notification__message__group__add)
       case LIKE                     => getString(R.string.notification__message__group__liked)
-      case CONNECT_ACCEPTED         => if (multiple) getString(R.string.notification__message__multiple__accept_request)    else getString(R.string.notification__message__single__accept_request)
+      case CONNECT_ACCEPTED         => if (multiple || n.userName.isEmpty) getString(R.string.notification__message__multiple__accept_request)    else getString(R.string.notification__message__single__accept_request, n.userName.getOrElse(""))
       case _ => ""
     }
     getMessageSpannable(header, body)
