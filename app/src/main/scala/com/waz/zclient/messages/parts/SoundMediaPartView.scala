@@ -48,6 +48,7 @@ class SoundMediaPartView(context: Context, attrs: AttributeSet, style: Int) exte
   lazy val imageView: ImageView = findById(R.id.iv__image)
   lazy val titleView: TextView = findById(R.id.ttv__title)
   lazy val artistView: TextView = findById(R.id.ttv__artist)
+  lazy val playView: GlyphTextView = findById(R.id.gtv__play)
   lazy val errorView: GlyphTextView = findById(R.id.gtv__error)
   lazy val mediaNameView: TextView = findById(R.id.ttv__medianame)
   lazy val iconView: ImageView = findById(R.id.iv__icon)
@@ -78,7 +79,8 @@ class SoundMediaPartView(context: Context, attrs: AttributeSet, style: Int) exte
 
   imageView.setBackground(imageDrawable)
   imageView.setVisible(true)
-
+  playView.setVisible(true)
+  playView.bringToFront()
   errorView.setVisible(false)
 
   val loadingFailed = imageDrawable.state.map {
@@ -86,7 +88,10 @@ class SoundMediaPartView(context: Context, attrs: AttributeSet, style: Int) exte
     case _ => false
   }
 
-  loadingFailed { failed => errorView.setVisible(failed) }
+  loadingFailed { failed =>
+    playView.setVisible(!failed)
+    errorView.setVisible(failed)
+  }
 
   loadingFailed.flatMap {
     case false =>

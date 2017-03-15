@@ -22,4 +22,7 @@
                                                    android:id="@+id/message_soundcloud"
                                                    android:layout_width="match_parent"
                                                    android:layout_height="wrap_content"
+                                                   android:layout_marginLeft="@dimen/content__padding_left"
+                                                   android:layout_marginRight="@dimen/content__padding_right"
+                                                   android:background="@color/light_graphite_16"
 />
