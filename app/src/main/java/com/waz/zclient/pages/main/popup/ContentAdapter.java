@@ -158,7 +158,7 @@ public class ContentAdapter extends RecyclerView.Adapter<com.waz.zclient.pages.m
                 case MEMBER_JOIN:
                     return StringUtils.capitalise(context.getString(R.string.notification__message__group__add));
                 case CONNECT_ACCEPTED:
-                    return context.getString(R.string.notification__message__single__accept_request);
+                    return context.getString(R.string.notification__message__single__accept_request, user.getDisplayName());
                 case ANY_ASSET:
                     return context.getString(R.string.notification__message__one_to_one__shared_file);
             }
