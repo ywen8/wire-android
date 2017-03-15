@@ -31,7 +31,7 @@ public class WifiSetStatusReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
         String command = intent.getStringExtra(COMMAND);
-        switch(command){
+        switch (command) {
             case COMMAND_ENABLE:
                 setWifiStatus(context, true);
                 break;
@@ -44,8 +44,8 @@ public class WifiSetStatusReceiver extends BroadcastReceiver {
         setResultCode(Activity.RESULT_OK);
     }
 
-    private void setWifiStatus(Context context, boolean status){
-        WifiManager wifiManager = (WifiManager)context.getSystemService(Context.WIFI_SERVICE);
+    private void setWifiStatus(Context context, boolean status) {
+        WifiManager wifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
         wifiManager.setWifiEnabled(status);
     }
 
