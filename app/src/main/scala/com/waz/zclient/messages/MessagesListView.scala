@@ -56,15 +56,16 @@ class MessagesListView(context: Context, attrs: AttributeSet, style: Int) extend
 
   viewDim.on(Threading.Ui){_ => adapter.notifyDataSetChanged()}
 
-  messageActionsController.messageToReveal.flatMap{
-    case Some(messageData) => adapter.positionForMessage(messageData)
-    case _ => Signal.empty[Option[Int]]
-  }.on(Threading.Background){ pos =>
-    pos.foreach{ p =>
-      scrollController.targetPosition = Some(p)
-      scrollController.scrollToPositionRequested ! p
-      messageActionsController.messageToReveal ! None
-    }
+  messageActionsController.messageToReveal {
+    case Some(messageData) =>
+      adapter.positionForMessage(messageData).foreach { pos =>
+        if (pos >= 0) {
+          scrollController.targetPosition = Some(pos)
+          scrollController.scrollToPositionRequested ! pos
+          messageActionsController.messageToReveal ! None
+        }
+      } (Threading.Ui)
+    case None =>
   }
 
   setHasFixedSize(true)
@@ -78,12 +79,11 @@ class MessagesListView(context: Context, attrs: AttributeSet, style: Int) extend
   adapter.ephemeralCount { set =>
     val count = set.size
     Option(getContext).foreach {
-      case a:Activity => {
+      case a:Activity =>
         count match {
           case 0 => a.getWindow.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
           case _ => a.getWindow.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
         }
-      }
       case _ => // not attahced, ignore
     }
   }

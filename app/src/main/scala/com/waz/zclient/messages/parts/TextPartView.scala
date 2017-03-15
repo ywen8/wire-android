@@ -22,7 +22,7 @@ import android.animation.ValueAnimator.AnimatorUpdateListener
 import android.content.Context
 import android.graphics.Color
 import android.util.{AttributeSet, TypedValue}
-import com.waz.api.Message
+import com.waz.api.{ContentSearchQuery, Message}
 import com.waz.model.{MessageContent, MessageData}
 import com.waz.service.messages.MessageAndLikes
 import com.waz.threading.Threading
@@ -50,37 +50,43 @@ class TextPartView(context: Context, attrs: AttributeSet, style: Int) extends Li
   registerEphemeral(this)
 
   var messagePart = Signal[Option[MessageContent]]()
-  var accentColor = Color.TRANSPARENT
-  accentColorController.accentColor{c => accentColor = c.getColor}
 
+  val animAlpha = Signal(0f)
   val animator = ValueAnimator.ofFloat(1, 0).setDuration(1500)
   animator.addUpdateListener(new AnimatorUpdateListener {
-    override def onAnimationUpdate(animation: ValueAnimator): Unit = {
-      val alpha = Math.min(animation.getAnimatedValue.asInstanceOf[Float], 0.5f)
-      setBackgroundColor(ColorUtils.injectAlpha(alpha, accentColor))
-    }
+    override def onAnimationUpdate(animation: ValueAnimator): Unit =
+      animAlpha ! Math.min(animation.getAnimatedValue.asInstanceOf[Float], 0.5f)
   })
 
-  val messageSignal = for{
-    messageData <- message
-    part <- messagePart
-    searchedMessage <- collectionController.focusedItem
-    query <- collectionController.contentSearchQuery
-    color <- accentColorController.accentColor
-    normalizedMessage <- zms.flatMap(z => Signal.future(z.messagesIndexStorage.getNormalizedContentForMessage(messageData.id)))
-  } yield (messageData, part, searchedMessage, query, color, normalizedMessage)
+  val bgColor = for {
+    accent <- accentColorController.accentColor
+    alpha <- animAlpha
+  } yield
+    if (alpha <= 0) Color.TRANSPARENT
+    else ColorUtils.injectAlpha(alpha, accent.getColor())
 
-  messageSignal.on(Threading.Ui){
-    case (messageData, part, Some(searchedMessage), query, color, Some(normalizedMessage)) if query.originalString.nonEmpty =>
-      if (messageData.id.equals(searchedMessage.id)) animator.start()
-      val spannable = CollectionUtils.getHighlightedSpannableString(messageData.contentString, normalizedMessage, query.elements, ColorUtils.injectAlpha(0.5f, color.getColor()))._1
-      setText(spannable)
-    case (messageData, part, _, _, _, _) =>
-      setTextLink(part.fold(messageData.contentString)(_.content))
-      setBackgroundColor(Color.TRANSPARENT)
-    case _ =>
-      setTextLink("")
-      setBackgroundColor(Color.TRANSPARENT)
+  val isHighlighted = for {
+    msg <- message
+    focused <- collectionController.focusedItem
+  } yield focused.exists(_.id == msg.id)
+
+  val searchResultText = for {
+    color <- accentColorController.accentColor
+    query <- collectionController.contentSearchQuery if !query.isEmpty
+    searchResults <- collectionController.matchingTextSearchMessages
+    msg <- message if searchResults(msg.id)
+    part <- messagePart
+    content = part.fold(msg.contentString)(_.content)
+  } yield
+    CollectionUtils.getHighlightedSpannableString(content, ContentSearchQuery.transliterated(content), query.elements, ColorUtils.injectAlpha(0.5f, color.getColor()))._1
+
+  searchResultText.on(Threading.Ui) { setText }
+
+  bgColor.on(Threading.Ui) { setBackgroundColor }
+
+  isHighlighted.on(Threading.Ui) {
+    case true => animator.start()
+    case false => animator.end()
   }
 
   override def set(msg: MessageAndLikes, part: Option[MessageContent], opts: MsgBindOptions): Unit = {
