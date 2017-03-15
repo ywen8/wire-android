@@ -20,7 +20,7 @@ package com.waz.zclient.pages.main.conversation;
 import android.animation.ObjectAnimator;
 import android.annotation.TargetApi;
 import android.app.Activity;
-import android.content.pm.ActivityInfo;
+import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.Point;
 import android.graphics.PointF;
@@ -69,7 +69,6 @@ public abstract class SingleImageFragment extends BaseFragment<SingleImageFragme
     private int openAnimationBackgroundDuration;
     private int zoomOutAndRotateBackOnCloseDuration;
     private int closeAnimationBackgroundDelay;
-    private int activityOrientation;
     private View headerControls;
     private ImageDragViewContainer dragViewContainer;
     private OnClickListener imageViewOnClickListener = new OnClickListener() {
@@ -98,10 +97,18 @@ public abstract class SingleImageFragment extends BaseFragment<SingleImageFragme
     @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
     protected void onPostAttach(Activity activity) {
         super.onPostAttach(activity);
-        activityOrientation = activity.getRequestedOrientation();
-        activity.setRequestedOrientation(
-            Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2 ? ActivityInfo.SCREEN_ORIENTATION_FULL_USER
-                                                                        : ActivityInfo.SCREEN_ORIENTATION_USER);
+        if (LayoutSpec.isPhone(activity)) {
+            ViewUtils.unlockOrientation(activity);
+        }
+    }
+
+    @Override
+    protected void onPreDetach() {
+        super.onPreDetach();
+        Activity activity = getActivity();
+        if (activity != null && LayoutSpec.isPhone(activity)) {
+            ViewUtils.lockScreenOrientation(Configuration.ORIENTATION_PORTRAIT, activity);
+        }
     }
 
     @Override
@@ -154,21 +161,12 @@ public abstract class SingleImageFragment extends BaseFragment<SingleImageFragme
 
     @Override
     public void onStop() {
-        restoreRotation();
         if (bitmapLoadHandle != null) {
             bitmapLoadHandle.cancel();
             bitmapLoadHandle = null;
         }
 
         super.onStop();
-    }
-
-    @SuppressWarnings("WrongConstant")
-    private void restoreRotation() {
-        Activity activity = getActivity();
-        if (activity != null) {
-            activity.setRequestedOrientation(activityOrientation);
-        }
     }
 
     @Override
@@ -321,7 +319,6 @@ public abstract class SingleImageFragment extends BaseFragment<SingleImageFragme
         loadClickedImageSizeAndPosition();
         initAnimatingImageView(afterFling);
 
-        restoreRotation();
         getControllerFactory().getSingleImageController().hideSingleImage();
         fadeControls(false);
 
