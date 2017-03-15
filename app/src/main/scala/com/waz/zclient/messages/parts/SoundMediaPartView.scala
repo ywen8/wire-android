@@ -98,6 +98,7 @@ class SoundMediaPartView(context: Context, attrs: AttributeSet, style: Int) exte
       content.map(_.tpe).map {
         case Message.Part.Type.SPOTIFY    => (R.string.mediaplayer__message__onspotify, R.drawable.spotify)
         case Message.Part.Type.SOUNDCLOUD => (R.string.mediaplayer__message__onsoundcloud, R.drawable.soundcloud)
+        case _ => (-1, -1)
       }
     case true => Signal((-1, -1))
   }.map {
