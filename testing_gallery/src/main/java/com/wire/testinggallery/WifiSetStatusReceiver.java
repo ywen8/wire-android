@@ -28,6 +28,7 @@ public class WifiSetStatusReceiver extends BroadcastReceiver {
     private static final String COMMAND_ENABLE = "enable";
     private static final String COMMAND_DISABLE = "disable";
 
+    // am broadcast -a com.wire.testinggallery.wifi --es setstatus [enable|disable]
     @Override
     public void onReceive(Context context, Intent intent) {
         String command = intent.getStringExtra(COMMAND);
