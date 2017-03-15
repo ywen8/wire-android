@@ -227,20 +227,20 @@
     <string name="content__file__status__uploading__minimized">UPLOADING&#8230;</string>
     <string name="content__file__status__cancelled__minimized">CANCELLED&#8230;</string>
     <string name="content__file__status__downloading__minimized">DOWNLOADING&#8230;</string>
-    <string name="content__file__status__download_failed__minimized">_DOWNLOAD FAILED_</string>
-    <string name="content__file__status__upload_failed__minimized">_UPLOAD FAILED_</string>
+    <string name="content__file__status__download_failed__minimized">DOWNLOAD FAILED</string>
+    <string name="content__file__status__upload_failed__minimized">UPLOAD FAILED</string>
     <string name="content__file__status__uploading">%1$s · UPLOADING&#8230;</string>
     <string name="content__file__status__cancelled">%1$s · CANCELLED&#8230;</string>
     <string name="content__file__status__downloading">%1$s · DOWNLOADING&#8230;</string>
-    <string name="content__file__status__download_failed">%1$s · _DOWNLOAD FAILED_</string>
-    <string name="content__file__status__upload_failed">%1$s · _UPLOAD FAILED_</string>
+    <string name="content__file__status__download_failed">%1$s · DOWNLOAD FAILED</string>
+    <string name="content__file__status__upload_failed">%1$s · UPLOAD FAILED</string>
     <!-- used when there's a non-empty file extension, e.g. "300KB · PDF" -->
     <string name="content__file__status__default__size_and_extension">%1$s · %2$s</string>
     <string name="content__file__status__uploading__size_and_extension">%1$s · %2$s · UPLOADING&#8230;</string>
     <string name="content__file__status__cancelled__size_and_extension">%1$s · %2$s · CANCELLED&#8230;</string>
     <string name="content__file__status__downloading__size_and_extension">%1$s · %2$s · DOWNLOADING&#8230;</string>
-    <string name="content__file__status__download_failed__size_and_extension">%1$s · %2$s · _DOWNLOAD FAILED_</string>
-    <string name="content__file__status__upload_failed__size_and_extension">%1$s · %2$s · _UPLOAD FAILED_</string>
+    <string name="content__file__status__download_failed__size_and_extension">%1$s · %2$s · DOWNLOAD FAILED</string>
+    <string name="content__file__status__upload_failed__size_and_extension">%1$s · %2$s · UPLOAD FAILED</string>
 
     <string name="content__file__action__open">OPEN</string>
     <string name="content__file__action__save">SAVE</string>
