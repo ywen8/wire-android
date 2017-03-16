@@ -20,8 +20,9 @@ package com.waz.zclient.messages.parts
 import android.content.Context
 import android.graphics.{Color, PorterDuff}
 import android.graphics.drawable.ColorDrawable
+import android.support.v7.widget.CardView
 import android.util.AttributeSet
-import android.widget.{ImageView, RelativeLayout, TextView}
+import android.widget.{ImageView, TextView}
 import com.waz.api.Message
 import com.waz.model.MessageContent
 import com.waz.model.messages.media.{ArtistData, MediaAssetData}
@@ -41,7 +42,7 @@ import com.waz.zclient.controllers.BrowserController
 import com.waz.zclient.ui.text.GlyphTextView
 import com.waz.ZLog.ImplicitTag._
 
-class SoundMediaPartView(context: Context, attrs: AttributeSet, style: Int) extends RelativeLayout(context, attrs, style) with ClickableViewPart with ViewHelper {
+class SoundMediaPartView(context: Context, attrs: AttributeSet, style: Int) extends CardView(context, attrs, style) with ClickableViewPart with ViewHelper with EphemeralPartView {
   def this(context: Context, attrs: AttributeSet) = this(context, attrs, 0)
   def this(context: Context) = this(context, null, 0)
 
@@ -77,45 +78,47 @@ class SoundMediaPartView(context: Context, attrs: AttributeSet, style: Int) exte
     PorterDuff.Mode.DARKEN
   )
 
-  imageView.setBackground(imageDrawable)
-  imageView.setVisible(true)
-  playView.setVisible(true)
+  registerEphemeral(imageView, imageDrawable)
+  registerEphemeral(playView)
+  registerEphemeral(errorView)
+  registerEphemeral(mediaNameView)
+  registerEphemeral(titleView)
+  registerEphemeral(artistView)
+
   playView.bringToFront()
-  errorView.setVisible(false)
+
+  showImages(true)
+
+  expired { exp =>
+    if(exp) showImages(false)
+  }
 
   val loadingFailed = imageDrawable.state.map {
     case State.Failed(_, _) => true
     case _ => false
   }
 
-  loadingFailed { failed =>
-    playView.setVisible(!failed)
-    errorView.setVisible(failed)
-  }
+  loadingFailed { failed => if(failed) showImages(false, showError = true) }
 
-  loadingFailed.flatMap {
-    case false =>
-      content.map(_.tpe).map {
-        case Message.Part.Type.SPOTIFY    => (R.string.mediaplayer__message__onspotify, R.drawable.spotify)
-        case Message.Part.Type.SOUNDCLOUD => (R.string.mediaplayer__message__onsoundcloud, R.drawable.soundcloud)
-        case _ => (-1, -1)
-      }
-    case true => Signal((-1, -1))
+  content.map(_.tpe).map {
+    case Message.Part.Type.SPOTIFY    => (R.string.mediaplayer__message__onspotify, R.drawable.spotify)
+    case Message.Part.Type.SOUNDCLOUD => (R.string.mediaplayer__message__onsoundcloud, R.drawable.soundcloud)
+    case _ => (-1, -1)
   }.map {
     case (nameId, iconId) => ( if(nameId == -1) "" else getString(nameId) , if(iconId == -1) null else getDrawable(iconId) )
   }{
     case (name, icon) =>
       mediaNameView.setText(name)
-      iconView.setBackground(icon)
+      registerEphemeral(iconView, icon)
+
+      val shouldHideImages = expired.currentValue.forall(_ == true)
+      showImages(!shouldHideImages)
+
   }
 
-  loadingFailed.flatMap {
-    case false =>
-      media.map(m => (m.title, m.artist)).map {
-        case (title, None) => (title, "")
-        case (title, Some(ArtistData(artistName, _))) => (title, artistName)
-      }
-    case true => Signal(("", ""))
+  media.map(m => (m.title, m.artist)).map {
+    case (title, None) => (title, "")
+    case (title, Some(ArtistData(artistName, _))) => (title, artistName)
   }{
     case (title, artistName) =>
       titleView.setText(title)
@@ -131,6 +134,15 @@ class SoundMediaPartView(context: Context, attrs: AttributeSet, style: Int) exte
 
   val browser = inject[BrowserController]
 
-  onClicked { _ => content.currentValue.map(_.contentAsUri).foreach(browser.openUrl) }
+  onClicked { _ =>
+    if (expired.currentValue.forall(_ == false)) content.currentValue.map(_.contentAsUri).foreach(browser.openUrl)
+  }
+
+  private def showImages(show: Boolean, showError: Boolean = false) = {
+    imageView.setVisible(show)
+    playView.setVisible(show)
+    iconView.setVisible(show)
+    errorView.setVisible(showError)
+  }
 
 }

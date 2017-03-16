@@ -35,14 +35,15 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
         />
-
-        <com.waz.zclient.ui.text.GlyphTextView
+       <com.waz.zclient.ui.text.GlyphTextView
             android:id="@+id/gtv__error"
             android:layout_width="@dimen/content__sound_player__error_width"
             android:layout_height="@dimen/content__sound_player__error_height"
             android:layout_centerInParent="true"
             android:textSize="@dimen/content__sound_player__button_size"
             android:textColor="@color/content__youtube__error_indicator__color"
+            android:gravity="center"
+            android:background="@drawable/selector__icon_button__background__video_message"
             android:text="@string/glyph__error"
         />
 
@@ -53,6 +54,8 @@
             android:layout_centerInParent="true"
             android:textSize="@dimen/content__sound_player__button_size"
             android:textColor="@color/content__youtube__text__color"
+            android:gravity="center"
+            android:background="@drawable/selector__icon_button__background__video_message"
             android:text="@string/glyph__play"
         />
     </RelativeLayout>
