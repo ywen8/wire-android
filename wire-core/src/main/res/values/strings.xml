@@ -688,8 +688,8 @@
     <string name="notification__message__group__renamed_conversation">renamed the conversation to %1$s</string>
     <string name="notification__message__group__add">added people to the conversation</string>
     <string name="notification__message__group__remove">removed people from the conversation</string>
-    <string name="notification__message__multiple__accept_request">accepted your connection request</string>
-    <string name="notification__message__single__accept_request">Accepted your connection request</string>
+    <string name="notification__message__generic__accept_request">You have a new connection</string>
+    <string name="notification__message__single__accept_request">You and %1$s are now connected</string>
     <string name="notification__message__group__default_conversation_name">group conversation</string>
     <string name="notification__message__group__liked">\u2764 your message</string>
 
