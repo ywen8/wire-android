@@ -73,7 +73,7 @@ class FileAssetPartView(context: Context, attrs: AttributeSet, style: Int) exten
 
   text.on(Threading.Ui)(fileInfoView.setText)
 
-  assetActionButton.onClicked.filter(_ == DeliveryState.Complete) { _ =>
+  assetActionButton.onClicked.filter(state => state == DeliveryState.Complete || state == DeliveryState.DownloadFailed) { _ =>
     asset.currentValue.foreach { case (a, _ ) => controller.openFile(a) }
   }
 }
