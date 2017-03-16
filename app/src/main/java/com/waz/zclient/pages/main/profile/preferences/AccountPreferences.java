@@ -26,8 +26,6 @@ import android.support.v7.preference.Preference;
 import android.text.TextUtils;
 import android.view.View;
 import android.widget.EditText;
-import com.waz.api.InitListener;
-import com.waz.api.Self;
 import com.waz.zclient.BaseScalaActivity;
 import com.waz.zclient.R;
 import com.waz.zclient.controllers.accentcolor.AccentColorObserver;
@@ -50,6 +48,7 @@ import com.waz.zclient.tracking.GlobalTrackingController;
 import com.waz.zclient.ui.utils.TextViewUtils;
 import com.waz.zclient.utils.StringUtils;
 import com.waz.zclient.utils.ViewUtils;
+
 import net.xpece.android.support.preference.EditTextPreference;
 
 public class AccountPreferences extends BasePreferenceFragment<AccountPreferences.Container> implements ProfileStoreObserver,
@@ -220,17 +219,10 @@ public class AccountPreferences extends BasePreferenceFragment<AccountPreference
         super.onStart();
         getControllerFactory().getAccentColorController().addAccentColorObserver(this);
         getStoreFactory().getProfileStore().addProfileStoreAndUpdateObserver(this);
-        getStoreFactory().getZMessagingApiStore().getApi().onInit(new InitListener() {
-            @Override
-            public void onInitialized(Self user) {
-                picturePreference.setSelfUser(user);
-            }
-        });
     }
 
     @Override
     public void onStop() {
-        picturePreference.setSelfUser(null);
         getControllerFactory().getAccentColorController().removeAccentColorObserver(this);
         getStoreFactory().getProfileStore().removeProfileStoreObserver(this);
         super.onStop();
