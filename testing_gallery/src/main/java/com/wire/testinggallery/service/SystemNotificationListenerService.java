@@ -28,7 +28,6 @@ import android.service.notification.NotificationListenerService;
 import android.service.notification.StatusBarNotification;
 import com.wire.testinggallery.store.NotificationMessage;
 
-
 public class SystemNotificationListenerService extends NotificationListenerService {
     private SystemNotificationListenerReceiver receiver;
 
@@ -140,4 +139,5 @@ public class SystemNotificationListenerService extends NotificationListenerServi
             }
         }
     }
+
 }
