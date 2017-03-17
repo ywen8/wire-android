@@ -18,7 +18,6 @@
 package com.waz.zclient.messages.parts
 
 import android.content.Context
-import android.graphics.{Color, PorterDuff}
 import android.graphics.drawable.ColorDrawable
 import android.support.v7.widget.CardView
 import android.util.AttributeSet
@@ -31,7 +30,6 @@ import com.waz.utils.events.Signal
 import com.waz.zclient.{R, ViewHelper}
 import com.waz.zclient.messages.{ClickableViewPart, MsgPart}
 import com.waz.zclient.messages.MessageView.MsgBindOptions
-import com.waz.zclient.ui.utils.ColorUtils
 import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.views.ImageAssetDrawable
 import com.waz.zclient.views.ImageAssetDrawable.State
@@ -42,7 +40,9 @@ import com.waz.zclient.controllers.BrowserController
 import com.waz.zclient.ui.text.GlyphTextView
 import com.waz.ZLog.ImplicitTag._
 
-class SoundMediaPartView(context: Context, attrs: AttributeSet, style: Int) extends CardView(context, attrs, style) with ClickableViewPart with ViewHelper with EphemeralPartView {
+class SoundMediaPartView(context: Context, attrs: AttributeSet, style: Int)
+  extends CardView(context, attrs, style) with ClickableViewPart with ViewHelper with EphemeralPartView {
+
   def this(context: Context, attrs: AttributeSet) = this(context, attrs, 0)
   def this(context: Context) = this(context, null, 0)
 
@@ -73,11 +73,6 @@ class SoundMediaPartView(context: Context, attrs: AttributeSet, style: Int) exte
     background = Some(new ColorDrawable(getColor(R.color.content__youtube__background_color)))
   )
 
-  imageDrawable.setColorFilter(
-    ColorUtils.injectAlpha(getResourceFloat(R.dimen.content__youtube__alpha_overlay), Color.BLACK),
-    PorterDuff.Mode.DARKEN
-  )
-
   registerEphemeral(imageView, imageDrawable)
   registerEphemeral(playView)
   registerEphemeral(errorView)
@@ -87,18 +82,16 @@ class SoundMediaPartView(context: Context, attrs: AttributeSet, style: Int) exte
 
   playView.bringToFront()
 
-  showImages(true)
+  showIcons(true)
 
-  expired { exp =>
-    if(exp) showImages(false)
-  }
+  expired { exp => if(exp) showIcons(false) }
 
   val loadingFailed = imageDrawable.state.map {
     case State.Failed(_, _) => true
     case _ => false
   }
 
-  loadingFailed { failed => if(failed) showImages(false, showError = true) }
+  loadingFailed { failed => if(failed) showIcons(false, showError = true) }
 
   content.map(_.tpe).map {
     case Message.Part.Type.SPOTIFY    => (R.string.mediaplayer__message__onspotify, R.drawable.spotify)
@@ -110,10 +103,7 @@ class SoundMediaPartView(context: Context, attrs: AttributeSet, style: Int) exte
     case (name, icon) =>
       mediaNameView.setText(name)
       registerEphemeral(iconView, icon)
-
-      val shouldHideImages = expired.currentValue.forall(_ == true)
-      showImages(!shouldHideImages)
-
+      showIcons(!expired.currentValue.forall(_ == true))
   }
 
   media.map(m => (m.title, m.artist)).map {
@@ -127,9 +117,7 @@ class SoundMediaPartView(context: Context, attrs: AttributeSet, style: Int) exte
 
   override def set(msg: MessageAndLikes, part: Option[MessageContent], opts: MsgBindOptions): Unit = {
     super.set(msg, part, opts)
-    part foreach {
-      content ! _
-    }
+    part foreach { content ! _ }
   }
 
   val browser = inject[BrowserController]
@@ -138,8 +126,7 @@ class SoundMediaPartView(context: Context, attrs: AttributeSet, style: Int) exte
     if (expired.currentValue.forall(_ == false)) content.currentValue.map(_.contentAsUri).foreach(browser.openUrl)
   }
 
-  private def showImages(show: Boolean, showError: Boolean = false) = {
-    imageView.setVisible(show)
+  private def showIcons(show: Boolean, showError: Boolean = false) = {
     playView.setVisible(show)
     iconView.setVisible(show)
     errorView.setVisible(showError)
