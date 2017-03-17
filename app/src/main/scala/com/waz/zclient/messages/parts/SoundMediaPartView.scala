@@ -74,13 +74,9 @@ class SoundMediaPartView(context: Context, attrs: AttributeSet, style: Int)
   )
 
   registerEphemeral(imageView, imageDrawable)
-  registerEphemeral(playView)
-  registerEphemeral(errorView)
   registerEphemeral(mediaNameView)
   registerEphemeral(titleView)
   registerEphemeral(artistView)
-
-  playView.bringToFront()
 
   showIcons(true)
 
@@ -102,7 +98,6 @@ class SoundMediaPartView(context: Context, attrs: AttributeSet, style: Int)
   }{
     case (name, icon) =>
       mediaNameView.setText(name)
-      registerEphemeral(iconView, icon)
       showIcons(!expired.currentValue.forall(_ == true))
   }
 
