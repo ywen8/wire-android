@@ -89,6 +89,7 @@ android {
 
     productFlavors {
         dev {
+            minSdkVersion 21
             applicationId "com.waz.zclient.dev"
             versionName majorVersion + android.defaultConfig.versionCode + "-dev"
             minSdkVersion 21
