@@ -34,6 +34,7 @@ class HeaderLayoutAudio(val context: Context, val attrs: AttributeSet, val defSt
 
   lazy val nameView: TextView = findById(R.id.ttv__calling__header__name)
   lazy val subtitleView: TextView = findById(R.id.ttv__calling__header__subtitle)
+  lazy val bitRateModeView: TextView = findById(R.id.ttv__calling__header__bitrate)
 
   LayoutInflater.from(context).inflate(R.layout.calling_header_audio, this, true)
   setOrientation(LinearLayout.VERTICAL)
@@ -43,6 +44,9 @@ class HeaderLayoutAudio(val context: Context, val attrs: AttributeSet, val defSt
   controller.subtitleText.on(Threading.Ui)(subtitleView.setText)
 
   controller.glob.conversationName.on(Threading.Ui)(nameView.setText)
+
+  controller.vbrEnabled.on(Threading.Ui)(bitRateModeView.setText)
+
 }
 
 class HeaderLayoutVideo (val context: Context, val attrs: AttributeSet, val defStyleAttr: Int) extends LinearLayout(context, attrs, defStyleAttr) with ViewHelper {
@@ -54,6 +58,7 @@ class HeaderLayoutVideo (val context: Context, val attrs: AttributeSet, val defS
   lazy val chathead: ChatheadView = findById(R.id.chv__other_user_chathead)
   lazy val nameView: TextView = findById(R.id.ttv__calling__header__name)
   lazy val subtitleView: TextView = findById(R.id.ttv__calling__header__subtitle)
+  lazy val bitRateModeView: TextView = findById(R.id.ttv__calling__header__bitrate)
 
   LayoutInflater.from(context).inflate(R.layout.calling_header_video, this, true)
   setOrientation(LinearLayout.HORIZONTAL)
@@ -65,4 +70,6 @@ class HeaderLayoutVideo (val context: Context, val attrs: AttributeSet, val defS
   controller.subtitleText.on(Threading.Ui)(subtitleView.setText)
 
   controller.glob.conversationName.on(Threading.Ui)(nameView.setText)
+
+  controller.vbrEnabled.on(Threading.Ui)(bitRateModeView.setText)
 }

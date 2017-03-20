@@ -28,6 +28,8 @@ import com.waz.api._
 import com.waz.avs.{VideoPreview, VideoRenderer}
 import com.waz.model.VoiceChannelData.ConnectionState
 import com.waz.model._
+import com.waz.service.PreferenceService
+import com.waz.service.PreferenceService.Pref
 import com.waz.service.call.CallInfo
 import com.waz.service.call.FlowManagerService.{StateAndReason, UnknownState}
 import com.waz.threading.Threading
@@ -259,6 +261,14 @@ class CurrentCallController(implicit inj: Injector, cxt: WireContext) extends In
       }
     else v2ServiceAndCurrentConvId.currentValue.foreach {
       case (vcs, id) => vcs.setVideoSendState(id, if (state == SEND) DONT_SEND else SEND)
+    }
+  }
+
+  def vbrEnabled: Signal[String] = {
+    val prefService = inject[PreferenceService]
+    prefService.uiPreferenceBooleanSignal(cxt.getResources.getString(R.string.pref_options_vbr_key), true).signal.map {
+      case true => "" // if VBR is enabled, we show nothing
+      case false => cxt.getString(R.string.audio_message__constant_bit_rate)
     }
   }
 

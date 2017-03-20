@@ -114,4 +114,6 @@ public interface IUserPreferencesController {
     boolean hasPlayServicesErrorShown();
 
     void setPlayServicesErrorShown(boolean value);
+
+    boolean isVariableBitRateEnabled();
 }
