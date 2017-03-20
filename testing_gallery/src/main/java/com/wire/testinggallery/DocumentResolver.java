@@ -27,8 +27,10 @@ import java.io.File;
 
 public class DocumentResolver {
 
+    private static final String WIRE_DIRECTORY = "wire";
+
     private static final File WIRE_TESTING_FILES_DIRECTORY =
-        Environment.getExternalStoragePublicDirectory("Wire");
+        Environment.getExternalStoragePublicDirectory(WIRE_DIRECTORY);
 
     private final ContentResolver contentResolver;
 
@@ -74,16 +76,10 @@ public class DocumentResolver {
     }
 
     private Uri fileQuery(File baseDir) {
-        File choice = null;
-        long lastMod = 0;
-        for (File file : baseDir.listFiles()) {
-            if (file.lastModified() > lastMod) {
-                choice = file;
-                lastMod = file.lastModified();
-            }
+        File[] files = baseDir.listFiles();
+        if (files != null && files.length > 0) {
+            return Uri.fromFile(files[0]);
         }
-        if (choice != null)
-            return Uri.fromFile(choice);
         return null;
     }
 }
