@@ -23,8 +23,22 @@ import com.waz.zclient.core.controllers.tracking.events.Event;
 
 public class OpenedConversationEvent extends Event {
 
-    public OpenedConversationEvent(String conversationType) {
+    public enum Context {
+        SEARCH("search"),
+        OPEN_BUTTON("open_button"),
+        TOPUSER_DOUBLETAP("topuser_doubletap");
+
+        private final String name;
+
+        Context(String tagName) {
+            name = tagName;
+        }
+    }
+
+    public OpenedConversationEvent(String conversationType, Context context, int position) {
         attributes.put(Attribute.TYPE, conversationType);
+        attributes.put(Attribute.CONTEXT, context.toString());
+        attributes.put(Attribute.POSITION, String.valueOf(position));
     }
 
     @NonNull

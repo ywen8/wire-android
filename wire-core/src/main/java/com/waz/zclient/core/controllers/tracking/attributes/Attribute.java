@@ -80,6 +80,8 @@ public enum Attribute {
     TYPE("type"),
     METHOD("method"),
     OUTCOME("outcome"),
+    SECTION("section"),
+    POSITION("position"),
     ERROR("error"),
     ERROR_MESSAGE("error_message"),
     VALUE("value"),

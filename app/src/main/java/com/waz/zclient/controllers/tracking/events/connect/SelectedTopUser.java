@@ -19,9 +19,14 @@ package com.waz.zclient.controllers.tracking.events.connect;
 
 
 import android.support.annotation.NonNull;
+import com.waz.zclient.core.controllers.tracking.attributes.Attribute;
 import com.waz.zclient.core.controllers.tracking.events.Event;
 
 public class SelectedTopUser extends Event {
+    public SelectedTopUser(int position) {
+        attributes.put(Attribute.POSITION, String.valueOf(position));
+    }
+
     @NonNull
     @Override
     public String getName() {

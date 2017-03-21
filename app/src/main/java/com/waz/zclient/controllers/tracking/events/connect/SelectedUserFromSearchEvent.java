@@ -23,9 +23,23 @@ import com.waz.zclient.core.controllers.tracking.events.Event;
 
 public class SelectedUserFromSearchEvent extends Event {
 
-    public SelectedUserFromSearchEvent(String userConnectionType, boolean isAddingToGroupConversation) {
+    public enum Section {
+        CONTACTS("contacts"),
+        DIRECTORY("directory");
+
+        private final String name;
+
+        Section(String tagName) {
+            name = tagName;
+        }
+    }
+
+
+    public SelectedUserFromSearchEvent(String userConnectionType, boolean isAddingToGroupConversation, Section section, int position) {
         attributes.put(Attribute.TYPE, userConnectionType);
         attributes.put(Attribute.CONTEXT, isAddingToGroupConversation ? "add_to_conversation" : "startui");
+        attributes.put(Attribute.SECTION, section.toString());
+        attributes.put(Attribute.POSITION, String.valueOf(position));
     }
 
     @NonNull

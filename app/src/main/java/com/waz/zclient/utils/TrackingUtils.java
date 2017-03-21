@@ -383,16 +383,24 @@ public class TrackingUtils {
                                                User user,
                                                boolean isTopUser,
                                                boolean isAddingToConversation,
-                                               int rowType) {
-
+                                               int position,
+                                               SearchResultAdapter adapter) {
+        int itemType = adapter.getItemViewType(position);
         if (isTopUser) {
-            trackingController.tagEvent(new SelectedTopUser());
+            trackingController.tagEvent(new SelectedTopUser(position + 1));
         } else {
-            switch (rowType) {
+            switch (itemType) {
                 case SearchResultAdapter.ITEM_TYPE_CONNECTED_USER:
+                    trackingController.tagEvent(new SelectedUserFromSearchEvent(user.getConnectionStatus().toString(),
+                                                                                isAddingToConversation,
+                                                                                SelectedUserFromSearchEvent.Section.CONTACTS,
+                                                                                position));
+                    break;
                 case SearchResultAdapter.ITEM_TYPE_OTHER_USER:
                     trackingController.tagEvent(new SelectedUserFromSearchEvent(user.getConnectionStatus().toString(),
-                                                                                isAddingToConversation));
+                                                                                isAddingToConversation,
+                                                                                SelectedUserFromSearchEvent.Section.DIRECTORY,
+                                                                                adapter.getOtherUserInternalPosition(position)));
                     break;
             }
         }
