@@ -4,6 +4,10 @@ android {
     compileSdkVersion rootProject.ext.compileSdkVersion
     buildToolsVersion rootProject.ext.buildToolsVersion
 
+    if (file("../app/signing.gradle").exists()) {
+        apply from: '../app/signing.gradle'
+    }
+
     defaultConfig {
         applicationId "com.wire.testinggallery"
         minSdkVersion 19
@@ -14,7 +18,11 @@ android {
     buildTypes {
         release {
             minifyEnabled false
+            signingConfig signingConfigs.debug
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+        debug {
+            signingConfig signingConfigs.debug
         }
     }
     productFlavors {
