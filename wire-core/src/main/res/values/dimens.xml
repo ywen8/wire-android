@@ -241,6 +241,7 @@
     <dimen name="content__message__progress_size">40dp</dimen>
     <dimen name="content__message__progress_margin_top">8dp</dimen>
     <dimen name="content__message__progress_margin_bottom">4dp</dimen>
+    <dimen name="content__message__soundmedia_margin_bottom">8dp</dimen>
     <dimen name="content__message__unsend_indicator_background_radius">12dp</dimen>
     <dimen name="content__message__error_radius">6dp</dimen>
     <dimen name="content__message__error_glyph_size">12dp</dimen>
@@ -300,6 +301,16 @@
     <dimen name="content__footer__like_icon__height">24dp</dimen>
     <dimen name="content__footer__like_icon__width">28dp</dimen>
     <dimen name="content__footer__chathead__size">20dp</dimen>
+
+    <dimen name="content__sound_player__layout_height">80dp</dimen>
+    <dimen name="content__sound_player__image_width">80dp</dimen>
+    <dimen name="content__sound_player__button_size">16dp</dimen>
+    <dimen name="content__sound_player__play_width">32dp</dimen>
+    <dimen name="content__sound_player__play_height">32dp</dimen>
+    <dimen name="content__sound_player__error_width">32dp</dimen>
+    <dimen name="content__sound_player__error_height">32dp</dimen>
+    <dimen name="content__sound_player__icon_width">16dp</dimen>
+    <dimen name="content__sound_player__icon_height">16dp</dimen>
 
     <dimen name="conversation__header__media__button_size">60dp</dimen>
     <dimen name="conversation__header__bottom_bar__height">0.5dp</dimen>
@@ -830,4 +841,5 @@
     <dimen name="share_extension__preview__card_elevation">10dp</dimen>
     <dimen name="share_extension__row__checkbox_size">24dp</dimen>
     <dimen name="share_extension__send_button__size">36dp</dimen>
+
 </resources>

@@ -428,12 +428,16 @@ public class ConversationListManagerFragment extends BaseFragment<ConversationLi
                 getStoreFactory().getConversationStore().setCurrentConversation(conversation,
                                                                                 requester);
             }
-            ((BaseScalaActivity) getActivity()).injectJava(GlobalTrackingController.class).tagEvent(new OpenedConversationEvent(ConversationType.ONE_TO_ONE_CONVERSATION.name()));
+            ((BaseScalaActivity) getActivity()).injectJava(GlobalTrackingController.class).tagEvent(new OpenedConversationEvent(ConversationType.ONE_TO_ONE_CONVERSATION.name(),
+                                                                                                                                OpenedConversationEvent.Context.OPEN_BUTTON,
+                                                                                                                                -1));
         } else {
             getStoreFactory().getConversationStore().createGroupConversation(users, requester);
             ((BaseScalaActivity) getActivity()).injectJava(GlobalTrackingController.class).tagEvent(new CreatedGroupConversationEvent(false,
                                                                                                       (users.size() + 1)));
-            ((BaseScalaActivity) getActivity()).injectJava(GlobalTrackingController.class).tagEvent(new OpenedConversationEvent(ConversationType.GROUP_CONVERSATION.name()));
+            ((BaseScalaActivity) getActivity()).injectJava(GlobalTrackingController.class).tagEvent(new OpenedConversationEvent(ConversationType.GROUP_CONVERSATION.name(),
+                                                                                                                                OpenedConversationEvent.Context.OPEN_BUTTON,
+                                                                                                                                -1));
         }
     }
 

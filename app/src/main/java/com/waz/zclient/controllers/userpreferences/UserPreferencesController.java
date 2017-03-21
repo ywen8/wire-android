@@ -347,4 +347,9 @@ public class UserPreferencesController implements IUserPreferencesController {
     public void setPlayServicesErrorShown(boolean value) {
         userPreferences.edit().putBoolean(USER_PREF_PLAY_SERVICES_ERROR_SHOWN, value).apply();
     }
+
+    @Override
+    public boolean isVariableBitRateEnabled() {
+        return userPreferences.getBoolean(context.getString(R.string.pref_options_vbr_key), true);
+    }
 }

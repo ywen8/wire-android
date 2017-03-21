@@ -15,35 +15,27 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package com.waz.zclient.controllers.tracking.events.connect;
+package com.waz.zclient.core.controllers.tracking.events.settings;
 
 import android.support.annotation.NonNull;
 import com.waz.zclient.core.controllers.tracking.attributes.Attribute;
 import com.waz.zclient.core.controllers.tracking.events.Event;
 
-public class OpenedConversationEvent extends Event {
+/**
+ * Created by admin on 20/03/17.
+ */
+public class ChangedBitRateModeEvent extends Event {
 
-    public enum Context {
-        SEARCH("search"),
-        OPEN_BUTTON("open_button"),
-        TOPUSER_DOUBLETAP("topuser_doubletap");
-
-        private final String name;
-
-        Context(String tagName) {
-            name = tagName;
-        }
-    }
-
-    public OpenedConversationEvent(String conversationType, Context context, int position) {
-        attributes.put(Attribute.TYPE, conversationType);
-        attributes.put(Attribute.CONTEXT, context.toString());
-        attributes.put(Attribute.POSITION, String.valueOf(position));
+    public ChangedBitRateModeEvent(boolean vbrOn, boolean fromSettings) {
+        String outcome = vbrOn ? "vbr" : "cbr";
+        attributes.put(Attribute.OUTCOME, outcome);
+        String context = fromSettings ? "settings" : "default";
+        attributes.put(Attribute.CONTEXT, context);
     }
 
     @NonNull
     @Override
     public String getName() {
-        return "connect.opened_conversation";
+        return "settings.changed_bit_rate_mode";
     }
 }

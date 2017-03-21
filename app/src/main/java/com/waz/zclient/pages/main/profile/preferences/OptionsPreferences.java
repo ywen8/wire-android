@@ -31,11 +31,13 @@ import android.widget.Toast;
 import com.waz.api.MediaProvider;
 import com.waz.zclient.BaseScalaActivity;
 import com.waz.zclient.R;
+import com.waz.zclient.calling.controllers.CallPermissionsController;
 import com.waz.zclient.controllers.permission.RequestPermissionsObserver;
 import com.waz.zclient.controllers.spotify.SpotifyObserver;
-import com.waz.zclient.core.controllers.tracking.events.settings.ChangedImageDownloadPreferenceEvent;
 import com.waz.zclient.core.controllers.tracking.events.Event;
+import com.waz.zclient.core.controllers.tracking.events.settings.ChangedBitRateModeEvent;
 import com.waz.zclient.core.controllers.tracking.events.settings.ChangedContactsPermissionEvent;
+import com.waz.zclient.core.controllers.tracking.events.settings.ChangedImageDownloadPreferenceEvent;
 import com.waz.zclient.core.controllers.tracking.events.settings.ChangedSendButtonSettingEvent;
 import com.waz.zclient.core.controllers.tracking.events.settings.ChangedThemeEvent;
 import com.waz.zclient.media.SoundController;
@@ -211,8 +213,15 @@ public class OptionsPreferences extends BasePreferenceFragment<OptionsPreference
             getControllerFactory().getThemeController().toggleThemePending(true);
             event = new ChangedThemeEvent(getControllerFactory().getThemeController().isDarkTheme());
         } else if (key.equals(getString(R.string.pref_options_cursor_send_button_key))) {
-            boolean sendButtonIsOn = sharedPreferences.getBoolean(key, false);
+            boolean sendButtonIsOn = sharedPreferences.getBoolean(key, true);
             event = new ChangedSendButtonSettingEvent(sendButtonIsOn);
+        } else if (key.equals(getString(R.string.pref_options_vbr_key))) {
+            boolean vbrOn = sharedPreferences.getBoolean(key, false);
+            CallPermissionsController ctrl = inject(CallPermissionsController.class);
+            if (ctrl != null) {
+                ctrl.setVariableBitRateMode(vbrOn);
+            }
+            event = new ChangedBitRateModeEvent(vbrOn, true);
         }
 
         return event;

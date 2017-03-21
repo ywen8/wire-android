@@ -225,4 +225,9 @@ public class StubUserPreferencesController implements IUserPreferencesController
     @Override
     public void setPlayServicesErrorShown(boolean value) {
     }
+
+  @Override
+  public boolean isVariableBitRateEnabled() {
+    return false;
+  }
 }
