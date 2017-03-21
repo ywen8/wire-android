@@ -30,6 +30,21 @@
         />
 
     <PreferenceCategory
+        android:key="@string/pref_options_calls_category_key"
+        android:title="@string/pref_options_calls_category_title"
+        android:layout="@layout/preference_category"
+        >
+
+        <SwitchPreference
+            android:defaultValue="true"
+            android:key="@string/pref_options_vbr_key"
+            android:title="@string/pref_options_vbr_title"
+            android:summary="@string/pref_options_vbr_summary"
+        />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory
         android:key="@string/pref_options_alerts_category_key"
         android:title="@string/pref_options_alerts_category_title"
         android:layout="@layout/preference_category"

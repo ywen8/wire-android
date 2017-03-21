@@ -76,14 +76,20 @@ class CallPermissionsController(implicit inj: Injector, cxt: WireContext) extend
     case _ => //
   }
 
-  def startCall(convId: ConvId, withVideo: Boolean): Unit = {
+  def startCall(convId: ConvId, withVideo: Boolean, variableBitRate: Boolean): Unit = {
     permissionsController.requiring(if (withVideo) Set(CameraPermission, RecordAudioPermission) else Set(RecordAudioPermission)) {
+      setVariableBitRateMode(variableBitRate)
       useV3(convId).flatMap {
         case true => v3Service.head.map(_.startCall(convId, withVideo))
         case false => v2Service.head.map(_.joinVoiceChannel(convId, withVideo))
       }
     }(R.string.calling__cannot_start__title,
       if (withVideo) R.string.calling__cannot_start__no_video_permission__message else R.string.calling__cannot_start__no_permission__message)
+  }
+
+  def setVariableBitRateMode(enabled: Boolean): Unit = {
+    val cbrOn = if(enabled) 0 else 1 // in SE it's reversed: we DISABLE cbr instead of enabling vbr and vice versa
+    v3Service.head.map(_.setAudioConstantBitRateEnabled(cbrOn))
   }
 
   def acceptCall(): Unit = {

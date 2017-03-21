@@ -84,6 +84,7 @@
     <string translatable="false" name="pref_options_spotify_key">PREF_SPOTIFY_LOGIN</string>
     <string translatable="false" name="pref_options_cursor_send_button_key">pref_cursor_send_button_key</string>
     <string translatable="false" name="pref_options_contacts_key">@string/pref_share_contacts_key</string>
+    <string translatable="false" name="pref_options_vbr_key">pref_options_vbr_key</string>
     <string translatable="false" name="pref_options_devices_key">pref_privacy_devices_key</string>
     <string translatable="false" name="pref_devices_current_device_category_key">pref_current_device_category_key</string>
     <string translatable="false" name="pref_devices_other_devices_category_key">pref_other_devices_category_key</string>
@@ -121,6 +122,7 @@
     <string translatable="false" name="pref_about_version_key">pref_about_version_key</string>
     <string translatable="false" name="pref_about_copyright_key">pref_about_copyright_key</string>
     <string translatable="false" name="pref_options_alerts_category_key">pref_options_alerts_category_key</string>
+    <string translatable="false" name="pref_options_calls_category_key">pref_options_calls_category_key</string>
     <string translatable="false" name="pref_options_media_category_key">pref_options_media_category_key</string>
     <string translatable="false" name="pref_options_requested_category_key">pref_options_requested_category_key</string>
     <string translatable="false" name="pref_support_website_key">pref_support_website_key</string>

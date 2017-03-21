@@ -828,6 +828,7 @@ public class MainActivity extends BaseActivity implements MainPhoneFragment.Cont
                                       true);
             return;
         }
+        final boolean vbr = getControllerFactory().getUserPreferencesController().isVariableBitRateEnabled();
         if (currentConversation.getType() == IConversation.Type.GROUP &&
             currentConversation.getUsers().size() >= 5) {
             int users = currentConversation.getUsers().size();
@@ -839,13 +840,13 @@ public class MainActivity extends BaseActivity implements MainPhoneFragment.Cont
                                       new DialogInterface.OnClickListener() {
                                           @Override
                                           public void onClick(DialogInterface dialog, int which) {
-                                              injectJava(CallPermissionsController.class).startCall(new ConvId(voiceChannel.getConversation().getId()), withVideo);
+                                              injectJava(CallPermissionsController.class).startCall(new ConvId(voiceChannel.getConversation().getId()), withVideo, vbr);
                                           }
                                       },
                                       null);
             return;
         } else {
-            injectJava(CallPermissionsController.class).startCall(new ConvId(voiceChannel.getConversation().getId()), withVideo);
+            injectJava(CallPermissionsController.class).startCall(new ConvId(voiceChannel.getConversation().getId()), withVideo, vbr);
         }
     }
 
