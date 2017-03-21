@@ -4,17 +4,20 @@ android {
     compileSdkVersion rootProject.ext.compileSdkVersion
     buildToolsVersion rootProject.ext.buildToolsVersion
 
-    if (file("../app/signing.gradle").exists()) {
-        apply from: '../app/signing.gradle'
+    signingConfigs {
+        if (file("../app/signing.gradle").exists()) {
+            apply from: '../app/signing.gradle'
+        }
     }
 
     defaultConfig {
         applicationId "com.wire.testinggallery"
-        minSdkVersion 19
+        minSdkVersion 17
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 6
         versionName "6.0"
     }
+
     buildTypes {
         release {
             minifyEnabled false
@@ -23,14 +26,6 @@ android {
         }
         debug {
             signingConfig signingConfigs.debug
-        }
-    }
-    productFlavors {
-        old {
-            minSdkVersion 17
-        }
-        normal {
-            minSdkVersion 19
         }
     }
 }
@@ -46,18 +41,8 @@ android.applicationVariants.all { variant ->
     def appName = "testing_gallery"
 
     variant.outputs.each { output ->
-        def versionSuffix = ""
-        if (output.baseName.split("-").contains("normal")) {
-            versionSuffix = "_from" + android.productFlavors.normal.minSdkVersion.mApiLevel
-        }
-        def buildType = ""
-        if(output.baseName.toLowerCase().split("-").contains("debug")) {
-            buildType = "-debug"
-        }
-
         def newApkName
-
-        newApkName = "${appName}${versionSuffix}${buildType}.apk"
+        newApkName = "${appName}-${output.baseName}.apk"
         output.outputFile = new File(output.outputFile.parent, newApkName)
     }
 }
