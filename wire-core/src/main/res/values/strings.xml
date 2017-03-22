@@ -484,7 +484,7 @@
     <string name="pref_options_contacts_title">Share Contacts</string>
     <string name="pref_options_contacts_summary">This helps you connect with others. We anonymize all the information and do not share it with anyone else.</string>
     <string name="pref_options_vbr_title">Variable Bit Rate Encoding</string>
-    <string name="pref_options_vbr_summary">This makes audio calls use less data and work better on networks with lower bandwidth. Turn off to use Constant Bitrate Encoding.</string>
+    <string name="pref_options_vbr_summary">This makes audio calls use less data and work better on slower networks. Turn off to use Constant Bitrate Encoding.</string>
     <string name="pref_options_alerts_category_title">Alerts</string>
     <string name="pref_options_calls_category_title">Calls</string>
     <string name="pref_options_sounds_title">Sounds</string>
