@@ -5,8 +5,8 @@ android {
     buildToolsVersion rootProject.ext.buildToolsVersion
 
     signingConfigs {
-        if (file("../app/signing.gradle").exists()) {
-            apply from: '../app/signing.gradle'
+        if (file("signing.gradle").exists()) {
+            apply from: 'signing.gradle'
         }
     }
 
