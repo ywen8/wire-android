@@ -21,6 +21,7 @@ import _root_.com.waz.api.VoiceChannelState._
 import _root_.com.waz.service.ZMessaging
 import _root_.com.waz.utils.events.{EventContext, Signal}
 import android.os.PowerManager
+import com.waz.ZLog.ImplicitTag._
 import com.waz.api.{IConversation, KindOfCall, Verification, VoiceChannelState}
 import com.waz.model.{UserId, VoiceChannelData}
 import com.waz.service.call.CallInfo
@@ -28,9 +29,8 @@ import com.waz.service.call.CallInfo._
 import com.waz.threading.Threading
 import com.waz.zclient.calling.CallingActivity
 import com.waz.zclient.media.SoundController
-import com.waz.zclient.{Injectable, Injector, R, WireContext}
-import com.waz.ZLog.ImplicitTag._
 import com.waz.zclient.utils.ContextUtils._
+import com.waz.zclient.{Injectable, Injector, R, WireContext}
 
 class GlobalCallingController(implicit inj: Injector, cxt: WireContext, eventContext: EventContext) extends Injectable {
 
@@ -93,6 +93,22 @@ class GlobalCallingController(implicit inj: Injector, cxt: WireContext, eventCon
     case _ => Signal.const(false)
   }
 
+  val activeCallEstablished = zmsOpt.flatMap {
+    case Some(z) => callStateOpt.map {
+      case Some(SELF_CONNECTED | OTHERS_CONNECTED) => true
+      case _ => false
+    }
+    case _ => Signal.const(false)
+  }
+
+  val callEnded = zmsOpt.flatMap {
+    case Some(z) => callStateOpt.map {
+      case Some(NO_ACTIVE_USERS) => true
+      case _ => false
+    }
+    case _ => Signal.const(true)
+  }
+
   val outgoingCall = callStateOpt.map {
     case Some(st) if st == SELF_CALLING => true
     case _ => false
@@ -142,6 +158,14 @@ class GlobalCallingController(implicit inj: Injector, cxt: WireContext, eventCon
   onCallStarted.on(Threading.Ui) { _ =>
     CallingActivity.start(cxt)
   }(EventContext.Global)
+
+  activeCallEstablished.onChanged.filter(_ == true) { _ =>
+    soundController.playCallEstablishedSound()
+  }
+
+  callEnded.onChanged.filter(_ == true) { _ =>
+    soundController.playCallEndedSound()
+  }
 
   activeCall.onChanged.filter(_ == false).on(Threading.Ui) { _ =>
     screenManager.releaseWakeLock()
