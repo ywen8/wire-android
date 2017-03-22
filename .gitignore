@@ -32,6 +32,8 @@ app/api-keys.properties
 app/*.keystore
 app/signing.gradle
 user.gradle
+testing-gallery/*.keystore
+testing-gallery/signing.gradle
 
 target
 app/flavor-*
