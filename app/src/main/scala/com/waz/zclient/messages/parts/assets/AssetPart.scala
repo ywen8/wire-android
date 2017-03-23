@@ -81,10 +81,10 @@ trait ActionableAssetPart extends AssetPart {
 
 trait PlayableAsset extends ActionableAssetPart {
   val duration = asset.map(_._1).map {
-    case AssetData.WithDuration(d) => d
-    case _ => Duration.ZERO
+    case AssetData.WithDuration(d) => Some(d)
+    case _ => None
   }
-  val formattedDuration = duration.map(d => StringUtils.formatTimeSeconds(d.getSeconds))
+  val formattedDuration = duration.map(_.fold("")(d => StringUtils.formatTimeSeconds(d.getSeconds)))
 
   protected val durationView: TextView = findById(R.id.duration)
 
