@@ -272,6 +272,9 @@ public class SearchResultAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
     @Override
     public @ItemType int getItemViewType(int position) {
         @ItemType int type = -1;
+        if (position < 0) {
+            return type;
+        }
         if (showSearch) {
             if (hasConnectedUsers() &&
                 position < getContactsSectionLength()) {
