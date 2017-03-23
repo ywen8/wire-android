@@ -72,8 +72,8 @@ class SoundController(implicit inj: Injector, cxt: Context) extends Injectable {
   }
 
   def playCallEndedSound() = {
-    setMediaPlaying(R.raw.talk_later)
     setVibrating(R.array.talk_later)
+    setMediaPlaying(R.raw.talk_later)
   }
 
   def playCallDroppedSound() = {
