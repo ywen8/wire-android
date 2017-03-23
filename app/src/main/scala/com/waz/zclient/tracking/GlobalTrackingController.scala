@@ -170,10 +170,6 @@ class GlobalTrackingController(implicit inj: Injector, cxt: WireContext, eventCo
       case AssetTrackingData(convType, withOtto, isEphemeral, exp, assetSize, m) =>
         tagEvent(new CompletedMediaActionEvent(mediaType(m), convType.toString, withOtto, isEphemeral, expToString(isEphemeral, exp)))
         tagEvent(initiatedFileUploadEvent(m, assetSize, convType, isEphemeral, exp))
-
-        if (Mime.Image.unapply(m))
-          tagEvent(new SentPictureEvent(SentPictureEvent.Source.CLIP, convType.toString, SentPictureEvent.Method.DEFAULT, SentPictureEvent.SketchSource.NONE, withOtto, isEphemeral, expToString(isEphemeral, exp)))
-
     }}
 
     messages.onMessageSent {
