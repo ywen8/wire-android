@@ -369,7 +369,7 @@ object GlobalTrackingController {
       val telephonyManager = context.getSystemService(Context.TELEPHONY_SERVICE).asInstanceOf[TelephonyManager]
       val networkInfo = connectivityManager.getActiveNetworkInfo
 
-      val networkMode = NetworkModeService.computeMode(networkInfo, telephonyManager) match {
+      val networkMode = if (networkInfo == null || telephonyManager == null) "unknown" else NetworkModeService.computeMode(networkInfo, telephonyManager) match {
         case NetworkMode._2G  => "2G"
         case NetworkMode.EDGE => "EDGE"
         case NetworkMode._3G  => "3G"
