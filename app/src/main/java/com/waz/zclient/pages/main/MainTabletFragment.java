@@ -40,10 +40,10 @@ import com.waz.zclient.controllers.navigation.Page;
 import com.waz.zclient.controllers.singleimage.SingleImageObserver;
 import com.waz.zclient.core.stores.inappnotification.InAppNotificationStoreObserver;
 import com.waz.zclient.core.stores.inappnotification.KnockingEvent;
+import com.waz.zclient.fragments.ImageFragment;
 import com.waz.zclient.pages.BaseFragment;
 import com.waz.zclient.pages.main.backgroundmain.views.BackgroundFrameLayout;
 import com.waz.zclient.pages.main.conversation.SingleImageFragment;
-import com.waz.zclient.pages.main.conversation.SingleImageMessageFragment;
 import com.waz.zclient.pages.main.conversation.SingleImageUserFragment;
 import com.waz.zclient.pages.main.conversation.VideoPlayerFragment;
 import com.waz.zclient.pages.main.conversationlist.ConfirmationFragment;
@@ -187,9 +187,9 @@ public class MainTabletFragment extends BaseFragment<MainTabletFragment.Containe
     public void onShowSingleImage(Message message) {
         getChildFragmentManager().beginTransaction()
                                  .add(R.id.fl__overlay_container,
-                                      SingleImageMessageFragment.newInstance(message),
-                                      SingleImageMessageFragment.TAG)
-                                 .addToBackStack(SingleImageMessageFragment.TAG)
+                                      ImageFragment.newInstance(message.getId()),
+                                     ImageFragment.TAG())
+                                 .addToBackStack(ImageFragment.TAG())
                                  .commit();
         getControllerFactory().getNavigationController().setRightPage(Page.SINGLE_MESSAGE, TAG);
     }
