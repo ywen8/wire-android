@@ -91,7 +91,6 @@ import com.waz.zclient.utils.device.DeviceDetector;
 import com.waz.zclient.views.DefaultPageTransitionAnimation;
 import com.waz.zclient.views.LoadingIndicatorView;
 import com.waz.zclient.views.PickableElement;
-
 import hugo.weaving.DebugLog;
 
 import java.util.ArrayList;
@@ -783,7 +782,7 @@ public class PickUserFragment extends BaseFragment<PickUserFragment.Container> i
             return;
         }
 
-        ((BaseScalaActivity) getActivity()).injectJava(GlobalTrackingController.class).tagEvent(new OpenedConversationEvent(ConversationType.ONE_TO_ONE_CONVERSATION.name(),
+        ((BaseActivity) getActivity()).injectJava(GlobalTrackingController.class).tagEvent(new OpenedConversationEvent(ConversationType.ONE_TO_ONE_CONVERSATION.name(),
                                                                                                                             OpenedConversationEvent.Context.TOPUSER_DOUBLETAP,
                                                                                                                             (position + 1)));
         getStoreFactory().getConversationStore().setCurrentConversation(user.getConversation(),
@@ -793,7 +792,7 @@ public class PickUserFragment extends BaseFragment<PickUserFragment.Container> i
     @Override
     public void onConversationClicked(IConversation conversation, int position) {
         KeyboardUtils.hideKeyboard(getActivity());
-        ((BaseScalaActivity) getActivity()).injectJava(GlobalTrackingController.class).tagEvent(new OpenedConversationEvent(ConversationType.GROUP_CONVERSATION.name(),
+        ((BaseActivity) getActivity()).injectJava(GlobalTrackingController.class).tagEvent(new OpenedConversationEvent(ConversationType.GROUP_CONVERSATION.name(),
                                                                                                                             OpenedConversationEvent.Context.SEARCH,
                                                                                                                             searchResultAdapter.getConversationInternalPosition(position)));
         getStoreFactory().getConversationStore().setCurrentConversation(conversation,

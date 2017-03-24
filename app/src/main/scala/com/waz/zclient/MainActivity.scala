@@ -586,12 +586,12 @@ class MainActivity extends BaseActivity
         getString(R.string.group_calling_cancel),
         new DialogInterface.OnClickListener() {
           def onClick(dialog: DialogInterface, which: Int) = {
-            callPermissionController.startCall(new ConvId(vc.getConversation.getId), withVideo)
+            callPermissionController.startCall(new ConvId(vc.getConversation.getId), withVideo, getControllerFactory.getUserPreferencesController.isVariableBitRateEnabled)
           }
       }, null)
 
     case (_, vc) =>
-      callPermissionController.startCall(new ConvId(vc.getConversation.getId), withVideo)
+      callPermissionController.startCall(new ConvId(vc.getConversation.getId), withVideo, getControllerFactory.getUserPreferencesController.isVariableBitRateEnabled)
   }
 
   private def cannotStartAlreadyHaveVoiceActive(withVideo: Boolean) = {

@@ -29,7 +29,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.Toast;
-
 import com.waz.api.ConversationsList;
 import com.waz.api.CredentialsUpdateListener;
 import com.waz.api.IConversation;
@@ -421,14 +420,14 @@ public class ConversationListManagerFragment extends BaseFragment<ConversationLi
                 getStoreFactory().getConversationStore().setCurrentConversation(conversation,
                                                                                 requester);
             }
-            ((BaseScalaActivity) getActivity()).injectJava(GlobalTrackingController.class).tagEvent(new OpenedConversationEvent(ConversationType.ONE_TO_ONE_CONVERSATION.name(),
+            ((BaseActivity) getActivity()).injectJava(GlobalTrackingController.class).tagEvent(new OpenedConversationEvent(ConversationType.ONE_TO_ONE_CONVERSATION.name(),
                                                                                                                                 OpenedConversationEvent.Context.OPEN_BUTTON,
                                                                                                                                 -1));
         } else {
             getStoreFactory().getConversationStore().createGroupConversation(users, requester);
             ((BaseActivity) getActivity()).injectJava(GlobalTrackingController.class).tagEvent(new CreatedGroupConversationEvent(false,
                                                                                                       (users.size() + 1)));
-            ((BaseScalaActivity) getActivity()).injectJava(GlobalTrackingController.class).tagEvent(new OpenedConversationEvent(ConversationType.GROUP_CONVERSATION.name(),
+            ((BaseActivity) getActivity()).injectJava(GlobalTrackingController.class).tagEvent(new OpenedConversationEvent(ConversationType.GROUP_CONVERSATION.name(),
                                                                                                                                 OpenedConversationEvent.Context.OPEN_BUTTON,
                                                                                                                                 -1));
         }

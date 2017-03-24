@@ -221,6 +221,7 @@
     <issue id="UnusedResources" severity="error" />
     <issue id="UnusedIds" severity="error" />
     <issue id="UnusedResources" severity="error">
+        <ignore path="src/main/res/layout/main.xml"/>
         <ignore path="src/main/res/layout/calling*"/>
         <ignore path="src/main/res/layout/message_*"/>
         <ignore path="src/main/res/layout/collection_*"/>
@@ -252,6 +253,7 @@
         <ignore path="*degradation_overlay*"/>
     </issue>
     <issue id="UnusedIds" severity="error" >
+        <ignore path="src/main/res/layout/main.xml"/>
         <ignore path="src/main/res/layout/calling*"/>
         <ignore path="src/main/res/layout/message_*"/>
         <ignore path="src/main/res/layout-sw600dp-port/message_*"/>
