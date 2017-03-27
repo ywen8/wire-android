@@ -178,6 +178,9 @@
     <string translatable="false" name="pref_dev_websocket_ping_interval_key">PREF_WEBSOCKET_PING_INTERVAL</string>
     <string translatable="false" name="pref_dev_websocket_ping_interval_summary">Change the frequency of checking the connection to the server. Note that increasing the frequency may have a negative impact on battery life.</string>
     <string translatable="false" name="pref_dev_websocket_ping_interval_title">WebSocket Ping Frequency (ms)</string>
+    <string translatable="false" name="pref_dev_ws_foreground_key">@string/zms_ws_foreground_service_enabled</string>
+    <string translatable="false" name="pref_dev_ws_foreground_summary">Enable to see Web Socket connection status in permanent notification</string>
+    <string translatable="false" name="pref_dev_ws_foreground_title">Web Socket foreground service</string>
 
 </resources>
 
