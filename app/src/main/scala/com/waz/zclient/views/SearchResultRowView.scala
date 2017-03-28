@@ -18,9 +18,7 @@
 package com.waz.zclient.views
 
 import android.content.Context
-import android.text.SpannableString
 import android.text.format.DateFormat
-import android.text.style.BackgroundColorSpan
 import android.util.AttributeSet
 import android.view.{View, ViewGroup}
 import android.widget.LinearLayout

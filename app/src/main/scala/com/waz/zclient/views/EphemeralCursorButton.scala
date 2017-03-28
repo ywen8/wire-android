@@ -25,7 +25,7 @@ import com.waz.utils.events.Signal
 import com.waz.zclient.ViewHelper
 import com.waz.zclient.controllers.global.AccentColorController
 import com.waz.zclient.ui.R
-import com.waz.zclient.ui.utils.{ColorUtils, ResourceUtils, TypefaceUtils}
+import com.waz.zclient.ui.utils.{ColorUtils, TypefaceUtils}
 import com.waz.zclient.ui.views.CursorIconButton
 
 class EphemeralCursorButton(context: Context, attrs: AttributeSet, defStyleAttr: Int) extends CursorIconButton(context, attrs, defStyleAttr) with ViewHelper {

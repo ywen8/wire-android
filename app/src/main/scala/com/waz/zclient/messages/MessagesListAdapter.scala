@@ -33,8 +33,6 @@ import com.waz.zclient.messages.MessagesListView.UnreadIndex
 import com.waz.zclient.messages.RecyclerCursor.RecyclerNotifier
 import com.waz.zclient.{Injectable, Injector}
 
-import scala.concurrent.ExecutionContext
-
 class MessagesListAdapter(listDim: Signal[Dim2])(implicit inj: Injector, ec: EventContext)
   extends MessagesListView.Adapter() with Injectable { adapter =>
 
