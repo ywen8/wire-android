@@ -649,7 +649,7 @@ class MainActivity extends BaseActivity
             def onClick(dialogInterface: DialogInterface, i: Int) = startCall(true)
           }, true)
       case _ => startCall(withVideo)
-    }
+    }(Threading.Ui)
   }
 
   def onConversationListUpdated(conversationsList: ConversationsList) = ()
