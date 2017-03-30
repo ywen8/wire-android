@@ -181,7 +181,7 @@ public class TrackingUtils {
             if (!permission.contains(Permission.READ_CONTACTS.toString())) {
                 continue;
             }
-            boolean grantedContactsPermission = grantResults[i] == PackageManager.PERMISSION_GRANTED ? true : false;
+            boolean grantedContactsPermission = grantResults[i] == PackageManager.PERMISSION_GRANTED;
             trackingController.tagEvent(new ChangedContactsPermissionEvent(grantedContactsPermission, false));
         }
     }

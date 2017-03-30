@@ -127,10 +127,7 @@ public class ParticipantsGridView extends GridView implements PullForActionView,
     private boolean isClickEvent(float startX, float endX, float startY, float endY) {
         float differenceX = Math.abs(startX - endX);
         float differenceY = Math.abs(startY - endY);
-        if (differenceX > CLICK_EVENT_MAX_MOVE_DISTANCE || differenceY > CLICK_EVENT_MAX_MOVE_DISTANCE) {
-            return false;
-        }
-        return true;
+        return !(differenceX > CLICK_EVENT_MAX_MOVE_DISTANCE || differenceY > CLICK_EVENT_MAX_MOVE_DISTANCE);
     }
 
     public interface Callback {

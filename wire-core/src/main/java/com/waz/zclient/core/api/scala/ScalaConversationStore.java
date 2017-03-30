@@ -580,9 +580,6 @@ public class ScalaConversationStore implements IConversationStore {
         if (conversation.isMe() || conversation.getType() == IConversation.Type.GROUP) {
             return false;
         }
-        if (conversation.getType() == IConversation.Type.INCOMING_CONNECTION) {
-            return true;
-        }
-        return false;
+        return conversation.getType() == IConversation.Type.INCOMING_CONNECTION;
     }
 }

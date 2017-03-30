@@ -145,12 +145,8 @@ public class MathUtilsDetector extends Detector implements Detector.JavaScanner 
                 return true;
             }
 
-            if (rightType instanceof FloatingPointLiteral &&
-                leftType instanceof IntegralLiteral) {
-                return true;
-            }
-
-            return false;
+            return rightType instanceof FloatingPointLiteral &&
+                leftType instanceof IntegralLiteral;
         }
 
         private Literal getType(Expression expression) {

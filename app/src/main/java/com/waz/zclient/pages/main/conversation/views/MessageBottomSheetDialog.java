@@ -194,11 +194,8 @@ public class MessageBottomSheetDialog extends BottomSheetDialog {
                 return true;
             case AUDIO_ASSET:
             case VIDEO_ASSET:
-                if (message.getAsset().getStatus() == AssetStatus.UPLOAD_DONE ||
-                    message.getAsset().getStatus() == AssetStatus.DOWNLOAD_DONE) {
-                    return true;
-                }
-                return false;
+                return message.getAsset().getStatus() == AssetStatus.UPLOAD_DONE ||
+                    message.getAsset().getStatus() == AssetStatus.DOWNLOAD_DONE;
             default:
                 return false;
         }
@@ -216,11 +213,8 @@ public class MessageBottomSheetDialog extends BottomSheetDialog {
         }
         switch (message.getMessageType()) {
             case ANY_ASSET:
-                if (message.getAsset().getStatus() == AssetStatus.UPLOAD_DONE ||
-                    message.getAsset().getStatus() == AssetStatus.DOWNLOAD_DONE) {
-                    return true;
-                }
-                return false;
+                return message.getAsset().getStatus() == AssetStatus.UPLOAD_DONE ||
+                    message.getAsset().getStatus() == AssetStatus.DOWNLOAD_DONE;
             default:
                 return false;
         }
@@ -258,11 +252,8 @@ public class MessageBottomSheetDialog extends BottomSheetDialog {
             case ANY_ASSET:
             case AUDIO_ASSET:
             case VIDEO_ASSET:
-                if (message.getAsset().getStatus() == AssetStatus.UPLOAD_DONE ||
-                    message.getAsset().getStatus() == AssetStatus.DOWNLOAD_DONE) {
-                    return true;
-                }
-                return false;
+                return message.getAsset().getStatus() == AssetStatus.UPLOAD_DONE ||
+                    message.getAsset().getStatus() == AssetStatus.DOWNLOAD_DONE;
             case ASSET:
                 // TODO: Once https://wearezeta.atlassian.net/browse/CM-976 is resolved, we should handle image asset like any other asset
                 return true;
@@ -316,17 +307,11 @@ public class MessageBottomSheetDialog extends BottomSheetDialog {
     }
 
     private boolean isDeleteLocalAllowed() {
-        if (chosenOperations != null && !chosenOperations.contains(MessageAction.DELETE_LOCAL)) {
-            return false;
-        }
-        return true;
+        return !(chosenOperations != null && !chosenOperations.contains(MessageAction.DELETE_LOCAL));
     }
 
     private boolean isRevealAllowed(Boolean isCollection) {
-        if (!isCollection || (chosenOperations != null && !chosenOperations.contains(MessageAction.REVEAL))) {
-            return false;
-        }
-        return true;
+        return !(!isCollection || (chosenOperations != null && !chosenOperations.contains(MessageAction.REVEAL)));
     }
 
     public interface Callback {
