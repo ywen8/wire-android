@@ -46,7 +46,7 @@ public class WifiSetStatusReceiver extends BroadcastReceiver {
     }
 
     private void setWifiStatus(Context context, boolean status) {
-        WifiManager wifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
+        WifiManager wifiManager = (WifiManager) context.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
         wifiManager.setWifiEnabled(status);
     }
 
