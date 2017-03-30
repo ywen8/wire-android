@@ -485,6 +485,9 @@
     <dimen name="first_time__confirm_email__envelope_padding_bottom">50dp</dimen>
     <dimen name="first_time__confirm_email__text_segment_vertical_padding">20dp</dimen>
 
+    <dimen name="confirmation_menu__degradation_overlay_width">260dp</dimen>
+    <dimen name="confirmation_menu__degradation_overlay_height">260dp</dimen>
+
     <dimen name="profile__guidance__text_margin_top">0dp</dimen>
     <dimen name="profile__edit_container__margin_bottom">64dp</dimen>
     <dimen name="profile__pen_icon__margin_right">64dp</dimen>

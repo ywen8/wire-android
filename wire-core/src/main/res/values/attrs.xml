@@ -83,6 +83,7 @@
         <attr name="checkboxLabel" format="string"/>
         <attr name="checkboxIsSelected" format="boolean"/>
         <attr name="headerIcon" format="reference"/>
+        <attr name="backgroundImage" format="reference"/>
     </declare-styleable>
 
     <declare-styleable name="PickUserEditText">

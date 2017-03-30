@@ -1639,7 +1639,7 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
         if (getControllerFactory().getNavigationController().getCurrentPage() != Page.MESSAGE_STREAM) {
             return;
         }
-        errorDescription.dismiss();
+
         KeyboardUtils.hideKeyboard(getActivity());
 
         final IConversation currentConversation = errorDescription.getConversation();
@@ -1700,6 +1700,7 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
         final String message = getResources().getQuantityString(R.plurals.conversation__degraded_confirmation__message,
                                                                 messageCount);
 
+
         final ConfirmationCallback callback = new ConfirmationCallback() {
             @Override
             public void positiveButtonClicked(boolean checkboxIsSelected) {
@@ -1707,6 +1708,7 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
                 for (Message message : messages) {
                     message.retry();
                 }
+                errorDescription.dismiss();
             }
 
             @Override
@@ -1742,13 +1744,12 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
             .withNegativeButton(negativeButton)
             .withConfirmationCallback(callback)
             .withCancelButton()
-            .withHeaderIcon(R.drawable.shield_half)
+            .withBackgroundImage(R.drawable.degradation_overlay)
             .withWireTheme(getControllerFactory().getThemeController().getThemeDependentOptionsTheme())
             .build();
 
         getControllerFactory().getConfirmationController().requestConfirmation(request,
                                                                                IConfirmationController.CONVERSATION);
-
     }
 
     private String getConversationTypeString() {
