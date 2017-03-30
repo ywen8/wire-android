@@ -23,7 +23,6 @@ import android.graphics.Canvas;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.DrawableContainer;
-import android.os.Build;
 import timber.log.Timber;
 
 import java.lang.reflect.Field;
@@ -43,13 +42,7 @@ public class DrawableUtils {
 
     public static boolean setContainerConstantState(DrawableContainer drawable,
                                              Drawable.ConstantState constantState) {
-        if (Build.VERSION.SDK_INT >= 9) {
-            // We can use getDeclaredMethod() on v9+
-            return setContainerConstantStateV9(drawable, constantState);
-        } else {
-            // Else we'll just have to set the field directly
-            return setContainerConstantStateV7(drawable, constantState);
-        }
+        return setContainerConstantStateV9(drawable, constantState);
     }
 
     private static boolean setContainerConstantStateV9(DrawableContainer drawable,
@@ -70,29 +63,6 @@ public class DrawableUtils {
                 return true;
             } catch (Exception e) {
                 Timber.e(e, "Could not invoke setConstantState(). Oh well.");
-            }
-        }
-        return false;
-    }
-
-    private static boolean setContainerConstantStateV7(DrawableContainer drawable,
-                                                       Drawable.ConstantState constantState) {
-        if (!drawableContainerStateFieldFetched) {
-            try {
-                drawableContainerStateField = DrawableContainer.class
-                    .getDeclaredField("mDrawableContainerStateField");
-                drawableContainerStateField.setAccessible(true);
-            } catch (NoSuchFieldException e) {
-                Timber.e(e, "Could not fetch mDrawableContainerStateField. Oh well.");
-            }
-            drawableContainerStateFieldFetched = true;
-        }
-        if (drawableContainerStateField != null) {
-            try {
-                drawableContainerStateField.set(drawable, constantState);
-                return true;
-            } catch (Exception e) {
-                Timber.e(e, "Could not set mDrawableContainerStateField. Oh well.");
             }
         }
         return false;

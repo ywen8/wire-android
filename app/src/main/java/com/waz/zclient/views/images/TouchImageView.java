@@ -49,7 +49,6 @@
 package com.waz.zclient.views.images;
 
 import android.animation.TypeEvaluator;
-import android.annotation.TargetApi;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
@@ -57,8 +56,6 @@ import android.graphics.Matrix;
 import android.graphics.PointF;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
-import android.os.Build.VERSION;
-import android.os.Build.VERSION_CODES;
 import android.os.Bundle;
 import android.os.Parcelable;
 import android.util.AttributeSet;
@@ -69,7 +66,6 @@ import android.view.View;
 import android.view.animation.AccelerateDecelerateInterpolator;
 import android.widget.ImageView;
 import android.widget.OverScroller;
-import android.widget.Scroller;
 import com.waz.zclient.ui.utils.MathUtils;
 
 public class TouchImageView extends ImageView {
@@ -1079,7 +1075,7 @@ public class TouchImageView extends ImageView {
                 minY = maxY = startY;
             }
 
-            scroller.fling(startX, startY, (int) velocityX, (int) velocityY, minX,
+            scroller.fling(startX, startY, velocityX, velocityY, minX,
                            maxX, minY, maxY);
             currX = startX;
             currY = startY;
@@ -1114,21 +1110,11 @@ public class TouchImageView extends ImageView {
         }
     }
 
-    @TargetApi(VERSION_CODES.GINGERBREAD)
     private class CompatScroller {
-        Scroller scroller;
         OverScroller overScroller;
-        boolean isPreGingerbread;
 
         public CompatScroller(Context context) {
-            if (VERSION.SDK_INT < VERSION_CODES.GINGERBREAD) {
-                isPreGingerbread = true;
-                scroller = new Scroller(context);
-
-            } else {
-                isPreGingerbread = false;
-                overScroller = new OverScroller(context);
-            }
+            overScroller = new OverScroller(context);
         }
 
         public void fling(int startX,
@@ -1139,63 +1125,33 @@ public class TouchImageView extends ImageView {
                           int maxX,
                           int minY,
                           int maxY) {
-            if (isPreGingerbread) {
-                scroller.fling(startX, startY, velocityX, velocityY, minX, maxX, minY, maxY);
-            } else {
-                overScroller.fling(startX, startY, velocityX, velocityY, minX, maxX, minY, maxY);
-            }
+            overScroller.fling(startX, startY, velocityX, velocityY, minX, maxX, minY, maxY);
         }
 
         public void forceFinished(boolean finished) {
-            if (isPreGingerbread) {
-                scroller.forceFinished(finished);
-            } else {
-                overScroller.forceFinished(finished);
-            }
+            overScroller.forceFinished(finished);
         }
 
         public boolean isFinished() {
-            if (isPreGingerbread) {
-                return scroller.isFinished();
-            } else {
-                return overScroller.isFinished();
-            }
+            return overScroller.isFinished();
         }
 
         public boolean computeScrollOffset() {
-            if (isPreGingerbread) {
-                return scroller.computeScrollOffset();
-            } else {
-                overScroller.computeScrollOffset();
-                return overScroller.computeScrollOffset();
-            }
+            overScroller.computeScrollOffset();
+            return overScroller.computeScrollOffset();
         }
 
         public int getCurrX() {
-            if (isPreGingerbread) {
-                return scroller.getCurrX();
-            } else {
-                return overScroller.getCurrX();
-            }
+            return overScroller.getCurrX();
         }
 
         public int getCurrY() {
-            if (isPreGingerbread) {
-                return scroller.getCurrY();
-            } else {
-                return overScroller.getCurrY();
-            }
+            return overScroller.getCurrY();
         }
     }
 
-    @TargetApi(VERSION_CODES.JELLY_BEAN)
     private void compatPostOnAnimation(Runnable runnable) {
-        if (VERSION.SDK_INT >= VERSION_CODES.JELLY_BEAN) {
-            postOnAnimation(runnable);
-
-        } else {
-            postDelayed(runnable, 1000 / 60);
-        }
+        postOnAnimation(runnable);
     }
 
     private class ZoomVariables {
