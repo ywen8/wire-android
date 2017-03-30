@@ -45,7 +45,6 @@ public class ParticipantBackbarFragment extends BaseFragment<ParticipantBackbarF
     public void onClick(View v) {
         if (getControllerFactory().getConversationScreenController().isShowingUser()) {
             getControllerFactory().getConversationScreenController().hideUser();
-            return;
         }
     }
 

@@ -284,7 +284,6 @@ public class AppEntryStore implements IAppEntryStore, ErrorsList.ErrorListener {
                 return;
             }
             setState(AppEntryState.LOGGED_IN);
-            return;
         }
     }
 

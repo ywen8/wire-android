@@ -844,7 +844,6 @@ public class MainActivity extends BaseActivity implements MainPhoneFragment.Cont
                                           }
                                       },
                                       null);
-            return;
         } else {
             injectJava(CallPermissionsController.class).startCall(new ConvId(voiceChannel.getConversation().getId()), withVideo, vbr);
         }

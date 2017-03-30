@@ -238,7 +238,6 @@ public class OptionsMenuFragment extends BaseFragment<OptionsMenuFragment.Contai
                 items.add(OptionsMenuItem.PICTURE);
             case WAIT_FOR_CONNECTION:
                 connectUser(conversation.getOtherParticipant());
-                return;
         }
     }
 
