@@ -31,6 +31,14 @@
         android:background="@color/background_overlay_light"
         />
 
+    <ImageView
+        android:id="@+id/backgroundImage"
+        android:layout_width="@dimen/confirmation_menu__degradation_overlay_width"
+        android:layout_height="@dimen/confirmation_menu__degradation_overlay_height"
+        android:layout_gravity="center"
+        android:gravity="center"
+        />
+
     <LinearLayout
         android:id="@+id/ll__confirmation_dialog__message_container"
         android:layout_width="match_parent"
@@ -136,5 +144,6 @@
         android:textSize="@dimen/wire__icon_button__text_size"
         android:gravity="center"
         />
+
 
 </FrameLayout>

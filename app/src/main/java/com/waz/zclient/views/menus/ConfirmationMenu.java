@@ -41,6 +41,7 @@ import com.waz.zclient.ui.animation.interpolators.penner.Expo;
 import com.waz.zclient.ui.animation.interpolators.penner.Quart;
 import com.waz.zclient.ui.text.GlyphTextView;
 import com.waz.zclient.ui.theme.OptionsTheme;
+import com.waz.zclient.ui.utils.ColorUtils;
 import com.waz.zclient.ui.views.ZetaButton;
 import com.waz.zclient.utils.LayoutSpec;
 import com.waz.zclient.utils.ViewUtils;
@@ -56,6 +57,7 @@ public class ConfirmationMenu extends LinearLayout {
     private String checkboxLabelText;
     private boolean checkboxSelectedByDefault;
     private int headerIconRes;
+    private int backgroundImage;
 
     private TextView headerTextView;
     private TextView contentTextView;
@@ -64,6 +66,7 @@ public class ConfirmationMenu extends LinearLayout {
     private ZetaButton negativeButton;
     private CheckBoxView checkBoxView;
     private ImageView headerIconView;
+    private ImageView backgroundImageView;
     private View backgroundView;
     private View messageContainerView;
     private boolean confirmed;
@@ -130,6 +133,7 @@ public class ConfirmationMenu extends LinearLayout {
         checkboxLabelText = a.getString(R.styleable.ConfirmationMenu_checkboxLabel);
         checkboxSelectedByDefault = a.getBoolean(R.styleable.ConfirmationMenu_checkboxIsSelected, false);
         headerIconRes = a.getResourceId(R.styleable.ConfirmationMenu_headerIcon, 0);
+        backgroundImage = a.getResourceId(R.styleable.ConfirmationMenu_backgroundImage, 0);
         a.recycle();
     }
 
@@ -187,6 +191,8 @@ public class ConfirmationMenu extends LinearLayout {
         if (optionsTheme != null && optionsTheme.getType() == OptionsTheme.Type.LIGHT) {
             negativeButton.setTextColor(color);
         }
+
+        backgroundImageView.setColorFilter(ColorUtils.injectAlpha(0.1f, color));
     }
 
     public void useModalBackground(boolean show) {
@@ -197,6 +203,16 @@ public class ConfirmationMenu extends LinearLayout {
         this.headerIconRes = icon;
         headerIconView.setVisibility(icon == 0 ? GONE : VISIBLE);
         headerIconView.setImageResource(icon);
+    }
+
+    public void setBackgroundImage(@DrawableRes int imageId) {
+        this.backgroundImage = imageId;
+        if (imageId != 0) {
+            backgroundImageView.setImageDrawable(this.getContext().getDrawable(imageId));
+            backgroundImageView.setVisibility(VISIBLE);
+        } else {
+            backgroundImageView.setVisibility(GONE);
+        }
     }
 
     public void animateToShow(boolean show) {
@@ -320,6 +336,9 @@ public class ConfirmationMenu extends LinearLayout {
         headerIconView.setVisibility(headerIconRes == 0 ? GONE : VISIBLE);
         headerIconView.setImageResource(headerIconRes);
 
+        backgroundImageView = ViewUtils.getView(this, R.id.backgroundImage);
+        setBackgroundImage(backgroundImage);
+
         // Consume all touch events
         setOnTouchListener(new OnTouchListener() {
             @Override
@@ -366,6 +385,7 @@ public class ConfirmationMenu extends LinearLayout {
         setNegativeButton(confirmationRequest.negativeButton);
         setCancelVisible(confirmationRequest.cancelVisible);
         setIcon(confirmationRequest.headerIconRes);
+        setBackgroundImage(confirmationRequest.backgroundImage);
         setCheckBox(confirmationRequest.checkboxLabel, confirmationRequest.checkboxSelectedByDefault);
         animateToShow(true);
     }
