@@ -28,6 +28,7 @@ import android.graphics.ColorMatrixColorFilter;
 import android.graphics.ComposeShader;
 import android.graphics.Matrix;
 import android.graphics.Paint;
+import android.graphics.PixelFormat;
 import android.graphics.PorterDuff;
 import android.graphics.RadialGradient;
 import android.graphics.Rect;
@@ -249,6 +250,6 @@ public class BackgroundDrawable extends Drawable {
 
     @Override
     public int getOpacity() {
-        return 0;
+        return PixelFormat.UNKNOWN;
     }
 }

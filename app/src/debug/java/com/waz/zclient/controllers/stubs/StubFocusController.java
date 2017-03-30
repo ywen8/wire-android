@@ -51,6 +51,6 @@ public class StubFocusController implements IFocusController {
 
   @Override
   public int getCurrentFocus() {
-    return 0;
+    return IFocusController.CONVERSATION_CURSOR;
   }
 }
