@@ -26,7 +26,7 @@ import java.util.Set;
 
 public abstract class PickUserStore implements IPickUserStore {
     // observers attached to a IPickUserStore
-    protected Set<PickUserStoreObserver> pickUserStoreObservers = new HashSet<PickUserStoreObserver>();
+    protected Set<PickUserStoreObserver> pickUserStoreObservers = new HashSet<>();
 
     @Override
     public void addPickUserStoreObserver(PickUserStoreObserver pickUserStoreObserver) {

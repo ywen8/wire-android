@@ -31,9 +31,9 @@ import java.util.Set;
 public class GlobalLayoutController implements IGlobalLayoutController {
     public static final String TAG = GlobalLayoutController.class.getName();
 
-    protected Set<GlobalLayoutObserver> globalLayoutObservers = new HashSet<GlobalLayoutObserver>();
-    protected Set<KeyboardVisibilityObserver> keyboardVisibilityObservers = new HashSet<KeyboardVisibilityObserver>();
-    protected Set<KeyboardHeightObserver> keyboardHeightObservers = new HashSet<KeyboardHeightObserver>();
+    protected Set<GlobalLayoutObserver> globalLayoutObservers = new HashSet<>();
+    protected Set<KeyboardVisibilityObserver> keyboardVisibilityObservers = new HashSet<>();
+    protected Set<KeyboardHeightObserver> keyboardHeightObservers = new HashSet<>();
     protected Set<StatusBarVisibilityObserver> statusBarVisibilityObservers = new HashSet<>();
 
     private View globalLayout;

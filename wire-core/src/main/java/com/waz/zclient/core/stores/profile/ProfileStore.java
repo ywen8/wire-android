@@ -28,7 +28,7 @@ import java.util.Set;
 public abstract class ProfileStore implements IProfileStore, UpdateListener {
 
     // observers
-    protected Set<ProfileStoreObserver> profileStoreObservers = new HashSet<ProfileStoreObserver>();
+    protected Set<ProfileStoreObserver> profileStoreObservers = new HashSet<>();
 
     // is first launch
     private boolean isFirstLaunch;

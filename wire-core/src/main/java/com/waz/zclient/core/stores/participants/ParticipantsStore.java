@@ -32,7 +32,7 @@ public abstract class ParticipantsStore implements IParticipantsStore {
     protected User otherUser;
 
     // observers attached to a IParticipantsStore
-    protected Set<ParticipantsStoreObserver> participantsStoreObservers = new HashSet<ParticipantsStoreObserver>();
+    protected Set<ParticipantsStoreObserver> participantsStoreObservers = new HashSet<>();
 
     @Override
     public void addParticipantsStoreObserver(ParticipantsStoreObserver participantsStoreObserver) {
