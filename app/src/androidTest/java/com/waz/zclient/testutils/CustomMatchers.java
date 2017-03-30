@@ -22,7 +22,6 @@ import android.support.v7.widget.SwitchCompat;
 import android.view.View;
 import android.view.ViewParent;
 import android.widget.FrameLayout;
-import android.widget.LinearLayout;
 import com.waz.zclient.pages.main.profile.views.GuidedEditText;
 import com.waz.zclient.ui.text.TypefaceEditText;
 import com.waz.zclient.ui.views.e2ee.OtrSwitch;
