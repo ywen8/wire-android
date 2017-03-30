@@ -37,52 +37,52 @@ import java.lang.String;
 public class StubConversationStore implements IConversationStore {
   @Override
   public void sendMessage(AudioAssetForUpload audioAssetForUpload, MessageContent.Asset.ErrorHandler errorHandler) {
-    ;
+
   }
 
   @Override
   public void sendMessage(String message) {
-    ;
+
   }
 
   @Override
   public void mute() {
-    ;
+
   }
 
   @Override
   public void loadMenuConversation(String conversationId) {
-    ;
+
   }
 
   @Override
   public void leave(IConversation conversation) {
-    ;
+
   }
 
   @Override
   public void setCurrentConversationToNext(ConversationChangeRequester requester) {
-    ;
+
   }
 
   @Override
   public void sendMessage(byte[] jpegData) {
-    ;
+
   }
 
   @Override
   public void sendMessage(IConversation conversation, AssetForUpload assetForUpload, MessageContent.Asset.ErrorHandler errorHandler) {
-    ;
+
   }
 
   @Override
   public void sendMessage(IConversation conversation, ImageAsset imageAsset) {
-    ;
+
   }
 
   @Override
   public void sendMessage(IConversation conversation, AudioAssetForUpload audioAssetForUpload, MessageContent.Asset.ErrorHandler errorHandler) {
-    ;
+
   }
 
   @Override
@@ -92,37 +92,37 @@ public class StubConversationStore implements IConversationStore {
 
   @Override
   public void addConversationStoreObserverAndUpdate(ConversationStoreObserver conversationStoreObserver) {
-    ;
+
   }
 
   @Override
   public void mute(IConversation conversation, boolean mute) {
-    ;
+
   }
 
   @Override
   public void sendMessage(IConversation conversation, String message) {
-    ;
+
   }
 
   @Override
   public void removeConversationStoreObserver(ConversationStoreObserver conversationStoreObserver) {
-    ;
+
   }
 
   @Override
   public void addConversationStoreObserver(ConversationStoreObserver conversationStoreObserver) {
-    ;
+
   }
 
   @Override
   public void sendMessage(AssetForUpload assetForUpload, MessageContent.Asset.ErrorHandler errorHandler) {
-    ;
+
   }
 
   @Override
   public void loadConnectRequestInboxConversations(OnInboxLoadedListener onConversationsLoadedListener, InboxLoadRequester inboxLoadRequester) {
-    ;
+
   }
 
   @Override
@@ -132,12 +132,12 @@ public class StubConversationStore implements IConversationStore {
 
   @Override
   public void loadCurrentConversation(OnConversationLoadedListener onConversationLoadedListener) {
-    ;
+
   }
 
   @Override
   public void deleteConversation(IConversation conversation, boolean leaveConversation) {
-    ;
+
   }
 
   @Override
@@ -152,37 +152,37 @@ public class StubConversationStore implements IConversationStore {
 
   @Override
   public void createGroupConversation(Iterable<User> users, ConversationChangeRequester conversationChangerSender) {
-    ;
+
   }
 
   @Override
   public void setCurrentConversation(IConversation conversation, ConversationChangeRequester conversationChangerSender) {
-    ;
+
   }
 
   @Override
   public void sendMessage(MessageContent.Location location) {
-    ;
+
   }
 
   @Override
   public void tearDown() {
-    ;
+
   }
 
   @Override
   public void archive(IConversation conversation, boolean archive) {
-    ;
+
   }
 
   @Override
   public void sendMessage(ImageAsset imageAsset) {
-    ;
+
   }
 
   @Override
   public void knockCurrentConversation() {
-    ;
+
   }
 
   @Override
@@ -197,7 +197,7 @@ public class StubConversationStore implements IConversationStore {
 
   @Override
   public void onLogout() {
-    ;
+
   }
 
   @Override
@@ -207,7 +207,7 @@ public class StubConversationStore implements IConversationStore {
 
   @Override
   public void loadConversation(String conversationId, OnConversationLoadedListener onConversationLoadedListener) {
-    ;
+
   }
 
   @Override

@@ -25,17 +25,17 @@ import java.lang.Override;
 public class StubSingleParticipantStore implements ISingleParticipantStore {
   @Override
   public void tearDown() {
-    ;
+
   }
 
   @Override
   public void setUser(User user) {
-    ;
+
   }
 
   @Override
   public void addSingleParticipantObserver(SingleParticipantStoreObserver singleParticipantObserver) {
-    ;
+
   }
 
   @Override
@@ -45,6 +45,6 @@ public class StubSingleParticipantStore implements ISingleParticipantStore {
 
   @Override
   public void removeSingleParticipantObserver(SingleParticipantStoreObserver singleParticipantObserver) {
-    ;
+
   }
 }

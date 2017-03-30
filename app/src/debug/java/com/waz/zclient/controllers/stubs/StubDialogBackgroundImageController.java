@@ -26,7 +26,7 @@ import java.lang.Override;
 public class StubDialogBackgroundImageController implements IDialogBackgroundImageController {
   @Override
   public void addObserver(DialogBackgroundImageObserver observer) {
-    ;
+
   }
 
   @Override
@@ -36,21 +36,21 @@ public class StubDialogBackgroundImageController implements IDialogBackgroundIma
 
   @Override
   public void removeObserver(DialogBackgroundImageObserver observer) {
-    ;
+
   }
 
   @Override
   public void tearDown() {
-    ;
+
   }
 
   @Override
   public void setImageAsset(ImageAsset imageAsset, boolean blurred) {
-    ;
+
   }
 
   @Override
   public void setUser(User user) {
-    ;
+
   }
 }

@@ -34,7 +34,7 @@ public class StubConversationScreenController implements IConversationScreenCont
 
     @Override
     public void setShowDevicesTab(User user) {
-        ;
+
     }
 
     @Override
@@ -44,32 +44,32 @@ public class StubConversationScreenController implements IConversationScreenCont
 
     @Override
     public void setParticipantHeaderHeight(int participantHeaderHeight) {
-        ;
+
     }
 
     @Override
     public void setOffset(int offset) {
-        ;
+
     }
 
     @Override
     public void addPeopleToConversation() {
-        ;
+
     }
 
     @Override
     public void showConversationMenu(int requester, IConversation conversation, View anchorView) {
-        ;
+
     }
 
     @Override
     public void resetToMessageStream() {
-        ;
+
     }
 
     @Override
     public void showUser(User user) {
-        ;
+
     }
 
     @Override
@@ -79,22 +79,22 @@ public class StubConversationScreenController implements IConversationScreenCont
 
     @Override
     public void setMessageBeingEdited(Message message) {
-        ;
+
     }
 
     @Override
     public void removeConversationControllerObservers(ConversationScreenControllerObserver conversationScreenControllerObserver) {
-        ;
+
     }
 
     @Override
     public void editConversationName(boolean b) {
-        ;
+
     }
 
     @Override
     public void showParticipants(View anchorView, boolean showDeviceTabIfSingle) {
-        ;
+
     }
 
     @Override
@@ -104,17 +104,17 @@ public class StubConversationScreenController implements IConversationScreenCont
 
     @Override
     public void setMemberOfConversation(boolean isMemberOfConversation) {
-        ;
+
     }
 
     @Override
     public void setPopoverLaunchedMode(DialogLaunchMode launchedMode) {
-        ;
+
     }
 
     @Override
     public void addConversationControllerObservers(ConversationScreenControllerObserver conversationScreenControllerObserver) {
-        ;
+
     }
 
     @Override
@@ -124,7 +124,7 @@ public class StubConversationScreenController implements IConversationScreenCont
 
     @Override
     public void onScrollParticipantsList(int verticalOffset, boolean scrolledToBottom) {
-        ;
+
     }
 
     @Override
@@ -134,7 +134,7 @@ public class StubConversationScreenController implements IConversationScreenCont
 
     @Override
     public void hideParticipants(boolean backOrButtonPressed, boolean hideByConversationChange) {
-        ;
+
     }
 
     @Override
@@ -149,37 +149,37 @@ public class StubConversationScreenController implements IConversationScreenCont
 
     @Override
     public void hideOtrClient() {
-        ;
+
     }
 
     @Override
     public void hideUser() {
-        ;
+
     }
 
     @Override
     public void showOtrClient(OtrClient otrClient, User user) {
-        ;
+
     }
 
     @Override
     public void setConversationStreamUiReady(boolean ready) {
-        ;
+
     }
 
     @Override
     public void tearDown() {
-        ;
+
     }
 
     @Override
     public void showCurrentOtrClient() {
-        ;
+
     }
 
     @Override
     public void setSingleConversation(boolean isSingleConversation) {
-        ;
+
     }
 
     @Override

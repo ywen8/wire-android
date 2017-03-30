@@ -28,27 +28,27 @@ import com.waz.zclient.controllers.giphy.IGiphyController;
 public class StubGiphyController implements IGiphyController {
   @Override
   public void close() {
-    ;
+
   }
 
   @Override
   public void cancel() {
-    ;
+
   }
 
   @Override
   public void addObserver(GiphyObserver observer) {
-    ;
+
   }
 
   @Override
   public void tearDown() {
-    ;
+
   }
 
   @Override
   public void removeObserver(GiphyObserver observer) {
-    ;
+
   }
 
   @Override
@@ -58,7 +58,7 @@ public class StubGiphyController implements IGiphyController {
 
   @Override
   public void search(String keyword) {
-    ;
+
   }
 
     @Override
@@ -68,7 +68,7 @@ public class StubGiphyController implements IGiphyController {
 
     @Override
   public void searchRandom() {
-    ;
+
   }
 
   @Override

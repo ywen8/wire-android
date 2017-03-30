@@ -25,7 +25,7 @@ import java.lang.Override;
 public class StubDrawingController implements IDrawingController {
   @Override
   public void showDrawing(ImageAsset image, IDrawingController.DrawingDestination drawingDestination) {
-    ;
+
   }
 
     @Override
@@ -37,21 +37,21 @@ public class StubDrawingController implements IDrawingController {
 
     @Override
   public void tearDown() {
-    ;
+
   }
 
   @Override
   public void removeDrawingObserver(DrawingObserver drawingObserver) {
-    ;
+
   }
 
   @Override
   public void hideDrawing(IDrawingController.DrawingDestination drawingDestination, boolean imageSent) {
-    ;
+
   }
 
   @Override
   public void addDrawingObserver(DrawingObserver drawingObserver) {
-    ;
+
   }
 }

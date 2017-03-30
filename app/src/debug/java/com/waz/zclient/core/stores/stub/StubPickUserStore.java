@@ -27,7 +27,7 @@ import java.lang.String;
 public class StubPickUserStore implements IPickUserStore {
   @Override
   public void loadSearchByFilter(String filter, int numberOfResults, boolean excludeUsers) {
-    ;
+
   }
 
   @Override
@@ -37,7 +37,7 @@ public class StubPickUserStore implements IPickUserStore {
 
   @Override
   public void addPickUserStoreObserver(PickUserStoreObserver pickUserStoreObserver) {
-    ;
+
   }
 
   @Override
@@ -47,22 +47,22 @@ public class StubPickUserStore implements IPickUserStore {
 
   @Override
   public void removePickUserStoreObserver(PickUserStoreObserver pickUserStoreObserver) {
-    ;
+
   }
 
   @Override
   public void setExcludedUsers(String[] users) {
-    ;
+
   }
 
   @Override
   public void loadContacts() {
-    ;
+
   }
 
   @Override
   public void searchContacts(String query) {
-    ;
+
   }
 
   @Override
@@ -72,17 +72,17 @@ public class StubPickUserStore implements IPickUserStore {
 
   @Override
   public void resetContactSearch() {
-    ;
+
   }
 
   @Override
   public void tearDown() {
-    ;
+
   }
 
   @Override
   public void loadTopUserList(int numberOfResults, boolean excludeUsers) {
-    ;
+
   }
 
   @Override

@@ -24,31 +24,31 @@ import java.lang.Override;
 public class StubConversationListController implements IConversationListController {
   @Override
   public void addConversationListObserver(ConversationListObserver conversationListObserver) {
-    ;
+
   }
 
   @Override
   public void removeConversationListObserver(ConversationListObserver conversationListObserver) {
-    ;
+
   }
 
   @Override
   public void tearDown() {
-    ;
+
   }
 
   @Override
   public void notifyScrollOffsetChanged(int offset, int scrolledToBottom) {
-    ;
+
   }
 
   @Override
   public void onReleasedPullDownFromBottom(int offset) {
-    ;
+
   }
 
   @Override
   public void onListViewOffsetChanged(int offset) {
-    ;
+
   }
 }

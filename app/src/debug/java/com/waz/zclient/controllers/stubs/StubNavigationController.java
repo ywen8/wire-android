@@ -35,17 +35,17 @@ public class StubNavigationController implements INavigationController {
 
   @Override
   public void setConversationListState(VoiceBarAppearance voiceBarAppearance) {
-    ;
+
   }
 
   @Override
   public void onSaveInstanceState(Bundle outState) {
-    ;
+
   }
 
   @Override
   public void setPagerEnabled(boolean enabled) {
-    ;
+
   }
 
   @Override
@@ -55,22 +55,22 @@ public class StubNavigationController implements INavigationController {
 
   @Override
   public void onPageScrolled(int arg0, float arg1, int arg2) {
-    ;
+
   }
 
   @Override
   public void removeNavigationControllerObserver(NavigationControllerObserver navigationControllerObserver) {
-    ;
+
   }
 
   @Override
   public void markActivityResumed() {
-    ;
+
   }
 
   @Override
   public void setVisiblePage(Page page, String sender) {
-    ;
+
   }
 
   @Override
@@ -85,12 +85,12 @@ public class StubNavigationController implements INavigationController {
 
   @Override
   public void setMessageStreamState(VoiceBarAppearance voiceBarAppearance) {
-    ;
+
   }
 
   @Override
   public void onActivityCreated(Bundle savedInstanceState) {
-    ;
+
   }
 
   @Override
@@ -100,67 +100,67 @@ public class StubNavigationController implements INavigationController {
 
   @Override
   public void setPagerPosition(int position) {
-    ;
+
   }
 
   @Override
   public void removeScreenPositionObserver(ScreenPositionObserver screenPositionObserver) {
-    ;
+
   }
 
   @Override
   public void setScreenOffsetX(int x) {
-    ;
+
   }
 
   @Override
   public void setScreenOffsetY(int y) {
-    ;
+
   }
 
   @Override
   public void addPagerControllerObserver(PagerControllerObserver pagerControllerObserver) {
-    ;
+
   }
 
   @Override
   public void removePagerControllerObserver(PagerControllerObserver pagerControllerObserver) {
-    ;
+
   }
 
   @Override
   public void setPagerSettingForPage(Page page) {
-    ;
+
   }
 
   @Override
   public void setIsLandscape(boolean isLandscape) {
-    ;
+
   }
 
   @Override
   public void onPageScrollStateChanged(int arg0) {
-    ;
+
   }
 
   @Override
   public void markActivityPaused() {
-    ;
+
   }
 
   @Override
   public void resetPagerPositionToDefault() {
-    ;
+
   }
 
   @Override
   public void setRightPage(Page leftPage, String sender) {
-    ;
+
   }
 
   @Override
   public void addNavigationControllerObserver(NavigationControllerObserver navigationControllerObserver) {
-    ;
+
   }
 
   @Override
@@ -180,12 +180,12 @@ public class StubNavigationController implements INavigationController {
 
   @Override
   public void tearDown() {
-    ;
+
   }
 
   @Override
   public void addScreenPositionObserver(ScreenPositionObserver screenPositionObserver) {
-    ;
+
   }
 
   @Override
@@ -195,7 +195,7 @@ public class StubNavigationController implements INavigationController {
 
   @Override
   public void setScreenOffsetYFactor(float factorY) {
-    ;
+
   }
 
   @Override
@@ -205,7 +205,7 @@ public class StubNavigationController implements INavigationController {
 
   @Override
   public void setLeftPage(Page leftPage, String sender) {
-    ;
+
   }
 
   @Override
@@ -215,6 +215,6 @@ public class StubNavigationController implements INavigationController {
 
   @Override
   public void onPageSelected(int arg0) {
-    ;
+
   }
 }

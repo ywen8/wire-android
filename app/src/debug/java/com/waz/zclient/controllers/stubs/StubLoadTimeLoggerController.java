@@ -23,51 +23,51 @@ import java.lang.Override;
 public class StubLoadTimeLoggerController implements ILoadTimeLoggerController {
   @Override
   public void appStart() {
-    ;
+
   }
 
   @Override
   public void loginFail() {
-    ;
+
   }
 
   @Override
   public void loginPressed() {
-    ;
+
   }
 
   @Override
   public void tearDown() {
-    ;
+
   }
 
   @Override
   public void conversationContentSyncFinish() {
-    ;
+
   }
 
   @Override
   public void clickConversationInList() {
-    ;
+
   }
 
   @Override
   public void conversationContentSyncStart() {
-    ;
+
   }
 
   @Override
   public void loginSuccess() {
-    ;
+
   }
 
   @Override
   public void hideLaunchScreen() {
-    ;
+
   }
 
   @Override
   public void conversationPageVisible() {
-    ;
+
   }
 }

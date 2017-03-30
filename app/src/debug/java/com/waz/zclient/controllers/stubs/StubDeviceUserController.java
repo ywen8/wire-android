@@ -24,7 +24,7 @@ import java.lang.String;
 public class StubDeviceUserController implements IDeviceUserController {
   @Override
   public void tearDown() {
-    ;
+
   }
 
   @Override

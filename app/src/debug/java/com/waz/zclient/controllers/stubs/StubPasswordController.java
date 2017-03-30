@@ -24,7 +24,7 @@ import java.lang.String;
 public class StubPasswordController implements IPasswordController {
   @Override
   public void setPassword(String password) {
-    ;
+
   }
 
   @Override
@@ -34,12 +34,12 @@ public class StubPasswordController implements IPasswordController {
 
   @Override
   public void tearDown() {
-    ;
+
   }
 
   @Override
   public void reset() {
-    ;
+
   }
 
   @Override

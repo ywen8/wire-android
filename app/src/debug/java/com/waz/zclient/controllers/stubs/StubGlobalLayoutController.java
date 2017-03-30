@@ -30,37 +30,37 @@ import java.lang.Override;
 public class StubGlobalLayoutController implements IGlobalLayoutController {
   @Override
   public void removeStatusBarVisibilityObserver(StatusBarVisibilityObserver observer) {
-    ;
+
   }
 
   @Override
   public void removeGlobalLayoutObserver(GlobalLayoutObserver globalLayoutObserver) {
-    ;
+
   }
 
   @Override
   public void addKeyboardVisibilityObserver(KeyboardVisibilityObserver keyboardVisibilityObserver) {
-    ;
+
   }
 
   @Override
   public void addStatusBarVisibilityObserver(StatusBarVisibilityObserver observer) {
-    ;
+
   }
 
   @Override
   public void removeKeyboardVisibilityObserver(KeyboardVisibilityObserver keyboardVisibilityObserver) {
-    ;
+
   }
 
   @Override
   public void addKeyboardHeightObserver(KeyboardHeightObserver keyboardHeightObserver) {
-    ;
+
   }
 
   @Override
   public void tearDown() {
-    ;
+
   }
 
   @Override
@@ -70,12 +70,12 @@ public class StubGlobalLayoutController implements IGlobalLayoutController {
 
   @Override
   public void removeKeyboardHeightObserver(KeyboardHeightObserver keyboardHeightObserver) {
-    ;
+
   }
 
   @Override
   public void setSoftInputModeForPage(Page page) {
-    ;
+
   }
 
   @Override
@@ -85,17 +85,17 @@ public class StubGlobalLayoutController implements IGlobalLayoutController {
 
   @Override
   public void setActivity(Activity activity) {
-    ;
+
   }
 
   @Override
   public void showStatusBar(Activity activity) {
-    ;
+
   }
 
   @Override
   public void setGlobalLayout(View view) {
-    ;
+
   }
 
     @Override
@@ -110,11 +110,11 @@ public class StubGlobalLayoutController implements IGlobalLayoutController {
 
     @Override
   public void addGlobalLayoutObserver(GlobalLayoutObserver globalLayoutObserver) {
-    ;
+
   }
 
   @Override
   public void hideStatusBar(Activity activity) {
-    ;
+
   }
 }

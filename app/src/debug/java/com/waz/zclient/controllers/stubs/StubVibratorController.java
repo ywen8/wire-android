@@ -24,11 +24,11 @@ public class StubVibratorController implements IVibratorController {
 
   @Override
   public void tearDown() {
-    ;
+
   }
 
   @Override
   public void vibrate(long[] pattern) {
-    ;
+
   }
 }

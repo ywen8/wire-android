@@ -26,7 +26,7 @@ public class PhoneUtils {
 
         IDLE,
         OFF_HOOK,
-        RINGING;
+        RINGING
 
     }
 
