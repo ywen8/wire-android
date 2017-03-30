@@ -19,6 +19,7 @@ package com.waz.zclient.pages.main.participants;
 
 import android.content.ClipData;
 import android.content.ClipboardManager;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -256,7 +257,7 @@ public class SingleOtrClientFragment extends BaseFragment<SingleOtrClientFragmen
                 resetSession();
                 break;
             case R.id.ttv__single_otr_client__fingerprint:
-                ClipboardManager clipboard = (ClipboardManager) getActivity().getSystemService(getActivity().CLIPBOARD_SERVICE);
+                ClipboardManager clipboard = (ClipboardManager) getActivity().getSystemService(Context.CLIPBOARD_SERVICE);
                 ClipData clip = ClipData.newPlainText(getString(R.string.pref_dev_avs_last_call_session_id_title),
                                                       fingerprintView.getText().toString());
                 clipboard.setPrimaryClip(clip);

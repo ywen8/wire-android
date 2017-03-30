@@ -115,7 +115,7 @@ public class DeveloperPreferences extends BasePreferenceFragment<DeveloperPrefer
         final String lastCallSessionIdKey = getString(R.string.pref_dev_avs_last_call_session_id_key);
         String lastCallSessionId = preferenceManager.getSharedPreferences().getString(lastCallSessionIdKey,
                                                                                       getString(R.string.pref_dev_avs_last_call_session_id_not_available));
-        ClipboardManager clipboard = (ClipboardManager) getActivity().getSystemService(getActivity().CLIPBOARD_SERVICE);
+        ClipboardManager clipboard = (ClipboardManager) getActivity().getSystemService(Context.CLIPBOARD_SERVICE);
         ClipData clip = ClipData.newPlainText(getString(R.string.pref_dev_avs_last_call_session_id_title),
                                               lastCallSessionId);
         clipboard.setPrimaryClip(clip);
