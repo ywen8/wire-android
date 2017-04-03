@@ -199,35 +199,40 @@ public class StubUserPreferencesController implements IUserPreferencesController
     ;
   }
 
-    @Override
-    public boolean hasShareContactsEnabled() {
-        return false;
-    }
+  @Override
+  public boolean hasShareContactsEnabled() {
+    return false;
+  }
 
-    @Override
-    public void setShareContactsEnabled(boolean enabled) {
-    }
+  @Override
+  public void setShareContactsEnabled(boolean enabled) {
+  }
 
-    @Override
-    public long getLastEphemeralValue() {
-        return 0;
-    }
+  @Override
+  public long getLastEphemeralValue() {
+    return 0;
+  }
 
-    @Override
-    public void setLastEphemeralValue(long value) {
-    }
+  @Override
+  public void setLastEphemeralValue(long value) {
+  }
 
-    @Override
-    public boolean hasPlayServicesErrorShown() {
-        return false;
-    }
+  @Override
+  public boolean hasPlayServicesErrorShown() {
+    return false;
+  }
 
-    @Override
-    public void setPlayServicesErrorShown(boolean value) {
-    }
+  @Override
+  public void setPlayServicesErrorShown(boolean value) {
+  }
 
   @Override
   public boolean isVariableBitRateEnabled() {
+    return false;
+  }
+
+  @Override
+  public boolean swapForceVerboseLogging() {
     return false;
   }
 }

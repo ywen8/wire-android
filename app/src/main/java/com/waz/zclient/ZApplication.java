@@ -18,6 +18,7 @@
 package com.waz.zclient;
 
 import android.app.Activity;
+import android.content.Context;
 import android.graphics.Typeface;
 import android.support.annotation.Nullable;
 import com.jakewharton.threetenabp.AndroidThreeTen;
@@ -26,6 +27,7 @@ import com.localytics.android.LocalyticsActivityLifecycleCallbacks;
 import com.waz.api.LogLevel;
 import com.waz.api.impl.AccentColors;
 import com.waz.zclient.controllers.IControllerFactory;
+import com.waz.zclient.controllers.userpreferences.UserPreferencesController;
 import com.waz.zclient.core.stores.IStoreFactory;
 import com.waz.zclient.ui.text.TypefaceFactory;
 import com.waz.zclient.ui.text.TypefaceLoader;
@@ -98,14 +100,7 @@ public class ZApplication extends WireApplication implements ServiceContainer {
     public void onCreate() {
         super.onCreate();
 
-        if (com.waz.zclient.BuildConfig.DEBUG) {
-            Timber.plant(new Timber.DebugTree());
-            LogLevel.setMinimumLogLevel(LogLevel.VERBOSE);
-        } else {
-            Timber.plant(new WireLoggerTree());
-            LogLevel.setMinimumLogLevel(BuildConfigUtils.getLogLevelSE(this));
-        }
-
+        setLogLevels(this);
         AndroidThreeTen.init(this);
         TypefaceFactory.getInstance().init(typefaceloader);
 
@@ -117,6 +112,19 @@ public class ZApplication extends WireApplication implements ServiceContainer {
         // Register LocalyticsActivityLifecycleCallbacks
         registerActivityLifecycleCallbacks(new LocalyticsActivityLifecycleCallbacks(this));
         Localytics.setPushDisabled(false);
+    }
+
+    public static void setLogLevels(Context context) {
+        Timber.uprootAll();
+        boolean forceVerbose =  context.getSharedPreferences(UserPreferencesController.USER_PREFS_TAG, Context.MODE_PRIVATE)
+                                       .getBoolean(context.getString(R.string.pref_force_verbose_key), false);
+        if (com.waz.zclient.BuildConfig.DEBUG || forceVerbose) {
+            Timber.plant(new Timber.DebugTree());
+            LogLevel.setMinimumLogLevel(LogLevel.VERBOSE);
+        } else {
+            Timber.plant(new WireLoggerTree());
+            LogLevel.setMinimumLogLevel(BuildConfigUtils.getLogLevelSE(context));
+        }
     }
 
     @Override

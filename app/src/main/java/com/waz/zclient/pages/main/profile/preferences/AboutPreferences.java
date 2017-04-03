@@ -23,13 +23,15 @@ import android.os.Bundle;
 import android.support.v7.preference.Preference;
 import android.widget.Toast;
 import com.waz.zclient.R;
+import com.waz.zclient.ZApplication;
 import com.waz.zclient.pages.BasePreferenceFragment;
 import com.waz.zclient.utils.DebugUtils;
 
 public class AboutPreferences extends BasePreferenceFragment<AboutPreferences.Container> {
 
     private static final int A_BUNCH_OF_CLICKS_TO_PREVENT_ACCIDENTAL_TRIGGERING = 10;
-    private int clickCounter;
+    private int versionClickCounter;
+    private int copyrightClickCounter;
 
     public static AboutPreferences newInstance(String rootKey, Bundle extras) {
         AboutPreferences f = new AboutPreferences();
@@ -48,9 +50,27 @@ public class AboutPreferences extends BasePreferenceFragment<AboutPreferences.Co
         versionPreference.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
             @Override
             public boolean onPreferenceClick(Preference preference) {
-                clickCounter++;
-                if (clickCounter >= A_BUNCH_OF_CLICKS_TO_PREVENT_ACCIDENTAL_TRIGGERING) {
+                versionClickCounter++;
+                if (versionClickCounter >= A_BUNCH_OF_CLICKS_TO_PREVENT_ACCIDENTAL_TRIGGERING) {
+                    versionClickCounter = 0;
                     Toast.makeText(getActivity(), DebugUtils.getVersion(getContext()), Toast.LENGTH_LONG).show();
+                }
+                return true;
+            }
+        });
+        Preference wireCopyrightPreference = findPreference(getString(R.string.pref_about_copyright_key));
+        wireCopyrightPreference.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+            @Override
+            public boolean onPreferenceClick(Preference preference) {
+                copyrightClickCounter++;
+                if (copyrightClickCounter >= A_BUNCH_OF_CLICKS_TO_PREVENT_ACCIDENTAL_TRIGGERING) {
+                    copyrightClickCounter = 0;
+                    boolean forceVerbose = getControllerFactory().getUserPreferencesController().swapForceVerboseLogging();
+                    Toast.makeText(getActivity(),
+                                   forceVerbose ? getString(R.string.pref_dev_verbose_logging_enabled) :
+                                   getString(R.string.pref_dev_verbose_logging_disabled),
+                                   Toast.LENGTH_LONG).show();
+                    ZApplication.setLogLevels(getContext().getApplicationContext());
                 }
                 return true;
             }

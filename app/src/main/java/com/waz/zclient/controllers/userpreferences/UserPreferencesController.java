@@ -45,12 +45,10 @@ public class UserPreferencesController implements IUserPreferencesController {
     public static final String USER_PERFS_AB_TESTING_GROUP = "USER_PERFS_AB_TESTING_GROUP";
     public static final String USER_PREF_PLAY_SERVICES_ERROR_SHOWN = "USER_PREF_PLAY_SERVICES_ERROR_SHOWN";
     private static final String USER_PREFS_SHOW_SHARE_CONTACTS_DIALOG = "USER_PREFS_SHOW_SHARE_CONTACTS_DIALOG ";
-    private static final String USER_PREFS_RECENT_CAMERA_DIRECTION = "USER_PREFS_RECENT_CAMERA_DIRECTION";
     private static final String USER_PREF_SPOTIFY_LOGIN_COUNT = "PREF_SPOTIFY_LOGIN_COUNT";
     private static final String USER_PREF_PHONE_VERIFICATION_CODE = "PREF_PHONE_VERIFICATION_CODE";
     private static final String USER_PREF_APP_CRASH = "USER_PREF_APP_CRASH";
     private static final String USER_PREF_APP_CRASH_DETAILS = "USER_PREF_APP_CRASH_DETAILS";
-    private static final String USER_PREF_FLASH_STATE = "USER_PREF_FLASH_STATE";
     private static final String USER_PREF_LOGGED_IN = "USER_PREF_LOGGED_IN_%s";
     private static final String USER_PREF_AB_TESTING_UUID = "USER_PREF_AB_TESTING_UUID";
     private static final String USER_PREF_ACTION_PREFIX = "USER_PREF_ACTION_PREFIX";
@@ -351,5 +349,13 @@ public class UserPreferencesController implements IUserPreferencesController {
     @Override
     public boolean isVariableBitRateEnabled() {
         return userPreferences.getBoolean(context.getString(R.string.pref_options_vbr_key), true);
+    }
+
+    @Override
+    public boolean swapForceVerboseLogging() {
+        String key = context.getString(R.string.pref_force_verbose_key);
+        boolean updated = !userPreferences.getBoolean(key, false);
+        userPreferences.edit().putBoolean(key, updated).apply();
+        return updated;
     }
 }
