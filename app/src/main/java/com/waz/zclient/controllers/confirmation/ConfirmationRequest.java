@@ -30,6 +30,7 @@ public class ConfirmationRequest {
     public String checkboxLabel;
     public boolean checkboxSelectedByDefault;
     public int headerIconRes;
+    public int backgroundImage;
     public ConfirmationCallback callback;
     public OptionsTheme optionsTheme;
 
@@ -76,6 +77,11 @@ public class ConfirmationRequest {
 
         public Builder withHeaderIcon(@DrawableRes int headerIconRes) {
             confirmationRequest.headerIconRes = headerIconRes;
+            return this;
+        }
+
+        public Builder withBackgroundImage(@DrawableRes int backgroundImage) {
+            confirmationRequest.backgroundImage = backgroundImage;
             return this;
         }
 
