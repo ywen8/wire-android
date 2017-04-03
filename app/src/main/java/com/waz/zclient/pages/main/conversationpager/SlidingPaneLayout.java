@@ -38,7 +38,6 @@ package com.waz.zclient.pages.main.conversationpager;
 import android.content.Context;
 import android.content.res.Configuration;
 import android.content.res.TypedArray;
-import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.PixelFormat;
@@ -63,8 +62,6 @@ import com.waz.zclient.ui.utils.MathUtils;
 import com.waz.zclient.utils.ViewUtils;
 import timber.log.Timber;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 

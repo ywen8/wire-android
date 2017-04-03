@@ -102,7 +102,7 @@ public class StubAppEntryStore implements IAppEntryStore {
 
   @Override
   public void setEmailPicture(ImageAsset imageAsset) {
-    ;
+
   }
 
   @Override
