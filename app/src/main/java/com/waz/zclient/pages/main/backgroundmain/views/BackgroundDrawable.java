@@ -135,9 +135,7 @@ public class BackgroundDrawable extends Drawable {
 
     private void createBackgroundShader() {
         if (bitmap == null) {
-            int[] colors = new int[(int) width * (int) height];
-            Arrays.fill(colors, DEFAULT_BACKGROUND_COLOR);
-            bitmap = Bitmap.createBitmap(colors, (int) width, (int) height, Bitmap.Config.ARGB_8888);
+            bitmap = createBitmap((int) width, (int) height);
         }
 
         float imageWidth = (float) bitmap.getWidth();
@@ -149,6 +147,18 @@ public class BackgroundDrawable extends Drawable {
         matrix.setScale(scale, scale);
         matrix.postTranslate(-(imageWidth * scale - width) / 2f, -(imageHeight * scale - height) / 2f);
         bitmapShader.setLocalMatrix(matrix);
+    }
+
+    private Bitmap createBitmap(int width, int height) {
+        Bitmap ret;
+        try {
+            int[] colors = new int[width * height];
+            Arrays.fill(colors, DEFAULT_BACKGROUND_COLOR);
+            ret = Bitmap.createBitmap(colors, width, height, Bitmap.Config.ARGB_8888);
+            return ret;
+        } catch (OutOfMemoryError e){
+            return createBitmap(width / 2, height / 2);
+        }
     }
 
     private void createVignetteShader() {
