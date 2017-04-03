@@ -26,11 +26,11 @@ import android.support.v4.view.ViewPager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+
 import com.waz.api.ConversationsList;
 import com.waz.api.IConversation;
 import com.waz.api.SyncState;
-import com.waz.api.Verification;
-import com.waz.zclient.BaseScalaActivity;
+import com.waz.zclient.BaseActivity;
 import com.waz.zclient.OnBackPressedListener;
 import com.waz.zclient.R;
 import com.waz.zclient.controllers.navigation.NavigationController;
@@ -225,13 +225,6 @@ public class ConversationPagerFragment extends BaseFragment<ConversationPagerFra
     }
 
     @Override
-    public void onVerificationStateChanged(String conversationId,
-                                           Verification previousVerification,
-                                           Verification currentVerification) {
-
-    }
-
-    @Override
     public boolean onBackPressed() {
         // ask children if they want it
         Fragment fragment = getCurrentPagerFragment();
@@ -303,7 +296,7 @@ public class ConversationPagerFragment extends BaseFragment<ConversationPagerFra
     }
 
     private CollectionController getCollectionController() {
-        return ((BaseScalaActivity) getActivity()).injectJava(CollectionController.class);
+        return ((BaseActivity) getActivity()).injectJava(CollectionController.class);
     }
 
     @Override

@@ -30,6 +30,7 @@ import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
+
 import com.waz.api.ActiveVoiceChannels;
 import com.waz.api.ConversationsList;
 import com.waz.api.CoreList;
@@ -39,9 +40,8 @@ import com.waz.api.Message;
 import com.waz.api.OtrClient;
 import com.waz.api.SyncState;
 import com.waz.api.UpdateListener;
-import com.waz.api.Verification;
 import com.waz.api.VoiceChannel;
-import com.waz.zclient.BaseScalaActivity;
+import com.waz.zclient.BaseActivity;
 import com.waz.zclient.OnBackPressedListener;
 import com.waz.zclient.R;
 import com.waz.zclient.controllers.accentcolor.AccentColorObserver;
@@ -75,6 +75,7 @@ import com.waz.zclient.ui.pullforaction.PullForActionMode;
 import com.waz.zclient.ui.text.TypefaceTextView;
 import com.waz.zclient.ui.utils.ResourceUtils;
 import com.waz.zclient.utils.ViewUtils;
+
 import net.hockeyapp.android.CrashManagerListener;
 import net.hockeyapp.android.ExceptionHandler;
 
@@ -289,7 +290,7 @@ public class ConversationListFragment extends BaseFragment<ConversationListFragm
                 public void onAvatarPress() {
                     getControllerFactory().getPickUserController().showPickUser(IPickUserController.Destination.CONVERSATION_LIST, null);
                     boolean hintVisible = hintContainer != null && hintContainer.getVisibility() == View.VISIBLE;
-                    ((BaseScalaActivity) getActivity()).injectJava(GlobalTrackingController.class).tagEvent(new OpenedContactsEvent(hintVisible));
+                    ((BaseActivity) getActivity()).injectJava(GlobalTrackingController.class).tagEvent(new OpenedContactsEvent(hintVisible));
                     getControllerFactory().getOnboardingController().hideConversationListHint();
                 }
 
@@ -514,13 +515,6 @@ public class ConversationListFragment extends BaseFragment<ConversationListFragm
     }
 
     @Override
-    public void onVerificationStateChanged(String conversationId,
-                                           Verification previousVerification,
-                                           Verification currentVerification) {
-
-    }
-
-    @Override
     public void onReleasedTop(int offset) {
 
     }
@@ -564,7 +558,7 @@ public class ConversationListFragment extends BaseFragment<ConversationListFragm
                         getControllerFactory().isTornDown()) {
                         return;
                     }
-                    ((BaseScalaActivity) getActivity()).injectJava(GlobalTrackingController.class).tagEvent(new OpenedArchiveEvent());
+                    ((BaseActivity) getActivity()).injectJava(GlobalTrackingController.class).tagEvent(new OpenedArchiveEvent());
                 }
             }
         }, getResources().getInteger(R.integer.list__show_archived_delay));
@@ -867,7 +861,7 @@ public class ConversationListFragment extends BaseFragment<ConversationListFragm
             case R.id.ll__conversation_list__hint_container:
                 getControllerFactory().getPickUserController().showPickUser(IPickUserController.Destination.CONVERSATION_LIST, null);
                 getControllerFactory().getOnboardingController().hideConversationListHint();
-                ((BaseScalaActivity) getActivity()).injectJava(GlobalTrackingController.class).tagEvent(new ClickedOnContactsHintEvent());
+                ((BaseActivity) getActivity()).injectJava(GlobalTrackingController.class).tagEvent(new ClickedOnContactsHintEvent());
                 break;
         }
     }
