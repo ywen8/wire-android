@@ -29,6 +29,7 @@ import com.waz.zclient.utils.ViewUtils
 import com.waz.zclient.{Injectable, Injector}
 import org.threeten.bp.Instant
 import com.waz.ZLog.ImplicitTag._
+import com.waz.api.Message
 
 class MessagesController()(implicit injector: Injector, ev: EventContext) extends Injectable {
   import com.waz.threading.Threading.Implicits.Background
@@ -100,6 +101,9 @@ class MessagesController()(implicit injector: Injector, ev: EventContext) extend
 
       if (msg.time isAfter lastReadTime)
         zms.head.foreach { _.convsUi.setLastRead(msg.convId, msg) }
+
+      if (msg.state == Message.Status.FAILED)
+        zms.head.foreach { _.messages.markMessageRead(convId, msg.id) }
     case _ =>
       // messages list is not visible, or not current conv, ignoring
   }

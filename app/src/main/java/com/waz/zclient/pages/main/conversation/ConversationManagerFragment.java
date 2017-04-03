@@ -25,6 +25,7 @@ import android.support.v4.app.FragmentManager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+
 import com.waz.api.ConversationsList;
 import com.waz.api.IConversation;
 import com.waz.api.ImageAsset;
@@ -34,9 +35,8 @@ import com.waz.api.OtrClient;
 import com.waz.api.SyncState;
 import com.waz.api.User;
 import com.waz.api.UsersList;
-import com.waz.api.Verification;
 import com.waz.model.MessageData;
-import com.waz.zclient.BaseScalaActivity;
+import com.waz.zclient.BaseActivity;
 import com.waz.zclient.OnBackPressedListener;
 import com.waz.zclient.R;
 import com.waz.zclient.controllers.collections.CollectionsObserver;
@@ -161,7 +161,7 @@ public class ConversationManagerFragment extends BaseFragment<ConversationManage
     }
 
     private CollectionController getCollectionController() {
-        return ((BaseScalaActivity) getActivity()).injectJava(CollectionController.class);
+        return ((BaseActivity) getActivity()).injectJava(CollectionController.class);
     }
 
     @Override
@@ -382,13 +382,6 @@ public class ConversationManagerFragment extends BaseFragment<ConversationManage
 
     }
 
-    @Override
-    public void onVerificationStateChanged(String conversationId,
-                                           Verification previousVerification,
-                                           Verification currentVerification) {
-
-    }
-
     //////////////////////////////////////////////////////////////////////////////////////////
     //
     //  Camera callbacks
@@ -493,7 +486,7 @@ public class ConversationManagerFragment extends BaseFragment<ConversationManage
         getStoreFactory().getNetworkStore().doIfHasInternetOrNotifyUser(null);
 
         // Photo sent via contacts quick menu
-        TrackingUtils.onSentPhotoMessage(((BaseScalaActivity) getActivity()).injectJava(GlobalTrackingController.class),
+        TrackingUtils.onSentPhotoMessage(((BaseActivity) getActivity()).injectJava(GlobalTrackingController.class),
                                          getStoreFactory().getConversationStore().getCurrentConversation(),
                                          imageFromCamera ? SentPictureEvent.Source.CAMERA
                                                          : SentPictureEvent.Source.GALLERY,
@@ -564,7 +557,7 @@ public class ConversationManagerFragment extends BaseFragment<ConversationManage
                                           R.string.conversation__create_group_conversation__no_network__button,
                                           null, true);
             }
-            ((BaseScalaActivity) getActivity()).injectJava(GlobalTrackingController.class).tagEvent(new CreatedGroupConversationEvent(true, (users.size() + 1)));
+            ((BaseActivity) getActivity()).injectJava(GlobalTrackingController.class).tagEvent(new CreatedGroupConversationEvent(true, (users.size() + 1)));
         } else if (currentConversation.getType() == IConversation.Type.GROUP) {
             currentConversation.addMembers(users);
             if (!getStoreFactory().getNetworkStore().hasInternetConnection()) {
@@ -574,7 +567,7 @@ public class ConversationManagerFragment extends BaseFragment<ConversationManage
                                           R.string.conversation__add_user__no_network__button,
                                           null, true);
             }
-            ((BaseScalaActivity) getActivity()).injectJava(GlobalTrackingController.class).tagEvent(new AddedMemberToGroupEvent(getParticipantsCount(), users.size()));
+            ((BaseActivity) getActivity()).injectJava(GlobalTrackingController.class).tagEvent(new AddedMemberToGroupEvent(getParticipantsCount(), users.size()));
         }
     }
 

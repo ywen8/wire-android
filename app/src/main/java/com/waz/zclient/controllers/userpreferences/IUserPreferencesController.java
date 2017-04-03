@@ -116,4 +116,7 @@ public interface IUserPreferencesController {
     void setPlayServicesErrorShown(boolean value);
 
     boolean isVariableBitRateEnabled();
+
+    boolean swapForceVerboseLogging();
+
 }
