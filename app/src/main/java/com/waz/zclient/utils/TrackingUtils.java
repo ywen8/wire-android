@@ -366,6 +366,9 @@ public class TrackingUtils {
                                                int position,
                                                SearchResultAdapter adapter) {
         int itemType = adapter.getItemViewType(position);
+        if (itemType < 0) {
+            return;
+        }
         if (isTopUser) {
             trackingController.tagEvent(new SelectedTopUser(position + 1));
         } else {
