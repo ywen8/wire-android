@@ -26,7 +26,9 @@ import android.support.v7.widget.{LinearLayoutManager, RecyclerView}
 import android.text.format.Formatter
 import android.view.View.OnClickListener
 import android.view._
+import android.view.inputmethod.EditorInfo
 import android.widget.LinearLayout.LayoutParams
+import android.widget.TextView.OnEditorActionListener
 import android.widget._
 import com.waz.ZLog.ImplicitTag._
 import com.waz.api
@@ -45,7 +47,7 @@ import com.waz.zclient.messages.{MessagesController, UsersController}
 import com.waz.zclient.pages.BaseFragment
 import com.waz.zclient.pages.extendedcursor.ephemeral.EphemeralLayout
 import com.waz.zclient.ui.text.TypefaceTextView
-import com.waz.zclient.ui.utils.{BitmapUtils, ColorUtils}
+import com.waz.zclient.ui.utils.{BitmapUtils, ColorUtils, KeyboardUtils}
 import com.waz.zclient.ui.views.CursorIconButton
 import com.waz.zclient.utils.{RichView, ViewUtils}
 import com.waz.zclient.views.ImageAssetDrawable.{RequestBuilder, ScaleType}
@@ -199,6 +201,20 @@ class ShareToMultipleFragment extends BaseFragment[ShareToMultipleFragment.Conta
         getActivity.finish()
       }
     }
+
+    searchBox.setOnEditorActionListener(new OnEditorActionListener {
+      override def onEditorAction(v: TextView, actionId: Int, event: KeyEvent): Boolean = {
+        if (actionId == EditorInfo.IME_ACTION_DONE || actionId == EditorInfo.IME_ACTION_GO) {
+          if (adapter.selectedConversations.currentValue.forall(_.isEmpty)) {
+            return false
+          }
+          KeyboardUtils.closeKeyboardIfShown(getActivity)
+          onClickEvent ! (())
+          return true
+        }
+        false
+      }
+    })
 
     sendButton.setOnClickListener(new OnClickListener {
       override def onClick(v: View): Unit = {
