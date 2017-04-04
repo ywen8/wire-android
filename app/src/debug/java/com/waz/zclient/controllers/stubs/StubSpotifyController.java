@@ -27,17 +27,17 @@ import java.lang.Override;
 public class StubSpotifyController implements ISpotifyController {
   @Override
   public void addSpotifyObserver(SpotifyObserver observer) {
-    ;
+
   }
 
   @Override
   public void tearDown() {
-    ;
+
   }
 
   @Override
   public void logout() {
-    ;
+
   }
 
   @Override
@@ -47,17 +47,17 @@ public class StubSpotifyController implements ISpotifyController {
 
   @Override
   public void setActivity(Activity activity) {
-    ;
+
   }
 
   @Override
   public void handleActivityResult(int requestCode, int resultCode, Intent data) {
-    ;
+
   }
 
   @Override
   public void login(Activity activity) {
-    ;
+
   }
 
   @Override
@@ -72,6 +72,6 @@ public class StubSpotifyController implements ISpotifyController {
 
   @Override
   public void removeSpotifyObserver(SpotifyObserver observer) {
-    ;
+
   }
 }

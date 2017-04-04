@@ -26,41 +26,41 @@ import java.lang.Override;
 public class StubBackgroundController implements IBackgroundController {
   @Override
   public void expand(boolean expand) {
-    ;
+
   }
 
   @Override
   public void setSelf(Self self) {
-    ;
+
   }
 
   @Override
   public void tearDown() {
-    ;
+
   }
 
   @Override
   public void onStop() {
-    ;
+
   }
 
   @Override
   public void update() {
-    ;
+
   }
 
   @Override
   public void removeBackgroundObserver(BackgroundObserver backgroundObserver) {
-    ;
+
   }
 
   @Override
   public void setImageAsset(ImageAsset imageAsset) {
-    ;
+
   }
 
   @Override
   public void addBackgroundObserver(BackgroundObserver backgroundObserver) {
-    ;
+
   }
 }

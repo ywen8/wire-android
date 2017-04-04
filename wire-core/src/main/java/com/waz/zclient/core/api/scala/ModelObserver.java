@@ -36,7 +36,7 @@ public abstract class ModelObserver<T extends UiObservable> {
     public enum Reason {
         NEW_MODEL,
         INTERNAL_CHANGE,
-        FORCED_UPDATE;
+        FORCED_UPDATE
     }
 
     /**

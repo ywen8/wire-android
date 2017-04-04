@@ -24,17 +24,17 @@ import java.lang.String;
 public class StubVerificationController implements IVerificationController {
   @Override
   public void startVerification() {
-    ;
+
   }
 
   @Override
   public void setVerificationCode(String code) {
-    ;
+
   }
 
   @Override
   public void tearDown() {
-    ;
+
   }
 
   @Override
@@ -44,6 +44,6 @@ public class StubVerificationController implements IVerificationController {
 
   @Override
   public void finishVerification() {
-    ;
+
   }
 }

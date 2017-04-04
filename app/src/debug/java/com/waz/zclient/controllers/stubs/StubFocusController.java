@@ -26,31 +26,31 @@ import java.lang.Override;
 public class StubFocusController implements IFocusController {
   @Override
   public void tearDown() {
-    ;
+
   }
 
   @Override
   public void addFocusObserver(FocusObserver focusObserver) {
-    ;
+
   }
 
   @Override
   public void removeFocusObserver(FocusObserver focusObserver) {
-    ;
+
   }
 
   @Override
   public void restoreToNextFocus(Context context, int pagerPosition, Page currentPage, boolean conversationlistSearchIsOpen) {
-    ;
+
   }
 
   @Override
   public void setFocus(int currentFocus) {
-    ;
+
   }
 
   @Override
   public int getCurrentFocus() {
-    return 0;
+    return IFocusController.CONVERSATION_CURSOR;
   }
 }

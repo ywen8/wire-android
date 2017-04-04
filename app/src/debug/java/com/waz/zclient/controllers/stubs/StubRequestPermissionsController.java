@@ -24,21 +24,21 @@ import java.lang.Override;
 public class StubRequestPermissionsController implements IRequestPermissionsController {
   @Override
   public void addObserver(RequestPermissionsObserver observer) {
-    ;
+
   }
 
   @Override
   public void tearDown() {
-    ;
+
   }
 
   @Override
   public void onRequestPermissionsResult(int requestCode, int[] grantResults) {
-    ;
+
   }
 
   @Override
   public void removeObserver(RequestPermissionsObserver observer) {
-    ;
+
   }
 }

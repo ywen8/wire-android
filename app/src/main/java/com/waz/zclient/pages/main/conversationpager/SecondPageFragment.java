@@ -284,11 +284,8 @@ public class SecondPageFragment extends BaseFragment<SecondPageFragment.Containe
     @Override
     public boolean onBackPressed() {
         Fragment fragment = getChildFragmentManager().findFragmentById(R.id.fl__second_page_container);
-        if (fragment instanceof OnBackPressedListener &&
-            ((OnBackPressedListener) fragment).onBackPressed()) {
-            return true;
-        }
-        return false;
+        return fragment instanceof OnBackPressedListener &&
+            ((OnBackPressedListener) fragment).onBackPressed();
     }
 
     //////////////////////////////////////////////////////////////////////////////////////////

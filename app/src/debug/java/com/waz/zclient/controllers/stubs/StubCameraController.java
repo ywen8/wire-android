@@ -26,37 +26,37 @@ import java.lang.Override;
 public class StubCameraController implements ICameraController {
   @Override
   public void closeCamera(CameraContext cameraContext) {
-    ;
+
   }
 
   @Override
   public void onCameraNotAvailable(CameraContext cameraContext) {
-    ;
+
   }
 
   @Override
   public void addCameraActionObserver(CameraActionObserver cameraActionObserver) {
-    ;
+
   }
 
   @Override
   public void removeCameraActionObserver(CameraActionObserver cameraActionObserver) {
-    ;
+
   }
 
   @Override
   public void openCamera(CameraContext cameraContext) {
-    ;
+
   }
 
   @Override
   public void tearDown() {
-    ;
+
   }
 
   @Override
   public void onBitmapSelected(ImageAsset imageAsset, boolean imageFromCamera, CameraContext cameraContext) {
-    ;
+
   }
 
   @Override

@@ -467,11 +467,7 @@ public class ConversationListManagerFragment extends BaseFragment<ConversationLi
             return true;
         }
 
-        if (getChildFragmentManager().findFragmentByTag(FirstTimeAssignUsernameFragment.TAG) != null) {
-            return true;
-        }
-
-        return false;
+        return getChildFragmentManager().findFragmentByTag(FirstTimeAssignUsernameFragment.TAG) != null;
     }
 
     //////////////////////////////////////////////////////////////////////////////////////////

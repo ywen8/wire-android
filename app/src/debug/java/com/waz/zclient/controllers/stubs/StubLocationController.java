@@ -25,26 +25,26 @@ import java.lang.Override;
 public class StubLocationController implements ILocationController {
   @Override
   public void removeObserver(LocationObserver observer) {
-    ;
+
   }
 
   @Override
   public void tearDown() {
-    ;
+
   }
 
   @Override
   public void hideShareLocation(MessageContent.Location location) {
-    ;
+
   }
 
   @Override
   public void addObserver(LocationObserver observer) {
-    ;
+
   }
 
   @Override
   public void showShareLocation() {
-    ;
+
   }
 }

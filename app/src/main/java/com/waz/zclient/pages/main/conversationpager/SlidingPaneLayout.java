@@ -38,7 +38,6 @@ package com.waz.zclient.pages.main.conversationpager;
 import android.content.Context;
 import android.content.res.Configuration;
 import android.content.res.TypedArray;
-import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.PixelFormat;
@@ -63,8 +62,6 @@ import com.waz.zclient.ui.utils.MathUtils;
 import com.waz.zclient.utils.ViewUtils;
 import timber.log.Timber;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -223,14 +220,7 @@ public class SlidingPaneLayout extends ViewGroup {
     static final SlidingPanelLayoutImpl IMPL;
 
     static {
-        final int deviceVersion = Build.VERSION.SDK_INT;
-        if (deviceVersion >= 17) {
-            IMPL = new SlidingPanelLayoutImplJBMR1();
-        } else if (deviceVersion >= 16) {
-            IMPL = new SlidingPanelLayoutImplJB();
-        } else {
-            IMPL = new SlidingPanelLayoutImplBase();
-        }
+        IMPL = new SlidingPanelLayoutImplJBMR1();
     }
 
     private boolean isSlidingEnabled;
@@ -1021,30 +1011,7 @@ public class SlidingPaneLayout extends ViewGroup {
             }
             canvas.clipRect(tmpRect);
         }
-
-        if (Build.VERSION.SDK_INT >= 11) { // HC
-            result = super.drawChild(canvas, child, drawingTime);
-        } else {
-            if (lp.dimWhenOffset && slideOffset > 0) {
-                if (!child.isDrawingCacheEnabled()) {
-                    child.setDrawingCacheEnabled(true);
-                }
-                final Bitmap cache = child.getDrawingCache();
-                if (cache != null) {
-                    canvas.drawBitmap(cache, child.getLeft(), child.getTop(), lp.dimPaint);
-                    result = false;
-                } else {
-                    Timber.e("drawChild: child view %s returned null drawing cache", child);
-                    result = super.drawChild(canvas, child, drawingTime);
-                }
-            } else {
-                if (child.isDrawingCacheEnabled()) {
-                    child.setDrawingCacheEnabled(false);
-                }
-                result = super.drawChild(canvas, child, drawingTime);
-            }
-        }
-
+        result = super.drawChild(canvas, child, drawingTime);
         canvas.restoreToCount(save);
 
         return result;
@@ -1504,58 +1471,7 @@ public class SlidingPaneLayout extends ViewGroup {
         void invalidateChildRegion(SlidingPaneLayout parent, View child);
     }
 
-    static class SlidingPanelLayoutImplBase implements SlidingPanelLayoutImpl {
-        public void invalidateChildRegion(SlidingPaneLayout parent, View child) {
-            ViewCompat.postInvalidateOnAnimation(parent, child.getLeft(), child.getTop(),
-                    child.getRight(), child.getBottom());
-        }
-    }
-
-    static class SlidingPanelLayoutImplJB extends SlidingPanelLayoutImplBase {
-        /*
-         * Private API hacks! Nasty! Bad!
-         *
-         * In Jellybean, some optimizations in the hardware UI renderer
-         * prevent a changed Paint on a View using a hardware layer from having
-         * the intended effect. This twiddles some internal bits on the view to force
-         * it to recreate the display list.
-         */
-        private Method getDisplayList;
-        private Field recreateDisplayList;
-
-        SlidingPanelLayoutImplJB() {
-            try {
-                getDisplayList = View.class.getDeclaredMethod("getDisplayList", (Class[]) null);
-            } catch (NoSuchMethodException e) {
-                Timber.e(e, "Couldn't fetch getDisplayList method; dimming won't work right.");
-            }
-            try {
-                recreateDisplayList = View.class.getDeclaredField("recreateDisplayList");
-                recreateDisplayList.setAccessible(true);
-            } catch (NoSuchFieldException e) {
-                Timber.e(e, "Couldn't fetch recreateDisplayList field; dimming will be slow.");
-            }
-        }
-
-        @Override
-        public void invalidateChildRegion(SlidingPaneLayout parent, View child) {
-            if (getDisplayList != null && recreateDisplayList != null) {
-                try {
-                    recreateDisplayList.setBoolean(child, true);
-                    getDisplayList.invoke(child, (Object[]) null);
-                } catch (Exception e) {
-                    Timber.e(e, "Error refreshing display list state");
-                }
-            } else {
-                // Slow path. REALLY slow path. Let's hope we don't get here.
-                child.invalidate();
-                return;
-            }
-            super.invalidateChildRegion(parent, child);
-        }
-    }
-
-    static class SlidingPanelLayoutImplJBMR1 extends SlidingPanelLayoutImplBase {
+    static class SlidingPanelLayoutImplJBMR1 implements SlidingPanelLayoutImpl {
         @Override
         public void invalidateChildRegion(SlidingPaneLayout parent, View child) {
             ViewCompat.setLayerPaint(child, ((LayoutParams) child.getLayoutParams()).dimPaint);

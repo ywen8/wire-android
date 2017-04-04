@@ -25,31 +25,31 @@ import java.lang.Override;
 public class StubSlidingPaneController implements ISlidingPaneController {
   @Override
   public void tearDown() {
-    ;
+
   }
 
   @Override
   public void addObserver(SlidingPaneObserver slideListener) {
-    ;
+
   }
 
   @Override
   public void onPanelClosed(View panel) {
-    ;
+
   }
 
   @Override
   public void onPanelSlide(View panel, float slideOffset) {
-    ;
+
   }
 
   @Override
   public void onPanelOpened(View panel) {
-    ;
+
   }
 
   @Override
   public void removeObserver(SlidingPaneObserver slideListener) {
-    ;
+
   }
 }

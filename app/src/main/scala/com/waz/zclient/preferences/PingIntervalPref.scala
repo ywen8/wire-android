@@ -18,7 +18,7 @@
 package com.waz.zclient.preferences
 
 import android.content.Context
-import android.support.v7.preference.{EditTextPreference, R}
+import android.support.v7.preference.{EditTextPreference}
 import android.util.AttributeSet
 import com.waz.service.ZMessaging
 import com.waz.utils.events.Signal

@@ -356,11 +356,7 @@ public class AudioMessageRecordingView extends FrameLayout implements View.OnCli
             return false;
         }
 
-        if (motionEvent.getY() <= actionUpMinY) {
-            return true;
-        }
-
-        return false;
+        return motionEvent.getY() <= actionUpMinY;
     }
 
     private void setSlideControlState(SlideControlState state) {

@@ -27,12 +27,12 @@ import java.lang.String;
 public class StubMentioningController implements IMentioningController {
   @Override
   public void removeObserver(MentioningObserver observer) {
-    ;
+
   }
 
   @Override
   public void completeUser(User user) {
-    ;
+
   }
 
   @Override
@@ -42,26 +42,26 @@ public class StubMentioningController implements IMentioningController {
 
   @Override
   public void tearDown() {
-    ;
+
   }
 
   @Override
   public void query(String query, float x, float y) {
-    ;
+
   }
 
   @Override
   public void setCurrentConversation(IConversation conversation) {
-    ;
+
   }
 
   @Override
   public void addObserver(MentioningObserver observer) {
-    ;
+
   }
 
   @Override
   public void hide() {
-    ;
+
   }
 }

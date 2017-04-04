@@ -31,7 +31,6 @@ import com.waz.api.impl.ErrorResponse
 import com.waz.api.{EphemeralExpiration, NetworkMode, Verification}
 import com.waz.content.UsersStorage
 import com.waz.model.ConversationData.ConversationType
-import com.waz.model.UserData.ConnectionStatus
 import com.waz.model.UserData.ConnectionStatus.Blocked
 import com.waz.model.{UserId, _}
 import com.waz.service.downloads.DownloadRequest.WireAssetRequest
@@ -43,7 +42,7 @@ import com.waz.zclient.controllers.userpreferences.UserPreferencesController
 import com.waz.zclient.core.controllers.tracking
 import com.waz.zclient.core.controllers.tracking.attributes.{Attribute, RangedAttribute}
 import com.waz.zclient.core.controllers.tracking.events.AVSMetricEvent
-import com.waz.zclient.core.controllers.tracking.events.media.{CompletedMediaActionEvent, SentPictureEvent}
+import com.waz.zclient.core.controllers.tracking.events.media.{CompletedMediaActionEvent}
 import com.waz.zclient.core.controllers.tracking.events.onboarding.GeneratedUsernameEvent
 import com.waz.zclient._
 import org.threeten.bp.{Duration, Instant}

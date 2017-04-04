@@ -24,8 +24,6 @@ import com.waz.api.Verification;
 import com.waz.zclient.MainTestActivity;
 import com.waz.zclient.R;
 import com.waz.zclient.core.stores.connect.IConnectStore;
-import com.waz.zclient.core.stores.network.INetworkStore;
-import com.waz.zclient.pages.main.participants.ParticipantHeaderFragment;
 import com.waz.zclient.testutils.FragmentTest;
 import com.waz.zclient.testutils.MockHelper;
 import org.junit.Test;

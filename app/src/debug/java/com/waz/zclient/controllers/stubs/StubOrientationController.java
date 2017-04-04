@@ -26,7 +26,7 @@ import java.lang.Override;
 public class StubOrientationController implements IOrientationController {
   @Override
   public void removeOrientationControllerObserver(OrientationControllerObserver orientationControllerObserver) {
-    ;
+
   }
 
   @Override
@@ -41,17 +41,17 @@ public class StubOrientationController implements IOrientationController {
 
   @Override
   public void tearDown() {
-    ;
+
   }
 
   @Override
   public void setActivity(Activity activity) {
-    ;
+
   }
 
   @Override
   public void addOrientationControllerObserver(OrientationControllerObserver orientationControllerObserver) {
-    ;
+
   }
 
   @Override

@@ -415,9 +415,7 @@ public class ConversationListFragment extends BaseFragment<ConversationListFragm
         swipeListView.post(new Runnable() {
             @Override
             public void run() {
-                if (getContainer() == null) {
-                    return;
-                }
+                // this method is empty intentionally
             }
         });
 
@@ -777,12 +775,6 @@ public class ConversationListFragment extends BaseFragment<ConversationListFragm
             }
 
             getControllerFactory().getConversationListController().notifyScrollOffsetChanged(swipeListView.computeVerticalScrollOffset(), scrolledToBottom);
-
-            // Sticky profile link header
-            View firstListRow = swipeListView.getChildAt(0);
-            if (firstListRow == null) {
-                return;
-            }
         }
     }
 

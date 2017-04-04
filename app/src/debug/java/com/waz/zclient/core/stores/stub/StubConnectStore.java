@@ -25,12 +25,12 @@ import com.waz.zclient.core.stores.connect.IConnectStore;
 public class StubConnectStore implements IConnectStore {
   @Override
   public void loadUser(String userId, IConnectStore.UserRequester userRequester) {
-    ;
+
   }
 
   @Override
   public void blockUser(User user) {
-    ;
+
   }
 
   @Override
@@ -40,22 +40,22 @@ public class StubConnectStore implements IConnectStore {
 
   @Override
   public void tearDown() {
-    ;
+
   }
 
   @Override
   public void addConnectRequestObserver(ConnectStoreObserver connectStoreObserver) {
-    ;
+
   }
 
   @Override
   public void removeConnectRequestObserver(ConnectStoreObserver connectStoreObserver) {
-    ;
+
   }
 
   @Override
   public void requestConnection(String token) {
-    ;
+
   }
 
   @Override

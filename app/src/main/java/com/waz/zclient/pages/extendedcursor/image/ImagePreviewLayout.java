@@ -43,7 +43,7 @@ public class ImagePreviewLayout extends FrameLayout implements
     public enum Source {
         IN_APP_GALLERY,
         DEVICE_GALLERY,
-        CAMERA;
+        CAMERA
     }
 
     private ConfirmationMenu approveImageSelectionMenu;

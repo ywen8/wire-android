@@ -18,5 +18,5 @@
 package com.waz.zclient.ui.pullforaction;
 
 public enum OverScrollMode {
-    NONE, BOTTOM, TOP;
+    NONE, BOTTOM, TOP
 }

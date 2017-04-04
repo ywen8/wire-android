@@ -24,7 +24,7 @@ import com.waz.zclient.core.stores.inappnotification.InAppNotificationStoreObser
 public class StubInAppNotificationStore implements IInAppNotificationStore {
   @Override
   public void dismissError(String errorId) {
-    ;
+
   }
 
   @Override
@@ -34,17 +34,17 @@ public class StubInAppNotificationStore implements IInAppNotificationStore {
 
   @Override
   public void tearDown() {
-    ;
+
   }
 
   @Override
   public void addInAppNotificationObserver(InAppNotificationStoreObserver messageListener) {
-    ;
+
   }
 
   @Override
   public void removeInAppNotificationObserver(InAppNotificationStoreObserver messageListener) {
-    ;
+
   }
 
 }

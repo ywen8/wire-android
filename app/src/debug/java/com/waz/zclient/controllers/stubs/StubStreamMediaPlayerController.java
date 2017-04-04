@@ -31,7 +31,7 @@ import java.util.List;
 public class StubStreamMediaPlayerController implements IStreamMediaPlayerController {
   @Override
   public void removeStreamMediaBarObserver(StreamMediaBarObserver streamMediaBarObserver) {
-    ;
+
   }
 
   @Override
@@ -51,7 +51,7 @@ public class StubStreamMediaPlayerController implements IStreamMediaPlayerContro
 
   @Override
   public void play(Message message, MediaAsset mediaTrack) {
-    ;
+
   }
 
   @Override
@@ -61,7 +61,7 @@ public class StubStreamMediaPlayerController implements IStreamMediaPlayerContro
 
   @Override
   public void removeStreamMediaObserver(StreamMediaPlayerObserver streamMediaObserver) {
-    ;
+
   }
 
   @Override
@@ -71,47 +71,47 @@ public class StubStreamMediaPlayerController implements IStreamMediaPlayerContro
 
   @Override
   public void play() {
-    ;
+
   }
 
   @Override
   public void addStreamMediaObserver(StreamMediaPlayerObserver streamMediaObserver) {
-    ;
+
   }
 
   @Override
   public void addStreamMediaBarObserver(StreamMediaBarObserver streamMediaBarObserver) {
-    ;
+
   }
 
   @Override
   public void setMediaPlayerInstance(MediaProvider type) {
-    ;
+
   }
 
   @Override
   public void stop(String conversationId) {
-    ;
+
   }
 
   @Override
   public void seekTo(Message message, int positionMs) {
-    ;
+
   }
 
   @Override
   public void stop() {
-    ;
+
   }
 
   @Override
   public void informVisibleItems(List<String> visibleMessageIds) {
-    ;
+
   }
 
   @Override
   public void play(String conversationId) {
-    ;
+
   }
 
   @Override
@@ -121,12 +121,12 @@ public class StubStreamMediaPlayerController implements IStreamMediaPlayerContro
 
   @Override
   public void tearDown() {
-    ;
+
   }
 
   @Override
   public void pause(String conversationId) {
-    ;
+
   }
 
   @Override
@@ -136,21 +136,21 @@ public class StubStreamMediaPlayerController implements IStreamMediaPlayerContro
 
   @Override
   public void pause() {
-    ;
+
   }
 
   @Override
   public void requestScroll() {
-    ;
+
   }
 
   @Override
   public void release(Message message) {
-    ;
+
   }
 
   @Override
   public void resetMediaPlayer(MediaProvider type) {
-    ;
+
   }
 }

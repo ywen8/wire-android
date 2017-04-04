@@ -104,12 +104,8 @@ public class FirstPageFragment extends BaseFragment<FirstPageFragment.Container>
     @Override
     public boolean onBackPressed() {
         Fragment fragment = getChildFragmentManager().findFragmentById(R.id.fl__first_page_container);
-        if (fragment instanceof OnBackPressedListener &&
-            ((OnBackPressedListener) fragment).onBackPressed()) {
-            return true;
-        }
-
-        return false;
+        return fragment instanceof OnBackPressedListener &&
+            ((OnBackPressedListener) fragment).onBackPressed();
     }
 
     //////////////////////////////////////////////////////////////////////////////////////////

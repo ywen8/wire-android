@@ -34,7 +34,7 @@ public class StubPickUserController implements IPickUserController {
 
   @Override
   public void removePickUserSearchControllerObserver(PickUserControllerSearchObserver observer) {
-    ;
+
   }
 
   @Override
@@ -44,22 +44,22 @@ public class StubPickUserController implements IPickUserController {
 
   @Override
   public void hidePickUserWithoutAnimations(IPickUserController.Destination destination) {
-    ;
+
   }
 
   @Override
   public void removePickUserScreenControllerObserver(PickUserControllerScreenObserver observer) {
-    ;
+
   }
 
   @Override
   public void removeUser(User user) {
-    ;
+
   }
 
   @Override
   public void showPickUser(IPickUserController.Destination destination, View anchorView) {
-    ;
+
   }
 
   @Override
@@ -74,7 +74,7 @@ public class StubPickUserController implements IPickUserController {
 
   @Override
   public void hideUserProfile() {
-    ;
+
   }
 
   @Override
@@ -89,12 +89,12 @@ public class StubPickUserController implements IPickUserController {
 
   @Override
   public void addPickUserScreenControllerObserver(PickUserControllerScreenObserver observer) {
-    ;
+
   }
 
   @Override
   public void notifyKeyboardDoneAction() {
-    ;
+
   }
 
   @Override
@@ -104,37 +104,37 @@ public class StubPickUserController implements IPickUserController {
 
   @Override
   public void showUserProfile(User user, View anchorView) {
-    ;
+
   }
 
   @Override
   public void addPickUserSearchControllerObserver(PickUserControllerSearchObserver observer) {
-    ;
+
   }
 
   @Override
   public void setSearchFilter(String newSearchFilter) {
-    ;
+
   }
 
   @Override
   public void tearDown() {
-    ;
+
   }
 
   @Override
   public void notifySearchBoxHasNewSearchFilter(String filter) {
-    ;
+
   }
 
   @Override
   public void addUser(User user) {
-    ;
+
   }
 
   @Override
   public void resetShowingPickUser(IPickUserController.Destination destination) {
-    ;
+
   }
 
   @Override

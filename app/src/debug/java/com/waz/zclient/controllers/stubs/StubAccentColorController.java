@@ -31,17 +31,17 @@ public class StubAccentColorController implements IAccentColorController {
 
   @Override
   public void removeAccentColorObserver(AccentColorObserver accentColorObserver) {
-    ;
+
   }
 
   @Override
   public void tearDown() {
-    ;
+
   }
 
   @Override
   public void addAccentColorObserver(AccentColorObserver accentColorObserver) {
-    ;
+
   }
 
   @Override
@@ -51,6 +51,6 @@ public class StubAccentColorController implements IAccentColorController {
 
   @Override
   public void setColor(AccentColorChangeRequester accentColorChangeRequester, int color) {
-    ;
+
   }
 }

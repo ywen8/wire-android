@@ -55,7 +55,7 @@ public class HockeyCrashReporting {
 
         boolean nativeCrashFound = NativeCrashManager.loggedDumpFiles(Util.getAppIdentifier(context));
         if (nativeCrashFound) {
-            StringBuffer details = new StringBuffer(Constants.PHONE_MANUFACTURER).append("/").append(Constants.PHONE_MODEL);
+            StringBuilder details = new StringBuilder(Constants.PHONE_MANUFACTURER).append("/").append(Constants.PHONE_MODEL);
             trackingController.tagEvent(ExceptionEvent.exception("NDK", details.toString()));
         }
 

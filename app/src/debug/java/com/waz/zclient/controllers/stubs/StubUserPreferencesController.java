@@ -36,7 +36,7 @@ public class StubUserPreferencesController implements IUserPreferencesController
 
   @Override
   public void setVerificationCode(String code) {
-    ;
+
   }
 
   @Override
@@ -51,12 +51,12 @@ public class StubUserPreferencesController implements IUserPreferencesController
 
   @Override
   public void setPostSessionIdToConversation(boolean postSessionIdToConversation) {
-    ;
+
   }
 
   @Override
   public void setPersonalInvitationToken(String token) {
-    ;
+
   }
 
   @Override
@@ -66,17 +66,17 @@ public class StubUserPreferencesController implements IUserPreferencesController
 
   @Override
   public void reset() {
-    ;
+
   }
 
   @Override
   public void incrementSpotifyLoginTriesCount() {
-    ;
+
   }
 
   @Override
   public void setGenericInvitationToken(String token) {
-    ;
+
   }
 
   @Override
@@ -91,12 +91,12 @@ public class StubUserPreferencesController implements IUserPreferencesController
 
   @Override
   public void removeVerificationCode() {
-    ;
+
   }
 
   @Override
   public void setPerformedAction(int action) {
-    ;
+
   }
 
   @Override
@@ -141,7 +141,7 @@ public class StubUserPreferencesController implements IUserPreferencesController
 
   @Override
   public void setLastAccentColor(int accentColor) {
-    ;
+
   }
 
   @Override
@@ -156,12 +156,12 @@ public class StubUserPreferencesController implements IUserPreferencesController
 
   @Override
   public void tearDown() {
-    ;
+
   }
 
   @Override
   public void setReferralToken(String token) {
-    ;
+
   }
 
   @Override
@@ -171,7 +171,7 @@ public class StubUserPreferencesController implements IUserPreferencesController
 
   @Override
   public void userLoggedIn(String userId) {
-    ;
+
   }
 
   @Override
@@ -196,7 +196,7 @@ public class StubUserPreferencesController implements IUserPreferencesController
 
   @Override
   public void setCrashException(String exception, String details) {
-    ;
+
   }
 
   @Override

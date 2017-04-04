@@ -61,11 +61,7 @@ public class EmailValidator implements Validator {
             return false;
         }
 
-        if (email.lastIndexOf('@') > email.lastIndexOf('.')) {
-            return false;
-        }
-
-        return true;
+        return !(email.lastIndexOf('@') > email.lastIndexOf('.'));
     }
 
     @Override

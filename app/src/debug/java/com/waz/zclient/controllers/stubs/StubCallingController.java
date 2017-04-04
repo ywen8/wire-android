@@ -24,21 +24,21 @@ import java.lang.Override;
 public class StubCallingController implements ICallingController {
   @Override
   public void startCall(boolean withVideo) {
-    ;
+
   }
 
   @Override
   public void tearDown() {
-    ;
+
   }
 
   @Override
   public void removeCallingObserver(CallingObserver callingObserver) {
-    ;
+
   }
 
   @Override
   public void addCallingObserver(CallingObserver callingObserver) {
-    ;
+
   }
 }

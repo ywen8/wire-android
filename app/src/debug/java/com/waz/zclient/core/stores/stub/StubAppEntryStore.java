@@ -32,7 +32,7 @@ import java.lang.String;
 public class StubAppEntryStore implements IAppEntryStore {
   @Override
   public void signInWithEmail(String email, String password, IAppEntryStore.ErrorCallback errorCallback) {
-    ;
+
   }
 
   @Override
@@ -52,22 +52,22 @@ public class StubAppEntryStore implements IAppEntryStore {
 
   @Override
   public void onRestoreInstanceState(Bundle savedInstanceState, Self self) {
-    ;
+
   }
 
   @Override
   public void triggerVerificationCodeCallToUser(IAppEntryStore.SuccessCallback successCallback, IAppEntryStore.ErrorCallback errorCallback) {
-    ;
+
   }
 
   @Override
   public void onSaveInstanceState(Bundle outState) {
-    ;
+
   }
 
   @Override
   public void registerWithEmail(String email, String password, String name, AccentColor accentColor, IAppEntryStore.ErrorCallback errorCallback) {
-    ;
+
   }
 
   @Override
@@ -77,12 +77,12 @@ public class StubAppEntryStore implements IAppEntryStore {
 
   @Override
   public void triggerStateUpdate() {
-    ;
+
   }
 
   @Override
   public void setPhonePicture(ImageAsset imageAsset) {
-    ;
+
   }
 
   @Override
@@ -92,32 +92,32 @@ public class StubAppEntryStore implements IAppEntryStore {
 
   @Override
   public void clearSavedUserInput() {
-    ;
+
   }
 
   @Override
   public void resendPhone(IAppEntryStore.SuccessCallback successCallback, IAppEntryStore.ErrorCallback errorCallback) {
-    ;
+
   }
 
   @Override
   public void setEmailPicture(ImageAsset imageAsset) {
-    ;
+
   }
 
   @Override
   public void setRegistrationPhone(String countryCode, String phone, IAppEntryStore.ErrorCallback errorCallback) {
-    ;
+
   }
 
   @Override
   public void addEmailAndPasswordToPhone(String email, String password, IAppEntryStore.ErrorCallback emailErrorCallback, IAppEntryStore.ErrorCallback passwordErrorCallback) {
-    ;
+
   }
 
   @Override
   public void acceptEmailInvitation(String password, AccentColor accentColor) {
-    ;
+
   }
 
   @Override
@@ -127,7 +127,7 @@ public class StubAppEntryStore implements IAppEntryStore {
 
   @Override
   public void resendEmail() {
-    ;
+
   }
 
   @Override
@@ -137,22 +137,22 @@ public class StubAppEntryStore implements IAppEntryStore {
 
   @Override
   public void submitCode(String phoneVerificationCode, IAppEntryStore.ErrorCallback errorCallback) {
-    ;
+
   }
 
   @Override
   public void registerWithPhone(String name, AccentColor accentColor, IAppEntryStore.ErrorCallback errorCallback) {
-    ;
+
   }
 
   @Override
   public void setRegistrationContext(RegistrationEventContext registrationEventContext) {
-    ;
+
   }
 
   @Override
   public void clearCurrentState() {
-    ;
+
   }
 
   @Override
@@ -167,17 +167,17 @@ public class StubAppEntryStore implements IAppEntryStore {
 
   @Override
   public void resumeAppEntry(Self self, String personalInvitationToken) {
-    ;
+
   }
 
   @Override
   public void setState(AppEntryState state) {
-    ;
+
   }
 
   @Override
   public void acceptPhoneInvitation(AccentColor accentColor) {
-    ;
+
   }
 
   @Override
@@ -187,7 +187,7 @@ public class StubAppEntryStore implements IAppEntryStore {
 
   @Override
   public void tearDown() {
-    ;
+
   }
 
   @Override
@@ -197,17 +197,17 @@ public class StubAppEntryStore implements IAppEntryStore {
 
   @Override
   public void addPhoneToEmail(String countryCode, String phone, IAppEntryStore.ErrorCallback errorCallback) {
-    ;
+
   }
 
   @Override
   public void setSignInPhone(String countryCode, String phone, IAppEntryStore.ErrorCallback errorCallback) {
-    ;
+
   }
 
   @Override
   public void setCallback(AppEntryStateCallback callback) {
-    ;
+
   }
 
   @Override

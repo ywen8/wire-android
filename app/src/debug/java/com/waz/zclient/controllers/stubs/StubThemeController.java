@@ -40,7 +40,7 @@ public class StubThemeController implements IThemeController {
 
   @Override
   public void removePendingRestart() {
-    ;
+
   }
 
   @Override
@@ -50,22 +50,22 @@ public class StubThemeController implements IThemeController {
 
   @Override
   public void tearDown() {
-    ;
+
   }
 
   @Override
   public void removeThemeObserver(ThemeObserver themeObserver) {
-    ;
+
   }
 
   @Override
   public void toggleTheme(boolean fromPreferences) {
-    ;
+
   }
 
   @Override
   public void addThemeObserver(ThemeObserver themeObserver) {
-    ;
+
   }
 
   @Override
@@ -75,7 +75,7 @@ public class StubThemeController implements IThemeController {
 
   @Override
   public void toggleThemePending(boolean fromPreferences) {
-    ;
+
   }
 
   @Override

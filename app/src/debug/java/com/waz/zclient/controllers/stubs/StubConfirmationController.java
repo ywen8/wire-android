@@ -25,21 +25,21 @@ import java.lang.Override;
 public class StubConfirmationController implements IConfirmationController {
   @Override
   public void removeConfirmationObserver(ConfirmationObserver confirmationObserver) {
-    ;
+
   }
 
   @Override
   public void tearDown() {
-    ;
+
   }
 
   @Override
   public void addConfirmationObserver(ConfirmationObserver confirmationObserver) {
-    ;
+
   }
 
   @Override
   public void requestConfirmation(ConfirmationRequest confirmationRequest, int requester) {
-    ;
+
   }
 }

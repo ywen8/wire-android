@@ -28,7 +28,7 @@ public class StubSingleImageController implements ISingleImageController {
 
     @Override
     public void hideSingleImage() {
-        ;
+
     }
 
     @Override
@@ -43,17 +43,17 @@ public class StubSingleImageController implements ISingleImageController {
 
     @Override
     public void removeSingleImageObserver(SingleImageObserver observer) {
-        ;
+
     }
 
     @Override
     public void clearReferences() {
-        ;
+
     }
 
     @Override
     public void addSingleImageObserver(SingleImageObserver observer) {
-        ;
+
     }
 
     @Override
@@ -63,12 +63,12 @@ public class StubSingleImageController implements ISingleImageController {
 
     @Override
     public void tearDown() {
-        ;
+
     }
 
     @Override
     public void setContainerOutOfScreen(boolean containerOutOfScreen) {
-        ;
+
     }
 
     @Override
@@ -78,12 +78,12 @@ public class StubSingleImageController implements ISingleImageController {
 
     @Override
     public void showSingleImage(Message message) {
-        ;
+
     }
 
     @Override
     public void showSingleImage(User user) {
-        ;
+
     }
 
     @Override

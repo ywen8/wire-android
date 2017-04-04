@@ -37,7 +37,6 @@ import com.waz.zclient.utils.{StringUtils, _}
 import com.waz.zclient.views.ImageAssetDrawable
 import com.waz.zclient.views.ImageController.WireImage
 import com.waz.zclient.{R, ViewHelper}
-import org.threeten.bp.Duration
 
 trait AssetPart extends View with ClickableViewPart with ViewHelper { self =>
   val controller = inject[AssetsController]

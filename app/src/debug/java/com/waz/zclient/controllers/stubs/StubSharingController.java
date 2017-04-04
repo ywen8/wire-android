@@ -30,7 +30,7 @@ import java.util.List;
 public class StubSharingController implements ISharingController {
   @Override
   public void setSharedUris(List<Uri> imageUris) {
-    ;
+
   }
 
   @Override
@@ -40,37 +40,37 @@ public class StubSharingController implements ISharingController {
 
   @Override
   public void onContentShared(Activity activity, IConversation toConversation, List<Uri> sharedUris) {
-    ;
+
   }
 
   @Override
   public void maybeResetSharedText(IConversation currentConversation) {
-    ;
+
   }
 
   @Override
   public void setDestination(IConversation conversation) {
-    ;
+
   }
 
   @Override
   public void onContentShared(Activity activity, IConversation toConversation) {
-    ;
+
   }
 
   @Override
   public void onContentShared(Activity activity, IConversation toConversation, String sharedText) {
-    ;
+
   }
 
   @Override
   public void maybeResetSharedUris(IConversation currentConversation) {
-    ;
+
   }
 
   @Override
   public void addObserver(SharingObserver observer) {
-    ;
+
   }
 
   @Override
@@ -85,7 +85,7 @@ public class StubSharingController implements ISharingController {
 
   @Override
   public void setSharingConversationId(String conversationId) {
-    ;
+
   }
 
   @Override
@@ -95,12 +95,12 @@ public class StubSharingController implements ISharingController {
 
   @Override
   public void setSharedContentType(SharedContentType type) {
-    ;
+
   }
 
   @Override
   public void tearDown() {
-    ;
+
   }
 
   @Override
@@ -110,7 +110,7 @@ public class StubSharingController implements ISharingController {
 
   @Override
   public void setSharedText(String text) {
-    ;
+
   }
 
   @Override
@@ -120,6 +120,6 @@ public class StubSharingController implements ISharingController {
 
   @Override
   public void removeObserver(SharingObserver observer) {
-    ;
+
   }
 }

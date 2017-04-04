@@ -27,27 +27,27 @@ import java.lang.Override;
 public class StubOnboardingController implements IOnboardingController {
   @Override
   public void setCurrentHintType(OnBoardingHintType hintType) {
-    ;
+
   }
 
   @Override
   public void incrementPeoplePickerShowCount() {
-    ;
+
   }
 
   @Override
   public void hideOnboardingHint(OnBoardingHintType requestedType) {
-    ;
+
   }
 
   @Override
   public void hideConversationListHint() {
-    ;
+
   }
 
   @Override
   public void tearDown() {
-    ;
+
   }
 
   @Override
@@ -57,17 +57,17 @@ public class StubOnboardingController implements IOnboardingController {
 
   @Override
   public void incrementParticipantsShowCount() {
-    ;
+
   }
 
   @Override
   public void addOnboardingControllerObserver(OnboardingControllerObserver onboardingControllerObserver) {
-    ;
+
   }
 
   @Override
   public void incrementSwipeToConversationListCount(Page currentRightPage) {
-    ;
+
   }
 
   @Override
@@ -77,7 +77,7 @@ public class StubOnboardingController implements IOnboardingController {
 
   @Override
   public void removeOnboardingControllerObserver(OnboardingControllerObserver onboardingControllerObserver) {
-    ;
+
   }
 
   @Override

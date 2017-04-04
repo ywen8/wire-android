@@ -18,7 +18,7 @@
 package com.waz.zclient.conversation
 
 import android.content.Context
-import android.graphics.{BitmapFactory, Color, PorterDuff}
+import android.graphics.{Color, PorterDuff}
 import android.os.Bundle
 import android.support.v4.content.ContextCompat
 import android.support.v7.widget.RecyclerView.ViewHolder
@@ -32,7 +32,7 @@ import android.widget.TextView.OnEditorActionListener
 import android.widget._
 import com.waz.ZLog.ImplicitTag._
 import com.waz.api
-import com.waz.api.{AssetFactory, EphemeralExpiration, ImageAssetFactory}
+import com.waz.api.{AssetFactory, EphemeralExpiration}
 import com.waz.model.AssetMetaData.Image.Tag
 import com.waz.model.ConversationData.ConversationType
 import com.waz.model.{MessageContent => _, _}
@@ -51,7 +51,7 @@ import com.waz.zclient.ui.utils.{BitmapUtils, ColorUtils, KeyboardUtils}
 import com.waz.zclient.ui.views.CursorIconButton
 import com.waz.zclient.utils.{RichView, ViewUtils}
 import com.waz.zclient.views.ImageAssetDrawable.{RequestBuilder, ScaleType}
-import com.waz.zclient.views.ImageController.{DataImage, ImageSource, ImageUri, WireImage}
+import com.waz.zclient.views.ImageController.{DataImage, ImageSource, WireImage}
 import com.waz.zclient.views._
 
 import scala.util.Success

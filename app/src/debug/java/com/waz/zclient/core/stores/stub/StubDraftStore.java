@@ -30,11 +30,11 @@ public class StubDraftStore implements IDraftStore {
 
   @Override
   public void tearDown() {
-    ;
+
   }
 
   @Override
   public void setDraft(IConversation conversation, String text) {
-    ;
+
   }
 }

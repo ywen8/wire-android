@@ -19,7 +19,6 @@ package com.waz.zclient.utils;
 
 import android.animation.ValueAnimator;
 import android.annotation.SuppressLint;
-import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.Dialog;
 import android.content.Context;
@@ -32,7 +31,6 @@ import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.ShapeDrawable;
 import android.graphics.drawable.shapes.RoundRectShape;
-import android.os.Build;
 import android.support.annotation.IdRes;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -49,7 +47,6 @@ import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 
 public class ViewUtils {
 
@@ -97,24 +94,12 @@ public class ViewUtils {
         window.setSoftInputMode(softInputMode);
     }
 
-    @TargetApi(14)
-    @SuppressLint("NewApi")
     public static void setBackground(View view, Drawable drawable) {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN) {
-            view.setBackgroundDrawable(drawable);
-        } else {
-            view.setBackground(drawable);
-        }
+        view.setBackground(drawable);
     }
 
-    @TargetApi(14)
-    @SuppressLint("NewApi")
     public static void setBackground(Context context, View view, int resource) {
-        if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.JELLY_BEAN) {
-            view.setBackgroundResource(resource);
-        } else {
-            view.setBackground(context.getResources().getDrawable(resource));
-        }
+        view.setBackground(context.getResources().getDrawable(resource));
     }
 
     public static int getNavigationBarHeight(Context context) {
@@ -186,27 +171,9 @@ public class ViewUtils {
 
     public static int getRealDisplayWidth(Context context) {
         Display display = ((WindowManager) context.getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
-        int realWidth;
-
-        if (Build.VERSION.SDK_INT >= 17) {
-            //new pleasant way to get real metrics
-            DisplayMetrics realMetrics = new DisplayMetrics();
-            display.getRealMetrics(realMetrics);
-            realWidth = realMetrics.widthPixels;
-        } else if (Build.VERSION.SDK_INT >= 14) {
-            //reflection for this weird in-between time
-            try {
-                Method getRawW = Display.class.getMethod("getRawWidth");
-                realWidth = (Integer) getRawW.invoke(display);
-            } catch (Exception e) {
-                //this may not be 100% accurate, but it's all we've got
-                realWidth = display.getWidth();
-            }
-        } else {
-            //This should be close, as lower API devices should not have window navigation bars
-            realWidth = display.getWidth();
-        }
-        return realWidth;
+        DisplayMetrics realMetrics = new DisplayMetrics();
+        display.getRealMetrics(realMetrics);
+        return realMetrics.widthPixels;
     }
 
     public static int toPx(Context context, int dp) {

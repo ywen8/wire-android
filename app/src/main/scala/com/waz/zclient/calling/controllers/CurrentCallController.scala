@@ -31,12 +31,10 @@ import com.waz.model._
 import com.waz.service.call.CallInfo
 import com.waz.service.call.FlowManagerService.{StateAndReason, UnknownState}
 import com.waz.threading.Threading
-import com.waz.utils.Locales._
 import com.waz.utils._
 import com.waz.utils.events.{ClockSignal, Signal}
 import com.waz.zclient._
 import com.waz.zclient.calling.views.CallControlButtonView.{ButtonColor, ButtonSettings}
-import com.waz.zclient.calling.views.{CallControlButtonView, OutgoingControlsView}
 import com.waz.zclient.utils.events.ButtonSignal
 import org.threeten.bp.Duration._
 import org.threeten.bp.Instant._

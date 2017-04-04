@@ -26,17 +26,17 @@ import java.lang.Override;
 public class StubParticipantsStore implements IParticipantsStore {
   @Override
   public void removeParticipantsStoreObserver(ParticipantsStoreObserver participantsStoreObserver) {
-    ;
+
   }
 
   @Override
   public void addParticipantsStoreObserver(ParticipantsStoreObserver participantsStoreObserver) {
-    ;
+
   }
 
   @Override
   public void tearDown() {
-    ;
+
   }
 
   @Override
@@ -46,6 +46,6 @@ public class StubParticipantsStore implements IParticipantsStore {
 
   @Override
   public void setCurrentConversation(IConversation conversation) {
-    ;
+
   }
 }

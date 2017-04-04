@@ -25,12 +25,12 @@ import java.lang.Override;
 public class StubNetworkStore implements INetworkStore {
   @Override
   public void addNetworkStoreObserver(NetworkStoreObserver networkStoreObserver) {
-    ;
+
   }
 
   @Override
   public void tearDown() {
-    ;
+
   }
 
   @Override
@@ -45,11 +45,11 @@ public class StubNetworkStore implements INetworkStore {
 
   @Override
   public void doIfHasInternetOrNotifyUser(NetworkAction networkAction) {
-    ;
+
   }
 
   @Override
   public void removeNetworkStoreObserver(NetworkStoreObserver networkStoreObserver) {
-    ;
+
   }
 }
