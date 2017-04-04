@@ -641,7 +641,7 @@ public class AppEntryStore implements IAppEntryStore, ErrorsList.ErrorListener {
                                                                errorCallback.onError(AppEntryError.PHONE_BUDGET_EXHAUSTED);
                                                            } else {
                                                                appEntryStateCallback.tagAppEntryEvent(PhoneVerification.codeRequestErrorSignIn());
-                                                               errorCallback.onError(AppEntryError.PHONE_REGISTER_GENERIC_ERROR);
+                                                               errorCallback.onError(AppEntryError.LOGIN_GENERIC_ERROR);
                                                            }
                                                        }
                                                    });
@@ -726,7 +726,7 @@ public class AppEntryStore implements IAppEntryStore, ErrorsList.ErrorListener {
                                                                } else if (AppEntryError.PHONE_BUDGET_EXHAUSTED.correspondsTo(errorCode, label)) {
                                                                    errorCallback.onError(AppEntryError.PHONE_BUDGET_EXHAUSTED);
                                                                } else {
-                                                                   errorCallback.onError(AppEntryError.PHONE_REGISTER_GENERIC_ERROR);
+                                                                   errorCallback.onError(AppEntryError.LOGIN_GENERIC_ERROR);
                                                                }
                                                            }
                                                        });
@@ -826,7 +826,7 @@ public class AppEntryStore implements IAppEntryStore, ErrorsList.ErrorListener {
                                         } else if (AppEntryError.TOO_MANY_ATTEMPTS.correspondsTo(errorCode, "")) {
                                             errorCallback.onError(AppEntryError.TOO_MANY_ATTEMPTS);
                                         } else {
-                                            errorCallback.onError(AppEntryError.PHONE_REGISTER_GENERIC_ERROR);
+                                            errorCallback.onError(AppEntryError.LOGIN_GENERIC_ERROR);
                                         }
                                         ignoreSelfUpdates = false;
                                     }
@@ -852,7 +852,7 @@ public class AppEntryStore implements IAppEntryStore, ErrorsList.ErrorListener {
                                                                                                            label)) {
                                                         errorCallback.onError(AppEntryError.PHONE_INVALID_ADD_CODE);
                                                     } else {
-                                                        errorCallback.onError(AppEntryError.PHONE_REGISTER_GENERIC_ERROR);
+                                                        errorCallback.onError(AppEntryError.LOGIN_GENERIC_ERROR);
                                                     }
                                                 }
                                             });
@@ -1073,7 +1073,7 @@ public class AppEntryStore implements IAppEntryStore, ErrorsList.ErrorListener {
                                     } else if (AppEntryError.NO_INTERNET.correspondsTo(errorCode, label)) {
                                         errorCallback.onError(AppEntryError.NO_INTERNET);
                                     } else {
-                                        errorCallback.onError(AppEntryError.EMAIL_GENERIC_ERROR);
+                                        errorCallback.onError(AppEntryError.LOGIN_GENERIC_ERROR);
                                     }
                                     ignoreSelfUpdates = false;
                                 }
