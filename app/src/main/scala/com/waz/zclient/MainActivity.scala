@@ -350,7 +350,6 @@ class MainActivity extends BaseActivity
       case intent if IntentUtils.isLaunchFromNotificationIntent(intent) =>
         val startCallNotificationIntent = IntentUtils.isStartCallNotificationIntent(intent)
         info(s"Start from notification with call=$startCallNotificationIntent")
-        IntentUtils.clearLaunchIntentExtra(intent)
 
         Option(getStoreFactory.getConversationStore.getConversation(IntentUtils.getLaunchConversationId(intent))).foreach { conversation =>
           // Only want to swipe over when app has loaded
@@ -361,6 +360,7 @@ class MainActivity extends BaseActivity
             }
           }, MainActivity.LAUNCH_CONVERSATION_CHANGE_DELAY)
         }
+        IntentUtils.clearLaunchIntentExtra(intent)
         setIntent(intent)
 
       case intent if IntentUtils.isLaunchFromSharingIntent(intent) =>
