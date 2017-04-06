@@ -43,15 +43,15 @@ public class DocumentResolver {
     }
 
     public Uri getVideoPath() {
-        return mediaQuery(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, null);
+        return fileQuery(WIRE_TESTING_FILES_DIRECTORY);
     }
 
     public Uri getAudioPath() {
-        return mediaQuery(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, null);
+        return fileQuery(WIRE_TESTING_FILES_DIRECTORY);
     }
 
     public Uri getImagePath() {
-        return mediaQuery(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, null);
+        return fileQuery(WIRE_TESTING_FILES_DIRECTORY);
     }
 
     private Uri mediaQuery(Uri baseUri, String[] projection) {
