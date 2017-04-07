@@ -19,6 +19,7 @@ package com.waz.zclient.pages.main.participants.views;
 
 import android.content.Context;
 import android.content.res.TypedArray;
+import android.os.Build;
 import android.util.AttributeSet;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -104,11 +105,21 @@ public class ChatheadWithTextFooter extends LinearLayout implements UserRowView 
     }
 
     public void applyLightTheme() {
-        footer.setTextColor(getResources().getColor(R.color.text__primary_light));
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            //noinspection deprecation
+            footer.setTextColor(getResources().getColor(R.color.text__primary_light));
+        } else {
+            footer.setTextColor(getResources().getColor(R.color.text__primary_light, getContext().getTheme()));
+        }
     }
 
     public void applyDarkTheme() {
-        footer.setTextColor(getResources().getColor(R.color.text__primary_dark));
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            //noinspection deprecation
+            footer.setTextColor(getResources().getColor(R.color.text__primary_dark));
+        } else {
+            footer.setTextColor(getResources().getColor(R.color.text__primary_dark, getContext().getTheme()));
+        }
     }
 
     @Override

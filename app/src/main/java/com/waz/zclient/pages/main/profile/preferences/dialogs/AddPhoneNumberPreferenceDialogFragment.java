@@ -401,7 +401,7 @@ public class AddPhoneNumberPreferenceDialogFragment extends BaseDialogFragment<A
             // as the background. This has the unfortunate side-effect of wiping out any
             // user set padding, but I'd hope that use of custom padding on an EditText
             // is limited.
-            editText.setBackgroundDrawable(newBg);
+            editText.setBackground(newBg);
         }
     }
 

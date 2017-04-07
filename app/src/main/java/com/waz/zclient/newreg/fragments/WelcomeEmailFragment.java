@@ -17,6 +17,7 @@
  */
 package com.waz.zclient.newreg.fragments;
 
+import android.os.Build;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -84,7 +85,12 @@ public class WelcomeEmailFragment extends BaseFragment<WelcomeEmailFragment.Cont
         createAccountZetaButton.setIsFilled(true);
         createAccountZetaButton.setAccentColor(color);
         signInZetaButton.setIsFilled(false);
-        signInZetaButton.setAccentColor(getResources().getColor(R.color.text__secondary_dark__40), true);
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            //noinspection deprecation
+            signInZetaButton.setAccentColor(getResources().getColor(R.color.text__secondary_dark__40), true);
+        } else {
+            signInZetaButton.setAccentColor(getResources().getColor(R.color.text__secondary_dark__40, getContext().getTheme()), true);
+        }
 
         signInZetaButton.setOnClickListener(this);
         createAccountZetaButton.setOnClickListener(this);

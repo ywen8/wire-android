@@ -17,6 +17,7 @@
  */
 package com.waz.zclient.newreg.fragments;
 
+import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
@@ -73,7 +74,13 @@ public class PhoneInvitationFragment extends BaseFragment<PhoneInvitationFragmen
     public View onCreateView(LayoutInflater inflater, ViewGroup viewGroup, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_invite__phone, viewGroup, false);
 
-        int buttonColor = getResources().getColor(R.color.text__primary_dark);
+        int buttonColor;
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            //noinspection deprecation
+            buttonColor = getResources().getColor(R.color.text__primary_dark);
+        } else {
+            buttonColor = getResources().getColor(R.color.text__primary_dark, getContext().getTheme());
+        }
 
         TextView termsOfServicesTextView = ViewUtils.getView(view, R.id.tv__phone_invite__terms_of_service);
         TextViewUtils.linkifyText(termsOfServicesTextView, buttonColor, false, new Runnable() {
@@ -86,7 +93,12 @@ public class PhoneInvitationFragment extends BaseFragment<PhoneInvitationFragmen
 
         signUpAlternativeButton = ViewUtils.getView(view, R.id.zb__phone_invite__signup_alternative);
         signUpAlternativeButton.setIsFilled(false);
-        signUpAlternativeButton.setAccentColor(getResources().getColor(R.color.text__secondary_dark__40));
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            //noinspection deprecation
+            signUpAlternativeButton.setAccentColor(getResources().getColor(R.color.text__secondary_dark__40));
+        } else {
+            signUpAlternativeButton.setAccentColor(getResources().getColor(R.color.text__secondary_dark__40, getContext().getTheme()));
+        }
         if (LayoutSpec.isPhone(getActivity())) {
             signUpAlternativeButton.setText(getString(R.string.invitation_phone__normal_phone_signup_button));
         } else {

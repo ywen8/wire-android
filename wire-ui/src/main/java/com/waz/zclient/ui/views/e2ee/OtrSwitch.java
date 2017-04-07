@@ -19,6 +19,7 @@ package com.waz.zclient.ui.views.e2ee;
 
 import android.content.Context;
 import android.content.res.TypedArray;
+import android.os.Build;
 import android.support.v7.widget.SwitchCompat;
 import android.util.AttributeSet;
 import android.view.LayoutInflater;
@@ -67,13 +68,23 @@ public class OtrSwitch extends LinearLayout implements CompoundButton.OnCheckedC
         if (theme.equals(getResources().getString(R.string.wire_theme_dark))) {
             switchCompat.setThumbDrawable(getResources().getDrawable(R.drawable.selector_otr_switch__thumb_dark));
             switchCompat.setTrackDrawable(getResources().getDrawable(R.drawable.selector_otr_switch__track_dark));
-            textView.setTextColor(getResources().getColorStateList(R.color.selector_otr_switch__text_dark));
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+                //noinspection deprecation
+                textView.setTextColor(getResources().getColorStateList(R.color.selector_otr_switch__text_dark));
+            } else {
+                textView.setTextColor(getResources().getColorStateList(R.color.selector_otr_switch__text_dark, getContext().getTheme()));
+            }
         }
 
         if (theme.equals(getResources().getString(R.string.wire_theme_light))) {
             switchCompat.setThumbDrawable(getResources().getDrawable(R.drawable.selector_otr_switch__thumb_light));
             switchCompat.setTrackDrawable(getResources().getDrawable(R.drawable.selector_otr_switch__track_light));
-            textView.setTextColor(getResources().getColorStateList(R.color.selector_otr_switch__text_light));
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+                //noinspection deprecation
+                textView.setTextColor(getResources().getColorStateList(R.color.selector_otr_switch__text_light));
+            } else {
+                textView.setTextColor(getResources().getColorStateList(R.color.selector_otr_switch__text_light, getContext().getTheme()));
+            }
         }
 
         switchCompat.setOnCheckedChangeListener(this);

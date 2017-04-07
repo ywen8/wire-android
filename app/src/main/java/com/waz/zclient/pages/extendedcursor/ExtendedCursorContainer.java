@@ -21,6 +21,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
+import android.os.Build;
 import android.os.Handler;
 import android.util.AttributeSet;
 import android.view.LayoutInflater;
@@ -82,7 +83,12 @@ public class ExtendedCursorContainer extends FrameLayout implements KeyboardHeig
     public ExtendedCursorContainer(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         sharedPreferences = getContext().getSharedPreferences(PREF__NAME, Context.MODE_PRIVATE);
-        accentColor = getResources().getColor(R.color.accent_blue);
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            //noinspection deprecation
+            accentColor = getResources().getColor(R.color.accent_blue);
+        } else {
+            accentColor = getResources().getColor(R.color.accent_blue, context.getTheme());
+        }
         isExpanded = false;
         type = Type.NONE;
         initKeyboardHeight();

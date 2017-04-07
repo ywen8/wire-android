@@ -63,7 +63,13 @@ public class SearchBoxView extends FrameLayout {
         inputEditText = ViewUtils.getView(this, R.id.puet_pickuser__searchbox);
         colorBottomBorder = ViewUtils.getView(this, R.id.v_people_picker__input__color_bottom_border);
 
-        int hintColorStartUI = getResources().getColor(R.color.text__secondary_light);
+        int hintColorStartUI;
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            //noinspection deprecation
+            hintColorStartUI = getResources().getColor(R.color.text__secondary_light);
+        } else {
+            hintColorStartUI = getResources().getColor(R.color.text__secondary_light, context.getTheme());
+        }
         inputEditText.setTypeface(TypefaceUtils.getTypeface(context.getString(R.string.wire__typeface__light)));
         inputEditText.setCallback(new PickerSpannableEditText.Callback() {
 
@@ -129,7 +135,13 @@ public class SearchBoxView extends FrameLayout {
     }
 
     public void forceDarkTheme() {
-        int textColor = getResources().getColor(R.color.text__primary_dark);
+        int textColor;
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            //noinspection deprecation
+            textColor = getResources().getColor(R.color.text__primary_dark);
+        } else {
+            textColor = getResources().getColor(R.color.text__primary_dark, getContext().getTheme());
+        }
         inputEditText.setTextColor(textColor);
         inputEditText.setHintTextColor(textColor);
         clearButton.setTextColor(textColor);

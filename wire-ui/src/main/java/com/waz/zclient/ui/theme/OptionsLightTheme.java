@@ -21,13 +21,17 @@ import android.content.Context;
 import android.content.res.ColorStateList;
 import android.content.res.Resources;
 import android.graphics.drawable.Drawable;
+import android.os.Build;
+
 import com.waz.zclient.ui.R;
 
 public class OptionsLightTheme implements OptionsTheme {
     private Resources resource;
+    private Resources.Theme theme;
 
     public OptionsLightTheme(Context context) {
         resource = context.getResources();
+        theme = context.getTheme();
     }
 
     @Override
@@ -37,17 +41,32 @@ public class OptionsLightTheme implements OptionsTheme {
 
     @Override
     public int getTextColorPrimary() {
-        return resource.getColor(R.color.text__primary_light);
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            //noinspection deprecation
+            return resource.getColor(R.color.text__primary_light);
+        } else {
+            return resource.getColor(R.color.text__primary_light, theme);
+        }
     }
 
     @Override
     public ColorStateList getTextColorPrimarySelector() {
-        return resource.getColorStateList(R.color.wire__text_color_primary_light_selector);
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            //noinspection deprecation
+            return resource.getColorStateList(R.color.wire__text_color_primary_light_selector);
+        } else {
+            return resource.getColorStateList(R.color.wire__text_color_primary_light_selector, theme);
+        }
     }
 
     @Override
     public int getOverlayColor() {
-        return resource.getColor(R.color.wire__overlay__light);
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            //noinspection deprecation
+            return resource.getColor(R.color.wire__overlay__light);
+        } else {
+            return resource.getColor(R.color.wire__overlay__light, theme);
+        }
     }
 
     @Override
@@ -57,7 +76,12 @@ public class OptionsLightTheme implements OptionsTheme {
 
     @Override
     public int getCheckboxTextColor() {
-        return resource.getColor(R.color.text__primary_light);
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            //noinspection deprecation
+            return resource.getColor(R.color.text__primary_light);
+        } else {
+            return resource.getColor(R.color.text__primary_light, theme);
+        }
     }
 
     @Override
@@ -67,7 +91,12 @@ public class OptionsLightTheme implements OptionsTheme {
 
     @Override
     public ColorStateList getIconButtonTextColor() {
-        return resource.getColorStateList(R.color.selector__icon_button__text_color__light);
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            //noinspection deprecation
+            return resource.getColorStateList(R.color.selector__icon_button__text_color__light);
+        } else {
+            return resource.getColorStateList(R.color.selector__icon_button__text_color__light, theme);
+        }
     }
 
     @Override

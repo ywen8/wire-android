@@ -18,9 +18,11 @@
 package com.waz.zclient.pages.main.pickuser.views.viewholders;
 
 
+import android.os.Build;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.widget.TextView;
+
 import com.waz.zclient.R;
 import com.waz.zclient.utils.ViewUtils;
 
@@ -31,7 +33,12 @@ public class AddressBookSectionHeaderViewHolder extends RecyclerView.ViewHolder 
         super(itemView);
         label = ViewUtils.getView(itemView, R.id.ttv_startui_section_header);
         if (darkTheme) {
-            label.setTextColor(itemView.getResources().getColor(R.color.text__primary_dark));
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+                //noinspection deprecation
+                label.setTextColor(itemView.getResources().getColor(R.color.text__primary_dark));
+            } else {
+                label.setTextColor(itemView.getResources().getColor(R.color.text__primary_dark, label.getContext().getTheme()));
+            }
         }
     }
 

@@ -17,6 +17,7 @@
  */
 package com.waz.zclient.newreg.fragments;
 
+import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.text.Editable;
@@ -101,7 +102,12 @@ public class OTREmailSignInFragment extends BaseFragment<OTREmailSignInFragment.
     public void onStart() {
         super.onStart();
         guidedEditTextEmail.getEditText().requestFocus();
-        onAccentColorHasChanged(getResources().getColor(R.color.text__primary_dark));
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            //noinspection deprecation
+            onAccentColorHasChanged(getResources().getColor(R.color.text__primary_dark));
+        } else {
+            onAccentColorHasChanged(getResources().getColor(R.color.text__primary_dark, getContext().getTheme()));
+        }
     }
 
     @Override

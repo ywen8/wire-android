@@ -18,6 +18,7 @@
 package com.waz.zclient.views;
 
 import android.graphics.Rect;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -60,7 +61,7 @@ public class MentioningFragment extends BaseFragment<MentioningFragment.Containe
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         contentView = inflater.inflate(R.layout.mentioning_view, container, false);
         recyclerView = ViewUtils.getView(contentView, R.id.rv__mentioning__list);
-        markerView = ViewUtils.getView(contentView, R.id.iv__mentioning__marker); 
+        markerView = ViewUtils.getView(contentView, R.id.iv__mentioning__marker);
         return contentView;
     }
 
@@ -75,8 +76,14 @@ public class MentioningFragment extends BaseFragment<MentioningFragment.Containe
         mentioningAdapter = new MentioningAdapter();
         mentioningAdapter.setOnItemClickListener(this);
         recyclerView.setAdapter(mentioningAdapter);
-        recyclerView.setBackground(ViewUtils.getRoundedRect(getResources().getDimensionPixelSize(R.dimen.mentioning__popover__height) / 2,
-                                                            getResources().getColor(R.color.mentioning__popover__background)));
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            //noinspection deprecation
+            recyclerView.setBackground(ViewUtils.getRoundedRect(getResources().getDimensionPixelSize(R.dimen.mentioning__popover__height) / 2,
+                                                                getResources().getColor(R.color.mentioning__popover__background)));
+        } else {
+            recyclerView.setBackground(ViewUtils.getRoundedRect(getResources().getDimensionPixelSize(R.dimen.mentioning__popover__height) / 2,
+                getResources().getColor(R.color.mentioning__popover__background, getContext().getTheme())));
+        }
         recyclerView.post(new Runnable() {
             @Override
             public void run() {

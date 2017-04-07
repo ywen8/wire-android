@@ -22,6 +22,7 @@ import android.content.Intent;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.FragmentManager;
@@ -153,7 +154,12 @@ public class AppEntryActivity extends BaseActivity implements VerifyPhoneFragmen
 
         createdFromSavedInstance = savedInstanceState != null;
 
-        accentColor = getResources().getColor(R.color.text__primary_dark);
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            //noinspection deprecation
+            accentColor = getResources().getColor(R.color.text__primary_dark);
+        } else {
+            accentColor = getResources().getColor(R.color.text__primary_dark, getTheme());
+        }
 
         if (unsplashInitLoadHandle == null && unsplashInitImageAsset == null) {
             unsplashInitImageAsset = ImageAssetFactory.getImageAsset(AndroidURIUtil.parse(UNSPLASH_API_URL));

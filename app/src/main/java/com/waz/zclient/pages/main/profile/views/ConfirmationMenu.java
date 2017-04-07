@@ -22,6 +22,7 @@ import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.StateListDrawable;
+import android.os.Build;
 import android.util.AttributeSet;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -114,10 +115,21 @@ public class ConfirmationMenu extends LinearLayout {
     public void setCancelColor(int textColor, int backgroundColor) {
         int strokeWidth = getResources().getDimensionPixelSize(R.dimen.framework_confirmation_menu_button_stroke_width);
         int cornerRadius = getResources().getDimensionPixelSize(R.dimen.framework_confirmation_menu_button_corner_radius);
-        ViewUtils.setBackground(cancelTextView, getButtonBackground(backgroundColor,
-                                                                    getResources().getColor(R.color.framework_confirmation_menu_background_color),
-                                                                    strokeWidth,
-                                                                    cornerRadius));
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            //noinspection deprecation
+            ViewUtils.setBackground(cancelTextView,
+                getButtonBackground(backgroundColor,
+                                    getResources().getColor(R.color.framework_confirmation_menu_background_color),
+                                    strokeWidth,
+                                    cornerRadius));
+        } else {
+            ViewUtils.setBackground(cancelTextView,
+                getButtonBackground(backgroundColor,
+                    getResources().getColor(R.color.framework_confirmation_menu_background_color, getContext().getTheme()),
+                    strokeWidth,
+                    cornerRadius));
+        }
+
         cancelTextView.setTextColor(textColor);
     }
 

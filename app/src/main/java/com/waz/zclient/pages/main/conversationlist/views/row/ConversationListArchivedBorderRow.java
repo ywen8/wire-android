@@ -21,6 +21,7 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.os.Build;
 import android.view.View;
 import com.waz.zclient.R;
 
@@ -32,7 +33,12 @@ public class ConversationListArchivedBorderRow extends View {
         super(context);
 
         paint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        paint.setColor(getResources().getColor(R.color.list_archive_box__background_color));
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            //noinspection deprecation
+            paint.setColor(getResources().getColor(R.color.list_archive_box__background_color));
+        } else {
+            paint.setColor(getResources().getColor(R.color.list_archive_box__background_color, getContext().getTheme()));
+        }
         setBackgroundColor(Color.TRANSPARENT);
     }
 
