@@ -46,7 +46,9 @@ import android.widget.FrameLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.common.GooglePlayServicesUtil;
+import com.google.android.gms.common.api.GoogleApiActivity;
 import com.waz.api.AssetFactory;
 import com.waz.api.AssetForUpload;
 import com.waz.api.AudioAssetForUpload;
@@ -1209,7 +1211,8 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
                 });
                 break;
             case LOCATION:
-                if (ConnectionResult.SUCCESS == GooglePlayServicesUtil.isGooglePlayServicesAvailable(getContext())) {
+                GoogleApiAvailability googleAPI = GoogleApiAvailability.getInstance();
+                if (ConnectionResult.SUCCESS == googleAPI.isGooglePlayServicesAvailable(getContext())) {
                     KeyboardUtils.hideKeyboard(getActivity());
                     getControllerFactory().getLocationController().showShareLocation();
                     ((BaseActivity) getActivity()).injectJava(GlobalTrackingController.class).tagEvent(OpenedMediaActionEvent.cursorAction(OpenedMediaAction.LOCATION, conversation));
