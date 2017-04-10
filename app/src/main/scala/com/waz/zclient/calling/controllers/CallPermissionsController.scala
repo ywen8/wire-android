@@ -80,7 +80,7 @@ class CallPermissionsController(implicit inj: Injector, cxt: WireContext) extend
     permissionsController.requiring(if (withVideo) Set(CameraPermission, RecordAudioPermission) else Set(RecordAudioPermission)) {
       setVariableBitRateMode(variableBitRate)
       useV3(convId).flatMap {
-        case true => v3Service.head.map(_.startCall(convId, withVideo))
+        case true => v3Service.head.map(_.startCall(convId, withVideo, false))
         case false => v2Service.head.map(_.joinVoiceChannel(convId, withVideo))
       }
     }(R.string.calling__cannot_start__title,
@@ -101,7 +101,7 @@ class CallPermissionsController(implicit inj: Injector, cxt: WireContext) extend
       def withV2(f: (VoiceChannelService, ConvId) => Unit) = v2ServiceAndCurrentConvId.head.map { case (vcs, id) => f(vcs, id) }
 
       def accept() = v3 match {
-        case true => withV3 { (cs, id) => cs.acceptCall(id) }
+        case true => withV3 { (cs, id) => cs.acceptCall(id, false) }
         case _ => withV2 { (vcs, id) => vcs.joinVoiceChannel(id, withVideo) }
       }
 
