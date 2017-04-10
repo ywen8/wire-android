@@ -20,9 +20,7 @@ will help us to fix the issue faster.
 ## Link to Debug logs
 
 Create a [GIST](https://gist.github.com) which is a paste of your Wire logs, and link them here.
-It is recommended to directly contact our [customer support](mailto:support@wire.com) and send the debug
-report by email, because it can potentially contain some private information, that you don't want to share
-to the public.
+It is recommended to directly contact our [customer support](mailto:support@wire.com) and send the debug report by email, because it can potentially contain some private information, that you don't want to share to the public.
 
 ## How to send detailed debug report from Wire:
 
