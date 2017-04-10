@@ -30,3 +30,7 @@ It is recommended to directly contact our [customer support](mailto:support@wire
 4. Send the report from Settings -> Advanced -> Submit debug report
 5. Go to Settings -> About
 6. Tap "Wire swiss GmbH" 10 times again to disable detailed debug reports, because this slows down Wire
+
+## Screenshots
+
+Please attach screenshots if you consider them as helpful to understand/reproduce the issue
