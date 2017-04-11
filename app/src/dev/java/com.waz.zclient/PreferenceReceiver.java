@@ -29,10 +29,6 @@ public class PreferenceReceiver extends BroadcastReceiver {
     public static final String AUTO_ANSWER_CALL_INTENT = "com.waz.zclient.intent.action.AUTO_ANSWER_CALL";
     public static final String AUTO_ANSWER_CALL_INTENT_EXTRA_KEY = "AUTO_ANSWER_CALL_EXTRA_KEY";
 
-    //TODO: Remove 'use asset v2 or v3' after transition period
-    public static final String USE_ASSET_V3_INTENT = "com.waz.zclient.intent.action.USE_ASSET_V3";
-    public static final String USE_ASSET_V2_INTENT = "com.waz.zclient.intent.action.USE_ASSET_V2";
-
     public static final String ENABLE_GCM_INTENT = "com.waz.zclient.intent.action.ENABLE_GCM";
     public static final String DISABLE_GCM_INTENT = "com.waz.zclient.intent.action.DISABLE_GCM";
 
@@ -59,16 +55,6 @@ public class PreferenceReceiver extends BroadcastReceiver {
             case DISABLE_GCM_INTENT:
                 preferences.edit()
                     .putBoolean(context.getString(R.string.pref_dev_gcm_enabled_key), false)
-                    .apply();
-                break;
-            case USE_ASSET_V3_INTENT:
-                preferences.edit()
-                    .putBoolean(context.getString(R.string.pref_dev_assets_v3_key), true)
-                    .apply();
-                break;
-            case USE_ASSET_V2_INTENT:
-                preferences.edit()
-                    .putBoolean(context.getString(R.string.pref_dev_assets_v3_key), false)
                     .apply();
                 break;
             case CALLING_V2_INTENT:
