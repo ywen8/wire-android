@@ -46,13 +46,6 @@
         android:title="@string/pref_dev_version_info_id_title"
         />
 
-    <CheckBoxPreference
-        android:defaultValue="false"
-        android:key="@string/pref_dev_assets_v3_key"
-        android:title="@string/pref_dev_assets_v3_title"
-        android:summary="@string/pref_dev_assets_v3_summary"
-        />
-
     <ListPreference
         android:key="@string/pref_dev_calling_v3_key"
         android:title="@string/pref_dev_calling_v3_title"
