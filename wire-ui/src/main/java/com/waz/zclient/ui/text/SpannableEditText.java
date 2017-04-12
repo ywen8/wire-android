@@ -29,6 +29,9 @@ import android.view.MotionEvent;
 import android.view.View;
 import com.waz.zclient.utils.ViewUtils;
 
+import java.util.Arrays;
+import java.util.Comparator;
+
 public class SpannableEditText extends AccentColorEditText {
 
     private static final int TOKEN_CLICK_EVENT_DISTANCE_TOLERANCE_DP = 3;
@@ -144,7 +147,7 @@ public class SpannableEditText extends AccentColorEditText {
         int offset = layout.getOffsetForHorizontal(line, x);
 
         Editable buffer = getText();
-        TokenSpan[] spans = buffer.getSpans(offset, offset, TokenSpan.class);
+        TokenSpan[] spans = getSpans(buffer, offset, offset);
         if (spans.length == 0) {
             return null;
         }
@@ -185,7 +188,7 @@ public class SpannableEditText extends AccentColorEditText {
     public String getNonSpannableText() {
         Editable buffer = getText();
         String result = buffer.toString();
-        TokenSpan[] spans = buffer.getSpans(0, buffer.length(), TokenSpan.class);
+        TokenSpan[] spans = getSpans(buffer);
         for (int i = spans.length - 1; i >= 0; i--) {
             TokenSpan span = spans[i];
             int start = buffer.getSpanStart(span);
@@ -197,13 +200,12 @@ public class SpannableEditText extends AccentColorEditText {
         return result;
     }
 
-
     /**
      * Clears non-spannable text in text view
      */
     public void clearNonSpannableText() {
         Editable buffer = getText();
-        TokenSpan[] spans = buffer.getSpans(0, buffer.length(), TokenSpan.class);
+        TokenSpan[] spans = getSpans(buffer);
         SpannableStringBuilder ssb = new SpannableStringBuilder();
         int start = 0;
         for (TokenSpan span : spans) {
@@ -231,7 +233,7 @@ public class SpannableEditText extends AccentColorEditText {
 
     public boolean removeSpan(String id) {
         Editable buffer = getText();
-        TokenSpan[] spans = buffer.getSpans(0, buffer.length(), TokenSpan.class);
+        TokenSpan[] spans = getSpans(buffer);
         for (int i = spans.length - 1; i >= 0; i--) {
             TokenSpan span = spans[i];
             if (span.getId().equals(id)) {
@@ -259,7 +261,7 @@ public class SpannableEditText extends AccentColorEditText {
 
     protected void resetDeleteModeForSpans() {
         Editable buffer = getText();
-        TokenSpan[] allSpans = buffer.getSpans(0, buffer.length(), TokenSpan.class);
+        TokenSpan[] allSpans = getSpans(buffer);
         SpannableStringBuilder ssb = new SpannableStringBuilder();
         String nonspannableText = getNonSpannableText();
 
@@ -284,7 +286,7 @@ public class SpannableEditText extends AccentColorEditText {
      */
     private void toggleSpanDeleteMode(String spanId) {
         Editable buffer = getText();
-        TokenSpan[] allSpans = buffer.getSpans(0, buffer.length(), TokenSpan.class);
+        TokenSpan[] allSpans = getSpans(buffer);
         SpannableStringBuilder ssb = new SpannableStringBuilder();
         String nonspannableText = getNonSpannableText();
 
@@ -308,5 +310,30 @@ public class SpannableEditText extends AccentColorEditText {
         notifyTextWatcher = true;
         append(nonspannableText);
         setSelection(getText().length());
+    }
+
+
+    /*
+    Fix for AN-5170. The original SpannableStringBuilder.getSpans method may return spans out of order.
+    The standard way to deal with it would be to use SpannableStringBuilder.nextSpanTransition to get
+    the start positions of the consecutive spans. But sometimes we need actual spans objects, not just
+    their positions, and in other cases we need pairs (start, end), which would have to be computed from
+    consecutive starts. Another solution is simply to sort the spans before using them. Usually the array
+    is only a couple of elements long, so it shouldn't make a performance impact.
+     */
+
+    private TokenSpan[] getSpans(Editable buffer) {
+        return getSpans(buffer, 0, buffer.length());
+    }
+
+    private TokenSpan[] getSpans(final Editable buffer, int start, int end) {
+        TokenSpan[] spans = buffer.getSpans(start, end, TokenSpan.class);
+        Arrays.sort(spans, new Comparator<TokenSpan>() {
+            @Override
+            public int compare(TokenSpan o1, TokenSpan o2) {
+                return buffer.getSpanStart(o1) - buffer.getSpanStart(o2);
+            }
+        });
+        return spans;
     }
 }
