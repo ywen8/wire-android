@@ -236,6 +236,7 @@ public class OptionsMenuFragment extends BaseFragment<OptionsMenuFragment.Contai
             case ONE_TO_ONE:
                 items.add(OptionsMenuItem.CALL);
                 items.add(OptionsMenuItem.PICTURE);
+                connectUser(conversation.getOtherParticipant());
                 break;
             case WAIT_FOR_CONNECTION:
                 connectUser(conversation.getOtherParticipant());
