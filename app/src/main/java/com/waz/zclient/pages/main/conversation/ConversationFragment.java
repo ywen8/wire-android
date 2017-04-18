@@ -22,7 +22,6 @@ import android.annotation.SuppressLint;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
-import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -71,6 +70,7 @@ import com.waz.api.UpdateListener;
 import com.waz.api.User;
 import com.waz.api.UsersList;
 import com.waz.api.Verification;
+import com.waz.utils.URI;
 import com.waz.zclient.BaseActivity;
 import com.waz.zclient.BuildConfig;
 import com.waz.zclient.OnBackPressedListener;
@@ -220,7 +220,7 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
     private CursorLayout cursorLayout;
     private AudioMessageRecordingView audioMessageRecordingView;
     private ExtendedCursorContainer extendedCursorContainer;
-    private List<Uri> sharingUris = new ArrayList<>();
+    private List<URI> sharingUris = new ArrayList<>();
     private AssetIntentsManager assetIntentsManager;
     private ViewGroup containerPreview;
     private boolean isPreviewShown;
@@ -663,7 +663,7 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
     }
 
     @Override
-    public void onShowVideo(Uri uri) {
+    public void onShowVideo(URI uri) {
 
     }
 
@@ -768,7 +768,7 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
                 final boolean isSharing = getControllerFactory().getSharingController().isSharedConversation(
                     toConversation);
                 final boolean isSharingText = !TextUtils.isEmpty(getControllerFactory().getSharingController().getSharedText()) && isSharing;
-                final List<Uri> sharedFileUris = getControllerFactory().getSharingController().getSharedFileUris();
+                final List<URI> sharedFileUris = getControllerFactory().getSharingController().getSharedFileUris();
                 final boolean isSharingFiles = !(sharedFileUris == null || sharedFileUris.isEmpty()) && isSharing;
                 if (isSharing) {
                     if (isSharingText) {
@@ -783,7 +783,7 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
                         getControllerFactory().getSharingController().maybeResetSharedText(toConversation);
                     } else if (isSharingFiles) {
                         if (PermissionUtils.hasSelfPermissions(getActivity(), FILE_SHARING_PERMISSION)) {
-                            for (Uri uri : sharedFileUris) {
+                            for (URI uri : sharedFileUris) {
                                 getStoreFactory().getConversationStore().sendMessage(AssetFactory.fromContentUri(uri),
                                                                                      assetErrorHandler);
                             }
@@ -1514,7 +1514,7 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
                 break;
             case FILE_SHARING_PERMISSION_REQUEST_ID:
                 if (PermissionUtils.verifyPermissions(grantResults)) {
-                    for (Uri uri : sharingUris) {
+                    for (URI uri : sharingUris) {
                         getStoreFactory().getConversationStore().sendMessage(AssetFactory.fromContentUri(uri),
                                                                              assetErrorHandler);
                     }
@@ -1838,7 +1838,7 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
     }
 
     @Override
-    public void onDataReceived(AssetIntentsManager.IntentType type, Uri uri) {
+    public void onDataReceived(AssetIntentsManager.IntentType type, URI uri) {
         switch (type) {
             case FILE_SHARING:
                 sharingUris.clear();
@@ -1883,7 +1883,7 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
         }
     }
 
-    private void sendVideo(Uri uri) {
+    private void sendVideo(URI uri) {
         Timber.i("  uri.getPath %s", uri.getPath());
         Timber.i("          uri %s", uri);
 
@@ -1894,7 +1894,7 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
         extendedCursorContainer.close(true);
     }
 
-    private void sendImage(Uri uri) {
+    private void sendImage(URI uri) {
         ImageAsset imageAsset = ImageAssetFactory.getImageAsset(uri);
 
         getStoreFactory().getConversationStore().sendMessage(imageAsset);

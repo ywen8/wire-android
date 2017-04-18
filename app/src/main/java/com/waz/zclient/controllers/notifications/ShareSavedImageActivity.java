@@ -20,6 +20,8 @@ package com.waz.zclient.controllers.notifications;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import com.waz.utils.AndroidURI;
+import com.waz.utils.URI;
 import com.waz.zclient.BaseActivity;
 import com.waz.zclient.notifications.controllers.ImageNotificationsController;
 import com.waz.zclient.utils.IntentUtils;
@@ -37,7 +39,7 @@ public class ShareSavedImageActivity extends BaseActivity {
             return;
         }
 
-        Uri sharedImageUri = intent.getParcelableExtra(Intent.EXTRA_STREAM);
+        URI sharedImageUri = new AndroidURI((Uri)intent.getParcelableExtra(Intent.EXTRA_STREAM));
         if (sharedImageUri == null) {
             finish();
             return;

@@ -18,7 +18,6 @@
 package com.waz.zclient.pages.main;
 
 import android.content.Intent;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -30,6 +29,7 @@ import android.view.ViewGroup;
 import com.waz.api.ErrorsList;
 import com.waz.api.Message;
 import com.waz.api.User;
+import com.waz.utils.URI;
 import com.waz.zclient.OnBackPressedListener;
 import com.waz.zclient.R;
 import com.waz.zclient.controllers.accentcolor.AccentColorObserver;
@@ -211,7 +211,7 @@ public class MainTabletFragment extends BaseFragment<MainTabletFragment.Containe
     }
 
     @Override
-    public void onShowVideo(Uri uri) {
+    public void onShowVideo(URI uri) {
         getChildFragmentManager().beginTransaction()
                                  .add(R.id.fl__overlay_container,
                                       VideoPlayerFragment.newInstance(uri),

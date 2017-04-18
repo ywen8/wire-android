@@ -18,7 +18,6 @@
 package com.waz.zclient.controllers.spotify;
 
 import android.content.Context;
-import android.net.Uri;
 import android.os.Handler;
 import com.spotify.sdk.android.player.ConnectionStateCallback;
 import com.spotify.sdk.android.player.PlayConfig;
@@ -27,6 +26,7 @@ import com.spotify.sdk.android.player.PlayerNotificationCallback;
 import com.spotify.sdk.android.player.PlayerState;
 import com.spotify.sdk.android.player.PlayerStateCallback;
 import com.spotify.sdk.android.player.Spotify;
+import com.waz.utils.URI;
 import com.waz.zclient.R;
 import com.waz.zclient.controllers.mediaplayer.IMediaPlayer;
 import com.waz.zclient.controllers.mediaplayer.MediaPlayerListener;
@@ -45,7 +45,7 @@ public class SpotifyMediaPlayer implements IMediaPlayer,
     private Player mediaPlayer;
     private MediaPlayerListener listener;
     private MediaPlayerState mediaPlayerState;
-    private Uri dataSource;
+    private URI dataSource;
     private Handler refreshCurrentDurationHandler;
     private int currentPosition;
 
@@ -61,7 +61,7 @@ public class SpotifyMediaPlayer implements IMediaPlayer,
     }
 
     @Override
-    public void setDataSource(Uri uri) {
+    public void setDataSource(URI uri) {
         this.dataSource = uri;
         setState(MediaPlayerState.Initialized);
     }

@@ -17,7 +17,6 @@
  */
 package com.waz.zclient.pages.main.sharing;
 
-import android.net.Uri;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -26,6 +25,7 @@ import android.widget.FrameLayout;
 import com.waz.api.IConversation;
 import com.waz.api.ImageAsset;
 import com.waz.api.ImageAssetFactory;
+import com.waz.utils.URI;
 import com.waz.zclient.BaseActivity;
 import com.waz.zclient.R;
 import com.waz.zclient.controllers.drawing.DrawingController;
@@ -75,8 +75,8 @@ public class ImageSharingPreviewFragment extends BaseFragment<ImageSharingPrevie
 
         String title = "";
         IConversation currentConversation = getControllerFactory().getSharingController().getDestination();
-        List<Uri> sharedImageUris = getControllerFactory().getSharingController().getSharedFileUris();
-        Uri previewImageUri = sharedImageUris.get(0);
+        List<URI> sharedImageUris = getControllerFactory().getSharingController().getSharedFileUris();
+        URI previewImageUri = sharedImageUris.get(0);
         switch (sharedContentType) {
             case IMAGE:
                 title = String.format(getString(R.string.sharing__image_preview__title__single),
@@ -128,7 +128,7 @@ public class ImageSharingPreviewFragment extends BaseFragment<ImageSharingPrevie
         }
 
         IConversation destination = getControllerFactory().getSharingController().getDestination();
-        List<Uri> sharedImageUris = getControllerFactory().getSharingController().getSharedFileUris();
+        List<URI> sharedImageUris = getControllerFactory().getSharingController().getSharedFileUris();
         switch (sharedContentType) {
             case IMAGE:
                 getStoreFactory().getConversationStore().sendMessage(destination, ImageAssetFactory.getImageAsset(sharedImageUris.get(0)));

@@ -30,6 +30,9 @@ import android.view.View;
 
 import com.waz.api.Self;
 import com.waz.api.User;
+import com.waz.utils.AndroidURI;
+import com.waz.utils.AndroidURIUtil;
+import com.waz.utils.URI;
 import com.waz.zclient.controllers.SharingController;
 import com.waz.zclient.controllers.accentcolor.AccentColorObserver;
 import com.waz.zclient.controllers.confirmation.TwoButtonConfirmationCallback;
@@ -182,13 +185,13 @@ public class ShareActivity extends BaseActivity implements SharingConversationLi
         if (intentReader.getType().equals("text/plain")) {
             getSharingController().publishTextContent(String.valueOf(intentReader.getText()));
         } else {
-            final Set<Uri> sharedFileUris = new HashSet<>();
-            Uri stream = intentReader.getStream();
+            final Set<URI> sharedFileUris = new HashSet<>();
+            URI stream = new AndroidURI(intentReader.getStream());
             if (stream != null) {
                 sharedFileUris.add(stream);
             }
             for (int i = 0; i < intentReader.getStreamCount(); i++) {
-                stream = intentReader.getStream(i);
+                stream = new AndroidURI(intentReader.getStream(i));
                 if (stream != null) {
                     sharedFileUris.add(stream);
                 }
@@ -205,14 +208,14 @@ public class ShareActivity extends BaseActivity implements SharingConversationLi
                 contentType = SharedContentType.FILE;
             }
 
-            List<Uri> sanitisedUris = new ArrayList<>();
-            for (Uri uri : sharedFileUris) {
+            List<URI> sanitisedUris = new ArrayList<>();
+            for (URI uri : sharedFileUris) {
                 String path = AssetUtils.getPath(getApplicationContext(), uri);
                 if (path == null) {
                     Timber.e("Something went wrong, unable to retrieve path");
                     sanitisedUris.add(uri);
                 } else {
-                    sanitisedUris.add(Uri.fromFile(new File(path)));
+                    sanitisedUris.add(AndroidURIUtil.fromFile(new File(path)));
                 }
             }
 

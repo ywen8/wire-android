@@ -28,6 +28,9 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.support.v4.app.ActivityCompat;
+import com.waz.utils.AndroidURI;
+import com.waz.utils.AndroidURIUtil;
+import com.waz.utils.URI;
 import com.waz.zclient.BuildConfig;
 import com.waz.zclient.utils.PermissionUtils;
 import timber.log.Timber;
@@ -49,7 +52,7 @@ public class AssetIntentsManager {
         return (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) ? Intent.ACTION_OPEN_DOCUMENT : Intent.ACTION_GET_CONTENT;
     }
 
-    private Uri pendingFileUri;
+    private URI pendingFileUri;
     private Callback callback;
 
     public AssetIntentsManager(Activity activity, Callback callback, Bundle savedInstanceState) {
@@ -86,7 +89,7 @@ public class AssetIntentsManager {
     private void captureImage() {
         Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         pendingFileUri = getOutputMediaFileUri(IntentType.CAMERA);
-        intent.putExtra(MediaStore.EXTRA_OUTPUT, pendingFileUri);
+        intent.putExtra(MediaStore.EXTRA_OUTPUT, AndroidURIUtil.unwrap(pendingFileUri));
         callback.openIntent(intent, IntentType.CAMERA);
     }
 
@@ -101,7 +104,7 @@ public class AssetIntentsManager {
     private void captureVideo(IntentType type) {
         Intent intent = new Intent(MediaStore.ACTION_VIDEO_CAPTURE);
         pendingFileUri = getOutputMediaFileUri(IntentType.VIDEO);
-        intent.putExtra(MediaStore.EXTRA_OUTPUT, pendingFileUri);
+        intent.putExtra(MediaStore.EXTRA_OUTPUT, AndroidURIUtil.unwrap(pendingFileUri));
         if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.JELLY_BEAN_MR1) {
             intent.putExtra(MediaStore.EXTRA_VIDEO_QUALITY, 0);
         }
@@ -149,11 +152,11 @@ public class AssetIntentsManager {
                 callback.onDataReceived(type, pendingFileUri);
             pendingFileUri = null;
         } else if (data != null) {
-            Uri uri;
+            URI uri;
             if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) {
-                uri = Uri.parse(data.getDataString());
+                uri = AndroidURIUtil.parse(data.getDataString());
             } else {
-                uri = data.getData();
+                uri = new AndroidURI(data.getData());
             }
             if (uri == null) {
                 callback.onFailed(type);
@@ -172,9 +175,9 @@ public class AssetIntentsManager {
      *
      * @param type
      */
-    private static Uri getOutputMediaFileUri(IntentType type) {
+    private static URI getOutputMediaFileUri(IntentType type) {
         File file = getOutputMediaFile(type);
-        return file != null ? Uri.fromFile(file) : null;
+        return file != null ? AndroidURIUtil.fromFile(file) : null;
     }
 
     /**
@@ -304,12 +307,12 @@ public class AssetIntentsManager {
 
     public void onSaveInstanceState(Bundle outState) {
         if (pendingFileUri != null) {
-            outState.putParcelable(SAVED_STATE_PENDING_URI, pendingFileUri);
+            outState.putParcelable(SAVED_STATE_PENDING_URI, AndroidURIUtil.unwrap(pendingFileUri));
         }
     }
 
     public interface Callback {
-        void onDataReceived(IntentType type, Uri uri);
+        void onDataReceived(IntentType type, URI uri);
 
         void onCanceled(IntentType type);
 

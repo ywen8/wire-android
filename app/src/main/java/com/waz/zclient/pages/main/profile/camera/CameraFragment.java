@@ -23,7 +23,6 @@ import android.animation.ObjectAnimator;
 import android.app.Activity;
 import android.content.Intent;
 import android.graphics.Rect;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.view.LayoutInflater;
@@ -34,6 +33,7 @@ import android.widget.FrameLayout;
 import android.widget.TextView;
 import com.waz.api.ImageAsset;
 import com.waz.api.ImageAssetFactory;
+import com.waz.utils.URI;
 import com.waz.zclient.OnBackPressedListener;
 import com.waz.zclient.R;
 import com.waz.zclient.camera.CameraPreviewObserver;
@@ -124,7 +124,7 @@ public class CameraFragment extends BaseFragment<CameraFragment.Container> imple
 
         intentsManager = new AssetIntentsManager(getActivity(), new AssetIntentsManager.Callback() {
             @Override
-            public void onDataReceived(AssetIntentsManager.IntentType type, Uri uri) {
+            public void onDataReceived(AssetIntentsManager.IntentType type, URI uri) {
                 processGalleryImage(uri);
             }
 
@@ -465,7 +465,7 @@ public class CameraFragment extends BaseFragment<CameraFragment.Container> imple
         intentsManager.onActivityResult(requestCode, resultCode, data);
     }
 
-    private void processGalleryImage(Uri uri) {
+    private void processGalleryImage(URI uri) {
         imageAsset = null;
         hideCameraFeed();
         if (cameraContext != CameraContext.SIGN_UP) {

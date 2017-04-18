@@ -27,7 +27,6 @@ import android.graphics.Rect;
 import android.hardware.Sensor;
 import android.hardware.SensorManager;
 import android.media.ExifInterface;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -46,6 +45,7 @@ import com.waz.api.ImageAsset;
 import com.waz.api.ImageAssetFactory;
 import com.waz.api.LoadHandle;
 import com.waz.api.MemoryImageCache;
+import com.waz.utils.URI;
 import com.waz.zclient.BaseActivity;
 import com.waz.zclient.OnBackPressedListener;
 import com.waz.zclient.R;
@@ -443,7 +443,7 @@ public class DrawingFragment extends BaseFragment<DrawingFragment.Container> imp
     }
 
     @Override
-    public void onDataReceived(AssetIntentsManager.IntentType type, Uri uri) {
+    public void onDataReceived(AssetIntentsManager.IntentType type, URI uri) {
         switch (type) {
             case SKETCH_FROM_GALLERY:
                 drawingMethod = IDrawingController.DrawingMethod.DRAW;

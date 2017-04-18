@@ -28,6 +28,9 @@ import android.support.annotation.Nullable;
 import android.text.TextUtils;
 
 import com.waz.api.EphemeralExpiration;
+import com.waz.utils.AndroidURI;
+import com.waz.utils.AndroidURIUtil;
+import com.waz.utils.URI;
 import com.waz.zclient.LaunchActivity;
 import com.waz.zclient.MainActivity;
 import com.waz.zclient.PopupActivity;
@@ -202,13 +205,22 @@ public class IntentUtils {
         return intent;
     }
 
+    private static ArrayList<Uri> mapToAndroidUris(List<URI> uris) {
+        ArrayList<Uri> androidUris = new ArrayList<>(uris.size());
+        for(URI uri: uris) {
+            androidUris.add(AndroidURIUtil.unwrap(uri));
+        }
+        return androidUris;
+    }
+
     public static Intent getAppLaunchIntent(@NonNull Context context,
                                                  String conversationId,
-                                                 List<Uri> sharedFiles,
+                                                 List<URI> sharedFiles,
                                                  EphemeralExpiration expiration) {
         Intent intent = new Intent(context, MainActivity.class);
         intent.putExtra(EXTRA_LAUNCH_FROM_SHARING, true);
-        intent.putParcelableArrayListExtra(EXTRA_LAUNCH_CONVERSATION_FILES, new ArrayList<>(sharedFiles));
+
+        intent.putParcelableArrayListExtra(EXTRA_LAUNCH_CONVERSATION_FILES, mapToAndroidUris(sharedFiles));
         intent.putStringArrayListExtra(EXTRA_LAUNCH_CONVERSATION_IDS, new ArrayList<>(Collections.singletonList(conversationId)));
         intent.putExtra(EXTRA_LAUNCH_EPHEMERAL_EXPIRATION, expiration.milliseconds);
         return intent;
@@ -216,11 +228,11 @@ public class IntentUtils {
 
     public static Intent getAppLaunchIntent(@NonNull Context context,
                                             List<String> conversationIds,
-                                            List<Uri> sharedFiles,
+                                            List<URI> sharedFiles,
                                             EphemeralExpiration expiration) {
         Intent intent = new Intent(context, MainActivity.class);
         intent.putExtra(EXTRA_LAUNCH_FROM_SHARING, true);
-        intent.putParcelableArrayListExtra(EXTRA_LAUNCH_CONVERSATION_FILES, new ArrayList<>(sharedFiles));
+        intent.putParcelableArrayListExtra(EXTRA_LAUNCH_CONVERSATION_FILES, mapToAndroidUris(sharedFiles));
         intent.putStringArrayListExtra(EXTRA_LAUNCH_CONVERSATION_IDS, new ArrayList<>(conversationIds));
         intent.putExtra(EXTRA_LAUNCH_EPHEMERAL_EXPIRATION, expiration.milliseconds);
         return intent;
@@ -261,23 +273,24 @@ public class IntentUtils {
         return PendingIntent.getActivity(context, requestCode, intent, 0);
     }
 
-    public static PendingIntent getGalleryIntent(Context context, Uri uri) {
+    public static PendingIntent getGalleryIntent(Context context, URI uri) {
         // TODO: AN-2276 - Replace with ShareCompat.IntentBuilder
+        Uri androidUri = AndroidURIUtil.unwrap(uri);
         Intent galleryIntent = new Intent(Intent.ACTION_VIEW);
-        galleryIntent.setDataAndTypeAndNormalize(uri, IMAGE_MIME_TYPE);
-        galleryIntent.setClipData(new ClipData(null, new String[] {IMAGE_MIME_TYPE}, new ClipData.Item(uri)));
-        galleryIntent.putExtra(Intent.EXTRA_STREAM, uri);
+        galleryIntent.setDataAndTypeAndNormalize(androidUri, IMAGE_MIME_TYPE);
+        galleryIntent.setClipData(new ClipData(null, new String[] {IMAGE_MIME_TYPE}, new ClipData.Item(androidUri)));
+        galleryIntent.putExtra(Intent.EXTRA_STREAM, androidUri);
         return PendingIntent.getActivity(context, 0, galleryIntent, 0);
     }
 
-    public static PendingIntent getPendingShareIntent(Context context, Uri uri) {
+    public static PendingIntent getPendingShareIntent(Context context, URI uri) {
         Intent shareIntent = new Intent(context, ShareSavedImageActivity.class);
-        shareIntent.putExtra(Intent.EXTRA_STREAM, uri);
+        shareIntent.putExtra(Intent.EXTRA_STREAM, AndroidURIUtil.unwrap(uri));
         shareIntent.putExtra(IntentUtils.EXTRA_LAUNCH_FROM_SAVE_IMAGE_NOTIFICATION, true);
         return PendingIntent.getActivity(context, 0, shareIntent, 0);
     }
 
-    public static Intent getDebugReportIntent(Context context, Uri fileUri) {
+    public static Intent getDebugReportIntent(Context context, URI fileUri) {
         String versionName;
         try {
             PackageInfo packageInfo = context.getPackageManager().getPackageInfo(context.getPackageName(), 0);
@@ -290,7 +303,7 @@ public class IntentUtils {
         String[] to = {"support@wire.com"};
         intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
         intent.putExtra(Intent.EXTRA_EMAIL, to);
-        intent.putExtra(Intent.EXTRA_STREAM, fileUri);
+        intent.putExtra(Intent.EXTRA_STREAM, AndroidURIUtil.unwrap(fileUri));
         intent.putExtra(Intent.EXTRA_TEXT, context.getString(R.string.debug_report__body));
         intent.putExtra(Intent.EXTRA_SUBJECT, context.getString(R.string.debug_report__title, versionName));
         return intent;
@@ -309,8 +322,16 @@ public class IntentUtils {
         return intent.getStringExtra(EXTRA_LAUNCH_CONVERSATION_MESSAGE);
     }
 
-    public static List<Uri> getLaunchConversationSharedFiles(Intent intent) {
+    private static List<Uri> getParcelableArrayListExtra(Intent intent) {
         return intent.getParcelableArrayListExtra(EXTRA_LAUNCH_CONVERSATION_FILES);
+    }
+
+    public static List<URI> getLaunchConversationSharedFiles(Intent intent) {
+        List<URI> androidUris = new ArrayList<>();
+        for(Uri uri: getParcelableArrayListExtra(intent)) {
+            androidUris.add(new AndroidURI(uri));
+        }
+        return androidUris;
     }
 
     public static EphemeralExpiration getEphemeralExpiration(Intent intent) {
@@ -321,12 +342,13 @@ public class IntentUtils {
         return intent.getBooleanExtra(EXTRA_LAUNCH_START_CALL, false);
     }
 
-    public static Intent getSavedImageShareIntent(Context context, Uri uri) {
+    public static Intent getSavedImageShareIntent(Context context, URI uri) {
+        Uri androidUri = AndroidURIUtil.unwrap(uri);
         Intent shareIntent = new Intent(Intent.ACTION_SEND);
-        shareIntent.setClipData(new ClipData(null, new String[] {IMAGE_MIME_TYPE}, new ClipData.Item(uri)));
-        shareIntent.putExtra(Intent.EXTRA_STREAM, uri);
+        shareIntent.setClipData(new ClipData(null, new String[] {IMAGE_MIME_TYPE}, new ClipData.Item(androidUri)));
+        shareIntent.putExtra(Intent.EXTRA_STREAM, androidUri);
         shareIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        shareIntent.setDataAndTypeAndNormalize(uri, IMAGE_MIME_TYPE);
+        shareIntent.setDataAndTypeAndNormalize(androidUri, IMAGE_MIME_TYPE);
         return Intent.createChooser(shareIntent,
                                     context.getString(R.string.notification__image_saving__action__share));
     }

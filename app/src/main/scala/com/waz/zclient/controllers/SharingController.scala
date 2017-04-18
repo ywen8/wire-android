@@ -19,14 +19,13 @@ package com.waz.zclient.controllers
 
 import android.app.Activity
 import android.content.DialogInterface
-import android.net.Uri
 import android.support.v7.app.AlertDialog
 import android.text.format.Formatter
 import com.waz.ZLog._
 import com.waz.api._
 import com.waz.model.ConvId
 import com.waz.service.ZMessaging
-import com.waz.utils.RichFuture
+import com.waz.utils.{RichFuture, URI}
 import com.waz.utils.events.{EventContext, EventStream, Signal}
 import com.waz.zclient.controllers.SharingController.{FileContent, ImageContent, SharableContent, TextContent}
 import com.waz.zclient.utils.{IntentUtils, ViewUtils}
@@ -109,7 +108,7 @@ class SharingController(implicit injector: Injector, eventContext: EventContext)
   }
 
   //java helpers
-  def sendContent(text: String, uris: java.util.List[Uri], conversations: java.util.List[String], ephemeralExpiration: EphemeralExpiration, activity: Activity): Unit ={
+  def sendContent(text: String, uris: java.util.List[URI], conversations: java.util.List[String], ephemeralExpiration: EphemeralExpiration, activity: Activity): Unit ={
     val convIds = conversations.asScala.filter(_ != null).map(ConvId(_)).toSet
     (Option(text), Option(uris)) match {
       case (Some(t), _) =>
@@ -124,11 +123,11 @@ class SharingController(implicit injector: Injector, eventContext: EventContext)
     this.sharableContent ! Some(TextContent(text))
   }
 
-  def publishImageContent(uris: java.util.List[Uri]): Unit ={
+  def publishImageContent(uris: java.util.List[URI]): Unit ={
     this.sharableContent ! Some(ImageContent(uris.asScala))
   }
 
-  def publishFileContent(uris: java.util.List[Uri]): Unit ={
+  def publishFileContent(uris: java.util.List[URI]): Unit ={
     this.sharableContent ! Some(FileContent(uris.asScala))
   }
 }
@@ -138,7 +137,7 @@ object SharingController {
 
   case class TextContent(text: String) extends SharableContent
 
-  case class FileContent(uris: Seq[Uri]) extends SharableContent
+  case class FileContent(uris: Seq[URI]) extends SharableContent
 
-  case class ImageContent(uris: Seq[Uri]) extends SharableContent
+  case class ImageContent(uris: Seq[URI]) extends SharableContent
 }
