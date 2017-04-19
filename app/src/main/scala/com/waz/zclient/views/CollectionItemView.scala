@@ -46,7 +46,7 @@ import com.waz.zclient.views.ImageController.{ImageSource, WireImage}
 import com.waz.zclient.{R, ViewHelper}
 import org.threeten.bp.{LocalDateTime, ZoneId}
 import com.waz.ZLog.ImplicitTag._
-import com.waz.utils.AndroidURIUtil
+import com.waz.utils.wrappers.AndroidURIUtil
 
 trait CollectionItemView extends ViewHelper {
   protected lazy val civZms = inject[Signal[ZMessaging]]

@@ -28,7 +28,8 @@ import com.waz.service.assets.AssetService.BitmapResult
 import com.waz.service.images.BitmapSignal
 import com.waz.threading.Threading
 import com.waz.ui.MemoryImageCache.BitmapRequest.Single
-import com.waz.utils.{LoggedTry, URI}
+import com.waz.utils.LoggedTry
+import com.waz.utils.wrappers.URI
 import com.waz.utils.events.{EventContext, Signal}
 import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.utils.IntentUtils._

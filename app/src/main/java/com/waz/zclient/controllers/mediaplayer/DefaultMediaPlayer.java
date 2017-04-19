@@ -19,7 +19,7 @@ package com.waz.zclient.controllers.mediaplayer;
 
 import android.media.AudioManager;
 import android.media.MediaPlayer;
-import com.waz.utils.URI;
+import com.waz.utils.wrappers.URI;
 import timber.log.Timber;
 
 public class DefaultMediaPlayer implements IMediaPlayer,

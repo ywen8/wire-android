@@ -17,7 +17,7 @@
  */
 package com.waz.zclient.controllers.mediaplayer;
 
-import com.waz.utils.URI;
+import com.waz.utils.wrappers.URI;
 
 public interface IMediaPlayer {
 

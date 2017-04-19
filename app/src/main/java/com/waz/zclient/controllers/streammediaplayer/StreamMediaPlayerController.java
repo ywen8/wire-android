@@ -28,7 +28,7 @@ import com.waz.api.MediaAsset;
 import com.waz.api.MediaAssets;
 import com.waz.api.MediaProvider;
 import com.waz.api.Message;
-import com.waz.utils.URI;
+import com.waz.utils.wrappers.URI;
 import com.waz.zclient.controllers.mediaplayer.DefaultMediaPlayer;
 import com.waz.zclient.controllers.mediaplayer.IMediaPlayer;
 import com.waz.zclient.controllers.mediaplayer.MediaPlayerListener;

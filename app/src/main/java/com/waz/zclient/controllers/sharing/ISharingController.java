@@ -19,7 +19,7 @@ package com.waz.zclient.controllers.sharing;
 
 import android.app.Activity;
 import com.waz.api.IConversation;
-import com.waz.utils.URI;
+import com.waz.utils.wrappers.URI;
 
 import java.util.List;
 

@@ -18,9 +18,8 @@
 package com.waz.zclient.controllers.stubs;
 
 import android.app.Activity;
-import android.net.Uri;
 import com.waz.api.IConversation;
-import com.waz.utils.URI;
+import com.waz.utils.wrappers.URI;
 import com.waz.zclient.controllers.sharing.ISharingController;
 import com.waz.zclient.controllers.sharing.SharedContentType;
 import com.waz.zclient.controllers.sharing.SharingObserver;

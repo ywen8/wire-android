@@ -23,7 +23,7 @@ import android.support.annotation.Nullable;
 
 import com.waz.api.EphemeralExpiration;
 import com.waz.api.IConversation;
-import com.waz.utils.URI;
+import com.waz.utils.wrappers.URI;
 import com.waz.zclient.utils.IntentUtils;
 
 import java.util.HashSet;

@@ -32,9 +32,9 @@ import com.waz.service.ZMessaging
 import com.waz.service.assets.GlobalRecordAndPlayService
 import com.waz.service.assets.GlobalRecordAndPlayService.{AssetMediaKey, Content, UnauthenticatedContent}
 import com.waz.threading.Threading
-import com.waz.utils
 import com.waz.utils.events.{EventContext, EventStream, Signal}
-import com.waz.utils.{URI, returning}
+import com.waz.utils.returning
+import com.waz.utils.wrappers.URI
 import com.waz.zclient.controllers.AssetsController.PlaybackControls
 import com.waz.zclient.controllers.drawing.IDrawingController
 import com.waz.zclient.controllers.drawing.IDrawingController.DrawingMethod
@@ -220,11 +220,11 @@ class AssetsController(implicit context: Context, inj: Injector, ec: EventContex
   def saveToDownloads(asset: AssetData) =
     assets.head.flatMap(_.saveAssetToDownloads(asset)).onComplete {
       case Success(Some(file)) =>
-        val uri = utils.URI.fromFile(file)
+        val uri = URI.fromFile(file)
         val downloadManager = context.getSystemService(Context.DOWNLOAD_SERVICE).asInstanceOf[DownloadManager]
         downloadManager.addCompletedDownload(asset.name.get, asset.name.get, false, asset.mime.orDefault.str, uri.getPath, asset.sizeInBytes, true)
         Toast.makeText(context, com.waz.zclient.ui.R.string.content__file__action__save_completed, Toast.LENGTH_SHORT).show()
-        context.sendBroadcast(returning(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE))(_.setData(utils.URI.unwrap(uri))))
+        context.sendBroadcast(returning(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE))(_.setData(URI.unwrap(uri))))
       case _ =>
     }(Threading.Ui)
 }

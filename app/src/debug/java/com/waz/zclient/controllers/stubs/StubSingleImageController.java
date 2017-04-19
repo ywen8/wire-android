@@ -20,7 +20,7 @@ package com.waz.zclient.controllers.stubs;
 import android.view.View;
 import com.waz.api.Message;
 import com.waz.api.User;
-import com.waz.utils.URI;
+import com.waz.utils.wrappers.URI;
 import com.waz.zclient.controllers.singleimage.ISingleImageController;
 import com.waz.zclient.controllers.singleimage.SingleImageObserver;
 

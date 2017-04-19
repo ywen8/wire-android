@@ -17,7 +17,7 @@
  */
 package com.waz.zclient.messages.parts
 
-import com.waz.utils.AndroidURIUtil
+import com.waz.utils.wrappers.AndroidURIUtil
 import android.content.Context
 import android.util.AttributeSet
 import android.widget.{LinearLayout, TextView}

@@ -28,7 +28,7 @@ import android.os.Build;
 import com.waz.api.BugReporter;
 import com.waz.api.ReportListener;
 import com.waz.api.ZmsVersion;
-import com.waz.utils.URI;
+import com.waz.utils.wrappers.URI;
 import com.waz.zclient.R;
 import timber.log.Timber;
 

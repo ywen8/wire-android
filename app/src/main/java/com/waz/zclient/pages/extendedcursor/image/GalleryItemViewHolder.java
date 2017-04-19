@@ -21,7 +21,7 @@ import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import com.waz.api.ImageAsset;
 import com.waz.api.ImageAssetFactory;
-import com.waz.utils.AndroidURIUtil;
+import com.waz.utils.wrappers.AndroidURIUtil;
 import com.waz.zclient.views.images.ImageAssetView;
 
 import java.io.File;

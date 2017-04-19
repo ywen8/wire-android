@@ -22,7 +22,8 @@ import android.net.Uri
 import com.waz.ZLog.ImplicitTag._
 import com.waz.api.MessageContent.Location
 import com.waz.model.MessageId
-import com.waz.utils.{AndroidURIUtil, LoggedTry, URI}
+import com.waz.utils.wrappers.{AndroidURIUtil, URI}
+import com.waz.utils.LoggedTry
 import com.waz.utils.events.EventStream
 import com.waz.zclient.utils.IntentUtils
 

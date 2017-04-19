@@ -27,7 +27,7 @@ import android.view.View;
 import android.widget.TextView;
 import com.waz.api.Asset;
 
-import com.waz.utils.URI;
+import com.waz.utils.wrappers.URI;
 import com.waz.zclient.ui.R;
 import com.waz.zclient.utils.ViewUtils;
 

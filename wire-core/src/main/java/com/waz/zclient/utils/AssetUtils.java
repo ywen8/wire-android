@@ -31,9 +31,9 @@ import android.os.Environment;
 import android.provider.DocumentsContract;
 import android.provider.MediaStore;
 import android.webkit.MimeTypeMap;
-import com.waz.utils.AndroidURI;
-import com.waz.utils.AndroidURIUtil;
-import com.waz.utils.URI;
+import com.waz.utils.wrappers.AndroidURI;
+import com.waz.utils.wrappers.AndroidURIUtil;
+import com.waz.utils.wrappers.URI;
 import timber.log.Timber;
 
 import java.util.List;

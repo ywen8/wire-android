@@ -22,9 +22,9 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.PorterDuff;
-import com.waz.utils.AndroidURI;
-import com.waz.utils.AndroidURIUtil;
-import com.waz.utils.URI;
+import com.waz.utils.wrappers.AndroidURI;
+import com.waz.utils.wrappers.AndroidURIUtil;
+import com.waz.utils.wrappers.URI;
 
 import java.nio.ByteBuffer;
 import java.util.Arrays;

@@ -30,9 +30,9 @@ import android.view.View;
 
 import com.waz.api.Self;
 import com.waz.api.User;
-import com.waz.utils.AndroidURI;
-import com.waz.utils.AndroidURIUtil;
-import com.waz.utils.URI;
+import com.waz.utils.wrappers.AndroidURI;
+import com.waz.utils.wrappers.AndroidURIUtil;
+import com.waz.utils.wrappers.URI;
 import com.waz.zclient.controllers.SharingController;
 import com.waz.zclient.controllers.accentcolor.AccentColorObserver;
 import com.waz.zclient.controllers.confirmation.TwoButtonConfirmationCallback;

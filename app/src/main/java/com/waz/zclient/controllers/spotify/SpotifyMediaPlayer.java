@@ -26,7 +26,7 @@ import com.spotify.sdk.android.player.PlayerNotificationCallback;
 import com.spotify.sdk.android.player.PlayerState;
 import com.spotify.sdk.android.player.PlayerStateCallback;
 import com.spotify.sdk.android.player.Spotify;
-import com.waz.utils.URI;
+import com.waz.utils.wrappers.URI;
 import com.waz.zclient.R;
 import com.waz.zclient.controllers.mediaplayer.IMediaPlayer;
 import com.waz.zclient.controllers.mediaplayer.MediaPlayerListener;

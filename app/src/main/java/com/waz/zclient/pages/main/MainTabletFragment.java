@@ -29,7 +29,7 @@ import android.view.ViewGroup;
 import com.waz.api.ErrorsList;
 import com.waz.api.Message;
 import com.waz.api.User;
-import com.waz.utils.URI;
+import com.waz.utils.wrappers.URI;
 import com.waz.zclient.OnBackPressedListener;
 import com.waz.zclient.R;
 import com.waz.zclient.controllers.accentcolor.AccentColorObserver;

@@ -25,7 +25,8 @@ import com.waz.ZLog._
 import com.waz.api._
 import com.waz.model.ConvId
 import com.waz.service.ZMessaging
-import com.waz.utils.{RichFuture, URI}
+import com.waz.utils.RichFuture
+import com.waz.utils.wrappers.URI
 import com.waz.utils.events.{EventContext, EventStream, Signal}
 import com.waz.zclient.controllers.SharingController.{FileContent, ImageContent, SharableContent, TextContent}
 import com.waz.zclient.utils.{IntentUtils, ViewUtils}

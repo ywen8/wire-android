@@ -32,7 +32,7 @@ import com.waz.api.IConversation;
 import com.waz.api.Message;
 import com.waz.api.User;
 import com.waz.model.MessageData;
-import com.waz.utils.URI;
+import com.waz.utils.wrappers.URI;
 import com.waz.zclient.BaseActivity;
 import com.waz.zclient.OnBackPressedListener;
 import com.waz.zclient.R;

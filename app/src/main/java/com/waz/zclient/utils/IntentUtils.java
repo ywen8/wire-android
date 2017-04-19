@@ -28,9 +28,9 @@ import android.support.annotation.Nullable;
 import android.text.TextUtils;
 
 import com.waz.api.EphemeralExpiration;
-import com.waz.utils.AndroidURI;
-import com.waz.utils.AndroidURIUtil;
-import com.waz.utils.URI;
+import com.waz.utils.wrappers.AndroidURI;
+import com.waz.utils.wrappers.AndroidURIUtil;
+import com.waz.utils.wrappers.URI;
 import com.waz.zclient.LaunchActivity;
 import com.waz.zclient.MainActivity;
 import com.waz.zclient.PopupActivity;

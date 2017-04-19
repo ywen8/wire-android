@@ -22,7 +22,7 @@ import android.util.AttributeSet
 import com.waz.ZLog.ImplicitTag._
 import com.waz.ZLog._
 import com.waz.threading.Threading
-import com.waz.utils.AndroidURIUtil
+import com.waz.utils.wrappers.AndroidURIUtil
 import com.waz.utils.events.Signal
 import com.waz.zclient.controllers.global.AccentColorController
 import com.waz.zclient.controllers.{BrowserController, ScreenController}

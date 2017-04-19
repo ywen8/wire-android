@@ -32,6 +32,7 @@ import com.waz.service.ZMessaging
 import com.waz.service.messages.MessageAndLikes
 import com.waz.threading.{CancellableFuture, Threading}
 import com.waz.utils._
+import com.waz.utils.wrappers.{AndroidURIUtil, URI}
 import com.waz.utils.events.{EventContext, EventStream, Signal}
 import com.waz.zclient.common.controllers.{PermissionsController, WriteExternalStoragePermission}
 import com.waz.zclient.controllers.global.KeyboardController
