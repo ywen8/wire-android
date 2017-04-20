@@ -39,7 +39,7 @@ public class ShareSavedImageActivity extends BaseActivity {
             return;
         }
 
-        URI sharedImageUri = new AndroidURI((Uri)intent.getParcelableExtra(Intent.EXTRA_STREAM));
+        URI sharedImageUri = new AndroidURI((Uri) intent.getParcelableExtra(Intent.EXTRA_STREAM));
         if (sharedImageUri == null) {
             finish();
             return;

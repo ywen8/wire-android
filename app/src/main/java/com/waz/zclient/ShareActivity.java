@@ -19,7 +19,6 @@ package com.waz.zclient;
 
 import android.content.Context;
 import android.content.Intent;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
@@ -27,7 +26,6 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.ShareCompat;
 import android.util.AttributeSet;
 import android.view.View;
-
 import com.waz.api.Self;
 import com.waz.api.User;
 import com.waz.utils.wrappers.AndroidURI;
@@ -44,14 +42,13 @@ import com.waz.zclient.utils.AssetUtils;
 import com.waz.zclient.utils.PermissionUtils;
 import com.waz.zclient.utils.ViewUtils;
 import com.waz.zclient.views.menus.ConfirmationMenu;
+import timber.log.Timber;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
-import timber.log.Timber;
 
 public class ShareActivity extends BaseActivity implements SharingConversationListManagerFragment.Container,
                                                            AccentColorObserver,

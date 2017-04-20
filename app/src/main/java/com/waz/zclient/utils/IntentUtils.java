@@ -26,7 +26,6 @@ import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
-
 import com.waz.api.EphemeralExpiration;
 import com.waz.utils.wrappers.AndroidURI;
 import com.waz.utils.wrappers.AndroidURIUtil;
@@ -36,6 +35,7 @@ import com.waz.zclient.MainActivity;
 import com.waz.zclient.PopupActivity;
 import com.waz.zclient.R;
 import com.waz.zclient.controllers.notifications.ShareSavedImageActivity;
+import hugo.weaving.DebugLog;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
@@ -43,8 +43,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
-
-import hugo.weaving.DebugLog;
 
 public class IntentUtils {
 
@@ -205,9 +203,9 @@ public class IntentUtils {
         return intent;
     }
 
-    private static ArrayList<Uri> mapToAndroidUris(List<URI> uris) {
+    private static ArrayList<Uri> mapToAndroidUris(List<URI> uris) { //NOPMD
         ArrayList<Uri> androidUris = new ArrayList<>(uris.size());
-        for(URI uri: uris) {
+        for (URI uri: uris) {
             androidUris.add(AndroidURIUtil.unwrap(uri));
         }
         return androidUris;
@@ -328,7 +326,7 @@ public class IntentUtils {
 
     public static List<URI> getLaunchConversationSharedFiles(Intent intent) {
         List<URI> androidUris = new ArrayList<>();
-        for(Uri uri: getParcelableArrayListExtra(intent)) {
+        for (Uri uri: getParcelableArrayListExtra(intent)) {
             androidUris.add(new AndroidURI(uri));
         }
         return androidUris;
