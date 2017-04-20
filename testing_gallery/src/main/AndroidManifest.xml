@@ -84,6 +84,12 @@
             </intent-filter>
         </receiver>
 
+        <receiver android:name=".SharingCommandReceiver" >
+            <intent-filter>
+                <action android:name="com.wire.testinggallery.sharing" />
+            </intent-filter>
+        </receiver>
+
         <service
             android:name=".service.SystemNotificationListenerService"
             android:label="@string/app_name"
