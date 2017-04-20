@@ -17,11 +17,11 @@
  */
 package com.waz.zclient.controllers.mediaplayer;
 
-import android.net.Uri;
+import com.waz.utils.wrappers.URI;
 
 public interface IMediaPlayer {
 
-    void setDataSource(Uri uri);
+    void setDataSource(URI uri);
 
     void start();
 

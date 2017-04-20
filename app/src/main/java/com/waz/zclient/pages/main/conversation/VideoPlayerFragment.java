@@ -27,6 +27,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.MediaController;
 import android.widget.VideoView;
+import com.waz.utils.wrappers.AndroidURIUtil;
+import com.waz.utils.wrappers.URI;
 import com.waz.zclient.OnBackPressedListener;
 import com.waz.zclient.R;
 import com.waz.zclient.pages.BaseFragment;
@@ -56,10 +58,10 @@ public class VideoPlayerFragment extends BaseFragment<VideoPlayerFragment.Contai
         }
     };
 
-    public static VideoPlayerFragment newInstance(Uri uri) {
+    public static VideoPlayerFragment newInstance(URI uri) {
         VideoPlayerFragment fragment = new VideoPlayerFragment();
         Bundle args = new Bundle();
-        args.putParcelable(ARG_VIDEO_URI, uri);
+        args.putParcelable(ARG_VIDEO_URI, AndroidURIUtil.unwrap(uri));
         fragment.setArguments(args);
         return fragment;
     }

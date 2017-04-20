@@ -18,8 +18,8 @@
 package com.waz.zclient.controllers.stubs;
 
 import android.app.Activity;
-import android.net.Uri;
 import com.waz.api.IConversation;
+import com.waz.utils.wrappers.URI;
 import com.waz.zclient.controllers.sharing.ISharingController;
 import com.waz.zclient.controllers.sharing.SharedContentType;
 import com.waz.zclient.controllers.sharing.SharingObserver;
@@ -29,17 +29,17 @@ import java.util.List;
 
 public class StubSharingController implements ISharingController {
   @Override
-  public void setSharedUris(List<Uri> imageUris) {
+  public void setSharedUris(List<URI> imageUris) {
 
   }
 
   @Override
-  public List<Uri> getSharedFileUris() {
+  public List<URI> getSharedFileUris() {
     return null;
   }
 
   @Override
-  public void onContentShared(Activity activity, IConversation toConversation, List<Uri> sharedUris) {
+  public void onContentShared(Activity activity, IConversation toConversation, List<URI> sharedUris) {
 
   }
 

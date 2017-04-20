@@ -22,7 +22,6 @@ import android.animation.ValueAnimator.AnimatorUpdateListener
 import android.content.Context
 import android.graphics._
 import android.graphics.drawable.Drawable
-import android.net.Uri
 import android.renderscript.{Allocation, Element, RenderScript, ScriptIntrinsicBlur}
 import com.waz.model.AssetData.{IsImage, IsVideo}
 import com.waz.model._
@@ -39,6 +38,7 @@ import com.waz.zclient.views.ImageAssetDrawable.{RequestBuilder, ScaleType, Stat
 import com.waz.zclient.views.ImageController._
 import com.waz.zclient.{Injectable, Injector}
 import com.waz.ZLog.ImplicitTag._
+import com.waz.utils.wrappers.URI
 
 //TODO could merge with logic from the ChatheadView to make a very general drawable for our app
 class ImageAssetDrawable(
@@ -283,7 +283,7 @@ class ImageController(implicit inj: Injector) extends Injectable {
       res <- BitmapSignal(data, req, zms.imageLoader, zms.imageCache)
     } yield res
 
-  def imageSignal(uri: Uri, req: BitmapRequest): Signal[BitmapResult] =
+  def imageSignal(uri: URI, req: BitmapRequest): Signal[BitmapResult] =
     BitmapSignal(AssetData(source = Some(uri)), req, ZMessaging.currentGlobal.imageLoader, ZMessaging.currentGlobal.imageCache)
 
   def imageSignal(data: AssetData, req: BitmapRequest): Signal[BitmapResult] =
@@ -301,5 +301,5 @@ object ImageController {
   sealed trait ImageSource
   case class WireImage(id: AssetId) extends ImageSource
   case class DataImage(data: AssetData) extends ImageSource
-  case class ImageUri(uri: Uri) extends ImageSource
+  case class ImageUri(uri: URI) extends ImageSource
 }

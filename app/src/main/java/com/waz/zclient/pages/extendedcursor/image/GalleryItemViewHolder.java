@@ -17,11 +17,11 @@
  */
 package com.waz.zclient.pages.extendedcursor.image;
 
-import android.net.Uri;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import com.waz.api.ImageAsset;
 import com.waz.api.ImageAssetFactory;
+import com.waz.utils.wrappers.AndroidURIUtil;
 import com.waz.zclient.views.images.ImageAssetView;
 
 import java.io.File;
@@ -51,7 +51,7 @@ public class GalleryItemViewHolder extends RecyclerView.ViewHolder {
     }
 
     public void setPath(String path) {
-        asset = ImageAssetFactory.getImageAsset(Uri.fromFile(new File(path)));
+        asset = ImageAssetFactory.getImageAsset(AndroidURIUtil.fromFile(new File(path)));
         imageView.setImageAsset(asset);
     }
 }

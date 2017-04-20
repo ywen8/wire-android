@@ -19,7 +19,6 @@ package com.waz.zclient.controllers
 
 import android.app.DownloadManager
 import android.content.{Context, Intent}
-import android.net.Uri
 import android.support.v7.app.AppCompatDialog
 import android.text.TextUtils
 import android.util.TypedValue
@@ -35,6 +34,7 @@ import com.waz.service.assets.GlobalRecordAndPlayService.{AssetMediaKey, Content
 import com.waz.threading.Threading
 import com.waz.utils.events.{EventContext, EventStream, Signal}
 import com.waz.utils.returning
+import com.waz.utils.wrappers.URI
 import com.waz.zclient.controllers.AssetsController.PlaybackControls
 import com.waz.zclient.controllers.drawing.IDrawingController
 import com.waz.zclient.controllers.drawing.IDrawingController.DrawingMethod
@@ -169,7 +169,7 @@ class AssetsController(implicit context: Context, inj: Injector, ec: EventContex
       // TODO: display error
     }
 
-  def showOpenFileDialog(uri: Uri, asset: AssetData) = {
+  def showOpenFileDialog(uri: URI, asset: AssetData) = {
     val intent = AssetUtils.getOpenFileIntent(uri, asset.mime.orDefault.str)
     val fileCanBeOpened = AssetUtils.fileTypeCanBeOpened(context.getPackageManager, intent)
 
@@ -220,11 +220,11 @@ class AssetsController(implicit context: Context, inj: Injector, ec: EventContex
   def saveToDownloads(asset: AssetData) =
     assets.head.flatMap(_.saveAssetToDownloads(asset)).onComplete {
       case Success(Some(file)) =>
-        val uri = Uri.fromFile(file)
+        val uri = URI.fromFile(file)
         val downloadManager = context.getSystemService(Context.DOWNLOAD_SERVICE).asInstanceOf[DownloadManager]
         downloadManager.addCompletedDownload(asset.name.get, asset.name.get, false, asset.mime.orDefault.str, uri.getPath, asset.sizeInBytes, true)
         Toast.makeText(context, com.waz.zclient.ui.R.string.content__file__action__save_completed, Toast.LENGTH_SHORT).show()
-        context.sendBroadcast(returning(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE))(_.setData(uri)))
+        context.sendBroadcast(returning(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE))(_.setData(URI.unwrap(uri))))
       case _ =>
     }(Threading.Ui)
 }

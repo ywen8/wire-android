@@ -19,11 +19,11 @@ package com.waz.zclient.controllers.sharing;
 
 import android.app.Activity;
 import android.content.Intent;
-import android.net.Uri;
 import android.support.annotation.Nullable;
 
 import com.waz.api.EphemeralExpiration;
 import com.waz.api.IConversation;
+import com.waz.utils.wrappers.URI;
 import com.waz.zclient.utils.IntentUtils;
 
 import java.util.HashSet;
@@ -35,7 +35,7 @@ public class SharingController implements ISharingController {
     private SharedContentType sharedContentType;
 
     private String sharedText;
-    private List<Uri> sharedFileUris;
+    private List<URI> sharedFileUris;
     private String conversationId;
     private Set<SharingObserver> observerSet = new HashSet<>();
     private IConversation destination;
@@ -80,12 +80,12 @@ public class SharingController implements ISharingController {
     }
 
     @Override
-    public void setSharedUris(List<Uri> imageUris) {
+    public void setSharedUris(List<URI> imageUris) {
         sharedFileUris = imageUris;
     }
 
     @Override
-    public List<Uri> getSharedFileUris() {
+    public List<URI> getSharedFileUris() {
         return sharedFileUris;
     }
 
@@ -103,7 +103,7 @@ public class SharingController implements ISharingController {
     }
 
     @Override
-    public void onContentShared(Activity activity, IConversation toConversation, List<Uri> sharedUris) {
+    public void onContentShared(Activity activity, IConversation toConversation, List<URI> sharedUris) {
         Intent i = IntentUtils.getAppLaunchIntent(activity,
                                                   toConversation == null ? null : toConversation.getId(),
                                                   sharedUris,

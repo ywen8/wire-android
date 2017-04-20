@@ -17,10 +17,10 @@
  */
 package com.waz.zclient.controllers.stubs;
 
-import android.net.Uri;
 import android.view.View;
 import com.waz.api.Message;
 import com.waz.api.User;
+import com.waz.utils.wrappers.URI;
 import com.waz.zclient.controllers.singleimage.ISingleImageController;
 import com.waz.zclient.controllers.singleimage.SingleImageObserver;
 
@@ -87,7 +87,7 @@ public class StubSingleImageController implements ISingleImageController {
     }
 
     @Override
-    public void showVideo(Uri uri) {
+    public void showVideo(URI uri) {
 
     }
 

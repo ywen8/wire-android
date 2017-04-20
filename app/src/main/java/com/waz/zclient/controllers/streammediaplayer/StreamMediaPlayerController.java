@@ -22,13 +22,13 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.media.AudioManager;
-import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.telephony.TelephonyManager;
 import com.waz.api.MediaAsset;
 import com.waz.api.MediaAssets;
 import com.waz.api.MediaProvider;
 import com.waz.api.Message;
+import com.waz.utils.wrappers.URI;
 import com.waz.zclient.controllers.mediaplayer.DefaultMediaPlayer;
 import com.waz.zclient.controllers.mediaplayer.IMediaPlayer;
 import com.waz.zclient.controllers.mediaplayer.MediaPlayerListener;
@@ -205,7 +205,7 @@ public class StreamMediaPlayerController implements IStreamMediaPlayerController
             }
             mediaAsset.prepareStreaming(new MediaAsset.StreamingCallback() {
                 @Override
-                public void onSuccess(List<Uri> uris) {
+                public void onSuccess(List<URI> uris) {
                     if (uris.size() > 0) {
                         setTrack(message, mediaAsset);
                         setMediaPlayerInstance(mediaAsset.getProvider());

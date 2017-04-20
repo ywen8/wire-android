@@ -18,8 +18,8 @@
 package com.waz.zclient.controllers.sharing;
 
 import android.app.Activity;
-import android.net.Uri;
 import com.waz.api.IConversation;
+import com.waz.utils.wrappers.URI;
 
 import java.util.List;
 
@@ -39,15 +39,15 @@ public interface ISharingController {
 
     String getSharedText();
 
-    void setSharedUris(List<Uri> imageUris);
+    void setSharedUris(List<URI> imageUris);
 
-    List<Uri> getSharedFileUris();
+    List<URI> getSharedFileUris();
 
     void onContentShared(Activity activity, IConversation toConversation);
 
     void onContentShared(Activity activity, IConversation toConversation, String sharedText);
 
-    void onContentShared(Activity activity, IConversation toConversation, List<Uri> sharedUris);
+    void onContentShared(Activity activity, IConversation toConversation, List<URI> sharedUris);
 
     void setSharingConversationId(String conversationId);
 

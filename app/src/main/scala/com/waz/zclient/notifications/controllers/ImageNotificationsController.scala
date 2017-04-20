@@ -19,7 +19,6 @@ package com.waz.zclient.notifications.controllers
 
 import android.app.NotificationManager
 import android.graphics.Bitmap
-import android.net.Uri
 import android.support.v4.app.NotificationCompat
 import com.waz.ZLog._
 import com.waz.bitmap.BitmapUtils
@@ -30,6 +29,7 @@ import com.waz.service.images.BitmapSignal
 import com.waz.threading.Threading
 import com.waz.ui.MemoryImageCache.BitmapRequest.Single
 import com.waz.utils.LoggedTry
+import com.waz.utils.wrappers.URI
 import com.waz.utils.events.{EventContext, Signal}
 import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.utils.IntentUtils._
@@ -43,9 +43,9 @@ class ImageNotificationsController(implicit cxt: WireContext, eventContext: Even
   val notManager = inject[NotificationManager]
 
   val savedImageId = Signal[Option[AssetId]](None)
-  val savedImageUri = Signal[Uri]()
+  val savedImageUri = Signal[URI]()
 
-  def showImageSavedNotification(imageId: String, uri: Uri) = Option(imageId).map(AssetId).zip(Option(uri)).foreach {
+  def showImageSavedNotification(imageId: String, uri: URI) = Option(imageId).map(AssetId).zip(Option(uri)).foreach {
     case (id, ur) =>
       savedImageId ! Some(id)
       savedImageUri ! uri
@@ -69,7 +69,7 @@ class ImageNotificationsController(implicit cxt: WireContext, eventContext: Even
     case (_, uri) => showBitmap(null, uri)
   }
 
-  private def showBitmap(bitmap: Bitmap, uri: Uri): Unit = {
+  private def showBitmap(bitmap: Bitmap, uri: URI): Unit = {
     val summaryText = getString(R.string.notification__image_saving__content__subtitle)
     val notificationTitle = getString(R.string.notification__image_saving__content__title)
 

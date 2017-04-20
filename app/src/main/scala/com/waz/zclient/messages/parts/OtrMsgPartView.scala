@@ -18,15 +18,15 @@
 package com.waz.zclient.messages.parts
 
 import android.content.Context
-import android.net.Uri
 import android.util.AttributeSet
 import com.waz.ZLog.ImplicitTag._
 import com.waz.ZLog._
 import com.waz.threading.Threading
+import com.waz.utils.wrappers.AndroidURIUtil
 import com.waz.utils.events.Signal
 import com.waz.zclient.controllers.global.AccentColorController
 import com.waz.zclient.controllers.{BrowserController, ScreenController}
-import com.waz.zclient.messages.{MessageViewPart, MsgPart, UsersController, SystemMessageView}
+import com.waz.zclient.messages.{MessageViewPart, MsgPart, SystemMessageView, UsersController}
 import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.{R, ViewHelper}
 
@@ -86,8 +86,8 @@ class OtrMsgPartView(context: Context, attrs: AttributeSet, style: Int) extends 
         case (OTR_UNVERIFIED | OTR_DEVICE_ADDED | OTR_MEMBER_ADDED, true)  => screenController.openOtrDevicePreferences()
         case (OTR_UNVERIFIED | OTR_DEVICE_ADDED | OTR_MEMBER_ADDED, false) => screenController.showParticipants(this, showDeviceTabIfSingle = true)
         case (STARTED_USING_DEVICE, _)                  => screenController.openOtrDevicePreferences()
-        case (OTR_ERROR, _)                             => browserController.openUrl(Uri parse getString(R.string.url_otr_decryption_error_1))
-        case (OTR_IDENTITY_CHANGED, _)                  => browserController.openUrl(Uri parse getString(R.string.url_otr_decryption_error_2))
+        case (OTR_ERROR, _)                             => browserController.openUrl(AndroidURIUtil parse getString(R.string.url_otr_decryption_error_1))
+        case (OTR_IDENTITY_CHANGED, _)                  => browserController.openUrl(AndroidURIUtil parse getString(R.string.url_otr_decryption_error_2))
         case _ =>
           info(s"unhandled help link click for $msg")
       }

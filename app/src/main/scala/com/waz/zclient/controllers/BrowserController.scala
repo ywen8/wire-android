@@ -22,6 +22,7 @@ import android.net.Uri
 import com.waz.ZLog.ImplicitTag._
 import com.waz.api.MessageContent.Location
 import com.waz.model.MessageId
+import com.waz.utils.wrappers.{AndroidURIUtil, URI}
 import com.waz.utils.LoggedTry
 import com.waz.utils.events.EventStream
 import com.waz.zclient.utils.IntentUtils
@@ -30,12 +31,12 @@ class BrowserController(implicit context: Context) {
 
   val onYoutubeLinkOpened = EventStream[MessageId]()
 
-  def normalizeHttp(uri: Uri) =
+  private def normalizeHttp(uri: Uri) =
     if (uri.getScheme == null) uri.buildUpon().scheme("http").build()
     else uri.normalizeScheme()
 
-  def openUrl(uri: Uri) = LoggedTry {
-    val intent = new Intent(Intent.ACTION_VIEW, normalizeHttp(uri))
+  def openUrl(uri: URI) = LoggedTry {
+    val intent = new Intent(Intent.ACTION_VIEW, normalizeHttp(AndroidURIUtil.unwrap(uri)))
     intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
     context.startActivity(intent)
   }

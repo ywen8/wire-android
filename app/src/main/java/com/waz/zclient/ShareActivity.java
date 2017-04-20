@@ -19,7 +19,6 @@ package com.waz.zclient;
 
 import android.content.Context;
 import android.content.Intent;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
@@ -27,9 +26,11 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.ShareCompat;
 import android.util.AttributeSet;
 import android.view.View;
-
 import com.waz.api.Self;
 import com.waz.api.User;
+import com.waz.utils.wrappers.AndroidURI;
+import com.waz.utils.wrappers.AndroidURIUtil;
+import com.waz.utils.wrappers.URI;
 import com.waz.zclient.controllers.SharingController;
 import com.waz.zclient.controllers.accentcolor.AccentColorObserver;
 import com.waz.zclient.controllers.confirmation.TwoButtonConfirmationCallback;
@@ -41,14 +42,13 @@ import com.waz.zclient.utils.AssetUtils;
 import com.waz.zclient.utils.PermissionUtils;
 import com.waz.zclient.utils.ViewUtils;
 import com.waz.zclient.views.menus.ConfirmationMenu;
+import timber.log.Timber;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
-import timber.log.Timber;
 
 public class ShareActivity extends BaseActivity implements SharingConversationListManagerFragment.Container,
                                                            AccentColorObserver,
@@ -182,13 +182,13 @@ public class ShareActivity extends BaseActivity implements SharingConversationLi
         if (intentReader.getType().equals("text/plain")) {
             getSharingController().publishTextContent(String.valueOf(intentReader.getText()));
         } else {
-            final Set<Uri> sharedFileUris = new HashSet<>();
-            Uri stream = intentReader.getStream();
+            final Set<URI> sharedFileUris = new HashSet<>();
+            URI stream = new AndroidURI(intentReader.getStream());
             if (stream != null) {
                 sharedFileUris.add(stream);
             }
             for (int i = 0; i < intentReader.getStreamCount(); i++) {
-                stream = intentReader.getStream(i);
+                stream = new AndroidURI(intentReader.getStream(i));
                 if (stream != null) {
                     sharedFileUris.add(stream);
                 }
@@ -205,14 +205,14 @@ public class ShareActivity extends BaseActivity implements SharingConversationLi
                 contentType = SharedContentType.FILE;
             }
 
-            List<Uri> sanitisedUris = new ArrayList<>();
-            for (Uri uri : sharedFileUris) {
+            List<URI> sanitisedUris = new ArrayList<>();
+            for (URI uri : sharedFileUris) {
                 String path = AssetUtils.getPath(getApplicationContext(), uri);
                 if (path == null) {
                     Timber.e("Something went wrong, unable to retrieve path");
                     sanitisedUris.add(uri);
                 } else {
-                    sanitisedUris.add(Uri.fromFile(new File(path)));
+                    sanitisedUris.add(AndroidURIUtil.fromFile(new File(path)));
                 }
             }
 

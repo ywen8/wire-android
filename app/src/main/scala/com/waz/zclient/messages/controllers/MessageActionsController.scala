@@ -22,7 +22,6 @@ import java.util
 import android.app.{Activity, ProgressDialog}
 import android.content.DialogInterface.OnDismissListener
 import android.content._
-import android.net.Uri
 import android.support.v4.app.{FragmentManager, ShareCompat}
 import android.support.v7.app.AlertDialog
 import android.widget.Toast
@@ -33,6 +32,7 @@ import com.waz.service.ZMessaging
 import com.waz.service.messages.MessageAndLikes
 import com.waz.threading.{CancellableFuture, Threading}
 import com.waz.utils._
+import com.waz.utils.wrappers.{AndroidURIUtil, URI}
 import com.waz.utils.events.{EventContext, EventStream, Signal}
 import com.waz.zclient.common.controllers.{PermissionsController, WriteExternalStoragePermission}
 import com.waz.zclient.controllers.global.KeyboardController
@@ -184,12 +184,12 @@ class MessageActionsController(implicit injector: Injector, ctx: Context, ec: Ev
         getString(R.string.conversation__action_mode__fwd__dialog__title),
         getString(R.string.conversation__action_mode__fwd__dialog__message), true, true, null)
 
-      asset.getContentUri(new Asset.LoadCallback[Uri]() {
-        def onLoaded(uri: Uri): Unit = {
+      asset.getContentUri(new Asset.LoadCallback[URI]() {
+        def onLoaded(uri: URI): Unit = {
           dialog.dismiss()
           val mimeType = asset.getMimeType
           intentBuilder.setType(if (mimeType.equals("text/plain")) "text/*" else mimeType)
-          intentBuilder.addStream(uri)
+          intentBuilder.addStream(AndroidURIUtil.unwrap(uri))
           intentBuilder.startChooser()
         }
         def onLoadFailed(): Unit = {
@@ -205,7 +205,7 @@ class MessageActionsController(implicit injector: Injector, ctx: Context, ec: Ev
       if (message.getMessageType == Message.Type.ASSET) { // TODO: simplify once SE asset v3 is merged, we should be able to handle that without special conditions
         val asset = message.getImage
         asset.saveImageToGallery(new ImageAsset.SaveCallback() {
-          def imageSaved(uri: Uri): Unit = {
+          def imageSaved(uri: URI): Unit = {
             imageNotifications.showImageSavedNotification(asset.getId, uri)
             Toast.makeText(context, R.string.message_bottom_menu_action_save_ok, Toast.LENGTH_SHORT).show()
           }
@@ -215,11 +215,11 @@ class MessageActionsController(implicit injector: Injector, ctx: Context, ec: Ev
       } else {
         val dialog = ProgressDialog.show(context, getString(R.string.conversation__action_mode__fwd__dialog__title), getString(R.string.conversation__action_mode__fwd__dialog__message), true, true, null)
         val asset = message.getAsset
-        asset.saveToDownloads(new Asset.LoadCallback[Uri]() {
-          def onLoaded(uri: Uri): Unit = {
+        asset.saveToDownloads(new Asset.LoadCallback[URI]() {
+          def onLoaded(uri: URI): Unit = {
             onAssetSaved ! asset
             Toast.makeText(context, com.waz.zclient.ui.R.string.content__file__action__save_completed, Toast.LENGTH_SHORT).show()
-            context.sendBroadcast(returning(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE))(_.setData(uri)))
+            context.sendBroadcast(returning(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE))(_.setData(AndroidURIUtil.unwrap(uri))))
             dialog.dismiss()
           }
 

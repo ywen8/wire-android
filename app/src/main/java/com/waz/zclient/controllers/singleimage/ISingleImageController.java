@@ -17,10 +17,10 @@
  */
 package com.waz.zclient.controllers.singleimage;
 
-import android.net.Uri;
 import android.view.View;
 import com.waz.api.Message;
 import com.waz.api.User;
+import com.waz.utils.wrappers.URI;
 
 public interface ISingleImageController {
     void addSingleImageObserver(SingleImageObserver observer);
@@ -47,7 +47,7 @@ public interface ISingleImageController {
 
     void showSingleImage(User user);
 
-    void showVideo(Uri uri);
+    void showVideo(URI uri);
 
     void hideVideo();
 }

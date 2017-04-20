@@ -33,6 +33,7 @@ import com.waz.api.ImageAsset;
 import com.waz.api.ImageAssetFactory;
 import com.waz.api.LoadHandle;
 import com.waz.api.Self;
+import com.waz.utils.wrappers.AndroidURIUtil;
 import com.waz.zclient.controllers.navigation.NavigationControllerObserver;
 import com.waz.zclient.controllers.navigation.Page;
 import com.waz.zclient.controllers.tracking.screens.ApplicationScreen;
@@ -155,7 +156,7 @@ public class AppEntryActivity extends BaseActivity implements VerifyPhoneFragmen
         accentColor = getResources().getColor(R.color.text__primary_dark);
 
         if (unsplashInitLoadHandle == null && unsplashInitImageAsset == null) {
-            unsplashInitImageAsset = ImageAssetFactory.getImageAsset(Uri.parse(UNSPLASH_API_URL));
+            unsplashInitImageAsset = ImageAssetFactory.getImageAsset(AndroidURIUtil.parse(UNSPLASH_API_URL));
 
             // This is just to force that SE will download the image so that it is probably ready when we are at the
             // set picture screen

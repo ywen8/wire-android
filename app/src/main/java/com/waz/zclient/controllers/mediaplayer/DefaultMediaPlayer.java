@@ -19,7 +19,7 @@ package com.waz.zclient.controllers.mediaplayer;
 
 import android.media.AudioManager;
 import android.media.MediaPlayer;
-import android.net.Uri;
+import com.waz.utils.wrappers.URI;
 import timber.log.Timber;
 
 public class DefaultMediaPlayer implements IMediaPlayer,
@@ -33,7 +33,7 @@ public class DefaultMediaPlayer implements IMediaPlayer,
     private MediaPlayerListener listener;
     private MediaPlayer mediaPlayer;
     private MediaPlayerState mediaPlayerState;
-    private Uri dataSource;
+    private URI dataSource;
 
     public DefaultMediaPlayer() {
         mediaPlayer = new MediaPlayer();
@@ -45,7 +45,7 @@ public class DefaultMediaPlayer implements IMediaPlayer,
     }
 
     @Override
-    public void setDataSource(Uri uri) {
+    public void setDataSource(URI uri) {
         this.dataSource = uri;
         try {
             if (mediaPlayerState.isSetDatasourceAllowed()) {

@@ -17,8 +17,8 @@
  */
 package com.waz.zclient.messages.parts
 
+import com.waz.utils.wrappers.AndroidURIUtil
 import android.content.Context
-import android.net.Uri
 import android.util.AttributeSet
 import android.widget.{LinearLayout, TextView}
 import com.waz.threading.Threading
@@ -50,7 +50,7 @@ class ConnectRequestPartView(context: Context, attrs: AttributeSet, style: Int) 
     case true =>
       label.setText(R.string.content__message__connect_request__auto_connect__footer)
       TextViewUtils.linkifyText(label, label.getCurrentTextColor, true, true, new Runnable() {
-        override def run() = browser.openUrl(Uri parse getString(R.string.url__help))
+        override def run() = browser.openUrl(AndroidURIUtil parse getString(R.string.url__help))
       })
     case false =>
       label.setText(R.string.content__message__connect_request__footer)

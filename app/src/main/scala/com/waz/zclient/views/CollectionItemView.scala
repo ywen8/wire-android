@@ -18,7 +18,6 @@
 package com.waz.zclient.views
 
 import android.content.Context
-import android.net.Uri
 import android.support.v7.widget.{CardView, RecyclerView}
 import android.text.format.DateFormat
 import android.util.AttributeSet
@@ -47,6 +46,7 @@ import com.waz.zclient.views.ImageController.{ImageSource, WireImage}
 import com.waz.zclient.{R, ViewHelper}
 import org.threeten.bp.{LocalDateTime, ZoneId}
 import com.waz.ZLog.ImplicitTag._
+import com.waz.utils.wrappers.AndroidURIUtil
 
 trait CollectionItemView extends ViewHelper {
   protected lazy val civZms = inject[Signal[ZMessaging]]
@@ -180,7 +180,7 @@ class CollectionSimpleWebLinkPartView(context: Context, attrs: AttributeSet, sty
   urlText.on(Threading.Ui){ urlTextView.setText }
 
   onClicked{ _ =>
-    urlText.currentValue foreach { c => browser.openUrl(Uri.parse(c)) }
+    urlText.currentValue foreach { c => browser.openUrl(AndroidURIUtil.parse(c)) }
   }
 }
 

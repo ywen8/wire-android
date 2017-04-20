@@ -22,7 +22,9 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.PorterDuff;
-import android.net.Uri;
+import com.waz.utils.wrappers.AndroidURI;
+import com.waz.utils.wrappers.AndroidURIUtil;
+import com.waz.utils.wrappers.URI;
 
 import java.nio.ByteBuffer;
 import java.util.Arrays;
@@ -68,21 +70,21 @@ public class StringUtils {
         return formatTimeSeconds(totalSeconds);
     }
 
-    public static Uri normalizeUri(Uri uri) {
+    public static URI normalizeUri(URI uri) {
         if (uri == null) {
             return uri;
         }
-        Uri normalized = uri.normalizeScheme();
+        URI normalized = uri.normalizeScheme();
         if (normalized.getAuthority() != null) {
-            normalized = normalized
+            normalized = new AndroidURI(AndroidURIUtil.unwrap(normalized)
                 .buildUpon()
                 .encodedAuthority(normalized.getAuthority().toLowerCase(Locale.getDefault()))
-                .build();
+                .build());
         }
-        return Uri.parse(trimLinkPreviewUrls(normalized));
+        return AndroidURIUtil.parse(trimLinkPreviewUrls(normalized));
     }
 
-    public static String trimLinkPreviewUrls(Uri uri) {
+    public static String trimLinkPreviewUrls(URI uri) {
         if (uri == null) {
             return "";
         }

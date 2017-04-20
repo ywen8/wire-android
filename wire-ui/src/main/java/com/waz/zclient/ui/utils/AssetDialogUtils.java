@@ -18,7 +18,6 @@
 package com.waz.zclient.ui.utils;
 
 import android.content.Context;
-import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatDialog;
 import android.text.TextUtils;
@@ -28,12 +27,13 @@ import android.view.View;
 import android.widget.TextView;
 import com.waz.api.Asset;
 
+import com.waz.utils.wrappers.URI;
 import com.waz.zclient.ui.R;
 import com.waz.zclient.utils.ViewUtils;
 
 public class AssetDialogUtils {
 
-    public static void showFileActionSheet(final Context context, final Asset asset, final Uri uri, boolean fileCanBeOpened, final AssetDialogCallback callback) {
+    public static void showFileActionSheet(final Context context, final Asset asset, final URI uri, boolean fileCanBeOpened, final AssetDialogCallback callback) {
         final AppCompatDialog fileActionSheetDialog = new AppCompatDialog(context);
         fileActionSheetDialog.setTitle(asset.getName());
         fileActionSheetDialog.setContentView(R.layout.file_action_sheet_dialog);
@@ -67,9 +67,9 @@ public class AssetDialogUtils {
         }
 
         // Saving file
-        final Asset.LoadCallback<Uri> saveFileLoadCallback = new Asset.LoadCallback<Uri>() {
+        final Asset.LoadCallback<URI> saveFileLoadCallback = new Asset.LoadCallback<URI>() {
             @Override
-            public void onLoaded(Uri uri) {
+            public void onLoaded(URI uri) {
                 callback.onSavedFile(uri);
             }
 
@@ -90,8 +90,8 @@ public class AssetDialogUtils {
     }
 
     public interface AssetDialogCallback {
-        void onOpenedFile(@NonNull Uri uri);
+        void onOpenedFile(@NonNull URI uri);
 
-        void onSavedFile(@NonNull Uri uri);
+        void onSavedFile(@NonNull URI uri);
     }
 }
