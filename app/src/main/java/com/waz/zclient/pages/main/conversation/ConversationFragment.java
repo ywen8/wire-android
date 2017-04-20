@@ -29,7 +29,6 @@ import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.ActionMenuView;
 import android.support.v7.widget.Toolbar;
@@ -94,7 +93,6 @@ import com.waz.zclient.controllers.navigation.Page;
 import com.waz.zclient.controllers.navigation.PagerControllerObserver;
 import com.waz.zclient.controllers.permission.RequestPermissionsObserver;
 import com.waz.zclient.controllers.singleimage.SingleImageObserver;
-import com.waz.zclient.controllers.streammediaplayer.StreamMediaBarObserver;
 import com.waz.zclient.controllers.tracking.events.conversation.EditedMessageEvent;
 import com.waz.zclient.controllers.tracking.events.navigation.OpenedMoreActionsEvent;
 import com.waz.zclient.conversation.CollectionController;
@@ -129,7 +127,6 @@ import com.waz.zclient.pages.extendedcursor.voicefilter.VoiceFilterLayout;
 import com.waz.zclient.pages.main.calling.enums.VoiceBarAppearance;
 import com.waz.zclient.pages.main.conversation.views.MessageBottomSheetDialog;
 import com.waz.zclient.pages.main.conversation.views.TypingIndicatorView;
-import com.waz.zclient.pages.main.conversation.views.header.StreamMediaPlayerBarFragment;
 import com.waz.zclient.pages.main.conversationlist.ConversationListAnimation;
 import com.waz.zclient.pages.main.conversationpager.controller.SlidingPaneObserver;
 import com.waz.zclient.pages.main.onboarding.OnBoardingHintFragment;
@@ -159,15 +156,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import timber.log.Timber;
-
 public class ConversationFragment extends BaseFragment<ConversationFragment.Container> implements ConversationStoreObserver,
                                                                                                   CallingObserver,
                                                                                                   OnBoardingHintFragment.Container,
                                                                                                   KeyboardVisibilityObserver,
                                                                                                   AccentColorObserver,
-                                                                                                  StreamMediaPlayerBarFragment.Container,
-                                                                                                  StreamMediaBarObserver,
                                                                                                   ParticipantsStoreObserver,
                                                                                                   InAppNotificationStoreObserver,
                                                                                                   NavigationControllerObserver,
@@ -209,7 +202,6 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
     private TypingIndicatorView typingIndicatorView;
     private LoadingIndicatorView conversationLoadingIndicatorViewView;
 
-    private StreamMediaPlayerBarFragment streamMediaBarFragment;
     private FrameLayout invisibleFooter;
 
     private IConversation.Type toConversationType;
@@ -533,7 +525,6 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
             getControllerFactory().getMentioningController().addObserver(this);
         }
 
-//        messagesListModelObserver.resumeListening();
         syncIndicatorModelObserver.resumeListening();
         audioMessageRecordingView.setDarkTheme(getControllerFactory().getThemeController().isDarkTheme());
 
@@ -547,7 +538,6 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
 
         getControllerFactory().getGiphyController().addObserver(this);
         getControllerFactory().getSingleImageController().addSingleImageObserver(this);
-        getControllerFactory().getStreamMediaPlayerController().addStreamMediaBarObserver(this);
         getControllerFactory().getAccentColorController().addAccentColorObserver(this);
         getStoreFactory().getParticipantsStore().addParticipantsStoreObserver(this);
         getControllerFactory().getGlobalLayoutController().addKeyboardVisibilityObserver(this);
@@ -605,7 +595,6 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
         }
         getStoreFactory().getInAppNotificationStore().removeInAppNotificationObserver(this);
         getStoreFactory().getParticipantsStore().removeParticipantsStoreObserver(this);
-        getControllerFactory().getStreamMediaPlayerController().removeStreamMediaBarObserver(this);
         getControllerFactory().getGlobalLayoutController().removeKeyboardVisibilityObserver(this);
         getControllerFactory().getNavigationController().removePagerControllerObserver(this);
 
@@ -798,9 +787,6 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
                 }
 
 
-                if (!getControllerFactory().getStreamMediaPlayerController().isSelectedConversation(toConversation.getId())) {
-                    onHideMediaBar();
-                }
                 if (inputStateIndicator != null) {
                     inputStateIndicator.getTypingUsers().removeUpdateListener(typingListener);
                 }
@@ -948,13 +934,6 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
         }
     }
 
-    public boolean isKeyboardUp() {
-        if (getControllerFactory() == null || getControllerFactory().isTornDown()) {
-            return false;
-        }
-        return getControllerFactory().getGlobalLayoutController().isKeyboardVisible();
-    }
-
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         assetIntentsManager.onActivityResult(requestCode, resultCode, data);
@@ -971,51 +950,6 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
         conversationLoadingIndicatorViewView.setColor(color);
         audioMessageRecordingView.setAccentColor(color);
         extendedCursorContainer.setAccentColor(color);
-    }
-
-    //////////////////////////////////////////////////////////////////////////////////////////
-    //
-    //  StreamMediaBar
-    //
-    //////////////////////////////////////////////////////////////////////////////////////////
-
-    @Override
-    public void onShowMediaBar(String conversationId) {
-        IConversation currentConversation = getStoreFactory().getConversationStore().getCurrentConversation();
-        if (currentConversation == null || !conversationId.equals(currentConversation.getId())) {
-            return;
-        }
-
-        if (streamMediaBarFragment != null) {
-            streamMediaBarFragment.show();
-            return;
-        }
-
-        try {
-            FragmentManager fragmentManager = getChildFragmentManager();
-            streamMediaBarFragment = StreamMediaPlayerBarFragment.newInstance();
-            fragmentManager
-                .beginTransaction()
-                .setCustomAnimations(R.anim.fade_in, R.anim.fade_out, R.anim.fade_in, R.anim.fade_out)
-                .add(R.id.fl__conversation__mediabar_container,
-                     streamMediaBarFragment,
-                     StreamMediaPlayerBarFragment.TAG)
-                .commit();
-        } catch (IllegalStateException e) {
-            Timber.e(e, "onShowMediaBar failed");
-        }
-    }
-
-    @Override
-    public void onHideMediaBar() {
-        if (streamMediaBarFragment == null) {
-            return;
-        }
-        streamMediaBarFragment.hide();
-    }
-
-    @Override
-    public void onScrollTo(Message message) {
     }
 
     @Override
@@ -1884,9 +1818,6 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
     }
 
     private void sendVideo(URI uri) {
-        Timber.i("  uri.getPath %s", uri.getPath());
-        Timber.i("          uri %s", uri);
-
         AssetForUpload assetForUpload = AssetFactory.fromContentUri(uri);
         getStoreFactory().getConversationStore().sendMessage(assetForUpload, assetErrorHandlerVideo);
 

@@ -29,10 +29,8 @@ import android.widget.TextView;
 import com.waz.api.IConversation;
 import com.waz.api.UpdateListener;
 import com.waz.zclient.R;
-import com.waz.zclient.controllers.streammediaplayer.IStreamMediaPlayerController;
 import com.waz.zclient.core.stores.connect.InboxLinkConversation;
 import com.waz.zclient.core.stores.inappnotification.KnockingEvent;
-import com.waz.zclient.core.stores.network.INetworkStore;
 import com.waz.zclient.pages.main.conversationlist.views.ConversationCallback;
 import com.waz.zclient.pages.main.conversationlist.views.listview.SwipeListView;
 import com.waz.zclient.ui.animation.interpolators.penner.Expo;
@@ -393,16 +391,8 @@ public class ConversationListRow extends FrameLayout implements SwipeListView.Sw
         setAlpha(alpha);
     }
 
-    public void setStreamMediaPlayerController(IStreamMediaPlayerController streamMediaPlayerController) {
-        rightIndicatorView.setStreamMediaPlayerController(streamMediaPlayerController);
-    }
-
     public void setConversationActionCallback(RightIndicatorView.ConversationActionCallback callback) {
         rightIndicatorView.setCallback(callback);
-    }
-
-    public void setNetworkStore(INetworkStore networkStore) {
-        rightIndicatorView.setNetworkStore(networkStore);
     }
 
     public void tearDown() {

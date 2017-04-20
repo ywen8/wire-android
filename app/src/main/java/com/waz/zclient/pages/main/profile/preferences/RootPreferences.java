@@ -121,7 +121,6 @@ public class RootPreferences extends BasePreferenceFragment<RootPreferences.Cont
         });
 
         if (savedInstanceState == null) {
-            boolean showSpotifyLogin = getArguments().getBoolean(ZetaPreferencesActivity.SHOW_SPOTIFY_LOGIN, false);
             boolean showOtrDevices = getArguments().getBoolean(ZetaPreferencesActivity.SHOW_OTR_DEVICES, false);
             boolean showAccount = getArguments().getBoolean(ZetaPreferencesActivity.SHOW_ACCOUNT, false);
             boolean showUsernameEdit = getArguments().getBoolean(ZetaPreferencesActivity.SHOW_USERNAME_EDIT);
@@ -130,9 +129,6 @@ public class RootPreferences extends BasePreferenceFragment<RootPreferences.Cont
             PreferenceScreen preference = null;
             if (showAccount) {
                 preference = (PreferenceScreen) findPreference(getString(R.string.pref_account_screen_key));
-            } else if (showSpotifyLogin) {
-                preference = (PreferenceScreen) findPreference(getString(R.string.pref_options_screen_key));
-                getControllerFactory().getSpotifyController().login(getActivity());
             } else if (showOtrDevices) {
                 preference = devicesPreferenceScreenLike.getPreferenceScreen();
             } else if (showUsernameEdit) {

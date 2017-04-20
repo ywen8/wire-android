@@ -17,7 +17,6 @@
  */
 package com.waz.zclient.pages.main.profile.preferences;
 
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v7.preference.Preference;
@@ -93,13 +92,6 @@ public class AdvancedPreferences extends BasePreferenceFragment<AdvancedPreferen
             }
         }
         return event;
-    }
-
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        getControllerFactory().getSpotifyController().handleActivityResult(requestCode,
-                                                                           resultCode, data);
     }
 
     public interface Container {

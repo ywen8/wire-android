@@ -80,19 +80,12 @@ public class ZetaPreferencesActivity extends BasePreferenceActivity implements A
                                                                                ProfileStoreObserver,
                                                                                AccentColorObserver,
                                                                                CameraFragment.Container {
-    public static final String SHOW_SPOTIFY_LOGIN = "SHOW_SPOTIFY_LOGIN";
     public static final String SHOW_OTR_DEVICES = "SHOW_OTR_DEVICES";
     public static final String SHOW_ACCOUNT = "SHOW_ACCOUNT";
     public static final String SHOW_USERNAME_EDIT = "SHOW_USERNAME_EDIT";
 
     public static Intent getDefaultIntent(Context context) {
         return new Intent(context, ZetaPreferencesActivity.class);
-    }
-
-    public static Intent getSpotifyLoginIntent(Context context) {
-        Intent intent = getDefaultIntent(context);
-        intent.putExtra(SHOW_SPOTIFY_LOGIN, true);
-        return intent;
     }
 
     public static Intent getOtrDevicesPreferencesIntent(Context context) {
@@ -125,7 +118,6 @@ public class ZetaPreferencesActivity extends BasePreferenceActivity implements A
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        getControllerFactory().getSpotifyController().handleActivityResult(requestCode, resultCode, data);
         Fragment fragment = getSupportFragmentManager().findFragmentById(R.id.fl__root__camera);
         if (fragment != null) {
             fragment.onActivityResult(requestCode, resultCode, data);
@@ -288,7 +280,6 @@ public class ZetaPreferencesActivity extends BasePreferenceActivity implements A
     }
 
     private void resetIntentExtras(PreferenceScreen preferenceScreen) {
-        preferenceScreen.getExtras().remove(ZetaPreferencesActivity.SHOW_SPOTIFY_LOGIN);
         preferenceScreen.getExtras().remove(ZetaPreferencesActivity.SHOW_OTR_DEVICES);
         preferenceScreen.getExtras().remove(ZetaPreferencesActivity.SHOW_ACCOUNT);
         preferenceScreen.getExtras().remove(ZetaPreferencesActivity.SHOW_USERNAME_EDIT);

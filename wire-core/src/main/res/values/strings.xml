@@ -507,10 +507,6 @@
     <string name="pref_options_requested_category_title">By popular demand</string>
     <string name="pref_options_cursor_send_button_title">Send button</string>
     <string name="pref_options_cursor_send_button_summary">Disable to send via the keyboard.</string>
-    <string name="pref_options_spotify_title">Connect with Spotify</string>
-    <string name="pref_options_spotify_logout_title">Disconnect from Spotify</string>
-    <string name="pref_options_spotify_summary">You need a Spotify Premium account.</string>
-    <string name="pref_options_spotify_login_failed">Login failed. Please try again!</string>
 
     <!-- Devices -->
     <string name="pref_devices_screen_title">Devices</string>
@@ -965,7 +961,6 @@
     <string name="conversation_toolbar__delete">Delete</string>
     <string name="conversation_toolbar__copy">Copy</string>
     <string name="conversation_toolbar__fwd">Share</string>
-    <string name="conversation_toolbar__mediabar__close">Stop</string>
 
     <!-- Asset upload errors -->
     <string name="asset_upload_error__not_found__title">File not found</string>

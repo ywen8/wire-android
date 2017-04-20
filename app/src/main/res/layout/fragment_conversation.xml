@@ -103,12 +103,6 @@
                 android:clipToPadding="false"
                 />
 
-            <FrameLayout
-                android:id="@+id/fl__conversation__mediabar_container"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                />
-
             <com.waz.zclient.pages.main.conversation.views.TypingIndicatorView
                 android:id="@+id/tiv_typing_indicator_view"
                 android:layout_width="match_parent"

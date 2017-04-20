@@ -119,16 +119,12 @@ ext {
 
 
             // Other
-            roundedimageview     : 'com.makeramen:roundedimageview:2.2.0',
             timber               : 'com.jakewharton.timber:timber:4.1.1',
             hockey               : 'net.hockeyapp.android:HockeySDK:3.7.2',
             threetenabp          : 'com.jakewharton.threetenabp:threetenabp:1.0.3',
             localytics           : 'com.localytics.android:library:3.8.2',
             rebound              : 'com.facebook.rebound:rebound:0.3.8',
             supportpreferences   : 'net.xpece.android:support-preference:0.8.1',
-
-            // For spotify
-            spotifyAuth          : 'com.wire:spotify-auth:1.0.0-beta13@aar',
 
             // Internal
             audioNotifications   : "com.wire:audio-notifications:$audioVersion",
