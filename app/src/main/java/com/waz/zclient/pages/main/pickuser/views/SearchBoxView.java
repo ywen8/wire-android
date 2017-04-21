@@ -111,7 +111,7 @@ public class SearchBoxView extends FrameLayout {
             }
         });
 
-        if (android.os.Build.VERSION.SDK_INT > Build.VERSION_CODES.KITKAT) {
+        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.KITKAT) {
             inputEditText.setLineSpacing(getResources().getDimensionPixelSize(R.dimen.people_picker__input__line_spacing_extra__greater_than_android_sdk_19), 1);
         }
 
