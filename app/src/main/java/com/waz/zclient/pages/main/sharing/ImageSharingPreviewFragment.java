@@ -17,6 +17,7 @@
  */
 package com.waz.zclient.pages.main.sharing;
 
+import android.os.Build;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -37,6 +38,7 @@ import com.waz.zclient.utils.TrackingUtils;
 import com.waz.zclient.utils.ViewUtils;
 
 import java.util.List;
+import java.util.Locale;
 
 public class ImageSharingPreviewFragment extends BaseFragment<ImageSharingPreviewFragment.Container> implements ImagePreviewLayout.Callback  {
 
@@ -79,8 +81,15 @@ public class ImageSharingPreviewFragment extends BaseFragment<ImageSharingPrevie
         URI previewImageUri = sharedImageUris.get(0);
         switch (sharedContentType) {
             case IMAGE:
+                Locale currentLocale;
+                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
+                    //noinspection deprecation
+                    currentLocale = getResources().getConfiguration().locale;
+                } else {
+                    currentLocale = getResources().getConfiguration().getLocales().get(0);
+                }
                 title = String.format(getString(R.string.sharing__image_preview__title__single),
-                                      currentConversation.getName().toUpperCase(getResources().getConfiguration().locale));
+                                      currentConversation.getName().toUpperCase(currentLocale));
                 break;
         }
 
