@@ -70,11 +70,6 @@ public class StubUserPreferencesController implements IUserPreferencesController
   }
 
   @Override
-  public void incrementSpotifyLoginTriesCount() {
-
-  }
-
-  @Override
   public void setGenericInvitationToken(String token) {
 
   }
@@ -127,11 +122,6 @@ public class StubUserPreferencesController implements IUserPreferencesController
   @Override
   public boolean hasCheckedForUnsupportedEmojis(int version) {
     return false;
-  }
-
-  @Override
-  public int getSpotifyLoginTriesCount() {
-    return 0;
   }
 
   @Override

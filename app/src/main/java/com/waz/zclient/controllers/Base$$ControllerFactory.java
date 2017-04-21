@@ -20,7 +20,6 @@ package com.waz.zclient.controllers;
 import android.app.Activity;
 import android.content.Context;
 import android.view.View;
-
 import com.waz.zclient.controllers.accentcolor.AccentColorController;
 import com.waz.zclient.controllers.accentcolor.IAccentColorController;
 import com.waz.zclient.controllers.background.BackgroundController;
@@ -64,10 +63,6 @@ import com.waz.zclient.controllers.sharing.ISharingController;
 import com.waz.zclient.controllers.sharing.SharingController;
 import com.waz.zclient.controllers.singleimage.ISingleImageController;
 import com.waz.zclient.controllers.singleimage.SingleImageController;
-import com.waz.zclient.controllers.spotify.ISpotifyController;
-import com.waz.zclient.controllers.spotify.SpotifyController;
-import com.waz.zclient.controllers.streammediaplayer.IStreamMediaPlayerController;
-import com.waz.zclient.controllers.streammediaplayer.StreamMediaPlayerController;
 import com.waz.zclient.controllers.theme.IThemeController;
 import com.waz.zclient.controllers.theme.ThemeController;
 import com.waz.zclient.controllers.usernames.IUsernamesController;
@@ -129,10 +124,6 @@ public abstract class Base$$ControllerFactory implements IControllerFactory {
   protected ISharingController sharingController;
 
   protected ISingleImageController singleImageController;
-
-  protected ISpotifyController spotifyController;
-
-  protected IStreamMediaPlayerController streamMediaPlayerController;
 
   protected IThemeController themeController;
 
@@ -277,14 +268,6 @@ public abstract class Base$$ControllerFactory implements IControllerFactory {
       singleImageController.tearDown();
       singleImageController = null;
     }
-    if (spotifyController != null) {
-      spotifyController.tearDown();
-      spotifyController = null;
-    }
-    if (streamMediaPlayerController != null) {
-      streamMediaPlayerController.tearDown();
-      streamMediaPlayerController = null;
-    }
     if (themeController != null) {
       themeController.tearDown();
       themeController = null;
@@ -318,15 +301,6 @@ public abstract class Base$$ControllerFactory implements IControllerFactory {
       usernamesController = null;
     }
     this.context = null;
-  }
-
-  @Override
-  public IStreamMediaPlayerController getStreamMediaPlayerController() {
-    verifyLifecycle();
-    if (streamMediaPlayerController == null) {
-      streamMediaPlayerController = new StreamMediaPlayerController(this.context, getSpotifyController());
-    }
-    return streamMediaPlayerController;
   }
 
   @Override
@@ -448,15 +422,6 @@ public abstract class Base$$ControllerFactory implements IControllerFactory {
   }
 
   @Override
-  public ISpotifyController getSpotifyController() {
-    verifyLifecycle();
-    if (spotifyController == null) {
-      spotifyController = new SpotifyController(this.context, getUserPreferencesController());
-    }
-    return spotifyController;
-  }
-
-  @Override
   public IGiphyController getGiphyController() {
     verifyLifecycle();
     if (giphyController == null) {
@@ -529,7 +494,6 @@ public abstract class Base$$ControllerFactory implements IControllerFactory {
   public void setActivity(Activity activity) {
     getGlobalLayoutController().setActivity(activity);
     getOrientationController().setActivity(activity);
-    getSpotifyController().setActivity(activity);
     getUsernameController().setActivity(activity);
   }
 

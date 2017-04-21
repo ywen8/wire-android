@@ -329,7 +329,6 @@ public class AccountPreferences extends BasePreferenceFragment<AccountPreference
                                           // TODO: Remove old SignOut event https://wearezeta.atlassian.net/browse/AN-4232
                                           ((BaseActivity) getActivity()).injectJava(GlobalTrackingController.class).tagEvent(new SignOut());
                                           ((BaseActivity) getActivity()).injectJava(GlobalTrackingController.class).tagEvent(new LoggedOutEvent());
-                                          getControllerFactory().getSpotifyController().logout();
                                           getControllerFactory().getUsernameController().logout();
                                           getStoreFactory().getZMessagingApiStore().logout();
                                       }

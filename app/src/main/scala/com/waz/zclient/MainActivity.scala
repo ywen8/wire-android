@@ -247,7 +247,6 @@ class MainActivity extends BaseActivity
     info(s"OnActivity requestCode: $requestCode, resultCode: $resultCode")
     super.onActivityResult(requestCode, resultCode, data)
     getSupportFragmentManager.findFragmentById(R.id.fl_main_content).onActivityResult(requestCode, resultCode, data)
-    getControllerFactory.getSpotifyController.handleActivityResult(requestCode, resultCode, data)
   }
 
   override protected def onNewIntent(intent: Intent) = {
@@ -449,7 +448,6 @@ class MainActivity extends BaseActivity
     getStoreFactory.reset()
     getControllerFactory.getPickUserController.hideUserProfile()
     getControllerFactory.getUserPreferencesController.reset()
-    getControllerFactory.getSpotifyController.logout()
     getStoreFactory.getConversationStore.onLogout()
     getControllerFactory.getNavigationController.resetPagerPositionToDefault()
     val intent: Intent = new Intent(this, classOf[MainActivity])

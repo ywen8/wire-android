@@ -27,13 +27,10 @@ import android.support.annotation.RawRes;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.preference.Preference;
 import android.support.v7.preference.PreferenceCategory;
-import android.widget.Toast;
-import com.waz.api.MediaProvider;
 import com.waz.zclient.BaseActivity;
 import com.waz.zclient.R;
 import com.waz.zclient.calling.controllers.CallPermissionsController;
 import com.waz.zclient.controllers.permission.RequestPermissionsObserver;
-import com.waz.zclient.controllers.spotify.SpotifyObserver;
 import com.waz.zclient.core.controllers.tracking.events.Event;
 import com.waz.zclient.core.controllers.tracking.events.settings.ChangedBitRateModeEvent;
 import com.waz.zclient.core.controllers.tracking.events.settings.ChangedContactsPermissionEvent;
@@ -52,14 +49,12 @@ import net.xpece.android.support.preference.SwitchPreference;
 
 
 public class OptionsPreferences extends BasePreferenceFragment<OptionsPreferences.Container> implements SharedPreferences.OnSharedPreferenceChangeListener,
-                                                                                                        SpotifyObserver,
                                                                                                         RequestPermissionsObserver {
 
     private Preference.OnPreferenceChangeListener bindPreferenceSummaryToValueListener = new PreferenceSummaryChangeListener();
     private RingtonePreference ringtonePreference;
     private RingtonePreference textTonePreference;
     private RingtonePreference pingPreference;
-    private Preference spotifyPreference;
     private SwitchPreference themePreference;
 
     public static OptionsPreferences newInstance(String rootKey, Bundle extras) {
@@ -87,26 +82,6 @@ public class OptionsPreferences extends BasePreferenceFragment<OptionsPreference
         bindPreferenceSummaryToValue(textTonePreference);
         bindPreferenceSummaryToValue(pingPreference);
 
-        spotifyPreference = findPreference(getString(R.string.pref_options_spotify_key));
-        if (getControllerFactory().getSpotifyController().isLoggedIn()) {
-            spotifyPreference.setTitle(R.string.pref_options_spotify_logout_title);
-            spotifyPreference.setSummary("");
-        } else {
-            spotifyPreference.setTitle(R.string.pref_options_spotify_title);
-            spotifyPreference.setSummary(R.string.pref_options_spotify_summary);
-        }
-        spotifyPreference.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
-            @Override
-            public boolean onPreferenceClick(Preference preference) {
-                if (getControllerFactory().getSpotifyController().isLoggedIn()) {
-                    getControllerFactory().getSpotifyController().logout();
-                } else {
-                    getControllerFactory().getSpotifyController().login(getActivity());
-                }
-                return true;
-            }
-        });
-
         themePreference = (SwitchPreference) findPreference(getString(R.string.pref_options_theme_switch_key));
         themePreference.setChecked(getControllerFactory().getThemeController().isDarkTheme());
 
@@ -121,54 +96,13 @@ public class OptionsPreferences extends BasePreferenceFragment<OptionsPreference
     @Override
     public void onStart() {
         super.onStart();
-        getControllerFactory().getSpotifyController().addSpotifyObserver(this);
         getControllerFactory().getRequestPermissionsController().addObserver(this);
     }
 
     @Override
     public void onStop() {
-        getControllerFactory().getSpotifyController().removeSpotifyObserver(this);
         getControllerFactory().getRequestPermissionsController().removeObserver(this);
         super.onStop();
-    }
-
-    @Override
-    public void onDestroyView() {
-        spotifyPreference.setOnPreferenceClickListener(null);
-        spotifyPreference = null;
-        super.onDestroyView();
-    }
-
-    @Override
-    public void onLoginSuccess() {
-        if (spotifyPreference == null) {
-            return;
-        }
-        spotifyPreference.setTitle(R.string.pref_options_spotify_logout_title);
-        spotifyPreference.setSummary("");
-        getControllerFactory().getStreamMediaPlayerController()
-                              .resetMediaPlayer(MediaProvider.SPOTIFY);
-    }
-
-    @Override
-    public void onLoginFailed() {
-        if (spotifyPreference == null) {
-            return;
-        }
-        Toast.makeText(getActivity(), getString(R.string.pref_options_spotify_login_failed), Toast.LENGTH_SHORT)
-             .show();
-    }
-
-    @Override
-    public void onLogout() {
-        if (spotifyPreference == null) {
-            return;
-        }
-        spotifyPreference.setTitle(R.string.pref_options_spotify_title);
-        spotifyPreference.setSummary(R.string.pref_options_spotify_summary);
-        getControllerFactory().getStreamMediaPlayerController()
-                              .resetMediaPlayer(MediaProvider.SPOTIFY);
-
     }
 
     private void setDefaultRingtones() {
@@ -223,7 +157,6 @@ public class OptionsPreferences extends BasePreferenceFragment<OptionsPreference
             }
             event = new ChangedBitRateModeEvent(vbrOn, true);
         }
-
         return event;
     }
 

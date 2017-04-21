@@ -60,10 +60,6 @@ public interface IUserPreferencesController {
 
     String getDeviceId();
 
-    void incrementSpotifyLoginTriesCount();
-
-    int getSpotifyLoginTriesCount();
-
     boolean isCursorSendButtonEnabled();
 
     void setVerificationCode(String code);

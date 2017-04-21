@@ -41,8 +41,6 @@ import com.waz.zclient.controllers.password.IPasswordController;
 import com.waz.zclient.controllers.permission.IRequestPermissionsController;
 import com.waz.zclient.controllers.sharing.ISharingController;
 import com.waz.zclient.controllers.singleimage.ISingleImageController;
-import com.waz.zclient.controllers.spotify.ISpotifyController;
-import com.waz.zclient.controllers.streammediaplayer.IStreamMediaPlayerController;
 import com.waz.zclient.controllers.theme.IThemeController;
 import com.waz.zclient.controllers.usernames.IUsernamesController;
 import com.waz.zclient.controllers.userpreferences.IUserPreferencesController;
@@ -62,8 +60,6 @@ public interface IControllerFactory {
   INavigationController getNavigationController();
 
   IOrientationController getOrientationController();
-
-  IStreamMediaPlayerController getStreamMediaPlayerController();
 
   IFocusController getFocusController();
 
@@ -100,8 +96,6 @@ public interface IControllerFactory {
   ISlidingPaneController getSlidingPaneController();
 
   IDialogBackgroundImageController getDialogBackgroundImageController();
-
-  ISpotifyController getSpotifyController();
 
   IAccentColorController getAccentColorController();
 

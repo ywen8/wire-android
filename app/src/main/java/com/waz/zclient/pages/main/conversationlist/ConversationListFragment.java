@@ -30,7 +30,6 @@ import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
-
 import com.waz.api.ActiveVoiceChannels;
 import com.waz.api.ConversationsList;
 import com.waz.api.CoreList;
@@ -48,7 +47,6 @@ import com.waz.zclient.controllers.accentcolor.AccentColorObserver;
 import com.waz.zclient.controllers.conversationlist.ConversationListObserver;
 import com.waz.zclient.controllers.conversationlist.IConversationListController;
 import com.waz.zclient.controllers.navigation.PagerControllerObserver;
-import com.waz.zclient.controllers.streammediaplayer.StreamMediaPlayerObserver;
 import com.waz.zclient.controllers.tracking.events.navigation.ClickedOnContactsHintEvent;
 import com.waz.zclient.controllers.tracking.events.navigation.OpenedArchiveEvent;
 import com.waz.zclient.controllers.tracking.events.navigation.OpenedContactsEvent;
@@ -75,7 +73,6 @@ import com.waz.zclient.ui.pullforaction.PullForActionMode;
 import com.waz.zclient.ui.text.TypefaceTextView;
 import com.waz.zclient.ui.utils.ResourceUtils;
 import com.waz.zclient.utils.ViewUtils;
-
 import net.hockeyapp.android.CrashManagerListener;
 import net.hockeyapp.android.ExceptionHandler;
 
@@ -92,7 +89,6 @@ public class ConversationListFragment extends BaseFragment<ConversationListFragm
                                                                                                View.OnClickListener,
                                                                                                AccentColorObserver,
                                                                                                ConversationListObserver,
-                                                                                               StreamMediaPlayerObserver,
                                                                                                VoiceChannel.JoinCallback {
     public static final String TAG = ConversationListFragment.class.getName();
     private static final int LIST_VIEW_POSITION_OFFSET = 3;
@@ -323,7 +319,6 @@ public class ConversationListFragment extends BaseFragment<ConversationListFragm
         super.onStart();
         activeVoiceChannels = getStoreFactory().getZMessagingApiStore().getApi().getActiveVoiceChannels();
         activeVoiceChannels.addUpdateListener(callUpdateListener);
-        conversationsListAdapter.setStreamMediaPlayerController(getControllerFactory().getStreamMediaPlayerController());
         conversationsListAdapter.setConversationActionCallback(new RightIndicatorView.ConversationActionCallback() {
             @Override
             public void startCall(IConversation conversation) {
@@ -334,11 +329,9 @@ public class ConversationListFragment extends BaseFragment<ConversationListFragm
                 }
             }
         });
-        conversationsListAdapter.setNetworkStore(getStoreFactory().getNetworkStore());
         getControllerFactory().getAccentColorController().addAccentColorObserver(this);
         if (mode == Mode.NORMAL) {
             getStoreFactory().getInAppNotificationStore().addInAppNotificationObserver(this);
-            getControllerFactory().getStreamMediaPlayerController().addStreamMediaObserver(this);
             getControllerFactory().getNavigationController().addPagerControllerObserver(this);
         }
         getStoreFactory().getConversationStore().addConversationStoreObserverAndUpdate(this);
@@ -371,7 +364,6 @@ public class ConversationListFragment extends BaseFragment<ConversationListFragm
         addedDevicesModelObserver.clear();
         activeVoiceChannels.removeUpdateListener(callUpdateListener);
         getControllerFactory().getConversationListController().removeConversationListObserver(this);
-        getControllerFactory().getStreamMediaPlayerController().removeStreamMediaObserver(this);
         getStoreFactory().getConversationStore().removeConversationStoreObserver(this);
         getStoreFactory().getInAppNotificationStore().removeInAppNotificationObserver(this);
         getControllerFactory().getNavigationController().removePagerControllerObserver(this);
@@ -689,52 +681,6 @@ public class ConversationListFragment extends BaseFragment<ConversationListFragm
     @Override
     public void onSyncError(ErrorsList.ErrorDescription error) {
 
-    }
-
-    //////////////////////////////////////////////////////////////////////////////////////////
-    //
-    //  StreamMediaPlayer
-    //
-    //////////////////////////////////////////////////////////////////////////////////////////
-
-
-    @Override
-    public void onPlay(Message message) {
-        conversationsListAdapter.notifyDataSetChanged();
-    }
-
-    // CHECKSTYLE:OFF
-    @Override
-    public void onPause(Message message) {
-        conversationsListAdapter.notifyDataSetChanged();
-    }
-    // CHECKSTYLE:ON
-
-    // CHECKSTYLE:OFF
-    @Override
-    public void onStop(Message message) {
-        conversationsListAdapter.notifyDataSetChanged();
-    }
-    // CHECKSTYLE:ON
-
-    @Override
-    public void onPrepared(Message message) {
-        conversationsListAdapter.notifyDataSetChanged();
-    }
-
-    @Override
-    public void onError(Message message) {
-
-    }
-
-    @Override
-    public void onComplete(Message message) {
-        conversationsListAdapter.notifyDataSetChanged();
-    }
-
-    @Override
-    public void onTrackChanged(Message newMessage) {
-        conversationsListAdapter.notifyDataSetChanged();
     }
 
     private class ConversationListViewOnScrollListener implements AbsListView.OnScrollListener {

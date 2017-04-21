@@ -45,7 +45,6 @@ public class UserPreferencesController implements IUserPreferencesController {
     public static final String USER_PERFS_AB_TESTING_GROUP = "USER_PERFS_AB_TESTING_GROUP";
     public static final String USER_PREF_PLAY_SERVICES_ERROR_SHOWN = "USER_PREF_PLAY_SERVICES_ERROR_SHOWN";
     private static final String USER_PREFS_SHOW_SHARE_CONTACTS_DIALOG = "USER_PREFS_SHOW_SHARE_CONTACTS_DIALOG ";
-    private static final String USER_PREF_SPOTIFY_LOGIN_COUNT = "PREF_SPOTIFY_LOGIN_COUNT";
     private static final String USER_PREF_PHONE_VERIFICATION_CODE = "PREF_PHONE_VERIFICATION_CODE";
     private static final String USER_PREF_APP_CRASH = "USER_PREF_APP_CRASH";
     private static final String USER_PREF_APP_CRASH_DETAILS = "USER_PREF_APP_CRASH_DETAILS";
@@ -174,16 +173,6 @@ public class UserPreferencesController implements IUserPreferencesController {
     private String getLegacyDeviceId() {
         SharedPreferences prefs = context.getSharedPreferences("zprefs", Context.MODE_PRIVATE);
         return prefs.getString(PREFS_DEVICE_ID, null);
-    }
-
-    @Override
-    public void incrementSpotifyLoginTriesCount() {
-        userPreferences.edit().putInt(USER_PREF_SPOTIFY_LOGIN_COUNT, getSpotifyLoginTriesCount() + 1).apply();
-    }
-
-    @Override
-    public int getSpotifyLoginTriesCount() {
-        return userPreferences.getInt(USER_PREF_SPOTIFY_LOGIN_COUNT, 0);
     }
 
     @Override

@@ -53,12 +53,7 @@
         <item name="messageStreamUnsentIndicator">@style/message_stream__unsent_indicator__dark</item>
         <item name="messageStreamUnsentIndicatorBackground">@color/content__image__progress_circle_background_dark</item>
         <item name="messageStreamFileDownloadDoneIndicatorBackground">@drawable/oval__white</item>
-
-        <!-- media bar -->
         <item name="messageStreamMediaBarActionClose">@drawable/ic_action_close_light</item>
-        <item name="messageStreamMediaBarActionPlay">@drawable/ic_action_play_light</item>
-        <item name="messageStreamMediaBarActionPause">@drawable/ic_action_pause_light</item>
-
         <!-- Conversation Toolbar -->
         <item name="conversationToolbar">@style/conversation_toolbar__dark</item>
         <item name="conversationToolbarNoDivider">@style/conversation_toolbar_no_divider__dark</item>
@@ -203,11 +198,7 @@
         <item name="messageStreamUnsentIndicator">@style/message_stream__unsent_indicator__light</item>
         <item name="messageStreamUnsentIndicatorBackground">@color/content__image__progress_circle_background_light</item>
         <item name="messageStreamFileDownloadDoneIndicatorBackground">@drawable/oval__graphite</item>
-
-        <!-- media bar -->
         <item name="messageStreamMediaBarActionClose">@drawable/ic_action_close_dark</item>
-        <item name="messageStreamMediaBarActionPlay">@drawable/ic_action_play_dark</item>
-        <item name="messageStreamMediaBarActionPause">@drawable/ic_action_pause_dark</item>
 
         <!-- Conversation Toolbar -->
         <item name="conversationToolbar">@style/conversation_toolbar__light</item>

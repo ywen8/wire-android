@@ -13,8 +13,6 @@ GifImageView - https://github.com/felipecsl/GifImageView - MIT
 ListViewAnimations - https://github.com/nhaarman/ListViewAnimations - Apache 2.0
 NineOldAndroids - https://github.com/JakeWharton/NineOldAndroids/ - Apache 2.0
 Timber - https://github.com/JakeWharton/timber - Apache 2.0
-Spotify Authentication Library - https://developer.spotify.com/technologies/spotify-android-sdk/android-sdk-api-reference/ - Apache License, Version 2.0
-Spotify Player Library - https://developer.spotify.com/technologies/spotify-android-sdk/android-sdk-api-reference/ - Apache License, Version 2.0
 Retrofit - https://github.com/square/retrofit - Apache License, Version 2.0
 OkHttp - https://github.com/square/okhttp - Apache License, Version 2.0
 Spotify Web API for Android - https://github.com/kaaes/spotify-web-api-android - MIT

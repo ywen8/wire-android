@@ -70,9 +70,6 @@ object Deps {
   lazy val rebound = "com.facebook.rebound" % "rebound" % "0.3.8"
   lazy val supportpreferences = "net.xpece.android" % "support-preference" % "0.8.1"
 
-  lazy val spotifyAuth = "com.wire" % "spotify-auth" % "1.0.0-beta13"
-  lazy val spotifyPlayer = "com.wire" % "spotify-player" % "1.0.0-beta13"
-
   lazy val audioNotifications = "com.wearezeta.avs" % "audio-notifications" % audioVersion
 
   lazy val junit = "junit" % "junit" % "4.12"

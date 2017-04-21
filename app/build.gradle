@@ -324,11 +324,7 @@ dependencies {
     compile deps.hockey
     compile deps.audioNotifications
     compile deps.localytics
-    compile deps.roundedimageview
     compile deps.rebound
-
-    // For spotify
-    compile deps.spotifyAuth
 
     //noinspection GradleDynamicVersion
     compile deps.psBase

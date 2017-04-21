@@ -36,11 +36,7 @@
     <attr name="messageStreamUnsentIndicator" format="reference" />
     <attr name="messageStreamUnsentIndicatorBackground" format="reference" />
     <attr name="messageStreamFileDownloadDoneIndicatorBackground" format="reference" />
-
-    <!-- media bar -->
     <attr name="messageStreamMediaBarActionClose" format="reference" />
-    <attr name="messageStreamMediaBarActionPlay" format="reference" />
-    <attr name="messageStreamMediaBarActionPause" format="reference" />
 
     <!-- Conversation Toolbar -->
     <attr name="conversationToolbar" format="reference" />
