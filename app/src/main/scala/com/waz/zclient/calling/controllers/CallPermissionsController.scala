@@ -100,13 +100,13 @@ class CallPermissionsController(implicit inj: Injector, cxt: WireContext) extend
       def withV2(f: (VoiceChannelService, ConvId) => Unit) = v2ServiceAndCurrentConvId.head.map { case (vcs, id) => f(vcs, id) }
 
       def accept() = v3 match {
-        case true => withV3 { (cs, id) => cs.startCall(id, withVideo) }
-        case _ => withV2 { (vcs, id) => vcs.joinVoiceChannel(id, withVideo) }
+        case true => withV3((cs, id) => cs.startCall(id, withVideo))
+        case _ => withV2((vcs, id) => vcs.joinVoiceChannel(id, withVideo))
       }
 
       def reject() = v3 match {
-        case true => withV3 { (cs, id) => cs.endCall(id) }
-        case _ => withV2 { (vcs, id) => vcs.silenceVoiceChannel(id) }
+        case true => withV3((cs, id) => cs.endCall(id))
+        case _ => withV2((vcs, id) => vcs.silenceVoiceChannel(id))
       }
 
       permissionsController.requiring(if (withVideo) Set(CameraPermission, RecordAudioPermission) else Set(RecordAudioPermission)) {

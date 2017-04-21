@@ -23,9 +23,9 @@ import _root_.com.waz.utils.events.{EventContext, Signal}
 import android.os.PowerManager
 import com.waz.ZLog.ImplicitTag._
 import com.waz.api.{IConversation, KindOfCall, Verification, VoiceChannelState}
+import com.waz.model.ConversationData.ConversationType
 import com.waz.model.{UserId, VoiceChannelData}
 import com.waz.service.call.CallInfo
-import com.waz.service.call.CallInfo._
 import com.waz.threading.Threading
 import com.waz.zclient.calling.CallingActivity
 import com.waz.zclient.media.SoundController
@@ -51,18 +51,18 @@ class GlobalCallingController(implicit inj: Injector, cxt: WireContext, eventCon
 
   val zmsOpt = inject[Signal[Option[ZMessaging]]]
 
-  val v3CallOpt: Signal[Option[CallInfo]] = zmsOpt.flatMap {
-    case Some(z) => z.calling.currentCall.map(Some(_))
+  val v3Call: Signal[Option[CallInfo]] = zmsOpt.flatMap {
+    case Some(z) => z.calling.currentCall
     case _ => Signal.const(None)
   }
 
-  val isV3Call = v3CallOpt.map {
-    case Some(IsActive()) => true
+  val isV3Call = v3Call.map {
+    case Some(_) => true
     case _ => false
   }.disableAutowiring()
 
   val convIdOpt = isV3Call.flatMap {
-    case true => v3CallOpt.map(_.flatMap(_.convId))
+    case true => v3Call.map(_.map(_.convId))
     case false => zmsOpt.flatMap {
       case Some(z) => z.voiceContent.ongoingAndTopIncomingChannel
       case _ => Signal.const((Option.empty[VoiceChannelData], Option.empty[VoiceChannelData]))
@@ -81,7 +81,7 @@ class GlobalCallingController(implicit inj: Injector, cxt: WireContext, eventCon
   }
 
   val callStateOpt: Signal[Option[VoiceChannelState]] = isV3Call.flatMap {
-    case true => v3CallOpt.map(_.map(_.state))
+    case true => v3Call.map(_.map(_.state))
     case _ => currentChannelOpt.map(_.map(_.state))
   }
 
@@ -120,7 +120,7 @@ class GlobalCallingController(implicit inj: Injector, cxt: WireContext, eventCon
   }
 
   val muted = isV3Call.flatMap {
-    case true => v3CallOpt.map {
+    case true => v3Call.map {
       case Some(c) => c.muted
       case _ => false
     }
@@ -131,7 +131,7 @@ class GlobalCallingController(implicit inj: Injector, cxt: WireContext, eventCon
   }.disableAutowiring()
 
   val videoCall = isV3Call.flatMap {
-    case true => v3CallOpt.map {
+    case true => v3Call.map {
       case Some(c) => c.isVideoCall
       case _ => false
     }
@@ -203,7 +203,6 @@ class GlobalCallingController(implicit inj: Injector, cxt: WireContext, eventCon
   val v2Service = zms.map(_.voice)
 
   val v3Service = zms.map(_.calling).disableAutowiring()
-  val v3Call = v3Service.flatMap(_.currentCall)
 
   val convId = convIdOpt.collect { case Some(c) => c }
 
@@ -278,18 +277,23 @@ class GlobalCallingController(implicit inj: Injector, cxt: WireContext, eventCon
   val selfUser = zms flatMap (_.users.selfUser)
 
   val callerId = isV3Call.flatMap {
-    case true => v3Call flatMap { case info =>
-      (info.others, info.state) match {
-        case (_, SELF_CALLING) => selfUser.map(_.id)
-        case (others, OTHER_CALLING) if others.size == 1 => Signal.const(others.head)
-        case _ => Signal.empty[UserId] //TODO Dean do I need this information for other call states?
-      }
+    case true => v3Call flatMap {
+      case Some(info) =>
+        (info.others, info.state) match {
+          case (_, SELF_CALLING) => selfUser.map(_.id)
+          case (others, OTHER_CALLING) if others.size == 1 => Signal.const(others.head)
+          case _ => Signal.empty[UserId] //TODO Dean do I need this information for other call states?
+        }
+      case _ => Signal.empty[UserId]
     }
     case _ => currentChannel map (_.caller) flatMap (_.fold(Signal.empty[UserId])(Signal(_)))
   }
   val callerData = userStorage.zip(callerId).flatMap { case (storage, id) => storage.signal(id) }
 
-  val groupCall = currentChannel map (_.tracking.kindOfCall == KindOfCall.GROUP)
+  val groupCall = isV3Call.flatMap {
+    case true => conversation.map(_.convType == ConversationType.Group)
+    case _ => currentChannel.map(_.tracking.kindOfCall == KindOfCall.GROUP)
+  }
 
 }
 

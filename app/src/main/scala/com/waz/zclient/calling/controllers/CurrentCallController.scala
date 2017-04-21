@@ -28,7 +28,7 @@ import com.waz.api._
 import com.waz.avs.{VideoPreview, VideoRenderer}
 import com.waz.model.VoiceChannelData.ConnectionState
 import com.waz.model._
-import com.waz.service.call.AvsV3
+import com.waz.service.call.AvsV3.VideoReceiveState
 import com.waz.service.call.DefaultFlowManagerService.{StateAndReason, UnknownState}
 import com.waz.threading.Threading
 import com.waz.utils._
@@ -58,7 +58,7 @@ class CurrentCallController(implicit inj: Injector, cxt: WireContext) extends In
   }.orElse(Signal(true)) //ensure that controls are ALWAYS visible in case something goes wrong...
 
   val videoSendState = isV3Call.flatMap {
-    case true => v3Call.map(_.videoSendState)
+    case true => v3Call.collect { case Some(c) => c.videoSendState }
     case _ => currentChannel map (_.video.videoSendState)
   }.disableAutowiring()
 
@@ -99,16 +99,16 @@ class CurrentCallController(implicit inj: Injector, cxt: WireContext) extends In
   }
 
   val callEstablished = isV3Call.flatMap {
-    case true => v3Call.map(_.state == SELF_CONNECTED)
+    case true => v3Call.map(_.exists(_.state == SELF_CONNECTED))
     case _ => currentChannel map (_.deviceState == ConnectionState.Connected)
   }.disableAutowiring()
 
   val onCallEstablished = callEstablished.onChanged
 
   val duration = {
-    def timeSince(est: Option[Instant]) = new ClockSignal(Duration.ofSeconds(1).asScala).map(_ => est.fold2(ZERO, between(_, now)))
+    def timeSince(est: Option[Instant]) = ClockSignal(Duration.ofSeconds(1).asScala).map(_ => est.fold2(ZERO, between(_, now)))
     isV3Call.flatMap {
-      case true => v3Call.flatMap(c => timeSince(c.estabTime))
+      case true => v3Call.collect { case Some(c) => c.estabTime }.flatMap(timeSince)
       case _ => currentChannel flatMap {
         case ch if ch.deviceState == ConnectionState.Connected => timeSince(ch.tracking.established)
         case _ => Signal.const(ZERO)
@@ -143,7 +143,7 @@ class CurrentCallController(implicit inj: Injector, cxt: WireContext) extends In
   }
 
   val otherSendingVideo = isV3Call.flatMap {
-    case true => v3Call.map(_.videoReceiveState == AvsV3.VideoReceiveState.Started)
+    case true => v3Call.map(_.exists(_.videoReceiveState == VideoReceiveState.Started))
     case _ => otherParticipants map {
       case Vector(other) => other.sendsVideo
       case _ => false
@@ -166,7 +166,7 @@ class CurrentCallController(implicit inj: Injector, cxt: WireContext) extends In
   }
 
   val participantIdsToDisplay = isV3Call.flatMap {
-    case true => v3Call.map(_.others.toVector)
+    case true => v3Call.map(_.fold(Vector.empty[UserId])(_.others.toVector))
     case _ => Signal(otherParticipants, groupCall, callerData, otherUser).map { values =>
       verbose(s"(otherParticipants, groupCall, callerData, otherUser): $values")
       values match {
