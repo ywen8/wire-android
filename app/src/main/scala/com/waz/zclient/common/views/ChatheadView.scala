@@ -203,7 +203,7 @@ class ChatheadView(val context: Context, val attrs: AttributeSet, val defStyleAt
   }
 
   private def getVerticalTextCenter(textPaint: Paint, cy: Float): Float = {
-    return cy - ((textPaint.descent + textPaint.ascent) / 2f)
+    cy - ((textPaint.descent + textPaint.ascent) / 2f)
   }
 
   private def getGlyphText(selected: Boolean, contactHasBeenInvited: Boolean, connectionStatus: ConnectionStatus): String = {
@@ -228,7 +228,7 @@ object ChatheadView {
   private val pendingAddressBookContactGlyphId: Int = R.string.glyph__redo
   private val blockedUserGlyphId: Int = R.string.glyph__block
   private val chatheadBottomMarginRatio: Float = 12.75f
-  private val defaultInitialFontSize = -1;
+  private val defaultInitialFontSize = -1
 }
 
 protected class ChatheadController(val setSelectable: Boolean = false,

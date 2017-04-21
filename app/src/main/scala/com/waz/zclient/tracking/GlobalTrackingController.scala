@@ -42,7 +42,7 @@ import com.waz.zclient.controllers.userpreferences.UserPreferencesController
 import com.waz.zclient.core.controllers.tracking
 import com.waz.zclient.core.controllers.tracking.attributes.{Attribute, RangedAttribute}
 import com.waz.zclient.core.controllers.tracking.events.AVSMetricEvent
-import com.waz.zclient.core.controllers.tracking.events.media.{CompletedMediaActionEvent}
+import com.waz.zclient.core.controllers.tracking.events.media.CompletedMediaActionEvent
 import com.waz.zclient.core.controllers.tracking.events.onboarding.GeneratedUsernameEvent
 import com.waz.zclient._
 import org.threeten.bp.{Duration, Instant}
