@@ -53,7 +53,6 @@ import com.waz.zclient.core.stores.inappnotification.KnockingEvent;
 import com.waz.zclient.fragments.ImageFragment;
 import com.waz.zclient.pages.BaseFragment;
 import com.waz.zclient.pages.main.backgroundmain.views.BackgroundFrameLayout;
-import com.waz.zclient.pages.main.conversation.SingleImageFragment;
 import com.waz.zclient.pages.main.conversation.SingleImageUserFragment;
 import com.waz.zclient.pages.main.conversation.VideoPlayerFragment;
 import com.waz.zclient.pages.main.conversationlist.ConfirmationFragment;
@@ -71,7 +70,7 @@ public class MainPhoneFragment extends BaseFragment<MainPhoneFragment.Container>
                                                                                             OnBoardingHintFragment.Container,
                                                                                             OnboardingControllerObserver,
                                                                                             SingleImageObserver,
-                                                                                            SingleImageFragment.Container,
+                                                                                            SingleImageUserFragment.Container,
                                                                                             GiphyObserver,
                                                                                             ConfirmationObserver,
                                                                                             AccentColorObserver,
@@ -180,8 +179,8 @@ public class MainPhoneFragment extends BaseFragment<MainPhoneFragment.Container>
         if (getChildFragmentManager().getBackStackEntryCount() > 0) {
             Fragment topFragment = getChildFragmentManager().findFragmentByTag(getChildFragmentManager().getBackStackEntryAt(
                 getChildFragmentManager().getBackStackEntryCount() - 1).getName());
-            if (topFragment instanceof SingleImageFragment) {
-                return ((SingleImageFragment) topFragment).onBackPressed();
+            if (topFragment instanceof SingleImageUserFragment) {
+                return ((SingleImageUserFragment) topFragment).onBackPressed();
             } else if (topFragment instanceof VideoPlayerFragment) {
                 return ((VideoPlayerFragment) topFragment).onBackPressed();
             } else if (topFragment instanceof GiphySharingPreviewFragment) {
