@@ -369,7 +369,7 @@ class MainActivity extends BaseActivity
         val expiration = IntentUtils.getEphemeralExpiration(intent)
 
         Option(IntentUtils.getLaunchConversationIds(intent)).map(_.asScala.filter(_ != null).toSeq).foreach {
-          case convId :: Nil =>
+          case convId +: Nil =>
             val conv = getStoreFactory.getConversationStore.getConversation(convId)
 
             if (!TextUtils.isEmpty(sharedText)) getControllerFactory.getSharingController.setSharedContentType(SharedContentType.TEXT)
