@@ -20,7 +20,9 @@ package com.waz.zclient
 import android.content.res.TypedArray
 import android.graphics.LightingColorFilter
 import android.graphics.drawable.LayerDrawable
+import android.os.Build
 import android.support.annotation.StyleableRes
+import android.support.v4.content.ContextCompat
 import android.util.AttributeSet
 import android.view.View._
 import android.view.{View, ViewGroup}
@@ -91,8 +93,9 @@ package object utils {
 
     import android.content.Context
 
-    def getColor(resId: Int)(implicit context: Context) = context.getResources.getColor(resId)
-    def getColorStateList(resId: Int)(implicit context: Context) = context.getResources.getColorStateList(resId)
+    def getColor(resId: Int)(implicit context: Context) = ContextCompat.getColor(context, resId)
+
+    def getColorStateList(resId: Int)(implicit context: Context) = ContextCompat.getColorStateList(context, resId)
 
     def getInt(resId: Int)(implicit context: Context) = context.getResources.getInteger(resId)
 
@@ -116,7 +119,14 @@ package object utils {
 
     def toPx(dp: Int)(implicit context: Context) = (dp * context.getResources.getDisplayMetrics.density).toInt
 
-    def getLocale(implicit context: Context) = context.getResources.getConfiguration.locale
+    def getLocale(implicit context: Context) = {
+      if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
+        //noinspection ScalaDeprecation
+        context.getResources.getConfiguration.locale
+      } else {
+        context.getResources.getConfiguration.getLocales.get(0)
+      }
+    }
 
     def withStyledAttributes[A](set: AttributeSet, @StyleableRes attrs: Array[Int])(body: TypedArray => A)(implicit context: Context) = {
       val a = context.getTheme.obtainStyledAttributes(set, attrs, 0, 0)

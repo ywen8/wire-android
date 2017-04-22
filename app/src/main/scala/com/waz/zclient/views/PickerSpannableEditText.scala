@@ -32,6 +32,7 @@ import com.waz.zclient.R
 import com.waz.zclient.pages.main.pickuser.UserTokenSpan
 import com.waz.zclient.ui.text.SpannableEditText
 import com.waz.zclient.utils.ViewUtils
+import com.waz.zclient.utils.ContextUtils._
 
 trait PickableElement {
   def id: String
@@ -219,11 +220,12 @@ class PickerSpannableEditText(val context: Context, val attrs: AttributeSet, val
   }
 
   private def addElementToken(userId: String, userName: String): Unit = {
+    val context: Context = getContext
     val lineWidth: Int = getMeasuredWidth - getPaddingLeft - getPaddingRight
-    val userTokenSpan: UserTokenSpan = new UserTokenSpan(userId, userName, getContext, false, lineWidth)
+    val userTokenSpan: UserTokenSpan = new UserTokenSpan(userId, userName, context, false, lineWidth)
     userTokenSpan.setDeleteModeTextColor(getAccentColor)
     if (lightTheme) {
-      userTokenSpan.setTextColor(getResources.getColor(R.color.text__primary_light))
+      userTokenSpan.setTextColor(getColor(R.color.text__primary_light)(context))
     }
     appendSpan(userTokenSpan)
     setSelection(getText.length)

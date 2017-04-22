@@ -53,7 +53,7 @@ class MissedCallPartView(context: Context, attrs: AttributeSet, style: Int) exte
     case (z, id) => z.usersStorage.signal(id)
   }
 
-  private val locale = context.getResources.getConfiguration.locale
+  private val locale = getLocale
   private val msg = user map {
     case u if u.isSelf => getString(R.string.content__missed_call__you_called)
     case u if u.getDisplayName.isEmpty => ""
