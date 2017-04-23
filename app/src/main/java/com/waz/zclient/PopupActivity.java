@@ -54,7 +54,16 @@ public class PopupActivity extends BaseActivity implements QuickReplyFragment.Co
             finish();
             return;
         }
+        showQuickReplyFragment(intent);
+    }
 
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        showQuickReplyFragment(intent);
+    }
+
+    private void showQuickReplyFragment(Intent intent) {
         final String conversationId = IntentUtils.getLaunchConversationId(intent);
         if (conversationId == null) {
             finish();
@@ -62,10 +71,10 @@ public class PopupActivity extends BaseActivity implements QuickReplyFragment.Co
         }
 
         getSupportFragmentManager().beginTransaction()
-                                   .replace(R.id.fl__quick_reply__container,
-                                            QuickReplyFragment.newInstance(conversationId),
-                                            QuickReplyFragment.TAG)
-                                   .commit();
+            .replace(R.id.fl__quick_reply__container,
+                QuickReplyFragment.newInstance(conversationId),
+                QuickReplyFragment.TAG)
+            .commit();
     }
 
     @Override
