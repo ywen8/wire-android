@@ -19,13 +19,14 @@ package com.waz.zclient.tracking
 
 import android.content.Context
 import com.waz.ZLog.ImplicitTag._
-import com.waz.api.Message
+import com.waz.api.{EphemeralExpiration, Message}
 import com.waz.model.ConversationData.ConversationType
 import com.waz.model.{AssetData, ConvId, MessageContentIndex, MessageId}
 import com.waz.threading.Threading
 import com.waz.utils.events.EventContext
-import com.waz.zclient.controllers.{AssetsController, BrowserController}
+import com.waz.zclient.controllers.{AssetsController, BrowserController, SharingController}
 import com.waz.zclient.conversation.CollectionController
+import com.waz.zclient.core.controllers.tracking.events.media.SentPictureEvent
 import com.waz.zclient.messages.LikesController
 import com.waz.zclient.messages.controllers.MessageActionsController
 import com.waz.zclient.pages.main.conversation.views.MessageBottomSheetDialog.MessageAction
@@ -49,6 +50,7 @@ class UiTrackingController(implicit injector: Injector, ctx: Context, ec: EventC
   val browserController     = inject[BrowserController]
   val likesController       = inject[LikesController]
   val collectionsController = inject[CollectionController]
+  val sharingController     = inject[SharingController]
 
   msgActionController.onMessageAction {
     case (MessageAction.REVEAL, message) if MessageContentIndex.TextMessageTypes.contains(message.getMessageType) =>
@@ -129,6 +131,24 @@ class UiTrackingController(implicit injector: Injector, ctx: Context, ec: EventC
           convTrackingData(conv).map{ data =>
             tagEvent(EnteredSearchCollectionsEvent(data.convType, data.withOtto))
           }
+        }
+      }
+  }
+
+  sharingController.sendEvent.on(Threading.Ui){
+    sharedData =>
+      sharedData._2.map(convId => convTrackingData(convId)).foreach{ c => c.foreach{ convInfo =>
+        if (sharedData._1.isInstanceOf[SharingController.FileContent]){
+          val event = new SentPictureEvent(
+            SentPictureEvent.Source.SHARING,
+            convInfo.convType.name(),
+            SentPictureEvent.Method.DEFAULT,
+            SentPictureEvent.SketchSource.NONE,
+            convInfo.withOtto,
+            sharedData._3 != EphemeralExpiration.NONE,
+            sharedData._3.duration().toSeconds.toString)
+          tagEvent(event)
+        }
         }
       }
   }

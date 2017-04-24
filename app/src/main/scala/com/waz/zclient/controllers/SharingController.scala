@@ -47,6 +47,8 @@ class SharingController(implicit injector: Injector, eventContext: EventContext)
   val sendEvent = EventStream[(SharableContent, Set[ConvId], EphemeralExpiration)]()
 
   sendEvent{
+    case (_, conversations, _) if conversations.size <= 1 =>
+      //For now we let the old sharing controller handle this one
     case (TextContent(content), conversations, expiration) =>
       zms.head.flatMap(z => RichFuture.traverseSequential(conversations.toSeq){ convId =>
         z.convsUi.setEphemeral(convId, expiration).flatMap(_ =>
