@@ -98,8 +98,8 @@ public class SecondPageFragment extends BaseFragment<SecondPageFragment.Containe
     }
 
     @Override
-    public void onStart() {
-        super.onStart();
+    public void onResume() {
+        super.onResume();
         getStoreFactory().getConversationStore().addConversationStoreObserverAndUpdate(this);
         getControllerFactory().getNavigationController().addPagerControllerObserver(this);
     }
@@ -111,10 +111,10 @@ public class SecondPageFragment extends BaseFragment<SecondPageFragment.Containe
     }
 
     @Override
-    public void onStop() {
+    public void onPause() {
         getControllerFactory().getNavigationController().removePagerControllerObserver(this);
         getStoreFactory().getConversationStore().removeConversationStoreObserver(this);
-        super.onStop();
+        super.onPause();
     }
 
     @Override
