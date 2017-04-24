@@ -50,8 +50,6 @@ import com.waz.threading.Threading
 import com.waz.ui.MemoryImageCache.BitmapRequest.Regular
 import com.waz.utils.LoggedTry
 import com.waz.utils.events.{EventContext, Signal}
-//import com.waz.utils.wrappers.AndroidIntentBuilder._
-//import com.waz.utils.wrappers.ContextBuilder._
 import com.waz.zclient.calling.controllers.GlobalCallingController
 import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.utils.IntentUtils.getNotificationAppLaunchIntent
