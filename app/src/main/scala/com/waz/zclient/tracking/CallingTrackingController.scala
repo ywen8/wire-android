@@ -22,7 +22,7 @@ import com.waz.ZLog.ImplicitTag._
 import com.waz.ZLog._
 import com.waz.api.{CauseForCallStateEvent, NetworkMode, VoiceChannelState}
 import com.waz.model.ConvId
-import com.waz.service.call.CallInfo.ClosedReason.{Interrupted, Normal}
+import com.waz.service.call.AvsV3.ClosedReason.{Interrupted, Normal}
 import com.waz.threading.Threading
 import com.waz.utils.RichInstant
 import com.waz.utils.events.EventContext
@@ -107,8 +107,8 @@ class CallingTrackingController(implicit injector: Injector, ctx: Context, ec: E
             z <- zms.head
             cause <- if (p.isV3Call)
               z.calling.currentCall.head.flatMap {
-                case call if call.closedReason == Normal => Future.successful(if (call.hangupRequested) "SELF" else "OTHER")
-                case call if call.closedReason == Interrupted => Future.successful("gsm_call")
+                case Some(call) if call.closedReason == Normal => Future.successful(if (call.hangupRequested) "SELF" else "OTHER")
+                case Some(call) if call.closedReason == Interrupted => Future.successful("gsm_call")
                 case _ => z.network.networkMode.head.map(networkModeString)
               } else
               z.voice.voiceChannelSignal(p.convId).map(_.tracking).head.flatMap {

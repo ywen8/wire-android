@@ -21,8 +21,6 @@ import com.waz.ZLog.ImplicitTag._
 import com.waz.ZLog.{info, warn}
 import com.waz.api.VoiceChannelState
 import com.waz.model.ConvId
-import com.waz.model.ConversationData.ConversationType
-import com.waz.service.call.{CallingService, VoiceChannelService}
 import com.waz.threading.Threading
 import com.waz.zclient._
 import com.waz.zclient.common.controllers.{CameraPermission, PermissionsController, RecordAudioPermission}
@@ -44,9 +42,8 @@ class CallPermissionsController(implicit inj: Injector, cxt: WireContext) extend
 
   val permissionsController = inject[PermissionsController]
 
-  private def useV3(convId: ConvId) = isGroupCall(convId).flatMap {
-    case true => Future.successful(false)
-    case _ => prefs.head.flatMap(p => p.uiPreferenceStringSignal(p.callingV3Key, "1").apply()).flatMap {
+  private def useV3 = {
+    prefs.head.flatMap(p => p.uiPreferenceStringSignal(p.callingV3Key, "1").apply()).flatMap {
       case "0" => Future.successful(false) // v2
       case "1" => v3Service.flatMap(_.requestedCallVersion).head.map { v =>
         info(s"Relying on backend switch: using calling version: $v")
@@ -59,61 +56,45 @@ class CallPermissionsController(implicit inj: Injector, cxt: WireContext) extend
     }
   }
 
-  private def isGroupCall(convId: ConvId) =
-    for {
-      z <- zms.head
-      Some(conv) <- z.convsContent.convById(convId)
-    } yield conv.convType == ConversationType.Group
-
-  (for {
+  for {
+    cId <- convId
     incomingCall <- callState.map {
       case VoiceChannelState.OTHER_CALLING => true
       case _ => false
     }
     autoAnswer <- prefs.flatMap(p => p.uiPreferenceBooleanSignal(p.autoAnswerCallPrefKey).signal)
-  } yield (incomingCall, autoAnswer)) {
-    case (true, true) => acceptCall()
-    case _ => //
-  }
+  } if (incomingCall && autoAnswer) startCall(cId)
 
-  def startCall(convId: ConvId, withVideo: Boolean, variableBitRate: Boolean): Unit = {
-    permissionsController.requiring(if (withVideo) Set(CameraPermission, RecordAudioPermission) else Set(RecordAudioPermission)) {
-      setVariableBitRateMode(variableBitRate)
-      useV3(convId).flatMap {
-        case true => v3Service.head.map(_.startCall(convId, withVideo, false))
-        case false => v2Service.head.map(_.joinVoiceChannel(convId, withVideo))
-      }
-    }(R.string.calling__cannot_start__title,
-      if (withVideo) R.string.calling__cannot_start__no_video_permission__message else R.string.calling__cannot_start__no_permission__message)
+  /**
+    * Determines if a call is available and either joins that call, or starts a new one. If there is
+    * already an ongoing call, the withVideo and variableBitRate flags will be ignored by the
+    * underlying service
+    */
+  def startCall(convId: ConvId, withVideo: Boolean = false, variableBitRate: Boolean = false): Unit = {
+    def start(v3: Boolean) = v3 match {
+      case true => v3Service.head.map(_.startCall(convId, withVideo))
+      case _ => v2Service.head.map(_.joinVoiceChannel(convId, withVideo))
+    }
+
+    def reject(v3: Boolean) = v3 match {
+      case true => v3Service.head.map(_.endCall(convId))
+      case _ => v2Service.head.map(_.silenceVoiceChannel(convId))
+    }
+
+    for {
+      incoming <- convIdOpt.head.map(_.isDefined)
+      v3 <- if (incoming) isV3Call.head else useV3
+    } {
+      permissionsController.requiring(if (withVideo) Set(CameraPermission, RecordAudioPermission) else Set(RecordAudioPermission)) {
+        if (!incoming) setVariableBitRateMode(variableBitRate)
+        start(v3)
+      }(R.string.calling__cannot_start__title, if (withVideo) R.string.calling__cannot_start__no_video_permission__message else R.string.calling__cannot_start__no_permission__message,
+        if (incoming) reject(v3))
+    }
   }
 
   def setVariableBitRateMode(enabled: Boolean): Unit = {
     val cbrOn = if(enabled) 0 else 1 // in SE it's reversed: we DISABLE cbr instead of enabling vbr and vice versa
     v3Service.head.map(_.setAudioConstantBitRateEnabled(cbrOn))
-  }
-
-  def acceptCall(): Unit = {
-    for {
-      withVideo <- videoCall.head
-      v3        <- isV3Call.head
-    } {
-      def withV3(f: (CallingService, ConvId) => Unit) = v3ServiceAndCurrentConvId.head.map { case (cs, id) => f(cs, id) }
-      def withV2(f: (VoiceChannelService, ConvId) => Unit) = v2ServiceAndCurrentConvId.head.map { case (vcs, id) => f(vcs, id) }
-
-      def accept() = v3 match {
-        case true => withV3 { (cs, id) => cs.acceptCall(id, false) }
-        case _ => withV2 { (vcs, id) => vcs.joinVoiceChannel(id, withVideo) }
-      }
-
-      def reject() = v3 match {
-        case true => withV3 { (cs, id) => cs.endCall(id) }
-        case _ => withV2 { (vcs, id) => vcs.silenceVoiceChannel(id) }
-      }
-
-      permissionsController.requiring(if (withVideo) Set(CameraPermission, RecordAudioPermission) else Set(RecordAudioPermission)) {
-        accept()
-      }(R.string.calling__cannot_start__title, if (withVideo) R.string.calling__cannot_start__no_video_permission__message else R.string.calling__cannot_start__no_permission__message,
-        reject())
-    }
   }
 }

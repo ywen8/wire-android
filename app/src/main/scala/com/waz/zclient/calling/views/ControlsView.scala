@@ -427,7 +427,7 @@ private class IncomingControlsView(val context: Context, val attrs: AttributeSet
             callController.dismissCall()
           }
           else if (touchDownOnRightAction && distPoint(targets.last, last) <= buttonRadius) {
-            callPermissionsController.acceptCall()
+            callController.glob.convId.currentValue.foreach(callPermissionsController.startCall(_))
           }
         }
         touchDownOnLeftAction = false
@@ -488,7 +488,7 @@ private class IncomingControlsView(val context: Context, val attrs: AttributeSet
           callController.dismissCall()
         }
         else {
-          callPermissionsController.acceptCall()
+          callController.glob.convId.currentValue.foreach(callPermissionsController.startCall(_))
         }
       }
       else if (target == targets.last && !dragging) {
