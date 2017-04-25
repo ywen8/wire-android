@@ -239,6 +239,9 @@
         <ignore path="src/main/res/drawable/checkbox.xml"/>
         <ignore path="src/main/res/drawable/rounded_graphite_rectangle.xml"/>
         <ignore path="src/main/res/layout/share_*"/>
+        <ignore path="src/main/res/layout/fragment_image.xml"/>
+        <ignore path="src/main/res/layout/view_custom*"/>
+        <ignore path="src/main/res/layout/view_toolbar*"/>
 
         <!--TODO Dean - leaving these here as design comes up with a new container-->
         <ignore path="*ic_action_soundcloud*"/>
@@ -266,6 +269,9 @@
         <ignore path="src/main/res/layout/single_image_view_toolbar_layout.xml"/>
         <ignore path="src/main/res/layout/search_text_result_row.xml"/>
         <ignore path="src/main/res/layout/share_*"/>
+        <ignore path="src/main/res/layout/fragment_image.xml"/>
+        <ignore path="src/main/res/layout/view_custom*"/>
+        <ignore path="src/main/res/layout/view_toolbar*"/>
     </issue>
     <issue id="EnforceUTF8" severity="error" />
     <issue id="ViewHolder" severity="error" />

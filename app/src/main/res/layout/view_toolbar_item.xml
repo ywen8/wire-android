@@ -2,7 +2,7 @@
 <!--
 
     Wire
-    Copyright (C) 2016 Wire Swiss GmbH
+    Copyright (C) 2017 Wire Swiss GmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -18,21 +18,23 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 -->
-<merge xmlns:android="http://schemas.android.com/apk/res/android"
-       android:layout_width="match_parent"
-       android:layout_height="match_parent"
+<merge
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="0dp"
+    android:layout_weight="1"
+    android:layout_height="match_parent"
     >
 
-    <com.waz.zclient.ui.text.GlyphTextView
-        android:id="@+id/image_icon"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_vertical"
+    <com.waz.zclient.views.GlyphButton
+        android:id="@+id/glyph"
+        android:layout_width="@dimen/cursor__menu_button__diameter"
+        android:layout_height="@dimen/cursor__menu_button__diameter"
+        android:padding="@dimen/cursor__menu_button__padding"
+        android:layout_gravity="center"
         android:gravity="center"
-        android:text="@string/glyph__picture"
-        android:textColor="@color/graphite_40"
-        android:textSize="@dimen/wire__icon_button__text_size"
-        android:visibility="gone"
+        android:text="@string/glyph__like"
+        android:textSize="@dimen/wire__text_size__regular"
+        android:textColor="?wirePrimaryTextColor"
         />
 
 </merge>
