@@ -106,7 +106,6 @@ class CallingTrackingController(implicit injector: Injector, ctx: Context, ec: E
           (for {
             z <- zms.head
             cause <- if (p.isV3Call)
-              //TODO fix calling tracking for v3
               z.calling.currentCall.head.flatMap {
                 case Some(call) if call.closedReason == Normal => Future.successful(if (call.hangupRequested) "SELF" else "OTHER")
                 case Some(call) if call.closedReason == Interrupted => Future.successful("gsm_call")

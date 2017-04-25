@@ -35,7 +35,6 @@
 package com.waz.zclient.notifications.controllers
 
 import android.app.{Notification, NotificationManager, PendingIntent}
-import com.waz.utils.wrappers.{AndroidIntentBuilder, ContextBuilder, Intent}
 import android.support.v4.app.NotificationCompat
 import com.waz.ZLog._
 import com.waz.api.VoiceChannelState
@@ -50,6 +49,7 @@ import com.waz.threading.Threading
 import com.waz.ui.MemoryImageCache.BitmapRequest.Regular
 import com.waz.utils.LoggedTry
 import com.waz.utils.events.{EventContext, Signal}
+import com.waz.utils.wrappers.{AndroidIntentUtil, ContextBuilder, Intent}
 import com.waz.zclient.calling.controllers.GlobalCallingController
 import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.utils.IntentUtils.getNotificationAppLaunchIntent
@@ -168,7 +168,7 @@ class CallingNotificationsController(implicit cxt: WireContext, eventContext: Ev
   private def joinIntent(convId: ConvId) = pendingIntent(JoinRequestCode, CallService.joinIntent(ContextBuilder.wrap(cxt), convId))
   private def joinGroupIntent(convId: ConvId) = pendingIntent(JoinRequestCode, CallService.joinGroupIntent(ContextBuilder.wrap(cxt), convId))
 
-  private def pendingIntent(reqCode: Int, intent: Intent) = PendingIntent.getService(cxt, reqCode, AndroidIntentBuilder.unwrap(intent), PendingIntent.FLAG_UPDATE_CURRENT)
+  private def pendingIntent(reqCode: Int, intent: Intent) = PendingIntent.getService(cxt, reqCode, AndroidIntentUtil.unwrap(intent), PendingIntent.FLAG_UPDATE_CURRENT)
 }
 
 object CallingNotificationsController {
