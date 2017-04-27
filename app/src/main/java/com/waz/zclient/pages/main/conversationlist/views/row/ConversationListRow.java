@@ -135,7 +135,7 @@ public class ConversationListRow extends FrameLayout implements SwipeListView.Sw
             //noinspection deprecation
             normalTextColor = getResources().getColor(R.color.list_font_color);
         } else {
-            normalTextColor = getResources().getColor(R.color.list_font_color,getContext().getTheme());
+            normalTextColor = getResources().getColor(R.color.list_font_color, getContext().getTheme());
         }
         menuOpenOffset = getResources().getDimensionPixelSize(R.dimen.list__menu_indicator__max_swipe_offset);
 
