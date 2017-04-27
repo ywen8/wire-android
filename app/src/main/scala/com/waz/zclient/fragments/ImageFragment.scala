@@ -193,7 +193,7 @@ class ImageFragment extends BaseFragment[ImageFragment.Container] with FragmentH
     false
   }
 
-  private def animateOpeningTransition(drawable: ImageAssetDrawable) {
+  private def animateOpeningTransition(drawable: ImageAssetDrawable): Unit =  {
     val animatingImageView = ViewUtils.getView(getView, R.id.animating_image).asInstanceOf[ImageView]
     val imageViewPager = ViewUtils.getView[ImageViewPager](getView, R.id.image_view_pager)
     val clickedImage = getControllerFactory.getSingleImageController.getImageContainer
@@ -237,11 +237,11 @@ class ImageFragment extends BaseFragment[ImageFragment.Container] with FragmentH
     parent.addView(animatingImageView)
 
     animatingImageView.animate.y(targetY).x(targetX).scaleX(scale).scaleY(scale).setInterpolator(new Expo.EaseOut).setDuration(openAnimationDuration).withStartAction(new Runnable() {
-      def run() {
+      def run(): Unit =  {
         getControllerFactory.getSingleImageController.getImageContainer.setVisibility(View.INVISIBLE)
       }
     }).withEndAction(new Runnable() {
-      def run() {
+      def run(): Unit =  {
         val messageView = getControllerFactory.getSingleImageController.getImageContainer
         Option(messageView).foreach(_.setVisibility(View.VISIBLE))
         animatingImageView.setVisibility(View.GONE)

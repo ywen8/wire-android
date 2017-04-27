@@ -74,10 +74,10 @@ class CustomToolbarFrame(val context: Context, val attrs: AttributeSet, val defS
     animator.setDuration(getResources.getInteger(R.integer.wire__animation__delay__regular))
     animator.setInterpolator(new Expo.EaseIn)
     animator.addListener(new AnimatorListenerAdapter() {
-      override def onAnimationCancel(animation: Animator) {
+      override def onAnimationCancel(animation: Animator): Unit =  {
         Option(view).foreach(_.setVisibility(View.GONE))
       }
-      override def onAnimationEnd(animation: Animator) {
+      override def onAnimationEnd(animation: Animator): Unit =  {
         Option(view).foreach(_.setVisibility(View.GONE))
       }
     })

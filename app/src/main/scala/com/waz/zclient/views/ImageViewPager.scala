@@ -45,10 +45,8 @@ import com.waz.zclient.{Injectable, Injector, ViewHelper}
 import com.waz.ZLog.ImplicitTag._
 
 import scala.collection.mutable
-import scala.concurrent.Future
 
 class ImageViewPager(context: Context, attrs: AttributeSet) extends ViewPager(context, attrs) with ViewHelper {
-  import Threading.Implicits.Ui
   def this(context: Context) = this(context, null)
 
   lazy val zms = inject[Signal[ZMessaging]]
