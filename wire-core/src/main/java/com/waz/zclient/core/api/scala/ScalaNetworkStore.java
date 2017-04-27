@@ -32,7 +32,7 @@ public class ScalaNetworkStore implements INetworkStore {
 
     private ConnectionIndicator connectionIndicator;
     private Set<NetworkStoreObserver> networkStoreObservers = new HashSet<>();
-    private NetworkMode networkMode = NetworkMode.OFFLINE;
+    private NetworkMode networkMode = NetworkMode.UNKNOWN;
     private boolean isServerError = false;
 
     final private ModelObserver<ConnectionIndicator> connectionIndicatorModelObserver = new ModelObserver<ConnectionIndicator>() {
