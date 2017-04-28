@@ -380,6 +380,8 @@ class MainActivity extends BaseActivity
 
             Option(conv).foreach(_.setEphemeralExpiration(expiration))
 
+            sharingController.sendContent(sharedText, sharedFileUris, Seq(convId).asJava, expiration, this)
+
             // Only want to swipe over when app has loaded
             new Handler().postDelayed(new Runnable() {
               def run() = {
