@@ -22,6 +22,7 @@ import android.animation.AnimatorListenerAdapter;
 import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
 import android.animation.TimeInterpolator;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.NonNull;
@@ -234,7 +235,12 @@ public class ParticipantFragment extends BaseFragment<ParticipantFragment.Contai
         bodyContainer = ViewUtils.getView(view, R.id.fl__participant__container);
         loadingIndicatorView = ViewUtils.getView(view, R.id.liv__participants__loading_indicator);
 
-        loadingIndicatorView.setColor(getResources().getColor(R.color.people_picker__loading__color));
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            //noinspection deprecation
+            loadingIndicatorView.setColor(getResources().getColor(R.color.people_picker__loading__color));
+        } else {
+            loadingIndicatorView.setColor(getResources().getColor(R.color.people_picker__loading__color, getContext().getTheme()));
+        }
 
         participantsContainerView = ViewUtils.getView(view, R.id.ll__participant__container);
         pickUserContainerView = ViewUtils.getView(view, R.id.fl__add_to_conversation__pickuser__container);

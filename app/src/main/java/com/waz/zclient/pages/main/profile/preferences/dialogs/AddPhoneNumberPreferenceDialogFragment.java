@@ -348,7 +348,7 @@ public class AddPhoneNumberPreferenceDialogFragment extends BaseDialogFragment<A
     private static void clearColorFilter(@NonNull Drawable drawable) {
         drawable.clearColorFilter();
 
-        if (Build.VERSION.SDK_INT == 21 || Build.VERSION.SDK_INT == 22) {
+        if (Build.VERSION.SDK_INT == Build.VERSION_CODES.LOLLIPOP || Build.VERSION.SDK_INT == Build.VERSION_CODES.LOLLIPOP_MR1) {
             // API 21 + 22 have an issue where clearing a color filter on a DrawableContainer
             // will not propagate to all of its children. To workaround this we unwrap the drawable
             // to find any DrawableContainers, and then unwrap those to clear the filter on its
@@ -373,7 +373,7 @@ public class AddPhoneNumberPreferenceDialogFragment extends BaseDialogFragment<A
     // from TextInputLayout
     private void ensureBackgroundDrawableStateWorkaround(EditText editText) {
         final int sdk = Build.VERSION.SDK_INT;
-        if (sdk != 21 && sdk != 22) {
+        if (sdk != Build.VERSION_CODES.LOLLIPOP && sdk != Build.VERSION_CODES.LOLLIPOP_MR1) {
             // The workaround is only required on API 21-22
             return;
         }
@@ -401,7 +401,7 @@ public class AddPhoneNumberPreferenceDialogFragment extends BaseDialogFragment<A
             // as the background. This has the unfortunate side-effect of wiping out any
             // user set padding, but I'd hope that use of custom padding on an EditText
             // is limited.
-            editText.setBackgroundDrawable(newBg);
+            editText.setBackground(newBg);
         }
     }
 

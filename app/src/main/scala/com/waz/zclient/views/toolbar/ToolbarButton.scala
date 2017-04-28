@@ -29,6 +29,7 @@ import com.waz.zclient.ui.theme.ThemeUtils
 import com.waz.zclient.ui.utils.ColorUtils
 import com.waz.zclient.utils.ViewUtils
 import com.waz.zclient.{R, ViewHelper}
+import com.waz.zclient.utils.ContextUtils._
 
 abstract class ToolbarButton(context: Context, attrs: AttributeSet, defStyleAttr: Int) extends FrameLayout(context, attrs, defStyleAttr) with ViewHelper{
   def this(context: Context, attrs: AttributeSet) = this(context, attrs, 0)
@@ -46,7 +47,7 @@ abstract class ToolbarButton(context: Context, attrs: AttributeSet, defStyleAttr
   setLayoutParams(params)
   setLongClickable(true)
 
-  def setToolbarItem(toolbarItem: ToolbarItem) {
+  def setToolbarItem(toolbarItem: ToolbarItem): Unit = {
     this.toolbarItem = toolbarItem
     setTag(toolbarItem)
     glyphTextView.setText(toolbarItem.glyphResId)
@@ -54,25 +55,25 @@ abstract class ToolbarButton(context: Context, attrs: AttributeSet, defStyleAttr
 
   def getToolbarItem: ToolbarItem = toolbarItem
 
-  def showEphemeralMode(color: Int) {
+  def showEphemeralMode(color: Int): Unit =  {
     glyphTextView.setTextColor(color)
     if (toolbarItem != null) glyphTextView.setText(toolbarItem.timedGlyphResId)
   }
 
-  def hideEphemeralMode(color: Int) {
+  def hideEphemeralMode(color: Int): Unit = {
     glyphTextView.setTextColor(color)
     if (toolbarItem != null) glyphTextView.setText(toolbarItem.glyphResId)
   }
 
-  def setPressedBackgroundColor(color: Int) {
+  def setPressedBackgroundColor(color: Int): Unit = {
     setBackgroundColor(Color.TRANSPARENT, color)
   }
 
-  def setSolidBackgroundColor(color: Int) {
+  def setSolidBackgroundColor(color: Int): Unit = {
     setBackgroundColor(color, color)
   }
 
-  private def setBackgroundColor(defaultColor: Int, pressedColor: Int) {
+  private def setBackgroundColor(defaultColor: Int, pressedColor: Int): Unit = {
     if (ThemeUtils.isDarkTheme(getContext)) alphaPressed = PRESSED_ALPHA__DARK
     else alphaPressed = PRESSED_ALPHA__LIGHT
     val avg: Float = (Color.red(pressedColor) + Color.blue(pressedColor) + Color.green(pressedColor)) / (3 * 255.0f)
@@ -96,16 +97,16 @@ abstract class ToolbarButton(context: Context, attrs: AttributeSet, defStyleAttr
     invalidate()
   }
 
-  def initTextColor(selectedColor: Int) {
-    var pressedColor: Int = getResources.getColor(R.color.text__primary_dark_40)
+  def initTextColor(selectedColor: Int): Unit =  {
+    var pressedColor: Int = getColor(R.color.text__primary_dark_40)
     var focusedColor: Int = pressedColor
-    var enabledColor: Int = getResources.getColor(R.color.text__primary_dark)
-    var disabledColor: Int = getResources.getColor(R.color.text__primary_dark_16)
+    var enabledColor: Int = getColor(R.color.text__primary_dark)
+    var disabledColor: Int = getColor(R.color.text__primary_dark_16)
     if (!ThemeUtils.isDarkTheme(getContext)) {
-      pressedColor = getResources.getColor(R.color.text__primary_light__40)
+      pressedColor = getColor(R.color.text__primary_light__40)
       focusedColor = pressedColor
-      enabledColor = getResources.getColor(R.color.text__primary_light)
-      disabledColor = getResources.getColor(R.color.text__primary_light_16)
+      enabledColor = getColor(R.color.text__primary_light)
+      disabledColor = getColor(R.color.text__primary_light_16)
     }
     val colors: Array[Int] = Array(pressedColor, focusedColor, selectedColor, enabledColor, disabledColor)
     val states: Array[Array[Int]] = Array(Array(android.R.attr.state_pressed), Array(android.R.attr.state_focused), Array(android.R.attr.state_selected), Array(android.R.attr.state_enabled), Array(-android.R.attr.state_enabled))

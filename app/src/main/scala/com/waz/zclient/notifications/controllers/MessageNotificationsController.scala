@@ -154,7 +154,7 @@ class MessageNotificationsController(implicit inj: Injector, cxt: Context, event
            CONNECT_REQUEST |
            RENAME |
            LIKE =>
-        val value = sharedPreferences.getString(getString(R.string.pref_options_ringtones_text_key), null);
+        val value = sharedPreferences.getString(getString(R.string.pref_options_ringtones_text_key), null)
         if (value != null && value.isEmpty) {
           null
         } else {

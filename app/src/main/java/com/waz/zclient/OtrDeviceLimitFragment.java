@@ -17,6 +17,7 @@
  */
 package com.waz.zclient;
 
+import android.os.Build;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -62,13 +63,21 @@ public class OtrDeviceLimitFragment extends BaseDialogFragment<OtrDeviceLimitFra
 
         logoutButton = ViewUtils.getView(view, R.id.zb__otr_device_limit__logout);
         logoutButton.setIsFilled(false);
-        logoutButton.setAccentColor(getResources().getColor(R.color.text__primary_dark));
         logoutButton.setOnClickListener(this);
 
         manageDevicesButton = ViewUtils.getView(view, R.id.zb__otr_device_limit__manage_devices);
         manageDevicesButton.setIsFilled(true);
-        manageDevicesButton.setAccentColor(getResources().getColor(R.color.text__primary_dark));
         manageDevicesButton.setOnClickListener(this);
+
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            //noinspection deprecation
+            logoutButton.setAccentColor(getResources().getColor(R.color.text__primary_dark));
+            //noinspection deprecation
+            manageDevicesButton.setAccentColor(getResources().getColor(R.color.text__primary_dark));
+        } else {
+            logoutButton.setAccentColor(getResources().getColor(R.color.text__primary_dark, getContext().getTheme()));
+            manageDevicesButton.setAccentColor(getResources().getColor(R.color.text__primary_dark, getContext().getTheme()));
+        }
 
         return view;
     }

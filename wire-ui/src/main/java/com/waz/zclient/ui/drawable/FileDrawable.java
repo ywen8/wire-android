@@ -23,6 +23,8 @@ import android.graphics.ColorFilter;
 import android.graphics.Paint;
 import android.graphics.PixelFormat;
 import android.graphics.drawable.Drawable;
+import android.os.Build;
+
 import com.waz.zclient.ui.R;
 import com.waz.zclient.ui.utils.TypefaceUtils;
 
@@ -43,13 +45,21 @@ public class FileDrawable extends Drawable {
         this.extension = extension;
         this.textCorrectionSpacing = context.getResources().getDimensionPixelSize(R.dimen.wire__padding__4);
 
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            //noinspection deprecation
+            glyphPaint.setColor(context.getResources().getColor(R.color.black_48));
+            //noinspection deprecation
+            textPaint.setColor(context.getResources().getColor(R.color.white));
+        } else {
+            glyphPaint.setColor(context.getResources().getColor(R.color.black_48, context.getTheme()));
+            textPaint.setColor(context.getResources().getColor(R.color.white, context.getTheme()));
+        }
+
         glyphPaint.setTypeface(TypefaceUtils.getTypeface(TypefaceUtils.getGlyphsTypefaceName()));
-        glyphPaint.setColor(context.getResources().getColor(R.color.black_48));
         glyphPaint.setAntiAlias(true);
         glyphPaint.setTextAlign(Paint.Align.CENTER);
         glyphPaint.setTextSize(context.getResources().getDimensionPixelSize(R.dimen.content__audio_message__button__size));
 
-        textPaint.setColor(context.getResources().getColor(R.color.white));
         textPaint.setAntiAlias(true);
         textPaint.setTextAlign(Paint.Align.CENTER);
         textPaint.setTextSize(context.getResources().getDimensionPixelSize(R.dimen.wire__text_size__tiny));

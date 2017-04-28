@@ -17,6 +17,7 @@
  */
 package com.waz.zclient.pages.main.participants;
 
+import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -130,9 +131,19 @@ public class TabbedParticipantBodyFragment extends BaseFragment<TabbedParticipan
         TabIndicatorLayout tabIndicatorLayout = ViewUtils.getView(view, R.id.til_single_participant_tabs);
         int color;
         if (getControllerFactory().getThemeController().isDarkTheme()) {
-            color = getResources().getColor(R.color.text__secondary_dark);
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+                //noinspection deprecation
+                color = getResources().getColor(R.color.text__secondary_dark);
+            } else {
+                color = getResources().getColor(R.color.text__secondary_dark, getContext().getTheme());
+            }
         } else {
-            color = getResources().getColor(R.color.text__secondary_light);
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+                //noinspection deprecation
+                color = getResources().getColor(R.color.text__secondary_light);
+            } else {
+                color = getResources().getColor(R.color.text__secondary_light, getContext().getTheme());
+            }
         }
         if (tabIndicatorLayout != null) {
             tabIndicatorLayout.setPrimaryColor(color);

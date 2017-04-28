@@ -22,6 +22,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.app.ActivityCompat;
@@ -331,7 +332,13 @@ public class PickUserFragment extends BaseFragment<PickUserFragment.Container> i
             ViewUtils.setHeight(searchBoxView, getResources().getDimensionPixelSize(R.dimen.searchbox__height__with_toolbar));
         } else {
             // Use constant style for left side start ui
-            int textColor = getResources().getColor(R.color.text__primary_dark);
+            int textColor;
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+                //noinspection deprecation
+                textColor = getResources().getColor(R.color.text__primary_dark);
+            } else {
+                textColor = getResources().getColor(R.color.text__primary_dark, getContext().getTheme());
+            }
             errorMessageViewHeader.setTextColor(textColor);
             errorMessageViewBody.setTextColor(textColor);
             TextView errorMessageIcon = ViewUtils.getView(rootView, R.id.gtv_pickuser__error_icon);
@@ -573,7 +580,12 @@ public class PickUserFragment extends BaseFragment<PickUserFragment.Container> i
         int color;
         isKeyboardVisible = keyboardIsVisible;
         if (keyboardIsVisible || !searchBoxIsEmpty) {
-            color = getResources().getColor(R.color.people_picker__loading__color);
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+                //noinspection deprecation
+                color = getResources().getColor(R.color.people_picker__loading__color);
+            } else {
+                color = getResources().getColor(R.color.people_picker__loading__color, getContext().getTheme());
+            }
         } else {
             color = getControllerFactory().getAccentColorController().getColor();
         }

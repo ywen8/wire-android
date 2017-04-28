@@ -18,6 +18,7 @@
 package com.waz.zclient.pages.main.pickuser.views;
 
 import android.content.Context;
+import android.os.Build;
 import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.view.Gravity;
@@ -183,6 +184,12 @@ public class ContactListItemTextView extends LinearLayout {
     }
 
     public void applyDarkTheme() {
-        nameView.setTextColor(getResources().getColor(R.color.text__primary_dark));
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            //noinspection deprecation
+            nameView.setTextColor(getResources().getColor(R.color.text__primary_dark));
+        } else {
+            nameView.setTextColor(getResources().getColor(R.color.text__primary_dark, getContext().getTheme()));
+        }
+
     }
 }

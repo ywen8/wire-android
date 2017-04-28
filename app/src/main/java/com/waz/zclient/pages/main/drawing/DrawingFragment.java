@@ -27,6 +27,7 @@ import android.graphics.Rect;
 import android.hardware.Sensor;
 import android.hardware.SensorManager;
 import android.media.ExifInterface;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -357,7 +358,12 @@ public class DrawingFragment extends BaseFragment<DrawingFragment.Container> imp
         } else {
             hideTip();
         }
-        drawingViewTip.setTextColor(getResources().getColor(R.color.drawing__tip__font__color_image));
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            //noinspection deprecation
+            drawingViewTip.setTextColor(getResources().getColor(R.color.drawing__tip__font__color_image));
+        } else {
+            drawingViewTip.setTextColor(getResources().getColor(R.color.drawing__tip__font__color_image, getContext().getTheme()));
+        }
         cancelLoadHandle();
         bitmapLoadHandle = backgroundImage.getSingleBitmap(ViewUtils.getOrientationDependentDisplayWidth(getActivity()), new BitmapCallback() {
             @Override

@@ -67,8 +67,13 @@ public class ConversationIndicatorView extends GlyphTextView {
         state = State.UNREAD;
 
         setTextSize(TypedValue.COMPLEX_UNIT_PX, getResources().getDimensionPixelSize(R.dimen.list__unsent_indicator_text_size));
-        setTextColor(getResources().getColor(R.color.list__unsent_indicator_text_color));
-        if (Build.VERSION.SDK_INT >= 17) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            //noinspection deprecation
+            setTextColor(getResources().getColor(R.color.list__unsent_indicator_text_color));
+        } else {
+            setTextColor(getResources().getColor(R.color.list__unsent_indicator_text_color, getContext().getTheme()));
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
             setTextAlignment(TEXT_ALIGNMENT_CENTER);
         }
         setGravity(Gravity.CENTER);
@@ -100,7 +105,12 @@ public class ConversationIndicatorView extends GlyphTextView {
                 break;
             case UNSENT:
                 paint.setStyle(Paint.Style.FILL);
-                paint.setColor(getResources().getColor(R.color.list__unsent_indicator_color));
+                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+                    //noinspection deprecation
+                    paint.setColor(getResources().getColor(R.color.list__unsent_indicator_color));
+                } else {
+                    paint.setColor(getResources().getColor(R.color.list__unsent_indicator_color, getContext().getTheme()));
+                }
                 setText(R.string.glyph__attention);
                 break;
         }

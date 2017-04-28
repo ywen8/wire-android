@@ -21,9 +21,6 @@ import android.support.annotation.NonNull;
 import com.waz.zclient.core.controllers.tracking.attributes.Attribute;
 import com.waz.zclient.core.controllers.tracking.events.Event;
 
-/**
- * Created by admin on 20/03/17.
- */
 public class ChangedBitRateModeEvent extends Event {
 
     public ChangedBitRateModeEvent(boolean vbrOn, boolean fromSettings) {

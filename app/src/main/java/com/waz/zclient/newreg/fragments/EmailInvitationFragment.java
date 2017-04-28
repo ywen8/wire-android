@@ -17,6 +17,7 @@
  */
 package com.waz.zclient.newreg.fragments;
 
+import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.text.Editable;
@@ -82,7 +83,13 @@ public class EmailInvitationFragment extends BaseFragment<EmailInvitationFragmen
     public View onCreateView(LayoutInflater inflater, ViewGroup viewGroup, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_invite__email, viewGroup, false);
 
-        int buttonColor = getResources().getColor(R.color.text__primary_dark);
+        int buttonColor;
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            //noinspection deprecation
+            buttonColor = getResources().getColor(R.color.text__primary_dark);
+        } else {
+            buttonColor = getResources().getColor(R.color.text__primary_dark, getContext().getTheme());
+        }
 
         TextView termsOfServicesTextView = ViewUtils.getView(view, R.id.tv__email_invite__terms_of_service);
         TextViewUtils.linkifyText(termsOfServicesTextView, buttonColor, false, new Runnable() {
@@ -100,7 +107,12 @@ public class EmailInvitationFragment extends BaseFragment<EmailInvitationFragmen
 
         signUpAlternativeButton = ViewUtils.getView(view, R.id.zb__email_invite__signup_alternative);
         signUpAlternativeButton.setIsFilled(false);
-        signUpAlternativeButton.setAccentColor(getResources().getColor(R.color.text__secondary_dark__40));
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            //noinspection deprecation
+            signUpAlternativeButton.setAccentColor(getResources().getColor(R.color.text__secondary_dark__40));
+        } else {
+            signUpAlternativeButton.setAccentColor(getResources().getColor(R.color.text__secondary_dark__40, getContext().getTheme()));
+        }
         if (LayoutSpec.isPhone(getActivity())) {
             signUpAlternativeButton.setText(getString(R.string.invitation_email__normal_phone_signup_button));
         } else {

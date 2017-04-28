@@ -18,6 +18,7 @@
 package com.waz.zclient.ui.colorpicker;
 
 import android.content.Context;
+import android.os.Build;
 import android.support.annotation.NonNull;
 import android.support.design.widget.BottomSheetDialog;
 import android.support.v7.widget.GridLayoutManager;
@@ -70,7 +71,12 @@ public class EmojiBottomSheetDialog extends BottomSheetDialog {
         });
 
         LinearLayout ll = new LinearLayout(getContext());
-        ll.setBackgroundColor(getContext().getResources().getColor(R.color.background_graphite));
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            //noinspection deprecation
+            ll.setBackgroundColor(getContext().getResources().getColor(R.color.background_graphite));
+        } else {
+            ll.setBackgroundColor(getContext().getResources().getColor(R.color.background_graphite, getContext().getTheme()));
+        }
         ll.setOrientation(LinearLayout.VERTICAL);
         final TabIndicatorLayout til = new TabIndicatorLayout(getContext());
         int[] labels = new int[3];
@@ -79,8 +85,16 @@ public class EmojiBottomSheetDialog extends BottomSheetDialog {
         labels[2] = R.string.sketch__emoji_keyboard__size_label__large;
         til.setLabels(labels);
         til.setSelected(currentEmojiSize.ordinal());
-        til.setTextColor(getContext().getResources().getColorStateList(R.color.wire__text_color_dark_selector));
-        til.setPrimaryColor(getContext().getResources().getColor(R.color.text__primary_dark));
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            //noinspection deprecation
+            til.setTextColor(getContext().getResources().getColorStateList(R.color.wire__text_color_dark_selector));
+            //noinspection deprecation
+            til.setPrimaryColor(getContext().getResources().getColor(R.color.text__primary_dark));
+        } else {
+            til.setTextColor(getContext().getResources().getColorStateList(R.color.wire__text_color_dark_selector,
+                                                                           getContext().getTheme()));
+            til.setPrimaryColor(getContext().getResources().getColor(R.color.text__primary_dark, getContext().getTheme()));
+        }
         til.setLabelHeight(getContext().getResources().getDimensionPixelSize(R.dimen.sketch__emoji__keyboard__tab_label_size));
         til.setCallback(new TabIndicatorLayout.Callback() {
             @Override

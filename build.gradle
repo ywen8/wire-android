@@ -58,6 +58,8 @@ ext {
     majorVersion = "2.32."
 
     compileSdkVersion = 24
+    // When upgrading minimum sdk you might want to search for occurrences of Build.VERSION_CODES.
+    // There are some classes with possibility of being simplified.
     minSdkVersion = 17
     targetSdkVersion = 23
     buildToolsVersion = '24.0.3'

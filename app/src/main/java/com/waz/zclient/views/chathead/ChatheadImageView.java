@@ -23,6 +23,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Typeface;
+import android.os.Build;
 import android.util.AttributeSet;
 import android.util.TypedValue;
 import android.view.Gravity;
@@ -157,7 +158,13 @@ public class ChatheadImageView extends FrameLayout implements UpdateListener {
     }
 
     private void initTextView() {
-        int fontColor = getResources().getColor(R.color.chathead__user_initials__font_color);
+        int fontColor;
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            //noinspection deprecation
+            fontColor = getResources().getColor(R.color.chathead__user_initials__font_color);
+        } else {
+            fontColor = getResources().getColor(R.color.chathead__user_initials__font_color, getContext().getTheme());
+        }
         Typeface initialsTypeface = TypefaceUtils.getTypeface(getResources().getString(R.string.chathead__user_initials__font));
         int fontSize = (int) (getMeasuredWidth() *
                              ResourceUtils.getResourceFloat(getResources(), R.dimen.notifications__incoming_call__chathead__font_proportion));

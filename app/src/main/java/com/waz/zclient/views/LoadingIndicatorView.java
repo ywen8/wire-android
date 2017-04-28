@@ -19,6 +19,7 @@ package com.waz.zclient.views;
 
 import android.content.Context;
 import android.graphics.Color;
+import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import android.support.annotation.IntDef;
@@ -199,13 +200,27 @@ public class LoadingIndicatorView extends FrameLayout {
     }
 
     public void applyLightTheme() {
-        progressView.setTextColor(getResources().getColor(R.color.text__primary_light));
-        backgroundColor = getResources().getColor(R.color.text__primary_disabled_dark);
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            //noinspection deprecation
+            progressView.setTextColor(getResources().getColor(R.color.text__primary_light));
+            //noinspection deprecation
+            backgroundColor = getResources().getColor(R.color.text__primary_disabled_dark);
+        } else {
+            progressView.setTextColor(getResources().getColor(R.color.text__primary_light, getContext().getTheme()));
+            backgroundColor = getResources().getColor(R.color.text__primary_disabled_dark, getContext().getTheme());
+        }
     }
 
     public void applyDarkTheme() {
-        progressView.setTextColor(getResources().getColor(R.color.text__primary_dark));
-        backgroundColor = getResources().getColor(R.color.text__primary_disabled_light);
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            //noinspection deprecation
+            progressView.setTextColor(getResources().getColor(R.color.text__primary_dark));
+            //noinspection deprecation
+            backgroundColor = getResources().getColor(R.color.text__primary_disabled_light);
+        } else {
+            progressView.setTextColor(getResources().getColor(R.color.text__primary_dark, getContext().getTheme()));
+            backgroundColor = getResources().getColor(R.color.text__primary_disabled_light, getContext().getTheme());
+        }
     }
 
     public void setType(@Type int type) {

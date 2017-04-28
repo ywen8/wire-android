@@ -22,6 +22,7 @@ import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
 import android.content.Context;
 import android.graphics.Color;
+import android.os.Build;
 import android.os.Handler;
 import android.view.View;
 import android.view.ViewGroup;
@@ -352,7 +353,13 @@ public class ConversationListAdapter extends BaseAdapter {
         final IConversation conversation = getItem(position);
 
         if (isArchived(position)) {
-            conversationListRowItem.setBackgroundColor(parent.getResources().getColor(R.color.list_archive_box__background_color));
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+                //noinspection deprecation
+                conversationListRowItem.setBackgroundColor(parent.getResources().getColor(R.color.list_archive_box__background_color));
+            } else {
+                conversationListRowItem.setBackgroundColor(parent.getResources().getColor(R.color.list_archive_box__background_color,
+                                                           conversationListRowItem.getContext().getTheme()));
+            }
         } else {
             conversationListRowItem.setBackgroundColor(Color.TRANSPARENT);
         }

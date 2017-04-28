@@ -452,7 +452,7 @@ private class IncomingControlsView(val context: Context, val attrs: AttributeSet
     }
     last.x = touchX
     last.y = touchY
-    return ret
+    ret
   }
 
   private def checkConstraints = {
@@ -508,7 +508,7 @@ private class IncomingControlsView(val context: Context, val attrs: AttributeSet
   }
 
   private def dist(posX: Double, posY: Double, pos2X: Double, pos2Y: Double): Float = {
-    return Math.sqrt(Math.pow(pos2X - posX, 2) + Math.pow(pos2Y - posY, 2)).toFloat
+    Math.sqrt(Math.pow(pos2X - posX, 2) + Math.pow(pos2Y - posY, 2)).toFloat
   }
 
   private final class TargetIndicatorSpringListener extends SimpleSpringListener {

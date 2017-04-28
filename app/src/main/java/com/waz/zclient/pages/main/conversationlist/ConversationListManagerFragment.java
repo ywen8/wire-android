@@ -18,6 +18,7 @@
 package com.waz.zclient.pages.main.conversationlist;
 
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.NonNull;
@@ -152,7 +153,12 @@ public class ConversationListManagerFragment extends BaseFragment<ConversationLi
         startuiLoadingIndicatorView = ViewUtils.getView(view, R.id.liv__conversations__loading_indicator);
         listLoadingIndicatorView = ViewUtils.getView(view, R.id.lbv__conversation_list__loading_indicator);
 
-        startuiLoadingIndicatorView.setColor(getResources().getColor(R.color.people_picker__loading__color));
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            //noinspection deprecation
+            startuiLoadingIndicatorView.setColor(getResources().getColor(R.color.people_picker__loading__color));
+        } else {
+            startuiLoadingIndicatorView.setColor(getResources().getColor(R.color.people_picker__loading__color, getContext().getTheme()));
+        }
         listLoadingIndicatorView.setColor(getControllerFactory().getAccentColorController().getColor());
 
         confirmationMenu = ViewUtils.getView(view, R.id.cm__confirm_action_light);

@@ -21,6 +21,7 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.os.Build;
 import android.util.AttributeSet;
 import android.view.View;
 
@@ -62,7 +63,12 @@ public class ColorPickerDotView extends View implements ColorPickerView {
         circlePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         ringPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         eraserPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        eraserPaint.setColor(getResources().getColor(R.color.draw_disabled));
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            //noinspection deprecation
+            eraserPaint.setColor(getResources().getColor(R.color.draw_disabled));
+        } else {
+            eraserPaint.setColor(getResources().getColor(R.color.draw_disabled, getContext().getTheme()));
+        }
     }
 
     public void setColor(int color) {
@@ -100,7 +106,14 @@ public class ColorPickerDotView extends View implements ColorPickerView {
         if (isSelected) {
             drawSelectedRing(canvas);
         }
-        if (circlePaint.getColor() == getResources().getColor(R.color.draw_white)) {
+        int whiteColor;
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            //noinspection deprecation
+            whiteColor = getResources().getColor(R.color.draw_white);
+        } else {
+            whiteColor = getResources().getColor(R.color.draw_white, getContext().getTheme());
+        }
+        if (circlePaint.getColor() == whiteColor) {
             //white dot is wrapped in grey
             canvas.drawCircle(getWidth() / 2, getHeight() / 2, dotRadius, eraserPaint);
             canvas.drawCircle(getWidth() / 2, getHeight() / 2, dotRadius - selectedRingSize, ringPaint);
@@ -111,7 +124,14 @@ public class ColorPickerDotView extends View implements ColorPickerView {
 
     private void drawSelectedRing(Canvas canvas) {
         int ringSize = getRingSize(dotRadius);
-        if (circlePaint.getColor() == getResources().getColor(R.color.draw_white)) {
+        int whiteColor;
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            //noinspection deprecation
+            whiteColor = getResources().getColor(R.color.draw_white);
+        } else {
+            whiteColor = getResources().getColor(R.color.draw_white, getContext().getTheme());
+        }
+        if (circlePaint.getColor() == whiteColor) {
             canvas.drawCircle(getWidth() / 2, getHeight() / 2, ringSize, eraserPaint);
         } else {
             canvas.drawCircle(getWidth() / 2, getHeight() / 2, ringSize, circlePaint);

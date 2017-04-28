@@ -18,6 +18,7 @@
 package com.waz.zclient.pages.main.conversationlist.views.row;
 
 import android.content.Context;
+import android.os.Build;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -59,7 +60,12 @@ public class RightIndicatorView extends LinearLayout {
 
         muteButton = ViewUtils.getView(this, R.id.tv_conv_list_voice_muted);
         muteButton.setText(R.string.glyph__silence);
-        muteButton.setSelectedTextColor(getResources().getColor(R.color.calling_background));
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            //noinspection deprecation
+            muteButton.setSelectedTextColor(getResources().getColor(R.color.calling_background));
+        } else {
+            muteButton.setSelectedTextColor(getResources().getColor(R.color.calling_background, getContext().getTheme()));
+        }
         muteButton.setShowCircleBorder(false);
 
         joinCallView = ViewUtils.getView(this, R.id.ttv__conv_list__join_call);

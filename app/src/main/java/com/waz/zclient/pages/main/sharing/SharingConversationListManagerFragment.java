@@ -18,6 +18,7 @@
 package com.waz.zclient.pages.main.sharing;
 
 import android.content.DialogInterface;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -64,7 +65,12 @@ public class SharingConversationListManagerFragment extends BaseFragment<Sharing
 
         loadingIndicatorView = ViewUtils.getView(view, R.id.liv__conversations__loading_indicator);
 
-        loadingIndicatorView.setColor(getResources().getColor(R.color.people_picker__loading__color));
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            //noinspection deprecation
+            loadingIndicatorView.setColor(getResources().getColor(R.color.people_picker__loading__color));
+        } else {
+            loadingIndicatorView.setColor(getResources().getColor(R.color.people_picker__loading__color, getContext().getTheme()));
+        }
         sharingIndicatorView = ViewUtils.getView(view, R.id.siv__sharing_indicator);
 
         getControllerFactory().getNavigationController().setLeftPage(Page.CONVERSATION_LIST, TAG);

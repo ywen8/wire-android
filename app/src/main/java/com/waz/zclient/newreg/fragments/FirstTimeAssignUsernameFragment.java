@@ -19,6 +19,7 @@ package com.waz.zclient.newreg.fragments;
 
 import android.graphics.Color;
 import android.graphics.PorterDuff;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -116,7 +117,12 @@ public class FirstTimeAssignUsernameFragment extends BaseFragment<FirstTimeAssig
         suggestedUsername = getArguments().getString(ARG_SUGGESTED_USERNAME, "");
         keepButton.setIsFilled(false);
         keepButton.setAccentColor(color);
-        keepButton.setTextColor(getResources().getColor(R.color.white));
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            //noinspection deprecation
+            keepButton.setTextColor(getResources().getColor(R.color.white));
+        } else {
+            keepButton.setTextColor(getResources().getColor(R.color.white, getContext().getTheme()));
+        }
         keepButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {

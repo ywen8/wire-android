@@ -17,6 +17,7 @@
  */
 package com.waz.zclient.newreg.fragments;
 
+import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
@@ -46,7 +47,12 @@ public class FirstLaunchAfterLoginFragment extends
 
         registerButton = ViewUtils.getView(view, R.id.zb__first_launch__confirm);
         registerButton.setIsFilled(true);
-        registerButton.setAccentColor(getResources().getColor(R.color.text__primary_dark));
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            //noinspection deprecation
+            registerButton.setAccentColor(getResources().getColor(R.color.text__primary_dark));
+        } else {
+            registerButton.setAccentColor(getResources().getColor(R.color.text__primary_dark, getContext().getTheme()));
+        }
 
         return view;
     }

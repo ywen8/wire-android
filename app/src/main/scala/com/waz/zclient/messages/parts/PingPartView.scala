@@ -45,7 +45,7 @@ class PingPartView(context: Context, attrs: AttributeSet, style: Int) extends Li
   val textViewMessage: TypefaceTextView = findById(R.id.ttv__row_conversation__ping_message)
   val glyphTextView: GlyphTextView      = findById(R.id.gtv__ping_icon)
 
-  val locale = context.getResources.getConfiguration.locale
+  val locale = getLocale
 
   val users = inject[UsersController]
 

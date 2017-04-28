@@ -20,6 +20,7 @@ package com.waz.zclient.pages.main.conversationlist.views.row;
 import android.animation.ObjectAnimator;
 import android.content.Context;
 import android.graphics.Color;
+import android.os.Build;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -130,7 +131,12 @@ public class ConversationListRow extends FrameLayout implements SwipeListView.Sw
         super(context);
         this.isSwipeable = true;
 
-        normalTextColor = getResources().getColor(R.color.list_font_color);
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            //noinspection deprecation
+            normalTextColor = getResources().getColor(R.color.list_font_color);
+        } else {
+            normalTextColor = getResources().getColor(R.color.list_font_color, getContext().getTheme());
+        }
         menuOpenOffset = getResources().getDimensionPixelSize(R.dimen.list__menu_indicator__max_swipe_offset);
 
         menuIndicatorView = new MenuIndicatorView(getContext());

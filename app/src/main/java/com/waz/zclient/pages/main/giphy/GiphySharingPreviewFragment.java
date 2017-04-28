@@ -17,6 +17,7 @@
  */
 package com.waz.zclient.pages.main.giphy;
 
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.Nullable;
@@ -240,7 +241,12 @@ public class GiphySharingPreviewFragment extends BaseFragment<GiphySharingPrevie
         confirmationMenu.setAccentColor(color);
         if (!getControllerFactory().getThemeController().isDarkTheme()) {
             confirmationMenu.setCancelColor(color, color);
-            confirmationMenu.setConfirmColor(getResources().getColor(R.color.white), color);
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+                //noinspection deprecation
+                confirmationMenu.setConfirmColor(getResources().getColor(R.color.white), color);
+            } else {
+                confirmationMenu.setConfirmColor(getResources().getColor(R.color.white, getContext().getTheme()), color);
+            }
         }
         loadingIndicator.setColor(color);
     }

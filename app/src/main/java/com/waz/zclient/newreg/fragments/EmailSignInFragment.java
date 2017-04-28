@@ -17,6 +17,7 @@
  */
 package com.waz.zclient.newreg.fragments;
 
+import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -147,7 +148,13 @@ public class EmailSignInFragment extends BaseFragment<EmailSignInFragment.Contai
         super.onViewCreated(view, savedInstanceState);
         tabIndicatorLayout.setLabels(new int[]{R.string.new_reg__phone_signup__create_account, R.string.i_have_an_account});
         tabIndicatorLayout.setSelected(TabPages.SIGN_IN);
-        tabIndicatorLayout.setTextColor(getResources().getColorStateList(R.color.wire__text_color_dark_selector));
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            //noinspection deprecation
+            tabIndicatorLayout.setTextColor(getResources().getColorStateList(R.color.wire__text_color_dark_selector));
+        } else {
+            tabIndicatorLayout.setTextColor(getResources().getColorStateList(R.color.wire__text_color_dark_selector,
+                                                                             getContext().getTheme()));
+        }
     }
 
     @Override

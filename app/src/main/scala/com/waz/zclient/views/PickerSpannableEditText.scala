@@ -32,6 +32,7 @@ import com.waz.zclient.R
 import com.waz.zclient.pages.main.pickuser.UserTokenSpan
 import com.waz.zclient.ui.text.SpannableEditText
 import com.waz.zclient.utils.ViewUtils
+import com.waz.zclient.utils.ContextUtils._
 
 trait PickableElement {
   def id: String
@@ -119,7 +120,7 @@ class PickerSpannableEditText(val context: Context, val attrs: AttributeSet, val
   }
 
   override protected def setHintCursorSize(cursorDrawable: ShapeDrawable): Unit = {
-    if (hasText || Build.VERSION.SDK_INT <= 22 || getHint.length() == 0) {
+    if (hasText || Build.VERSION.SDK_INT <= Build.VERSION_CODES.LOLLIPOP_MR1 || getHint.length() == 0) {
       return
     }
     val padding: Int = ViewUtils.toPx(getContext, PickerSpannableEditText.EXTRA_PADDING_DP)
@@ -219,11 +220,12 @@ class PickerSpannableEditText(val context: Context, val attrs: AttributeSet, val
   }
 
   private def addElementToken(userId: String, userName: String): Unit = {
+    val context: Context = getContext
     val lineWidth: Int = getMeasuredWidth - getPaddingLeft - getPaddingRight
-    val userTokenSpan: UserTokenSpan = new UserTokenSpan(userId, userName, getContext, false, lineWidth)
+    val userTokenSpan: UserTokenSpan = new UserTokenSpan(userId, userName, context, false, lineWidth)
     userTokenSpan.setDeleteModeTextColor(getAccentColor)
     if (lightTheme) {
-      userTokenSpan.setTextColor(getResources.getColor(R.color.text__primary_light))
+      userTokenSpan.setTextColor(getColor(R.color.text__primary_light)(context))
     }
     appendSpan(userTokenSpan)
     setSelection(getText.length)

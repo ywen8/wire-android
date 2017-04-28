@@ -18,6 +18,7 @@
 package com.waz.zclient.newreg.fragments.country;
 
 import android.graphics.drawable.ColorDrawable;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.view.LayoutInflater;
@@ -46,7 +47,12 @@ public class CountryDialogFragment extends BaseFragment<CountryDialogFragment.Co
         listView.setAdapter(countryAdapter);
         listView.setOnItemClickListener(this);
 
-        listView.setDivider(new ColorDrawable(getResources().getColor(R.color.country_divider_color)));
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+            //noinspection deprecation
+            listView.setDivider(new ColorDrawable(getResources().getColor(R.color.country_divider_color)));
+        } else {
+            listView.setDivider(new ColorDrawable(getResources().getColor(R.color.country_divider_color, getContext().getTheme())));
+        }
         listView.setDividerHeight(ViewUtils.toPx(getActivity(), 1));
 
         return view;
