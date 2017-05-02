@@ -48,7 +48,8 @@
 
         <FrameLayout
             android:layout_width="match_parent"
-            android:layout_height="@dimen/new_cursor_height"
+            android:layout_height="wrap_content"
+            android:minHeight="@dimen/new_cursor_height"
             >
 
             <FrameLayout
@@ -63,7 +64,7 @@
                 android:id="@+id/cet__cursor"
                 style="?cursorEditText"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
+                android:layout_height="wrap_content"
                 android:layout_gravity="center_vertical"
                 android:layout_marginStart="@dimen/cursor_anchor2"
                 android:layout_marginEnd="@dimen/cursor_anchor3"
