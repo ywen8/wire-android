@@ -183,14 +183,17 @@ public class ShareActivity extends BaseActivity implements SharingConversationLi
             getSharingController().publishTextContent(String.valueOf(intentReader.getText()));
         } else {
             final Set<URI> sharedFileUris = new HashSet<>();
-            URI stream = new AndroidURI(intentReader.getStream());
-            if (stream != null) {
-                sharedFileUris.add(stream);
-            }
-            for (int i = 0; i < intentReader.getStreamCount(); i++) {
-                stream = new AndroidURI(intentReader.getStream(i));
-                if (stream != null) {
-                    sharedFileUris.add(stream);
+            if (intentReader.isMultipleShare()) {
+                for (int i = 0; i < intentReader.getStreamCount(); i++) {
+                    URI uri = new AndroidURI(intentReader.getStream(i));
+                    if (uri != null) {
+                        sharedFileUris.add(uri);
+                    }
+                }
+            } else {
+                URI uri = new AndroidURI(intentReader.getStream());
+                if (uri != null) {
+                    sharedFileUris.add(uri);
                 }
             }
             if (sharedFileUris.size() == 0) {
