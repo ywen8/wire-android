@@ -50,7 +50,7 @@
 
 
     <!-- Cursor-->
-    <integer name="cursor__max_lines">5</integer>
+    <integer name="cursor__max_lines">6</integer>
 
     <!-- Wire Values-->
     <integer name="wire__animation__duration__short">150</integer>
