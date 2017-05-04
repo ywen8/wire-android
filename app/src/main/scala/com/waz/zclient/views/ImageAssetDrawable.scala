@@ -36,7 +36,7 @@ import com.waz.utils.events.{EventContext, Signal}
 import com.waz.zclient.utils.Offset
 import com.waz.zclient.views.ImageAssetDrawable.{RequestBuilder, ScaleType, State}
 import com.waz.zclient.views.ImageController._
-import com.waz.zclient.{Injectable, Injector}
+import com.waz.zclient.{Injectable, Injector, WireContext}
 import com.waz.ZLog.ImplicitTag._
 import com.waz.utils.wrappers.URI
 
@@ -45,14 +45,15 @@ class ImageAssetDrawable(
                           src: Signal[ImageSource],
                           scaleType: ScaleType = ScaleType.FitXY,
                           request: RequestBuilder = RequestBuilder.Regular,
-                          background: Option[Drawable] = None
+                          background: Option[Drawable] = None,
+                          animate: Boolean = true
                         )(implicit inj: Injector, eventContext: EventContext) extends Drawable with Injectable {
 
   val images = inject[ImageController]
 
   private val matrix = new Matrix()
   private val dims = Signal[Dim2]()
-  private val bitmapPaint = new Paint(Paint.ANTI_ALIAS_FLAG)
+  protected val bitmapPaint = new Paint(Paint.ANTI_ALIAS_FLAG)
 
   private val animator = ValueAnimator.ofFloat(0, 1).setDuration(750)
 
@@ -60,9 +61,11 @@ class ImageAssetDrawable(
 
   animator.addUpdateListener(new AnimatorUpdateListener {
     override def onAnimationUpdate(animation: ValueAnimator): Unit = {
-      val alpha = (animation.getAnimatedFraction * 255).toInt
-      bitmapPaint.setAlpha(alpha)
-      invalidateSelf()
+      if (animate) {
+        val alpha = (animation.getAnimatedFraction * 255).toInt
+        bitmapPaint.setAlpha(alpha)
+        invalidateSelf()
+      }
     }
   })
 
@@ -219,8 +222,9 @@ class RoundedImageAssetDrawable (
                                   scaleType: ScaleType = ScaleType.FitXY,
                                   request: RequestBuilder = RequestBuilder.Regular,
                                   background: Option[Drawable] = None,
+                                  animate: Boolean = true,
                                   cornerRadius: Float = 0
-                                )(implicit inj: Injector, eventContext: EventContext) extends ImageAssetDrawable(src, scaleType, request, background) {
+                                )(implicit inj: Injector, eventContext: EventContext) extends ImageAssetDrawable(src, scaleType, request, background, animate) {
 
   override protected def drawBitmap(canvas: Canvas, bm: Bitmap, matrix: Matrix, bitmapPaint: Paint): Unit = {
     val shader = new BitmapShader(bm, Shader.TileMode.CLAMP, Shader.TileMode.CLAMP)
@@ -234,31 +238,43 @@ class RoundedImageAssetDrawable (
 class BlurredImageAssetDrawable(
                                  src: Signal[ImageSource],
                                  scaleType: ScaleType = ScaleType.FitXY,
-                                 request: RequestBuilder = RequestBuilder.Regular,
+                                 request: RequestBuilder = RequestBuilder.Single,
                                  background: Option[Drawable] = None,
-                                 blurRadius: Float = 0,
+                                 animate: Boolean = false,
+                                 blurRadius: Float = 1,
+                                 blurPasses: Int = 1,
                                  context: Context
-                               )(implicit inj: Injector, eventContext: EventContext) extends ImageAssetDrawable(src, scaleType, request, background) {
+                               )(implicit inj: Injector, eventContext: EventContext) extends ImageAssetDrawable(src, scaleType, request, background, animate) {
+
+  private val renderScript = inject[RenderScript]
+  private val blur = ScriptIntrinsicBlur.create(renderScript, Element.U8_4(renderScript))
 
   override protected def drawBitmap(canvas: Canvas, bm: Bitmap, matrix: Matrix, bitmapPaint: Paint): Unit = {
-    val renderScript = RenderScript.create(context)
+
+    def pass(input: Allocation, output: Allocation, count: Int): Allocation = {
+      if (count == 0) {
+        return input
+      }
+      blur.setInput(input)
+      blur.forEach(output)
+      pass(output, input, count - 1)
+    }
+
+    val copiedBm = bm.copy(bm.getConfig, true)
     val blurInput = Allocation.createFromBitmap(renderScript, bm)
     val blurOutput = Allocation.createFromBitmap(renderScript, bm)
 
-    val blur = ScriptIntrinsicBlur.create(renderScript, Element.U8_4(renderScript))
-    blur.setInput(blurInput)
     blur.setRadius(blurRadius)
-    blur.forEach(blurOutput)
 
-    blurOutput.copyTo(bm)
+    val output = pass(blurInput, blurOutput, blurPasses)
+    output.copyTo(copiedBm)
 
     blurInput.destroy()
     blurOutput.destroy()
-    renderScript.destroy()
 
-    canvas.drawBitmap(bm, matrix, bitmapPaint)
+    canvas.drawBitmap(copiedBm, matrix, bitmapPaint)
+    copiedBm.recycle()
   }
-
 }
 
 class ImageController(implicit inj: Injector) extends Injectable {
@@ -293,6 +309,7 @@ class ImageController(implicit inj: Injector) extends Injectable {
     case WireImage(id) => imageSignal(id, req)
     case ImageUri(uri) => imageSignal(uri, req)
     case DataImage(data) => imageSignal(data, req)
+    case NoImage() => Signal.empty[BitmapResult]
   }
 }
 
@@ -302,4 +319,5 @@ object ImageController {
   case class WireImage(id: AssetId) extends ImageSource
   case class DataImage(data: AssetData) extends ImageSource
   case class ImageUri(uri: URI) extends ImageSource
+  case class NoImage() extends ImageSource
 }

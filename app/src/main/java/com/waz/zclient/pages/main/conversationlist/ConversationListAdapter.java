@@ -38,11 +38,11 @@ import com.waz.zclient.pages.main.conversation.ConversationUtils;
 import com.waz.zclient.pages.main.conversationlist.views.ConversationCallback;
 import com.waz.zclient.pages.main.conversationlist.views.listview.SwipeListView;
 import com.waz.zclient.pages.main.conversationlist.views.row.ConversationListArchivedBorderRow;
-import com.waz.zclient.pages.main.conversationlist.views.row.ConversationListRow;
 import com.waz.zclient.pages.main.conversationlist.views.row.RightIndicatorView;
 import com.waz.zclient.ui.animation.interpolators.penner.Expo;
 import com.waz.zclient.ui.animation.interpolators.penner.Quart;
 import com.waz.zclient.utils.ViewUtils;
+import com.waz.zclient.views.conversationlist.ConversationListRow;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -332,25 +332,23 @@ public class ConversationListAdapter extends BaseAdapter {
 
         if (convertView == null || !(convertView instanceof ConversationListRow)) {
             conversationListRowItem = new ConversationListRow(parent.getContext());
-            conversationListRowItem.setConversationActionCallback(conversationActionCallback);
         } else {
             conversationListRowItem = (ConversationListRow) convertView;
 
             // needs redraw due to animation changes
             if (conversationListRowItem.needsRedraw()) {
                 conversationListRowItem = new ConversationListRow(parent.getContext());
-                conversationListRowItem.setConversationActionCallback(conversationActionCallback);
             }
         }
 
         conversationListRowItem.setAlpha(1f);
         conversationListRowItem.setMaxAlpha(maxAlpha);
         conversationListRowItem.setId(position);
-        conversationListRowItem.setSwipeable(mode == ConversationListFragment.Mode.NORMAL);
-        conversationListRowItem.showIndicatorView(mode == ConversationListFragment.Mode.NORMAL);
 
         // integrate model
         final IConversation conversation = getItem(position);
+
+        conversationListRowItem.setSwipeable(mode == ConversationListFragment.Mode.NORMAL && !(conversation instanceof InboxLinkConversation));
 
         if (isArchived(position)) {
             if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
@@ -364,7 +362,6 @@ public class ConversationListAdapter extends BaseAdapter {
             conversationListRowItem.setBackgroundColor(Color.TRANSPARENT);
         }
 
-        conversationListRowItem.setAccentColor(accentColor);
         conversationListRowItem.setConversation(conversation);
         conversationListRowItem.setConversationCallback(conversationCallback);
         conversationListRowItem.setOnClickListener(new View.OnClickListener() {
@@ -385,8 +382,6 @@ public class ConversationListAdapter extends BaseAdapter {
                 return true;
             }
         });
-
-        setListRowPaddingTopAndBottom(conversationListRowItem, position);
 
         return conversationListRowItem;
     }
@@ -649,5 +644,10 @@ public class ConversationListAdapter extends BaseAdapter {
     public void setMaxAlpha(float maxAlpha) {
         this.maxAlpha = maxAlpha;
         notifyDataSetChanged();
+    }
+
+    @Override
+    public boolean hasStableIds() {
+        return true;
     }
 }

@@ -62,7 +62,6 @@ import com.waz.zclient.pages.main.conversation.controller.IConversationScreenCon
 import com.waz.zclient.pages.main.conversationlist.views.ConversationCallback;
 import com.waz.zclient.pages.main.conversationlist.views.ListActionsView;
 import com.waz.zclient.pages.main.conversationlist.views.listview.SwipeListView;
-import com.waz.zclient.pages.main.conversationlist.views.row.ConversationListRow;
 import com.waz.zclient.pages.main.conversationlist.views.row.RightIndicatorView;
 import com.waz.zclient.pages.main.pickuser.controller.IPickUserController;
 import com.waz.zclient.pages.main.profile.ZetaPreferencesActivity;
@@ -73,6 +72,8 @@ import com.waz.zclient.ui.pullforaction.PullForActionMode;
 import com.waz.zclient.ui.text.TypefaceTextView;
 import com.waz.zclient.ui.utils.ResourceUtils;
 import com.waz.zclient.utils.ViewUtils;
+import com.waz.zclient.views.conversationlist.ConversationListTopToolbar;
+
 import net.hockeyapp.android.CrashManagerListener;
 import net.hockeyapp.android.ExceptionHandler;
 
@@ -118,6 +119,7 @@ public class ConversationListFragment extends BaseFragment<ConversationListFragm
     private View hintContainer;
     private TypefaceTextView hintHeader;
     private ListActionsView listActionsView;
+    private ConversationListTopToolbar topToolbar;
     private LinearLayout archiveBox;
     private int initialArchivedBoxOffset;
 
@@ -296,6 +298,8 @@ public class ConversationListFragment extends BaseFragment<ConversationListFragm
                 }
             });
         }
+
+        topToolbar = ViewUtils.getView(view, R.id.conversation_list_top_toolbar);
 
         return view;
     }
@@ -655,27 +659,6 @@ public class ConversationListFragment extends BaseFragment<ConversationListFragm
 
     @Override
     public void onIncomingKnock(final KnockingEvent knockingEvent) {
-        if (mode == Mode.SHARING) {
-            return;
-        }
-        if (conversationsListAdapter != null) {
-            new Handler().postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    if (swipeListView == null) {
-                        return;
-                    }
-                    for (int i = 0; i < swipeListView.getChildCount(); i++) {
-                        if (swipeListView.getChildAt(i) instanceof ConversationListRow) {
-                            ConversationListRow row = (ConversationListRow) swipeListView.getChildAt(i);
-                            if (knockingEvent.getConversationId().equals(row.getConversation().getId())) {
-                                row.knock(knockingEvent);
-                            }
-                        }
-                    }
-                }
-            }, getResources().getInteger(R.integer.framework_animation_duration_medium));
-        }
     }
 
     @Override
@@ -766,6 +749,7 @@ public class ConversationListFragment extends BaseFragment<ConversationListFragm
     @Override
     public void onListViewScrollOffsetChanged(int offset, @IConversationListController.ListScrollPosition int scrolledToBottom) {
         listActionsView.setScrolledToBottom(scrolledToBottom == IConversationListController.SCROLLED_TO_BOTTOM);
+        topToolbar.setScrolledToTop(offset == 0);
     }
 
     @Override
