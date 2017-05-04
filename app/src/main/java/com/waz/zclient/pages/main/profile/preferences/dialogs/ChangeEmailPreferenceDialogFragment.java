@@ -19,6 +19,7 @@ package com.waz.zclient.pages.main.profile.preferences.dialogs;
 
 import android.annotation.SuppressLint;
 import android.app.Dialog;
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.design.widget.TextInputLayout;
 import android.support.v4.app.Fragment;
@@ -83,12 +84,19 @@ public class ChangeEmailPreferenceDialogFragment extends BaseDialogFragment<Chan
         editText.setText(existingEmail);
         editText.setSelection(editText.length());
 
-        final AlertDialog alertDialog = new AlertDialog.Builder(getActivity())
+        final AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(getActivity())
             .setTitle(R.string.pref__account_action__dialog__change_email__title)
             .setView(view)
             .setPositiveButton(android.R.string.ok, null)
-            .setNegativeButton(android.R.string.cancel, null)
-            .create();
+            .setNegativeButton(android.R.string.cancel, null);
+        /*
+        XXX Temporarily commented out possibility to remove email
+        if (getStoreFactory() != null && !StringUtils.isBlank(getStoreFactory().getProfileStore().getMyPhoneNumber())) {
+            alertDialogBuilder.setNeutralButton(R.string.pref_account_delete, null);
+        }
+        */
+
+        final AlertDialog alertDialog = alertDialogBuilder.create();
         alertDialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE);
         return alertDialog;
     }
@@ -100,8 +108,7 @@ public class ChangeEmailPreferenceDialogFragment extends BaseDialogFragment<Chan
         if (dialog == null) {
             return;
         }
-        final Button positiveButton = dialog.getButton(Dialog.BUTTON_POSITIVE);
-        positiveButton.setOnClickListener(new View.OnClickListener() {
+        dialog.getButton(Dialog.BUTTON_POSITIVE).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (inputLayout == null) {
@@ -111,12 +118,63 @@ public class ChangeEmailPreferenceDialogFragment extends BaseDialogFragment<Chan
                 handleInput();
             }
         });
+        Button deleteButton = dialog.getButton(Dialog.BUTTON_NEUTRAL);
+        if (deleteButton != null) {
+            deleteButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    clearEmail();
+                }
+            });
+        }
+
     }
 
     @Override
     public void onDestroyView() {
         inputLayout = null;
         super.onDestroyView();
+    }
+
+    private void clearEmail() {
+        if (getStoreFactory() == null || getStoreFactory().isTornDown()) {
+            return;
+        }
+        if (!getStoreFactory().getNetworkStore().hasInternetConnection()) {
+            inputLayout.setError(getString(R.string.pref__account_action__dialog__delete_phone__no_internet_error));
+            return;
+        }
+        String email = getStoreFactory().getProfileStore().getMyEmail();
+        ViewUtils.showAlertDialog(getActivity(),
+                                  getString(R.string.pref__account_action__dialog__delete_phone_or_email__confirm__title),
+                                  getString(R.string.pref__account_action__dialog__delete_phone_or_email__confirm__message, email),
+                                  getString(android.R.string.ok),
+                                  getString(android.R.string.cancel),
+                                  new DialogInterface.OnClickListener() {
+                                      @Override
+                                      public void onClick(DialogInterface dialog, int which) {
+                                          if (getStoreFactory() == null || getStoreFactory().isTornDown()) {
+                                              return;
+                                          }
+                                          getStoreFactory().getProfileStore().deleteMyEmail(new CredentialsUpdateListener() {
+                                              @Override
+                                              public void onUpdated() {
+                                                  if (getContainer() == null) {
+                                                      return;
+                                                  }
+                                                  getContainer().onEmailCleared();
+                                              }
+                                              @Override
+                                              public void onUpdateFailed(int code, String message, String label) {
+                                                  if (getContainer() == null) {
+                                                      return;
+                                                  }
+                                                  inputLayout.setError(getString(R.string.pref__account_action__dialog__delete_email__error));
+                                              }
+                                          });
+                                      }
+                                  },
+                                  null);
     }
 
     private void handleInput() {
@@ -148,11 +206,11 @@ public class ChangeEmailPreferenceDialogFragment extends BaseDialogFragment<Chan
                                                  return;
                                              }
                                              if (AppEntryError.EMAIL_EXISTS.correspondsTo(errorCode, label)) {
-                                                inputLayout.setError(getString(AppEntryError.EMAIL_EXISTS.headerResource));
+                                                 inputLayout.setError(getString(AppEntryError.EMAIL_EXISTS.headerResource));
                                              } else if (AppEntryError.EMAIL_INVALID.correspondsTo(errorCode, label)) {
-                                                inputLayout.setError(getString(AppEntryError.EMAIL_INVALID.headerResource));
+                                                 inputLayout.setError(getString(AppEntryError.EMAIL_INVALID.headerResource));
                                              } else {
-                                                inputLayout.setError(getString(AppEntryError.EMAIL_GENERIC_ERROR.headerResource));
+                                                 inputLayout.setError(getString(AppEntryError.EMAIL_GENERIC_ERROR.headerResource));
                                              }
                                          }
                                      });
@@ -160,5 +218,6 @@ public class ChangeEmailPreferenceDialogFragment extends BaseDialogFragment<Chan
 
     public interface Container {
         void onVerifyEmail(String email);
+        void onEmailCleared();
     }
 }

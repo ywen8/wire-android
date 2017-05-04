@@ -91,8 +91,18 @@ public class ScalaProfileStore extends ProfileStore {
     }
 
     @Override
+    public void deleteMyPhoneNumber(CredentialsUpdateListener credentialsUpdateListener) {
+        selfUser.clearPhone(credentialsUpdateListener);
+    }
+
+    @Override
     public void setMyEmail(final String email, final CredentialsUpdateListener credentialsUpdateListener) {
         selfUser.setEmail(email, credentialsUpdateListener);
+    }
+
+    @Override
+    public void deleteMyEmail(CredentialsUpdateListener credentialsUpdateListener) {
+        selfUser.clearEmail(credentialsUpdateListener);
     }
 
     @Override

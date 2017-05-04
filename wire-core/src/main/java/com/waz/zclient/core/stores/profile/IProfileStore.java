@@ -55,7 +55,11 @@ public interface IProfileStore extends IStore {
 
     void setMyPhoneNumber(String phone, CredentialsUpdateListener credentialsUpdateListener);
 
+    void deleteMyPhoneNumber(CredentialsUpdateListener credentialsUpdateListener);
+
     void setMyEmail(String email, CredentialsUpdateListener credentialsUpdateListener);
+
+    void deleteMyEmail(CredentialsUpdateListener credentialsUpdateListener);
 
     void setMyEmailAndPassword(String email, String password, CredentialsUpdateListener credentialsUpdateListener);
 
