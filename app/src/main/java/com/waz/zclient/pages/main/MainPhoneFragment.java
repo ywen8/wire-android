@@ -52,7 +52,6 @@ import com.waz.zclient.core.stores.inappnotification.InAppNotificationStoreObser
 import com.waz.zclient.core.stores.inappnotification.KnockingEvent;
 import com.waz.zclient.fragments.ImageFragment;
 import com.waz.zclient.pages.BaseFragment;
-import com.waz.zclient.views.BackgroundFrameLayout;
 import com.waz.zclient.pages.main.conversation.SingleImageUserFragment;
 import com.waz.zclient.pages.main.conversation.VideoPlayerFragment;
 import com.waz.zclient.pages.main.conversationlist.ConfirmationFragment;
@@ -80,7 +79,6 @@ public class MainPhoneFragment extends BaseFragment<MainPhoneFragment.Container>
 
     public static final String TAG = MainPhoneFragment.class.getName();
     private ConfirmationMenu confirmationMenu;
-    private BackgroundFrameLayout backgroundLayout;
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////
     //
@@ -98,7 +96,6 @@ public class MainPhoneFragment extends BaseFragment<MainPhoneFragment.Container>
                                                                  ConversationPagerFragment.TAG).commit();
         }
 
-        backgroundLayout = ViewUtils.getView(view, R.id.bl__background);
         confirmationMenu = ViewUtils.getView(view, R.id.cm__confirm_action_light);
         confirmationMenu.setVisibility(View.GONE);
 
@@ -115,8 +112,6 @@ public class MainPhoneFragment extends BaseFragment<MainPhoneFragment.Container>
         getControllerFactory().getConfirmationController().addConfirmationObserver(this);
         getControllerFactory().getAccentColorController().addAccentColorObserver(this);
         getCollectionController().addObserver(this);
-
-        getControllerFactory().getBackgroundController().addBackgroundObserver(backgroundLayout);
 
         OnBoardingHintFragment fragment = (OnBoardingHintFragment) getChildFragmentManager().findFragmentByTag(
             OnBoardingHintFragment.TAG);
@@ -135,7 +130,6 @@ public class MainPhoneFragment extends BaseFragment<MainPhoneFragment.Container>
         getStoreFactory().getInAppNotificationStore().removeInAppNotificationObserver(this);
         getCollectionController().removeObserver(this);
 
-        getControllerFactory().getBackgroundController().removeBackgroundObserver(backgroundLayout);
         super.onStop();
     }
 

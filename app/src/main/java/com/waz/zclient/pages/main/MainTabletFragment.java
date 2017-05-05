@@ -63,7 +63,6 @@ public class MainTabletFragment extends BaseFragment<MainTabletFragment.Containe
                                                                                    InAppNotificationStoreObserver {
 
     public static final String TAG = MainTabletFragment.class.getName();
-    private static final String ARG_LOCK_EXPANDED = "ARG_LOCK_EXPANDED";
 
     private ConfirmationMenu confirmationMenu;
     private BackgroundFrameLayout backgroundLayout;
@@ -98,10 +97,6 @@ public class MainTabletFragment extends BaseFragment<MainTabletFragment.Containe
         confirmationMenu.setNoRoundBackground();
         confirmationMenu.setVisibility(View.GONE);
 
-        if (savedInstanceState != null) {
-            backgroundLayout.onScaleToMax(savedInstanceState.getBoolean(ARG_LOCK_EXPANDED));
-        }
-
         return view;
     }
 
@@ -112,7 +107,6 @@ public class MainTabletFragment extends BaseFragment<MainTabletFragment.Containe
         getControllerFactory().getSingleImageController().addSingleImageObserver(this);
         getControllerFactory().getConfirmationController().addConfirmationObserver(this);
         getControllerFactory().getAccentColorController().addAccentColorObserver(this);
-        getControllerFactory().getBackgroundController().addBackgroundObserver(backgroundLayout);
     }
 
     @Override
@@ -121,7 +115,6 @@ public class MainTabletFragment extends BaseFragment<MainTabletFragment.Containe
         getControllerFactory().getConfirmationController().removeConfirmationObserver(this);
         getControllerFactory().getSingleImageController().removeSingleImageObserver(this);
         getStoreFactory().getInAppNotificationStore().removeInAppNotificationObserver(this);
-        getControllerFactory().getBackgroundController().removeBackgroundObserver(backgroundLayout);
         super.onStop();
     }
 
@@ -224,10 +217,6 @@ public class MainTabletFragment extends BaseFragment<MainTabletFragment.Containe
                                                         FragmentManager.POP_BACK_STACK_INCLUSIVE);
     }
 
-    @Override
-    public void onSaveInstanceState(Bundle outState) {
-        outState.putBoolean(ARG_LOCK_EXPANDED, backgroundLayout.isExpanded());
-    }
 
     @Override
     public void onRequestConfirmation(ConfirmationRequest confirmationRequest, @IConfirmationController.ConfirmationMenuRequester int requester) {
