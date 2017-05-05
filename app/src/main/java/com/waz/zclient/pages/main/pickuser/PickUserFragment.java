@@ -488,13 +488,21 @@ public class PickUserFragment extends BaseFragment<PickUserFragment.Container> i
         PickUserDataState dataState = getDataState(getControllerFactory().getPickUserController().hasSelectedUsers());
         switch (dataState) {
             case SHOW_ALL_USERS_TO_ADD_TO_CONVERSATION:
+                if (users == null || users.length == 0) {
+                    handleEmptySearchResult(getString(R.string.people_picker__error_message__no_users_to_add_to_conversation), "", false);
+                } else {
+                    hideErrorMessage();
+                    searchResultAdapter.setSearchResult(users, null, null);
+                }
+                break;
             case SHOW_TOP_USERS_AS_LIST:
-                // Show results as list
-                if (users == null) {
-                    handleEmptySearchResult(getString(R.string.people_picker__error_message__no_results), "", false);
-                } else if (users.length == 0) {
-                    if (dataState == PickUserDataState.SHOW_ALL_USERS_TO_ADD_TO_CONVERSATION) {
-                        handleEmptySearchResult(getString(R.string.people_picker__error_message__no_users_to_add_to_conversation), "", false);
+                if (users == null || users.length == 0) {
+                    if (TextUtils.isEmpty(getControllerFactory().getPickUserController().getSearchFilter())) {
+                        UserSearchResult usersSearchResult = getStoreFactory().getZMessagingApiStore()
+                            .getApi()
+                            .search()
+                            .getConnectionsByName("", NUM_SEARCH_RESULTS_ADD_TO_CONV, new String[0]);
+                        usersSearchModelObserver.setAndUpdate(usersSearchResult);
                     } else {
                         handleEmptySearchResult(getString(R.string.people_picker__error_message__no_results), "", false);
                     }
