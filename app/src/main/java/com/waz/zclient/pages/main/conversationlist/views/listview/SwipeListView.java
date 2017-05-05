@@ -20,12 +20,14 @@ package com.waz.zclient.pages.main.conversationlist.views.listview;
 import android.content.Context;
 import android.graphics.Color;
 import android.graphics.Rect;
+import android.support.annotation.Nullable;
 import android.support.v4.view.MotionEventCompat;
+import android.support.v7.widget.RecyclerView;
+import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.VelocityTracker;
 import android.view.View;
 import android.view.ViewConfiguration;
-import android.widget.ListView;
 import com.waz.zclient.R;
 import com.waz.zclient.ui.pullforaction.OverScrollListener;
 import com.waz.zclient.ui.pullforaction.OverScrollMode;
@@ -36,7 +38,7 @@ import timber.log.Timber;
 /**
  * ListView subclass that provides the swipe functionality
  */
-public class SwipeListView extends ListView implements PullForActionView {
+public class SwipeListView extends RecyclerView implements PullForActionView {
     public static final String TAG = SwipeListView.class.getName();
 
     // touch states to distinguish between list and drawer
@@ -117,18 +119,33 @@ public class SwipeListView extends ListView implements PullForActionView {
         overScrollListener = listener;
     }
 
-    /**
-     * CTOR - checking animation const and wrapping context to get rod of overscroll animation.
-     */
+
+    public SwipeListView(Context context, @Nullable AttributeSet attrs) {
+        super(new ContextWrapperEdgeEffect(context), attrs, 0);
+        init();
+    }
+
+    public SwipeListView(Context context, @Nullable AttributeSet attrs, int defStyle) {
+        super(new ContextWrapperEdgeEffect(context), attrs, defStyle);
+        init();
+    }
+
     public SwipeListView(Context context) {
         super(new ContextWrapperEdgeEffect(context));
+        init();
+    }
+
+    /**
+     * Checking animation const and wrapping context to get rod of overscroll animation.
+     */
+    private void init() {
         ((ContextWrapperEdgeEffect) getContext()).setEdgeEffectColor(Color.TRANSPARENT);
 
         touchSlop = 10; //ViewConfigurationCompat.getScaledPagingTouchSlop(configuration);
         ViewConfiguration vc = ViewConfiguration.get(getContext());
         minFlingVelocity = vc.getScaledMinimumFlingVelocity();
         maxFlingVelocity = vc.getScaledMaximumFlingVelocity();
-        listRowMenuIndicatorMaxSwipeOffset = context.getResources().getDimensionPixelSize(R.dimen.list__menu_indicator__max_swipe_offset);
+        listRowMenuIndicatorMaxSwipeOffset = getContext().getResources().getDimensionPixelSize(R.dimen.list__menu_indicator__max_swipe_offset);
     }
 
     /**
@@ -342,7 +359,7 @@ public class SwipeListView extends ListView implements PullForActionView {
             child = getChildAt(i);
             child.getHitRect(targetRect);
             if (targetRect.contains(x, y)) {
-                int position = getPositionForView(child);
+                int position = getChildLayoutPosition(child);
                 boolean allowSwipe = child instanceof SwipeListRow && ((SwipeListRow) child).isSwipeable();
                 if (allowSwipe) {
                     if (position != targetChildPosition) {
@@ -427,7 +444,7 @@ public class SwipeListView extends ListView implements PullForActionView {
     }
 
     public void customSmoothScrollToPosition(int smoothScrollPosition) {
-        setSelectionFromTop(smoothScrollPosition, 0);
+        //setSelectionFromTop(smoothScrollPosition, 0);
     }
 
     public interface SwipeListRow {

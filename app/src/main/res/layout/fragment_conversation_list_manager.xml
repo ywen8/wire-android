@@ -42,20 +42,6 @@
         android:layout_height="match_parent"
         />
 
-    <!-- Image sharing indicator-->
-    <com.waz.zclient.pages.main.sharing.SharingIndicatorView
-        android:id="@+id/siv__sharing_indicator"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_gravity="top"
-        />
-
-    <FrameLayout
-        android:id="@+id/fl__conversation_list__sharing_preview"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        />
-
     <com.waz.zclient.views.LoadingIndicatorView
         android:id="@+id/liv__conversations__loading_indicator"
         android:layout_width="match_parent"

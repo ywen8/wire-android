@@ -68,6 +68,7 @@ import com.waz.zclient.core.stores.conversation.ConversationChangeRequester;
 import com.waz.zclient.core.stores.conversation.ConversationStoreObserver;
 import com.waz.zclient.core.stores.conversation.InboxLoadRequester;
 import com.waz.zclient.core.stores.conversation.OnInboxLoadedListener;
+import com.waz.zclient.fragments.ConversationListFragment;
 import com.waz.zclient.media.SoundController;
 import com.waz.zclient.newreg.fragments.FirstTimeAssignUsernameFragment;
 import com.waz.zclient.pages.BaseFragment;
@@ -184,9 +185,8 @@ public class ConversationListManagerFragment extends BaseFragment<ConversationLi
 
             getChildFragmentManager().beginTransaction()
                                      .add(R.id.fl__conversation_list_main,
-                                          ConversationListFragment.newInstance(
-                                              ConversationListFragment.Mode.NORMAL),
-                                          ConversationListFragment.TAG)
+                                         ConversationListFragment.newInstance(),
+                                         ConversationListFragment.TAG())
                                      .add(R.id.fl__conversation_list__settings_box,
                                           OptionsMenuFragment.newInstance(true),
                                           OptionsMenuFragment.TAG)
@@ -530,12 +530,6 @@ public class ConversationListManagerFragment extends BaseFragment<ConversationLi
             case PENDING_CONNECT_REQUEST:
                 getControllerFactory().getPickUserController().hideUserProfile();
             case PICK_USER:
-                ConversationListFragment conversationListFragment = (ConversationListFragment) getChildFragmentManager().findFragmentByTag(
-                    ConversationListFragment.TAG);
-                if (conversationListFragment != null) {
-                    conversationListFragment.setScrollToConversation(!closeWithoutSelectingPeople);
-                }
-
                 getChildFragmentManager().popBackStackImmediate(PickUserFragment.TAG,
                                                                 FragmentManager.POP_BACK_STACK_INCLUSIVE);
 

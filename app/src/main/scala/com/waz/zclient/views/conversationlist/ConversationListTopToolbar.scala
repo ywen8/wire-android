@@ -21,6 +21,8 @@ import android.content.Context
 import android.util.AttributeSet
 import android.view.View
 import android.widget.FrameLayout
+import com.waz.zclient.ui.text.{GlyphTextView, TypefaceTextView}
+import com.waz.zclient.ui.views.CircleView
 import com.waz.zclient.utils.{RichView, ViewUtils}
 import com.waz.zclient.{R, ViewHelper}
 
@@ -37,8 +39,19 @@ class ConversationListTopToolbar(val context: Context, val attrs: AttributeSet, 
   inflate(R.layout.view_conv_list_top)
 
   val bottomBorder = ViewUtils.getView(this, R.id.conversation_list__border).asInstanceOf[View]
+  val settings = ViewUtils.getView(this, R.id.conversation_list_settings).asInstanceOf[GlyphTextView]
+  val title = ViewUtils.getView(this, R.id.conversation_list_title).asInstanceOf[TypefaceTextView]
+  val settingsIndicator = ViewUtils.getView(this, R.id.conversation_list_settings_indicator).asInstanceOf[CircleView]
 
-  def setScrolledToTop(scrolledToTop: Boolean) {
+  def setIndicatorVisible(visible: Boolean): Unit = {
+    settingsIndicator.setVisible(visible)
+  }
+
+  def setIndicatorColor(color: Int): Unit = {
+    settingsIndicator.setAccentColor(color)
+  }
+
+  def setScrolledToTop(scrolledToTop: Boolean): Unit = {
     bottomBorder.setVisible(!scrolledToTop)
   }
 }
