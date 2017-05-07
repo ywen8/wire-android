@@ -36,7 +36,7 @@ import com.waz.utils.events.{EventContext, Signal}
 import com.waz.zclient.utils.Offset
 import com.waz.zclient.views.ImageAssetDrawable.{RequestBuilder, ScaleType, State}
 import com.waz.zclient.views.ImageController._
-import com.waz.zclient.{Injectable, Injector, WireContext}
+import com.waz.zclient.{Injectable, Injector}
 import com.waz.ZLog.ImplicitTag._
 import com.waz.utils.wrappers.URI
 
@@ -316,14 +316,14 @@ class ImageController(implicit inj: Injector) extends Injectable {
     for {
       zms <- zMessaging
       data <- imageData(id)
-      res <- BitmapSignal(data, req, zms.imageLoader, zms.imageCache)
+      res <- BitmapSignal(data, req, zms.imageLoader, zms.assetsStorage.get)
     } yield res
 
   def imageSignal(uri: URI, req: BitmapRequest): Signal[BitmapResult] =
-    BitmapSignal(AssetData(source = Some(uri)), req, ZMessaging.currentGlobal.imageLoader, ZMessaging.currentGlobal.imageCache)
+    BitmapSignal(AssetData(source = Some(uri)), req, ZMessaging.currentGlobal.imageLoader)
 
   def imageSignal(data: AssetData, req: BitmapRequest): Signal[BitmapResult] =
-    zMessaging flatMap { zms => BitmapSignal(data, req, zms.imageLoader, zms.imageCache) }
+    zMessaging flatMap { zms => BitmapSignal(data, req, zms.imageLoader, zms.assetsStorage.get) }
 
   def imageSignal(src: ImageSource, req: BitmapRequest): Signal[BitmapResult] = src match {
     case WireImage(id) => imageSignal(id, req)

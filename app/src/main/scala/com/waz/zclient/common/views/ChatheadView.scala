@@ -323,8 +323,8 @@ protected class ChatheadController(val setSelectable: Boolean = false,
 
   val bitmapResult = Signal(zMessaging, assetId, viewWidth, borderWidth, accentColor).flatMap[BitmapResult] {
     case (zms, Some(id), width, bWidth, bColor) if width > 0 => zms.assetsStorage.signal(id).flatMap {
-      case data@AssetData.IsImage() if isRound => BitmapSignal(data, Round(width, bWidth, bColor.value), zms.imageLoader, zms.imageCache)
-      case data@AssetData.IsImage() => BitmapSignal(data, Single(width), zms.imageLoader, zms.imageCache)
+      case data@AssetData.IsImage() if isRound => BitmapSignal(data, Round(width, bWidth, bColor.value), zms.imageLoader, zms.assetsStorage.get)
+      case data@AssetData.IsImage() => BitmapSignal(data, Single(width), zms.imageLoader, zms.assetsStorage.get)
       case _ => Signal.empty[BitmapResult]
     }
     case _ => Signal.const(BitmapResult.Empty)

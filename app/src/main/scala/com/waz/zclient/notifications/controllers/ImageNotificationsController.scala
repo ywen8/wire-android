@@ -60,7 +60,7 @@ class ImageNotificationsController(implicit cxt: WireContext, eventContext: Even
   zms.zip(savedImageId).flatMap {
     case (zms, Some(imageId)) =>
       zms.assetsStorage.signal(imageId).flatMap {
-        case data@AssetData.IsImage() => BitmapSignal(data, Single(getDimenPx(R.dimen.notification__image_saving__image_width)), zms.imageLoader, zms.imageCache)
+        case data@AssetData.IsImage() => BitmapSignal(data, Single(getDimenPx(R.dimen.notification__image_saving__image_width)), zms.imageLoader, zms.assetsStorage.get)
         case _ => Signal.empty[BitmapResult]
       }
     case _ => Signal.empty[BitmapResult]
