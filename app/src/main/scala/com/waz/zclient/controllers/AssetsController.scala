@@ -27,6 +27,7 @@ import android.widget.{TextView, Toast}
 import com.waz.ZLog.ImplicitTag._
 import com.waz.ZLog._
 import com.waz.api.{ImageAsset, Message}
+import com.waz.content.Preferences.PrefKey
 import com.waz.model.{AssetData, AssetId, MessageData, Mime}
 import com.waz.service.ZMessaging
 import com.waz.service.assets.GlobalRecordAndPlayService
@@ -67,7 +68,7 @@ class AssetsController(implicit context: Context, inj: Injector, ec: EventContex
   //TODO make a preference controller for handling UI preferences in conjunction with SE preferences
   val downloadOnWifiEnabled = for {
     z <- zms
-    pref <- z.prefs.preference(getString(R.string.pref_options_image_download_key), getString(R.string.zms_image_download_value_always)).signal
+    pref <- z.prefs.preference(PrefKey[String](getString(R.string.pref_options_image_download_key), getString(R.string.zms_image_download_value_always))).signal
   } yield {
     pref == getString(R.string.zms_image_download_value_wifi)
   }

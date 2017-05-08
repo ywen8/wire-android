@@ -20,12 +20,12 @@ package com.waz.zclient.controllers.userpreferences;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.content.pm.PackageManager;
+
 import com.waz.zclient.R;
 import com.waz.zclient.utils.StringUtils;
+
 import org.json.JSONArray;
 import org.json.JSONException;
-import timber.log.Timber;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -35,9 +35,9 @@ import java.util.UUID;
 
 public class UserPreferencesController implements IUserPreferencesController {
 
-    public static final String USER_PREFS_TAG = "com.waz.zclient.user.preferences";
-    private static final String USER_PREFS_VERSION_ID = "USER_PREFS_VERSION_ID";
+    public static final String USER_PREFS_TAG = "com.wire.preferences";
 
+    //TODO Move these preferences to the UserPreferences service in SE, since a lot of them are user-scoped anyway.
     public static final String USER_PREFS_LAST_ACCENT_COLOR = "USER_PREFS_LAST_ACCENT_COLOR";
     public static final String USER_PREFS_REFERRAL_TOKEN = "USER_PREFS_REFERRAL_TOKEN";
     public static final String USER_PREFS_GENERIC_INVITATION_TOKEN = "USER_PREFS_GENERIC_INVITATION_TOKEN";
@@ -64,25 +64,8 @@ public class UserPreferencesController implements IUserPreferencesController {
     private Context context;
 
     public UserPreferencesController(Context context) {
-        this.context = context;
         userPreferences = context.getSharedPreferences(USER_PREFS_TAG, Context.MODE_PRIVATE);
-
-        // get old version
-        int oldVersion = userPreferences.getInt(USER_PREFS_VERSION_ID, 0);
-        int newVersion = 0;
-        // get new version
-        try {
-            newVersion = context.getPackageManager().getPackageInfo(context.getPackageName(), 0).versionCode;
-        } catch (PackageManager.NameNotFoundException e) {
-            Timber.e(e, "Failed loading version for UserPreferencesController!");
-        }
-        updateSharedPreferences(oldVersion, newVersion);
-    }
-
-    private void updateSharedPreferences(int oldVersion, int newVersion) {
-        // TODO do something very clever here if old and new version do not match
-        // at the end
-        userPreferences.edit().putInt(USER_PREFS_VERSION_ID, newVersion).apply();
+        this.context = context;
     }
 
     @Override
