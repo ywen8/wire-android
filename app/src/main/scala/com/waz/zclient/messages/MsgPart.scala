@@ -67,7 +67,6 @@ object MsgPart {
       case RECALLED => Empty // recalled messages only have an icon in header
       case CONNECT_ACCEPTED => Empty // those are never used in messages (only in notifications)
       case RICH_MEDIA => Empty // RICH_MEDIA will be handled separately
-      case SUCCESSFUL_CALL => Empty
       case UNKNOWN => Unknown
     }
   }
