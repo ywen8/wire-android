@@ -385,6 +385,9 @@ public class ConversationListManagerFragment extends BaseFragment<ConversationLi
         if (page == Page.CONVERSATION_LIST) {
             getControllerFactory().getNavigationController().setPagerEnabled(false);
             getControllerFactory().getUsernameController().addUsernamesObserverAndUpdate(this);
+        } else if (page == Page.MESSAGE_STREAM) {
+            getControllerFactory().getUsernameController().removeUsernamesObserver(this);
+            closeArchive();
         } else {
             getControllerFactory().getUsernameController().removeUsernamesObserver(this);
         }
@@ -1265,12 +1268,10 @@ public class ConversationListManagerFragment extends BaseFragment<ConversationLi
         Page page = getControllerFactory().getNavigationController().getCurrentLeftPage();
         switch (page) {
             case START:
-            case PICK_USER:
             case CONVERSATION_LIST:
                 Fragment fragment = getChildFragmentManager().findFragmentByTag(ArchiveListFragment.TAG());
                 if (fragment == null ||
                     !(fragment instanceof ArchiveListFragment)) {
-                    getControllerFactory().getOnboardingController().incrementPeoplePickerShowCount();
 
                     ConversationListFragment archiveFragment = ConversationListFragment.newArchiveInstance();
                     getChildFragmentManager()
@@ -1293,15 +1294,12 @@ public class ConversationListManagerFragment extends BaseFragment<ConversationLi
 
     @Override
     public void closeArchive() {
+        getChildFragmentManager().popBackStackImmediate(ArchiveListFragment.TAG(),
+            FragmentManager.POP_BACK_STACK_INCLUSIVE);
         Page page = getControllerFactory().getNavigationController().getCurrentLeftPage();
-        switch (page) {
-            case ARCHIVE:
-                getChildFragmentManager().popBackStackImmediate(ArchiveListFragment.TAG(),
-                    FragmentManager.POP_BACK_STACK_INCLUSIVE);
-                break;
+        if (page == Page.ARCHIVE) {
+            getControllerFactory().getNavigationController().setLeftPage(Page.CONVERSATION_LIST, TAG);
         }
-
-        getControllerFactory().getNavigationController().setLeftPage(Page.CONVERSATION_LIST, TAG);
     }
 
     public interface Container {

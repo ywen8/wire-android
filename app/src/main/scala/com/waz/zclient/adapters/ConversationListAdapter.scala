@@ -39,7 +39,7 @@ class ConversationListAdapter(context: Context)(implicit injector: Injector, eve
   setHasStableIds(true)
 
   lazy val zms = inject[Signal[ZMessaging]]
-  val currentMode = Signal[ListMode](Normal)
+  val currentMode = Signal[ListMode]()
   lazy val conversations = for {
     z <- zms
     conversations <- z.convsStorage.convsSignal
@@ -51,7 +51,7 @@ class ConversationListAdapter(context: Context)(implicit injector: Injector, eve
 
   lazy val incomingRequests = for {
     z <- zms
-    conversations <- z.convsStorage.convsSignal.map(_.conversations.filter(_.convType == ConversationType.Incoming).toSeq)
+    conversations <- z.convsStorage.convsSignal.map(_.conversations.filter(Incoming.filter).toSeq)
     members <- Signal.sequence(conversations.map(c => z.membersStorage.activeMembers(c.id).map(_.find(_ != z.selfUserId))):_*)
     mode <- currentMode
   } yield if (mode == Normal) (conversations, members.flatten) else (Seq(), Seq())
@@ -188,7 +188,7 @@ object ConversationListAdapter {
   case object Incoming extends ListMode {
     override lazy val nameId = R.string.conversation_list__header__archive_title
     override val filter = (c: ConversationData) =>
-      c.convType == ConversationType.Incoming
+      c.convType == ConversationType.Incoming && !c.hidden
   }
 
   trait ConversationRowViewHolder extends RecyclerView.ViewHolder

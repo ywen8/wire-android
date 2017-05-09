@@ -350,6 +350,7 @@ public class NavigationController implements INavigationController {
             case DRAWING:
             case SHARE_LOCATION:
             case COLLECTION:
+            case ARCHIVE:
                 setPagerEnabled(false);
                 break;
             case CONVERSATION_MENU_OVER_CONVERSATION_LIST:
