@@ -223,8 +223,15 @@ class NormalConversationFragment extends ConversationListFragment {
     clients <- z.account.account.clientId.fold(Signal.empty[Seq[Client]])(aid => z.otrClientsStorage.incomingClientsSignal(z.selfUserId, aid))
   } yield (color.getColor(), clients)
 
+  lazy val hasArchive = for {
+    z <- zms
+    convs <- z.convsStorage.convsSignal
+  } yield convs.conversations.exists(c => c.archived && !c.hidden)
+
   override def init(adapter: ConversationListAdapter, listActionsView: ListActionsView, topToolbar: ConversationListTopToolbar): Unit = {
     adapter.currentMode ! ConversationListAdapter.Normal
+
+    hasArchive.on(Threading.Ui) { listActionsView.setArchiveEnabled }
 
     topToolbar.glyphButton.setOnClickListener(new OnClickListener {
       override def onClick(v: View) = {

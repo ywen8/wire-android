@@ -79,6 +79,10 @@ public class ListActionsView extends FrameLayout implements View.OnClickListener
         bottomBorder.setVisibility(scrolledToBottom ? GONE : VISIBLE);
     }
 
+    public void setArchiveEnabled(boolean enabled) {
+        archive.setVisibility(enabled ? VISIBLE : GONE);
+    }
+
     public interface Callback {
         void onAvatarPress();
 

@@ -382,12 +382,12 @@ public class ConversationListManagerFragment extends BaseFragment<ConversationLi
 
     @Override
     public void onPageVisible(Page page) {
+        if (page != Page.ARCHIVE) {
+            closeArchive();
+        }
         if (page == Page.CONVERSATION_LIST) {
             getControllerFactory().getNavigationController().setPagerEnabled(false);
             getControllerFactory().getUsernameController().addUsernamesObserverAndUpdate(this);
-        } else if (page == Page.MESSAGE_STREAM) {
-            getControllerFactory().getUsernameController().removeUsernamesObserver(this);
-            closeArchive();
         } else {
             getControllerFactory().getUsernameController().removeUsernamesObserver(this);
         }

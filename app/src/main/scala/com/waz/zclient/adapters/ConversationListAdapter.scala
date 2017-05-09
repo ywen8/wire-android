@@ -173,11 +173,6 @@ object ConversationListAdapter {
     val nameId: Int
     val filter: (ConversationData) => Boolean
     val sort = (a: ConversationData, b: ConversationData) => {
-      if (a.convType == ConversationType.Incoming)
-        true
-      else if (b.convType == ConversationType.Incoming)
-        false
-      else
         a.lastEventTime.isAfter(b.lastEventTime)
     }
   }
