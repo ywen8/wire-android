@@ -61,7 +61,7 @@ class ConversationListAdapter(context: Context)(implicit injector: Injector, eve
 
   var maxAlpha = 1.0f
 
-  conversations.on(Threading.Ui) {
+  Signal(conversations, incomingRequests).on(Threading.Ui) {
     _ => notifyDataSetChanged()
   }
 
@@ -94,7 +94,7 @@ class ConversationListAdapter(context: Context)(implicit injector: Injector, eve
           normalViewHolder.bind(item)
         }
       case incomingViewHolder: IncomingConversationRowViewHolder =>
-        incomingRequests.currentValue.map(_._2).foreach(incomingViewHolder.bind)
+        incomingRequests.currentValue.foreach(incomingViewHolder.bind)
     }
   }
 
@@ -201,8 +201,9 @@ object ConversationListAdapter {
   }
 
   case class IncomingConversationRowViewHolder(view: IncomingConversationListRow) extends RecyclerView.ViewHolder(view) with ConversationRowViewHolder{
-    def bind(users: Seq[UserId]): Unit = {
-      view.setIncomingUsers(users)
+    def bind(convsAndUsers: (Seq[ConversationData], Seq[UserId])): Unit = {
+      convsAndUsers._1.headOption.foreach(view.setTag)
+      view.setIncomingUsers(convsAndUsers._2)
     }
   }
 }
