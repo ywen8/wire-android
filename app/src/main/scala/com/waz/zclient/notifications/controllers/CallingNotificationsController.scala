@@ -81,7 +81,7 @@ class CallingNotificationsController(implicit cxt: WireContext, eventContext: Ev
   //TODO use image controller when available from messages rewrite branch
   val bitmap = zms.zip(callerData.map(_.picture)).flatMap {
     case (zms, Some(imageId)) => zms.assetsStorage.signal(imageId).flatMap {
-      case data @ AssetData.IsImage() => BitmapSignal(data, Regular(callImageSizePx), zms.imageLoader, zms.imageCache)
+      case data @ AssetData.IsImage() => BitmapSignal(data, Regular(callImageSizePx), zms.imageLoader, zms.assetsStorage.get)
       case _ => Signal.empty[BitmapResult]
     }
     case _ => Signal.empty[BitmapResult]
