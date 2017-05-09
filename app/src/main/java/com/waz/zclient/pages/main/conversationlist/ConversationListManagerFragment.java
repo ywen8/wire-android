@@ -68,7 +68,9 @@ import com.waz.zclient.core.stores.conversation.ConversationChangeRequester;
 import com.waz.zclient.core.stores.conversation.ConversationStoreObserver;
 import com.waz.zclient.core.stores.conversation.InboxLoadRequester;
 import com.waz.zclient.core.stores.conversation.OnInboxLoadedListener;
+import com.waz.zclient.fragments.ArchiveListFragment;
 import com.waz.zclient.fragments.ConversationListFragment;
+import com.waz.zclient.fragments.NormalConversationListFragment;
 import com.waz.zclient.media.SoundController;
 import com.waz.zclient.newreg.fragments.FirstTimeAssignUsernameFragment;
 import com.waz.zclient.pages.BaseFragment;
@@ -185,8 +187,8 @@ public class ConversationListManagerFragment extends BaseFragment<ConversationLi
 
             getChildFragmentManager().beginTransaction()
                                      .add(R.id.fl__conversation_list_main,
-                                         ConversationListFragment.newInstance(),
-                                         ConversationListFragment.TAG())
+                                         ConversationListFragment.newNormalInstance(),
+                                         NormalConversationListFragment.TAG())
                                      .add(R.id.fl__conversation_list__settings_box,
                                           OptionsMenuFragment.newInstance(true),
                                           OptionsMenuFragment.TAG)
@@ -464,6 +466,13 @@ public class ConversationListManagerFragment extends BaseFragment<ConversationLi
             PickUserFragment.TAG);
         if (pickUserFragment != null &&
             pickUserFragment.onBackPressed()) {
+            return true;
+        }
+
+        ArchiveListFragment archiveListFragment = (ArchiveListFragment) getChildFragmentManager()
+            .findFragmentByTag(ArchiveListFragment.TAG());
+        if (archiveListFragment != null &&
+            archiveListFragment.onBackPressed()) {
             return true;
         }
 
@@ -1249,6 +1258,50 @@ public class ConversationListManagerFragment extends BaseFragment<ConversationLi
             .commitAllowingStateLoss();
 
         ((BaseActivity) getActivity()).injectJava(GlobalTrackingController.class).tagEvent(new SeenUsernameTakeOverScreenEvent());
+    }
+
+    @Override
+    public void showArchive() {
+        Page page = getControllerFactory().getNavigationController().getCurrentLeftPage();
+        switch (page) {
+            case START:
+            case PICK_USER:
+            case CONVERSATION_LIST:
+                Fragment fragment = getChildFragmentManager().findFragmentByTag(ArchiveListFragment.TAG());
+                if (fragment == null ||
+                    !(fragment instanceof ArchiveListFragment)) {
+                    getControllerFactory().getOnboardingController().incrementPeoplePickerShowCount();
+
+                    ConversationListFragment archiveFragment = ConversationListFragment.newArchiveInstance();
+                    getChildFragmentManager()
+                        .beginTransaction()
+                        .setCustomAnimations(R.anim.slide_in_from_bottom_pick_user,
+                            R.anim.open_new_conversation__thread_list_out,
+                            R.anim.open_new_conversation__thread_list_in,
+                            R.anim.slide_out_to_bottom_pick_user)
+                        .replace(R.id.fl__conversation_list_main, archiveFragment, ArchiveListFragment.TAG())
+                        .addToBackStack(ArchiveListFragment.TAG())
+                        .commit();
+                }
+                break;
+            case ARCHIVE:
+                break;
+        }
+
+        getControllerFactory().getNavigationController().setLeftPage(Page.ARCHIVE, TAG);
+    }
+
+    @Override
+    public void closeArchive() {
+        Page page = getControllerFactory().getNavigationController().getCurrentLeftPage();
+        switch (page) {
+            case ARCHIVE:
+                getChildFragmentManager().popBackStackImmediate(ArchiveListFragment.TAG(),
+                    FragmentManager.POP_BACK_STACK_INCLUSIVE);
+                break;
+        }
+
+        getControllerFactory().getNavigationController().setLeftPage(Page.CONVERSATION_LIST, TAG);
     }
 
     public interface Container {

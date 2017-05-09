@@ -29,7 +29,7 @@ import com.waz.zclient.utils.ViewUtils;
 public class ListActionsView extends FrameLayout implements View.OnClickListener {
 
     private GlyphTextView avatar;
-    private GlyphTextView settings;
+    private GlyphTextView archive;
     private View bottomBorder;
 
     private Callback callback;
@@ -51,8 +51,8 @@ public class ListActionsView extends FrameLayout implements View.OnClickListener
         LayoutInflater.from(context).inflate(R.layout.list_actions_view, this, true);
         avatar = ViewUtils.getView(this, R.id.gtv__list_actions__avatar);
         avatar.setOnClickListener(this);
-        settings = ViewUtils.getView(this, R.id.gtv__list_actions__settings);
-        settings.setOnClickListener(this);
+        archive = ViewUtils.getView(this, R.id.gtv__list_actions__settings);
+        archive.setOnClickListener(this);
         bottomBorder = ViewUtils.getView(this, R.id.v_conversation_list_bottom_border);
     }
 

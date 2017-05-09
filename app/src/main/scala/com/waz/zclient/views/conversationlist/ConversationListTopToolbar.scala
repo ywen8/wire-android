@@ -39,9 +39,18 @@ class ConversationListTopToolbar(val context: Context, val attrs: AttributeSet, 
   inflate(R.layout.view_conv_list_top)
 
   val bottomBorder = ViewUtils.getView(this, R.id.conversation_list__border).asInstanceOf[View]
-  val settings = ViewUtils.getView(this, R.id.conversation_list_settings).asInstanceOf[GlyphTextView]
+  val glyphButton = ViewUtils.getView(this, R.id.conversation_list_settings).asInstanceOf[GlyphTextView]
   val title = ViewUtils.getView(this, R.id.conversation_list_title).asInstanceOf[TypefaceTextView]
   val settingsIndicator = ViewUtils.getView(this, R.id.conversation_list_settings_indicator).asInstanceOf[CircleView]
+
+  def setClose(): Unit = {
+    glyphButton.setText(R.string.glyph__close)
+    settingsIndicator.setVisible(false)
+  }
+
+  def setSettings(): Unit = {
+    glyphButton.setText(R.string.glyph__settings)
+  }
 
   def setIndicatorVisible(visible: Boolean): Unit = {
     settingsIndicator.setVisible(visible)

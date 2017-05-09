@@ -30,7 +30,6 @@ import com.waz.service.ZMessaging
 import com.waz.threading.Threading
 import com.waz.utils.events.Signal
 import com.waz.zclient.adapters.ConversationListAdapter
-import com.waz.zclient.adapters.ConversationListAdapter.Archive
 import com.waz.zclient.controllers.global.AccentColorController
 import com.waz.zclient.controllers.tracking.events.navigation.OpenedContactsEvent
 import com.waz.zclient.core.stores.conversation.ConversationChangeRequester
@@ -46,17 +45,9 @@ import com.waz.zclient.tracking.GlobalTrackingController
 import com.waz.zclient.ui.utils.ResourceUtils
 import com.waz.zclient.utils.ViewUtils
 import com.waz.zclient.views.conversationlist.ConversationListTopToolbar
-import com.waz.zclient.{BaseActivity, FragmentHelper, R}
+import com.waz.zclient.{BaseActivity, FragmentHelper, OnBackPressedListener, R}
 
-class ConversationListFragment extends BaseFragment[ConversationListFragment.Container] with FragmentHelper with VoiceChannel.JoinCallback {
-
-  lazy val zms = inject[Signal[ZMessaging]]
-  lazy val accentColor = inject[AccentColorController].accentColor
-  lazy val incomingClients = for{
-    z <- zms
-    color <- accentColor
-    clients <- z.account.account.clientId.fold(Signal.empty[Seq[Client]])(aid => z.otrClientsStorage.incomingClientsSignal(z.selfUserId, aid))
-  } yield (color.getColor(), clients)
+abstract class ConversationListFragment extends BaseFragment[ConversationListFragment.Container] with FragmentHelper with VoiceChannel.JoinCallback {
 
   override def onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState: Bundle) = {
     val view = inflater.inflate(R.layout.fragment_conversation_list, container, false)
@@ -99,16 +90,7 @@ class ConversationListFragment extends BaseFragment[ConversationListFragment.Con
 
       override def onArchivePress() = {
         conversationListView.stopScroll()
-        adapter.currentMode.mutate{
-          case Archive => ConversationListAdapter.Normal
-          case _ => ConversationListAdapter.Archive
-        }
-      }
-    })
-
-    topToolbar.settings.setOnClickListener(new OnClickListener {
-      override def onClick(v: View) = {
-        startActivity(ZetaPreferencesActivity.getDefaultIntent(getContext))
+        Option(getContainer).foreach(_.showArchive())
       }
     })
 
@@ -116,14 +98,12 @@ class ConversationListFragment extends BaseFragment[ConversationListFragment.Con
       topToolbar.title.setText(mode.nameId)
     }
 
-    incomingClients.on(Threading.Ui) {
-      case (color, clients) =>
-        topToolbar.setIndicatorVisible(clients.nonEmpty)
-        topToolbar.setIndicatorColor(color)
-    }
+    init(adapter, listActionsView, topToolbar)
 
     view
   }
+
+  def init(adapter: ConversationListAdapter, listActionsView: ListActionsView, topToolbar: ConversationListTopToolbar): Unit
 
   private def handleItemClick(conversationData: ConversationData): Unit = {
     val iConversation = getStoreFactory.getConversationStore.getConversation(conversationData.id.str)
@@ -209,11 +189,68 @@ class ConversationListFragment extends BaseFragment[ConversationListFragment.Con
   }
 }
 
-object ConversationListFragment {
-  trait Container
-  val TAG = ConversationListFragment.getClass.getSimpleName
+object ArchiveListFragment{
+  val TAG = ArchiveListFragment.getClass.getSimpleName
+}
+class ArchiveListFragment extends ConversationListFragment with OnBackPressedListener {
+  override def init(adapter: ConversationListAdapter, listActionsView: ListActionsView, topToolbar: ConversationListTopToolbar): Unit ={
+    adapter.currentMode ! ConversationListAdapter.Archive
+    listActionsView.setVisibility(View.GONE)
+    topToolbar.setClose()
+    topToolbar.glyphButton.setOnClickListener(new OnClickListener {
+      override def onClick(v: View) = {
+        Option(getContainer).foreach(_.closeArchive())
+      }
+    })
+  }
 
-  def newInstance: ConversationListFragment = {
-    new ConversationListFragment()
+  override def onBackPressed() = {
+    Option(getContainer).foreach(_.closeArchive())
+    true
+  }
+}
+
+object NormalConversationListFragment{
+  val TAG = NormalConversationListFragment.getClass.getSimpleName
+}
+class NormalConversationFragment extends ConversationListFragment {
+
+  lazy val zms = inject[Signal[ZMessaging]]
+  lazy val accentColor = inject[AccentColorController].accentColor
+  lazy val incomingClients = for{
+    z <- zms
+    color <- accentColor
+    clients <- z.account.account.clientId.fold(Signal.empty[Seq[Client]])(aid => z.otrClientsStorage.incomingClientsSignal(z.selfUserId, aid))
+  } yield (color.getColor(), clients)
+
+  override def init(adapter: ConversationListAdapter, listActionsView: ListActionsView, topToolbar: ConversationListTopToolbar): Unit = {
+    adapter.currentMode ! ConversationListAdapter.Normal
+
+    topToolbar.glyphButton.setOnClickListener(new OnClickListener {
+      override def onClick(v: View) = {
+        startActivity(ZetaPreferencesActivity.getDefaultIntent(getContext))
+      }
+    })
+
+    incomingClients.on(Threading.Ui) {
+      case (color, clients) =>
+        topToolbar.setIndicatorVisible(clients.nonEmpty)
+        topToolbar.setIndicatorColor(color)
+    }
+  }
+}
+
+object ConversationListFragment {
+  trait Container {
+    def showArchive()
+    def closeArchive()
+  }
+
+  def newNormalInstance(): ConversationListFragment = {
+    new NormalConversationFragment()
+  }
+
+  def newArchiveInstance(): ConversationListFragment = {
+    new ArchiveListFragment()
   }
 }
