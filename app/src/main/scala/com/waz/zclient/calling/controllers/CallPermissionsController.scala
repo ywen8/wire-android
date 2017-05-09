@@ -19,7 +19,7 @@ package com.waz.zclient.calling.controllers
 
 import com.waz.ZLog.ImplicitTag._
 import com.waz.ZLog.{info, warn}
-import com.waz.api.VoiceChannelState
+import com.waz.api.{VoiceChannelState, ZmsVersion}
 import com.waz.model.ConvId
 import com.waz.model.ConversationData.ConversationType
 import com.waz.threading.Threading
@@ -45,7 +45,7 @@ class CallPermissionsController(implicit inj: Injector, cxt: WireContext) extend
 
   private def useV3(convId: ConvId) = {
     isGroupCall(convId).flatMap {
-      case true if !com.waz.zclient.BuildConfig.DEBUG => Future.successful(false) //Disable v3 group call from non debug builds
+      case true if !ZmsVersion.DEBUG => Future.successful(false) //Disable v3 group call from non debug builds
       case _ => {
         prefs.head.flatMap(p => p.uiPreferenceStringSignal(p.callingV3Key, "1").apply()).flatMap {
           case "0" => Future.successful(false) // v2
