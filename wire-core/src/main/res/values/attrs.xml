@@ -148,6 +148,7 @@
         <attr name="show_border" format="boolean"/>
         <attr name="default_background" format="color"/>
         <attr name="is_round" format="boolean"/>
+        <attr name="show_waiting" format="boolean"/>
     </declare-styleable>
 
     <declare-styleable name="ChatheadWithTextFooter">

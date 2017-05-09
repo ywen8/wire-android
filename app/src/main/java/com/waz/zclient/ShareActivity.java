@@ -37,7 +37,6 @@ import com.waz.zclient.controllers.confirmation.TwoButtonConfirmationCallback;
 import com.waz.zclient.controllers.sharing.SharedContentType;
 import com.waz.zclient.conversation.ShareToMultipleFragment;
 import com.waz.zclient.core.stores.api.ZMessagingApiStoreObserver;
-import com.waz.zclient.pages.main.sharing.SharingConversationListManagerFragment;
 import com.waz.zclient.utils.AssetUtils;
 import com.waz.zclient.utils.PermissionUtils;
 import com.waz.zclient.utils.ViewUtils;
@@ -50,8 +49,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-public class ShareActivity extends BaseActivity implements SharingConversationListManagerFragment.Container,
-                                                           AccentColorObserver,
+public class ShareActivity extends BaseActivity implements AccentColorObserver,
                                                            ZMessagingApiStoreObserver {
 
     private static final String TAG = ShareActivity.class.getName();

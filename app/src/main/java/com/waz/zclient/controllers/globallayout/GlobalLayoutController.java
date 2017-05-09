@@ -171,6 +171,7 @@ public class GlobalLayoutController implements IGlobalLayoutController {
             case MESSAGE_STREAM:
                 softInputMode = WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN | WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE;
                 break;
+            case ARCHIVE:
             case CONVERSATION_LIST:
                 softInputMode = WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN | WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN;
                 break;

@@ -23,6 +23,7 @@ import android.content.Context
 import android.graphics._
 import android.graphics.drawable.Drawable
 import android.renderscript.{Allocation, Element, RenderScript, ScriptIntrinsicBlur}
+import com.waz.ZLog.ImplicitTag._
 import com.waz.model.AssetData.{IsImage, IsVideo}
 import com.waz.model._
 import com.waz.service.ZMessaging
@@ -33,12 +34,11 @@ import com.waz.threading.Threading
 import com.waz.ui.MemoryImageCache.BitmapRequest
 import com.waz.ui.MemoryImageCache.BitmapRequest.Regular
 import com.waz.utils.events.{EventContext, Signal}
+import com.waz.utils.wrappers.URI
 import com.waz.zclient.utils.Offset
 import com.waz.zclient.views.ImageAssetDrawable.{RequestBuilder, ScaleType, State}
 import com.waz.zclient.views.ImageController._
-import com.waz.zclient.{Injectable, Injector, WireContext}
-import com.waz.ZLog.ImplicitTag._
-import com.waz.utils.wrappers.URI
+import com.waz.zclient.{Injectable, Injector}
 
 //TODO could merge with logic from the ChatheadView to make a very general drawable for our app
 class ImageAssetDrawable(

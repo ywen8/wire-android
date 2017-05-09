@@ -153,7 +153,7 @@ object CallingTrackingController {
     case NetworkMode.EDGE    => "drop_EDGE"
     case NetworkMode._2G     => "drop_2g"
     case NetworkMode.OFFLINE => "offline"
-
+    case _ => ""
   }
 
   case class CallingTrackingInfo(state:        VoiceChannelState,
