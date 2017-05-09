@@ -19,7 +19,7 @@ package com.waz.zclient.calling.controllers
 
 import com.waz.ZLog.ImplicitTag._
 import com.waz.ZLog.{info, warn}
-import com.waz.api.VoiceChannelState
+import com.waz.api.{VoiceChannelState, ZmsVersion}
 import com.waz.model.ConvId
 import com.waz.model.ConversationData.ConversationType
 import com.waz.threading.Threading
