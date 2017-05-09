@@ -443,10 +443,6 @@ public class SwipeListView extends RecyclerView implements PullForActionView {
         this.allowSwipeAway = allowSwipeAway;
     }
 
-    public void customSmoothScrollToPosition(int smoothScrollPosition) {
-        //setSelectionFromTop(smoothScrollPosition, 0);
-    }
-
     public interface SwipeListRow {
         void open();
         void close();

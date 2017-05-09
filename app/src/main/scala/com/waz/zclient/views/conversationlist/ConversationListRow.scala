@@ -220,10 +220,6 @@ class NormalConversationListRow(context: Context, attrs: AttributeSet, style: In
     }
   }
 
-  def setConversation(iConversation: IConversation): Unit = {
-    //TODO: remove
-  }
-
   private def getInboxName(convSize: Int): String = getResources.getQuantityString(R.plurals.connect_inbox__link__name, convSize, convSize.toString)
 
   menuIndicatorView.setClickable(false)
