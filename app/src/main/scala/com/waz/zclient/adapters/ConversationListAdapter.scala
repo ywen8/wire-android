@@ -83,7 +83,14 @@ class ConversationListAdapter(context: Context)(implicit injector: Injector, eve
     }
   }
 
-  override def getItemCount = conversations.currentValue.fold(0)(_.size)
+  override def getItemCount = {
+    val incoming =
+      if (incomingRequests.currentValue.exists(_._2.nonEmpty))
+        1
+      else
+        0
+    conversations.currentValue.fold(0)(_.size) + incoming
+  }
 
   override def onBindViewHolder(holder: ConversationRowViewHolder, position: Int) = {
     holder match {
