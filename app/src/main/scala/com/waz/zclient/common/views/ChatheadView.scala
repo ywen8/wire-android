@@ -69,7 +69,8 @@ class ChatheadView(val context: Context, val attrs: AttributeSet, val defStyleAt
       getDimen(R.dimen.chathead__large_border_width).toInt)),
     ColorVal(overlayColor),
     a.getBoolean(R.styleable.ChatheadView_is_round, true),
-    ColorVal(a.getColor(R.styleable.ChatheadView_default_background, Color.GRAY))
+    ColorVal(a.getColor(R.styleable.ChatheadView_default_background, Color.GRAY)),
+    a.getBoolean(R.styleable.ChatheadView_show_waiting, true)
   )
   private val allowIcon = a.getBoolean(R.styleable.ChatheadView_allow_icon, true)
   private val swapBackgroundAndInitialsColors = a.getBoolean(R.styleable.ChatheadView_swap_background_and_initial_colors, false)
@@ -166,7 +167,7 @@ class ChatheadView(val context: Context, val attrs: AttributeSet, val defStyleAt
     val selected = ctrl.selected.currentValue.getOrElse(false)
     val connectionStatus = ctrl.connectionStatus.currentValue.getOrElse(UNCONNECTED)
     val hasBeenInvited = ctrl.hasBeenInvited.currentValue.getOrElse(false)
-    val glyph = getGlyphText(selected, hasBeenInvited, connectionStatus)
+    val glyph = getGlyphText(selected, hasBeenInvited, connectionStatus, ctrl.showWaitingForConnection)
     val bitmap = ctrl.bitmap.currentValue.getOrElse(Option.empty[Bitmap])
 
     val radius: Float = size / 2f
@@ -218,14 +219,14 @@ class ChatheadView(val context: Context, val attrs: AttributeSet, val defStyleAt
     cy - ((textPaint.descent + textPaint.ascent) / 2f)
   }
 
-  private def getGlyphText(selected: Boolean, contactHasBeenInvited: Boolean, connectionStatus: ConnectionStatus): String = {
+  private def getGlyphText(selected: Boolean, contactHasBeenInvited: Boolean, connectionStatus: ConnectionStatus, showWating: Boolean): String = {
     if (selected) {
       getResources.getString(selectedUserGlyphId)
     } else if (contactHasBeenInvited) {
       getResources.getString(pendingAddressBookContactGlyphId)
     } else {
       connectionStatus match {
-        case PENDING_FROM_OTHER | PENDING_FROM_USER | IGNORED => getResources.getString(pendingUserGlyphId)
+        case PENDING_FROM_OTHER | PENDING_FROM_USER | IGNORED if showWating => getResources.getString(pendingUserGlyphId)
         case BLOCKED => getResources.getString(blockedUserGlyphId)
         case _ => ""
       }
@@ -248,7 +249,8 @@ protected class ChatheadController(val setSelectable: Boolean = false,
                                              val border: Option[Border] = None,
                                              val contactBackgroundColor: ColorVal = ColorVal(Color.GRAY),
                                              val isRound: Boolean = true,
-                                             val defaultBackgroundColor: ColorVal = ColorVal(Color.GRAY))
+                                             val defaultBackgroundColor: ColorVal = ColorVal(Color.GRAY),
+                                             val showWaitingForConnection: Boolean = true)
                                             (implicit inj: Injector, eventContext: EventContext) extends Injectable {
 
   private implicit val logtag = ZLog.logTagFor[ChatheadController]

@@ -26,7 +26,7 @@ import android.net.Uri
 import android.os.{Build, Bundle, Handler}
 import android.support.v4.app.Fragment
 import android.text.TextUtils
-import com.google.android.gms.common.{ConnectionResult, GooglePlayServicesUtil}
+import com.google.android.gms.common.{ConnectionResult, GoogleApiAvailability}
 import com.localytics.android.Localytics
 import com.waz.ZLog.ImplicitTag._
 import com.waz.ZLog.{error, info, warn}
@@ -161,7 +161,7 @@ class MainActivity extends BaseActivity
     try
         if ("com.wire" == getApplicationContext.getPackageName) {
           Option(getStoreFactory.getProfileStore.getMyEmail).filter(e => e.endsWith("@wire.com") || e.endsWith("@wearezeta.com")).foreach { email =>
-            ExceptionHandler.saveException(new RuntimeException(email), null)
+            ExceptionHandler.saveException(new RuntimeException(email), null, null)
             ViewUtils.showAlertDialog(this, "Yo dude!", "Please use Wire Internal", "I promise", null, false)
           }
         }
@@ -290,10 +290,10 @@ class MainActivity extends BaseActivity
   }
 
   private def verifyGooglePlayServicesStatus() = {
-    val deviceGooglePlayServicesState: Int = GooglePlayServicesUtil.isGooglePlayServicesAvailable(getApplicationContext)
+    val deviceGooglePlayServicesState: Int = GoogleApiAvailability.getInstance().isGooglePlayServicesAvailable(getApplicationContext)
     val errorShown: Boolean = getControllerFactory.getUserPreferencesController.hasPlayServicesErrorShown
     if (deviceGooglePlayServicesState == ConnectionResult.SERVICE_VERSION_UPDATE_REQUIRED && !errorShown) {
-      GooglePlayServicesUtil.getErrorDialog(deviceGooglePlayServicesState, this, MainActivity.REQUEST_CODE_GOOGLE_PLAY_SERVICES_DIALOG).show()
+      GoogleApiAvailability.getInstance().getErrorDialog(this, deviceGooglePlayServicesState, MainActivity.REQUEST_CODE_GOOGLE_PLAY_SERVICES_DIALOG).show()
       getControllerFactory.getUserPreferencesController.setPlayServicesErrorShown(true)
     }
     else if (deviceGooglePlayServicesState == ConnectionResult.SUCCESS) getControllerFactory.getUserPreferencesController.setPlayServicesErrorShown(false)

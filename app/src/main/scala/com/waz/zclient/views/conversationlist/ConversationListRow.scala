@@ -35,7 +35,6 @@ import com.waz.utils._
 import com.waz.utils.events.Signal
 import com.waz.zclient.calling.controllers.CallPermissionsController
 import com.waz.zclient.controllers.global.AccentColorController
-import com.waz.zclient.core.stores.connect.InboxLinkConversation
 import com.waz.zclient.pages.main.conversationlist.views.ConversationCallback
 import com.waz.zclient.pages.main.conversationlist.views.listview.SwipeListView
 import com.waz.zclient.pages.main.conversationlist.views.row.MenuIndicatorView
@@ -49,10 +48,13 @@ import com.waz.zclient.views.ConversationBadge
 import com.waz.zclient.views.conversationlist.ConversationListRow._
 import com.waz.zclient.{R, ViewHelper}
 
-import scala.concurrent.Future
 import scala.collection.Set
+import scala.concurrent.Future
 
-class ConversationListRow(context: Context, attrs: AttributeSet, style: Int) extends FrameLayout(context, attrs, style)
+trait ConversationListRow extends FrameLayout
+
+class NormalConversationListRow(context: Context, attrs: AttributeSet, style: Int) extends FrameLayout(context, attrs, style)
+    with ConversationListRow
     with ViewHelper
     with SwipeListView.SwipeListRow
     with MoveToAnimateable {
@@ -79,8 +81,7 @@ class ConversationListRow(context: Context, attrs: AttributeSet, style: Int) ext
   val separator = ViewUtils.getView(this, R.id.conversation_separator).asInstanceOf[View]
   val menuIndicatorView = ViewUtils.getView(this, R.id.conversation_menu_indicator).asInstanceOf[MenuIndicatorView]
 
-  var iConversation: IConversation = null
-
+  var conversationData = Option.empty[ConversationData]
   val conversation = for {
     z <- zms
     Some(convId) <- conversationId
@@ -89,8 +90,9 @@ class ConversationListRow(context: Context, attrs: AttributeSet, style: Int) ext
 
   val conversationName = for {
     z <- zms
+    self <- selfId
     conv <- conversation
-    memberCount <- z.membersStorage.activeMembers(conv.id).map(_.size)
+    memberCount <- z.membersStorage.activeMembers(conv.id).map(_.count(_ != self))
   } yield {
     if (conv.convType == ConversationType.Incoming) {
       (conv.id, getInboxName(memberCount))
@@ -101,7 +103,7 @@ class ConversationListRow(context: Context, attrs: AttributeSet, style: Int) ext
 
   val userTyping = for {
     z <- zms
-    Some(convId) <- conversationId
+    convId <- conversation.map(_.id)
     typing <- Signal.wrap(z.typing.onTypingChanged.filter(_._1 == convId).map(_._2.headOption)).orElse(Signal.const(None))
     typingUser <- Signal.future(typing.fold(Future.successful(Option.empty[UserData]))(tu => z.usersStorage.get(tu.id)))
   } yield typingUser
@@ -109,17 +111,16 @@ class ConversationListRow(context: Context, attrs: AttributeSet, style: Int) ext
   val badgeInfo = for {
     z <- zms
     conv <- conversation
-    unreadCount <- z.messagesStorage.unreadCount(conv.id)
     typing <- userTyping.map(_.nonEmpty)
     availableCalls <- z.calling.availableCalls
-  } yield (conv.id, badgeStatusForConversation(conv, unreadCount, typing, availableCalls))
+  } yield (conv.id, badgeStatusForConversation(conv, conv.unreadCount, typing, availableCalls))
 
   val subtitleText = for {
     z <- zms
     self <- selfId
     conv <- conversation
+    _ <- if (conv.convType == ConversationType.Incoming) Signal.empty else Signal.const(())
     lastReadInstant <- z.messagesStorage.lastRead(conv.id)
-    unread <- z.messagesStorage.unreadCount(conv.id)
     lastUnreadMessages <- Signal.future(z.messagesStorage.findMessagesFrom(conv.id, lastReadInstant.plusMillis(1)).map(_.filter(_.userId != self)))
     lastUnreadMessageUser <- lastUnreadMessages.lastOption.fold2(Signal.const(Option.empty[UserData]), message => z.usersStorage.optSignal(message.userId))
     lastUnreadMessageMembers <- lastUnreadMessages.lastOption.fold2(Signal.const(Vector[UserData]()), message => z.usersStorage.listSignal(message.members))
@@ -156,28 +157,28 @@ class ConversationListRow(context: Context, attrs: AttributeSet, style: Int) ext
   }
 
   conversationName.on(Threading.Ui) {
-    case (convId, text) if convId.str == iConversation.getId =>
+    case (convId, text) if conversationData.forall(_.id == convId) =>
       title.setText(text)
     case _ =>
       ZLog.debug("Outdated conversation name")
   }
 
   subtitleText.on(Threading.Ui) {
-    case (convId, text) if convId.str == iConversation.getId =>
+    case (convId, text) if conversationData.forall(_.id == convId) =>
       setSubtitle(text)
     case _ =>
       ZLog.debug("Outdated conversation subtitle")
     }
 
   badgeInfo.on(Threading.Ui) {
-    case (convId, status) if convId.str == iConversation.getId =>
+    case (convId, status) if conversationData.forall(_.id == convId) =>
       badge.setStatus(status)
     case _ =>
       ZLog.debug("Outdated badge status")
   }
 
   avatarInfo.on(Threading.Background){
-    case (convId, convType, members, alpha) if convId.str == iConversation.getId =>
+    case (convId, convType, members, alpha) if conversationData.forall(_.id == convId) =>
       avatar.setMembers(members.map(_.id), convId, convType)
       avatar.setAlpha(alpha)
     case _ =>
@@ -186,7 +187,7 @@ class ConversationListRow(context: Context, attrs: AttributeSet, style: Int) ext
 
   badge.onClickEvent{
     case ConversationBadge.IncomingCall =>
-      conversationId.currentValue.flatten.foreach( convId => callPermissionsController.startCall(convId))
+      conversationData.map(_.id).foreach( convId => callPermissionsController.startCall(convId))
     case _=>
   }
 
@@ -196,7 +197,7 @@ class ConversationListRow(context: Context, attrs: AttributeSet, style: Int) ext
   private val menuOpenOffset: Int = getDimenPx(R.dimen.list__menu_indicator__max_swipe_offset)
   private var moveTo: Float = .0f
   private var maxOffset: Float = .0f
-  private var swipeable: Boolean = false
+  private var swipeable: Boolean = true
   private var moveToAnimator: ObjectAnimator = null
   private var shouldRedraw = false
 
@@ -204,25 +205,17 @@ class ConversationListRow(context: Context, attrs: AttributeSet, style: Int) ext
 
   private def hideSubtitle(): Unit = title.setGravity(Gravity.CENTER_VERTICAL)
 
-  def getConversation: IConversation = iConversation
-
-  def setConversation(iConversation: IConversation): Unit = {
-    this.iConversation = iConversation
-    if (!conversationId.currentValue.contains(Some(ConvId(iConversation.getId)))) {
+  def getConversation: IConversation = null
+  def setConversation(conversationData: ConversationData): Unit = {
+    if (this.conversationData.forall(_.id != conversationData.id)) {
+      this.conversationData = Some(conversationData)
+      title.setText(conversationData.displayName)
+      badge.setStatus(ConversationBadge.Empty)
       subtitle.setText("")
-      avatar.setConversationType(iConversation.getType)
-      avatar.setAlpha(1f)
+      avatar.setConversationType(conversationData.convType)
       avatar.clearImages()
-      iConversation match {
-        case conv: InboxLinkConversation =>
-          title.setText(getInboxName(conv.getSize))
-          badge.setStatus(ConversationBadge.WaitingConnection)
-          conversationId.publish(None, Threading.Background)
-        case _ =>
-          title.setText(iConversation.getName)
-          badge.setStatus(ConversationBadge.Empty)
-          conversationId.publish(Some(ConvId(iConversation.getId)), Threading.Background)
-      }
+      avatar.setAlpha(1f)
+      conversationId.publish(Some(conversationData.id), Threading.Background)
       closeImmediate()
     }
   }
@@ -232,17 +225,13 @@ class ConversationListRow(context: Context, attrs: AttributeSet, style: Int) ext
   menuIndicatorView.setClickable(false)
   menuIndicatorView.setMaxOffset(menuOpenOffset)
   menuIndicatorView.setOnClickListener(new View.OnClickListener() {
-    def onClick(v: View) {
+    def onClick(v: View): Unit = {
       close()
-      conversationCallback.onConversationListRowSwiped(iConversation, ConversationListRow.this)
+      conversationCallback.onConversationListRowSwiped(null, NormalConversationListRow.this)
     }
   })
 
-  def isArchiveTarget: Boolean = false
-  def needsRedraw: Boolean = shouldRedraw
-  def redraw(): Unit = {shouldRedraw = true}
-
-  def setConversationCallback(conversationCallback: ConversationCallback) {
+  def setConversationCallback(conversationCallback: ConversationCallback): Unit = {
     this.conversationCallback = conversationCallback
   }
 
@@ -253,13 +242,13 @@ class ConversationListRow(context: Context, attrs: AttributeSet, style: Int) ext
     openState = true
   }
 
-  def close() {
+  def close(): Unit = {
     if (openState) openState = false
     menuIndicatorView.setClickable(false)
     animateMenu(0)
   }
 
-  private def closeImmediate() {
+  private def closeImmediate(): Unit = {
     if (openState) openState = false
     menuIndicatorView.setClickable(false)
     setMoveTo(0)
@@ -282,17 +271,13 @@ class ConversationListRow(context: Context, attrs: AttributeSet, style: Int) ext
     setMoveTo(moveTo)
   }
 
-  override def isSwipeable = swipeable
-
-  def setSwipeable(swipeable: Boolean) {
-    this.swipeable = swipeable
-  }
+  override def isSwipeable = true
 
   override def isOpen = openState
 
   override def swipeAway() = {
     close()
-    conversationCallback.onConversationListRowSwiped(iConversation, this)
+    conversationCallback.onConversationListRowSwiped(null, this)
   }
 
   override def dimOnListRowMenuSwiped(alpha: Float) = {
@@ -302,8 +287,6 @@ class ConversationListRow(context: Context, attrs: AttributeSet, style: Int) ext
   }
 
   override def setPagerOffset(pagerOffset: Float): Unit = {
-    if (iConversation == null || iConversation.isSelected)
-      return
 
     val alpha = Math.max(Math.pow(1 - pagerOffset, 4).toFloat, maxAlpha)
     setAlpha(alpha)
@@ -317,7 +300,7 @@ class ConversationListRow(context: Context, attrs: AttributeSet, style: Int) ext
     menuIndicatorView.setClipX(moveTo.toInt)
   }
 
-  private def animateMenu(moveTo: Int) {
+  private def animateMenu(moveTo: Int): Unit = {
     val moveFrom: Float = getMoveTo
     moveToAnimator = ObjectAnimator.ofFloat(this, MoveToAnimateable.MOVE_TO, moveFrom, moveTo)
     moveToAnimator.setDuration(getResources.getInteger(R.integer.framework_animation_duration_medium))
@@ -325,12 +308,11 @@ class ConversationListRow(context: Context, attrs: AttributeSet, style: Int) ext
     moveToAnimator.start()
   }
 
-  def setMaxAlpha(maxAlpha: Float) {
+  def setMaxAlpha(maxAlpha: Float): Unit = {
     this.maxAlpha = maxAlpha
   }
 
-  def tearDown(): Unit = {
-  }
+
 }
 
 object ConversationListRow {
@@ -473,4 +455,27 @@ object ConversationListRow {
       }
     }
   }
+}
+
+class IncomingConversationListRow(context: Context, attrs: AttributeSet, style: Int) extends FrameLayout(context, attrs, style)
+  with ConversationListRow
+  with ViewHelper {
+  def this(context: Context, attrs: AttributeSet) = this(context, attrs, 0)
+  def this(context: Context) = this(context, null, 0)
+
+  setLayoutParams(new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, getDimenPx(R.dimen.conversation_list__row__height)))
+  inflate(R.layout.conv_list_item)
+
+  val title = ViewUtils.getView(this, R.id.conversation_title).asInstanceOf[TypefaceTextView]
+  val avatar = ViewUtils.getView(this, R.id.conversation_icon).asInstanceOf[ConversationAvatarView]
+  val badge = ViewUtils.getView(this, R.id.conversation_badge).asInstanceOf[ConversationBadge]
+
+  def setIncomingUsers(users: Seq[UserId]): Unit = {
+    avatar.setAlpha(getResourceFloat(R.dimen.conversation_avatar_alpha_inactive))
+    avatar.setMembers(users, ConvId(), ConversationType.Group)
+    title.setText(getInboxName(users.size))
+    badge.setStatus(ConversationBadge.WaitingConnection)
+  }
+
+  private def getInboxName(convSize: Int): String = getResources.getQuantityString(R.plurals.connect_inbox__link__name, convSize, convSize.toString)
 }

@@ -74,7 +74,7 @@ class ConversationAvatarView (context: Context, attrs: AttributeSet, style: Int)
             view.clearUser()
           case _ =>
         }
-      case ConversationType.OneToOne if members.nonEmpty =>
+      case ConversationType.OneToOne | ConversationType.WaitForConnection if members.nonEmpty =>
         members.headOption.fold(avatarSingle.clearUser())(avatarSingle.setUserId)
       case _ =>
         imageSources.foreach(_ ! NoImage())

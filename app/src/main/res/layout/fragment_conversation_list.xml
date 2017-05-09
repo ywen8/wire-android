@@ -109,8 +109,8 @@
 
             </LinearLayout>
 
-            <com.waz.zclient.ui.pullforaction.PullForActionContainer
-                android:id="@+id/pfac__conversation_list"
+            <com.waz.zclient.pages.main.conversationlist.views.listview.SwipeListView
+                android:id="@+id/conversation_list_view"
                 android:layout_marginTop="?attr/actionBarSize"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
