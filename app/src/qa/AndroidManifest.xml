@@ -31,6 +31,7 @@
                 <action android:name="com.waz.zclient.intent.action.CALLING_V2" />
                 <action android:name="com.waz.zclient.intent.action.CALLING_V3" />
                 <action android:name="com.waz.zclient.intent.action.CALLING_BE_SWITCH" />
+                <action android:name="com.waz.zclient.intent.action.SILENT_MODE" />
             </intent-filter>
         </receiver>
     </application>
