@@ -110,7 +110,13 @@ package object utils {
     def getDimenPx(resId: Int)(implicit context: Context) = context.getResources.getDimensionPixelSize(resId)
     def getDimen(resId: Int)(implicit context: Context) = context.getResources.getDimension(resId)
 
-    def getDrawable(resId: Int)(implicit context: Context) = context.getResources.getDrawable(resId, null)
+    def getDrawable(resId: Int)(implicit context: Context) = {
+      if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
+        //noinspection ScalaDeprecation
+        context.getResources.getDrawable(resId)
+      } else
+        context.getResources.getDrawable(resId, null)
+    }
 
     def getIntArray(resId: Int)(implicit context: Context) = context.getResources.getIntArray(resId)
     def getResEntryName(resId: Int)(implicit context: Context) = context.getResources.getResourceEntryName(resId)
