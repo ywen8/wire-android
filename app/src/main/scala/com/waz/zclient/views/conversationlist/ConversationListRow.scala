@@ -138,7 +138,7 @@ class NormalConversationListRow(context: Context, attrs: AttributeSet, style: In
     memberSeq <- Signal.future(z.usersStorage.getAll(memberIds)).map(_.flatten)
   } yield {
     val opacity =
-      if (memberIds.isEmpty || conv.convType == ConversationType.WaitForConnection || !conv.activeMember)
+      if ((memberIds.isEmpty && conv.convType == ConversationType.Group) || conv.convType == ConversationType.WaitForConnection || !conv.activeMember)
         getResourceFloat(R.dimen.conversation_avatar_alpha_inactive)
       else
         getResourceFloat(R.dimen.conversation_avatar_alpha_active)
@@ -413,7 +413,7 @@ object ConversationListRow {
 
     if (conv.convType == ConversationType.WaitForConnection || (lastMessage.exists(_.msgType == Message.Type.MEMBER_JOIN) && conv.convType == ConversationType.OneToOne)) {
       otherMember.flatMap(_.handle.map(_.string)).fold("")(StringUtils.formatHandle)
-    } else if (memberIds.count(_ != selfId) == 0) {
+    } else if (memberIds.count(_ != selfId) == 0 && conv.convType == ConversationType.Group) {
       getString(R.string.conversation_list__empty_conv__subtitle)
     } else if (unreadMessages.isEmpty &&  !conv.activeMember) {
       getString(R.string.conversation_list__left_you)
