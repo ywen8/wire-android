@@ -50,12 +50,12 @@ public class PreferenceReceiver extends BroadcastReceiver {
                 break;
             case ENABLE_GCM_INTENT:
                 preferences.edit()
-                    .putBoolean(context.getString(R.string.pref_dev_gcm_enabled_key), true)
+                    .putBoolean(context.getString(R.string.pref_dev_push_enabled_key), true)
                     .apply();
                 break;
             case DISABLE_GCM_INTENT:
                 preferences.edit()
-                    .putBoolean(context.getString(R.string.pref_dev_gcm_enabled_key), false)
+                    .putBoolean(context.getString(R.string.pref_dev_push_enabled_key), false)
                     .apply();
                 break;
             case CALLING_V2_INTENT:

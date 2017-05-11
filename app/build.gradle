@@ -328,7 +328,7 @@ dependencies {
 
     //noinspection GradleDynamicVersion
     compile deps.psBase
-    compile deps.psGcm
+    compile deps.fcm
     compile deps.psMaps
     compile deps.psLocation
     compile deps.cardview

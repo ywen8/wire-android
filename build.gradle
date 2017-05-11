@@ -15,6 +15,7 @@ buildscript {
         classpath 'com.neenbedankt.gradle.plugins:android-apt:1.8'
         classpath 'com.mutualmobile.gradle.plugins:dexinfo:0.1.2'
         classpath 'com.wire:gradle-android-scala-plugin:1.5.0'
+        classpath 'com.google.gms:google-services:3.0.0'
     }
 }
 
@@ -75,10 +76,10 @@ ext {
     playServicesVersion = '10.0.1'
 
     audioVersion = System.getenv("AUDIO_VERSION") ?: '1.209.0@aar'
-    zMessagingDevVersionBase = '98.1493'
+    zMessagingDevVersionBase = '99.1498'
     zMessagingDevVersion = "${zMessagingDevVersionBase}@aar"
     // Release version number must be like this X.0(.Y)
-    zMessagingReleaseVersion = System.getenv("ZMESSAGING_VERSION") ?: '98.5.350@aar'
+    zMessagingReleaseVersion = System.getenv("ZMESSAGING_VERSION") ?: '99.1.353@aar'
 
     avsVersion = '3.4.100@aar'
     avsInternalVersion = avsVersion //leave this here in case we want to test specific AVS versions on internal
@@ -115,9 +116,10 @@ ext {
 
             // Play services
             psBase               : "com.google.android.gms:play-services-base:$playServicesVersion",
-            psGcm                : "com.google.android.gms:play-services-gcm:$playServicesVersion",
             psMaps               : "com.google.android.gms:play-services-maps:$playServicesVersion",
             psLocation           : "com.google.android.gms:play-services-location:$playServicesVersion",
+
+            fcm                  : "com.google.firebase:firebase-messaging:$playServicesVersion",
 
 
             // Other
