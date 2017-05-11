@@ -18,15 +18,17 @@
 package com.waz.zclient.controllers.global
 
 import com.waz.api.impl.{AccentColor, AccentColors}
+import com.waz.content.GlobalPreferences
+import com.waz.content.Preferences.PrefKey
 import com.waz.model.UserData
-import com.waz.service.{PreferenceService, ZMessaging}
+import com.waz.service.ZMessaging
 import com.waz.utils.events.Signal
 import com.waz.zclient.{Injectable, Injector}
 
 import scala.util.Random
 
 class AccentColorController(implicit inj: Injector) extends Injectable {
-  private lazy val prefService = inject[PreferenceService]
+  private lazy val prefs = inject[GlobalPreferences]
 
   private val zms = inject[Signal[Option[ZMessaging]]]
 
@@ -35,7 +37,7 @@ class AccentColorController(implicit inj: Injector) extends Injectable {
     case _ => Signal.const[Option[UserData]](None)
   }
 
-  private val randomColorPref = prefService.intPreference("random_accent_color", defaultValue = Random.nextInt(AccentColors.colors.length))
+  private val randomColorPref = prefs.preference(PrefKey[Int]("random_accent_color", Random.nextInt(AccentColors.colors.length)))
 
   private val userColor = self.map {
     case Some(s) => Some(AccentColor(s.accent))

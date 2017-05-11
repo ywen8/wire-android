@@ -23,7 +23,8 @@ import android.support.multidex.MultiDexApplication
 import com.waz.ZLog.ImplicitTag._
 import com.waz.ZLog.verbose
 import com.waz.api.{NetworkMode, ZMessagingApi, ZMessagingApiFactory}
-import com.waz.service.{MediaManagerService, NetworkModeService, PreferenceService, ZMessaging}
+import com.waz.content.GlobalPreferences
+import com.waz.service.{MediaManagerService, NetworkModeService, ZMessaging}
 import com.waz.utils.events.{EventContext, Signal, Subscription}
 import com.waz.zclient.api.scala.ScalaStoreFactory
 import com.waz.zclient.calling.controllers.{CallPermissionsController, CurrentCallController, GlobalCallingController}
@@ -61,7 +62,7 @@ object WireApplication {
     // SE services
     bind [Signal[Option[ZMessaging]]]  to ZMessaging.currentUi.currentZms
     bind [Signal[ZMessaging]]          to inject[Signal[Option[ZMessaging]]].collect { case Some(z) => z }
-    bind [PreferenceService]           to ZMessaging.currentGlobal.prefs
+    bind [GlobalPreferences]           to ZMessaging.currentGlobal.prefs
     bind [NetworkModeService]          to ZMessaging.currentGlobal.network
     bind [MediaManagerService]         to ZMessaging.currentGlobal.mediaManager
 

@@ -21,10 +21,11 @@ import java.util.concurrent.TimeUnit
 
 import android.content.Context
 import com.waz.api.Message
+import com.waz.content.GlobalPreferences
 import com.waz.model.ConversationData.ConversationType
 import com.waz.model._
+import com.waz.service.ZMessaging
 import com.waz.service.messages.MessageAndLikes
-import com.waz.service.{PreferenceService, ZMessaging}
 import com.waz.testutils.TestUtils.{PrintValues, signalTest}
 import com.waz.testutils.{MockZMessaging, TestWireContext, ViewTestActivity}
 import com.waz.utils.events.{EventContext, Signal}
@@ -80,7 +81,7 @@ class FooterViewControllerTest extends JUnitSuite {
     bind[Context] to context
     bind[Signal[ZMessaging]] to Signal.const(zMessaging)
     bind[Signal[Option[ZMessaging]]] to Signal.const(Some(zMessaging))
-    bind[PreferenceService] to zMessaging.prefs
+    bind[GlobalPreferences] to zMessaging.prefs
     bind[AccentColorController] to new AccentColorController
     bind[SelectionController] to new SelectionController
     bind[UsersController] to new UsersController
