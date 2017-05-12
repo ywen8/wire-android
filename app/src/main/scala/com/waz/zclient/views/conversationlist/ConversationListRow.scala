@@ -97,6 +97,11 @@ class NormalConversationListRow(context: Context, attrs: AttributeSet, style: In
     if (conv.convType == ConversationType.Incoming) {
       (conv.id, getInboxName(memberCount))
     } else {
+      if (conv.displayName == "") {
+        // This hack was in the UiModule Conversation implementation
+        // XXX: this is a hack for some random errors, sometimes conv has empty name which is never updated
+        zms.head.map {_.conversations.forceNameUpdate(conv.id)}
+      }
       (conv.id, conv.displayName)
     }
   }
