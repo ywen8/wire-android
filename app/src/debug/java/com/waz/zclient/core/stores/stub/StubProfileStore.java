@@ -125,12 +125,22 @@ public class StubProfileStore implements IProfileStore {
   }
 
   @Override
+  public void deleteMyEmail(CredentialsUpdateListener credentialsUpdateListener) {
+
+  }
+
+  @Override
   public void addEmailAndPassword(String email, String password, CredentialsUpdateListener credentialUpdateListener) {
 
   }
 
   @Override
   public void setMyPhoneNumber(String phone, CredentialsUpdateListener credentialsUpdateListener) {
+
+  }
+
+  @Override
+  public void deleteMyPhoneNumber(CredentialsUpdateListener credentialsUpdateListener) {
 
   }
 

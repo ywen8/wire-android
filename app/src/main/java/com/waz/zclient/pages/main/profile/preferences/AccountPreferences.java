@@ -311,10 +311,22 @@ public class AccountPreferences extends BasePreferenceFragment<AccountPreference
     }
 
     @Override
+    public void onEmailCleared() {
+        getChildFragmentManager().popBackStack(ChangeEmailPreferenceDialogFragment.TAG,
+                                               FragmentManager.POP_BACK_STACK_INCLUSIVE);
+    }
+
+    @Override
     public void onVerifyPhone(String phoneNumber) {
         getChildFragmentManager().popBackStack(AddPhoneNumberPreferenceDialogFragment.TAG,
                                                FragmentManager.POP_BACK_STACK_INCLUSIVE);
         verifyPhoneNumber(phoneNumber);
+    }
+
+    @Override
+    public void onPhoneNumberCleared() {
+        getChildFragmentManager().popBackStack(AddPhoneNumberPreferenceDialogFragment.TAG,
+                                               FragmentManager.POP_BACK_STACK_INCLUSIVE);
     }
 
     private void signOut() {

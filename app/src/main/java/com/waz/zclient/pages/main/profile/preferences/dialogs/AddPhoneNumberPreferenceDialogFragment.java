@@ -56,6 +56,7 @@ import com.waz.zclient.pages.BaseDialogFragment;
 import com.waz.zclient.ui.utils.DrawableUtils;
 import com.waz.zclient.ui.utils.MathUtils;
 import com.waz.zclient.utils.PermissionUtils;
+import com.waz.zclient.utils.StringUtils;
 import com.waz.zclient.utils.ViewUtils;
 
 public class AddPhoneNumberPreferenceDialogFragment extends BaseDialogFragment<AddPhoneNumberPreferenceDialogFragment.Container> implements CountryController.Observer {
@@ -134,13 +135,17 @@ public class AddPhoneNumberPreferenceDialogFragment extends BaseDialogFragment<A
             countryEditText.requestFocus();
         }
 
-        final AlertDialog alertDialog = new AlertDialog.Builder(getActivity())
+        final AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(getActivity())
             .setTitle(isEditMode ? R.string.pref__account_action__dialog__edit_phone__title
                                  : R.string.pref__account_action__dialog__add_phone__title)
             .setView(view)
             .setPositiveButton(android.R.string.ok, null)
-            .setNegativeButton(android.R.string.cancel, null)
-            .create();
+            .setNegativeButton(android.R.string.cancel, null);
+        if (isEditMode && getStoreFactory() != null &&
+            !StringUtils.isBlank(getStoreFactory().getProfileStore().getMyEmail())) {
+            alertDialogBuilder.setNeutralButton(R.string.pref_account_delete, null);
+        }
+        final AlertDialog alertDialog = alertDialogBuilder.create();
         alertDialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE);
         return alertDialog;
     }
@@ -166,6 +171,16 @@ public class AddPhoneNumberPreferenceDialogFragment extends BaseDialogFragment<A
                 handleInput();
             }
         });
+
+        final Button clearButton = dialog.getButton(Dialog.BUTTON_NEUTRAL);
+        if (clearButton != null) {
+            clearButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    clearPhoneNumber();
+                }
+            });
+        }
         countryController.addObserver(this);
     }
 
@@ -197,6 +212,47 @@ public class AddPhoneNumberPreferenceDialogFragment extends BaseDialogFragment<A
         phoneEditText = null;
         errorView = null;
         super.onDestroyView();
+    }
+
+    private void clearPhoneNumber() {
+        if (getStoreFactory() == null || getStoreFactory().isTornDown()) {
+            return;
+        }
+        if (!getStoreFactory().getNetworkStore().hasInternetConnection()) {
+            showError(getString(R.string.pref__account_action__dialog__delete_phone__no_internet_error));
+            return;
+        }
+        String number = getStoreFactory().getProfileStore().getMyPhoneNumber();
+        ViewUtils.showAlertDialog(getActivity(),
+                                  getString(R.string.pref__account_action__dialog__delete_phone_or_email__confirm__title),
+                                  getString(R.string.pref__account_action__dialog__delete_phone_or_email__confirm__message, number),
+                                  getString(android.R.string.ok),
+                                  getString(android.R.string.cancel),
+                                  new DialogInterface.OnClickListener() {
+                                      @Override
+                                      public void onClick(DialogInterface dialog, int which) {
+                                          if (getStoreFactory() == null || getStoreFactory().isTornDown()) {
+                                              return;
+                                          }
+                                          getStoreFactory().getProfileStore().deleteMyPhoneNumber(new CredentialsUpdateListener() {
+                                              @Override
+                                              public void onUpdated() {
+                                                  if (getContainer() == null) {
+                                                      return;
+                                                  }
+                                                  getContainer().onPhoneNumberCleared();
+                                              }
+                                              @Override
+                                              public void onUpdateFailed(int code, String message, String label) {
+                                                  if (getContainer() == null) {
+                                                      return;
+                                                  }
+                                                  showError(getString(R.string.pref__account_action__dialog__delete_phone__error));
+                                              }
+                                          });
+                                      }
+                                  },
+                                  null);
     }
 
     private void handleInput() {
@@ -419,5 +475,6 @@ public class AddPhoneNumberPreferenceDialogFragment extends BaseDialogFragment<A
 
     public interface Container {
         void onVerifyPhone(String phoneNumber);
+        void onPhoneNumberCleared();
     }
 }
