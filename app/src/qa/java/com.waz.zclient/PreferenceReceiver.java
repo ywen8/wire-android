@@ -35,6 +35,7 @@ public class PreferenceReceiver extends BroadcastReceiver {
     public static final String CALLING_V2_INTENT = "com.waz.zclient.intent.action.CALLING_V2";
     public static final String CALLING_V3_INTENT = "com.waz.zclient.intent.action.CALLING_V3";
     public static final String CALLING_BE_SWITCH = "com.waz.zclient.intent.action.CALLING_BE_SWITCH";
+    public static final String SILENT_MODE = "com.waz.zclient.intent.action.SILENT_MODE";
 
     @Override
     public void onReceive(Context context, Intent intent) {
@@ -70,6 +71,17 @@ public class PreferenceReceiver extends BroadcastReceiver {
             case CALLING_V3_INTENT:
                 preferences.edit()
                     .putString(context.getString(R.string.pref_dev_calling_v3_key), "2")
+                    .apply();
+                break;
+            case SILENT_MODE:
+                preferences.edit()
+                    .putString(context.getString(R.string.pref_options_ringtones_ringtone_key), "")
+                    .apply();
+                preferences.edit()
+                    .putString(context.getString(R.string.pref_options_ringtones_ping_key), "")
+                    .apply();
+                preferences.edit()
+                    .putString(context.getString(R.string.pref_options_ringtones_text_key), "")
                     .apply();
                 break;
         }
