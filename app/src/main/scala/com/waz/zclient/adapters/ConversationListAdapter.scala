@@ -47,7 +47,7 @@ class ConversationListAdapter(context: Context)(implicit injector: Injector, eve
   } yield
     conversations.conversations
       .filter(mode.filter).toSeq
-      .sortWith(mode.sort)
+      .sorted(mode.sort)
 
   lazy val incomingRequests = for {
     z <- zms
@@ -172,9 +172,7 @@ object ConversationListAdapter {
   trait ListMode {
     val nameId: Int
     val filter: (ConversationData) => Boolean
-    val sort = (a: ConversationData, b: ConversationData) => {
-        a.lastEventTime.isAfter(b.lastEventTime)
-    }
+    val sort = ConversationData.ConversationDataOrdering
   }
 
   case object Normal extends ListMode {
