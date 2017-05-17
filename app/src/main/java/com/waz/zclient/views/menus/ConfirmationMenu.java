@@ -26,6 +26,7 @@ import android.content.res.TypedArray;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.support.annotation.DrawableRes;
+import android.support.v4.content.ContextCompat;
 import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.view.LayoutInflater;
@@ -208,7 +209,7 @@ public class ConfirmationMenu extends LinearLayout {
     public void setBackgroundImage(@DrawableRes int imageId) {
         this.backgroundImage = imageId;
         if (imageId != 0) {
-            backgroundImageView.setImageDrawable(this.getContext().getDrawable(imageId));
+            backgroundImageView.setImageDrawable(ContextCompat.getDrawable(getContext(), imageId));
             backgroundImageView.setVisibility(VISIBLE);
         } else {
             backgroundImageView.setVisibility(GONE);
