@@ -26,7 +26,6 @@ import android.widget.{FrameLayout, ImageView}
 import com.waz.api.impl.{AccentColor, AccentColors}
 import com.waz.model._
 import com.waz.utils.NameParts
-import com.waz.zclient.controllers.TeamData
 import com.waz.zclient.drawables.TeamIconDrawable
 import com.waz.zclient.ui.text.TypefaceTextView
 import com.waz.zclient.ui.views.CircleView
@@ -38,7 +37,7 @@ class TeamTabButton(val context: Context, val attrs: AttributeSet, val defStyleA
   def this(context: Context) = this(context, null)
 
   inflate(R.layout.view_team_tab)
-  setLayoutParams(new LayoutParams(context.getResources.getDimensionPixelSize(R.dimen.teams_tab_height), ViewGroup.LayoutParams.MATCH_PARENT))
+  setLayoutParams(new LayoutParams(context.getResources.getDimensionPixelSize(R.dimen.teams_tab_width), ViewGroup.LayoutParams.MATCH_PARENT))
 
   val icon = ViewUtils.getView(this, R.id.team_icon).asInstanceOf[ImageView]
   val name = ViewUtils.getView(this, R.id.team_name).asInstanceOf[TypefaceTextView]
@@ -57,7 +56,7 @@ class TeamTabButton(val context: Context, val attrs: AttributeSet, val defStyleA
     setAlpha(if (selected) 1.0f else 0.5f)
   }
 
-  def setUserData(userData: UserData, selected:Boolean): Unit = {
+  def setUserData(userData: UserData, selected: Boolean): Unit = {
     val color = if (selected) AccentColor(userData.accent).getColor() else Color.TRANSPARENT
     drawable.setInfo(NameParts.maybeInitial(userData.displayName).getOrElse(""), color, TeamIconDrawable.UserCorners)
     name.setText(userData.displayName)
@@ -66,16 +65,16 @@ class TeamTabButton(val context: Context, val attrs: AttributeSet, val defStyleA
     setAlpha(if (selected) 1.0f else 0.5f)
   }
 
-  def animateExpand(): Unit ={
+  def animateExpand(): Unit = {
     name.animate().translationY(0f).start()
     icon.animate().translationY(0f).alpha(1f).start()
     unreadIndicator.animate().translationX(0f).translationY(0).start()
   }
 
-  //TODO: Animation values?
-  def animateCollapse(): Unit ={
-    name.animate().translationY(-55f)
-    icon.animate().translationY(-55f).alpha(0f).start()
+  def animateCollapse(): Unit = {
+    val margin = Option(name.getLayoutParams.asInstanceOf[ViewGroup.MarginLayoutParams]).fold(0)(_.topMargin)
+    name.animate().translationY(-margin).start()
+    icon.animate().translationY(-margin).alpha(0f).start()
     unreadIndicator.animate().translationX(-30f).translationY(5).start()
   }
 }

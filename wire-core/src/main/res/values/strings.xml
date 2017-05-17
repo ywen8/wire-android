@@ -1008,8 +1008,9 @@
     <string name="audio_message__constant_bit_rate">CONSTANT BIT RATE</string>
 
     <!-- no contacts -->
-    <string name="no_conversation_in_list__header">No active conversations</string>
-    <string name="no_conversation_in_list__message">Tap contacts to start a conversation</string>
+    <string name="no_conversation_in_list__header">No conversations yet</string>
+    <string name="all_archived__header">Everything archived</string>
+    <string name="no_conversation_in_list__message">Start a conversation, create a group or invite people to join.</string>
 
     <string name="cursor__type_a_message">TYPE A MESSAGE</string>
     <string name="cursor__ephemeral_message">TIMED MESSAGE</string>

@@ -17,14 +17,26 @@
  */
 package com.waz.zclient.drawables
 
+import android.animation.ValueAnimator
+import android.animation.ValueAnimator.AnimatorUpdateListener
 import android.graphics._
 import android.graphics.drawable.Drawable
+import android.view.animation.DecelerateInterpolator
 
 class ListSeparatorDrawable(color: Int) extends Drawable {
 
-  val paint = new Paint()
+  protected val paint = new Paint()
+  protected var clipValue = 0f
+  protected val valueAnimator = ValueAnimator.ofFloat(0f, 1f)
+
   paint.setColor(color)
-  var clipValue = 0f
+  valueAnimator.setInterpolator(new DecelerateInterpolator())
+  valueAnimator.addUpdateListener(new AnimatorUpdateListener {
+    override def onAnimationUpdate(animation: ValueAnimator) = {
+      val value = animation.getAnimatedValue.asInstanceOf[Float]
+      setClip(value)
+    }
+  })
 
   override def draw(canvas: Canvas) = {
     canvas.drawRect(rightRect(), paint)
@@ -40,6 +52,22 @@ class ListSeparatorDrawable(color: Int) extends Drawable {
   def setClip(value: Float): Unit = {
     clipValue = value
     invalidateSelf()
+  }
+
+  def animateExpand(): Unit = {
+    valueAnimator.start()
+  }
+
+  def animateCollapse(): Unit = {
+    valueAnimator.reverse()
+  }
+
+  def setMinMax(min: Float, max: Float): Unit = {
+    valueAnimator.setFloatValues(min, max)
+  }
+
+  def setDuration(duration: Long): Unit = {
+    valueAnimator.setDuration(duration)
   }
 
   private def rightRect(): RectF = {

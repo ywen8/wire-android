@@ -46,6 +46,8 @@
         android:layout_marginTop="20dp"
         android:textSize="@dimen/wire__text_size__small"
         app:font="@string/wire__typeface__regular"
+        android:maxLines="1"
+        android:ellipsize="end"
         android:textColor="@color/white"/>
 
 </merge>

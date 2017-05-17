@@ -27,7 +27,7 @@ import com.waz.ZLog._
 import com.waz.model._
 import com.waz.threading.Threading
 import com.waz.utils.events.{EventContext, EventStream, Signal}
-import com.waz.zclient.controllers.{TeamData, TeamsAndUserController}
+import com.waz.zclient.controllers.TeamsAndUserController
 import com.waz.zclient.{Injectable, Injector, ViewHelper}
 
 class TeamTabsView(val context: Context, val attrs: AttributeSet, val defStyleAttr: Int) extends RecyclerView(context, attrs, defStyleAttr) with ViewHelper {
@@ -37,7 +37,7 @@ class TeamTabsView(val context: Context, val attrs: AttributeSet, val defStyleAt
   val onTabClick = EventStream[Either[UserData, TeamData]]()
 
   setLayoutManager(new LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false){
-    override def canScrollHorizontally = false
+    override def canScrollHorizontally = true
     override def canScrollVertically = false
   })
   setOverScrollMode(View.OVER_SCROLL_NEVER)

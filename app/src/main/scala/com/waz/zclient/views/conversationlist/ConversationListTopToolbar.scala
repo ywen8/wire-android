@@ -17,15 +17,14 @@
  */
 package com.waz.zclient.views.conversationlist
 
-import android.animation.ValueAnimator
-import android.animation.ValueAnimator.AnimatorUpdateListener
 import android.content.Context
 import android.util.AttributeSet
 import android.view.View
-import android.view.View.OnLayoutChangeListener
+import android.view.View.{OnClickListener, OnLayoutChangeListener}
 import android.widget.FrameLayout
 import com.waz.ZLog
 import com.waz.threading.Threading
+import com.waz.utils.events.EventStream
 import com.waz.zclient.controllers.TeamsAndUserController
 import com.waz.zclient.drawables.ListSeparatorDrawable
 import com.waz.zclient.ui.text.{GlyphTextView, TypefaceTextView}
@@ -35,21 +34,12 @@ import com.waz.zclient.utils.{RichView, ViewUtils}
 import com.waz.zclient.views.{TeamTabButton, TeamTabsView}
 import com.waz.zclient.{R, ViewHelper}
 
-object ConversationListTopToolbar {
-  trait Callback {
-    def settingsClicked(): Unit
-  }
-}
 
-class ConversationListTopToolbar(val context: Context, val attrs: AttributeSet, val defStyleAttr: Int) extends FrameLayout(context, attrs, defStyleAttr) with ViewHelper {
-  def this(context: Context, attrs: AttributeSet) = this(context, attrs, 0)
-  def this(context: Context) = this(context, null)
+abstract class ConversationListTopToolbar(val context: Context, val attrs: AttributeSet, val defStyleAttr: Int) extends FrameLayout(context, attrs, defStyleAttr) with ViewHelper {
 
   private implicit val logTag = ZLog.logTagFor[ConversationListTopToolbar]
 
   inflate(R.layout.view_conv_list_top)
-
-  val controller = inject[TeamsAndUserController]
 
   val bottomBorder = ViewUtils.getView(this, R.id.conversation_list__border).asInstanceOf[View]
   val glyphButton = ViewUtils.getView(this, R.id.conversation_list_settings).asInstanceOf[GlyphTextView]
@@ -57,44 +47,74 @@ class ConversationListTopToolbar(val context: Context, val attrs: AttributeSet, 
   val settingsIndicator = ViewUtils.getView(this, R.id.conversation_list_settings_indicator).asInstanceOf[CircleView]
   val tabsContainer = ViewUtils.getView(this, R.id.team_tabs_container).asInstanceOf[TeamTabsView]
 
-  val valueAnimator = ValueAnimator.ofFloat(0f, 1f)
-  var scrolledToTop = true
+  val onRightButtonClick = EventStream[View]()
 
-  val separatorDrawable = new ListSeparatorDrawable(getColor(R.color.white_24))
+  protected var scrolledToTop = true
+  protected val separatorDrawable = new ListSeparatorDrawable(getColor(R.color.white_24))
+
   bottomBorder.setBackground(separatorDrawable)
-  valueAnimator.end()
+  glyphButton.setOnClickListener(new OnClickListener {
+    override def onClick(v: View) = {
+      onRightButtonClick ! v
+    }
+  })
 
+  def setScrolledToTop(scrolledToTop: Boolean): Unit = {
+    if (this.scrolledToTop == scrolledToTop) {
+      return
+    }
+    this.scrolledToTop = scrolledToTop
+    if (!scrolledToTop) {
+      separatorDrawable.animateCollapse()
+    } else {
+      separatorDrawable.animateExpand()
+    }
+  }
+}
+
+class NormalTopToolbar(override val context: Context, override val attrs: AttributeSet, override val defStyleAttr: Int)  extends ConversationListTopToolbar(context, attrs, defStyleAttr){
+  def this(context: Context, attrs: AttributeSet) = this(context, attrs, 0)
+  def this(context: Context) = this(context, null)
+
+  val controller = inject[TeamsAndUserController]
+
+  glyphButton.setText(R.string.glyph__settings)
   controller.teams.on(Threading.Ui) { teams =>
     tabsContainer.setVisible(teams.nonEmpty)
     title.setVisible(teams.isEmpty)
+    separatorDrawable.setDuration(if (teams.isEmpty) 0 else 300)
+    onTabsChanged(tabsContainer)
   }
 
   tabsContainer.addOnLayoutChangeListener(new OnLayoutChangeListener {
     override def onLayoutChange(v: View, left: Int, top: Int, right: Int, bottom: Int, oldLeft: Int, oldTop: Int, oldRight: Int, oldBottom: Int): Unit = {
-      val maxValue = v.getWidth.toFloat / getWidth.toFloat
-      valueAnimator.setFloatValues(0f, maxValue)
-      if (scrolledToTop) {
-        separatorDrawable.setClip(maxValue)
-      } else {
-        separatorDrawable.setClip(0f)
-      }
+      onTabsChanged(v)
     }
   })
 
-  valueAnimator.addUpdateListener(new AnimatorUpdateListener {
-    override def onAnimationUpdate(animation: ValueAnimator) = {
-      val value = animation.getAnimatedValue.asInstanceOf[Float]
-      separatorDrawable.setClip(value)
+  private def onTabsChanged(v: View): Unit = {
+    val maxValue = if (v.isVisible) v.getWidth.toFloat / getWidth.toFloat else 1.0f
+    separatorDrawable.setMinMax(0f, maxValue)
+    if (scrolledToTop) {
+      separatorDrawable.setClip(maxValue)
+    } else {
+      separatorDrawable.setClip(0f)
     }
-  })
-
-  def setClose(): Unit = {
-    glyphButton.setText(R.string.glyph__close)
-    settingsIndicator.setVisible(false)
   }
 
-  def setSettings(): Unit = {
-    glyphButton.setText(R.string.glyph__settings)
+  override def setScrolledToTop(scrolledToTop: Boolean): Unit = {
+    if (this.scrolledToTop == scrolledToTop) {
+      return
+    }
+    super.setScrolledToTop(scrolledToTop)
+    if (tabsContainer.isVisible) {
+      (0 until tabsContainer.getChildCount).map(tabsContainer.getChildAt).foreach{ child =>
+        if (scrolledToTop)
+          child.asInstanceOf[TeamTabButton].animateExpand()
+        else
+          child.asInstanceOf[TeamTabButton].animateCollapse()
+      }
+    }
   }
 
   def setIndicatorVisible(visible: Boolean): Unit = {
@@ -104,30 +124,17 @@ class ConversationListTopToolbar(val context: Context, val attrs: AttributeSet, 
   def setIndicatorColor(color: Int): Unit = {
     settingsIndicator.setAccentColor(color)
   }
+}
 
-  def setScrolledToTop(scrolledToTop: Boolean): Unit = {
-    if (this.scrolledToTop == scrolledToTop) {
-      return
-    }
-    this.scrolledToTop = scrolledToTop
-    if (!scrolledToTop) {
-      (0 until tabsContainer.getChildCount).map(tabsContainer.getChildAt).foreach{ child =>
-        child.asInstanceOf[TeamTabButton].animateCollapse()
-      }
-      animateBorderCollapse()
-    } else {
-      (0 until tabsContainer.getChildCount).map(tabsContainer.getChildAt).foreach{ child =>
-        child.asInstanceOf[TeamTabButton].animateExpand()
-      }
-      animateBorderExpand()
-    }
-  }
 
-  def animateBorderExpand(): Unit = {
-    valueAnimator.start()
-  }
+class ArchiveTopToolbar(override val context: Context, override val attrs: AttributeSet, override val defStyleAttr: Int)  extends ConversationListTopToolbar(context, attrs, defStyleAttr){
+  def this(context: Context, attrs: AttributeSet) = this(context, attrs, 0)
+  def this(context: Context) = this(context, null)
 
-  def animateBorderCollapse(): Unit = {
-    valueAnimator.reverse()
-  }
+  glyphButton.setText(R.string.glyph__close)
+  settingsIndicator.setVisible(false)
+  tabsContainer.setVisible(false)
+  title.setVisible(true)
+  separatorDrawable.setDuration(0)
+  separatorDrawable.animateExpand()
 }
