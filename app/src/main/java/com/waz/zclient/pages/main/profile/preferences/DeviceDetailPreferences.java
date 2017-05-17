@@ -154,6 +154,9 @@ public class DeviceDetailPreferences extends BasePreferenceFragment<DeviceDetail
                     getStoreFactory().getNetworkStore().doIfHasInternetOrNotifyUser(new NetworkAction() {
                         @Override
                         public void execute(NetworkMode networkMode) {
+                            if (otrClient == null) {
+                                return;
+                            }
                             if (getControllerFactory().getPasswordController().hasPassword()) {
                                 deleteCurrentDevice();
                             } else {
@@ -196,7 +199,8 @@ public class DeviceDetailPreferences extends BasePreferenceFragment<DeviceDetail
                                  Timber.e("Remove client failed: %s", error);
                                  if (getActivity() == null ||
                                      getControllerFactory() == null ||
-                                     getControllerFactory().isTornDown()) {
+                                     getControllerFactory().isTornDown() ||
+                                     otrClient == null) {
                                      return;
                                  }
                                  showRemoveDeviceDialog();
