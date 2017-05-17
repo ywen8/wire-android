@@ -19,6 +19,7 @@ package com.waz.zclient;
 
 import android.content.Context;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
@@ -189,9 +190,9 @@ public class ShareActivity extends BaseActivity implements AccentColorObserver,
                     }
                 }
             } else {
-                URI uri = new AndroidURI(intentReader.getStream());
+                Uri uri = intentReader.getStream();
                 if (uri != null) {
-                    sharedFileUris.add(uri);
+                    sharedFileUris.add(new AndroidURI(uri));
                 }
             }
             if (sharedFileUris.size() == 0) {
