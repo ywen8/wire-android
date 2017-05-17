@@ -40,7 +40,7 @@ class ConversationListAdapter(context: Context)(implicit injector: Injector, eve
 
   lazy val zms = inject[Signal[ZMessaging]]
   val currentMode = Signal[ListMode]()
-  lazy val conversations = for {
+  lazy val conversationsSignal = for {
     z <- zms
     conversations <- z.convsStorage.convsSignal
     mode <- currentMode
@@ -49,7 +49,10 @@ class ConversationListAdapter(context: Context)(implicit injector: Injector, eve
       .filter(mode.filter).toSeq
       .sorted(mode.sort)
 
-  lazy val incomingRequests = for {
+  var conversations: Option[Seq[ConversationData]] = None
+  var incomingRequests: Option[(Seq[ConversationData], Seq[UserId])] = None
+
+  lazy val incomingRequestsSignal = for {
     z <- zms
     conversations <- z.convsStorage.convsSignal.map(_.conversations.filter(Incoming.filter).toSeq)
     members <- Signal.sequence(conversations.map(c => z.membersStorage.activeMembers(c.id).map(_.find(_ != z.selfUserId))):_*)
@@ -61,18 +64,20 @@ class ConversationListAdapter(context: Context)(implicit injector: Injector, eve
 
   var maxAlpha = 1.0f
 
-  Signal(conversations, incomingRequests).on(Threading.Ui) {
-    _ => notifyDataSetChanged()
+  Signal(conversationsSignal, incomingRequestsSignal).on(Threading.Ui) { data =>
+    conversations = Some(data._1)
+    incomingRequests = Some(data._2)
+    notifyDataSetChanged()
   }
 
   private def getConversation(position: Int): Option[ConversationData] = {
-    conversations.currentValue.fold(Option.empty[ConversationData]){ convs =>
+    conversations.fold(Option.empty[ConversationData]){ convs =>
       convs.lift(position)
     }
   }
 
   private def getItem(position: Int): Option[ConversationData] = {
-    if (incomingRequests.currentValue.exists(_._2.nonEmpty)) {
+    if (incomingRequests.exists(_._2.nonEmpty)) {
       if (position == 0) {
         None
       } else {
@@ -85,11 +90,11 @@ class ConversationListAdapter(context: Context)(implicit injector: Injector, eve
 
   override def getItemCount = {
     val incoming =
-      if (incomingRequests.currentValue.exists(_._2.nonEmpty))
+      if (incomingRequests.exists(_._2.nonEmpty))
         1
       else
         0
-    conversations.currentValue.fold(0)(_.size) + incoming
+    conversations.fold(0)(_.size) + incoming
   }
 
   override def onBindViewHolder(holder: ConversationRowViewHolder, position: Int) = {
@@ -101,7 +106,7 @@ class ConversationListAdapter(context: Context)(implicit injector: Injector, eve
           normalViewHolder.bind(item)
         }
       case incomingViewHolder: IncomingConversationRowViewHolder =>
-        incomingRequests.currentValue.foreach(incomingViewHolder.bind)
+        incomingRequests.foreach(incomingViewHolder.bind)
     }
   }
 
@@ -137,7 +142,7 @@ class ConversationListAdapter(context: Context)(implicit injector: Injector, eve
         parent.addView(row)
         row.setOnClickListener(new View.OnClickListener {
           override def onClick(view: View): Unit = {
-            incomingRequests.currentValue.flatMap(_._1.headOption).foreach(onConversationClick ! _ )
+            incomingRequests.flatMap(_._1.headOption).foreach(onConversationClick ! _ )
           }
         })
         IncomingConversationRowViewHolder(row)
@@ -151,7 +156,7 @@ class ConversationListAdapter(context: Context)(implicit injector: Injector, eve
   }
 
   override def getItemViewType(position: Int): Int = {
-    if (position == 0 && incomingRequests.currentValue.exists(_._2.nonEmpty)) {
+    if (position == 0 && incomingRequests.exists(_._2.nonEmpty)) {
       IncomingViewType
     } else {
       NormalViewType
