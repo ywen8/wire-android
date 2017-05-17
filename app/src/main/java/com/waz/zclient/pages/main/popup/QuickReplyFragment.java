@@ -189,6 +189,9 @@ public class QuickReplyFragment extends BaseFragment<QuickReplyFragment.Containe
         message.postDelayed(new Runnable() {
             @Override
             public void run() {
+                if (message == null) {
+                    return;
+                }
                 message.requestFocus();
                 message.setCursorVisible(true);
                 KeyboardUtils.showKeyboard(getActivity());
