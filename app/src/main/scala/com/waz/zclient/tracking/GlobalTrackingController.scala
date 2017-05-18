@@ -94,7 +94,11 @@ class GlobalTrackingController(implicit inj: Injector, cxt: WireContext, eventCo
 
       if (isTrackingEnabled) Localytics.tagEvent(event.getName, eventAttributes)
     }
+  }
 
+  def setTrackingEnabled(enabled: Boolean) = {
+    Localytics.tagEvent(if (enabled) "Opt-in" else "Opt-out")
+    Localytics.setOptedOut(!enabled)
   }
 
   def tagAVSMetricEvent(event: AVSMetricEvent) = {
