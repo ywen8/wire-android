@@ -444,7 +444,7 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
         toolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (LayoutSpec.isTablet(getContext()) && ViewUtils.isInLandscape(getContext())) {
+                if (cursorLayout == null || (LayoutSpec.isTablet(getContext()) && ViewUtils.isInLandscape(getContext()))) {
                     return;
                 }
                 cursorLayout.closeEditMessage(false);

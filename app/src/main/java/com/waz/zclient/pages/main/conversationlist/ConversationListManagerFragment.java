@@ -1086,7 +1086,8 @@ public class ConversationListManagerFragment extends BaseFragment<ConversationLi
                 }
 
 
-                boolean deleteCurrentConversation = conversation.getId().equals(getStoreFactory().getConversationStore().getCurrentConversation().getId());
+                boolean deleteCurrentConversation = getStoreFactory().getConversationStore().getCurrentConversation() != null &&
+                                                    conversation.getId().equals(getStoreFactory().getConversationStore().getCurrentConversation().getId());
                 getStoreFactory().getConversationStore().deleteConversation(conversation, checkboxIsSelected);
                 ((BaseActivity) getActivity()).injectJava(GlobalTrackingController.class).tagEvent(new DeleteConversationEvent(ConversationType.getValue(
                     conversation),
