@@ -22,6 +22,7 @@ import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
@@ -58,7 +59,10 @@ public class AssetIntentsManager {
         setCallback(callback);
 
         if (savedInstanceState != null) {
-            pendingFileUri = savedInstanceState.getParcelable(SAVED_STATE_PENDING_URI);
+            Uri uri = savedInstanceState.getParcelable(SAVED_STATE_PENDING_URI);
+            if (uri != null) {
+                pendingFileUri = new AndroidURI(uri);
+            }
         }
         pm = activity.getPackageManager();
     }
