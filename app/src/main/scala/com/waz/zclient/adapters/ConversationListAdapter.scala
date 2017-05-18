@@ -64,34 +64,25 @@ class ConversationListAdapter(context: Context)(implicit injector: Injector, eve
 
   var maxAlpha = 1.0f
 
-  Signal(conversationsSignal, incomingRequestsSignal).on(Threading.Ui) { data =>
-    conversations = data._1
-    incomingRequests = data._2
-    notifyDataSetChanged()
+  Signal(conversationsSignal, incomingRequestsSignal).on(Threading.Ui) {
+    case (convs, requests) =>
+      conversations = convs
+      incomingRequests = requests
+      notifyDataSetChanged()
   }
 
   private def getConversation(position: Int): Option[ConversationData] = {
     conversations.lift(position)
   }
 
-  private def getItem(position: Int): Option[ConversationData] = {
-    if (incomingRequests._2.nonEmpty) {
-      if (position == 0) {
-        None
-      } else {
-        getConversation(position - 1)
-      }
-    } else {
-      getConversation(position)
+  private def getItem(position: Int): Option[ConversationData] =
+    incomingRequests._2 match {
+      case Seq() => getConversation(position)
+      case _ => if (position == 0) None else getConversation(position - 1)
     }
-  }
 
   override def getItemCount = {
-    val incoming =
-      if (incomingRequests._2.nonEmpty)
-        1
-      else
-        0
+    val incoming = if (incomingRequests._2.nonEmpty) 1 else 0
     conversations.size + incoming
   }
 
@@ -153,13 +144,11 @@ class ConversationListAdapter(context: Context)(implicit injector: Injector, eve
     getItem(position).fold(position)(_.id.str.hashCode)
   }
 
-  override def getItemViewType(position: Int): Int = {
-    if (position == 0 && incomingRequests._2.nonEmpty) {
+  override def getItemViewType(position: Int): Int =
+    if (position == 0 && incomingRequests._2.nonEmpty)
       IncomingViewType
-    } else {
+    else
       NormalViewType
-    }
-  }
 
   def setMaxAlpha(maxAlpha: Float): Unit = {
     this.maxAlpha = maxAlpha
