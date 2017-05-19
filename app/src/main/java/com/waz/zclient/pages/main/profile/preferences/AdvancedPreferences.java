@@ -20,11 +20,9 @@ package com.waz.zclient.pages.main.profile.preferences;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v7.preference.Preference;
-import com.localytics.android.Localytics;
+
 import com.waz.zclient.BaseActivity;
 import com.waz.zclient.R;
-import com.waz.zclient.controllers.tracking.events.tracking.OptIn;
-import com.waz.zclient.controllers.tracking.events.tracking.OptOut;
 import com.waz.zclient.core.controllers.tracking.events.Event;
 import com.waz.zclient.core.controllers.tracking.events.settings.ChangedImageDownloadPreferenceEvent;
 import com.waz.zclient.pages.BasePreferenceFragment;
@@ -77,18 +75,11 @@ public class AdvancedPreferences extends BasePreferenceFragment<AdvancedPreferen
             boolean wifiOnly = stringValue.equals(getContext().getString(R.string.zms_image_download_value_wifi));
             event = new ChangedImageDownloadPreferenceEvent(wifiOnly);
         } else if (key.equals(getString(R.string.pref_advanced_analytics_enabled_key))) {
-            boolean enableTracking = sharedPreferences.getBoolean(key, false);
-            if (enableTracking) {
-                event = new OptIn();
-                Localytics.setOptedOut(false);
-            } else {
-                try {
-                    (((BaseActivity) getActivity()).injectJava(GlobalTrackingController.class)).tagEvent(new OptOut());
-                } catch (Exception e) {
-                    Timber.e("Unable to tag event OptOut");
-                    e.printStackTrace();
-                }
-                Localytics.setOptedOut(true);
+            try {
+                (((BaseActivity) getActivity()).injectJava(GlobalTrackingController.class)).setTrackingEnabled(sharedPreferences.getBoolean(key, false));
+            } catch (Exception e) {
+                Timber.e("Unable to tag event OptOut");
+                e.printStackTrace();
             }
         }
         return event;
