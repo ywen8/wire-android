@@ -105,18 +105,19 @@ class CallingTrackingController(implicit injector: Injector, ctx: Context, ec: E
 
           (for {
             z <- zms.head
+            Some(info) <- z.calling.previousCall.head
+            voice <- z.voice.voiceChannelSignal(p.convId).map(_.tracking).head
             cause <- if (p.isV3Call)
-              z.calling.currentCall.head.flatMap {
-                case Some(call) if call.closedReason == Normal => Future.successful(if (call.hangupRequested) "SELF" else "OTHER")
-                case Some(call) if call.closedReason == Interrupted => Future.successful("gsm_call")
+              info match {
+                case call if call.closedReason == Normal => Future.successful(if (call.hangupRequested) "SELF" else "OTHER")
+                case call if call.closedReason == Interrupted => Future.successful("gsm_call")
                 case _ => z.network.networkMode.head.map(networkModeString)
-              } else
-              z.voice.voiceChannelSignal(p.convId).map(_.tracking).head.flatMap {
+              } else voice match {
                 case tr if tr.cause == CauseForCallStateEvent.REQUESTED => Future.successful(if (tr.requestedLocally) "SELF" else "OTHER")
                 case tr if tr.cause == CauseForCallStateEvent.INTERRUPTED => Future.successful("gsm_call")
                 case _ => z.network.networkMode.head.map(networkModeString)
               }
-            callParticipants <- if (p.isV3Call) Future.successful(2) else z.voice.voiceChannelSignal(p.convId).map(_.tracking.maxNumParticipants).head
+            callParticipants = if (p.isV3Call) info.maxParticipants else voice.maxNumParticipants
           } yield (cause, callParticipants)).map {
             case (cause, callParticipants) =>
               tagEvent(EndedCallEvent(p.isV3Call, p.isVideoCall, cause = cause, p.isGroupCall, p.convMemCount, callParticipants, p.isIncoming, p.wasUiActive, p.withOtto, callDuration))
