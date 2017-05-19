@@ -103,7 +103,7 @@ lazy val app = Project("zclient-app", file("app"))
       val di = dexInputs.value
       if (proguardScala.value) di
       else {
-        val names = new mutable.HashSet[String]
+        val names = new scala.collection.mutable.HashSet[String]
         (di._1, di._2 filterNot { f => f.getName.startsWith("scala-library") && names.add(f.getName) })
       }
     },

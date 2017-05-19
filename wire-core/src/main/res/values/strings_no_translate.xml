@@ -171,9 +171,9 @@
     <string translatable="false" name="pref_dev_category_notifications_title">Notifications</string>
     <string translatable="false" name="pref_dev_category_net_debug_key">PREF_NET_DEBUG_CATEGORY</string>
     <string translatable="false" name="pref_dev_category_net_debug_title">Network info</string>
-    <string translatable="false" name="pref_dev_gcm_enabled_key">@string/zms_gcm_enabled</string>
-    <string translatable="false" name="pref_dev_gcm_enabled_summary">Enable to receive notifications through GCM. Disable to rely on WebSockets only.</string>
-    <string translatable="false" name="pref_dev_gcm_enabled_title">GCM Enabled</string>
+    <string translatable="false" name="pref_dev_push_enabled_key">@string/zms_push_enabled</string>
+    <string translatable="false" name="pref_dev_push_enabled_summary">Enable to receive notifications through cloud messaging. Disable to rely on WebSockets only.</string>
+    <string translatable="false" name="pref_dev_push_enabled_title">Cloud Messaging Enabled</string>
     <string translatable="false" name="pref_dev_websocket_ping_interval_key">PREF_WEBSOCKET_PING_INTERVAL</string>
     <string translatable="false" name="pref_dev_websocket_ping_interval_summary">Change the frequency of checking the connection to the server. Note that increasing the frequency may have a negative impact on battery life.</string>
     <string translatable="false" name="pref_dev_websocket_ping_interval_title">WebSocket Ping Frequency (ms)</string>

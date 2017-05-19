@@ -141,6 +141,7 @@ class MainActivity extends BaseActivity
     getControllerFactory.getBackgroundController.setSelf(getStoreFactory.getZMessagingApiStore.getApi.getSelf)
     info("onStart")
 
+    zms.map(_.global.googleApi).head.map(_.checkGooglePlayServicesAvailable(this))
 
     overridePendingTransition(R.anim.fade_in, R.anim.fade_out)
     getStoreFactory.getProfileStore.addProfileStoreObserver(this)
@@ -246,6 +247,7 @@ class MainActivity extends BaseActivity
   override protected def onActivityResult(requestCode: Int, resultCode: Int, data: Intent) = {
     info(s"OnActivity requestCode: $requestCode, resultCode: $resultCode")
     super.onActivityResult(requestCode, resultCode, data)
+    zms.map(_.global.googleApi).head.map(_.onActivityResult(requestCode, resultCode))
     getSupportFragmentManager.findFragmentById(R.id.fl_main_content).onActivityResult(requestCode, resultCode, data)
   }
 
