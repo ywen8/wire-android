@@ -32,6 +32,7 @@ import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.Animation;
@@ -48,9 +49,13 @@ import com.waz.api.IConversation;
 import com.waz.api.NetworkMode;
 import com.waz.api.User;
 import com.waz.api.UserSearchResult;
+import com.waz.utils.events.EventContext;
 import com.waz.zclient.BaseActivity;
 import com.waz.zclient.OnBackPressedListener;
 import com.waz.zclient.R;
+import com.waz.zclient.WireContext;
+import com.waz.zclient.adapters.PickUsersAdapter;
+import com.waz.zclient.controllers.TeamsAndUserController;
 import com.waz.zclient.controllers.accentcolor.AccentColorObserver;
 import com.waz.zclient.controllers.currentfocus.IFocusController;
 import com.waz.zclient.controllers.globallayout.KeyboardVisibilityObserver;
@@ -95,6 +100,7 @@ import com.waz.zclient.utils.device.DeviceDetector;
 import com.waz.zclient.views.DefaultPageTransitionAnimation;
 import com.waz.zclient.views.LoadingIndicatorView;
 import com.waz.zclient.views.PickableElement;
+import com.waz.zclient.views.SearchEditText;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -125,11 +131,12 @@ public class PickUserFragment extends BaseFragment<PickUserFragment.Container> i
     private static final int SHOW_KEYBOARD_THRETHOLD = 10;
 
     private RecyclerView searchResultRecyclerView;
-    private SearchResultAdapter searchResultAdapter;
+    private PickUsersAdapter searchResultAdapter;
 
     // Saves user from which a pending connect request is loaded
     private User pendingFromUser;
-    private Toolbar toolbar;
+    private Toolbar conversationToolbar;
+    private Toolbar startUiToolbar;
     private TextView toolbarHeader;
     private View divider;
     private TypefaceTextView errorMessageViewHeader;
@@ -141,13 +148,29 @@ public class PickUserFragment extends BaseFragment<PickUserFragment.Container> i
     private View userSelectionConfirmationContainer;
     private View genericInviteContainer;
     private ZetaButton genericInviteButton;
-    private SearchBoxView searchBoxView;
+    private SearchEditText searchBoxView;
     private boolean isKeyboardVisible;
     private boolean searchBoxIsEmpty = true;
     private long showLoadingBarDelay;
     private boolean lastInputIsKeyboardDoneAction;
     private AlertDialog dialog;
     private static final boolean SHOW_INVITE = true;
+
+    class PickableUser implements PickableElement {
+        User user;
+
+        PickableUser(User user) {
+            this.user = user;
+        }
+
+        public String id() {
+            return user.getId();
+        }
+
+        public String name() {
+            return user.getDisplayName();
+        }
+    }
 
     final public SearchBoxView.Callback searchBoxViewCallback = new SearchBoxView.Callback() {
 
@@ -180,7 +203,8 @@ public class PickUserFragment extends BaseFragment<PickUserFragment.Container> i
             if (getControllerFactory().isTornDown()) {
                 return;
             }
-            getControllerFactory().getPickUserController().setSearchFilter(searchBoxView.getSearchFilter());
+            searchResultAdapter.setFiler(searchBoxView.getSearchFilter());
+            //getControllerFactory().getPickUserController().setSearchFilter(searchBoxView.getSearchFilter());
         }
     };
 
@@ -199,7 +223,7 @@ public class PickUserFragment extends BaseFragment<PickUserFragment.Container> i
                 }
             } else {
                 hideErrorMessage();
-                searchResultAdapter.setSearchResult(model.getAll(), null, null);
+                //searchResultAdapter.setSearchResult(model.getAll(), null, null);
             }
         }
     };
@@ -260,8 +284,8 @@ public class PickUserFragment extends BaseFragment<PickUserFragment.Container> i
         View rootView = inflater.inflate(R.layout.fragment_pick_user, viewContainer, false);
 
         toolbarHeader = ViewUtils.getView(rootView, R.id.ttv__pickuser__add_header);
-        toolbar = ViewUtils.getView(rootView, R.id.t_pickuser_toolbar);
-        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
+        conversationToolbar = ViewUtils.getView(rootView, R.id.t_pickuser_toolbar);
+        conversationToolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 closeStartUI();
@@ -269,8 +293,11 @@ public class PickUserFragment extends BaseFragment<PickUserFragment.Container> i
         });
         divider = ViewUtils.getView(rootView, R.id.v__pickuser__divider);
 
-        searchResultAdapter = new SearchResultAdapter(this);
-        searchResultAdapter.setTopUsersOnItemTouchListener(new SearchResultOnItemTouchListener(getActivity(), this));
+        startUiToolbar = ViewUtils.getView(rootView, R.id.pickuser_toolbar);
+
+
+        searchResultAdapter = new PickUsersAdapter(getContext(), ((WireContext)getContext()).injector());
+        //searchResultAdapter.setTopUsersOnItemTouchListener(new SearchResultOnItemTouchListener(getActivity(), this));
 
         searchResultRecyclerView = ViewUtils.getView(rootView, R.id.rv__pickuser__header_list_view);
         searchResultRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
@@ -288,8 +315,7 @@ public class PickUserFragment extends BaseFragment<PickUserFragment.Container> i
             });
         }
         searchBoxView = ViewUtils.getView(rootView, R.id.sbv__search_box);
-        searchBoxView.applyLightTheme(!getControllerFactory().getThemeController().isDarkTheme());
-        searchBoxView.setAccentColor(getControllerFactory().getAccentColorController().getColor());
+        searchBoxView.setCursorColor(getControllerFactory().getAccentColorController().getColor());
         searchBoxView.setCallback(searchBoxViewCallback);
 
         conversationQuickMenu = ViewUtils.getView(rootView, R.id.cqm__pickuser__quick_menu);
@@ -316,10 +342,11 @@ public class PickUserFragment extends BaseFragment<PickUserFragment.Container> i
 
         if (isAddingToConversation()) {
             genericInviteContainer.setVisibility(View.GONE);
-            searchBoxView.setHintText(getString(R.string.pick_user_search__add_to_conversation));
-            searchBoxView.showClearButton(false);
+            //searchBoxView.setHintText(getString(R.string.pick_user_search__add_to_conversation));
+            //searchBoxView.showClearButton(false);
             divider.setVisibility(View.VISIBLE);
-            toolbar.setVisibility(View.VISIBLE);
+            conversationToolbar.setVisibility(View.VISIBLE);
+            startUiToolbar.setVisibility(View.GONE);
             toolbarHeader.setText(getArguments().getBoolean(ARGUMENT_GROUP_CONVERSATION) ?
                                   getString(R.string.people_picker__toolbar_header__group) :
                                   getString(R.string.people_picker__toolbar_header__one_to_one));
@@ -342,12 +369,27 @@ public class PickUserFragment extends BaseFragment<PickUserFragment.Container> i
             errorMessageIcon.setTextColor(textColor);
             TextView errorMessageSublabel = ViewUtils.getView(rootView, R.id.ttv_pickuser__error_sublabel);
             errorMessageSublabel.setTextColor(textColor);
-            searchResultAdapter.setDarkTheme(true);
-            searchBoxView.forceDarkTheme();
-            searchBoxView.setHintText(getString(R.string.pick_user_search_focus));
-            searchBoxView.showClearButton(true);
-            toolbar.setVisibility(View.GONE);
+            //searchResultAdapter.setDarkTheme(true);
+            //searchBoxView.setHintText(getString(R.string.pick_user_search_focus));
+            //searchBoxView.showClearButton(true);
+            conversationToolbar.setVisibility(View.GONE);
+            startUiToolbar.setVisibility(View.VISIBLE);
             divider.setVisibility(View.GONE);
+
+            String title = ((BaseActivity) getActivity()).injectJava(TeamsAndUserController.class).getCurrentUserOrTeamName();
+            ((TypefaceTextView)ViewUtils.getView(rootView, R.id.pickuser_title)).setText(title);
+            startUiToolbar.inflateMenu(R.menu.toolbar_close_white);
+            startUiToolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
+                @Override
+                public boolean onMenuItemClick(MenuItem item) {
+                    switch (item.getItemId()) {
+                        case R.id.close:
+                            closeStartUI();
+                            break;
+                    }
+                    return false;
+                }
+            });
         }
 
         return rootView;
@@ -370,7 +412,7 @@ public class PickUserFragment extends BaseFragment<PickUserFragment.Container> i
                         return;
                     }
                     for (User user : getControllerFactory().getPickUserController().getSelectedUsers()) {
-                        searchBoxView.addUser(user);
+                        searchBoxView.addElement(new PickableUser(user));
                     }
                 }
             });
@@ -404,7 +446,7 @@ public class PickUserFragment extends BaseFragment<PickUserFragment.Container> i
                         numberOfActiveConversations <= SHOW_KEYBOARD_THRETHOLD) {
                         return;
                     }
-                    searchBoxView.setFocus();
+                    //searchBoxView.setFocus();
                     KeyboardUtils.showKeyboard(getActivity());
                 }
             }, getResources().getInteger(R.integer.people_picker__keyboard__show_delay));
@@ -438,7 +480,7 @@ public class PickUserFragment extends BaseFragment<PickUserFragment.Container> i
         errorMessageViewSendInvite = null;
         errorMessageViewBody = null;
         errorMessageViewContainer = null;
-        searchResultAdapter.reset();
+        //searchResultAdapter.reset();
         searchResultRecyclerView = null;
         conversationQuickMenu = null;
         userSelectionConfirmationContainer = null;
@@ -446,7 +488,7 @@ public class PickUserFragment extends BaseFragment<PickUserFragment.Container> i
         genericInviteButton = null;
         genericInviteContainer = null;
         searchBoxView = null;
-        toolbar = null;
+        conversationToolbar = null;
         toolbarHeader = null;
         super.onDestroyView();
     }
@@ -486,7 +528,7 @@ public class PickUserFragment extends BaseFragment<PickUserFragment.Container> i
                     handleEmptySearchResult(getString(R.string.people_picker__error_message__no_users_to_add_to_conversation), "", false);
                 } else {
                     hideErrorMessage();
-                    searchResultAdapter.setSearchResult(users, null, null);
+                    //searchResultAdapter.setSearchResult(users, null, null);
                 }
                 break;
             case SHOW_TOP_USERS_AS_LIST:
@@ -502,11 +544,11 @@ public class PickUserFragment extends BaseFragment<PickUserFragment.Container> i
                     }
                 } else {
                     hideErrorMessage();
-                    searchResultAdapter.setSearchResult(users, null, null);
+                    //searchResultAdapter.setSearchResult(users, null, null);
                 }
                 break;
             case SHOW_TOP_USERS_AND_RECOMMENDED:
-                searchResultAdapter.setTopUsers(users);
+                //searchResultAdapter.setTopUsers(users);
                 getStoreFactory().getPickUserStore().loadContacts();
                 break;
         }
@@ -532,7 +574,7 @@ public class PickUserFragment extends BaseFragment<PickUserFragment.Container> i
                     handleEmptySearchResult(errorHeader, errorBody, !lastInputIsKeyboardDoneAction);
                 } else {
                     hideErrorMessage();
-                    searchResultAdapter.setSearchResult(connectedUsers, null, null);
+                    //searchResultAdapter.setSearchResult(connectedUsers, null, null);
                 }
                 break;
             case SHOW_SEARCH_RESULTS:
@@ -542,17 +584,17 @@ public class PickUserFragment extends BaseFragment<PickUserFragment.Container> i
                         handleEmptySearchResult(errorHeader, errorBody, !lastInputIsKeyboardDoneAction);
                     } else {
                         hideErrorMessage();
-                        searchResultAdapter.setSearchResult(connectedUsers, null, null);
+                        //searchResultAdapter.setSearchResult(connectedUsers, null, null);
                     }
                 } else {
                     if (connectedUsers.length == 0 &&
                         otherUsers.length == 0 &&
-                        conversations.length == 0 &&
-                        !searchResultAdapter.hasContacts()) {
+                        conversations.length == 0) {
+                        //!searchResultAdapter.hasContacts()) {
                         handleEmptySearchResult(errorHeader, errorBody, !lastInputIsKeyboardDoneAction);
                     } else {
                         hideErrorMessage();
-                        searchResultAdapter.setSearchResult(connectedUsers, otherUsers, conversations);
+                        //searchResultAdapter.setSearchResult(connectedUsers, otherUsers, conversations);
                     }
                 }
                 break;
@@ -566,7 +608,7 @@ public class PickUserFragment extends BaseFragment<PickUserFragment.Container> i
             return;
         }
         hideErrorMessage();
-        searchResultAdapter.setContacts(contacts);
+        //searchResultAdapter.setContacts(contacts);
     }
 
     @Override
@@ -574,7 +616,7 @@ public class PickUserFragment extends BaseFragment<PickUserFragment.Container> i
         if (contacts == null) {
             return;
         }
-        searchResultAdapter.setContacts(contacts);
+        //searchResultAdapter.setContacts(contacts);
     }
 
     @Override
@@ -605,9 +647,9 @@ public class PickUserFragment extends BaseFragment<PickUserFragment.Container> i
     public void onAccentColorHasChanged(Object sender, int color) {
         conversationQuickMenu.setAccentColor(color);
         userSelectionConfirmationButton.setAccentColor(color);
-        searchResultAdapter.setAccentColor(color);
+        //searchResultAdapter.setAccentColor(color);
         genericInviteButton.setAccentColor(color, true);
-        searchBoxView.setAccentColor(color);
+        searchBoxView.setCursorColor(color);
     }
 
     //////////////////////////////////////////////////////////////////////////////////////////
@@ -697,7 +739,7 @@ public class PickUserFragment extends BaseFragment<PickUserFragment.Container> i
         changeUserSelectedState(addedUser, true);
         updateConversationButtonLabel();
         conversationQuickMenu.showVideoCallButton(shouldVideoCallButtonBeDisplayed());
-        searchBoxView.addUser(addedUser);
+        searchBoxView.addElement(new PickableUser(addedUser));
     }
 
     private boolean shouldVideoCallButtonBeDisplayed() {
@@ -710,7 +752,7 @@ public class PickUserFragment extends BaseFragment<PickUserFragment.Container> i
         changeUserSelectedState(removedUser, false);
         updateConversationButtonLabel();
         conversationQuickMenu.showVideoCallButton(shouldVideoCallButtonBeDisplayed());
-        searchBoxView.removeUser(removedUser);
+        searchBoxView.removeElement(new PickableUser(removedUser));
     }
 
     // XXX Only show contact sharing dialogs for PERSONAL START UI
@@ -778,9 +820,9 @@ public class PickUserFragment extends BaseFragment<PickUserFragment.Container> i
 
         changeUserSelectedState(searchResultRecyclerView, user, selected);
 
-        if (!searchResultAdapter.hasTopUsers()) {
+/*        if (!searchResultAdapter.hasTopUsers()) {
             return;
-        }
+        }*/
         for (int i = 0; i < searchResultRecyclerView.getChildCount(); i++) {
             View rowView = searchResultRecyclerView.getChildAt(i);
             if (rowView instanceof RecyclerView) {
@@ -822,7 +864,7 @@ public class PickUserFragment extends BaseFragment<PickUserFragment.Container> i
                                               anchorView instanceof ChatheadWithTextFooter,
                                               isAddingToConversation(),
                                               position,
-                                              searchResultAdapter);
+                                              null);
 
         // Selecting user from search results toggles user token and confirmation button
         if (user.getConnectionStatus() == User.ConnectionStatus.ACCEPTED) {
@@ -869,7 +911,7 @@ public class PickUserFragment extends BaseFragment<PickUserFragment.Container> i
         KeyboardUtils.hideKeyboard(getActivity());
         ((BaseActivity) getActivity()).injectJava(GlobalTrackingController.class).tagEvent(new OpenedConversationEvent(ConversationType.GROUP_CONVERSATION.name(),
                                                                                                                             OpenedConversationEvent.Context.SEARCH,
-                                                                                                                            searchResultAdapter.getConversationInternalPosition(position)));
+                                                                                                                            0));
         getStoreFactory().getConversationStore().setCurrentConversation(conversation,
                                                                         ConversationChangeRequester.START_CONVERSATION);
     }

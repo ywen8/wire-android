@@ -182,6 +182,8 @@ class PickerSpannableEditText(val context: Context, val attrs: AttributeSet, val
     notifyDatasetChanged()
   }
 
+  def getElements: Set[PickableElement] = elements
+
   private def equalLists(one: List[PickableElement], two: List[PickableElement]): Boolean = {
     if (one == null && two == null) {
       return true
@@ -265,6 +267,7 @@ class PickerSpannableEditText(val context: Context, val attrs: AttributeSet, val
     for (span <- spans) {
       if (span.getDeleteMode) {
         super.removeSpan(span)
+        elements = elements.filterNot(_.id == span.getId)
         return true
       }
     }
@@ -286,6 +289,7 @@ class PickerSpannableEditText(val context: Context, val attrs: AttributeSet, val
         val atLineBreak: Boolean = getLayout.getLineForOffset(end) != getLayout.getLineForOffset(selectionEnd)
         if (end <= selectionEnd || (end <= (selectionEnd + 1) && atLineBreak)) {
           super.removeSpan(span)
+          elements = elements.filterNot(_.id == span.getId)
           setSelection(getText.length)
           return true
         }

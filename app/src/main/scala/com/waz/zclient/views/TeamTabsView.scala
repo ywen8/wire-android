@@ -62,10 +62,16 @@ class TeamTabsAdapter(context: Context)(implicit injector: Injector, eventContex
 
   val onItemClick = EventStream[Either[UserData, TeamData]]()
 
+  private var teams = Option.empty[Seq[TeamData]]
+  private var self = Option.empty[UserData]
+
   onItemClick{ controller.currentTeamOrUser ! _ }
 
-  Signal(controller.self, controller.teams, controller.currentTeamOrUser).on(Threading.Ui){ _ =>
-    notifyDataSetChanged()
+  Signal(controller.self, controller.teams, controller.currentTeamOrUser).on(Threading.Ui){
+    case (cSelf, cTeams, _) =>
+      self = Some(cSelf)
+      teams = Some(cTeams)
+      notifyDataSetChanged()
   }
 
   override def getItemCount = 1 + controller.teams.currentValue.fold(0)(_.size)
@@ -94,9 +100,9 @@ class TeamTabsAdapter(context: Context)(implicit injector: Injector, eventContex
   def getItem(position: Int): Option[Either[UserData, TeamData]] = {
     position match {
       case 0 =>
-        controller.self.currentValue.map(Left(_))
+        self.map(Left(_))
       case index =>
-        controller.teams.currentValue.flatMap(_.lift(index - 1)).map(Right(_))
+        teams.flatMap(_.lift(index - 1)).map(Right(_))
     }
   }
 }

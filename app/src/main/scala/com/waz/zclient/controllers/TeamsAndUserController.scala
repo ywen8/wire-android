@@ -18,6 +18,7 @@
 package com.waz.zclient.controllers
 
 import android.content.Context
+import com.waz.ZLog._
 import com.waz.model._
 import com.waz.service.ZMessaging
 import com.waz.threading.Threading
@@ -26,6 +27,8 @@ import com.waz.zclient.{Injectable, Injector}
 
 class TeamsAndUserController(implicit injector: Injector, context: Context, ec: EventContext) extends Injectable {
   import Threading.Implicits.Ui
+  private implicit val tag: LogTag = logTagFor[TeamsAndUserController]
+
   val zms = inject[Signal[ZMessaging]]
   val teams = Signal(Seq(TeamData(TeamId(), "ωire"))) //TODO: STUB
   val self = for {
@@ -35,4 +38,12 @@ class TeamsAndUserController(implicit injector: Injector, context: Context, ec: 
 
   val currentTeamOrUser = Signal[Either[UserData, TeamData]]()
   self.head.map{s => currentTeamOrUser ! Left(s)} //TODO: initial value
+
+  def getCurrentUserOrTeamName: String ={
+    currentTeamOrUser.currentValue.map {
+      case Left(userData) => userData.displayName
+      case Right(teamData) => teamData.name
+      case _ => ""
+    }.getOrElse("")
+  }
 }

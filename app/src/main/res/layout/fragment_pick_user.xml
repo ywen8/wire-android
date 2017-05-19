@@ -33,6 +33,7 @@
         android:clickable="false"
         app:contentInsetStart="@dimen/content__padding_left"
         style="?startUiToolbar"
+        android:visibility="gone"
         >
 
         <com.waz.zclient.ui.text.TypefaceTextView
@@ -47,6 +48,28 @@
             />
     </android.support.v7.widget.Toolbar>
 
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/pickuser_toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="@color/transparent"
+        android:clickable="false"
+        app:contentInsetStart="0dp"
+        android:visibility="gone">
+
+        <com.waz.zclient.ui.text.TypefaceTextView
+            android:id="@+id/pickuser_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginEnd="@dimen/wire__padding__regular"
+            android:maxLines="1"
+            android:ellipsize="end"
+            android:textColor="@color/white"
+            />
+
+    </android.support.v7.widget.Toolbar>
+
     <View
         android:id="@+id/v__pickuser__divider"
         android:layout_width="match_parent"
@@ -54,13 +77,12 @@
         style="?wireDivider"
         />
 
-    <com.waz.zclient.pages.main.pickuser.views.SearchBoxView
+    <com.waz.zclient.views.SearchEditText
         android:id="@+id/sbv__search_box"
         android:layout_width="match_parent"
-        android:layout_height="@dimen/searchbox__height"
-        android:focusable="true"
-        android:focusableInTouchMode="true"
-        style="?wireBackground"
+        android:layout_height="@dimen/collections__multi_share_search_height"
+        android:layout_margin="@dimen/wire__padding__8"
+        app:hintText="@string/pick_user_search_hint"
         />
 
     <android.support.v7.widget.RecyclerView

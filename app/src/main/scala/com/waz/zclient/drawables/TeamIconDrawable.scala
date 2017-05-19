@@ -24,6 +24,7 @@ import com.waz.model.AssetId
 import com.waz.service.ZMessaging
 import com.waz.service.assets.AssetService.BitmapResult.BitmapLoaded
 import com.waz.service.images.BitmapSignal
+import com.waz.threading.Threading
 import com.waz.ui.MemoryImageCache.BitmapRequest.Single
 import com.waz.utils.events.{EventContext, Signal}
 import com.waz.zclient.drawables.TeamIconDrawable._
@@ -41,7 +42,7 @@ class TeamIconDrawable(implicit inj: Injector, eventContext: EventContext) exten
   var corners = UserCorners
 
   val borderPaint = new Paint(Paint.ANTI_ALIAS_FLAG)
-  borderPaint.setColor(Color.RED)
+  borderPaint.setColor(Color.TRANSPARENT)
   borderPaint.setStyle(Paint.Style.STROKE)
   borderPaint.setStrokeJoin(Paint.Join.ROUND)
   borderPaint.setStrokeCap(Paint.Cap.ROUND)
@@ -79,6 +80,10 @@ class TeamIconDrawable(implicit inj: Injector, eventContext: EventContext) exten
     b <- bounds
     bmp <- BitmapSignal(asset, Single(b.width), z.imageLoader, z.assetsStorage.get)
   } yield bmp
+
+  bmp.on(Threading.Ui){ _ =>
+    invalidateSelf()
+  }
 
   override def draw(canvas: Canvas) = {
     canvas.drawPath(innerPath, innerPaint)
@@ -168,6 +173,7 @@ class TeamIconDrawable(implicit inj: Injector, eventContext: EventContext) exten
     this.text = text
     borderPaint.setColor(borderColor)
     this.corners = corners
+    onBoundsChange(getBounds)
     invalidateSelf()
   }
 }

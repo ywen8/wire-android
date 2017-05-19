@@ -72,8 +72,7 @@ class ShareToMultipleFragment extends BaseFragment[ShareToMultipleFragment.Conta
     val view = inflater.inflate(R.layout.fragment_collection_share, container, false)
     val listView = ViewUtils.getView(view, R.id.lv__conversation_list).asInstanceOf[RecyclerView]
     val sendButton = ViewUtils.getView(view, R.id.cib__send_button).asInstanceOf[CursorIconButton]
-    val searchBox = ViewUtils.getView(view, R.id.multi_share_search_box).asInstanceOf[PickerSpannableEditText]
-    val searchHint = ViewUtils.getView(view, R.id.multi_share_search_box_hint).asInstanceOf[TypefaceTextView]
+    val searchBox = ViewUtils.getView(view, R.id.multi_share_search_box).asInstanceOf[SearchEditText]
     val contentLayout = ViewUtils.getView(view, R.id.content_container).asInstanceOf[RelativeLayout]
     val profileImageView = ViewUtils.getView(view, R.id.user_photo).asInstanceOf[ImageView]
     val bottomContainer = ViewUtils.getView(view, R.id.ephemeral_container).asInstanceOf[AnimatedBottomContainer]
@@ -93,10 +92,10 @@ class ShareToMultipleFragment extends BaseFragment[ShareToMultipleFragment.Conta
     Signal(accentColorController.accentColor, adapter.selectedConversations).on(Threading.Ui){
       case (color, convs) if convs.nonEmpty =>
         sendButton.setSolidBackgroundColor(color.getColor())
-        searchBox.setAccentColor(color.getColor())
+        searchBox.setCursorColor(color.getColor())
       case (color, _) =>
         sendButton.setSolidBackgroundColor(ColorUtils.injectAlpha(0.4f, color.getColor()))
-        searchBox.setAccentColor(color.getColor())
+        searchBox.setCursorColor(color.getColor())
       case _ =>
     }
 
@@ -132,10 +131,6 @@ class ShareToMultipleFragment extends BaseFragment[ShareToMultipleFragment.Conta
     listView.setLayoutManager(new LinearLayoutManager(getContext))
     listView.setAdapter(adapter)
 
-    Signal(filterText, adapter.selectedConversations).on(Threading.Ui){
-      case (filter, convs) => searchHint.setVisible(filter.isEmpty && convs.isEmpty)
-      case _ =>
-    }
 
     //TODO: It's possible for an app to share multiple uris at once but we're only showing the preview for one
     def showMessagePreview(content: Option[SharableContent]): Unit = content match{
