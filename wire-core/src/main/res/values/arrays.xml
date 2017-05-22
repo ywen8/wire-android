@@ -48,14 +48,14 @@
         <item>@color/accent_orange</item>
         <item>@color/accent_pink</item>
         <item>@color/accent_magenta</item>
-        <item>@color/draw_light_blue</item>
-        <item>@color/draw_light_green</item>
-        <item>@color/draw_light_yellow</item>
-        <item>@color/draw_light_red</item>
-        <item>@color/draw_light_orange</item>
-        <item>@color/draw_light_pink</item>
-        <item>@color/draw_light_purple</item>
-        <item>@color/draw_light_grey</item>
+        <item>@color/draw_mocha</item>
+        <item>@color/draw_brown</item>
+        <item>@color/draw_mustard</item>
+        <item>@color/draw_strawberry</item>
+        <item>@color/draw_maroon</item>
+        <item>@color/draw_sky</item>
+        <item>@color/draw_olive</item>
+        <item>@color/draw_grey</item>
     </array>
 
     <array name="list_unread_indicator_radiuses">
