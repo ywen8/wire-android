@@ -301,6 +301,23 @@ public class PickUserFragment extends BaseFragment<PickUserFragment.Container> i
 
         searchResultAdapter = new PickUsersAdapter(getContext(), new SearchResultOnItemTouchListener(getActivity(), this), this, ((WireContext)getContext()).injector());
 
+        searchResultAdapter.registerAdapterDataObserver(new RecyclerView.AdapterDataObserver() {
+            @Override
+            public void onChanged() {
+                if (searchResultAdapter.getItemCount() == 0) {
+                    if (getControllerFactory().getPickUserController().getSearchFilter().isEmpty()) {
+                        if (getSelectedUsers().isEmpty()) {
+                            handleEmptySearchResult(getString(R.string.people_picker__error_message__no_results), "", false);
+                        } else {
+                            handleEmptySearchResult(getString(R.string.people_picker__error_message__no_users_to_add_to_conversation), "", false);
+                        }
+                    } else {
+                        handleEmptySearchResult(getString(R.string.people_picker__error_message__no_results), "", false);
+                    }
+                }
+            }
+        });
+
         searchResultRecyclerView = ViewUtils.getView(rootView, R.id.rv__pickuser__header_list_view);
         searchResultRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
         searchResultRecyclerView.setAdapter(searchResultAdapter);
