@@ -126,9 +126,9 @@ private class IncomingControlsView(val context: Context, val attrs: AttributeSet
 
   private val leftButtonGlyphString = getResources.getString(R.string.glyph__end_call)
   private val leftButtonColor = ContextCompat.getColor(getContext, R.color.accent_red)
-  private val leftButtonPressedColor = ContextCompat.getColor(getContext, R.color.draw_light_red)
+  private val leftButtonPressedColor = ContextCompat.getColor(getContext, R.color.light_red)
   private val rightButtonColor = ContextCompat.getColor(getContext, R.color.accent_green)
-  private val rightButtonPressedColor = ContextCompat.getColor(getContext, R.color.draw_light_green)
+  private val rightButtonPressedColor = ContextCompat.getColor(getContext, R.color.light_green)
 
   private val array = context.getTheme.obtainStyledAttributes(attrs, R.styleable.IncomingControlsLayout, 0, 0)
   private val buttonRadius = array.getDimensionPixelSize(R.styleable.IncomingControlsLayout_buttonDiameter, 0) / 2

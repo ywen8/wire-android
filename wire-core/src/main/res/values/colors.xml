@@ -82,15 +82,18 @@
     <!--Sketch color picker-->
     <color name="draw_white">@color/white</color>
     <color name="draw_black">@color/black</color>
-    <color name="draw_light_blue">#96BED6</color>
-    <color name="draw_light_green">#A3EBA3</color>
-    <color name="draw_light_yellow">#FEE7A3</color>
-    <color name="draw_light_red">#FDA5A5</color>
-    <color name="draw_light_orange">#FFD4A3</color>
-    <color name="draw_light_pink">#FEC4E7</color>
-    <color name="draw_light_purple">#DBA3FE</color>
-    <color name="draw_light_grey">#A3A3A3</color>
+    <color name="draw_mocha">#B05701</color>
+    <color name="draw_brown">#613102</color>
+    <color name="draw_mustard">#E4BC46</color>
+    <color name="draw_strawberry">#E75177</color>
+    <color name="draw_maroon">#941751</color>
+    <color name="draw_sky">#6EA6BF</color>
+    <color name="draw_olive">#999647</color>
+    <color name="draw_grey">#707070</color>
     <color name="draw_disabled">@color/light_graphite</color>
+
+    <color name="light_green">#A3EBA3</color>
+    <color name="light_red">#FDA5A5</color>
 
     <color name="yorgos">#FF4A4A4A</color>
 

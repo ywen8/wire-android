@@ -22,7 +22,7 @@
 
     <item android:state_pressed="true">
         <shape android:shape="oval">
-            <solid android:color="@color/draw_light_green" />
+            <solid android:color="@color/light_green" />
         </shape>
     </item>
     <item>
