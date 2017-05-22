@@ -161,16 +161,5 @@
         <item>0</item>
         <item>113</item>
     </integer-array>
-
-    <string-array name="calling_v3_preferences">
-        <item>0</item>
-        <item>1</item>
-        <item>2</item>
-    </string-array>
-    <string-array name="calling_v3_preference_titles">
-        <item>Always use calling v2</item>
-        <item>Rely on backend switch</item>
-        <item>Always use calling v3</item>
-    </string-array>
 </resources>
 

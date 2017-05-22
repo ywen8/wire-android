@@ -32,10 +32,6 @@ public class PreferenceReceiver extends BroadcastReceiver {
     public static final String ENABLE_GCM_INTENT = "com.waz.zclient.intent.action.ENABLE_GCM";
     public static final String DISABLE_GCM_INTENT = "com.waz.zclient.intent.action.DISABLE_GCM";
 
-    public static final String CALLING_V2_INTENT = "com.waz.zclient.intent.action.CALLING_V2";
-    public static final String CALLING_V3_INTENT = "com.waz.zclient.intent.action.CALLING_V3";
-    public static final String CALLING_BE_SWITCH = "com.waz.zclient.intent.action.CALLING_BE_SWITCH";
-
     @Override
     public void onReceive(Context context, Intent intent) {
         SharedPreferences preferences = context.getSharedPreferences(UserPreferencesController.USER_PREFS_TAG, Context.MODE_PRIVATE);
@@ -55,21 +51,6 @@ public class PreferenceReceiver extends BroadcastReceiver {
             case DISABLE_GCM_INTENT:
                 preferences.edit()
                     .putBoolean(context.getString(R.string.pref_dev_push_enabled_key), false)
-                    .apply();
-                break;
-            case CALLING_V2_INTENT:
-                preferences.edit()
-                    .putString(context.getString(R.string.pref_dev_calling_v3_key), "0")
-                    .apply();
-                break;
-            case CALLING_BE_SWITCH:
-                preferences.edit()
-                    .putString(context.getString(R.string.pref_dev_calling_v3_key), "1")
-                    .apply();
-                break;
-            case CALLING_V3_INTENT:
-                preferences.edit()
-                    .putString(context.getString(R.string.pref_dev_calling_v3_key), "2")
                     .apply();
                 break;
         }
