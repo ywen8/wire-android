@@ -52,7 +52,7 @@
         >
 
         <CheckBoxPreference
-            android:defaultValue="false"
+            android:defaultValue="true"
             android:key="@string/pref_dev_push_enabled_key"
             android:summary="@string/pref_dev_push_enabled_summary"
             android:title="@string/pref_dev_push_enabled_title"
