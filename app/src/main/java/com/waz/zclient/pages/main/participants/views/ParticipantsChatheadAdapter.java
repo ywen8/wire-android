@@ -25,7 +25,9 @@ import android.widget.BaseAdapter;
 import com.waz.api.CoreList;
 import com.waz.api.UpdateListener;
 import com.waz.api.User;
+import com.waz.model.UserId;
 import com.waz.zclient.R;
+import com.waz.zclient.views.ChatheadWithTextFooter;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -168,7 +170,7 @@ public class ParticipantsChatheadAdapter extends BaseAdapter implements UpdateLi
         }
         User user = getItem(position);
         if (user != null) {
-            view.setUser(user);
+            view.setUserId(new UserId(user.getId()));
             view.setVisibility(View.VISIBLE);
         } else {
             //TODO https://wearezeta.atlassian.net/browse/AN-4276

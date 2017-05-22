@@ -29,15 +29,17 @@ import com.waz.api.Contacts;
 import com.waz.api.IConversation;
 import com.waz.api.User;
 import com.waz.zclient.R;
+import com.waz.zclient.adapters.SearchResultOnItemTouchListener;
+import com.waz.zclient.adapters.TopUserAdapter;
 import com.waz.zclient.pages.main.pickuser.controller.IPickUserController;
-import com.waz.zclient.pages.main.pickuser.views.ContactRowView;
-import com.waz.zclient.pages.main.pickuser.views.viewholders.AddressBookContactViewHolder;
-import com.waz.zclient.pages.main.pickuser.views.viewholders.AddressBookSectionHeaderViewHolder;
-import com.waz.zclient.pages.main.pickuser.views.viewholders.ConversationViewHolder;
-import com.waz.zclient.pages.main.pickuser.views.viewholders.SectionExpanderViewHolder;
-import com.waz.zclient.pages.main.pickuser.views.viewholders.SectionHeaderViewHolder;
-import com.waz.zclient.pages.main.pickuser.views.viewholders.TopUsersViewHolder;
-import com.waz.zclient.pages.main.pickuser.views.viewholders.UserViewHolder;
+import com.waz.zclient.views.pickuser.ContactRowView;
+import com.waz.zclient.viewholders.AddressBookContactViewHolder;
+import com.waz.zclient.viewholders.AddressBookSectionHeaderViewHolder;
+import com.waz.zclient.viewholders.ConversationViewHolder;
+import com.waz.zclient.viewholders.SectionExpanderViewHolder;
+import com.waz.zclient.viewholders.SectionHeaderViewHolder;
+import com.waz.zclient.viewholders.TopUsersViewHolder;
+import com.waz.zclient.viewholders.UserViewHolder;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -157,17 +159,12 @@ public class SearchResultAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
         switch (viewType) {
             case ITEM_TYPE_TOP_USER:
                 view = LayoutInflater.from(parent.getContext()).inflate(R.layout.startui_top_users, parent, false);
-                TopUserAdapter topUserAdapter = new TopUserAdapter(new TopUserAdapter.Callback() {
-                    @Override
-                    public Set<User> getSelectedUsers() {
-                        return callback.getSelectedUsers();
-                    }
-                });
+                TopUserAdapter topUserAdapter = null;
                 return new TopUsersViewHolder(view, topUserAdapter, parent.getContext());
             case ITEM_TYPE_OTHER_USER:
             case ITEM_TYPE_CONNECTED_USER:
                 view = LayoutInflater.from(parent.getContext()).inflate(R.layout.startui_user, parent, false);
-                return new UserViewHolder(view, darkTheme, true);
+                return new UserViewHolder(view, true);
             case ITEM_TYPE_CONVERSATION:
                 view = LayoutInflater.from(parent.getContext()).inflate(R.layout.startui_conversation, parent, false);
                 return new ConversationViewHolder(view);
@@ -194,23 +191,23 @@ public class SearchResultAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
 
         switch (itemType) {
             case ITEM_TYPE_TOP_USER:
-                ((TopUsersViewHolder) holder).bind(topUsers);
+                //((TopUsersViewHolder) holder).bind(topUsers);
                 ((TopUsersViewHolder) holder).bindOnItemTouchListener(topUsersOnItemTouchListener);
                 break;
             case ITEM_TYPE_CONVERSATION:
                 IConversation conversation = conversations[getConversationInternalPosition(position) - ROW_COUNT_SECTION_HEADER];
-                ((ConversationViewHolder) holder).bind(conversation);
+                //((ConversationViewHolder) holder).bind(conversation);
                 break;
             case ITEM_TYPE_OTHER_USER:
                 User otherUser = otherUsers[getOtherUserInternalPosition(position) - ROW_COUNT_SECTION_HEADER];
                 boolean otherIsSelected = callback.getSelectedUsers().contains(otherUser);
-                ((UserViewHolder) holder).bind(otherUser, otherIsSelected);
+                //((UserViewHolder) holder).bind(otherUser, otherIsSelected);
                 break;
             case ITEM_TYPE_CONNECTED_USER:
                 int index = mergedContacts.get(position - ROW_COUNT_SECTION_HEADER).index;
                 User connectedUser = connectedUsers[index];
                 boolean contactIsSelected = callback.getSelectedUsers().contains(connectedUser);
-                ((UserViewHolder) holder).bind(connectedUser, contactIsSelected);
+                //((UserViewHolder) holder).bind(connectedUser, contactIsSelected);
                 break;
             case ITEM_TYPE_SECTION_HEADER:
                 int type = getSectionItemType(position);
@@ -235,13 +232,13 @@ public class SearchResultAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
                 if (showSearch) {
                     position = mergedContacts.get(position - ROW_COUNT_SECTION_HEADER).index;
                     Contact contact = contacts.get(position);
-                    ((AddressBookContactViewHolder) holder).bind(contact, contactsCallback, accentColor);
+                    ((AddressBookContactViewHolder) holder).bind(contact, contactsCallback);
                 } else {
                     int[] contactMapping = getContactMapping(position);
                     String contactInitial = getContactInitial(position);
                     int contactInternalPosition = contactMapping[2];
                     Contact contact = contacts.getContactForInitial(contactInitial, contactInternalPosition);
-                    ((AddressBookContactViewHolder) holder).bind(contact, contactsCallback, accentColor);
+                    ((AddressBookContactViewHolder) holder).bind(contact, contactsCallback);
                 }
                 break;
             case ITEM_TYPE_EXPAND_BUTTON:

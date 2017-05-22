@@ -49,10 +49,13 @@ import com.waz.api.IConversation;
 import com.waz.api.NetworkMode;
 import com.waz.api.User;
 import com.waz.api.UserSearchResult;
-import com.waz.utils.events.EventContext;
+import com.waz.model.ConversationData;
+import com.waz.model.UserData;
+import com.waz.model.UserId;
 import com.waz.zclient.BaseActivity;
 import com.waz.zclient.OnBackPressedListener;
 import com.waz.zclient.R;
+import com.waz.zclient.adapters.SearchResultOnItemTouchListener;
 import com.waz.zclient.WireContext;
 import com.waz.zclient.adapters.PickUsersAdapter;
 import com.waz.zclient.controllers.TeamsAndUserController;
@@ -76,13 +79,13 @@ import com.waz.zclient.core.stores.network.DefaultNetworkAction;
 import com.waz.zclient.core.stores.pickuser.PickUserStoreObserver;
 import com.waz.zclient.pages.BaseFragment;
 import com.waz.zclient.pages.main.participants.dialog.DialogLaunchMode;
-import com.waz.zclient.pages.main.participants.views.ChatheadWithTextFooter;
+import com.waz.zclient.views.ChatheadWithTextFooter;
 import com.waz.zclient.pages.main.pickuser.controller.IPickUserController;
 import com.waz.zclient.pages.main.pickuser.controller.PickUserControllerSearchObserver;
 import com.waz.zclient.pages.main.pickuser.controller.PickUserDataState;
-import com.waz.zclient.pages.main.pickuser.views.ContactRowView;
-import com.waz.zclient.pages.main.pickuser.views.SearchBoxView;
-import com.waz.zclient.pages.main.pickuser.views.UserRowView;
+import com.waz.zclient.views.pickuser.ContactRowView;
+import com.waz.zclient.views.pickuser.SearchBoxView;
+import com.waz.zclient.views.pickuser.UserRowView;
 import com.waz.zclient.tracking.GlobalTrackingController;
 import com.waz.zclient.ui.animation.fragment.FadeAnimation;
 import com.waz.zclient.ui.startui.ConversationQuickMenu;
@@ -204,7 +207,7 @@ public class PickUserFragment extends BaseFragment<PickUserFragment.Container> i
                 return;
             }
             searchResultAdapter.setFiler(searchBoxView.getSearchFilter());
-            //getControllerFactory().getPickUserController().setSearchFilter(searchBoxView.getSearchFilter());
+            getControllerFactory().getPickUserController().setSearchFilter(searchBoxView.getSearchFilter());
         }
     };
 
@@ -296,8 +299,7 @@ public class PickUserFragment extends BaseFragment<PickUserFragment.Container> i
         startUiToolbar = ViewUtils.getView(rootView, R.id.pickuser_toolbar);
 
 
-        searchResultAdapter = new PickUsersAdapter(getContext(), ((WireContext)getContext()).injector());
-        //searchResultAdapter.setTopUsersOnItemTouchListener(new SearchResultOnItemTouchListener(getActivity(), this));
+        searchResultAdapter = new PickUsersAdapter(getContext(), new SearchResultOnItemTouchListener(getActivity(), this), this, ((WireContext)getContext()).injector());
 
         searchResultRecyclerView = ViewUtils.getView(rootView, R.id.rv__pickuser__header_list_view);
         searchResultRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
@@ -608,7 +610,7 @@ public class PickUserFragment extends BaseFragment<PickUserFragment.Container> i
             return;
         }
         hideErrorMessage();
-        //searchResultAdapter.setContacts(contacts);
+        searchResultAdapter.setContacts(contacts);
     }
 
     @Override
@@ -616,7 +618,7 @@ public class PickUserFragment extends BaseFragment<PickUserFragment.Container> i
         if (contacts == null) {
             return;
         }
-        //searchResultAdapter.setContacts(contacts);
+        searchResultAdapter.setContacts(contacts);
     }
 
     @Override
@@ -851,7 +853,8 @@ public class PickUserFragment extends BaseFragment<PickUserFragment.Container> i
     //////////////////////////////////////////////////////////////////////////////////////////
 
     @Override
-    public void onUserClicked(User user, int position, View anchorView) {
+    public void onUserClicked(UserId userId, int position, View anchorView) {
+        User user = getStoreFactory().getZMessagingApiStore().getApi().getUser(userId.str());
         if (user == null ||
             user.isMe() ||
             getControllerFactory() == null ||
@@ -860,11 +863,11 @@ public class PickUserFragment extends BaseFragment<PickUserFragment.Container> i
         }
 
         TrackingUtils.onUserSelectedInStartUI(((BaseActivity) getActivity()).injectJava(GlobalTrackingController.class),
-                                              user,
-                                              anchorView instanceof ChatheadWithTextFooter,
-                                              isAddingToConversation(),
-                                              position,
-                                              null);
+            user,
+            anchorView instanceof ChatheadWithTextFooter,
+            isAddingToConversation(),
+            position,
+            searchResultAdapter);
 
         // Selecting user from search results toggles user token and confirmation button
         if (user.getConnectionStatus() == User.ConnectionStatus.ACCEPTED) {
@@ -887,10 +890,12 @@ public class PickUserFragment extends BaseFragment<PickUserFragment.Container> i
     }
 
     @Override
-    public void onUserDoubleClicked(User user, int position, View anchorView) {
+    public void onUserDoubleClicked(UserId userId, int position, View anchorView) {
         if (!(anchorView instanceof ChatheadWithTextFooter)) {
             return;
         }
+
+        User user = getStoreFactory().getZMessagingApiStore().getApi().getUser(userId.str());
 
         if (user == null ||
             user.isMe() ||
@@ -907,7 +912,8 @@ public class PickUserFragment extends BaseFragment<PickUserFragment.Container> i
     }
 
     @Override
-    public void onConversationClicked(IConversation conversation, int position) {
+    public void onConversationClicked(ConversationData conversationData, int position) {
+        IConversation conversation = getStoreFactory().getConversationStore().getConversation(conversationData.id().str());
         KeyboardUtils.hideKeyboard(getActivity());
         ((BaseActivity) getActivity()).injectJava(GlobalTrackingController.class).tagEvent(new OpenedConversationEvent(ConversationType.GROUP_CONVERSATION.name(),
                                                                                                                             OpenedConversationEvent.Context.SEARCH,

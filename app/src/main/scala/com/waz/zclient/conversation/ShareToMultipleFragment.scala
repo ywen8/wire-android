@@ -49,7 +49,7 @@ import com.waz.zclient.pages.extendedcursor.ephemeral.EphemeralLayout
 import com.waz.zclient.ui.text.TypefaceTextView
 import com.waz.zclient.ui.utils.{BitmapUtils, ColorUtils, KeyboardUtils}
 import com.waz.zclient.ui.views.CursorIconButton
-import com.waz.zclient.utils.{RichView, ViewUtils}
+import com.waz.zclient.utils.ViewUtils
 import com.waz.zclient.views.ImageAssetDrawable.{RequestBuilder, ScaleType}
 import com.waz.zclient.views.ImageController.{DataImage, ImageSource, WireImage}
 import com.waz.zclient.views._

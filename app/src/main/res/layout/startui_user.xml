@@ -18,7 +18,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 -->
-<com.waz.zclient.pages.main.pickuser.views.SearchResultUserRowView
+<com.waz.zclient.views.SearchResultUserRowView
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/srurv_startui_user"
     android:layout_width="match_parent"

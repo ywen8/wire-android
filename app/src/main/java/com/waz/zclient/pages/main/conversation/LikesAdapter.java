@@ -24,7 +24,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import com.waz.api.User;
 import com.waz.zclient.R;
-import com.waz.zclient.pages.main.pickuser.views.viewholders.UserViewHolder;
+import com.waz.zclient.viewholders.UserViewHolder;
 
 public class LikesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
@@ -35,13 +35,14 @@ public class LikesAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
     public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View view;
         view = LayoutInflater.from(parent.getContext()).inflate(R.layout.startui_user, parent, false);
-        return new UserViewHolder(view, false, false);
+        return new UserViewHolder(view, false);
     }
 
     @Override
     public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
         User liker = likes[position];
-        ((UserViewHolder) holder).bind(liker, false);
+        //TODO: Do?
+        //((UserViewHolder) holder).bind(liker, false);
     }
 
     @Override

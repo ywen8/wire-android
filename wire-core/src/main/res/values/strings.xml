@@ -134,6 +134,7 @@
     <string name="people_picker__search_result_others_header_title">Connect</string>
     <string name="people_picker__search_result_recommended_header_title">Recommended</string>
     <string name="people_picker__search_result_contacts_header_title">Contacts</string>
+    <string name="people_picker__search_result_team_members_header_title">Team Members</string>
     <string name="people_picker__invite_header_title">Invite</string>
     <string name="people_picker__confirm_button_title">Create conversation</string>
     <string name="people_picker__confirm_button_title__add_to_conversation">ADD</string>

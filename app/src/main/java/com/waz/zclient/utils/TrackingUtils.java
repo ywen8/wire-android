@@ -27,6 +27,7 @@ import com.waz.api.Message;
 import com.waz.api.Permission;
 import com.waz.api.User;
 import com.waz.zclient.R;
+import com.waz.zclient.adapters.PickUsersAdapter;
 import com.waz.zclient.controllers.drawing.DrawingController;
 import com.waz.zclient.controllers.tracking.events.connect.SelectedTopUser;
 import com.waz.zclient.controllers.tracking.events.connect.SelectedUserFromSearchEvent;
@@ -364,7 +365,7 @@ public class TrackingUtils {
                                                boolean isTopUser,
                                                boolean isAddingToConversation,
                                                int position,
-                                               SearchResultAdapter adapter) {
+                                               PickUsersAdapter adapter) {
         int itemType = adapter.getItemViewType(position);
         if (itemType < 0) {
             return;
@@ -383,7 +384,7 @@ public class TrackingUtils {
                     trackingController.tagEvent(new SelectedUserFromSearchEvent(user.getConnectionStatus().toString(),
                                                                                 isAddingToConversation,
                                                                                 SelectedUserFromSearchEvent.Section.DIRECTORY,
-                                                                                adapter.getOtherUserInternalPosition(position)));
+                                                                                adapter.getSectionIndexForPosition(position)));
                     break;
             }
         }

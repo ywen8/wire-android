@@ -36,7 +36,7 @@
         app:isSelectable="true"
         />
 
-    <com.waz.zclient.pages.main.pickuser.views.ContactListItemTextView
+    <com.waz.zclient.views.pickuser.ContactListItemTextView
         android:id="@+id/clitv__contactlist__user__text_view"
         android:layout_width="0dp"
         android:layout_height="match_parent"
