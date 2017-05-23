@@ -26,6 +26,7 @@ import com.waz.service.ZMessaging
 import com.waz.threading.Threading
 import com.waz.utils.events.Signal
 import com.waz.zclient.ui.text.TypefaceTextView
+import com.waz.zclient.utils.{ConversationMembersSignal, UiStorage, UserSignal}
 import com.waz.zclient.views.conversationlist.ConversationAvatarView
 import com.waz.zclient.{Injectable, R, ViewHelper}
 
@@ -42,12 +43,13 @@ class SearchResultConversationRowView(val context: Context, val attrs: Attribute
   private val separator = findById[View](R.id.conversation_separator)
 
   val zms = inject[Signal[ZMessaging]]
+  implicit val uiStorage = inject[UiStorage]
 
   val avatarInfo = for {
     z <- zms
     conv <- conversationSignal
-    memberIds <- z.membersStorage.activeMembers(conv.id)
-    memberSeq <- Signal.future(z.usersStorage.getAll(memberIds)).map(_.flatten)
+    memberIds <- ConversationMembersSignal(conv.id)
+    memberSeq <- Signal.sequence(memberIds.map(uid => UserSignal(uid)).toSeq:_*)
   } yield (conv.id, conv.convType, memberSeq.filter(_.id != z.selfUserId).map(_.id))
 
   separator.setVisibility(View.GONE)

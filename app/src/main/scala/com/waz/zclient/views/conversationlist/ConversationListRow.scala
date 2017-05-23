@@ -43,13 +43,12 @@ import com.waz.zclient.ui.text.TypefaceTextView
 import com.waz.zclient.ui.utils.TextViewUtils
 import com.waz.zclient.ui.views.properties.MoveToAnimateable
 import com.waz.zclient.utils.ContextUtils._
-import com.waz.zclient.utils.{StringUtils, ViewUtils}
+import com.waz.zclient.utils.{ConversationMembersSignal, ConversationSignal, StringUtils, UiStorage, UserSetSignal, UserSignal, ViewUtils}
 import com.waz.zclient.views.ConversationBadge
 import com.waz.zclient.views.conversationlist.ConversationListRow._
 import com.waz.zclient.{R, ViewHelper}
 
 import scala.collection.Set
-import scala.concurrent.Future
 
 trait ConversationListRow extends FrameLayout
 
@@ -62,6 +61,7 @@ class NormalConversationListRow(context: Context, attrs: AttributeSet, style: In
   def this(context: Context) = this(context, null, 0)
 
   implicit val executionContext = Threading.Background
+  implicit val uiStorage = inject[UiStorage]
 
   setLayoutParams(new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, getDimenPx(R.dimen.conversation_list__row__height)))
   inflate(R.layout.conv_list_item)
@@ -83,16 +83,15 @@ class NormalConversationListRow(context: Context, attrs: AttributeSet, style: In
 
   var conversationData = Option.empty[ConversationData]
   val conversation = for {
-    z <- zms
     Some(convId) <- conversationId
-    conv <- z.convsStorage.signal(convId)
+    conv <- ConversationSignal(convId)
   } yield conv
 
   val conversationName = for {
     z <- zms
     self <- selfId
     conv <- conversation
-    memberCount <- z.membersStorage.activeMembers(conv.id).map(_.count(_ != self))
+    memberCount <- ConversationMembersSignal(conv.id).map(_.count(_ != self))
   } yield {
     if (conv.convType == ConversationType.Incoming) {
       (conv.id, getInboxName(memberCount))
@@ -110,7 +109,7 @@ class NormalConversationListRow(context: Context, attrs: AttributeSet, style: In
     z <- zms
     convId <- conversation.map(_.id)
     typing <- Signal.wrap(z.typing.onTypingChanged.filter(_._1 == convId).map(_._2.headOption)).orElse(Signal.const(None))
-    typingUser <- Signal.future(typing.fold(Future.successful(Option.empty[UserData]))(tu => z.usersStorage.get(tu.id)))
+    typingUser <- typing.fold2(Signal(Option.empty[UserData]), tu => UserSignal(tu.id).map(Option(_)))
   } yield typingUser
 
   val badgeInfo = for {
@@ -127,27 +126,26 @@ class NormalConversationListRow(context: Context, attrs: AttributeSet, style: In
     _ <- if (conv.convType == ConversationType.Incoming) Signal.empty else Signal.const(())
     lastReadInstant <- z.messagesStorage.lastRead(conv.id)
     lastUnreadMessages <- Signal.future(z.messagesStorage.findMessagesFrom(conv.id, lastReadInstant.plusMillis(1)).map(_.filter(_.userId != self)))
-    lastUnreadMessageUser <- lastUnreadMessages.lastOption.fold2(Signal.const(Option.empty[UserData]), message => z.usersStorage.optSignal(message.userId))
-    lastUnreadMessageMembers <- lastUnreadMessages.lastOption.fold2(Signal.const(Vector[UserData]()), message => z.usersStorage.listSignal(message.members))
+    lastUnreadMessageUser <- lastUnreadMessages.lastOption.fold2(Signal.const(Option.empty[UserData]), message => UserSignal(message.userId).map(Some(_)))
+    lastUnreadMessageMembers <- lastUnreadMessages.lastOption.fold2(Signal.const(Vector[UserData]()), message => UserSetSignal(message.members).map(_.toVector))
     typingUser <- userTyping
-    members <- z.membersStorage.activeMembers(conv.id)
-    otherUser <- members.find(_ != self).fold2(Signal.const(Option.empty[UserData]), uid => Signal.future(z.usersStorage.get(uid)))
+    members <- ConversationMembersSignal(conv.id)
+    otherUser <- members.find(_ != self).fold2(Signal.const(Option.empty[UserData]), uid => UserSignal(uid).map(Some(_)))
     lastMessage <- z.messagesStorage.lastMessage(conv.id)
   } yield (conv.id, subtitleStringForLastMessages(conv, otherUser, members, lastUnreadMessages, lastMessage, lastUnreadMessageUser, lastUnreadMessageMembers, typingUser, self))
 
   val avatarInfo = for {
     z <- zms
-    self <- selfId
     conv <- conversation
-    memberIds <- z.membersStorage.activeMembers(conv.id)
-    memberSeq <- Signal.future(z.usersStorage.getAll(memberIds)).map(_.flatten)
+    memberIds <- ConversationMembersSignal(conv.id)
+    memberSeq <- Signal.sequence(memberIds.map(uid => UserSignal(uid)).toSeq:_*)
   } yield {
     val opacity =
       if ((memberIds.isEmpty && conv.convType == ConversationType.Group) || conv.convType == ConversationType.WaitForConnection || !conv.activeMember)
         getResourceFloat(R.dimen.conversation_avatar_alpha_inactive)
       else
         getResourceFloat(R.dimen.conversation_avatar_alpha_active)
-    (conv.id, conv.convType, memberSeq.filter(_.id != self), opacity)
+    (conv.id, conv.convType, memberSeq.filter(_.id != z.selfUserId), opacity)
   }
 
   def setSubtitle(text: String): Unit = {
