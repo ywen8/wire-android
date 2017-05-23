@@ -17,7 +17,6 @@
  */
 package com.waz.zclient.adapters
 
-import android.content.Context
 import android.support.v7.widget.RecyclerView
 import android.view.{LayoutInflater, View, ViewGroup}
 import com.waz.ZLog
@@ -28,19 +27,17 @@ import com.waz.utils.events.EventContext
 import com.waz.zclient._
 import com.waz.zclient.adapters.PickUsersAdapter._
 import com.waz.zclient.controllers.SearchUserController
-import com.waz.zclient.pages.main.pickuser.SearchResultAdapter
-import com.waz.zclient.pages.main.pickuser.controller.IPickUserController
 import com.waz.zclient.viewholders._
 import com.waz.zclient.views.pickuser.ContactRowView.Callback
 
-import scala.collection.JavaConverters._
-
-class PickUsersAdapter(context: Context, topUsersOnItemTouchListener: SearchResultOnItemTouchListener, adapterCallback: SearchResultAdapter.Callback, searchUserController: SearchUserController)
+class PickUsersAdapter(topUsersOnItemTouchListener: SearchResultOnItemTouchListener,
+                       adapterCallback: PickUsersAdapter.Callback,
+                       searchUserController: SearchUserController,
+                       darkTheme: Boolean)
                       (implicit injector: Injector) extends RecyclerView.Adapter[RecyclerView.ViewHolder] with Injectable {
 
   implicit private val ec = EventContext.Implicits.global
   implicit private val logTag = ZLog.logTagFor[PickUsersAdapter]
-  //implicit private val ctx = context
 
   setHasStableIds(true)
   searchUserController.onDataChanged.on(Threading.Ui){ _ =>
@@ -51,13 +48,11 @@ class PickUsersAdapter(context: Context, topUsersOnItemTouchListener: SearchResu
   private var collapsedContacts = true
   private var collapsedGroups = true
 
-  def selectedUsers = adapterCallback.getSelectedUsers.asScala.map(u => UserId(u.getId)).toSet
-
   private val contactsCallback = new Callback {
     override def onContactListContactClicked(contactDetails: ContactDetails) = adapterCallback.onContactListContactClicked(contactDetails)
-    override def getDestination = IPickUserController.STARTUI
-    override def isUserSelected(user: User) = selectedUsers.contains(UserId(user.getId))
-    override def onContactListUserClicked(user: User) = adapterCallback.onContactListUserClicked(user)
+    override def getDestination = adapterCallback.getDestination
+    override def isUserSelected(user: User) = adapterCallback.getSelectedUsers.contains(UserId(user.getId))
+    override def onContactListUserClicked(user: User) = adapterCallback.onContactListUserClicked(UserId(user.getId))
   }
 
   private def updateMergedResults(): Unit ={
@@ -87,7 +82,7 @@ class PickUsersAdapter(context: Context, topUsersOnItemTouchListener: SearchResu
       }
 
       contactsSection = contactsSection ++ searchUserController.connectedUsers.indices.map { i =>
-        SearchResult(ConnectedUser, ContactsSection, i, searchUserController.connectedUsers(i).id.str.hashCode)
+        SearchResult(ConnectedUser, ContactsSection, i, searchUserController.connectedUsers(i).id.str.hashCode, searchUserController.connectedUsers(i).getDisplayName)
       }
 
       val shouldCollapse = searchUserController.searchState.currentValue.exists(_.filter.nonEmpty) && collapsedContacts && contactsSection.size > CollapsedContacts
@@ -139,11 +134,11 @@ class PickUsersAdapter(context: Context, topUsersOnItemTouchListener: SearchResu
         holder.asInstanceOf[ConversationViewHolder].bind(conversation)
       case ConnectedUser =>
         val connectedUser = searchUserController.connectedUsers(item.index)
-        val contactIsSelected = selectedUsers.contains(connectedUser.id)
+        val contactIsSelected = searchUserController.selectedUsers.contains(connectedUser.id)
         holder.asInstanceOf[UserViewHolder].bind(connectedUser, contactIsSelected)
       case UnconnectedUser =>
         val connectedUser = searchUserController.directoryResults(item.index)
-        val contactIsSelected = selectedUsers.contains(connectedUser.id)
+        val contactIsSelected = searchUserController.selectedUsers.contains(connectedUser.id)
         holder.asInstanceOf[UserViewHolder].bind(connectedUser, contactIsSelected)
       case SectionHeader =>
         holder.asInstanceOf[SectionHeaderViewHolder].bind(item.section)
@@ -172,7 +167,7 @@ class PickUsersAdapter(context: Context, topUsersOnItemTouchListener: SearchResu
       case TopUsers =>
         val view = LayoutInflater.from(parent.getContext).inflate(R.layout.startui_top_users, parent, false)
         val topUserAdapter: TopUserAdapter = new TopUserAdapter(new TopUserAdapter.Callback() {
-          override def getSelectedUsers = selectedUsers
+          override def getSelectedUsers = searchUserController.selectedUsers
         })
         new viewholders.TopUsersViewHolder(view, topUserAdapter, parent.getContext)
       case ConnectedUser | UnconnectedUser =>
@@ -235,6 +230,14 @@ object PickUsersAdapter {
   //Constants
   val CollapsedContacts = 5
   val CollapsedGroups = 5
+
+  trait Callback {
+    def getSelectedUsers: Set[UserId]
+    def onContactListUserClicked(userId: UserId): Unit
+    def onContactListContactClicked(contactDetails: ContactDetails): Unit
+    def getDestination: Int
+  }
+
 }
 
 case class SearchResult(itemType: Int, section: Int, index: Int, id: Long, name: String)

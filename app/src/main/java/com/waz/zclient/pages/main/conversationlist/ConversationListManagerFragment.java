@@ -83,7 +83,7 @@ import com.waz.zclient.pages.main.conversation.controller.IConversationScreenCon
 import com.waz.zclient.pages.main.participants.OptionsMenuControl;
 import com.waz.zclient.pages.main.participants.OptionsMenuFragment;
 import com.waz.zclient.pages.main.participants.dialog.ParticipantsDialogFragment;
-import com.waz.zclient.pages.main.pickuser.PickUserFragment;
+import com.waz.zclient.fragments.PickUserFragment;
 import com.waz.zclient.pages.main.pickuser.controller.IPickUserController;
 import com.waz.zclient.pages.main.pickuser.controller.PickUserControllerScreenObserver;
 import com.waz.zclient.pages.main.profile.ZetaPreferencesActivity;
@@ -179,9 +179,9 @@ public class ConversationListManagerFragment extends BaseFragment<ConversationLi
                 IPickUserController.Destination.CONVERSATION_LIST)) {
                 getControllerFactory().getPickUserController().hidePickUser(IPickUserController.Destination.CONVERSATION_LIST, false);
 
-                Fragment pickUserFragment = getChildFragmentManager().findFragmentByTag(PickUserFragment.TAG);
+                Fragment pickUserFragment = getChildFragmentManager().findFragmentByTag(PickUserFragment.TAG());
                 if (pickUserFragment != null) {
-                    getChildFragmentManager().popBackStack(PickUserFragment.TAG, FragmentManager.POP_BACK_STACK_INCLUSIVE);
+                    getChildFragmentManager().popBackStack(PickUserFragment.TAG(), FragmentManager.POP_BACK_STACK_INCLUSIVE);
                 }
             }
 
@@ -466,7 +466,7 @@ public class ConversationListManagerFragment extends BaseFragment<ConversationLi
         }
 
         PickUserFragment pickUserFragment = (PickUserFragment) getChildFragmentManager().findFragmentByTag(
-            PickUserFragment.TAG);
+            PickUserFragment.TAG());
         if (pickUserFragment != null &&
             pickUserFragment.onBackPressed()) {
             return true;
@@ -505,7 +505,7 @@ public class ConversationListManagerFragment extends BaseFragment<ConversationLi
             // TODO: START is set as left page on tablet, fix
             case START:
             case CONVERSATION_LIST:
-                Fragment fragment = getChildFragmentManager().findFragmentByTag(PickUserFragment.TAG);
+                Fragment fragment = getChildFragmentManager().findFragmentByTag(PickUserFragment.TAG());
                 if (fragment == null ||
                     !(fragment instanceof PickUserFragment)) {
                     getControllerFactory().getOnboardingController().incrementPeoplePickerShowCount();
@@ -515,8 +515,8 @@ public class ConversationListManagerFragment extends BaseFragment<ConversationLi
                                              R.anim.open_new_conversation__thread_list_out,
                                              R.anim.open_new_conversation__thread_list_in,
                                              R.anim.slide_out_to_bottom_pick_user)
-                        .replace(R.id.fl__conversation_list_main, PickUserFragment.newInstance(false), PickUserFragment.TAG)
-                        .addToBackStack(PickUserFragment.TAG)
+                        .replace(R.id.fl__conversation_list_main, PickUserFragment.newInstance(false), PickUserFragment.TAG())
+                        .addToBackStack(PickUserFragment.TAG())
                         .commit();
                 }
                 break;
@@ -540,7 +540,7 @@ public class ConversationListManagerFragment extends BaseFragment<ConversationLi
             case PENDING_CONNECT_REQUEST:
                 getControllerFactory().getPickUserController().hideUserProfile();
             case PICK_USER:
-                getChildFragmentManager().popBackStackImmediate(PickUserFragment.TAG,
+                getChildFragmentManager().popBackStackImmediate(PickUserFragment.TAG(),
                                                                 FragmentManager.POP_BACK_STACK_INCLUSIVE);
 
                 KeyboardUtils.hideKeyboard(getActivity());

@@ -40,8 +40,6 @@ class SearchEditText(context: Context, attrs: AttributeSet, style: Int) extends 
   private var callback = Option.empty[Callback]
   private val styleAttributes: TypedArray = context.getTheme.obtainStyledAttributes(attrs, R.styleable.SearchEditText, 0, 0)
 
-  val onEditorActionEvent = EventStream[(Int, KeyEvent)]()
-
   searchHint.setText(styleAttributes.getString(R.styleable.SearchEditText_hintText))
   searchBox.setCallback(new Callback {
     override def afterTextChanged(s: String) = {
@@ -75,4 +73,8 @@ class SearchEditText(context: Context, attrs: AttributeSet, style: Int) extends 
   def setCursorColor(accentColor: Int) = searchBox.setAccentColor(accentColor)
 
   def setOnEditorActionListener(listener: OnEditorActionListener) = searchBox.setOnEditorActionListener(listener)
+
+  def setFocus(): Unit = searchBox.requestFocus()
+
+  def getElements: Set[PickableElement] = Option(searchBox.getElements).getOrElse(Set())
 }

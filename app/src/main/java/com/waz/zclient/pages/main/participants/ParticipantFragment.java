@@ -74,7 +74,7 @@ import com.waz.zclient.pages.main.connect.SendConnectRequestFragment;
 import com.waz.zclient.pages.main.conversation.controller.ConversationScreenControllerObserver;
 import com.waz.zclient.pages.main.conversation.controller.IConversationScreenController;
 import com.waz.zclient.pages.main.participants.dialog.DialogLaunchMode;
-import com.waz.zclient.pages.main.pickuser.PickUserFragment;
+import com.waz.zclient.fragments.PickUserFragment;
 import com.waz.zclient.pages.main.pickuser.controller.IPickUserController;
 import com.waz.zclient.pages.main.pickuser.controller.PickUserControllerScreenObserver;
 import com.waz.zclient.tracking.GlobalTrackingController;
@@ -318,7 +318,7 @@ public class ParticipantFragment extends BaseFragment<ParticipantFragment.Contai
             conversationChangeRequester == ConversationChangeRequester.START_CONVERSATION_FOR_VIDEO_CALL ||
             conversationChangeRequester == ConversationChangeRequester.START_CONVERSATION_FOR_CALL ||
             conversationChangeRequester == ConversationChangeRequester.START_CONVERSATION_FOR_CAMERA) {
-            getChildFragmentManager().popBackStackImmediate(PickUserFragment.TAG,
+            getChildFragmentManager().popBackStackImmediate(PickUserFragment.TAG(),
                                                             FragmentManager.POP_BACK_STACK_INCLUSIVE);
             getControllerFactory().getPickUserController().hidePickUserWithoutAnimations(
                 getCurrentPickerDestination());
@@ -598,7 +598,7 @@ public class ParticipantFragment extends BaseFragment<ParticipantFragment.Contai
     @Override
     public boolean onBackPressed() {
         PickUserFragment pickUserFragment = (PickUserFragment) getChildFragmentManager().findFragmentByTag(
-            PickUserFragment.TAG);
+            PickUserFragment.TAG());
         if (pickUserFragment != null && pickUserFragment.onBackPressed()) {
             return true;
         }
@@ -1081,8 +1081,8 @@ public class ParticipantFragment extends BaseFragment<ParticipantFragment.Contai
             .setCustomAnimations(pickUserAnimation, R.anim.fade_out)
             .add(R.id.fl__add_to_conversation__pickuser__container,
                  PickUserFragment.newInstance(true, groupConversation),
-                 PickUserFragment.TAG)
-            .addToBackStack(PickUserFragment.TAG)
+                 PickUserFragment.TAG())
+            .addToBackStack(PickUserFragment.TAG())
             .commit();
 
         if (LayoutSpec.isPhone(getActivity())) {
@@ -1142,7 +1142,7 @@ public class ParticipantFragment extends BaseFragment<ParticipantFragment.Contai
                 if (!isResumed()) {
                     return;
                 }
-                getChildFragmentManager().popBackStackImmediate(PickUserFragment.TAG,
+                getChildFragmentManager().popBackStackImmediate(PickUserFragment.TAG(),
                                                                 FragmentManager.POP_BACK_STACK_INCLUSIVE);
 
                 if (LayoutSpec.isTablet(getActivity())) {

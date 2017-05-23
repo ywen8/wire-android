@@ -75,7 +75,7 @@ class SearchBoxView(val context: Context, val attrs: AttributeSet, val defStyleA
     this(context, null)
   }
 
-  private def init(context: Context) {
+  private def init(context: Context): Unit = {
     LayoutInflater.from(context).inflate(R.layout.search_box_view, this, true)
     clearButton = ViewUtils.getView(this, R.id.gtv_pickuser__clearbutton)
     inputEditText = ViewUtils.getView(this, R.id.puet_pickuser__searchbox)
@@ -83,13 +83,13 @@ class SearchBoxView(val context: Context, val attrs: AttributeSet, val defStyleA
     val hintColorStartUI = ContextCompat.getColor(getContext, R.color.text__secondary_light)
     inputEditText.setTypeface(TypefaceUtils.getTypeface(context.getString(R.string.wire__typeface__light)))
     inputEditText.setCallback(new PickerSpannableEditText.Callback() {
-      def onRemovedTokenSpan(element: PickableElement) {
+      def onRemovedTokenSpan(element: PickableElement): Unit = {
         if (callback != null) {
           callback.onRemovedTokenSpan(element)
         }
       }
 
-      def afterTextChanged(s: String) {
+      def afterTextChanged(s: String): Unit = {
         if (callback != null) {
           callback.afterTextChanged(s)
         }
@@ -104,11 +104,11 @@ class SearchBoxView(val context: Context, val attrs: AttributeSet, val defStyleA
           callback.onKeyboardDoneAction()
           return true
         }
-        return false
+        false
       }
     })
     inputEditText.setOnFocusChangeListener(new View.OnFocusChangeListener() {
-      def onFocusChange(view: View, hasFocus: Boolean) {
+      def onFocusChange(view: View, hasFocus: Boolean): Unit = {
         if (callback != null) {
           callback.onFocusChange(hasFocus)
         }
@@ -118,7 +118,7 @@ class SearchBoxView(val context: Context, val attrs: AttributeSet, val defStyleA
       inputEditText.setLineSpacing(getResources.getDimensionPixelSize(R.dimen.people_picker__input__line_spacing_extra__greater_than_android_sdk_19), 1)
     }
     clearButton.setOnClickListener(new View.OnClickListener() {
-      def onClick(v: View) {
+      def onClick(v: View): Unit = {
         if (callback != null) {
           callback.onClearButton()
         }
@@ -126,15 +126,15 @@ class SearchBoxView(val context: Context, val attrs: AttributeSet, val defStyleA
     })
   }
 
-  def setHintText(hintText: CharSequence) {
+  def setHintText(hintText: CharSequence): Unit = {
     inputEditText.setHintText(hintText)
   }
 
-  def showClearButton(show: Boolean) {
+  def showClearButton(show: Boolean): Unit = {
     clearButton.setVisibility(if (show) View.VISIBLE else View.GONE)
   }
 
-  def forceDarkTheme() {
+  def forceDarkTheme(): Unit = {
     val textColor = ContextCompat.getColor(getContext, R.color.text__primary_dark)
     inputEditText.setTextColor(textColor)
     inputEditText.setHintTextColor(textColor)
@@ -143,54 +143,54 @@ class SearchBoxView(val context: Context, val attrs: AttributeSet, val defStyleA
     setBackgroundColor(Color.TRANSPARENT)
   }
 
-  def applyLightTheme(light: Boolean) {
+  def applyLightTheme(light: Boolean): Unit = {
     inputEditText.applyLightTheme(light)
   }
 
-  def setCallback(callback: SearchBoxView.Callback) {
+  def setCallback(callback: SearchBoxView.Callback): Unit = {
     this.callback = callback
   }
 
-  def setAccentColor(color: Int) {
+  def setAccentColor(color: Int): Unit = {
     colorBottomBorder.setBackgroundColor(color)
     inputEditText.setAccentColor(color)
   }
 
-  def addUser(user: User) {
+  def addUser(user: User): Unit = {
     inputEditText.addElement(new PickableElement() {
       def name: String = {
-        return user.getDisplayName
+        user.getDisplayName
       }
 
       def id: String =
       {
-        return user.getId
+        user.getId
       }
     })
   }
 
-  def removeUser(user: User) {
+  def removeUser(user: User): Unit = {
     inputEditText.removeElement(new PickableElement() {
       def name: String = {
-        return user.getDisplayName
+        user.getDisplayName
       }
 
       def id: String =
       {
-        return user.getId
+        user.getId
       }
     })
   }
 
   def getSearchFilter: String = {
-    return inputEditText.getSearchFilter
+    inputEditText.getSearchFilter
   }
 
-  def reset() {
+  def reset(): Unit = {
     inputEditText.reset()
   }
 
-  def setFocus() {
+  def setFocus(): Unit = {
     inputEditText.setCursorVisible(true)
     inputEditText.requestFocus
   }
