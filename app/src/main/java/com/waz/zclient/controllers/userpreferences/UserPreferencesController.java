@@ -20,10 +20,8 @@ package com.waz.zclient.controllers.userpreferences;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.SharedPreferences;
-
 import com.waz.zclient.R;
 import com.waz.zclient.utils.StringUtils;
-
 import org.json.JSONArray;
 import org.json.JSONException;
 
@@ -290,7 +288,7 @@ public class UserPreferencesController implements IUserPreferencesController {
 
     @Override
     public boolean hasShareContactsEnabled() {
-        return userPreferences.getBoolean(context.getString(R.string.pref_share_contacts_key), true);
+        return userPreferences.getBoolean(context.getString(R.string.pref_share_contacts_key), false);
     }
 
     @Override
