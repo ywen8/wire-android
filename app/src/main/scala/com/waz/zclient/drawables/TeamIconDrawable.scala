@@ -71,7 +71,7 @@ class TeamIconDrawable(implicit inj: Injector, eventContext: EventContext) exten
   val matrix = new Matrix()
 
   val assetId = Signal(Option.empty[AssetId])
-  val bounds = Signal(getBounds)
+  val bounds = Signal[Rect]()
   val zms = inject[Signal[ZMessaging]]
   val bmp = for{
     z <- zms
@@ -83,6 +83,10 @@ class TeamIconDrawable(implicit inj: Injector, eventContext: EventContext) exten
 
   bmp.on(Threading.Ui){ _ =>
     invalidateSelf()
+  }
+
+  bounds.on(Threading.Ui) { bounds =>
+    updateDrawable(bounds)
   }
 
   override def draw(canvas: Canvas) = {
@@ -145,6 +149,16 @@ class TeamIconDrawable(implicit inj: Injector, eventContext: EventContext) exten
   }
 
   override def onBoundsChange(bounds: Rect) = {
+    this.bounds ! bounds
+  }
+
+  override def getIntrinsicHeight = super.getIntrinsicHeight
+
+  override def getIntrinsicWidth = super.getIntrinsicWidth
+
+  private def diameter(bounds: Rect = getBounds): Int = Math.min(bounds.width, bounds.height)
+
+  private def updateDrawable(bounds: Rect): Unit = {
     val diam = diameter(bounds) - diameter(bounds) * 0.075f
     val textSize = diam / 2.5f
     val borderWidth = diam * 0.075f
@@ -160,20 +174,13 @@ class TeamIconDrawable(implicit inj: Injector, eventContext: EventContext) exten
     hexMatrix.setTranslate(bounds.centerX(), bounds.centerY())
     borderPath.transform(hexMatrix)
     innerPath.transform(hexMatrix)
-    this.bounds ! bounds
+    invalidateSelf()
   }
-
-  override def getIntrinsicHeight = super.getIntrinsicHeight
-
-  override def getIntrinsicWidth = super.getIntrinsicWidth
-
-  private def diameter(bounds: Rect = getBounds): Int = Math.min(bounds.width, bounds.height)
 
   def setInfo(text: String, borderColor:Int, corners: Int): Unit = {
     this.text = text
     borderPaint.setColor(borderColor)
     this.corners = corners
-    onBoundsChange(getBounds)
-    invalidateSelf()
+    bounds.currentValue.foreach(updateDrawable)
   }
 }
