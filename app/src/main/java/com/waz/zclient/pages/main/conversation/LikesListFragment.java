@@ -27,6 +27,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import com.waz.api.Message;
 import com.waz.zclient.R;
+import com.waz.zclient.adapters.LikesAdapter;
 import com.waz.zclient.core.api.scala.ModelObserver;
 import com.waz.zclient.pages.BaseFragment;
 import com.waz.zclient.utils.ViewUtils;
@@ -64,7 +65,7 @@ public class LikesListFragment extends BaseFragment<LikesListFragment.Container>
         toolbar = ViewUtils.getView(rootView, R.id.t__likes_list__toolbar);
         likersListView = ViewUtils.getView(rootView, R.id.rv__likes_list);
 
-        likesAdapter = new LikesAdapter();
+        likesAdapter = new LikesAdapter(getContext());
         likersListView.setLayoutManager(new LinearLayoutManager(getActivity()));
         likersListView.setAdapter(likesAdapter);
 

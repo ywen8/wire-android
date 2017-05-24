@@ -17,14 +17,14 @@
  */
 package com.waz.zclient.utils
 
-import com.waz.model.UserData
+import com.waz.model.{TeamId, UserData}
 import com.waz.model.UserData.ConnectionStatus
 import com.waz.service.SearchKey
 
 //TODO: this was removed from the UiModule API. Maybe it should be in the SE
 object SearchUtils {
 
-  def ConnectedUsersPredicate(searchTerm: String, filteredIds: Set[String], alsoSearchByEmail: Boolean, showBlockedUsers: Boolean, searchByHandleOnly: Boolean): UserData => Boolean = {
+  def ConnectedUsersPredicate(searchTerm: String, filteredIds: Set[String], alsoSearchByEmail: Boolean, showBlockedUsers: Boolean, searchByHandleOnly: Boolean, teamId: Option[TeamId]): UserData => Boolean = {
     val query = SearchKey(searchTerm)
     user =>
       ((query.isAtTheStartOfAnyWordIn(user.searchKey) && !searchByHandleOnly) ||
@@ -32,5 +32,8 @@ object SearchUtils {
         (alsoSearchByEmail && user.email.exists(e => searchTerm.trim.equalsIgnoreCase(e.str)))) &&
         !filteredIds.contains(user.id.str) &&
         (showBlockedUsers || (user.connection != ConnectionStatus.Blocked))
+      //TODO: team filter
+      //&& teamId.forall(tid => user.teamId == tid)
+
   }
 }

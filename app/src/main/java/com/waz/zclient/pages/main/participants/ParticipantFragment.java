@@ -1073,6 +1073,11 @@ public class ParticipantFragment extends BaseFragment<ParticipantFragment.Contai
         int pickUserAnimation =
             LayoutSpec.isTablet(getActivity()) ? R.anim.fade_in : R.anim.slide_in_from_bottom_pick_user;
 
+        IConversation currentConversation = getStoreFactory() != null &&
+            !getStoreFactory().isTornDown() ?
+            getStoreFactory().getConversationStore().getCurrentConversation() : null;
+        String conversationId = currentConversation == null ? null : currentConversation.getId();
+
         if (!groupConversation && otherUser != null) {
             getControllerFactory().getPickUserController().addUser(otherUser);
         }
@@ -1080,7 +1085,7 @@ public class ParticipantFragment extends BaseFragment<ParticipantFragment.Contai
             .beginTransaction()
             .setCustomAnimations(pickUserAnimation, R.anim.fade_out)
             .add(R.id.fl__add_to_conversation__pickuser__container,
-                 PickUserFragment.newInstance(true, groupConversation),
+                 PickUserFragment.newInstance(true, groupConversation, conversationId),
                  PickUserFragment.TAG())
             .addToBackStack(PickUserFragment.TAG())
             .commit();

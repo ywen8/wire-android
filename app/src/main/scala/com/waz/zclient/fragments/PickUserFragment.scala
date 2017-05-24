@@ -35,7 +35,7 @@ import android.widget.{LinearLayout, ListView, TextView, Toast}
 import com.waz.ZLog
 import com.waz.api._
 import com.waz.model.UserData.ConnectionStatus
-import com.waz.model.{ConversationData, UserData, UserId}
+import com.waz.model.{ConvId, ConversationData, UserData, UserId}
 import com.waz.service.ZMessaging
 import com.waz.threading.Threading
 import com.waz.utils.events.Signal
@@ -72,6 +72,7 @@ object PickUserFragment {
   val TAG: String = classOf[PickUserFragment].getName
   val ARGUMENT_ADD_TO_CONVERSATION: String = "ARGUMENT_ADD_TO_CONVERSATION"
   val ARGUMENT_GROUP_CONVERSATION: String = "ARGUMENT_GROUP_CONVERSATION"
+  val ARGUMENT_CONVERSATION_ID: String = "ARGUMENT_CONVERSATION_ID"
   val NUM_SEARCH_RESULTS_LIST: Int = 30
   val NUM_SEARCH_RESULTS_TOP_USERS: Int = 24
   val NUM_SEARCH_RESULTS_ADD_TO_CONV: Int = 1000
@@ -79,19 +80,15 @@ object PickUserFragment {
   private val SHOW_KEYBOARD_THRETHOLD: Int = 10
   private val SHOW_INVITE: Boolean = true
 
-  def newInstance(addToConversation: Boolean): PickUserFragment = {
-    val fragment: PickUserFragment = new PickUserFragment
-    val args: Bundle = new Bundle
-    args.putBoolean(ARGUMENT_ADD_TO_CONVERSATION, addToConversation)
-    args.putBoolean(ARGUMENT_GROUP_CONVERSATION, false)
-    fragment.setArguments(args)
-    fragment
+  def newInstance(addToConversation: Boolean, conversationId: String): PickUserFragment = {
+    newInstance(addToConversation, groupConversation = false, conversationId)
   }
 
-  def newInstance(addToConversation: Boolean, groupConversation: Boolean): PickUserFragment = {
+  def newInstance(addToConversation: Boolean, groupConversation: Boolean, conversationId: String): PickUserFragment = {
     val fragment: PickUserFragment = new PickUserFragment
     val args: Bundle = new Bundle
     args.putBoolean(ARGUMENT_ADD_TO_CONVERSATION, addToConversation)
+    args.putString(ARGUMENT_CONVERSATION_ID, conversationId)
     args.putBoolean(ARGUMENT_GROUP_CONVERSATION, groupConversation)
     fragment.setArguments(args)
     fragment
@@ -218,9 +215,9 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
         closeStartUI()
       }
     })
-    searchUserController = new SearchUserController(SearchState("", hasSelectedUsers = false, isAddingToConversation = isAddingToConversation))
+    searchUserController = new SearchUserController(SearchState("", hasSelectedUsers = false, addingToConversation = addingToConversation))
     searchUserController.setContacts(getStoreFactory.getZMessagingApiStore.getApi.getContacts)
-    searchResultAdapter = new PickUsersAdapter(new SearchResultOnItemTouchListener(getActivity, this), this, searchUserController, isAddingToConversation)
+    searchResultAdapter = new PickUsersAdapter(new SearchResultOnItemTouchListener(getActivity, this), this, searchUserController, getControllerFactory.getThemeController.isDarkTheme || !isAddingToConversation)
     searchResultAdapter.registerAdapterDataObserver(new RecyclerView.AdapterDataObserver() {
       override def onChanged(): Unit = {
         val currentFilter = searchUserController.searchState.currentValue.map(_.filter).getOrElse("")
@@ -377,8 +374,12 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
           if (searchBoxView == null || numberOfActiveConversations <= PickUserFragment.SHOW_KEYBOARD_THRETHOLD) {
             return
           }
-          searchBoxView.setFocus()
-          KeyboardUtils.showKeyboard(getActivity)
+          teamsAndUserController.currentTeamOrUser.currentValue.foreach{
+            case Right(team) =>
+              searchBoxView.setFocus()
+              KeyboardUtils.showKeyboard(getActivity)
+            case _ =>
+          }
         }
       }, getResources.getInteger(R.integer.people_picker__keyboard__show_delay))
     }
@@ -526,7 +527,7 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
 
   private def changeUserSelectedState(user: User, selected: Boolean): Unit = {
     changeUserSelectedState(searchResultRecyclerView, user, selected)
-    if (searchUserController.topUsers.isEmpty)
+    if (searchUserController.topUsersSignal.currentValue.exists(_.isEmpty))
       return
     (0 until searchResultRecyclerView.getChildCount).map(searchResultRecyclerView.getChildAt).foreach{
       case view: RecyclerView =>
@@ -586,7 +587,7 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
     getStoreFactory.getConversationStore.setCurrentConversation(conversation, ConversationChangeRequester.START_CONVERSATION)
   }
 
-  override def getSelectedUsers: Set[UserId] = searchUserController.selectedUsers
+  override def getSelectedUsers: Set[UserId] = searchUserController.selectedUsers.toSet
 
   override def onContactListUserClicked(userId: UserId): Unit = {
     val user: User = getStoreFactory.getZMessagingApiStore.getApi.getUser(userId.str)
@@ -828,6 +829,10 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
 
   private def isAddingToConversation: Boolean = {
     getArguments.getBoolean(PickUserFragment.ARGUMENT_ADD_TO_CONVERSATION)
+  }
+
+  private def addingToConversation: Option[ConvId] = {
+    Option(getArguments.getString(PickUserFragment.ARGUMENT_CONVERSATION_ID)).map(ConvId(_))
   }
 
   private def closeStartUI(): Unit = {

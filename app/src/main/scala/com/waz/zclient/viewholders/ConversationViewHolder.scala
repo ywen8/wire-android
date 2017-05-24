@@ -24,8 +24,10 @@ import com.waz.zclient.R
 import com.waz.zclient.utils.ViewUtils
 import com.waz.zclient.views.pickuser.SearchResultConversationRowView
 
-class ConversationViewHolder(val view: View) extends RecyclerView.ViewHolder(view) {
+class ConversationViewHolder(val view: View, darkTheme: Boolean) extends RecyclerView.ViewHolder(view) {
   private val conversationRowView: SearchResultConversationRowView = ViewUtils.getView(view, R.id.srcrv_startui_conversation)
+
+  if (darkTheme) conversationRowView.applyDarkTheme()
 
   def bind(conversationData: ConversationData): Unit = {
     conversationRowView.setConversation(conversationData)

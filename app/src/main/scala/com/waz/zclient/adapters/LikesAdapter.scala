@@ -48,22 +48,47 @@
   * You should have received a copy of the GNU General Public License
   * along with this program.  If not, see <http://www.gnu.org/licenses/>.
   */
-package com.waz.zclient.viewholders
+package com.waz.zclient.adapters
 
-import android.support.v4.content.ContextCompat
+import android.content.Context
 import android.support.v7.widget.RecyclerView
-import android.view.View
-import android.widget.TextView
-import com.waz.zclient.R
-import com.waz.zclient.utils.ViewUtils
+import android.view.{LayoutInflater, View, ViewGroup}
+import com.waz.api.User
+import com.waz.model.{UserData, UserId}
+import com.waz.threading.Threading
+import com.waz.utils.events.Signal
+import com.waz.zclient.utils.{UiStorage, UserSetSignal}
+import com.waz.zclient.viewholders.UserViewHolder
+import com.waz.zclient.{BaseActivity, R}
 
-class AddressBookSectionHeaderViewHolder(val view: View, val darkTheme: Boolean) extends RecyclerView.ViewHolder(view) {
+class LikesAdapter(context: Context) extends RecyclerView.Adapter[RecyclerView.ViewHolder] {
+  private implicit val injector = context.asInstanceOf[BaseActivity].injector
+  private implicit val ec = context.asInstanceOf[BaseActivity].eventContext
+  private implicit val uiStorage = context.asInstanceOf[BaseActivity].inject[UiStorage]
+  private val likesUserIds = Signal(Set[UserId]())
+  private var likesUsers = Seq[UserData]()
 
-  private val label: TextView = ViewUtils.getView(view, R.id.ttv_startui_section_header)
+  (for {
+    userIds <- likesUserIds
+    users <- UserSetSignal(userIds)
+  } yield users.toSeq).on(Threading.Ui) { data =>
+    likesUsers = data
+    notifyDataSetChanged()
+  }
 
-  if (darkTheme) label.setTextColor(ContextCompat.getColor(view.getContext, R.color.text__primary_dark))
+  def onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder = {
+    var view: View = null
+    view = LayoutInflater.from(parent.getContext).inflate(R.layout.startui_user, parent, false)
+    new UserViewHolder(view, false, false)
+  }
 
-  def bind(labelText: String): Unit = {
-    label.setText(labelText)
+  def onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int): Unit = {
+    holder.asInstanceOf[UserViewHolder].bind(likesUsers(position), isSelected = false)
+  }
+
+  def getItemCount: Int = likesUsers.size
+
+  def setLikes(likes: Array[User]): Unit = {
+    likesUserIds ! likes.map(u => UserId(u.getId)).toSet
   }
 }

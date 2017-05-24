@@ -27,19 +27,22 @@ import com.waz.zclient.utils.ViewUtils
 class SectionHeaderViewHolder(val view: View) extends RecyclerView.ViewHolder(view) {
   private val sectionHeaderView: TextView = ViewUtils.getView(view, R.id.ttv_startui_section_header)
 
-  def bind(section: Int): Unit = {
+  def bind(section: Int, teamName: String): Unit = {
     val title: String =
       section match {
         case PickUsersAdapter.TopUsersSection =>
           sectionHeaderView.getContext.getResources.getString(R.string.people_picker__top_users_header_title)
         case PickUsersAdapter.GroupConversationsSection =>
-          sectionHeaderView.getContext.getResources.getString(R.string.people_picker__search_result_conversations_header_title)
+          if (teamName.isEmpty)
+            sectionHeaderView.getContext.getResources.getString(R.string.people_picker__search_result_conversations_header_title)
+          else
+            sectionHeaderView.getContext.getResources.getString(R.string.people_picker__search_result_team_conversations_header_title, teamName)
         case PickUsersAdapter.ContactsSection =>
           sectionHeaderView.getContext.getResources.getString(R.string.people_picker__search_result_connections_header_title)
         case PickUsersAdapter.DirectorySection =>
           sectionHeaderView.getContext.getResources.getString(R.string.people_picker__search_result_others_header_title)
-        case PickUsersAdapter.ContactsSection =>
-          sectionHeaderView.getContext.getResources.getString(R.string.people_picker__search_result_contacts_header_title)
+        case PickUsersAdapter.TeamMembersSection =>
+          teamName
       }
     sectionHeaderView.setText(title)
   }

@@ -596,6 +596,8 @@ public class ConversationManagerFragment extends BaseFragment<ConversationManage
         if (!groupConversation && otherUser != null) {
             getControllerFactory().getPickUserController().addUser(otherUser);
         }
+        IConversation conversation = getStoreFactory().getConversationStore().getCurrentConversation();
+        String conversationId = conversation == null ? null : conversation.getId();
         getChildFragmentManager()
             .beginTransaction()
             .setCustomAnimations(R.anim.slide_in_from_bottom_pick_user,
@@ -603,7 +605,7 @@ public class ConversationManagerFragment extends BaseFragment<ConversationManage
                                  R.anim.open_new_conversation__thread_list_in,
                                  R.anim.slide_out_to_bottom_pick_user)
             .replace(R.id.fl__conversation_manager__message_list_container,
-                     PickUserFragment.newInstance(true, groupConversation),
+                     PickUserFragment.newInstance(true, groupConversation, conversationId),
                      PickUserFragment.TAG())
             .addToBackStack(PickUserFragment.TAG())
             .commit();

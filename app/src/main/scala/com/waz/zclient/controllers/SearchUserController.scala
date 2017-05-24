@@ -25,33 +25,31 @@ import com.waz.threading.Threading
 import com.waz.utils.SeqMap
 import com.waz.utils.events.{EventContext, EventStream, Signal}
 import com.waz.zclient.{Injectable, Injector}
-import com.waz.zclient.utils.SearchUtils
+import com.waz.zclient.utils.{ConversationMembersSignal, SearchUtils, UiStorage}
 
-import scala.concurrent.duration._
+import scala.collection.Set
 
-case class SearchState(filter: String, hasSelectedUsers: Boolean, isAddingToConversation: Boolean){
-  val shouldShowTopUsers = filter.isEmpty && !hasSelectedUsers
-  val shouldShowAbContacts = !isAddingToConversation && !hasSelectedUsers
-  val shouldShowGroupConversations = filter.nonEmpty && !hasSelectedUsers && !isAddingToConversation
-  val shouldShowDirectorySerach = filter.nonEmpty && !hasSelectedUsers && !isAddingToConversation
-  val shouldShowSearchedContacts = hasSelectedUsers
+case class SearchState(filter: String, hasSelectedUsers: Boolean, addingToConversation: Option[ConvId], teamId: Option[TeamId] = None){
+  val shouldShowTopUsers = filter.isEmpty && !hasSelectedUsers && teamId.isEmpty && addingToConversation.isEmpty
+  val shouldShowAbContacts = addingToConversation.isEmpty && !hasSelectedUsers && teamId.isEmpty
+  val shouldShowGroupConversations = filter.nonEmpty && !hasSelectedUsers && addingToConversation.isEmpty
+  val shouldShowDirectorySearch = filter.nonEmpty && !hasSelectedUsers && addingToConversation.isEmpty
+  val shouldShowSearchedContacts = hasSelectedUsers || addingToConversation.nonEmpty
 }
 
-class SearchUserController(initialState: SearchState)(implicit injector: Injector) extends Injectable {
-  implicit private val ec = EventContext.Implicits.global //TODO: change to implicit and get it from the fragment
+class SearchUserController(initialState: SearchState)(implicit injector: Injector, ec: EventContext) extends Injectable {
+  implicit private val uiStorage = inject[UiStorage]
 
   private val zms = inject[Signal[ZMessaging]]
-  private val teamsAndUserController = inject[TeamsAndUserController]
-  private val teamFilter = teamsAndUserController.currentTeamOrUser.map {
-    case Left(_) => None
-    case Right(team) => Some(team.id)
-  }
 
   val searchState = Signal(initialState)
-  val onDataChanged = EventStream[Unit]()
 
   var selectedUsers = Set[UserId]()
-  var excludedUsers = Set[UserId]()
+  var excludedUsers = for {
+    z <- zms
+    searchState <- searchState
+    members <- searchState.addingToConversation.fold(Signal.const(Set[UserId]()))(ConversationMembersSignal(_))
+  } yield members
 
   val onSelectedUserAdded = EventStream[UserId]()
   val onSelectedUserRemoved = EventStream[UserId]()
@@ -77,52 +75,58 @@ class SearchUserController(initialState: SearchState)(implicit injector: Injecto
     searchState.mutate(_.copy(hasSelectedUsers = hasSelectedUsers))
   }
 
-  def setState(filter: String, hasSelectedUsers: Boolean, isAddingToConversation: Boolean): Unit = {
-    searchState ! SearchState(filter, hasSelectedUsers, isAddingToConversation)
+  def setState(filter: String, hasSelectedUsers: Boolean, addingToConversation: Option[ConvId]): Unit = {
+    searchState ! SearchState(filter, hasSelectedUsers, addingToConversation)
   }
 
-  private val topUsersSignal = for {
+  val topUsersSignal = for {
     z <- zms
     searchState <- searchState
+    excludedUsers <- excludedUsers
     users <- if (searchState.shouldShowTopUsers) z.userSearch.searchUserData(TopPeople) else Signal(SeqMap.empty[UserId, UserData])
-  } yield users.values
+  } yield users.values.filter(u => !excludedUsers.contains(u.id))
 
-  private val teamMembersSignal = for {
+  val teamMembersSignal = for {
     z <- zms
-    teamId <- teamFilter
     searchState <- searchState
     members <- Signal(Seq[UserData]())
   } yield members //TODO: do
 
-  private val conversationsSignal = for {
+  val conversationsSignal = for {
     z <- zms
-    teamId <- teamFilter
     searchState <- searchState
-      convs <- if (searchState.shouldShowGroupConversations) Signal.future(z.convsUi.findGroupConversations(SearchKey(searchState.filter), Int.MaxValue, handleOnly = false)) else Signal(Seq[ConversationData]())
-  } yield convs.filter{ conv => teamId.forall(tId => conv.team.exists(_.id == tId)) }
+    convs <- if (searchState.shouldShowGroupConversations) Signal.future(z.convsUi.findGroupConversations(SearchKey(searchState.filter), Int.MaxValue, handleOnly = false)) else Signal(Seq[ConversationData]())
+  } yield convs.filter{ conv => searchState.teamId.forall(tId => conv.team.exists(_.id == tId)) }
 
-  private val searchSignal = for {
+  val searchSignal = for {
     z <- zms
-    teamId <- teamFilter
     searchState <- searchState
-    users <- if (searchState.shouldShowDirectorySerach) z.userSearch.searchUserData(directorySearchQuery(searchState.filter)) else Signal(SeqMap.empty[UserId, UserData])
-  } yield users.values
+    users <- if (searchState.shouldShowDirectorySearch) z.userSearch.searchUserData(directorySearchQuery(searchState.filter)) else Signal(SeqMap.empty[UserId, UserData])
+  } yield users.values //TODO: filter teamId?
 
-  private val connectedUsersSignal = for {
+  val connectedUsersSignal = for {
     z <- zms
     searchState <- searchState
+    excludedUsers <- excludedUsers.map(_.map(_.str).toSet)
     users <-
     if (searchState.shouldShowSearchedContacts)
-      z.users.acceptedOrBlockedUsers.map(_.valuesIterator.filter(SearchUtils.ConnectedUsersPredicate(searchState.filter, Set(), alsoSearchByEmail = true, showBlockedUsers = true, searchByHandleOnly = Handle.containsSymbol(searchState.filter))).toVector)
+      z.users.acceptedOrBlockedUsers.map(_.valuesIterator
+        .filter(SearchUtils.ConnectedUsersPredicate(
+          searchState.filter,
+          excludedUsers,
+          alsoSearchByEmail = true,
+          showBlockedUsers = true,
+          searchByHandleOnly = Handle.containsSymbol(searchState.filter),
+          searchState.teamId)).toVector)
     else
       Signal(Vector[UserData]())
   } yield users
 
   //TODO: remove this old api....
-  private val contactsSignal = Signal[Seq[Contact]]()
+  val contactsSignal = Signal[Seq[Contact]]()
   var uiContacts: Option[Contacts] = None
   searchState.on(Threading.Ui) {
-    case SearchState(filter , false, false) =>
+    case SearchState(filter , false, None, None) =>
       uiContacts.foreach(_.search(filter))
     case _ =>
   }
@@ -138,7 +142,7 @@ class SearchUserController(initialState: SearchState)(implicit injector: Injecto
     contactsUpdateListener.updated()
   }
 
-  private val allDataSignal = for{
+  val allDataSignal = for{
     searchState      <- searchState
     topUsers         <- topUsersSignal.orElse(Signal(IndexedSeq()))
     teamMembers      <- teamMembersSignal.orElse(Signal(Seq()))
@@ -148,29 +152,10 @@ class SearchUserController(initialState: SearchState)(implicit injector: Injecto
     directoryResults <- searchSignal.orElse(Signal(IndexedSeq()))
   } yield (topUsers, teamMembers, conversations, connectedUsers, contacts, directoryResults)
 
-
   private def directorySearchQuery(str: String): SearchQuery = {
     if (Handle.containsSymbol(str))
       RecommendedHandle(Handle.stripSymbol(str))
     else
       Recommended(str)
-  }
-
-  var topUsers = Seq[UserData]()
-  var teamMembers = Seq[UserData]()
-  var conversations = Seq[ConversationData]()
-  var connectedUsers = Seq[UserData]()
-  var contacts = Seq[Contact]()
-  var directoryResults = Seq[UserData]()
-
-  allDataSignal.throttle(500.millis) {
-    case (newTopUsers, newTeamMembers, newConversations, newConnectedUsers, newContacts, newDirectoryResults) =>
-      topUsers = newTopUsers
-      teamMembers = newTeamMembers
-      conversations = newConversations
-      connectedUsers = newConnectedUsers
-      contacts = newContacts
-      directoryResults = newDirectoryResults
-      onDataChanged ! (())
   }
 }

@@ -18,6 +18,7 @@
 package com.waz.zclient.views.pickuser
 
 import android.content.Context
+import android.support.v4.content.ContextCompat
 import android.util.AttributeSet
 import android.view.View
 import android.widget.FrameLayout
@@ -68,5 +69,9 @@ class SearchResultConversationRowView(val context: Context, val attrs: Attribute
       conversationSignal ! conversationData
     }
     this.conversation = conversationData
+  }
+
+  def applyDarkTheme(): Unit = {
+    nameView.setTextColor(ContextCompat.getColor(getContext, R.color.text__primary_dark))
   }
 }

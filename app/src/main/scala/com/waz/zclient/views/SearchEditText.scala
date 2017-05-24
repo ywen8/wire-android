@@ -20,10 +20,8 @@ package com.waz.zclient.views
 import android.content.Context
 import android.content.res.TypedArray
 import android.util.AttributeSet
-import android.view.KeyEvent
 import android.widget.RelativeLayout
 import android.widget.TextView.OnEditorActionListener
-import com.waz.utils.events.EventStream
 import com.waz.zclient.ui.text.TypefaceTextView
 import com.waz.zclient.utils.RichView
 import com.waz.zclient.views.PickerSpannableEditText.Callback

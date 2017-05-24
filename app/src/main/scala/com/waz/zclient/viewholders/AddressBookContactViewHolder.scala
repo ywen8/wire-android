@@ -26,6 +26,7 @@ import com.waz.zclient.views.pickuser.ContactRowView
 
 class AddressBookContactViewHolder(val view: View, val darkTheme: Boolean) extends RecyclerView.ViewHolder(view) {
   private val contactRowView: ContactRowView = ViewUtils.getView(view, R.id.crv__contactlist_user)
+  if (darkTheme) contactRowView.applyDarkTheme()
 
   def bind(contact: Contact, callback: ContactRowView.Callback): Unit = {
     contactRowView.setCallback(callback)

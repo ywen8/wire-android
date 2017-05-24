@@ -83,8 +83,6 @@ class ContactRowView(val context: Context, val attrs: AttributeSet, val defStyle
     contactInviteButton.setAccentColor(accentColor.getColor())
   }
 
-  contactListItemTextView.applyDarkTheme()
-
   val contactDetailsModelObserver = new ModelObserver[ContactDetails]() {
     override def updated(model: ContactDetails): Unit = {
       contactDetails = Option(model)
@@ -155,6 +153,7 @@ class ContactRowView(val context: Context, val attrs: AttributeSet, val defStyle
           contactInviteButton.setVisibility(View.GONE)
         case ConnectionStatus.PendingFromUser | ConnectionStatus.PendingFromOther =>
           contactInviteButton.setVisibility(View.GONE)
+        case _ =>
       }
       contactInviteButton.setOnClickListener(new View.OnClickListener() {
         def onClick(view: View): Unit = {

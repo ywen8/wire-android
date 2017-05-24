@@ -373,9 +373,16 @@ public class ParticipantsDialogFragment extends BaseFragment<ParticipantsDialogF
                 }
             }
             if (getArguments().getBoolean(ARG__ADD_TO_CONVERSATION)) {
+
+                IConversation currentConversation = getStoreFactory() != null &&
+                    !getStoreFactory().isTornDown() ?
+                    getStoreFactory().getConversationStore().getCurrentConversation() : null;
+                String conversationId = currentConversation == null ? null : currentConversation.getId();
+
                 transaction.replace(R.id.fl__participant_dialog__main__container,
                                     PickUserFragment.newInstance(true,
-                                                                 getArguments().getBoolean(ARG__GROUP_CONVERSATION)),
+                                                                 getArguments().getBoolean(ARG__GROUP_CONVERSATION),
+                                                                 conversationId),
                                     PickUserFragment.TAG());
 
             } else if (getControllerFactory().getConversationScreenController().getPopoverLaunchMode() == DialogLaunchMode.PARTICIPANT_BUTTON ||
