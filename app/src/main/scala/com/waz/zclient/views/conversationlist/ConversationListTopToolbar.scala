@@ -51,7 +51,9 @@ abstract class ConversationListTopToolbar(val context: Context, val attrs: Attri
 
   protected var scrolledToTop = true
   protected val separatorDrawable = new ListSeparatorDrawable(getColor(R.color.white_24))
+  protected val animationDuration = getResources.getInteger(R.integer.team_tabs__animation_duration)
 
+  setClipChildren(false)
   bottomBorder.setBackground(separatorDrawable)
   glyphButton.setOnClickListener(new OnClickListener {
     override def onClick(v: View) = {
@@ -82,7 +84,7 @@ class NormalTopToolbar(override val context: Context, override val attrs: Attrib
   controller.teams.on(Threading.Ui) { teams =>
     tabsContainer.setVisible(teams.nonEmpty)
     title.setVisible(teams.isEmpty)
-    separatorDrawable.setDuration(if (teams.isEmpty) 0 else 300)
+    separatorDrawable.setDuration(if (teams.isEmpty) 0 else animationDuration)
     onTabsChanged(tabsContainer)
   }
 

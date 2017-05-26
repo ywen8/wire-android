@@ -96,7 +96,7 @@ class SearchUserController(initialState: SearchState)(implicit injector: Injecto
     z <- zms
     searchState <- searchState
     convs <- if (searchState.shouldShowGroupConversations) Signal.future(z.convsUi.findGroupConversations(SearchKey(searchState.filter), Int.MaxValue, handleOnly = false)) else Signal(Seq[ConversationData]())
-  } yield convs.filter{ conv => searchState.teamId.forall(tId => conv.team.exists(_.id == tId)) }
+  } yield convs.filter{ conv => searchState.teamId.forall(tId => conv.team.contains(tId)) }
 
   val searchSignal = for {
     z <- zms

@@ -19,7 +19,8 @@ package com.waz.zclient.views
 
 import android.content.Context
 import android.graphics.Color
-import android.util.AttributeSet
+import android.util.{AttributeSet, TypedValue}
+import android.view.ViewGroup.MarginLayoutParams
 import android.view.{View, ViewGroup}
 import android.widget.FrameLayout.LayoutParams
 import android.widget.{FrameLayout, ImageView}
@@ -42,10 +43,20 @@ class TeamTabButton(val context: Context, val attrs: AttributeSet, val defStyleA
   val icon = ViewUtils.getView(this, R.id.team_icon).asInstanceOf[ImageView]
   val name = ViewUtils.getView(this, R.id.team_name).asInstanceOf[TypefaceTextView]
   val unreadIndicator = ViewUtils.getView(this, R.id.unread_indicator).asInstanceOf[CircleView]
+  val animationDuration = getResources.getInteger(R.integer.team_tabs__animation_duration)
 
   val drawable = new TeamIconDrawable
   icon.setImageDrawable(drawable)
   setLayerType(View.LAYER_TYPE_SOFTWARE, null)
+  val params = name.getLayoutParams.asInstanceOf[MarginLayoutParams]
+  val tv = new TypedValue
+  val height =
+    if (getContext.getTheme.resolveAttribute(android.R.attr.actionBarSize, tv, true))
+      TypedValue.complexToDimensionPixelSize(tv.data,getResources.getDisplayMetrics)
+    else
+      getResources.getDimensionPixelSize(R.dimen.teams_tab_default_height)
+
+  params.topMargin = height / 2 - getResources.getDimensionPixelSize(R.dimen.teams_tab_bottom_offset)
 
   def setTeamData(teamData: TeamData, selected: Boolean): Unit = {
     val color = if (selected) AccentColors.defaultColor.getColor() else Color.TRANSPARENT
@@ -53,7 +64,6 @@ class TeamTabButton(val context: Context, val attrs: AttributeSet, val defStyleA
     name.setText(teamData.name)
     unreadIndicator.setAccentColor(AccentColors.defaultColor.getColor())
     drawable.assetId ! None
-    setAlpha(if (selected) 1.0f else 0.5f)
   }
 
   def setUserData(userData: UserData, selected: Boolean): Unit = {
@@ -62,19 +72,18 @@ class TeamTabButton(val context: Context, val attrs: AttributeSet, val defStyleA
     name.setText(userData.displayName)
     unreadIndicator.setAccentColor(AccentColor(userData.accent).getColor())
     drawable.assetId ! userData.picture
-    setAlpha(if (selected) 1.0f else 0.5f)
   }
 
   def animateExpand(): Unit = {
-    name.animate().translationY(0f).start()
-    icon.animate().translationY(0f).alpha(1f).start()
-    unreadIndicator.animate().translationX(0f).translationY(0).start()
+    name.animate().translationY(0f).setDuration(animationDuration).start()
+    icon.animate().translationY(0f).setDuration(animationDuration).alpha(1f).start()
+    unreadIndicator.animate().translationX(0f).translationY(0).setDuration(animationDuration).start()
   }
 
   def animateCollapse(): Unit = {
     val margin = Option(name.getLayoutParams.asInstanceOf[ViewGroup.MarginLayoutParams]).fold(0)(_.topMargin)
-    name.animate().translationY(-margin).start()
-    icon.animate().translationY(-margin).alpha(0f).start()
-    unreadIndicator.animate().translationX(-30f).translationY(5).start()
+    name.animate().translationY(-margin).setDuration(animationDuration).start()
+    icon.animate().translationY(-margin).alpha(0f).setDuration(animationDuration).start()
+    unreadIndicator.animate().translationX(-30f).translationY(5).setDuration(animationDuration).start()
   }
 }

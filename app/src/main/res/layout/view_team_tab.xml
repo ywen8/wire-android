@@ -33,9 +33,9 @@
         android:id="@+id/team_icon"
         android:layout_width="28dp"
         android:layout_height="28dp"
-        android:layout_gravity="center_horizontal|top"
-        android:layout_marginTop="8dp"
+        android:layout_gravity="center"
         android:scaleType="fitCenter"
+        android:layout_marginBottom="@dimen/teams_tab_bottom_offset_half"
         />
 
     <com.waz.zclient.ui.text.TypefaceTextView
@@ -43,7 +43,6 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
-        android:layout_marginTop="20dp"
         android:textSize="@dimen/wire__text_size__small"
         app:font="@string/wire__typeface__regular"
         android:maxLines="1"

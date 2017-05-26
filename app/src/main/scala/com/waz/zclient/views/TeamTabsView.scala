@@ -70,7 +70,7 @@ class TeamTabsAdapter(context: Context)(implicit injector: Injector, eventContex
   Signal(controller.self, controller.teams, controller.currentTeamOrUser).on(Threading.Ui){
     case (cSelf, cTeams, _) =>
       self = Some(cSelf)
-      teams = Some(cTeams)
+      teams = Some(cTeams.toSeq)
       notifyDataSetChanged()
   }
 

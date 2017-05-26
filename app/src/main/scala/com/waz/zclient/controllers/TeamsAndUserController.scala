@@ -30,7 +30,11 @@ class TeamsAndUserController(implicit injector: Injector, context: Context, ec: 
   private implicit val tag: LogTag = logTagFor[TeamsAndUserController]
 
   val zms = inject[Signal[ZMessaging]]
-  val teams = Signal(Seq(TeamData(TeamId(), "ωire"))) //TODO: STUB
+  val teams = for {
+    z <- zms
+    teams <- Signal.future(z.teams.getSelfTeams)
+  } yield teams
+
   val self = for {
     z <- zms
     self <- z.usersStorage.signal(z.selfUserId)

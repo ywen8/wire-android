@@ -188,4 +188,6 @@
 
     <integer name="account_preferences__min_name_length">2</integer>
 
+    <integer name="team_tabs__animation_duration">100</integer>
+
 </resources>

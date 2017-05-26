@@ -34,6 +34,7 @@
         android:layout_height="wrap_content"
         app:glyph_size="@dimen/chathead__picker__glyph__font_size"
         app:isSelectable="true"
+        app:show_border="false"
         />
 
     <com.waz.zclient.views.pickuser.ContactListItemTextView

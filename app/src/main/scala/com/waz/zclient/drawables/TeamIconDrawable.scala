@@ -161,7 +161,7 @@ class TeamIconDrawable(implicit inj: Injector, eventContext: EventContext) exten
   private def updateDrawable(bounds: Rect): Unit = {
     val diam = diameter(bounds) - diameter(bounds) * 0.075f
     val textSize = diam / 2.5f
-    val borderWidth = diam * 0.075f
+    val borderWidth = diam * 0.05f
     val borderOffset = borderWidth * 3
 
     drawPolygon(innerPath, (diam - borderOffset) / 2, corners)

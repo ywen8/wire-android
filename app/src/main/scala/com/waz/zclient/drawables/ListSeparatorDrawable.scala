@@ -21,7 +21,6 @@ import android.animation.ValueAnimator
 import android.animation.ValueAnimator.AnimatorUpdateListener
 import android.graphics._
 import android.graphics.drawable.Drawable
-import android.view.animation.DecelerateInterpolator
 
 class ListSeparatorDrawable(color: Int) extends Drawable {
 
@@ -30,7 +29,6 @@ class ListSeparatorDrawable(color: Int) extends Drawable {
   protected val valueAnimator = ValueAnimator.ofFloat(0f, 1f)
 
   paint.setColor(color)
-  valueAnimator.setInterpolator(new DecelerateInterpolator())
   valueAnimator.addUpdateListener(new AnimatorUpdateListener {
     override def onAnimationUpdate(animation: ValueAnimator) = {
       val value = animation.getAnimatedValue.asInstanceOf[Float]
