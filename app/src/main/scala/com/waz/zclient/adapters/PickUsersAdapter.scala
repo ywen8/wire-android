@@ -102,7 +102,8 @@ class PickUsersAdapter(topUsersOnItemTouchListener: SearchResultOnItemTouchListe
       var contactsSection = Seq[SearchResult]()
 
       contactsSection = contactsSection ++ contacts.indices.map { i =>
-        SearchResult(AddressBookContact, ContactsSection, i)
+        val name = Option(contacts(i).getDetails).map(_.getDisplayName).getOrElse("")
+        SearchResult(AddressBookContact, ContactsSection, i, name)
       }
 
       contactsSection = contactsSection ++ connectedUsers.indices.map { i =>
@@ -157,7 +158,11 @@ class PickUsersAdapter(topUsersOnItemTouchListener: SearchResultOnItemTouchListe
         val conversation = conversations(item.index)
         holder.asInstanceOf[ConversationViewHolder].bind(conversation)
       case ConnectedUser =>
-        val connectedUser = connectedUsers(item.index)
+        val connectedUser =
+          if (item.section == TeamMembersSection)
+            teamMembers(item.index)
+          else
+            connectedUsers(item.index)
         val contactIsSelected = searchUserController.selectedUsers.contains(connectedUser.id)
         holder.asInstanceOf[UserViewHolder].bind(connectedUser, contactIsSelected)
       case UnconnectedUser =>
@@ -191,7 +196,7 @@ class PickUsersAdapter(topUsersOnItemTouchListener: SearchResultOnItemTouchListe
       case TopUsers =>
         val view = LayoutInflater.from(parent.getContext).inflate(R.layout.startui_top_users, parent, false)
         val topUserAdapter: TopUserAdapter = new TopUserAdapter(new TopUserAdapter.Callback() {
-          override def getSelectedUsers = searchUserController.selectedUsers.toSet
+          override def getSelectedUsers = searchUserController.selectedUsers
         })
         new viewholders.TopUsersViewHolder(view, topUserAdapter, parent.getContext)
       case ConnectedUser | UnconnectedUser =>

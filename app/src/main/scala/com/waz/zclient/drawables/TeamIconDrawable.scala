@@ -50,7 +50,7 @@ class TeamIconDrawable(implicit inj: Injector, eventContext: EventContext) exten
   borderPaint.setPathEffect(new CornerPathEffect(8f))
 
   val innerPaint = new Paint(Paint.ANTI_ALIAS_FLAG)
-  innerPaint.setColor(Color.WHITE)
+  innerPaint.setColor(Color.TRANSPARENT)
   innerPaint.setStyle(Paint.Style.FILL)
   innerPaint.setStrokeJoin(Paint.Join.ROUND)
   innerPaint.setStrokeCap(Paint.Cap.ROUND)
@@ -180,6 +180,7 @@ class TeamIconDrawable(implicit inj: Injector, eventContext: EventContext) exten
   def setInfo(text: String, borderColor:Int, corners: Int): Unit = {
     this.text = text
     borderPaint.setColor(borderColor)
+    innerPaint.setColor(Color.WHITE)
     this.corners = corners
     bounds.currentValue.foreach(updateDrawable)
   }

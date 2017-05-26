@@ -25,7 +25,7 @@ import com.waz.utils.returning
 import com.waz.zclient.{Injectable, Injector}
 import com.waz.zclient.utils.UiStorage._
 
-import scala.collection.Set
+import scala.collection.immutable.Set
 
 class UiStorage(implicit inj: Injector) extends Injectable {
 
@@ -37,7 +37,7 @@ class UiStorage(implicit inj: Injector) extends Injectable {
 
   def loadUser(userId: UserId) = zms.flatMap(_.usersStorage.signal(userId))
   def loadConversation(conversationId: ConvId) = zms.flatMap(_.convsStorage.signal(conversationId))
-  def loadConversationMembers(conversationId: ConvId) = zms.flatMap(_.membersStorage.activeMembers(conversationId))
+  def loadConversationMembers(conversationId: ConvId) = zms.flatMap(_.membersStorage.activeMembers(conversationId).map(_.toSet))
 }
 
 object UiStorage {

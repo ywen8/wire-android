@@ -49,13 +49,14 @@ class ConversationListAdapter(context: Context)(implicit injector: Injector, eve
     teamOrUser <- teamAndUsersController.currentTeamOrUser
   } yield
     conversations.conversations
-      .filter(mode.filter).toSeq
-      .filter{ conversationData => //TODO: STUB FILTER
-        teamOrUser match {
-          case Left(_) => !conversationData.displayName.contains("ω")
-          case _ => conversationData.displayName.contains("ω")
+      .filter{ conversationData =>
+        val teamFilter = teamOrUser match {
+          case Right(teamData) => conversationData.team.contains(teamData.id)
+          case _ => conversationData.team.isEmpty
         }
+        mode.filter(conversationData) && teamFilter
       }
+      .toSeq
       .sorted(mode.sort)
 
   var conversations: Seq[ConversationData] = Seq.empty

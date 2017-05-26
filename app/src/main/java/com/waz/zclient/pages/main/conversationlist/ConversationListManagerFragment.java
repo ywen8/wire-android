@@ -420,7 +420,6 @@ public class ConversationListManagerFragment extends BaseFragment<ConversationLi
 
     @Override
     public void onSelectedUsers(List<User> users, ConversationChangeRequester requester) {
-        // TODO https://wearezeta.atlassian.net/browse/AN-3730
         getControllerFactory().getPickUserController().hidePickUser(getCurrentPickerDestination(), true);
 
         if (users.size() == 1) {

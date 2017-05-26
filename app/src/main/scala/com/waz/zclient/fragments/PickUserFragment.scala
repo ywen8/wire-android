@@ -35,7 +35,7 @@ import android.widget.{LinearLayout, ListView, TextView, Toast}
 import com.waz.ZLog
 import com.waz.api._
 import com.waz.model.UserData.ConnectionStatus
-import com.waz.model.{ConvId, ConversationData, UserData, UserId}
+import com.waz.model._
 import com.waz.service.ZMessaging
 import com.waz.threading.Threading
 import com.waz.utils.events.Signal
@@ -215,7 +215,12 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
         closeStartUI()
       }
     })
-    searchUserController = new SearchUserController(SearchState("", hasSelectedUsers = false, addingToConversation = addingToConversation))
+
+    val teamId = teamsAndUserController.currentTeamOrUser.currentValue match {
+      case Some(Left(_)) => Option.empty[TeamId]
+      case Some(Right(team)) => Some(team.id)
+    }
+    searchUserController = new SearchUserController(SearchState("", hasSelectedUsers = false, addingToConversation = addingToConversation, teamId))
     searchUserController.setContacts(getStoreFactory.getZMessagingApiStore.getApi.getContacts)
     searchResultAdapter = new PickUsersAdapter(new SearchResultOnItemTouchListener(getActivity, this), this, searchUserController, getControllerFactory.getThemeController.isDarkTheme || !isAddingToConversation)
     searchResultAdapter.registerAdapterDataObserver(new RecyclerView.AdapterDataObserver() {
