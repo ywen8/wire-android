@@ -171,10 +171,12 @@ class ChatheadView(val context: Context, val attrs: AttributeSet, val defStyleAt
     val bitmap = ctrl.bitmap.currentValue.getOrElse(Option.empty[Bitmap])
 
     val radius: Float = size / 2f
+    val x = (getWidth - size) / 2
+    val y = (getHeight - size) / 2
 
     bitmap.fold {
       if (backgroundPaint.getColor != Color.TRANSPARENT) {
-        drawBackgroundAndBorder(canvas, radius, borderWidth)
+        drawBackgroundAndBorder(canvas, x, y, radius, borderWidth)
       }
       ctrl.initials.currentValue.foreach { initials =>
         var fontSize: Float = initialsFontSize
@@ -185,30 +187,29 @@ class ChatheadView(val context: Context, val attrs: AttributeSet, val defStyleAt
         canvas.drawText(initials, radius, getVerticalTextCenter(initialsTextPaint, radius), initialsTextPaint)
       }
     } { bitmap =>
-      val x = (getWidth - size) / 2
-      val y = (getHeight - size) / 2
+
       canvas.drawBitmap(bitmap, null, new RectF(x, y, x + size, y + size), backgroundPaint)
     }
 
     // Cut out
     if (selected || !TextUtils.isEmpty(glyph)) {
-      canvas.drawCircle(radius, radius, radius - borderWidth, glyphOverlayPaint)
-      canvas.drawText(glyph, radius, (radius + iconTextPaint.getTextSize / 2), iconTextPaint)
+      canvas.drawCircle(radius + x, radius + y, radius - borderWidth, glyphOverlayPaint)
+      canvas.drawText(glyph, radius + x, (radius + iconTextPaint.getTextSize / 2) + y, iconTextPaint)
     }
   }
 
-  private def drawBackgroundAndBorder(canvas: Canvas, radius: Float, borderWidthPx: Int) = {
+  private def drawBackgroundAndBorder(canvas: Canvas, xOffset: Float, yOffset: Float, radius: Float, borderWidthPx: Int) = {
     if (swapBackgroundAndInitialsColors) {
       if (ctrl.isRound) {
-        canvas.drawCircle(radius, radius, radius, initialsTextPaint)
-        canvas.drawCircle(radius, radius, radius - borderWidthPx, backgroundPaint)
+        canvas.drawCircle(radius + xOffset, radius + yOffset, radius, initialsTextPaint)
+        canvas.drawCircle(radius + xOffset, radius + yOffset, radius - borderWidthPx, backgroundPaint)
       } else {
         canvas.drawPaint(initialsTextPaint)
       }
     }
     else {
       if (ctrl.isRound) {
-        canvas.drawCircle(radius, radius, radius, backgroundPaint)
+        canvas.drawCircle(radius + xOffset, radius + yOffset, radius, backgroundPaint)
       } else {
         canvas.drawPaint(backgroundPaint)
       }
