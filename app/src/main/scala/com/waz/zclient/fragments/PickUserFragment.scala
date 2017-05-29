@@ -67,6 +67,8 @@ import com.waz.zclient.views.pickuser.{ContactRowView, SearchBoxView, UserRowVie
 import com.waz.zclient.{FragmentHelper, OnBackPressedListener, R}
 
 import scala.collection.JavaConverters._
+import scala.concurrent.{ExecutionContext, Future}
+import ExecutionContext.Implicits.global
 
 object PickUserFragment {
   val TAG: String = classOf[PickUserFragment].getName
@@ -461,9 +463,32 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
     genericInviteContainer.setVisibility(inviteVisibility)
   }
 
+  //TODO: This could be moved into a new ConversationController?
+  private def createAndOpenConversation(users: Seq[UserId], requester: ConversationChangeRequester): Unit = {
+    val createConv = for {
+      z <- zms.head
+      currentTeam <- teamsAndUserController.currentTeamOrUser.head
+      conv <- currentTeam match {
+        case Left(_) if users.size == 1 =>
+          z.convsUi.getOrCreateOneToOneConversation(users.head)
+        case Left(_) =>
+          z.convsUi.createGroupConversation(ConvId(), users)
+        case Right(teamData) =>
+          z.convsUi.createGroupConversation(ConvId(), users, Some(teamData.id))
+        case _ => Future.successful[ConversationData](ConversationData.Empty)
+      }
+    } yield conv
+
+    createConv.map{ convData =>
+      val iConv = getStoreFactory.getConversationStore.getConversation(convData.id.str)
+      getStoreFactory.getConversationStore.setCurrentConversation(iConv, requester)
+      getControllerFactory.getPickUserController.hidePickUser(getCurrentPickerDestination, true)
+    }(Threading.Ui)
+  }
+
   override def onConversationButtonClicked(): Unit = {
     KeyboardUtils.hideKeyboard(getActivity)
-    getContainer.onSelectedUsers(getSelectedUsersJava, ConversationChangeRequester.START_CONVERSATION)
+    createAndOpenConversation(getSelectedUsers.toSeq, ConversationChangeRequester.START_CONVERSATION)
   }
 
   override def onVideoCallButtonClicked(): Unit = {
@@ -472,17 +497,17 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
     if (users.size > 1) {
       throw new IllegalStateException("A video call cannot be started with more than one user. The button should not be visible " + "if multiple users are selected.")
     }
-    getContainer.onSelectedUsers(users, ConversationChangeRequester.START_CONVERSATION_FOR_VIDEO_CALL)
+    createAndOpenConversation(getSelectedUsers.toSeq, ConversationChangeRequester.START_CONVERSATION_FOR_VIDEO_CALL)
   }
 
   override def onCallButtonClicked(): Unit = {
     KeyboardUtils.hideKeyboard(getActivity)
-    getContainer.onSelectedUsers(getSelectedUsersJava, ConversationChangeRequester.START_CONVERSATION_FOR_CALL)
+    createAndOpenConversation(getSelectedUsers.toSeq, ConversationChangeRequester.START_CONVERSATION_FOR_CALL)
   }
 
   override def onCameraButtonClicked(): Unit = {
     KeyboardUtils.hideKeyboard(getActivity)
-    getContainer.onSelectedUsers(getSelectedUsersJava, ConversationChangeRequester.START_CONVERSATION_FOR_CAMERA)
+    createAndOpenConversation(getSelectedUsers.toSeq, ConversationChangeRequester.START_CONVERSATION_FOR_CAMERA)
   }
 
   def onSearchBoxIsEmpty(): Unit = {
@@ -559,7 +584,7 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
     TrackingUtils.onUserSelectedInStartUI(trackingController, user, anchorView.isInstanceOf[ChatheadWithTextFooter], isAddingToConversation, position, searchResultAdapter)
 
     UserSignal(userId).head.map{userData =>
-      if (userData.connection == ConnectionStatus.Accepted) {
+      if (userData.connection == ConnectionStatus.Accepted || teamsAndUserController.currentTeamOrUser.currentValue.exists(_.isRight)) {
         if (anchorView.isSelected) {
           searchUserController.addUser(userId)
         } else {
