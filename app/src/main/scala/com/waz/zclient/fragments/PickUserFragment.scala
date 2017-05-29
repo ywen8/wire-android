@@ -145,6 +145,9 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
   private var genericInviteButton: ZetaButton = null
   private var searchBoxView: SearchEditText = null
 
+  private var currentTeam = Option.empty[TeamData]
+  private var teamPermissions = Set[TeamMemberData.Permission]()
+
   private implicit lazy val uiStorage = inject[UiStorage]
   private implicit lazy val logTag = ZLog.logTagFor[PickUserFragment]
   private implicit lazy val context = getContext
@@ -340,6 +343,19 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
       }
     })
 
+    (for {
+      z <- zms
+      team <- teamsAndUserController.currentTeamOrUser.map{
+        case Right(teamData) => Some(teamData)
+        case _ => Option.empty[TeamData]
+      }
+      memberData <- Signal.future(team.fold(Future.successful(Option.empty[TeamMemberData]))(team => z.teamMemberStorage.get((z.selfUserId, team.id))))
+    } yield (team, memberData)){
+      case (team, memberData) =>
+        currentTeam = team
+        teamPermissions = memberData.fold(Set[TeamMemberData.Permission]())(_.permissions)
+    }
+
     rootView
   }
 
@@ -381,11 +397,9 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
           if (searchBoxView == null || numberOfActiveConversations <= PickUserFragment.SHOW_KEYBOARD_THRETHOLD) {
             return
           }
-          teamsAndUserController.currentTeamOrUser.currentValue.foreach{
-            case Right(team) =>
+          currentTeam.foreach{ team =>
               searchBoxView.setFocus()
               KeyboardUtils.showKeyboard(getActivity)
-            case _ =>
           }
         }
       }, getResources.getInteger(R.integer.people_picker__keyboard__show_delay))
@@ -467,13 +481,12 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
   private def createAndOpenConversation(users: Seq[UserId], requester: ConversationChangeRequester): Unit = {
     val createConv = for {
       z <- zms.head
-      currentTeam <- teamsAndUserController.currentTeamOrUser.head
       conv <- currentTeam match {
-        case Left(_) if users.size == 1 =>
+        case None if users.size == 1 =>
           z.convsUi.getOrCreateOneToOneConversation(users.head)
-        case Left(_) =>
+        case None =>
           z.convsUi.createGroupConversation(ConvId(), users)
-        case Right(teamData) =>
+        case Some(teamData) =>
           z.convsUi.createGroupConversation(ConvId(), users, Some(teamData.id))
         case _ => Future.successful[ConversationData](ConversationData.Empty)
       }
@@ -584,7 +597,7 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
     TrackingUtils.onUserSelectedInStartUI(trackingController, user, anchorView.isInstanceOf[ChatheadWithTextFooter], isAddingToConversation, position, searchResultAdapter)
 
     UserSignal(userId).head.map{userData =>
-      if (userData.connection == ConnectionStatus.Accepted || teamsAndUserController.currentTeamOrUser.currentValue.exists(_.isRight)) {
+      if (userData.connection == ConnectionStatus.Accepted || currentTeam.nonEmpty) {
         if (anchorView.isSelected) {
           searchUserController.addUser(userId)
         } else {
@@ -830,6 +843,8 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
     val label: String = if (searchUserController.selectedUsers.size > 1) getString(R.string.conversation_quick_menu__conversation_button__group_label)
     else getString(R.string.conversation_quick_menu__conversation_button__single_label)
     conversationQuickMenu.setConversationButtonText(label)
+    val hasPermissions = currentTeam.isEmpty || searchUserController.selectedUsers.size == 1 || teamPermissions.contains(TeamMemberData.Permission.CreateConversation)
+    conversationQuickMenu.setVisibility(if (hasPermissions) View.VISIBLE else View.GONE)
   }
 
   override def onClick(view: View): Unit = {
