@@ -30,7 +30,7 @@ import com.waz.api.User.ConnectionStatus
 import com.waz.api.User.ConnectionStatus._
 import com.waz.api.impl.AccentColor
 import com.waz.api.{ContactDetails, User}
-import com.waz.model.{AssetData, UserData, UserId}
+import com.waz.model.{AssetData, TeamData, UserData, UserId}
 import com.waz.service.ZMessaging
 import com.waz.service.assets.AssetService.BitmapResult
 import com.waz.service.assets.AssetService.BitmapResult.BitmapLoaded
@@ -43,6 +43,9 @@ import com.waz.zclient.ui.utils.TypefaceUtils
 import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.{Injectable, Injector, R, ViewHelper}
 import com.waz.ZLog.ImplicitTag._
+import com.waz.zclient.controllers.TeamsAndUserController
+
+import scala.concurrent.Future
 
 class ChatheadView(val context: Context, val attrs: AttributeSet, val defStyleAttr: Int) extends View(context, attrs, defStyleAttr) with ViewHelper {
 
@@ -257,6 +260,7 @@ protected class ChatheadController(val setSelectable: Boolean = false,
   private implicit val logtag = ZLog.logTagFor[ChatheadController]
 
   val zMessaging = inject[Signal[ZMessaging]]
+  val teamsAndUserController = inject[TeamsAndUserController]
 
   val assignInfo = Signal[Option[Either[UserId, ContactDetails]]]
 
@@ -278,6 +282,19 @@ protected class ChatheadController(val setSelectable: Boolean = false,
     case _ => UNCONNECTED
   }
 
+  val teamMember = for {
+    zms <- zMessaging
+    userId <- chatheadInfo.map {
+      case Some(Left(user)) => Some(user.id)
+      case _ => None
+    }
+    team <- teamsAndUserController.currentTeamOrUser.map{
+      case Right(team) => Some(team)
+      case _ => None
+    }
+    userTeams <- Signal.future(userId.fold(Future.successful(Set[TeamData]()))(zms.teams.getTeams))
+  } yield team.exists(userTeams.contains)
+
   val hasBeenInvited = chatheadInfo.map {
     case Some(Left(user)) => false
     case Some(Right(contactDetails)) => contactDetails.hasBeenInvited
@@ -296,9 +313,9 @@ protected class ChatheadController(val setSelectable: Boolean = false,
     case _ => false
   }
 
-  val grayScale = chatheadInfo.map {
-    case Some(Left(user)) => !(user.isConnected || user.isSelf)
-    case Some(Right(contactDetails)) => false
+  val grayScale = chatheadInfo.zip(teamMember).map {
+    case (Some(Left(user)), isTeamMember) => !(user.isConnected || user.isSelf || isTeamMember)
+    case (Some(Right(contactDetails)), _) => false
     case _ => false
   }
 
@@ -308,8 +325,8 @@ protected class ChatheadController(val setSelectable: Boolean = false,
     case _ => None
   }
 
-  val selectable = knownUser.map { knownUser =>
-    knownUser && setSelectable
+  val selectable = knownUser.zip(teamMember).map {
+    case (isKnownUser, isTeamMember) => isKnownUser || isTeamMember
   }
 
   val requestSelected = Signal(false)

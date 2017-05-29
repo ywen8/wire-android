@@ -34,7 +34,7 @@ class TeamsAndUserController(implicit injector: Injector, context: Context, ec: 
     z <- zms
     teams <- Signal.future(z.teams.getSelfTeams).orElse(Signal(Set[TeamData]()))
     teamSigs <- Signal.sequence(teams.map(_.id).map(z.teamsStorage.signal).toSeq:_*)
-  } yield teams
+  } yield teamSigs
 
   val self = for {
     z <- zms
