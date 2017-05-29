@@ -23,15 +23,18 @@ import android.util.AttributeSet
 import android.view.View
 import android.widget.LinearLayout
 import com.waz.ZLog
-import com.waz.model.{UserData, UserId}
+import com.waz.model.{TeamData, UserData, UserId}
 import com.waz.service.ZMessaging
 import com.waz.threading.Threading
 import com.waz.utils.events.Signal
 import com.waz.zclient.common.views.ChatheadView
+import com.waz.zclient.controllers.TeamsAndUserController
 import com.waz.zclient.ui.text.{TextTransform, TypefaceTextView}
 import com.waz.zclient.utils.ViewUtils
 import com.waz.zclient.views.pickuser.UserRowView
 import com.waz.zclient.{R, ViewHelper}
+
+import scala.concurrent.Future
 
 class ChatheadWithTextFooter(val context: Context, val attrs: AttributeSet, val defStyleAttr: Int) extends LinearLayout(context, attrs, defStyleAttr) with ViewHelper with UserRowView {
   def this(context: Context, attrs: AttributeSet) = this(context, attrs, 0)
@@ -43,17 +46,20 @@ class ChatheadWithTextFooter(val context: Context, val attrs: AttributeSet, val 
 
   private val chathead = findById[ChatheadView](R.id.cv__chathead)
   private val footer = findById[TypefaceTextView](R.id.ttv__text_view)
+  private val guestIndicator = findById[TypefaceTextView](R.id.guest_indicator)
   private val transformer = TextTransform.get(context.getResources.getString(R.string.participants__chathead__name_label__text_transform))
   private val userId = Signal[UserId]()
-  private val userData = for{
+  private val userInfo = for{
     z <- inject[Signal[ZMessaging]]
+    currentTeam <- inject[TeamsAndUserController].currentTeamOrUser.map(_.fold(_ => Option.empty[TeamData], Some(_)))
     uId <- userId
     data <- z.usersStorage.signal(uId)
-  } yield data
+    guests <- Signal.future(currentTeam.fold(Future.successful(Set[UserId]()))(team => z.teams.findGuests(team.id)))
+  } yield (data, guests.contains(uId))
 
   setOrientation(LinearLayout.VERTICAL)
   initAttributes(attrs)
-  userData.on(Threading.Ui) { data =>
+  userInfo.on(Threading.Ui) { data =>
     updateView(data)
   }
 
@@ -64,7 +70,7 @@ class ChatheadWithTextFooter(val context: Context, val attrs: AttributeSet, val 
   }
 
   def setUser(user: UserData): Unit = {
-    updateView(user)
+    updateView((user, false))
     userId ! user.id
   }
 
@@ -72,12 +78,13 @@ class ChatheadWithTextFooter(val context: Context, val attrs: AttributeSet, val 
     this.userId ! userId
   }
 
-  private def updateView(user: UserData): Unit = {
-    chathead.setUserId(user.id)
-    footer.setText(transformer.transform(user.getDisplayName))
+  private def updateView(userInfo: (UserData, Boolean)): Unit = {
+    chathead.setUserId(userInfo._1.id)
+    footer.setText(transformer.transform(userInfo._1.getDisplayName))
+    guestIndicator.setVisibility(if (userInfo._2) View.VISIBLE else View.INVISIBLE)
   }
 
-  def getUser: Option[UserId] = userData.currentValue.map(_.id)
+  def getUser: Option[UserId] = userInfo.currentValue.map(_._1.id)
 
   def onClicked(): Unit = {
     chathead.setSelected(!chathead.isSelected)

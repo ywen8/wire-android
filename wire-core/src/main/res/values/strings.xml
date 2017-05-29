@@ -1186,4 +1186,5 @@
     <string name="conversation_list__empty_conv__subtitle">Everyone left</string>
     <string name="conversation_list__header__title">CONVERSATIONS</string>
     <string name="conversation_list__header__archive_title">ARCHIVE</string>
+    <string name="guest_indicator">GUEST</string>
 </resources>
