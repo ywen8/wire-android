@@ -34,7 +34,7 @@ case class SearchState(filter: String, hasSelectedUsers: Boolean, addingToConver
   val shouldShowAbContacts = addingToConversation.isEmpty && !hasSelectedUsers && teamId.isEmpty
   val shouldShowGroupConversations = filter.nonEmpty && !hasSelectedUsers && addingToConversation.isEmpty
   val shouldShowDirectorySearch = filter.nonEmpty && !hasSelectedUsers && addingToConversation.isEmpty
-  val shouldShowSearchedContacts = true
+  val shouldShowSearchedContacts = teamId.isEmpty || filter.nonEmpty
 }
 
 class SearchUserController(initialState: SearchState)(implicit injector: Injector, ec: EventContext) extends Injectable {

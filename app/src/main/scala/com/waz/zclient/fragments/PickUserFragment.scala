@@ -79,8 +79,7 @@ object PickUserFragment {
   val NUM_SEARCH_RESULTS_TOP_USERS: Int = 24
   val NUM_SEARCH_RESULTS_ADD_TO_CONV: Int = 1000
   private val DEFAULT_SELECTED_INVITE_METHOD: Int = 0
-  private val SHOW_KEYBOARD_THRETHOLD: Int = 10
-  private val SHOW_INVITE: Boolean = true
+  private val SHOW_KEYBOARD_THRESHOLD: Int = 10
 
   def newInstance(addToConversation: Boolean, conversationId: String): PickUserFragment = {
     newInstance(addToConversation, groupConversation = false, conversationId)
@@ -228,26 +227,6 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
     searchUserController = new SearchUserController(SearchState("", hasSelectedUsers = false, addingToConversation = addingToConversation, teamId))
     searchUserController.setContacts(getStoreFactory.getZMessagingApiStore.getApi.getContacts)
     searchResultAdapter = new PickUsersAdapter(new SearchResultOnItemTouchListener(getActivity, this), this, searchUserController, getControllerFactory.getThemeController.isDarkTheme || !isAddingToConversation)
-    searchResultAdapter.registerAdapterDataObserver(new RecyclerView.AdapterDataObserver() {
-      override def onChanged(): Unit = {
-        val currentFilter = searchUserController.searchState.currentValue.map(_.filter).getOrElse("")
-        if (searchResultAdapter.getItemCount == 0) {
-          if (currentFilter.isEmpty) {
-            if (getSelectedUsers.isEmpty) {
-              handleEmptySearchResult(getString(R.string.people_picker__error_message__no_results), "", showBlankScreen = false)
-            }
-            else {
-              handleEmptySearchResult(getString(R.string.people_picker__error_message__no_users_to_add_to_conversation), "", showBlankScreen = false)
-            }
-          }
-          else {
-            handleEmptySearchResult(getString(R.string.people_picker__error_message__no_results), "", showBlankScreen = false)
-          }
-        } else {
-          hideErrorMessage()
-        }
-      }
-    })
     searchResultRecyclerView = ViewUtils.getView(rootView, R.id.rv__pickuser__header_list_view)
     searchResultRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity))
     searchResultRecyclerView.setAdapter(searchResultAdapter)
@@ -314,6 +293,10 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
           false
         }
       })
+      teamsAndUserController.currentTeamOrUser.on(Threading.Ui) {
+        case Right(_) => genericInviteContainer.setVisibility(View.GONE)
+        case _ =>
+      }
     }
 
     accentColor.on(Threading.Ui) { color =>
@@ -375,7 +358,7 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
     else {
       searchUserController.setFilter("")
     }
-    if (!isAddingToConversation)
+    if (!isAddingToConversation && isPrivateSpace)
       showShareContactsDialog()
   }
 
@@ -391,7 +374,7 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
             return
           }
           val numberOfActiveConversations: Int = getStoreFactory.getConversationStore.getNumberOfActiveConversations
-          if (searchBoxView == null || numberOfActiveConversations <= PickUserFragment.SHOW_KEYBOARD_THRETHOLD) {
+          if (searchBoxView == null || numberOfActiveConversations <= PickUserFragment.SHOW_KEYBOARD_THRESHOLD) {
             return
           }
           currentTeam.foreach{ team =>
@@ -467,7 +450,7 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
       return
     }
     val inviteVisibility: Int =
-      if (keyboardIsVisible || searchUserController.selectedUsers.nonEmpty)
+      if (keyboardIsVisible || searchUserController.selectedUsers.nonEmpty || !isPrivateSpace)
         View.GONE
       else
         View.VISIBLE
@@ -719,16 +702,13 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
     if (body != null) {
       errorMessageViewBody.setText(body)
       errorMessageViewBody.setVisibility(View.VISIBLE)
-    }
-    else {
+    } else {
       errorMessageViewBody.setVisibility(View.GONE)
     }
-    if (PickUserFragment.SHOW_INVITE && !isAddingToConversation) {
+    if (!isAddingToConversation)
       errorMessageViewSendInvite.setVisibility(View.VISIBLE)
-    }
-    else {
+    else
       errorMessageViewSendInvite.setVisibility(View.GONE)
-    }
   }
 
   private def showErrorMessage(): Unit = {
@@ -814,8 +794,7 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
       val visible: Boolean = show || searchUserController.selectedUsers.nonEmpty
       conversationQuickMenu.setVisibility(if (visible) View.VISIBLE
       else View.GONE)
-      genericInviteContainer.setVisibility(if (visible || isKeyboardVisible) View.GONE
-      else View.VISIBLE)
+      genericInviteContainer.setVisibility(if (visible || isKeyboardVisible || !isPrivateSpace) View.GONE else View.VISIBLE)
     }
   }
 
@@ -855,6 +834,8 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
   private def isAddingToConversation: Boolean = {
     getArguments.getBoolean(PickUserFragment.ARGUMENT_ADD_TO_CONVERSATION)
   }
+
+  private def isPrivateSpace: Boolean = currentTeam.isEmpty
 
   private def addingToConversation: Option[ConvId] = {
     Option(getArguments.getString(PickUserFragment.ARGUMENT_CONVERSATION_ID)).map(ConvId(_))

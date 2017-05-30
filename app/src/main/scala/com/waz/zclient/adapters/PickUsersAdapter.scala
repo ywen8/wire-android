@@ -63,7 +63,7 @@ class PickUsersAdapter(topUsersOnItemTouchListener: SearchResultOnItemTouchListe
   private var contacts = Seq[Contact]()
   private var directoryResults = Seq[UserData]()
 
-  searchUserController.allDataSignal.throttle(500.millis).on(Threading.Ui) {
+  searchUserController.allDataSignal.throttle(750.millis).on(Threading.Ui) {
     case (newTopUsers, newTeamMembers, newConversations, newConnectedUsers, newContacts, newDirectoryResults) =>
       topUsers = newTopUsers
       teamMembers = newTeamMembers
@@ -82,65 +82,77 @@ class PickUsersAdapter(topUsersOnItemTouchListener: SearchResultOnItemTouchListe
       case _ => ""
     }
 
-    //TOP PEOPLE
-    if (topUsers.nonEmpty) {
-      mergedResult = mergedResult ++ Seq(SearchResult(SectionHeader, TopUsersSection, 0))
-      mergedResult = mergedResult ++ Seq(SearchResult(TopUsers, TopUsersSection, 0))
-    }
-
-    //TEAM MEMBERS
-    if (teamMembers.nonEmpty) {
-      mergedResult = mergedResult ++ Seq(SearchResult(SectionHeader, TeamMembersSection, 0, teamName))
-      mergedResult = mergedResult ++ teamMembers.indices.map { i =>
-        SearchResult(ConnectedUser, TeamMembersSection, i, teamMembers(i).id.str.hashCode)
+    def addTopPeople(): Unit = {
+      if (topUsers.nonEmpty) {
+        mergedResult = mergedResult ++ Seq(SearchResult(SectionHeader, TopUsersSection, 0))
+        mergedResult = mergedResult ++ Seq(SearchResult(TopUsers, TopUsersSection, 0))
       }
     }
-
-    //CONTACTS
-    if (contacts.nonEmpty || connectedUsers.nonEmpty) {
-      mergedResult = mergedResult ++ Seq(SearchResult(SectionHeader, ContactsSection, 0))
-      var contactsSection = Seq[SearchResult]()
-
-      contactsSection = contactsSection ++ contacts.indices.map { i =>
-        val name = Option(contacts(i).getDetails).map(_.getDisplayName).getOrElse("")
-        SearchResult(AddressBookContact, ContactsSection, i, name)
+    def addTeamMembers(): Unit = {
+      if (teamMembers.nonEmpty) {
+        mergedResult = mergedResult ++ Seq(SearchResult(SectionHeader, TeamMembersSection, 0, teamName))
+        mergedResult = mergedResult ++ teamMembers.indices.map { i =>
+          SearchResult(ConnectedUser, TeamMembersSection, i, teamMembers(i).id.str.hashCode)
+        }
       }
+    }
+    def addContacts(): Unit = {
+      if (contacts.nonEmpty || connectedUsers.nonEmpty) {
+        mergedResult = mergedResult ++ Seq(SearchResult(SectionHeader, ContactsSection, 0))
+        var contactsSection = Seq[SearchResult]()
 
-      contactsSection = contactsSection ++ connectedUsers.indices.map { i =>
-        SearchResult(ConnectedUser, ContactsSection, i, connectedUsers(i).id.str.hashCode, connectedUsers(i).getDisplayName)
+        contactsSection = contactsSection ++ contacts.indices.map { i =>
+          val name = Option(contacts(i).getDetails).map(_.getDisplayName).getOrElse("")
+          SearchResult(AddressBookContact, ContactsSection, i, name)
+        }
+
+        contactsSection = contactsSection ++ connectedUsers.indices.map { i =>
+          SearchResult(ConnectedUser, ContactsSection, i, connectedUsers(i).id.str.hashCode, connectedUsers(i).getDisplayName)
+        }
+
+        val shouldCollapse = searchUserController.searchState.currentValue.exists(_.filter.nonEmpty) && collapsedContacts && contactsSection.size > CollapsedContacts
+
+        contactsSection = contactsSection.sortBy(_.name).take(if (shouldCollapse) CollapsedContacts else contactsSection.size)
+
+        mergedResult = mergedResult ++ contactsSection
+        if (shouldCollapse) {
+          mergedResult = mergedResult ++ Seq(SearchResult(Expand, ContactsSection, 0))
+        }
       }
+    }
+    def addGroupConversations(): Unit = {
+      if (conversations.nonEmpty) {
+        mergedResult = mergedResult ++ Seq(SearchResult(SectionHeader, GroupConversationsSection, 0, teamName))
 
-      val shouldCollapse = searchUserController.searchState.currentValue.exists(_.filter.nonEmpty) && collapsedContacts && contactsSection.size > CollapsedContacts
+        val shouldCollapse = collapsedGroups && conversations.size > CollapsedGroups
 
-      contactsSection = contactsSection.sortBy(_.name).take(if (shouldCollapse) CollapsedContacts else contactsSection.size)
-
-      mergedResult = mergedResult ++ contactsSection
-      if (shouldCollapse) {
-        mergedResult = mergedResult ++ Seq(SearchResult(Expand, ContactsSection, 0))
+        mergedResult = mergedResult ++ conversations.indices.map { i =>
+          SearchResult(GroupConversation, GroupConversationsSection, i, conversations(i).id.str.hashCode)
+        }.take(if (shouldCollapse) CollapsedGroups else conversations.size)
+        if (shouldCollapse) {
+          mergedResult = mergedResult ++ Seq(SearchResult(Expand, GroupConversationsSection, 0))
+        }
+      }
+    }
+    def addConnections(): Unit = {
+      if (directoryResults.nonEmpty) {
+        mergedResult = mergedResult ++ Seq(SearchResult(SectionHeader, DirectorySection, 0))
+        mergedResult = mergedResult ++ directoryResults.indices.map { i =>
+          SearchResult(UnconnectedUser, DirectorySection, i, directoryResults(i).id.str.hashCode)
+        }
       }
     }
 
-    //GROUP CONVERSATIONS
-    if (conversations.nonEmpty) {
-      mergedResult = mergedResult ++ Seq(SearchResult(SectionHeader, GroupConversationsSection, 0, teamName))
-
-      val shouldCollapse = collapsedGroups && conversations.size > CollapsedGroups
-
-      mergedResult = mergedResult ++ conversations.indices.map { i =>
-        SearchResult(GroupConversation, GroupConversationsSection, i, conversations(i).id.str.hashCode)
-      }.take(if (shouldCollapse) CollapsedGroups else conversations.size)
-      if (shouldCollapse) {
-        mergedResult = mergedResult ++ Seq(SearchResult(Expand, GroupConversationsSection, 0))
-      }
+    addTopPeople()
+    addTeamMembers()
+    if (teamsAndUserController.currentTeamOrUser.currentValue.exists(_.isRight)) {
+      addGroupConversations()
+      addContacts()
+    } else {
+      addContacts()
+      addGroupConversations()
     }
-
-    //CONNECT
-    if (directoryResults.nonEmpty) {
-      mergedResult = mergedResult ++ Seq(SearchResult(SectionHeader, DirectorySection, 0))
-      mergedResult = mergedResult ++ directoryResults.indices.map { i =>
-        SearchResult(UnconnectedUser, DirectorySection, i, directoryResults(i).id.str.hashCode)
-      }
-    }
+    addConnections()
 
     ZLog.debug(s"Merged contacts updated: ${mergedResult.size}")
     notifyDataSetChanged()
