@@ -23,16 +23,16 @@
 
     <com.waz.zclient.ui.views.CircleView
         android:id="@+id/unread_indicator"
-        android:layout_width="8dp"
-        android:layout_height="8dp"
+        android:layout_width="@dimen/teams_tab_indicator_size"
+        android:layout_height="@dimen/teams_tab_indicator_size"
         android:layout_gravity="top|end"
-        android:layout_marginTop="8dp"
-        android:layout_marginEnd="8dp"/>
+        android:layout_marginTop="@dimen/wire__padding__8"
+        android:layout_marginEnd="@dimen/wire__padding__8"/>
 
     <ImageView
         android:id="@+id/team_icon"
-        android:layout_width="28dp"
-        android:layout_height="28dp"
+        android:layout_width="@dimen/teams_tab_icon_size"
+        android:layout_height="@dimen/teams_tab_icon_size"
         android:layout_gravity="center"
         android:scaleType="fitCenter"
         android:layout_marginBottom="@dimen/teams_tab_bottom_offset_half"

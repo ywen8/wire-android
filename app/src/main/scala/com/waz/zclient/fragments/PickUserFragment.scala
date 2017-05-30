@@ -68,8 +68,7 @@ import com.waz.zclient.views.pickuser.{ContactRowView, SearchBoxView, UserRowVie
 import com.waz.zclient.{BaseActivity, FragmentHelper, OnBackPressedListener, R}
 
 import scala.collection.JavaConverters._
-import scala.concurrent.{ExecutionContext, Future}
-import ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
 object PickUserFragment {
   val TAG: String = classOf[PickUserFragment].getName
@@ -223,8 +222,8 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
     })
 
     val teamId = teamsAndUserController.currentTeamOrUser.currentValue match {
-      case Some(Left(_)) => Option.empty[TeamId]
       case Some(Right(team)) => Some(team.id)
+      case _ => Option.empty[TeamId]
     }
     searchUserController = new SearchUserController(SearchState("", hasSelectedUsers = false, addingToConversation = addingToConversation, teamId))
     searchUserController.setContacts(getStoreFactory.getZMessagingApiStore.getApi.getContacts)

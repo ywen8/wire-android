@@ -24,7 +24,6 @@ import com.waz.service.ZMessaging
 import com.waz.threading.Threading
 import com.waz.utils.events.{EventContext, Signal}
 import com.waz.zclient.core.stores.conversation.ConversationChangeRequester
-import com.waz.zclient.pages.main.pickuser.controller.IPickUserController
 import com.waz.zclient.{BaseActivity, Injectable, Injector}
 
 import scala.concurrent.Future
