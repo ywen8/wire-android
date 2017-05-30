@@ -19,6 +19,7 @@ package com.waz.zclient.views
 
 import android.content.Context
 import android.content.res.TypedArray
+import android.support.v4.content.ContextCompat
 import android.util.AttributeSet
 import android.view.View
 import android.widget.LinearLayout
@@ -30,6 +31,7 @@ import com.waz.utils.events.Signal
 import com.waz.zclient.common.views.ChatheadView
 import com.waz.zclient.controllers.TeamsAndUserController
 import com.waz.zclient.ui.text.{TextTransform, TypefaceTextView}
+import com.waz.zclient.ui.theme.ThemeUtils
 import com.waz.zclient.utils.ViewUtils
 import com.waz.zclient.views.pickuser.UserRowView
 import com.waz.zclient.{R, ViewHelper}
@@ -62,6 +64,12 @@ class ChatheadWithTextFooter(val context: Context, val attrs: AttributeSet, val 
   userInfo.on(Threading.Ui) { data =>
     updateView(data)
   }
+  if (ThemeUtils.isDarkTheme(context)) {
+    applyDarkTheme()
+  } else {
+    applyLightTheme()
+  }
+
 
   override def isSelected: Boolean = chathead.isSelected
 
@@ -81,7 +89,7 @@ class ChatheadWithTextFooter(val context: Context, val attrs: AttributeSet, val 
   private def updateView(userInfo: (UserData, Boolean)): Unit = {
     chathead.setUserId(userInfo._1.id)
     footer.setText(transformer.transform(userInfo._1.getDisplayName))
-    guestIndicator.setVisibility(if (userInfo._2) View.VISIBLE else View.INVISIBLE)
+    guestIndicator.setVisibility(if (userInfo._2) View.VISIBLE else View.GONE)
   }
 
   def getUser: Option[UserId] = userInfo.currentValue.map(_._1.id)
@@ -113,6 +121,14 @@ class ChatheadWithTextFooter(val context: Context, val attrs: AttributeSet, val 
 
   def setFooterWidth(width: Int): Unit = {
     ViewUtils.setWidth(footer, width)
+  }
+
+  def applyLightTheme(): Unit = {
+    footer.setTextColor(ContextCompat.getColor(getContext, R.color.text__primary_light))
+  }
+
+  def applyDarkTheme(): Unit = {
+    footer.setTextColor(ContextCompat.getColor(getContext, R.color.text__primary_dark))
   }
 
   private def initAttributes(attrs: AttributeSet): Unit = {

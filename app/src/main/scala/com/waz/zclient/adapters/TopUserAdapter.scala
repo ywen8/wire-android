@@ -55,6 +55,7 @@ import android.view.{LayoutInflater, View, ViewGroup}
 import com.waz.model.{UserData, UserId}
 import com.waz.zclient.R
 import com.waz.zclient.viewholders.TopUserViewHolder
+import com.waz.zclient.views.ChatheadWithTextFooter
 
 object TopUserAdapter {
 
@@ -68,7 +69,8 @@ class TopUserAdapter(var callback: TopUserAdapter.Callback) extends RecyclerView
   private var topUsers = Seq[UserData]()
 
   def onCreateViewHolder(parent: ViewGroup, viewType: Int): TopUserViewHolder = {
-    val v: View = LayoutInflater.from(parent.getContext).inflate(R.layout.startui_top_user, parent, false)
+    val v = LayoutInflater.from(parent.getContext).inflate(R.layout.startui_top_user, parent, false).asInstanceOf[ChatheadWithTextFooter]
+    v.applyDarkTheme()
     new TopUserViewHolder(v)
   }
 
