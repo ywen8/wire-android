@@ -162,7 +162,7 @@ class TeamIconDrawable(implicit inj: Injector, eventContext: EventContext) exten
     val diam = diameter(bounds) - diameter(bounds) * 0.075f
     val textSize = diam / 2.5f
     val borderWidth = diam * 0.05f
-    val borderOffset = borderWidth * 3
+    val borderOffset = borderWidth * 5
 
     drawPolygon(innerPath, (diam - borderOffset) / 2, corners)
     drawPolygon(borderPath, diam / 2, corners)
