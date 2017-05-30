@@ -336,7 +336,7 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
     } yield (team, memberData)){
       case (team, memberData) =>
         currentTeam = team
-        teamPermissions = memberData.fold(Set[TeamMemberData.Permission]())(_.permissions)
+        teamPermissions = memberData.fold(Set[TeamMemberData.Permission]())(_.selfPermissions)
     }
 
     rootView

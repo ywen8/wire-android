@@ -57,7 +57,7 @@ class TeamsAndUserController(implicit injector: Injector, context: Context, ec: 
     z <- zms
     teams <- teams
     memberData <- Signal.future(z.teamMemberStorage.getAll(teams.map(team => (z.selfUserId, team.id))))
-  } yield memberData.flatten.map(md => (md.teamId, md.permissions))).on(Threading.Ui) { data =>
+  } yield memberData.flatten.map(md => (md.teamId, md.selfPermissions))).on(Threading.Ui) { data =>
     permissions = data.toMap
   }
 
