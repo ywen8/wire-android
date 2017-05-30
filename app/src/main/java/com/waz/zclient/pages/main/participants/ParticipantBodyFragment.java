@@ -34,8 +34,10 @@ import com.waz.api.NetworkMode;
 import com.waz.api.OtrClient;
 import com.waz.api.User;
 import com.waz.api.UsersList;
+import com.waz.model.ConvId;
 import com.waz.zclient.BaseActivity;
 import com.waz.zclient.R;
+import com.waz.zclient.controllers.TeamsAndUserController;
 import com.waz.zclient.controllers.accentcolor.AccentColorObserver;
 import com.waz.zclient.controllers.confirmation.ConfirmationCallback;
 import com.waz.zclient.controllers.confirmation.ConfirmationRequest;
@@ -327,8 +329,9 @@ public class ParticipantBodyFragment extends BaseFragment<ParticipantBodyFragmen
         } else {
             imageAssetImageView.setVisibility(View.GONE);
 
-            // Check if self user is member for group conversation
-            if (conversation.isMemberOfConversation()) {
+            // Check if self user is member for group conversation and has permission to add
+            Boolean permissionToAdd = ((BaseActivity)getActivity()).injectJava(TeamsAndUserController.class).hasAddMemberPermission(new ConvId(conversation.getId()));
+            if (conversation.isMemberOfConversation() && permissionToAdd) {
                 footerMenu.setLeftActionText(getString(R.string.glyph__add_people));
                 footerMenu.setRightActionText(getString(R.string.glyph__more));
                 footerMenu.setLeftActionLabelText(getString(R.string.conversation__action__add_people));

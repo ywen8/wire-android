@@ -22,8 +22,13 @@ import com.waz.ZLog._
 import com.waz.model._
 import com.waz.service.ZMessaging
 import com.waz.threading.Threading
+import com.waz.utils.LoggedTry
 import com.waz.utils.events.{EventContext, Signal}
 import com.waz.zclient.{Injectable, Injector}
+
+import scala.concurrent.duration._
+import scala.concurrent.{Await, ExecutionContext, Future}
+import scala.collection.JavaConverters._
 
 class TeamsAndUserController(implicit injector: Injector, context: Context, ec: EventContext) extends Injectable {
   import Threading.Implicits.Ui
@@ -44,6 +49,27 @@ class TeamsAndUserController(implicit injector: Injector, context: Context, ec: 
   val currentTeamOrUser = Signal[Either[UserData, TeamData]]()
   self.head.map{s => currentTeamOrUser ! Left(s)} //TODO: initial value
 
+
+  //Things for java
+
+  private var permissions = Map[TeamId, Set[TeamMemberData.Permission]]()
+  private var teamConvs = Map[ConvId, TeamId]()
+
+  (for {
+    z <- zms
+    teams <- teams
+    memberData <- Signal.future(z.teamMemberStorage.getAll(teams.map(team => (z.selfUserId, team.id))))
+  } yield memberData.flatten.map(md => (md.teamId, md.permissions))).on(Threading.Ui) { data =>
+    permissions = data.toMap
+  }
+
+  (for {
+    z <- zms
+    convs <- z.convsStorage.convsSignal
+  } yield convs.conversations.map(conv => (conv.id, conv.team))).on(Threading.Ui) { data =>
+    teamConvs = data.filter(_._2.nonEmpty).map(data => (data._1, data._2.get)).toMap
+  }
+
   def getCurrentUserOrTeamName: String ={
     currentTeamOrUser.currentValue.map {
       case Left(userData) => userData.displayName
@@ -51,4 +77,27 @@ class TeamsAndUserController(implicit injector: Injector, context: Context, ec: 
       case _ => ""
     }.getOrElse("")
   }
+
+  def hasCreateConversationPermission: Boolean = {
+    currentTeamOrUser.currentValue match {
+      case Some(Right(teamData)) => permissions.get(teamData.id).forall(_.contains(TeamMemberData.Permission.CreateConversation))
+      case _ => true
+    }
+  }
+
+  //def hasAddMemberPermission: Boolean = permissions.forall(_.contains(TeamMemberData.Permission.AddConversationMember))
+  //def hasRemoveMemberPermission: Boolean = permissions.forall(_.contains(TeamMemberData.Permission.RemoveConversationMember))
+
+  def selfPermissionsForConv(convId: ConvId): Option[Set[TeamMemberData.Permission]] = {
+    teamConvs.get(convId) match {
+      case Some(teamId) =>
+        permissions.get(teamId).fold(Some(Set[TeamMemberData.Permission]()))(data => Some(data))
+      case _ =>
+        None
+    }
+  }
+
+  def hasAddMemberPermission(convId: ConvId): Boolean = selfPermissionsForConv(convId).forall(_.contains(TeamMemberData.Permission.AddConversationMember))
+
+  def hasRemoveMemberPermission(convId: ConvId): Boolean = selfPermissionsForConv(convId).forall(_.contains(TeamMemberData.Permission.RemoveConversationMember))
 }
