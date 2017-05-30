@@ -65,7 +65,7 @@ import com.waz.zclient.utils.device.DeviceDetector
 import com.waz.zclient.utils.{IntentUtils, LayoutSpec, PermissionUtils, StringUtils, TrackingUtils, UiStorage, UserSignal, ViewUtils}
 import com.waz.zclient.views._
 import com.waz.zclient.views.pickuser.{ContactRowView, SearchBoxView, UserRowView}
-import com.waz.zclient.{FragmentHelper, OnBackPressedListener, R}
+import com.waz.zclient.{BaseActivity, FragmentHelper, OnBackPressedListener, R}
 
 import scala.collection.JavaConverters._
 import scala.concurrent.{ExecutionContext, Future}
@@ -475,26 +475,9 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
     genericInviteContainer.setVisibility(inviteVisibility)
   }
 
-  //TODO: This could be moved into a new ConversationController?
   private def createAndOpenConversation(users: Seq[UserId], requester: ConversationChangeRequester): Unit = {
-    val createConv = for {
-      z <- zms.head
-      conv <- currentTeam match {
-        case None if users.size == 1 =>
-          z.convsUi.getOrCreateOneToOneConversation(users.head)
-        case None =>
-          z.convsUi.createGroupConversation(ConvId(), users)
-        case Some(teamData) =>
-          z.convsUi.createGroupConversation(ConvId(), users, Some(teamData.id))
-        case _ => Future.successful[ConversationData](ConversationData.Empty)
-      }
-    } yield conv
-
-    createConv.map{ convData =>
-      val iConv = getStoreFactory.getConversationStore.getConversation(convData.id.str)
-      getStoreFactory.getConversationStore.setCurrentConversation(iConv, requester)
-      getControllerFactory.getPickUserController.hidePickUser(getCurrentPickerDestination, true)
-    }(Threading.Ui)
+    teamsAndUserController.createAndOpenConversation(users.toArray, requester, getActivity.asInstanceOf[BaseActivity])
+    getControllerFactory.getPickUserController.hidePickUser(getCurrentPickerDestination, true)
   }
 
   override def onConversationButtonClicked(): Unit = {
@@ -938,7 +921,7 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
     }
   }
 
-  private def requestShareContactsPermissions() {
+  private def requestShareContactsPermissions(): Unit = {
     if (getControllerFactory == null || getControllerFactory.isTornDown) {
       return
     }

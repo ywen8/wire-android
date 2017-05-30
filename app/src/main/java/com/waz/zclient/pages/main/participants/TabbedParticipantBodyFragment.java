@@ -34,6 +34,7 @@ import com.waz.api.OtrClient;
 import com.waz.api.User;
 import com.waz.api.UsersList;
 import com.waz.model.ConvId;
+import com.waz.model.UserId;
 import com.waz.zclient.BaseActivity;
 import com.waz.zclient.R;
 import com.waz.zclient.controllers.TeamsAndUserController;
@@ -53,6 +54,9 @@ import com.waz.zclient.tracking.GlobalTrackingController;
 import com.waz.zclient.ui.views.tab.TabIndicatorLayout;
 import com.waz.zclient.utils.ViewUtils;
 import com.waz.zclient.views.menus.FooterMenuCallback;
+
+import scala.collection.Seq;
+import scala.collection.mutable.ArraySeq;
 
 public class TabbedParticipantBodyFragment extends BaseFragment<TabbedParticipantBodyFragment.Container> implements
                                                                                                ParticipantsStoreObserver,
@@ -421,9 +425,11 @@ public class TabbedParticipantBodyFragment extends BaseFragment<TabbedParticipan
                 getControllerFactory().getConversationScreenController().addPeopleToConversation();
             } else {
                 getControllerFactory().getConversationScreenController().hideParticipants(true, false);
-                // Go to conversation with this user
-                getStoreFactory().getConversationStore().setCurrentConversation(user.getConversation(),
-                                                                                ConversationChangeRequester.START_CONVERSATION);
+                BaseActivity activity = (BaseActivity) getActivity();
+                activity.injectJava(TeamsAndUserController.class).createAndOpenConversation(
+                    new UserId[]{ new UserId(user.getId())},
+                    ConversationChangeRequester.START_CONVERSATION,
+                    activity);
             }
         }
 

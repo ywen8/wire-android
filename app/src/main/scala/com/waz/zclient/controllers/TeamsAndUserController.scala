@@ -22,13 +22,12 @@ import com.waz.ZLog._
 import com.waz.model._
 import com.waz.service.ZMessaging
 import com.waz.threading.Threading
-import com.waz.utils.LoggedTry
 import com.waz.utils.events.{EventContext, Signal}
-import com.waz.zclient.{Injectable, Injector}
+import com.waz.zclient.core.stores.conversation.ConversationChangeRequester
+import com.waz.zclient.pages.main.pickuser.controller.IPickUserController
+import com.waz.zclient.{BaseActivity, Injectable, Injector}
 
-import scala.concurrent.duration._
-import scala.concurrent.{Await, ExecutionContext, Future}
-import scala.collection.JavaConverters._
+import scala.concurrent.Future
 
 class TeamsAndUserController(implicit injector: Injector, context: Context, ec: EventContext) extends Injectable {
   import Threading.Implicits.Ui
@@ -49,8 +48,8 @@ class TeamsAndUserController(implicit injector: Injector, context: Context, ec: 
   val currentTeamOrUser = Signal[Either[UserData, TeamData]]()
   self.head.map{s => currentTeamOrUser ! Left(s)} //TODO: initial value
 
-
   //Things for java
+  //TODO: remove this
 
   private var permissions = Map[TeamId, Set[TeamMemberData.Permission]]()
   private var teamConvs = Map[ConvId, TeamId]()
@@ -85,9 +84,6 @@ class TeamsAndUserController(implicit injector: Injector, context: Context, ec: 
     }
   }
 
-  //def hasAddMemberPermission: Boolean = permissions.forall(_.contains(TeamMemberData.Permission.AddConversationMember))
-  //def hasRemoveMemberPermission: Boolean = permissions.forall(_.contains(TeamMemberData.Permission.RemoveConversationMember))
-
   def selfPermissionsForConv(convId: ConvId): Option[Set[TeamMemberData.Permission]] = {
     teamConvs.get(convId) match {
       case Some(teamId) =>
@@ -100,4 +96,25 @@ class TeamsAndUserController(implicit injector: Injector, context: Context, ec: 
   def hasAddMemberPermission(convId: ConvId): Boolean = selfPermissionsForConv(convId).forall(_.contains(TeamMemberData.Permission.AddConversationMember))
 
   def hasRemoveMemberPermission(convId: ConvId): Boolean = selfPermissionsForConv(convId).forall(_.contains(TeamMemberData.Permission.RemoveConversationMember))
+
+  def createAndOpenConversation(users: Array[UserId], requester: ConversationChangeRequester,  activity: BaseActivity): Unit = {
+    val createConv = for {
+      z <- zms.head
+      currentTeam <- currentTeamOrUser.map(_.fold(_ => None, data => Some(data))).head
+      conv <- currentTeam match {
+        case None if users.length == 1 =>
+          z.convsUi.getOrCreateOneToOneConversation(users.head)
+        case None =>
+          z.convsUi.createGroupConversation(ConvId(), users)
+        case Some(teamData) =>
+          z.convsUi.createGroupConversation(ConvId(), users, Some(teamData.id))
+        case _ => Future.successful[ConversationData](ConversationData.Empty)
+      }
+    } yield conv
+
+    createConv.map{ convData =>
+      val iConv = activity.getStoreFactory.getConversationStore.getConversation(convData.id.str)
+      activity.getStoreFactory.getConversationStore.setCurrentConversation(iConv, requester)
+    }(Threading.Ui)
+  }
 }
