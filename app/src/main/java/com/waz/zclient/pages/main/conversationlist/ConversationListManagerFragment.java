@@ -509,15 +509,13 @@ public class ConversationListManagerFragment extends BaseFragment<ConversationLi
                 if (fragment == null ||
                     !(fragment instanceof PickUserFragment)) {
                     getControllerFactory().getOnboardingController().incrementPeoplePickerShowCount();
-
-                    PickUserFragment pickUserFragment = PickUserFragment.newInstance(false);
                     getChildFragmentManager()
                         .beginTransaction()
                         .setCustomAnimations(R.anim.slide_in_from_bottom_pick_user,
                                              R.anim.open_new_conversation__thread_list_out,
                                              R.anim.open_new_conversation__thread_list_in,
                                              R.anim.slide_out_to_bottom_pick_user)
-                        .replace(R.id.fl__conversation_list_main, pickUserFragment, PickUserFragment.TAG)
+                        .replace(R.id.fl__conversation_list_main, PickUserFragment.newInstance(false), PickUserFragment.TAG)
                         .addToBackStack(PickUserFragment.TAG)
                         .commit();
                 }

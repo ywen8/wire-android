@@ -35,6 +35,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.Animation;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -59,6 +61,7 @@ import com.waz.zclient.controllers.tracking.events.connect.OpenedConversationEve
 import com.waz.zclient.controllers.tracking.events.connect.OpenedGenericInviteMenuEvent;
 import com.waz.zclient.controllers.tracking.events.connect.SentConnectRequestEvent;
 import com.waz.zclient.controllers.tracking.screens.ApplicationScreen;
+import com.waz.zclient.controllers.userpreferences.IUserPreferencesController;
 import com.waz.zclient.core.api.scala.ModelObserver;
 import com.waz.zclient.core.controllers.tracking.attributes.ConversationType;
 import com.waz.zclient.core.stores.conversation.ConversationChangeRequester;
@@ -92,7 +95,6 @@ import com.waz.zclient.utils.device.DeviceDetector;
 import com.waz.zclient.views.DefaultPageTransitionAnimation;
 import com.waz.zclient.views.LoadingIndicatorView;
 import com.waz.zclient.views.PickableElement;
-import hugo.weaving.DebugLog;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -203,12 +205,7 @@ public class PickUserFragment extends BaseFragment<PickUserFragment.Container> i
     };
 
     public static PickUserFragment newInstance(boolean addToConversation) {
-        PickUserFragment fragment = new PickUserFragment();
-        Bundle args = new Bundle();
-        args.putBoolean(ARGUMENT_ADD_TO_CONVERSATION, addToConversation);
-        args.putBoolean(ARGUMENT_GROUP_CONVERSATION, false);
-        fragment.setArguments(args);
-        return fragment;
+        return newInstance(addToConversation, false);
     }
 
     public static PickUserFragment newInstance(boolean addToConversation, boolean groupConversation) {
@@ -384,11 +381,8 @@ public class PickUserFragment extends BaseFragment<PickUserFragment.Container> i
         loadStartUi();
         usersSearchModelObserver.resumeListening();
         usersSearchModelObserver.forceUpdate();
-
-        boolean hasShareContactsEnabled = getControllerFactory().getUserPreferencesController().hasShareContactsEnabled();
-        boolean hasContactsReadPermission = PermissionUtils.hasSelfPermissions(getContext(), Manifest.permission.READ_CONTACTS);
-        if (hasShareContactsEnabled && !hasContactsReadPermission) {
-                ActivityCompat.requestPermissions(getActivity(), new String[]{Manifest.permission.READ_CONTACTS}, PermissionUtils.REQUEST_READ_CONTACTS);
+        if (!isAddingToConversation()) {
+            showShareContactsDialog();
         }
     }
 
@@ -719,6 +713,67 @@ public class PickUserFragment extends BaseFragment<PickUserFragment.Container> i
         searchBoxView.removeUser(removedUser);
     }
 
+    // XXX Only show contact sharing dialogs for PERSONAL START UI
+    private void showShareContactsDialog() {
+        IUserPreferencesController prefController = getControllerFactory().getUserPreferencesController();
+        // Doesn't have _our_ contact sharing setting enabled, maybe show dialog
+        if (!prefController.hasShareContactsEnabled() && !prefController.hasPerformedAction(IUserPreferencesController.DO_NOT_SHOW_SHARE_CONTACTS_DIALOG)) {
+            // show initial dialog
+            View checkBoxView = View.inflate(getContext(), R.layout.dialog_checkbox, null);
+            CheckBox checkBox = (CheckBox) checkBoxView.findViewById(R.id.checkbox);
+            final HashSet<Integer> checkedItems = new HashSet<>();
+            checkBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                @Override
+                public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                    if (isChecked) {
+                        checkedItems.add(1);
+                    } else {
+                        checkedItems.remove(1);
+                    }
+                }
+            });
+            checkBox.setText(R.string.people_picker__share_contacts__nevvah);
+
+            AlertDialog dialog = new AlertDialog.Builder(getContext())
+                .setTitle(R.string.people_picker__share_contacts__title)
+                .setMessage(R.string.people_picker__share_contacts__message)
+                .setView(checkBoxView)
+                .setPositiveButton(R.string.people_picker__share_contacts__yay,
+                                   new DialogInterface.OnClickListener() {
+                                       @Override
+                                       public void onClick(DialogInterface dialog, int which) {
+                                           requestShareContactsPermissions();
+                                       }
+                                   })
+                .setNegativeButton(R.string.people_picker__share_contacts__nah,
+                                   new DialogInterface.OnClickListener() {
+                                       @Override
+                                       public void onClick(DialogInterface dialog, int which) {
+                                           if (getControllerFactory() != null &&
+                                               !getControllerFactory().isTornDown() &&
+                                               checkedItems.size() > 0) {
+                                               getControllerFactory().getUserPreferencesController().setPerformedAction(IUserPreferencesController.DO_NOT_SHOW_SHARE_CONTACTS_DIALOG);
+                                           }
+                                       }
+                                   })
+                .create();
+            dialog.show();
+        }
+    }
+
+    private void requestShareContactsPermissions() {
+        if (getControllerFactory() == null || getControllerFactory().isTornDown()) {
+            return;
+        }
+        if (PermissionUtils.hasSelfPermissions(getContext(), Manifest.permission.READ_CONTACTS)) {
+            getControllerFactory().getUserPreferencesController().setShareContactsEnabled(true);
+        } else {
+            ActivityCompat.requestPermissions(getActivity(),
+                                              new String[] {Manifest.permission.READ_CONTACTS},
+                                              PermissionUtils.REQUEST_READ_CONTACTS);
+        }
+    }
+
     private void changeUserSelectedState(User user, boolean selected) {
 
         changeUserSelectedState(searchResultRecyclerView, user, selected);
@@ -958,7 +1013,6 @@ public class PickUserFragment extends BaseFragment<PickUserFragment.Container> i
     //
     //////////////////////////////////////////////////////////////////////////////////////////
 
-    @DebugLog
     public void loadStartUi() {
         if (searchResultAdapter.getItemCount() == 0) {
             getContainer().getLoadingViewIndicator().show(LoadingIndicatorView.SPINNER);
@@ -1194,15 +1248,21 @@ public class PickUserFragment extends BaseFragment<PickUserFragment.Container> i
 
     @Override
     public void onRequestPermissionsResult(int requestCode, int[] grantResults) {
-        if (requestCode == PermissionUtils.REQUEST_READ_CONTACTS &&
-            grantResults.length > 0 &&
-            grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-
-            //Changing the value of the shareContacts seems to be the
-            //only way to trigger a refresh on the sync engine...
-            boolean oldConfig = getControllerFactory().getUserPreferencesController().hasShareContactsEnabled();
-            getControllerFactory().getUserPreferencesController().setShareContactsEnabled(!oldConfig);
-            getControllerFactory().getUserPreferencesController().setShareContactsEnabled(oldConfig);
+        if (requestCode == PermissionUtils.REQUEST_READ_CONTACTS) {
+            getControllerFactory().getUserPreferencesController().setShareContactsEnabled(false);
+            if (grantResults.length > 0) {
+                if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    //Changing the value of the shareContacts seems to be the
+                    //only way to trigger a refresh on the sync engine...
+                    getControllerFactory().getUserPreferencesController().setShareContactsEnabled(true);
+                } else if (grantResults[0] == PackageManager.PERMISSION_DENIED) {
+                    boolean showRationale = shouldShowRequestPermissionRationale(Manifest.permission.READ_CONTACTS);
+                    if (!showRationale && getControllerFactory() != null && !getControllerFactory().isTornDown()) {
+                        getControllerFactory().getUserPreferencesController().setPerformedAction(
+                            IUserPreferencesController.DO_NOT_SHOW_SHARE_CONTACTS_DIALOG);
+                    }
+                }
+            }
         }
     }
 }

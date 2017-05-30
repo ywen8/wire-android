@@ -136,7 +136,7 @@ public class OptionsPreferences extends BasePreferenceFragment<OptionsPreference
             String stringValue = sharedPreferences.getString(key, "");
             boolean wifiOnly = stringValue.equals(getContext().getString(R.string.zms_image_download_value_wifi));
             event = new ChangedImageDownloadPreferenceEvent(wifiOnly);
-        } else if (key.equals(getString(R.string.pref_options_contacts_key))) {
+        } else if (key.equals(getString(R.string.pref_share_contacts_key))) {
             boolean shareContacts = sharedPreferences.getBoolean(key, false);
             event = new ChangedContactsPermissionEvent(shareContacts, true);
             boolean hasContactsReadPermission = PermissionUtils.hasSelfPermissions(getContext(), Manifest.permission.READ_CONTACTS);
@@ -202,12 +202,13 @@ public class OptionsPreferences extends BasePreferenceFragment<OptionsPreference
 
     @Override
     public void onRequestPermissionsResult(int requestCode, int[] grantResults) {
-        if (requestCode == PermissionUtils.REQUEST_READ_CONTACTS &&
-            grantResults.length > 0 &&
-            grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-            boolean oldConfig = getControllerFactory().getUserPreferencesController().hasShareContactsEnabled();
-            getControllerFactory().getUserPreferencesController().setShareContactsEnabled(!oldConfig);
-            getControllerFactory().getUserPreferencesController().setShareContactsEnabled(oldConfig);
+        if (requestCode == PermissionUtils.REQUEST_READ_CONTACTS) {
+            getControllerFactory().getUserPreferencesController().setShareContactsEnabled(false);
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                //Changing the value of the shareContacts seems to be the
+                //only way to trigger a refresh on the sync engine...
+                getControllerFactory().getUserPreferencesController().setShareContactsEnabled(true);
+            }
         }
     }
 }

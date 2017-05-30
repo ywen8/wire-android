@@ -25,10 +25,13 @@ import java.util.Set;
 
 public interface IUserPreferencesController {
 
-    @IntDef(SEND_LOCATION_MESSAGE)
+    @IntDef({SEND_LOCATION_MESSAGE,
+             LIKED_MESSAGE,
+             DO_NOT_SHOW_SHARE_CONTACTS_DIALOG})
     @interface Action { }
     int SEND_LOCATION_MESSAGE = 0;
     int LIKED_MESSAGE = 1;
+    int DO_NOT_SHOW_SHARE_CONTACTS_DIALOG = 2;
 
     void tearDown();
 
