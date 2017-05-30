@@ -31,7 +31,7 @@ import android.view._
 import android.view.animation.Animation
 import android.view.inputmethod.EditorInfo
 import android.widget.TextView.OnEditorActionListener
-import android.widget.{LinearLayout, ListView, TextView, Toast}
+import android.widget._
 import com.waz.ZLog
 import com.waz.api._
 import com.waz.model.UserData.ConnectionStatus
@@ -47,6 +47,7 @@ import com.waz.zclient.controllers.navigation.NavigationController
 import com.waz.zclient.controllers.permission.RequestPermissionsObserver
 import com.waz.zclient.controllers.tracking.events.connect.{EnteredSearchEvent, OpenedConversationEvent, OpenedGenericInviteMenuEvent, SentConnectRequestEvent}
 import com.waz.zclient.controllers.tracking.screens.ApplicationScreen
+import com.waz.zclient.controllers.userpreferences.IUserPreferencesController
 import com.waz.zclient.controllers.{SearchState, SearchUserController, TeamsAndUserController}
 import com.waz.zclient.core.controllers.tracking.attributes.ConversationType
 import com.waz.zclient.core.stores.conversation.{ConversationChangeRequester, InboxLoadRequester, OnInboxLoadedListener}
@@ -375,11 +376,8 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
     else {
       searchUserController.setFilter("")
     }
-    val hasShareContactsEnabled: Boolean = getControllerFactory.getUserPreferencesController.hasShareContactsEnabled
-    val hasContactsReadPermission: Boolean = PermissionUtils.hasSelfPermissions(getContext, Manifest.permission.READ_CONTACTS)
-    if (hasShareContactsEnabled && !hasContactsReadPermission) {
-      ActivityCompat.requestPermissions(getActivity, Array[String](Manifest.permission.READ_CONTACTS), PermissionUtils.REQUEST_READ_CONTACTS)
-    }
+    if (!isAddingToConversation)
+      showShareContactsDialog()
   }
 
   override def onResume(): Unit = {
@@ -887,16 +885,68 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
   }
 
   override def onRequestPermissionsResult(requestCode: Int, grantResults: Array[Int]): Unit = {
-    if (requestCode == PermissionUtils.REQUEST_READ_CONTACTS && grantResults.length > 0 && grantResults(0) == PackageManager.PERMISSION_GRANTED) {
-      //Changing the value of the shareContacts seems to be the
-      //only way to trigger a refresh on the sync engine...
-      val oldConfig: Boolean = getControllerFactory.getUserPreferencesController.hasShareContactsEnabled
-      getControllerFactory.getUserPreferencesController.setShareContactsEnabled(!oldConfig)
-      getControllerFactory.getUserPreferencesController.setShareContactsEnabled(oldConfig)
+    if (requestCode == PermissionUtils.REQUEST_READ_CONTACTS) {
+      getControllerFactory.getUserPreferencesController.setShareContactsEnabled(false)
+      if (grantResults.length > 0) {
+        if (grantResults(0) == PackageManager.PERMISSION_GRANTED) {
+          //Changing the value of the shareContacts seems to be the
+          //only way to trigger a refresh on the sync engine...
+          getControllerFactory.getUserPreferencesController.setShareContactsEnabled(true)
+        } else if (grantResults(0) == PackageManager.PERMISSION_DENIED) {
+          val showRationale = shouldShowRequestPermissionRationale(Manifest.permission.READ_CONTACTS)
+          if (!showRationale && getControllerFactory != null && !getControllerFactory.isTornDown) {
+            getControllerFactory.getUserPreferencesController.setPerformedAction(
+              IUserPreferencesController.DO_NOT_SHOW_SHARE_CONTACTS_DIALOG)
+          }
+        }
+      }
     }
   }
 
   private def getSelectedUsersJava: java.util.List[User] = {
     searchUserController.selectedUsers.map(uid => getStoreFactory.getPickUserStore.getUser(uid.str)).toList.asJava
+  }
+
+  // XXX Only show contact sharing dialogs for PERSONAL START UI
+  private def showShareContactsDialog(): Unit = {
+    val prefController = getControllerFactory.getUserPreferencesController
+    // Doesn't have _our_ contact sharing setting enabled, maybe show dialog
+    if (!prefController.hasShareContactsEnabled && !prefController.hasPerformedAction(IUserPreferencesController.DO_NOT_SHOW_SHARE_CONTACTS_DIALOG)) {
+      // show initial dialog
+      val checkBoxView= View.inflate(getContext, R.layout.dialog_checkbox, null)
+      val checkBox = checkBoxView.findViewById(R.id.checkbox).asInstanceOf[CheckBox]
+      val checkedItems = new java.util.HashSet[Integer]
+      checkBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+        def onCheckedChanged(buttonView: CompoundButton, isChecked: Boolean): Unit =  {
+          if (isChecked)
+            checkedItems.add(1)
+          else
+            checkedItems.remove(1)
+        }
+      })
+      checkBox.setText(R.string.people_picker__share_contacts__nevvah)
+      val dialog = new AlertDialog.Builder(getContext).setTitle(R.string.people_picker__share_contacts__title).setMessage(R.string.people_picker__share_contacts__message).setView(checkBoxView).setPositiveButton(R.string.people_picker__share_contacts__yay, new DialogInterface.OnClickListener() {
+        def onClick(dialog: DialogInterface, which: Int): Unit = {
+          requestShareContactsPermissions()
+        }
+      }).setNegativeButton(R.string.people_picker__share_contacts__nah, new DialogInterface.OnClickListener() {
+        def onClick(dialog: DialogInterface, which: Int): Unit = {
+          if (getControllerFactory != null && !getControllerFactory.isTornDown && checkedItems.size > 0) getControllerFactory.getUserPreferencesController.setPerformedAction(IUserPreferencesController.DO_NOT_SHOW_SHARE_CONTACTS_DIALOG)
+        }
+      }).create
+      dialog.show()
+    }
+  }
+
+  private def requestShareContactsPermissions() {
+    if (getControllerFactory == null || getControllerFactory.isTornDown) {
+      return
+    }
+    if (PermissionUtils.hasSelfPermissions(getContext, Manifest.permission.READ_CONTACTS)) {
+      getControllerFactory.getUserPreferencesController.setShareContactsEnabled(true)
+    }
+    else {
+      ActivityCompat.requestPermissions(getActivity, Array[String](Manifest.permission.READ_CONTACTS), PermissionUtils.REQUEST_READ_CONTACTS)
+    }
   }
 }
