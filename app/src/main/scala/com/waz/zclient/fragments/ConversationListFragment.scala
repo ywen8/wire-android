@@ -52,13 +52,13 @@ import com.waz.zclient.utils.RichView
 abstract class ConversationListFragment extends BaseFragment[ConversationListFragment.Container] with FragmentHelper with VoiceChannel.JoinCallback {
 
   val layoutId: Int
+  lazy val teamsAndUsersController = inject[TeamsAndUserController]
 
   override def onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState: Bundle) = {
     val view = inflater.inflate(layoutId, container, false)
     val conversationListView = ViewUtils.getView(view, R.id.conversation_list_view).asInstanceOf[SwipeListView]
     val adapter = new ConversationListAdapter(getContext)
     val topToolbar = ViewUtils.getView(view, R.id.conversation_list_top_toolbar).asInstanceOf[ConversationListTopToolbar]
-    val teamsAndUsersController = inject[TeamsAndUserController]
 
     conversationListView.setLayoutManager(new LinearLayoutManager(getContext))
     conversationListView.setAdapter(adapter)
@@ -207,15 +207,14 @@ class NormalConversationFragment extends ConversationListFragment {
     clients <- z.account.account.clientId.fold(Signal.empty[Seq[Client]])(aid => z.otrClientsStorage.incomingClientsSignal(z.selfUserId, aid))
   } yield (color.getColor(), clients)
 
-  lazy val hasConversations = for {
+  lazy val hasConversationsAndArchive = for {
     z <- zms
     convs <- z.convsStorage.convsSignal
-  } yield convs.conversations.exists(c => !c.archived && !c.hidden)
-
-  lazy val hasArchive = for {
-    z <- zms
-    convs <- z.convsStorage.convsSignal
-  } yield convs.conversations.exists(c => c.archived && !c.hidden)
+    teamId <- teamsAndUsersController.currentTeamOrUser.map(_.fold(_ => None, t => Some(t.id)))
+  } yield {
+    (convs.conversations.exists(c => !c.archived && !c.hidden && c.team == teamId),
+    convs.conversations.exists(c => c.archived && !c.hidden && c.team == teamId))
+  }
 
 
   override def init(view: View, adapter: ConversationListAdapter): Unit = {
@@ -232,19 +231,21 @@ class NormalConversationFragment extends ConversationListFragment {
     })
 
     adapter.currentMode ! ConversationListAdapter.Normal
-    hasArchive.on(Threading.Ui) { listActionsView.setArchiveEnabled }
-    Signal(hasArchive, hasConversations).on(Threading.Ui) {
-      case (true, false) =>
+    hasConversationsAndArchive.on(Threading.Ui) {
+      case (false, true) =>
         noConvsTitle.setText(R.string.all_archived__header)
         noConvsTitle.setVisible(true)
         noConvsSubtitle.setVisible(false)
+        listActionsView.setArchiveEnabled(true)
       case (false, false) =>
         noConvsTitle.setText(R.string.no_conversation_in_list__header)
         noConvsTitle.setVisible(true)
         noConvsSubtitle.setVisible(true)
-      case _ =>
+        listActionsView.setArchiveEnabled(false)
+      case (_, archive) =>
         noConvsTitle.setVisible(false)
         noConvsSubtitle.setVisible(false)
+        listActionsView.setArchiveEnabled(archive)
     }
 
     topToolbar.onRightButtonClick{ _ => startActivity(ZetaPreferencesActivity.getDefaultIntent(getContext)) }
