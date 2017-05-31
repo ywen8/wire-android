@@ -218,10 +218,8 @@
     <issue id="UselessParent" severity="error" >
         <ignore path="src/main/res/layout/row_collection_header.xml"/>
     </issue>
-    <issue id="UnusedResources" severity="error" />
-    <issue id="UnusedIds" severity="error" />
-    <issue id="UnusedResources" severity="informational" />
-    <issue id="UnusedIds" severity="informational" />
+    <issue id="UnusedResources" severity="ignore" />
+    <issue id="UnusedIds" severity="ignore" />
     <issue id="EnforceUTF8" severity="error" />
     <issue id="ViewHolder" severity="error" />
     <issue id="ViewTag" severity="error" />
