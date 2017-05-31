@@ -43,6 +43,7 @@ import com.waz.api.UsersList;
 import com.waz.zclient.BaseActivity;
 import com.waz.zclient.OnBackPressedListener;
 import com.waz.zclient.R;
+import com.waz.zclient.controllers.TeamsAndUserController;
 import com.waz.zclient.controllers.confirmation.ConfirmationCallback;
 import com.waz.zclient.controllers.confirmation.ConfirmationRequest;
 import com.waz.zclient.controllers.confirmation.IConfirmationController;
@@ -74,7 +75,7 @@ import com.waz.zclient.pages.main.connect.SendConnectRequestFragment;
 import com.waz.zclient.pages.main.conversation.controller.ConversationScreenControllerObserver;
 import com.waz.zclient.pages.main.conversation.controller.IConversationScreenController;
 import com.waz.zclient.pages.main.participants.dialog.DialogLaunchMode;
-import com.waz.zclient.pages.main.pickuser.PickUserFragment;
+import com.waz.zclient.fragments.PickUserFragment;
 import com.waz.zclient.pages.main.pickuser.controller.IPickUserController;
 import com.waz.zclient.pages.main.pickuser.controller.PickUserControllerScreenObserver;
 import com.waz.zclient.tracking.GlobalTrackingController;
@@ -318,7 +319,7 @@ public class ParticipantFragment extends BaseFragment<ParticipantFragment.Contai
             conversationChangeRequester == ConversationChangeRequester.START_CONVERSATION_FOR_VIDEO_CALL ||
             conversationChangeRequester == ConversationChangeRequester.START_CONVERSATION_FOR_CALL ||
             conversationChangeRequester == ConversationChangeRequester.START_CONVERSATION_FOR_CAMERA) {
-            getChildFragmentManager().popBackStackImmediate(PickUserFragment.TAG,
+            getChildFragmentManager().popBackStackImmediate(PickUserFragment.TAG(),
                                                             FragmentManager.POP_BACK_STACK_INCLUSIVE);
             getControllerFactory().getPickUserController().hidePickUserWithoutAnimations(
                 getCurrentPickerDestination());
@@ -598,7 +599,7 @@ public class ParticipantFragment extends BaseFragment<ParticipantFragment.Contai
     @Override
     public boolean onBackPressed() {
         PickUserFragment pickUserFragment = (PickUserFragment) getChildFragmentManager().findFragmentByTag(
-            PickUserFragment.TAG);
+            PickUserFragment.TAG());
         if (pickUserFragment != null && pickUserFragment.onBackPressed()) {
             return true;
         }
@@ -775,44 +776,52 @@ public class ParticipantFragment extends BaseFragment<ParticipantFragment.Contai
             }
             return;
         }
+        Boolean isTeamSpace = ((BaseActivity) getActivity()).injectJava(TeamsAndUserController.class).isTeamSpace();
+        if (isTeamSpace) {
+            showAcceptedUser(user);
+        } else {
+            switch (user.getConnectionStatus()) {
+                case ACCEPTED:
+                    showAcceptedUser(user);
+                    break;
+                case PENDING_FROM_OTHER:
+                case PENDING_FROM_USER:
+                case IGNORED:
+                    openUserProfileFragment(PendingConnectRequestFragment.newInstance(user.getId(),
+                        null,
+                        ConnectRequestLoadMode.LOAD_BY_USER_ID,
+                        IConnectStore.UserRequester.PARTICIPANTS),
+                        PendingConnectRequestFragment.TAG);
+                    if (LayoutSpec.isPhone(getActivity())) {
+                        getControllerFactory().getNavigationController().setRightPage(Page.PARTICIPANT_USER_PROFILE, TAG);
+                    }
+                    break;
+                case BLOCKED:
+                    openUserProfileFragment(BlockedUserProfileFragment.newInstance(user.getId(),
+                        IConnectStore.UserRequester.PARTICIPANTS),
+                        BlockedUserProfileFragment.TAG);
+                    if (LayoutSpec.isPhone(getActivity())) {
+                        getControllerFactory().getNavigationController().setRightPage(Page.PARTICIPANT_USER_PROFILE, TAG);
+                    }
+                    break;
+                case CANCELLED:
+                case UNCONNECTED:
+                    openUserProfileFragment(SendConnectRequestFragment.newInstance(user.getId(),
+                        IConnectStore.UserRequester.PARTICIPANTS),
+                        SendConnectRequestFragment.TAG);
+                    getControllerFactory().getNavigationController().setRightPage(Page.SEND_CONNECT_REQUEST, TAG);
+                    break;
+            }
+        }
+    }
 
-        switch (user.getConnectionStatus()) {
-            case ACCEPTED:
-                getStoreFactory().getSingleParticipantStore().setUser(user);
-                openUserProfileFragment(SingleParticipantFragment.newInstance(false,
-                                                                              IConnectStore.UserRequester.PARTICIPANTS),
-                                        SingleParticipantFragment.TAG);
-                if (LayoutSpec.isPhone(getActivity())) {
-                    getControllerFactory().getNavigationController().setRightPage(Page.PARTICIPANT_USER_PROFILE, TAG);
-                }
-                break;
-            case PENDING_FROM_OTHER:
-            case PENDING_FROM_USER:
-            case IGNORED:
-                openUserProfileFragment(PendingConnectRequestFragment.newInstance(user.getId(),
-                                                                                  null,
-                                                                                  ConnectRequestLoadMode.LOAD_BY_USER_ID,
-                                                                                  IConnectStore.UserRequester.PARTICIPANTS),
-                                        PendingConnectRequestFragment.TAG);
-                if (LayoutSpec.isPhone(getActivity())) {
-                    getControllerFactory().getNavigationController().setRightPage(Page.PARTICIPANT_USER_PROFILE, TAG);
-                }
-                break;
-            case BLOCKED:
-                openUserProfileFragment(BlockedUserProfileFragment.newInstance(user.getId(),
-                                                                               IConnectStore.UserRequester.PARTICIPANTS),
-                                        BlockedUserProfileFragment.TAG);
-                if (LayoutSpec.isPhone(getActivity())) {
-                    getControllerFactory().getNavigationController().setRightPage(Page.PARTICIPANT_USER_PROFILE, TAG);
-                }
-                break;
-            case CANCELLED:
-            case UNCONNECTED:
-                openUserProfileFragment(SendConnectRequestFragment.newInstance(user.getId(),
-                                                                               IConnectStore.UserRequester.PARTICIPANTS),
-                                        SendConnectRequestFragment.TAG);
-                getControllerFactory().getNavigationController().setRightPage(Page.SEND_CONNECT_REQUEST, TAG);
-                break;
+    private void showAcceptedUser(final User user) {
+        getStoreFactory().getSingleParticipantStore().setUser(user);
+        openUserProfileFragment(SingleParticipantFragment.newInstance(false,
+            IConnectStore.UserRequester.PARTICIPANTS),
+            SingleParticipantFragment.TAG);
+        if (LayoutSpec.isPhone(getActivity())) {
+            getControllerFactory().getNavigationController().setRightPage(Page.PARTICIPANT_USER_PROFILE, TAG);
         }
     }
 
@@ -1073,6 +1082,11 @@ public class ParticipantFragment extends BaseFragment<ParticipantFragment.Contai
         int pickUserAnimation =
             LayoutSpec.isTablet(getActivity()) ? R.anim.fade_in : R.anim.slide_in_from_bottom_pick_user;
 
+        IConversation currentConversation = getStoreFactory() != null &&
+            !getStoreFactory().isTornDown() ?
+            getStoreFactory().getConversationStore().getCurrentConversation() : null;
+        String conversationId = currentConversation == null ? null : currentConversation.getId();
+
         if (!groupConversation && otherUser != null) {
             getControllerFactory().getPickUserController().addUser(otherUser);
         }
@@ -1080,9 +1094,9 @@ public class ParticipantFragment extends BaseFragment<ParticipantFragment.Contai
             .beginTransaction()
             .setCustomAnimations(pickUserAnimation, R.anim.fade_out)
             .add(R.id.fl__add_to_conversation__pickuser__container,
-                 PickUserFragment.newInstance(true, groupConversation),
-                 PickUserFragment.TAG)
-            .addToBackStack(PickUserFragment.TAG)
+                 PickUserFragment.newInstance(true, groupConversation, conversationId),
+                 PickUserFragment.TAG())
+            .addToBackStack(PickUserFragment.TAG())
             .commit();
 
         if (LayoutSpec.isPhone(getActivity())) {
@@ -1142,7 +1156,7 @@ public class ParticipantFragment extends BaseFragment<ParticipantFragment.Contai
                 if (!isResumed()) {
                     return;
                 }
-                getChildFragmentManager().popBackStackImmediate(PickUserFragment.TAG,
+                getChildFragmentManager().popBackStackImmediate(PickUserFragment.TAG(),
                                                                 FragmentManager.POP_BACK_STACK_INCLUSIVE);
 
                 if (LayoutSpec.isTablet(getActivity())) {

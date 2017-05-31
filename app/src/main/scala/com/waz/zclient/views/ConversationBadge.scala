@@ -59,33 +59,35 @@ class ConversationBadge(context: Context, attrs: AttributeSet, style: Int) exten
     override def onClick(v: View) = onClickEvent ! status
   })
 
-  def setGlyph(glyphId: Int, backgroundId: Int = R.drawable.conversation_badge): Unit = {
+  def setGlyph(glyphId: Int, backgroundId: Int = R.drawable.conversation_badge, textColor: Int = R.color.white): Unit = {
     setVisibility(View.VISIBLE)
     glyphView.setVisibility(View.VISIBLE)
     textView.setVisibility(View.GONE)
     setBackground(getDrawable(backgroundId))
     glyphView.setText(glyphId)
+    glyphView.setTextColor(getColor(textColor))
   }
 
-  def setText(text: String, backgroundId: Int = R.drawable.conversation_badge): Unit = {
+  def setText(text: String, backgroundId: Int = R.drawable.conversation_badge, textColor: Int = R.color.white): Unit = {
     setVisibility(View.VISIBLE)
     textView.setVisibility(View.VISIBLE)
     glyphView.setVisibility(View.INVISIBLE)
     setBackground(getDrawable(backgroundId))
     textView.setText(text)
+    textView.setTextColor(getColor(textColor))
   }
 
   def setHidden() = setVisibility(View.INVISIBLE)
 
   def setMuted(): Unit = setGlyph(R.string.glyph__silence)
   def setWaitingForConnection(): Unit = setGlyph(R.string.glyph__clock)
-  def setPing(): Unit = setGlyph(R.string.glyph__ping)
+  def setPing(): Unit = setGlyph(R.string.glyph__ping, R.drawable.conversation_badge_white, R.color.black)
   def setTyping(): Unit = setGlyph(R.string.glyph__edit)
 
-  def setCount(count: Int): Unit = setText(count.toString)
+  def setCount(count: Int): Unit = setText(count.toString, R.drawable.conversation_badge_white, R.color.black)
   def setIncomingCalling() = setText(getString(R.string.conversation_list__action_join_call), R.drawable.conversation_badge_green)
   def setOngoingCall() = setGlyph(R.string.glyph__call, R.drawable.conversation_badge_green)
-  def setMissedCall() = setGlyph(R.string.glyph__end_call)
+  def setMissedCall() = setGlyph(R.string.glyph__end_call, R.drawable.conversation_badge_white, R.color.black)
 
   def setStatus(status: Status): Unit = {
     this.status = status

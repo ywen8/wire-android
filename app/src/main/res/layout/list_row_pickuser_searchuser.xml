@@ -34,9 +34,10 @@
         android:layout_height="wrap_content"
         app:glyph_size="@dimen/people_picker__chathead__glpyh"
         app:isSelectable="true"
+        app:show_border="false"
         />
 
-    <com.waz.zclient.pages.main.pickuser.views.ContactListItemTextView
+    <com.waz.zclient.views.pickuser.ContactListItemTextView
         android:id="@+id/clitv__contactlist__user__text_view"
         android:layout_width="wrap_content"
         android:layout_height="match_parent"

@@ -21,6 +21,7 @@
 <merge xmlns:android="http://schemas.android.com/apk/res/android"
              xmlns:app="http://schemas.android.com/apk/res-auto"
              >
+
     <com.waz.zclient.ui.text.TypefaceTextView
         android:id="@+id/conversation_list_title"
         android:layout_width="wrap_content"
@@ -30,12 +31,31 @@
         android:textSize="@dimen/wire__text_size__small"
         app:font="@string/wire__typeface__medium"
         android:textColor="@color/white"
+        android:visibility="gone"
         />
+
+    <FrameLayout
+        android:layout_width="@dimen/team_tabs_max_width"
+        android:layout_height="match_parent"
+        android:layout_gravity="center"
+        >
+        <com.waz.zclient.views.TeamTabsView
+            android:id="@+id/team_tabs_container"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:orientation="horizontal"
+            android:layout_gravity="center"
+            android:paddingStart="@dimen/wire__padding__12"
+            android:paddingEnd="@dimen/wire__padding__12"
+            android:visibility="gone"
+            />
+    </FrameLayout>
 
     <FrameLayout
         android:layout_width="@dimen/conversation_list__action_icon__size__big"
         android:layout_height="@dimen/conversation_list__action_icon__size__big"
         android:layout_gravity="end|center_vertical"
+        android:layout_marginBottom="@dimen/teams_tab_bottom_offset_half"
         >
 
         <com.waz.zclient.ui.text.GlyphTextView
@@ -65,8 +85,7 @@
         android:layout_width="match_parent"
         android:layout_height="@dimen/people_picker__border_line__height"
         android:layout_gravity="bottom"
-        android:background="@color/separator_dark"
-        android:visibility="gone"
+        android:layout_marginBottom="@dimen/teams_tab_bottom_offset"
         />
 
 </merge>

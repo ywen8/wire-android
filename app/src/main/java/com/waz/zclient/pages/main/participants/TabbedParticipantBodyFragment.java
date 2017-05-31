@@ -33,8 +33,11 @@ import com.waz.api.Message;
 import com.waz.api.OtrClient;
 import com.waz.api.User;
 import com.waz.api.UsersList;
+import com.waz.model.ConvId;
+import com.waz.model.UserId;
 import com.waz.zclient.BaseActivity;
 import com.waz.zclient.R;
+import com.waz.zclient.controllers.TeamsAndUserController;
 import com.waz.zclient.controllers.accentcolor.AccentColorObserver;
 import com.waz.zclient.controllers.tracking.events.group.OpenedGroupActionEvent;
 import com.waz.zclient.controllers.tracking.events.otr.ViewedOtherOtrClientsEvent;
@@ -69,6 +72,8 @@ public class TabbedParticipantBodyFragment extends BaseFragment<TabbedParticipan
     private final ParticipantOtrDeviceAdapter participantOtrDeviceAdapter;
 
     private CallbackImpl callbacks;
+    private boolean permissionToRemove = true;
+    private boolean permissionToCreate = true;
 
     private final ModelObserver<User> userModelObserver = new ModelObserver<User>() {
         @Override
@@ -161,6 +166,7 @@ public class TabbedParticipantBodyFragment extends BaseFragment<TabbedParticipan
                 viewPager.setCurrentItem(firstPage);
             }
         }
+
         return view;
     }
 
@@ -237,18 +243,24 @@ public class TabbedParticipantBodyFragment extends BaseFragment<TabbedParticipan
 
             final IConversation conversation = getStoreFactory().getConversationStore().getCurrentConversation();
             if (conversation != null) {
-                if (conversation.getType() == IConversation.Type.ONE_TO_ONE) {
+                if (conversation.getType() == IConversation.Type.ONE_TO_ONE && permissionToCreate) {
                     tab.updateFooterMenu(R.string.glyph__add_people,
                                          R.string.conversation__action__create_group,
                                          R.string.glyph__more,
                                          R.string.empty_string,
                                          callbacks);
-                } else {
+                } else if (conversation.getType() == IConversation.Type.GROUP && permissionToRemove) {
                     tab.updateFooterMenu(R.string.glyph__conversation,
                                          R.string.empty_string,
                                          R.string.glyph__minus,
                                          R.string.empty_string,
                                          callbacks);
+                } else {
+                    tab.updateFooterMenu(R.string.glyph__conversation,
+                        R.string.empty_string,
+                        R.string.empty_string,
+                        R.string.empty_string,
+                        callbacks);
                 }
             }
         }
@@ -262,7 +274,9 @@ public class TabbedParticipantBodyFragment extends BaseFragment<TabbedParticipan
             otrClientsModelObserver.clear();
             return;
         }
-        User updatedUser;
+        permissionToRemove = ((BaseActivity) getActivity()).injectJava(TeamsAndUserController.class).hasRemoveMemberPermission(new ConvId(conversation.getId()));
+        permissionToCreate = ((BaseActivity) getActivity()).injectJava(TeamsAndUserController.class).hasCreateConversationPermission();
+        final User updatedUser;
         if (conversation.getType() == IConversation.Type.ONE_TO_ONE) {
             updatedUser = conversation.getOtherParticipant();
         } else {
@@ -403,14 +417,16 @@ public class TabbedParticipantBodyFragment extends BaseFragment<TabbedParticipan
             if (conversation == null) {
                 return;
             }
-            if (conversation.getType() == IConversation.Type.ONE_TO_ONE) {
+            if (conversation.getType() == IConversation.Type.ONE_TO_ONE && permissionToCreate) {
                 ((BaseActivity) getActivity()).injectJava(GlobalTrackingController.class).tagEvent(new OpenedGroupActionEvent());
                 getControllerFactory().getConversationScreenController().addPeopleToConversation();
             } else {
                 getControllerFactory().getConversationScreenController().hideParticipants(true, false);
-                // Go to conversation with this user
-                getStoreFactory().getConversationStore().setCurrentConversation(user.getConversation(),
-                                                                                ConversationChangeRequester.START_CONVERSATION);
+                BaseActivity activity = (BaseActivity) getActivity();
+                activity.injectJava(TeamsAndUserController.class).createAndOpenConversation(
+                    new UserId[]{new UserId(user.getId())},
+                    ConversationChangeRequester.START_CONVERSATION,
+                    activity);
             }
         }
 
@@ -430,7 +446,7 @@ public class TabbedParticipantBodyFragment extends BaseFragment<TabbedParticipan
                     conversation,
                     null);
 
-            } else {
+            } else if (permissionToRemove) {
                 getContainer().showRemoveConfirmation(user);
             }
         }

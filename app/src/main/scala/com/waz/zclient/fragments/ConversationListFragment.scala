@@ -19,7 +19,6 @@ package com.waz.zclient.fragments
 
 import android.os.Bundle
 import android.support.v7.widget.{LinearLayoutManager, RecyclerView}
-import android.view.View.OnClickListener
 import android.view.animation.Animation
 import android.view.{LayoutInflater, View, ViewGroup}
 import com.waz.api.VoiceChannel
@@ -30,6 +29,7 @@ import com.waz.service.ZMessaging
 import com.waz.threading.Threading
 import com.waz.utils.events.Signal
 import com.waz.zclient.adapters.ConversationListAdapter
+import com.waz.zclient.controllers.TeamsAndUserController
 import com.waz.zclient.controllers.global.AccentColorController
 import com.waz.zclient.controllers.tracking.events.navigation.OpenedContactsEvent
 import com.waz.zclient.core.stores.conversation.ConversationChangeRequester
@@ -42,68 +42,52 @@ import com.waz.zclient.pages.main.conversationlist.views.listview.SwipeListView
 import com.waz.zclient.pages.main.pickuser.controller.IPickUserController
 import com.waz.zclient.pages.main.profile.ZetaPreferencesActivity
 import com.waz.zclient.tracking.GlobalTrackingController
+import com.waz.zclient.ui.text.TypefaceTextView
 import com.waz.zclient.ui.utils.ResourceUtils
 import com.waz.zclient.utils.ViewUtils
-import com.waz.zclient.views.conversationlist.ConversationListTopToolbar
+import com.waz.zclient.views.conversationlist.{ArchiveTopToolbar, ConversationListTopToolbar, NormalTopToolbar}
 import com.waz.zclient.{BaseActivity, FragmentHelper, OnBackPressedListener, R}
+import com.waz.zclient.utils.RichView
 
 abstract class ConversationListFragment extends BaseFragment[ConversationListFragment.Container] with FragmentHelper with VoiceChannel.JoinCallback {
 
+  val layoutId: Int
+  lazy val teamsAndUsersController = inject[TeamsAndUserController]
+
   override def onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState: Bundle) = {
-    val view = inflater.inflate(R.layout.fragment_conversation_list, container, false)
+    val view = inflater.inflate(layoutId, container, false)
     val conversationListView = ViewUtils.getView(view, R.id.conversation_list_view).asInstanceOf[SwipeListView]
     val adapter = new ConversationListAdapter(getContext)
     val topToolbar = ViewUtils.getView(view, R.id.conversation_list_top_toolbar).asInstanceOf[ConversationListTopToolbar]
-    val listActionsView = ViewUtils.getView(view, R.id.lav__conversation_list_actions).asInstanceOf[ListActionsView]
 
     conversationListView.setLayoutManager(new LinearLayoutManager(getContext))
     conversationListView.setAdapter(adapter)
     conversationListView.setAllowSwipeAway(true)
+    conversationListView.setOverScrollMode(View.OVER_SCROLL_NEVER)
 
-    conversationListView.addOnScrollListener(new RecyclerView.OnScrollListener {
-      override def onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) = {
-        listActionsView.setScrolledToBottom(!recyclerView.canScrollVertically(1))
-        topToolbar.setScrolledToTop(!recyclerView.canScrollVertically(-1))
-      }
-    })
+    teamsAndUsersController.currentTeamOrUser.on(Threading.Ui) { _ =>
+      conversationListView.scrollToPosition(0)
+    }
 
     adapter.onConversationClick { handleItemClick }
     adapter.onConversationLongClick { handleItemLongClick(_, conversationListView) }
     adapter.setMaxAlpha(ResourceUtils.getResourceFloat(getResources, R.dimen.list__swipe_max_alpha))
-
-    val layoutNoConversations = ViewUtils.getView(view, R.id.ll__conversation_list__no_contacts).asInstanceOf[View]
-    layoutNoConversations.setVisibility(View.GONE)
-
-    val archivingContainer = ViewUtils.getView(view, R.id.ll__archiving_container).asInstanceOf[View]
-    archivingContainer.setVisibility(View.GONE)
-
-    val hintContainer = ViewUtils.getView(view, R.id.ll__conversation_list__hint_container).asInstanceOf[View]
-    hintContainer.setVisibility(View.GONE)
-
-    listActionsView.setCallback(new Callback {
-      override def onAvatarPress() = {
-        getControllerFactory.getPickUserController.showPickUser(IPickUserController.Destination.CONVERSATION_LIST, null)
-        val hintVisible: Boolean = hintContainer != null && hintContainer.getVisibility == View.VISIBLE
-        getActivity.asInstanceOf[BaseActivity].injectJava(classOf[GlobalTrackingController]).tagEvent(new OpenedContactsEvent(hintVisible))
-        getControllerFactory.getOnboardingController.hideConversationListHint()
-      }
-
-      override def onArchivePress() = {
-        conversationListView.stopScroll()
-        Option(getContainer).foreach(_.showArchive())
-      }
-    })
-
     adapter.currentMode.on(Threading.Ui) { mode =>
       topToolbar.title.setText(mode.nameId)
     }
 
-    init(adapter, listActionsView, topToolbar)
+    conversationListView.addOnScrollListener(new RecyclerView.OnScrollListener {
+      override def onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) = {
+        topToolbar.setScrolledToTop(!recyclerView.canScrollVertically(-1))
+      }
+    })
+
+    init(view, adapter)
 
     view
   }
 
-  def init(adapter: ConversationListAdapter, listActionsView: ListActionsView, topToolbar: ConversationListTopToolbar): Unit
+  def init(view: View, adapter: ConversationListAdapter): Unit
 
   private def handleItemClick(conversationData: ConversationData): Unit = {
     val iConversation = getStoreFactory.getConversationStore.getConversation(conversationData.id.str)
@@ -193,15 +177,13 @@ object ArchiveListFragment{
   val TAG = ArchiveListFragment.getClass.getSimpleName
 }
 class ArchiveListFragment extends ConversationListFragment with OnBackPressedListener {
-  override def init(adapter: ConversationListAdapter, listActionsView: ListActionsView, topToolbar: ConversationListTopToolbar): Unit ={
+
+  override val layoutId = R.layout.fragment_archive_list
+
+  override def init(view: View, adapter: ConversationListAdapter): Unit ={
+    val topToolbar = ViewUtils.getView(view, R.id.conversation_list_top_toolbar).asInstanceOf[ArchiveTopToolbar]
     adapter.currentMode ! ConversationListAdapter.Archive
-    listActionsView.setVisibility(View.GONE)
-    topToolbar.setClose()
-    topToolbar.glyphButton.setOnClickListener(new OnClickListener {
-      override def onClick(v: View) = {
-        Option(getContainer).foreach(_.closeArchive())
-      }
-    })
+    topToolbar.onRightButtonClick{ _ => Option(getContainer).foreach(_.closeArchive()) }
   }
 
   override def onBackPressed() = {
@@ -215,6 +197,8 @@ object NormalConversationListFragment{
 }
 class NormalConversationFragment extends ConversationListFragment {
 
+  override val layoutId = R.layout.fragment_conversation_list
+
   lazy val zms = inject[Signal[ZMessaging]]
   lazy val accentColor = inject[AccentColorController].accentColor
   lazy val incomingClients = for{
@@ -223,34 +207,73 @@ class NormalConversationFragment extends ConversationListFragment {
     clients <- z.account.account.clientId.fold(Signal.empty[Seq[Client]])(aid => z.otrClientsStorage.incomingClientsSignal(z.selfUserId, aid))
   } yield (color.getColor(), clients)
 
-  lazy val hasArchive = for {
+  lazy val hasConversationsAndArchive = for {
     z <- zms
     convs <- z.convsStorage.convsSignal
-  } yield convs.conversations.exists(c => c.archived && !c.hidden)
+    teamId <- teamsAndUsersController.currentTeamOrUser.map(_.fold(_ => None, t => Some(t.id)))
+  } yield {
+    (convs.conversations.exists(c => !c.archived && !c.hidden && c.team == teamId),
+    convs.conversations.exists(c => c.archived && !c.hidden && c.team == teamId))
+  }
 
-  override def init(adapter: ConversationListAdapter, listActionsView: ListActionsView, topToolbar: ConversationListTopToolbar): Unit = {
-    adapter.currentMode ! ConversationListAdapter.Normal
 
-    hasArchive.on(Threading.Ui) { listActionsView.setArchiveEnabled }
+  override def init(view: View, adapter: ConversationListAdapter): Unit = {
+    val conversationListView = ViewUtils.getView(view, R.id.conversation_list_view).asInstanceOf[SwipeListView]
+    val listActionsView = ViewUtils.getView(view, R.id.lav__conversation_list_actions).asInstanceOf[ListActionsView]
+    val topToolbar = ViewUtils.getView(view, R.id.conversation_list_top_toolbar).asInstanceOf[NormalTopToolbar]
+    val noConvsTitle = ViewUtils.getView(view, R.id.conversation_list_empty_title).asInstanceOf[TypefaceTextView]
+    val noConvsSubtitle = ViewUtils.getView(view, R.id.conversation_list_empty_subtitle).asInstanceOf[TypefaceTextView]
 
-    topToolbar.glyphButton.setOnClickListener(new OnClickListener {
-      override def onClick(v: View) = {
-        startActivity(ZetaPreferencesActivity.getDefaultIntent(getContext))
+    conversationListView.addOnScrollListener(new RecyclerView.OnScrollListener {
+      override def onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) = {
+        listActionsView.setScrolledToBottom(!recyclerView.canScrollVertically(1))
       }
     })
+
+    adapter.currentMode ! ConversationListAdapter.Normal
+    hasConversationsAndArchive.on(Threading.Ui) {
+      case (false, true) =>
+        noConvsTitle.setText(R.string.all_archived__header)
+        noConvsTitle.setVisible(true)
+        noConvsSubtitle.setVisible(false)
+        listActionsView.setArchiveEnabled(true)
+      case (false, false) =>
+        noConvsTitle.setText(R.string.no_conversation_in_list__header)
+        noConvsTitle.setVisible(true)
+        noConvsSubtitle.setVisible(true)
+        listActionsView.setArchiveEnabled(false)
+      case (_, archive) =>
+        noConvsTitle.setVisible(false)
+        noConvsSubtitle.setVisible(false)
+        listActionsView.setArchiveEnabled(archive)
+    }
+
+    topToolbar.onRightButtonClick{ _ => startActivity(ZetaPreferencesActivity.getDefaultIntent(getContext)) }
 
     incomingClients.on(Threading.Ui) {
       case (color, clients) =>
         topToolbar.setIndicatorVisible(clients.nonEmpty)
         topToolbar.setIndicatorColor(color)
     }
+
+    listActionsView.setCallback(new Callback {
+      override def onAvatarPress() = {
+        getControllerFactory.getPickUserController.showPickUser(IPickUserController.Destination.CONVERSATION_LIST, null)
+        getActivity.asInstanceOf[BaseActivity].injectJava(classOf[GlobalTrackingController]).tagEvent(new OpenedContactsEvent(false))
+        getControllerFactory.getOnboardingController.hideConversationListHint()
+      }
+
+      override def onArchivePress() = {
+        Option(getContainer).foreach(_.showArchive())
+      }
+    })
   }
 }
 
 object ConversationListFragment {
   trait Container {
-    def showArchive()
-    def closeArchive()
+    def showArchive(): Unit
+    def closeArchive(): Unit
   }
 
   def newNormalInstance(): ConversationListFragment = {

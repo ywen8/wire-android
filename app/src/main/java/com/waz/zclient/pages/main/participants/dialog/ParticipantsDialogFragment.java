@@ -65,7 +65,7 @@ import com.waz.zclient.pages.main.conversation.controller.IConversationScreenCon
 import com.waz.zclient.pages.main.participants.ParticipantFragment;
 import com.waz.zclient.pages.main.participants.SingleParticipantFragment;
 import com.waz.zclient.pages.main.participants.TabbedParticipantBodyFragment;
-import com.waz.zclient.pages.main.pickuser.PickUserFragment;
+import com.waz.zclient.fragments.PickUserFragment;
 import com.waz.zclient.pages.main.pickuser.controller.IPickUserController;
 import com.waz.zclient.pages.main.pickuser.controller.PickUserControllerScreenObserver;
 import com.waz.zclient.tracking.GlobalTrackingController;
@@ -373,10 +373,17 @@ public class ParticipantsDialogFragment extends BaseFragment<ParticipantsDialogF
                 }
             }
             if (getArguments().getBoolean(ARG__ADD_TO_CONVERSATION)) {
+
+                IConversation currentConversation = getStoreFactory() != null &&
+                    !getStoreFactory().isTornDown() ?
+                    getStoreFactory().getConversationStore().getCurrentConversation() : null;
+                String conversationId = currentConversation == null ? null : currentConversation.getId();
+
                 transaction.replace(R.id.fl__participant_dialog__main__container,
                                     PickUserFragment.newInstance(true,
-                                                                 getArguments().getBoolean(ARG__GROUP_CONVERSATION)),
-                                    PickUserFragment.TAG);
+                                                                 getArguments().getBoolean(ARG__GROUP_CONVERSATION),
+                                                                 conversationId),
+                                    PickUserFragment.TAG());
 
             } else if (getControllerFactory().getConversationScreenController().getPopoverLaunchMode() == DialogLaunchMode.PARTICIPANT_BUTTON ||
                 getControllerFactory().getConversationScreenController().getPopoverLaunchMode() == DialogLaunchMode.CONVERSATION_TOOLBAR) {

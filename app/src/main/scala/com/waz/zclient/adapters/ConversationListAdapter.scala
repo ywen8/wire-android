@@ -25,11 +25,12 @@ import com.waz.ZLog
 import com.waz.ZLog.ImplicitTag._
 import com.waz.api.IConversation
 import com.waz.model.ConversationData.ConversationType
-import com.waz.model.{ConversationData, UserId}
+import com.waz.model._
 import com.waz.service.ZMessaging
 import com.waz.threading.Threading
 import com.waz.utils.events.{EventContext, EventStream, Signal}
 import com.waz.zclient.adapters.ConversationListAdapter._
+import com.waz.zclient.controllers.TeamsAndUserController
 import com.waz.zclient.pages.main.conversationlist.views.ConversationCallback
 import com.waz.zclient.views.conversationlist.{IncomingConversationListRow, NormalConversationListRow}
 import com.waz.zclient.{Injectable, Injector, R}
@@ -39,14 +40,20 @@ class ConversationListAdapter(context: Context)(implicit injector: Injector, eve
   setHasStableIds(true)
 
   lazy val zms = inject[Signal[ZMessaging]]
+  lazy val teamAndUsersController = inject[TeamsAndUserController]
   val currentMode = Signal[ListMode]()
   lazy val conversationsSignal = for {
     z <- zms
     conversations <- z.convsStorage.convsSignal
     mode <- currentMode
+    userTeams <- teamAndUsersController.teams
+    teamOrUser <- teamAndUsersController.currentTeamOrUser
   } yield
     conversations.conversations
-      .filter(mode.filter).toSeq
+      .filter{ conversationData =>
+        mode.filter(conversationData) && mode.teamsPredicate(conversationData, teamOrUser, userTeams)
+      }
+      .toSeq
       .sorted(mode.sort)
 
   var conversations: Seq[ConversationData] = Seq.empty
@@ -57,7 +64,8 @@ class ConversationListAdapter(context: Context)(implicit injector: Injector, eve
     conversations <- z.convsStorage.convsSignal.map(_.conversations.filter(Incoming.filter).toSeq)
     members <- Signal.sequence(conversations.map(c => z.membersStorage.activeMembers(c.id).map(_.find(_ != z.selfUserId))):_*)
     mode <- currentMode
-  } yield if (mode == Normal) (conversations, members.flatten) else (Seq(), Seq())
+    teamOrUser <- teamAndUsersController.currentTeamOrUser
+  } yield if (mode == Normal && teamOrUser.isLeft) (conversations, members.flatten) else (Seq(), Seq())
 
   val onConversationClick = EventStream[ConversationData]()
   val onConversationLongClick = EventStream[ConversationData]()
@@ -165,6 +173,12 @@ object ConversationListAdapter {
     val nameId: Int
     val filter: (ConversationData) => Boolean
     val sort = ConversationData.ConversationDataOrdering
+    val teamsPredicate = (conversationData: ConversationData, currentTeamOrUser: Either[UserData, TeamData], userTeams: Seq[TeamData]) => {
+      currentTeamOrUser match {
+        case Right(teamData) => conversationData.team.contains(teamData.id)
+        case _ => conversationData.team.forall(tid => !userTeams.exists(_.id == tid))
+      }
+    }
   }
 
   case object Normal extends ListMode {

@@ -62,7 +62,7 @@ import com.waz.zclient.pages.main.drawing.DrawingFragment;
 import com.waz.zclient.pages.main.participants.ParticipantFragment;
 import com.waz.zclient.pages.main.participants.SingleParticipantFragment;
 import com.waz.zclient.pages.main.participants.TabbedParticipantBodyFragment;
-import com.waz.zclient.pages.main.pickuser.PickUserFragment;
+import com.waz.zclient.fragments.PickUserFragment;
 import com.waz.zclient.pages.main.pickuser.controller.IPickUserController;
 import com.waz.zclient.pages.main.pickuser.controller.PickUserControllerScreenObserver;
 import com.waz.zclient.pages.main.profile.camera.CameraContext;
@@ -596,6 +596,8 @@ public class ConversationManagerFragment extends BaseFragment<ConversationManage
         if (!groupConversation && otherUser != null) {
             getControllerFactory().getPickUserController().addUser(otherUser);
         }
+        IConversation conversation = getStoreFactory().getConversationStore().getCurrentConversation();
+        String conversationId = conversation == null ? null : conversation.getId();
         getChildFragmentManager()
             .beginTransaction()
             .setCustomAnimations(R.anim.slide_in_from_bottom_pick_user,
@@ -603,9 +605,9 @@ public class ConversationManagerFragment extends BaseFragment<ConversationManage
                                  R.anim.open_new_conversation__thread_list_in,
                                  R.anim.slide_out_to_bottom_pick_user)
             .replace(R.id.fl__conversation_manager__message_list_container,
-                     PickUserFragment.newInstance(true, groupConversation),
-                     PickUserFragment.TAG)
-            .addToBackStack(PickUserFragment.TAG)
+                     PickUserFragment.newInstance(true, groupConversation, conversationId),
+                     PickUserFragment.TAG())
+            .addToBackStack(PickUserFragment.TAG())
             .commit();
     }
 
@@ -619,7 +621,7 @@ public class ConversationManagerFragment extends BaseFragment<ConversationManage
         } else {
             getControllerFactory().getNavigationController().setRightPage(Page.PARTICIPANT, TAG);
         }
-        getChildFragmentManager().popBackStack(PickUserFragment.TAG, FragmentManager.POP_BACK_STACK_INCLUSIVE);
+        getChildFragmentManager().popBackStack(PickUserFragment.TAG(), FragmentManager.POP_BACK_STACK_INCLUSIVE);
     }
 
     @Override

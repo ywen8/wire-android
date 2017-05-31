@@ -218,72 +218,8 @@
     <issue id="UselessParent" severity="error" >
         <ignore path="src/main/res/layout/row_collection_header.xml"/>
     </issue>
-    <issue id="UnusedResources" severity="error" />
-    <issue id="UnusedIds" severity="error" />
-    <issue id="UnusedResources" severity="error">
-        <ignore path="src/main/res/layout/main.xml"/>
-        <ignore path="src/main/res/layout/calling*"/>
-        <ignore path="src/main/res/layout/message_*"/>
-        <ignore path="src/main/res/layout/collection_*"/>
-        <ignore path="src/main/res/layout/fragment_collection*"/>
-        <ignore path="src/main/res/layout/fragment_single_image_collections.xml"/>
-        <ignore path="src/main/res/layout/row_collection*"/>
-        <ignore path="src/main/res/layout/row_selectable_conversation.xml"/>
-        <ignore path="src/main/res/layout/system_message_content.xml"/>
-        <ignore path="src/main/res/layout/single_image_view_toolbar_layout.xml"/>
-        <ignore path="*pin_bg.xml*"/>
-        <ignore path="src/main/res/menu/toolbar_collection.xml"/>
-        <ignore path="src/main/res/layout/search_text_result_row.xml"/>
-        <ignore path="src/main/res/drawable/search_result_counter_background.xml"/>
-        <ignore path="src/main/res/drawable/rounded_rectangle_solid_white.xml"/>
-        <ignore path="src/main/res/drawable/checkbox.xml"/>
-        <ignore path="src/main/res/drawable/rounded_graphite_rectangle.xml"/>
-        <ignore path="src/main/res/layout/share_*"/>
-        <ignore path="src/main/res/layout/fragment_image.xml"/>
-        <ignore path="src/main/res/layout/view_custom*"/>
-        <ignore path="src/main/res/layout/view_toolbar*"/>
-        <ignore path="src/main/res/drawable/conversation*"/>
-        <ignore path="src/main/res/layout/conv_badge.xml"/>
-        <ignore path="src/main/res/layout/conv_list_item.xml"/>
-        <ignore path="src/main/res/layout/view_conv_list_top.xml"/>
-        <ignore path="src/main/res/layout/view_conversation_avatar.xml"/>
-        <ignore path="src/main/res/layout/fragment_conversation_list.xml"/>
-
-        <!--TODO Dean - leaving these here as design comes up with a new container-->
-        <ignore path="*ic_action_soundcloud*"/>
-        <ignore path="*ic_action_spotify*"/>
-
-        <ignore path="*youtube_logo.png*"/>
-        <ignore path="*ic_menu_end_call_w.png*"/>
-        <ignore path="*ic_menu_join_call_w.png*"/>
-        <ignore path="*ic_menu_save_image_gallery.png*"/>
-        <ignore path="*ic_menu_share.png*"/>
-        <ignore path="*ic_menu_silence_call_w.png*"/>
-        <ignore path="*degradation_overlay*"/>
-    </issue>
-    <issue id="UnusedIds" severity="error" >
-        <ignore path="src/main/res/layout/main.xml"/>
-        <ignore path="src/main/res/layout/calling*"/>
-        <ignore path="src/main/res/layout/message_*"/>
-        <ignore path="src/main/res/layout-sw600dp-port/message_*"/>
-        <ignore path="src/main/res/layout/system_message_content.xml"/>
-        <ignore path="src/main/res/layout/collection*"/>
-        <ignore path="src/main/res/layout/fragment_collection*"/>
-        <ignore path="src/main/res/layout/fragment_single_image_collections.xml"/>
-        <ignore path="src/main/res/layout/row_collection*"/>
-        <ignore path="src/main/res/layout/row_selectable_conversation.xml"/>
-        <ignore path="src/main/res/layout/single_image_view_toolbar_layout.xml"/>
-        <ignore path="src/main/res/layout/search_text_result_row.xml"/>
-        <ignore path="src/main/res/layout/share_*"/>
-        <ignore path="src/main/res/layout/fragment_image.xml"/>
-        <ignore path="src/main/res/layout/view_custom*"/>
-        <ignore path="src/main/res/layout/view_toolbar*"/>
-        <ignore path="src/main/res/layout/conv_badge.xml"/>
-        <ignore path="src/main/res/layout/conv_list_item.xml"/>
-        <ignore path="src/main/res/layout/view_conv_list_top.xml"/>
-        <ignore path="src/main/res/layout/view_conversation_avatar.xml"/>
-        <ignore path="src/main/res/layout/fragment_conversation_list.xml"/>
-    </issue>
+    <issue id="UnusedResources" severity="ignore" />
+    <issue id="UnusedIds" severity="ignore" />
     <issue id="EnforceUTF8" severity="error" />
     <issue id="ViewHolder" severity="error" />
     <issue id="ViewTag" severity="error" />

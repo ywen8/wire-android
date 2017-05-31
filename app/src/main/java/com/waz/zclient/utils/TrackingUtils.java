@@ -27,6 +27,7 @@ import com.waz.api.Message;
 import com.waz.api.Permission;
 import com.waz.api.User;
 import com.waz.zclient.R;
+import com.waz.zclient.adapters.PickUsersAdapter;
 import com.waz.zclient.controllers.drawing.DrawingController;
 import com.waz.zclient.controllers.tracking.events.connect.SelectedTopUser;
 import com.waz.zclient.controllers.tracking.events.connect.SelectedUserFromSearchEvent;
@@ -44,7 +45,6 @@ import com.waz.zclient.core.controllers.tracking.events.settings.ChangedContacts
 import com.waz.zclient.core.controllers.tracking.events.settings.ChangedSoundNotificationLevelEvent;
 import com.waz.zclient.core.stores.connect.IConnectStore;
 import com.waz.zclient.pages.extendedcursor.image.ImagePreviewLayout;
-import com.waz.zclient.pages.main.pickuser.SearchResultAdapter;
 import com.waz.zclient.tracking.GlobalTrackingController;
 import com.waz.zclient.ui.optionsmenu.OptionsMenuItem;
 
@@ -364,7 +364,7 @@ public class TrackingUtils {
                                                boolean isTopUser,
                                                boolean isAddingToConversation,
                                                int position,
-                                               SearchResultAdapter adapter) {
+                                               PickUsersAdapter adapter) {
         int itemType = adapter.getItemViewType(position);
         if (itemType < 0) {
             return;
@@ -372,19 +372,16 @@ public class TrackingUtils {
         if (isTopUser) {
             trackingController.tagEvent(new SelectedTopUser(position + 1));
         } else {
-            switch (itemType) {
-                case SearchResultAdapter.ITEM_TYPE_CONNECTED_USER:
-                    trackingController.tagEvent(new SelectedUserFromSearchEvent(user.getConnectionStatus().toString(),
-                                                                                isAddingToConversation,
-                                                                                SelectedUserFromSearchEvent.Section.CONTACTS,
-                                                                                position));
-                    break;
-                case SearchResultAdapter.ITEM_TYPE_OTHER_USER:
-                    trackingController.tagEvent(new SelectedUserFromSearchEvent(user.getConnectionStatus().toString(),
-                                                                                isAddingToConversation,
-                                                                                SelectedUserFromSearchEvent.Section.DIRECTORY,
-                                                                                adapter.getOtherUserInternalPosition(position)));
-                    break;
+            if (itemType == PickUsersAdapter.ConnectedUser()) {
+                trackingController.tagEvent(new SelectedUserFromSearchEvent(user.getConnectionStatus().toString(),
+                    isAddingToConversation,
+                    SelectedUserFromSearchEvent.Section.CONTACTS,
+                    position));
+            } else if (itemType == PickUsersAdapter.DirectorySection()) {
+                trackingController.tagEvent(new SelectedUserFromSearchEvent(user.getConnectionStatus().toString(),
+                    isAddingToConversation,
+                    SelectedUserFromSearchEvent.Section.DIRECTORY,
+                    adapter.getSectionIndexForPosition(position)));
             }
         }
     }

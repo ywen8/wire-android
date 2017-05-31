@@ -47,7 +47,7 @@ import com.waz.zclient.pages.main.conversation.controller.IConversationScreenCon
 import com.waz.zclient.pages.main.conversationpager.controller.ISlidingPaneController
 import com.waz.zclient.pages.main.pickuser.controller.IPickUserController
 import com.waz.zclient.tracking.{CallingTrackingController, GlobalTrackingController, UiTrackingController}
-import com.waz.zclient.utils.{BackendPicker, BuildConfigUtils, Callback}
+import com.waz.zclient.utils.{BackendPicker, BuildConfigUtils, Callback, UiStorage}
 import com.waz.zclient.views.ImageController
 
 object WireApplication {
@@ -121,6 +121,8 @@ object WireApplication {
     bind [LikesController]           to new LikesController()
     bind [CollectionController]      to new CollectionController()
     bind [SharingController]         to new SharingController()
+    bind [TeamsAndUserController]    to new TeamsAndUserController()
+    bind [UiStorage]                 to new UiStorage()
 
     /**
       * Since tracking controllers will immediately instantiate other necessary controllers, we keep them separated

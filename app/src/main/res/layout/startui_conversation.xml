@@ -18,9 +18,10 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 -->
-<com.waz.zclient.pages.main.pickuser.views.SearchResultConversationRowView
+<com.waz.zclient.views.pickuser.SearchResultConversationRowView
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/srcrv_startui_conversation"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
+    android:layout_height="@dimen/conversation_list__row__height"
+    android:layout_marginStart="@dimen/wire__padding__12"
     />

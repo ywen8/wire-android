@@ -30,7 +30,7 @@ import com.waz.api.User.ConnectionStatus
 import com.waz.api.User.ConnectionStatus._
 import com.waz.api.impl.AccentColor
 import com.waz.api.{ContactDetails, User}
-import com.waz.model.{AssetData, UserData, UserId}
+import com.waz.model.{AssetData, TeamData, UserData, UserId}
 import com.waz.service.ZMessaging
 import com.waz.service.assets.AssetService.BitmapResult
 import com.waz.service.assets.AssetService.BitmapResult.BitmapLoaded
@@ -43,6 +43,8 @@ import com.waz.zclient.ui.utils.TypefaceUtils
 import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.{Injectable, Injector, R, ViewHelper}
 import com.waz.ZLog.ImplicitTag._
+import com.waz.zclient.controllers.TeamsAndUserController
+
 
 class ChatheadView(val context: Context, val attrs: AttributeSet, val defStyleAttr: Int) extends View(context, attrs, defStyleAttr) with ViewHelper {
 
@@ -171,10 +173,12 @@ class ChatheadView(val context: Context, val attrs: AttributeSet, val defStyleAt
     val bitmap = ctrl.bitmap.currentValue.getOrElse(Option.empty[Bitmap])
 
     val radius: Float = size / 2f
+    val x = (getWidth - size) / 2
+    val y = (getHeight - size) / 2
 
     bitmap.fold {
       if (backgroundPaint.getColor != Color.TRANSPARENT) {
-        drawBackgroundAndBorder(canvas, radius, borderWidth)
+        drawBackgroundAndBorder(canvas, x, y, radius, borderWidth)
       }
       ctrl.initials.currentValue.foreach { initials =>
         var fontSize: Float = initialsFontSize
@@ -185,30 +189,29 @@ class ChatheadView(val context: Context, val attrs: AttributeSet, val defStyleAt
         canvas.drawText(initials, radius, getVerticalTextCenter(initialsTextPaint, radius), initialsTextPaint)
       }
     } { bitmap =>
-      val x = (getWidth - size) / 2
-      val y = (getHeight - size) / 2
+
       canvas.drawBitmap(bitmap, null, new RectF(x, y, x + size, y + size), backgroundPaint)
     }
 
     // Cut out
     if (selected || !TextUtils.isEmpty(glyph)) {
-      canvas.drawCircle(radius, radius, radius - borderWidth, glyphOverlayPaint)
-      canvas.drawText(glyph, radius, (radius + iconTextPaint.getTextSize / 2), iconTextPaint)
+      canvas.drawCircle(radius + x, radius + y, radius - borderWidth, glyphOverlayPaint)
+      canvas.drawText(glyph, radius + x, (radius + iconTextPaint.getTextSize / 2) + y, iconTextPaint)
     }
   }
 
-  private def drawBackgroundAndBorder(canvas: Canvas, radius: Float, borderWidthPx: Int) = {
+  private def drawBackgroundAndBorder(canvas: Canvas, xOffset: Float, yOffset: Float, radius: Float, borderWidthPx: Int) = {
     if (swapBackgroundAndInitialsColors) {
       if (ctrl.isRound) {
-        canvas.drawCircle(radius, radius, radius, initialsTextPaint)
-        canvas.drawCircle(radius, radius, radius - borderWidthPx, backgroundPaint)
+        canvas.drawCircle(radius + xOffset, radius + yOffset, radius, initialsTextPaint)
+        canvas.drawCircle(radius + xOffset, radius + yOffset, radius - borderWidthPx, backgroundPaint)
       } else {
         canvas.drawPaint(initialsTextPaint)
       }
     }
     else {
       if (ctrl.isRound) {
-        canvas.drawCircle(radius, radius, radius, backgroundPaint)
+        canvas.drawCircle(radius + xOffset, radius + yOffset, radius, backgroundPaint)
       } else {
         canvas.drawPaint(backgroundPaint)
       }
@@ -256,6 +259,7 @@ protected class ChatheadController(val setSelectable: Boolean = false,
   private implicit val logtag = ZLog.logTagFor[ChatheadController]
 
   val zMessaging = inject[Signal[ZMessaging]]
+  val teamsAndUserController = inject[TeamsAndUserController]
 
   val assignInfo = Signal[Option[Either[UserId, ContactDetails]]]
 
@@ -277,6 +281,19 @@ protected class ChatheadController(val setSelectable: Boolean = false,
     case _ => UNCONNECTED
   }
 
+  val teamMember = for {
+    zms <- zMessaging
+    userId <- chatheadInfo.map {
+      case Some(Left(user)) => Some(user.id)
+      case _ => None
+    }
+    team <- teamsAndUserController.currentTeamOrUser.map{
+      case Right(team) => Some(team)
+      case _ => None
+    }
+    userTeams <- userId.fold(Signal.const(Set[TeamData]()))(zms.teams.getTeams)
+  } yield team.exists(userTeams.contains)
+
   val hasBeenInvited = chatheadInfo.map {
     case Some(Left(user)) => false
     case Some(Right(contactDetails)) => contactDetails.hasBeenInvited
@@ -295,9 +312,9 @@ protected class ChatheadController(val setSelectable: Boolean = false,
     case _ => false
   }
 
-  val grayScale = chatheadInfo.map {
-    case Some(Left(user)) => !(user.isConnected || user.isSelf)
-    case Some(Right(contactDetails)) => false
+  val grayScale = chatheadInfo.zip(teamMember).map {
+    case (Some(Left(user)), isTeamMember) => !(user.isConnected || user.isSelf || isTeamMember)
+    case (Some(Right(contactDetails)), _) => false
     case _ => false
   }
 
@@ -307,8 +324,8 @@ protected class ChatheadController(val setSelectable: Boolean = false,
     case _ => None
   }
 
-  val selectable = knownUser.map { knownUser =>
-    knownUser && setSelectable
+  val selectable = knownUser.zip(teamMember).map {
+    case (isKnownUser, isTeamMember) => isKnownUser || isTeamMember
   }
 
   val requestSelected = Signal(false)
