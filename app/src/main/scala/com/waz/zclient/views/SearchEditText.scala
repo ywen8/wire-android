@@ -70,6 +70,8 @@ class SearchEditText(context: Context, attrs: AttributeSet, style: Int) extends 
 
   def setCursorColor(accentColor: Int) = searchBox.setAccentColor(accentColor)
 
+  def setTextColor(color: Int) = searchBox.setTextColor(color)
+
   def setOnEditorActionListener(listener: OnEditorActionListener) = searchBox.setOnEditorActionListener(listener)
 
   def setFocus(): Unit = searchBox.requestFocus()

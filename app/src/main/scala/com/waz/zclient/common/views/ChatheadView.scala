@@ -45,7 +45,6 @@ import com.waz.zclient.{Injectable, Injector, R, ViewHelper}
 import com.waz.ZLog.ImplicitTag._
 import com.waz.zclient.controllers.TeamsAndUserController
 
-import scala.concurrent.Future
 
 class ChatheadView(val context: Context, val attrs: AttributeSet, val defStyleAttr: Int) extends View(context, attrs, defStyleAttr) with ViewHelper {
 
@@ -292,7 +291,7 @@ protected class ChatheadController(val setSelectable: Boolean = false,
       case Right(team) => Some(team)
       case _ => None
     }
-    userTeams <- Signal.future(userId.fold(Future.successful(Set[TeamData]()))(zms.teams.getTeams))
+    userTeams <- userId.fold(Signal.const(Set[TeamData]()))(zms.teams.getTeams)
   } yield team.exists(userTeams.contains)
 
   val hasBeenInvited = chatheadInfo.map {

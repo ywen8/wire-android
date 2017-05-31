@@ -25,7 +25,7 @@ import android.widget.LinearLayout.LayoutParams
 import android.widget.{FrameLayout, LinearLayout}
 import com.waz.ZLog
 import com.waz.ZLog.ImplicitTag._
-import com.waz.api.{IConversation, Message}
+import com.waz.api.Message
 import com.waz.model.ConversationData.ConversationType
 import com.waz.model._
 import com.waz.service.ZMessaging

@@ -47,7 +47,7 @@ class TeamIconDrawable(implicit inj: Injector, eventContext: EventContext) exten
   borderPaint.setStrokeJoin(Paint.Join.ROUND)
   borderPaint.setStrokeCap(Paint.Cap.ROUND)
   borderPaint.setDither(true)
-  borderPaint.setPathEffect(new CornerPathEffect(8f))
+  borderPaint.setPathEffect(new CornerPathEffect(10f))
 
   val innerPaint = new Paint(Paint.ANTI_ALIAS_FLAG)
   innerPaint.setColor(Color.TRANSPARENT)
@@ -159,10 +159,10 @@ class TeamIconDrawable(implicit inj: Injector, eventContext: EventContext) exten
   private def diameter(bounds: Rect = getBounds): Int = Math.min(bounds.width, bounds.height)
 
   private def updateDrawable(bounds: Rect): Unit = {
-    val diam = diameter(bounds) - diameter(bounds) * 0.075f
+    val diam = diameter(bounds) - diameter(bounds) * 0.085f
     val textSize = diam / 2.5f
     val borderWidth = diam * 0.05f
-    val borderOffset = borderWidth * 5
+    val borderOffset = borderWidth * 4
 
     drawPolygon(innerPath, (diam - borderOffset) / 2, corners)
     drawPolygon(borderPath, diam / 2, corners)

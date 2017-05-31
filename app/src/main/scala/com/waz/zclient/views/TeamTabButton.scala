@@ -26,7 +26,9 @@ import android.widget.FrameLayout.LayoutParams
 import android.widget.{FrameLayout, ImageView}
 import com.waz.api.impl.{AccentColor, AccentColors}
 import com.waz.model._
+import com.waz.threading.Threading
 import com.waz.utils.NameParts
+import com.waz.zclient.controllers.global.AccentColorController
 import com.waz.zclient.drawables.TeamIconDrawable
 import com.waz.zclient.ui.text.TypefaceTextView
 import com.waz.zclient.ui.views.CircleView
@@ -44,6 +46,7 @@ class TeamTabButton(val context: Context, val attrs: AttributeSet, val defStyleA
   val name = ViewUtils.getView(this, R.id.team_name).asInstanceOf[TypefaceTextView]
   val unreadIndicator = ViewUtils.getView(this, R.id.unread_indicator).asInstanceOf[CircleView]
   val animationDuration = getResources.getInteger(R.integer.team_tabs__animation_duration)
+  val accentColor = inject[AccentColorController].accentColor
 
   val drawable = new TeamIconDrawable
   icon.setImageDrawable(drawable)
@@ -55,15 +58,21 @@ class TeamTabButton(val context: Context, val attrs: AttributeSet, val defStyleA
       TypedValue.complexToDimensionPixelSize(tv.data,getResources.getDisplayMetrics)
     else
       getResources.getDimensionPixelSize(R.dimen.teams_tab_default_height)
-
   params.topMargin = height / 2 - getResources.getDimensionPixelSize(R.dimen.teams_tab_bottom_offset)
+  private var selectedColor = AccentColors.defaultColor.getColor()
+  private var buttonSelected = false
+
+  accentColor.on(Threading.Ui){ accentColor =>
+    selectedColor = accentColor.getColor()
+  }
 
   def setTeamData(teamData: TeamData, selected: Boolean): Unit = {
-    val color = if (selected) AccentColors.defaultColor.getColor() else Color.TRANSPARENT
+    val color = if (selected) selectedColor else Color.TRANSPARENT
     drawable.setInfo(NameParts.maybeInitial(teamData.name).getOrElse(""), color, TeamIconDrawable.TeamCorners)
     name.setText(teamData.name)
     unreadIndicator.setAccentColor(AccentColors.defaultColor.getColor())
     drawable.assetId ! None
+    buttonSelected = selected
   }
 
   def setUserData(userData: UserData, selected: Boolean): Unit = {
@@ -72,18 +81,20 @@ class TeamTabButton(val context: Context, val attrs: AttributeSet, val defStyleA
     name.setText(userData.displayName)
     unreadIndicator.setAccentColor(AccentColor(userData.accent).getColor())
     drawable.assetId ! userData.picture
+    buttonSelected = selected
   }
 
   def animateExpand(): Unit = {
     name.animate().translationY(0f).setDuration(animationDuration).start()
     icon.animate().translationY(0f).setDuration(animationDuration).alpha(1f).start()
-    unreadIndicator.animate().translationX(0f).translationY(0).setDuration(animationDuration).start()
+    name.setTextColor(Color.WHITE)
   }
 
   def animateCollapse(): Unit = {
-    val margin = Option(name.getLayoutParams.asInstanceOf[ViewGroup.MarginLayoutParams]).fold(0)(_.topMargin)
+    val margin = height / 2 - getResources.getDimensionPixelSize(R.dimen.teams_tab_bottom_offset_half)
     name.animate().translationY(-margin).setDuration(animationDuration).start()
     icon.animate().translationY(-margin).alpha(0f).setDuration(animationDuration).start()
-    unreadIndicator.animate().translationX(-30f).translationY(5).setDuration(animationDuration).start()
+    val textColor = if (buttonSelected) selectedColor else Color.WHITE
+    name.setTextColor(textColor)
   }
 }

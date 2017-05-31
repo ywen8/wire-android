@@ -59,6 +59,7 @@ import com.waz.zclient.tracking.GlobalTrackingController
 import com.waz.zclient.ui.animation.fragment.FadeAnimation
 import com.waz.zclient.ui.startui.{ConversationQuickMenu, ConversationQuickMenuCallback}
 import com.waz.zclient.ui.text.TypefaceTextView
+import com.waz.zclient.ui.theme.ThemeUtils
 import com.waz.zclient.ui.utils.KeyboardUtils
 import com.waz.zclient.ui.views.ZetaButton
 import com.waz.zclient.utils.device.DeviceDetector
@@ -268,6 +269,7 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
       userSelectionConfirmationButton.setText(if (getArguments.getBoolean(PickUserFragment.ARGUMENT_GROUP_CONVERSATION)) getString(R.string.people_picker__confirm_button_title__add_to_conversation)
       else getString(R.string.people_picker__confirm_button_title__create_conversation))
       ViewUtils.setHeight(searchBoxView, getResources.getDimensionPixelSize(R.dimen.searchbox__height__with_toolbar))
+      searchBoxView.setTextColor(if (ThemeUtils.isDarkTheme(getContext)) ContextCompat.getColor(getContext, R.color.text__primary_dark) else ContextCompat.getColor(getContext, R.color.text__primary_light))
     }
     else {
       // Use constant style for left side start ui

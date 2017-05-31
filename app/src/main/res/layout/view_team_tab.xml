@@ -35,7 +35,7 @@
         android:layout_height="@dimen/teams_tab_icon_size"
         android:layout_gravity="center"
         android:scaleType="fitCenter"
-        android:layout_marginBottom="@dimen/teams_tab_bottom_offset"
+        android:layout_marginBottom="@dimen/teams_tab_bottom_offset_half"
         />
 
     <com.waz.zclient.ui.text.TypefaceTextView

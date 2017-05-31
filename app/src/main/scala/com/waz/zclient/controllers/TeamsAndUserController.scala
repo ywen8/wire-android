@@ -18,6 +18,7 @@
 package com.waz.zclient.controllers
 
 import android.content.Context
+import com.waz.ZLog
 import com.waz.ZLog._
 import com.waz.model._
 import com.waz.service.ZMessaging
@@ -35,7 +36,7 @@ class TeamsAndUserController(implicit injector: Injector, context: Context, ec: 
   val zms = inject[Signal[ZMessaging]]
   val teams = for {
     z <- zms
-    teams <- Signal.future(z.teams.getSelfTeams).orElse(Signal(Set[TeamData]()))
+    teams <- z.teams.getSelfTeams.orElse(Signal(Set[TeamData]()))
     teamSigs <- Signal.sequence(teams.map(_.id).map(z.teamsStorage.signal).toSeq:_*)
   } yield teamSigs
 
