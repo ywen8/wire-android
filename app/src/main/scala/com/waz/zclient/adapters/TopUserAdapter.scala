@@ -51,7 +51,7 @@
 package com.waz.zclient.adapters
 
 import android.support.v7.widget.RecyclerView
-import android.view.{LayoutInflater, View, ViewGroup}
+import android.view.{LayoutInflater, ViewGroup}
 import com.waz.model.{UserData, UserId}
 import com.waz.zclient.R
 import com.waz.zclient.viewholders.TopUserViewHolder

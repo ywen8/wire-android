@@ -43,6 +43,7 @@ import com.waz.api.UsersList;
 import com.waz.zclient.BaseActivity;
 import com.waz.zclient.OnBackPressedListener;
 import com.waz.zclient.R;
+import com.waz.zclient.controllers.TeamsAndUserController;
 import com.waz.zclient.controllers.confirmation.ConfirmationCallback;
 import com.waz.zclient.controllers.confirmation.ConfirmationRequest;
 import com.waz.zclient.controllers.confirmation.IConfirmationController;
@@ -775,44 +776,52 @@ public class ParticipantFragment extends BaseFragment<ParticipantFragment.Contai
             }
             return;
         }
+        Boolean isTeamSpace = ((BaseActivity) getActivity()).injectJava(TeamsAndUserController.class).isTeamSpace();
+        if (isTeamSpace) {
+            showAcceptedUser(user);
+        } else {
+            switch (user.getConnectionStatus()) {
+                case ACCEPTED:
+                    showAcceptedUser(user);
+                    break;
+                case PENDING_FROM_OTHER:
+                case PENDING_FROM_USER:
+                case IGNORED:
+                    openUserProfileFragment(PendingConnectRequestFragment.newInstance(user.getId(),
+                        null,
+                        ConnectRequestLoadMode.LOAD_BY_USER_ID,
+                        IConnectStore.UserRequester.PARTICIPANTS),
+                        PendingConnectRequestFragment.TAG);
+                    if (LayoutSpec.isPhone(getActivity())) {
+                        getControllerFactory().getNavigationController().setRightPage(Page.PARTICIPANT_USER_PROFILE, TAG);
+                    }
+                    break;
+                case BLOCKED:
+                    openUserProfileFragment(BlockedUserProfileFragment.newInstance(user.getId(),
+                        IConnectStore.UserRequester.PARTICIPANTS),
+                        BlockedUserProfileFragment.TAG);
+                    if (LayoutSpec.isPhone(getActivity())) {
+                        getControllerFactory().getNavigationController().setRightPage(Page.PARTICIPANT_USER_PROFILE, TAG);
+                    }
+                    break;
+                case CANCELLED:
+                case UNCONNECTED:
+                    openUserProfileFragment(SendConnectRequestFragment.newInstance(user.getId(),
+                        IConnectStore.UserRequester.PARTICIPANTS),
+                        SendConnectRequestFragment.TAG);
+                    getControllerFactory().getNavigationController().setRightPage(Page.SEND_CONNECT_REQUEST, TAG);
+                    break;
+            }
+        }
+    }
 
-        switch (user.getConnectionStatus()) {
-            case ACCEPTED:
-                getStoreFactory().getSingleParticipantStore().setUser(user);
-                openUserProfileFragment(SingleParticipantFragment.newInstance(false,
-                                                                              IConnectStore.UserRequester.PARTICIPANTS),
-                                        SingleParticipantFragment.TAG);
-                if (LayoutSpec.isPhone(getActivity())) {
-                    getControllerFactory().getNavigationController().setRightPage(Page.PARTICIPANT_USER_PROFILE, TAG);
-                }
-                break;
-            case PENDING_FROM_OTHER:
-            case PENDING_FROM_USER:
-            case IGNORED:
-                openUserProfileFragment(PendingConnectRequestFragment.newInstance(user.getId(),
-                                                                                  null,
-                                                                                  ConnectRequestLoadMode.LOAD_BY_USER_ID,
-                                                                                  IConnectStore.UserRequester.PARTICIPANTS),
-                                        PendingConnectRequestFragment.TAG);
-                if (LayoutSpec.isPhone(getActivity())) {
-                    getControllerFactory().getNavigationController().setRightPage(Page.PARTICIPANT_USER_PROFILE, TAG);
-                }
-                break;
-            case BLOCKED:
-                openUserProfileFragment(BlockedUserProfileFragment.newInstance(user.getId(),
-                                                                               IConnectStore.UserRequester.PARTICIPANTS),
-                                        BlockedUserProfileFragment.TAG);
-                if (LayoutSpec.isPhone(getActivity())) {
-                    getControllerFactory().getNavigationController().setRightPage(Page.PARTICIPANT_USER_PROFILE, TAG);
-                }
-                break;
-            case CANCELLED:
-            case UNCONNECTED:
-                openUserProfileFragment(SendConnectRequestFragment.newInstance(user.getId(),
-                                                                               IConnectStore.UserRequester.PARTICIPANTS),
-                                        SendConnectRequestFragment.TAG);
-                getControllerFactory().getNavigationController().setRightPage(Page.SEND_CONNECT_REQUEST, TAG);
-                break;
+    private void showAcceptedUser(final User user) {
+        getStoreFactory().getSingleParticipantStore().setUser(user);
+        openUserProfileFragment(SingleParticipantFragment.newInstance(false,
+            IConnectStore.UserRequester.PARTICIPANTS),
+            SingleParticipantFragment.TAG);
+        if (LayoutSpec.isPhone(getActivity())) {
+            getControllerFactory().getNavigationController().setRightPage(Page.PARTICIPANT_USER_PROFILE, TAG);
         }
     }
 

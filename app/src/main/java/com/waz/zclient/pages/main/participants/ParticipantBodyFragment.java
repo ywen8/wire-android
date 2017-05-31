@@ -337,7 +337,7 @@ public class ParticipantBodyFragment extends BaseFragment<ParticipantBodyFragmen
                 footerMenu.setLeftActionLabelText(getString(R.string.conversation__action__add_people));
             } else {
                 footerMenu.setLeftActionText("");
-                footerMenu.setRightActionText("");
+                footerMenu.setRightActionText(getString(R.string.glyph__more));
                 footerMenu.setLeftActionLabelText("");
             }
             if (lastParticipantAboveFooter()) {
@@ -362,7 +362,8 @@ public class ParticipantBodyFragment extends BaseFragment<ParticipantBodyFragmen
                         return;
                     }
                 }
-                if (!conversation.isMemberOfConversation()) {
+                Boolean permissionToAdd = ((BaseActivity) getActivity()).injectJava(TeamsAndUserController.class).hasAddMemberPermission(new ConvId(conversation.getId()));
+                if (!conversation.isMemberOfConversation() || !permissionToAdd) {
                     return;
                 }
                 ((BaseActivity) getActivity()).injectJava(GlobalTrackingController.class).tagEvent(new OpenedGroupActionEvent());

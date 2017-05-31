@@ -48,7 +48,6 @@ class TeamsAndUserController(implicit injector: Injector, context: Context, ec: 
   self.head.map{s => currentTeamOrUser ! Left(s)} //TODO: initial value
 
   //Things for java
-  //TODO: remove this
 
   private var permissions = Map[TeamId, Set[TeamMemberData.Permission]]()
   private var teamConvs = Map[ConvId, TeamId]()
@@ -67,6 +66,8 @@ class TeamsAndUserController(implicit injector: Injector, context: Context, ec: 
   } yield convs.conversations.map(conv => (conv.id, conv.team))).on(Threading.Ui) { data =>
     teamConvs = data.filter(_._2.nonEmpty).map(data => (data._1, data._2.get)).toMap
   }
+
+  def isTeamSpace = currentTeamOrUser.currentValue.exists(_.isRight)
 
   def getCurrentUserOrTeamName: String ={
     currentTeamOrUser.currentValue.map {
