@@ -21,12 +21,10 @@ import android.app.Activity;
 import android.view.View;
 import com.waz.zclient.controllers.IControllerFactory;
 import com.waz.zclient.controllers.accentcolor.IAccentColorController;
-import com.waz.zclient.controllers.background.IBackgroundController;
 import com.waz.zclient.controllers.background.IDialogBackgroundImageController;
 import com.waz.zclient.controllers.calling.ICallingController;
 import com.waz.zclient.controllers.camera.ICameraController;
 import com.waz.zclient.controllers.confirmation.IConfirmationController;
-import com.waz.zclient.controllers.conversationlist.IConversationListController;
 import com.waz.zclient.controllers.currentfocus.IFocusController;
 import com.waz.zclient.controllers.deviceuser.IDeviceUserController;
 import com.waz.zclient.controllers.drawing.IDrawingController;
@@ -36,7 +34,6 @@ import com.waz.zclient.controllers.loadtimelogger.ILoadTimeLoggerController;
 import com.waz.zclient.controllers.location.ILocationController;
 import com.waz.zclient.controllers.mentioning.IMentioningController;
 import com.waz.zclient.controllers.navigation.INavigationController;
-import com.waz.zclient.controllers.onboarding.IOnboardingController;
 import com.waz.zclient.controllers.orientation.IOrientationController;
 import com.waz.zclient.controllers.password.IPasswordController;
 import com.waz.zclient.controllers.permission.IRequestPermissionsController;
@@ -47,7 +44,6 @@ import com.waz.zclient.controllers.theme.IThemeController;
 import com.waz.zclient.controllers.usernames.IUsernamesController;
 import com.waz.zclient.controllers.userpreferences.IUserPreferencesController;
 import com.waz.zclient.controllers.verification.IVerificationController;
-import com.waz.zclient.controllers.vibrator.IVibratorController;
 import com.waz.zclient.pages.main.conversation.controller.IConversationScreenController;
 import com.waz.zclient.pages.main.conversationpager.controller.ISlidingPaneController;
 import com.waz.zclient.pages.main.pickuser.controller.IPickUserController;
@@ -88,11 +84,6 @@ public class StubControllerFactory implements IControllerFactory {
     }
 
     @Override
-    public IBackgroundController getBackgroundController() {
-        return null;
-    }
-
-    @Override
     public IDialogBackgroundImageController getDialogBackgroundImageController() {
         return null;
     }
@@ -109,11 +100,6 @@ public class StubControllerFactory implements IControllerFactory {
 
     @Override
     public IConfirmationController getConfirmationController() {
-        return null;
-    }
-
-    @Override
-    public IConversationListController getConversationListController() {
         return null;
     }
 
@@ -158,11 +144,6 @@ public class StubControllerFactory implements IControllerFactory {
     }
 
     @Override
-    public IOnboardingController getOnboardingController() {
-        return null;
-    }
-
-    @Override
     public IOrientationController getOrientationController() {
         return null;
     }
@@ -203,11 +184,6 @@ public class StubControllerFactory implements IControllerFactory {
 
     @Override
     public ILocationController getLocationController() {
-        return null;
-    }
-
-    @Override
-    public IVibratorController getVibratorController() {
         return null;
     }
 

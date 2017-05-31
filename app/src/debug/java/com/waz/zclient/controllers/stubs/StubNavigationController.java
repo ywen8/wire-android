@@ -22,20 +22,11 @@ import com.waz.zclient.controllers.navigation.INavigationController;
 import com.waz.zclient.controllers.navigation.NavigationControllerObserver;
 import com.waz.zclient.controllers.navigation.Page;
 import com.waz.zclient.controllers.navigation.PagerControllerObserver;
-import com.waz.zclient.controllers.navigation.ScreenPositionObserver;
-import com.waz.zclient.pages.main.calling.enums.VoiceBarAppearance;
-import java.lang.Override;
-import java.lang.String;
 
 public class StubNavigationController implements INavigationController {
   @Override
   public boolean isPagerEnabled() {
     return false;
-  }
-
-  @Override
-  public void setConversationListState(VoiceBarAppearance voiceBarAppearance) {
-
   }
 
   @Override
@@ -49,22 +40,12 @@ public class StubNavigationController implements INavigationController {
   }
 
   @Override
-  public VoiceBarAppearance getVoiceBarAppearanceConversationList() {
-    return null;
-  }
-
-  @Override
   public void onPageScrolled(int arg0, float arg1, int arg2) {
 
   }
 
   @Override
   public void removeNavigationControllerObserver(NavigationControllerObserver navigationControllerObserver) {
-
-  }
-
-  @Override
-  public void markActivityResumed() {
 
   }
 
@@ -84,37 +65,12 @@ public class StubNavigationController implements INavigationController {
   }
 
   @Override
-  public void setMessageStreamState(VoiceBarAppearance voiceBarAppearance) {
-
-  }
-
-  @Override
   public void onActivityCreated(Bundle savedInstanceState) {
 
   }
 
   @Override
-  public boolean isActivityResuming() {
-    return false;
-  }
-
-  @Override
   public void setPagerPosition(int position) {
-
-  }
-
-  @Override
-  public void removeScreenPositionObserver(ScreenPositionObserver screenPositionObserver) {
-
-  }
-
-  @Override
-  public void setScreenOffsetX(int x) {
-
-  }
-
-  @Override
-  public void setScreenOffsetY(int y) {
 
   }
 
@@ -144,11 +100,6 @@ public class StubNavigationController implements INavigationController {
   }
 
   @Override
-  public void markActivityPaused() {
-
-  }
-
-  @Override
   public void resetPagerPositionToDefault() {
 
   }
@@ -164,43 +115,13 @@ public class StubNavigationController implements INavigationController {
   }
 
   @Override
-  public VoiceBarAppearance getVoiceBarAppearanceMessageStream() {
-    return null;
-  }
-
-  @Override
   public Page getCurrentLeftPage() {
     return null;
   }
 
   @Override
-  public int getScreenOffsetX() {
-    return 0;
-  }
-
-  @Override
   public void tearDown() {
 
-  }
-
-  @Override
-  public void addScreenPositionObserver(ScreenPositionObserver screenPositionObserver) {
-
-  }
-
-  @Override
-  public int getScreenOffsetY() {
-    return 0;
-  }
-
-  @Override
-  public void setScreenOffsetYFactor(float factorY) {
-
-  }
-
-  @Override
-  public int getMaxScreenOffsetY() {
-    return 0;
   }
 
   @Override

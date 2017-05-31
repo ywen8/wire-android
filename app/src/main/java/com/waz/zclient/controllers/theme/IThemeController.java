@@ -34,10 +34,6 @@ public interface IThemeController {
 
     OptionsTheme getThemeDependentOptionsTheme();
 
-    void addThemeObserver(ThemeObserver themeObserver);
-
-    void removeThemeObserver(ThemeObserver themeObserver);
-
     void tearDown();
 
     boolean isDarkTheme();

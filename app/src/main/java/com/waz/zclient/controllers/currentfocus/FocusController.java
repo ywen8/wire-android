@@ -18,48 +18,23 @@
 package com.waz.zclient.controllers.currentfocus;
 
 import android.content.Context;
-import com.waz.zclient.utils.LayoutSpec;
 import com.waz.zclient.controllers.navigation.Page;
+import com.waz.zclient.utils.LayoutSpec;
 import com.waz.zclient.utils.ViewUtils;
 import timber.log.Timber;
-import java.util.HashSet;
-import java.util.Set;
 
 public class FocusController implements IFocusController {
 
-    private Set<FocusObserver> focusObservers;
     @FocusLocation private int currentFocus;
 
 
     public FocusController() {
-        focusObservers = new HashSet<>();
-    }
-
-    @Override
-    public void tearDown() {
-        if (focusObservers != null) {
-            focusObservers.clear();
-            focusObservers = null;
-        }
-    }
-
-    @Override
-    public void addFocusObserver(FocusObserver focusObserver) {
-        focusObservers.add(focusObserver);
-    }
-
-    @Override
-    public void removeFocusObserver(FocusObserver focusObserver) {
-        focusObservers.remove(focusObserver);
     }
 
     @Override
     public void setFocus(@FocusLocation int currentFocus) {
         Timber.i("Changing focus to %s", currentFocus);
         this.currentFocus = currentFocus;
-        for (FocusObserver focusObserver : focusObservers) {
-            focusObserver.onFocusChanged(currentFocus);
-        }
     }
 
     @Override

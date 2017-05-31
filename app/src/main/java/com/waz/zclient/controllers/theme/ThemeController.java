@@ -28,9 +28,6 @@ import com.waz.zclient.ui.theme.OptionsLightTheme;
 import com.waz.zclient.ui.theme.OptionsTheme;
 import com.waz.zclient.utils.LayoutSpec;
 
-import java.util.HashSet;
-import java.util.Set;
-
 public class ThemeController implements IThemeController {
     public static final String TAG = ThemeController.class.getName();
     @IntDef({DARK_THEME,
@@ -43,8 +40,6 @@ public class ThemeController implements IThemeController {
     private final String themeKey;
     private SharedPreferences prefs;
     private boolean isPending = false;
-
-    private Set<ThemeObserver> observers = new HashSet<>();
 
     private @Theme int currentTheme;
     private OptionsTheme optionsDarkTheme;
@@ -106,9 +101,6 @@ public class ThemeController implements IThemeController {
         currentTheme = themeId;
         prefs.edit().putString(deprecatedThemeKey, String.valueOf(currentTheme)).apply();
         prefs.edit().putBoolean(themeKey, isDarkTheme()).apply();
-        for (ThemeObserver observer : observers) {
-            observer.onThemeHasChanged(currentTheme);
-        }
     }
 
     @Override
@@ -137,16 +129,6 @@ public class ThemeController implements IThemeController {
         } else {
             return optionsLightTheme;
         }
-    }
-
-    @Override
-    public void addThemeObserver(ThemeObserver themeObserver) {
-        observers.add(themeObserver);
-    }
-
-    @Override
-    public void removeThemeObserver(ThemeObserver themeObserver) {
-        observers.remove(themeObserver);
     }
 
     @Override

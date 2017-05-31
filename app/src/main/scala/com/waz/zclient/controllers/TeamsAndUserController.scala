@@ -18,7 +18,6 @@
 package com.waz.zclient.controllers
 
 import android.content.Context
-import com.waz.ZLog
 import com.waz.ZLog._
 import com.waz.model._
 import com.waz.service.ZMessaging

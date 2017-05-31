@@ -19,21 +19,8 @@ package com.waz.zclient.controllers.navigation;
 
 import android.os.Bundle;
 import android.support.v4.view.ViewPager;
-import com.waz.zclient.pages.main.calling.enums.VoiceBarAppearance;
 
 public interface INavigationController extends ViewPager.OnPageChangeListener {
-
-    VoiceBarAppearance getVoiceBarAppearanceConversationList();
-
-    VoiceBarAppearance getVoiceBarAppearanceMessageStream();
-
-    void setConversationListState(VoiceBarAppearance voiceBarAppearance);
-
-    void setMessageStreamState(VoiceBarAppearance voiceBarAppearance);
-
-    void addScreenPositionObserver(ScreenPositionObserver screenPositionObserver);
-
-    void removeScreenPositionObserver(ScreenPositionObserver screenPositionObserver);
 
     void addPagerControllerObserver(PagerControllerObserver pagerControllerObserver);
 
@@ -65,18 +52,6 @@ public interface INavigationController extends ViewPager.OnPageChangeListener {
 
     void onSaveInstanceState(Bundle outState);
 
-    void setScreenOffsetX(int x);
-
-    void setScreenOffsetY(int y);
-
-    int getScreenOffsetX();
-
-    int getScreenOffsetY();
-
-    void setScreenOffsetYFactor(float factorY);
-
-    int getMaxScreenOffsetY();
-
     void setPagerEnabled(boolean enabled);
 
     void setPagerSettingForPage(Page page);
@@ -84,16 +59,6 @@ public interface INavigationController extends ViewPager.OnPageChangeListener {
     boolean isPagerEnabled();
 
     void setIsLandscape(boolean isLandscape);
-
-    /**
-     * This will return true if the app is resumed in the background.
-     * After onResume() it will return false
-     */
-    boolean isActivityResuming();
-
-    void markActivityPaused();
-
-    void markActivityResumed();
 
     void tearDown();
 }

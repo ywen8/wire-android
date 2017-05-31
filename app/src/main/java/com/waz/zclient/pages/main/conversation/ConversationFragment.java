@@ -124,13 +124,10 @@ import com.waz.zclient.pages.extendedcursor.ephemeral.EphemeralLayout;
 import com.waz.zclient.pages.extendedcursor.image.CursorImagesLayout;
 import com.waz.zclient.pages.extendedcursor.image.ImagePreviewLayout;
 import com.waz.zclient.pages.extendedcursor.voicefilter.VoiceFilterLayout;
-import com.waz.zclient.pages.main.calling.enums.VoiceBarAppearance;
 import com.waz.zclient.pages.main.conversation.views.MessageBottomSheetDialog;
 import com.waz.zclient.pages.main.conversation.views.TypingIndicatorView;
 import com.waz.zclient.pages.main.conversationlist.ConversationListAnimation;
 import com.waz.zclient.pages.main.conversationpager.controller.SlidingPaneObserver;
-import com.waz.zclient.pages.main.onboarding.OnBoardingHintFragment;
-import com.waz.zclient.pages.main.onboarding.OnBoardingHintType;
 import com.waz.zclient.pages.main.pickuser.controller.IPickUserController;
 import com.waz.zclient.pages.main.profile.ZetaPreferencesActivity;
 import com.waz.zclient.pages.main.profile.camera.CameraContext;
@@ -158,7 +155,6 @@ import java.util.Map;
 
 public class ConversationFragment extends BaseFragment<ConversationFragment.Container> implements ConversationStoreObserver,
                                                                                                   CallingObserver,
-                                                                                                  OnBoardingHintFragment.Container,
                                                                                                   KeyboardVisibilityObserver,
                                                                                                   AccentColorObserver,
                                                                                                   ParticipantsStoreObserver,
@@ -651,16 +647,6 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
         getControllerFactory().getNavigationController().setRightPage(Page.MESSAGE_STREAM, TAG);
     }
 
-    @Override
-    public void onShowVideo(URI uri) {
-
-    }
-
-    @Override
-    public void onHideVideo() {
-        getControllerFactory().getNavigationController().setRightPage(Page.MESSAGE_STREAM, TAG);
-    }
-
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //
     //  Notifications
@@ -889,16 +875,6 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
     @Override
     public void onKeyboardVisibilityChanged(boolean keyboardIsVisible, int keyboardHeight, View currentFocus) {
         cursorLayout.notifyKeyboardVisibilityChanged(keyboardIsVisible, currentFocus);
-
-        if (keyboardIsVisible &&
-            getControllerFactory().getFocusController().getCurrentFocus() == IFocusController.CONVERSATION_CURSOR &&
-            !cursorLayout.isEditingMessage()) {
-            getControllerFactory().getNavigationController().setMessageStreamState(VoiceBarAppearance.MINI);
-        }
-
-        if (!keyboardIsVisible) {
-            getControllerFactory().getNavigationController().setMessageStreamState(VoiceBarAppearance.FULL);
-        }
     }
 
     private void inflateCollectionIcon() {
@@ -1006,11 +982,6 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
         }
     }
 
-    @Override
-    public void onPageStateHasChanged(Page page) {
-
-    }
-
     //////////////////////////////////////////////////////////////////////////////
     //
     //  GroupCallingStoreObserver
@@ -1089,11 +1060,6 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
 
     private void resetCursor() {
         cursorLayout.setText("");
-    }
-
-    @Override
-    public void dismissOnBoardingHint(OnBoardingHintType requestedType) {
-
     }
 
     @Override
@@ -1351,11 +1317,6 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
     public void onApprovedMessageEditing(Message message) {
         KeyboardUtils.hideKeyboard(getActivity());
         ((BaseActivity) getActivity()).injectJava(GlobalTrackingController.class).tagEvent(new EditedMessageEvent(message));
-    }
-
-    @Override
-    public void onClosedMessageEditing() {
-        getControllerFactory().getConversationScreenController().setMessageBeingEdited(null);
     }
 
     @Override

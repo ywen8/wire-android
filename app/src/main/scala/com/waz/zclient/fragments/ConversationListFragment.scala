@@ -260,7 +260,6 @@ class NormalConversationFragment extends ConversationListFragment {
       override def onAvatarPress() = {
         getControllerFactory.getPickUserController.showPickUser(IPickUserController.Destination.CONVERSATION_LIST, null)
         getActivity.asInstanceOf[BaseActivity].injectJava(classOf[GlobalTrackingController]).tagEvent(new OpenedContactsEvent(false))
-        getControllerFactory.getOnboardingController.hideConversationListHint()
       }
 
       override def onArchivePress() = {

@@ -18,27 +18,10 @@
 package com.waz.zclient.controllers.stubs;
 
 import android.content.Context;
-import com.waz.zclient.controllers.currentfocus.FocusObserver;
 import com.waz.zclient.controllers.currentfocus.IFocusController;
 import com.waz.zclient.controllers.navigation.Page;
-import java.lang.Override;
 
 public class StubFocusController implements IFocusController {
-  @Override
-  public void tearDown() {
-
-  }
-
-  @Override
-  public void addFocusObserver(FocusObserver focusObserver) {
-
-  }
-
-  @Override
-  public void removeFocusObserver(FocusObserver focusObserver) {
-
-  }
-
   @Override
   public void restoreToNextFocus(Context context, int pagerPosition, Page currentPage, boolean conversationlistSearchIsOpen) {
 

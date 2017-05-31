@@ -17,35 +17,13 @@
  */
 package com.waz.zclient.controllers.stubs;
 
-import android.app.Activity;
 import com.waz.zclient.controllers.orientation.IOrientationController;
 import com.waz.zclient.controllers.orientation.OrientationControllerObserver;
-import com.waz.zclient.utils.SquareOrientation;
-import java.lang.Override;
 
 public class StubOrientationController implements IOrientationController {
+
   @Override
   public void removeOrientationControllerObserver(OrientationControllerObserver orientationControllerObserver) {
-
-  }
-
-  @Override
-  public int getDeviceOrientation() {
-    return 0;
-  }
-
-  @Override
-  public SquareOrientation getLastKnownOrientation() {
-    return null;
-  }
-
-  @Override
-  public void tearDown() {
-
-  }
-
-  @Override
-  public void setActivity(Activity activity) {
 
   }
 
@@ -55,12 +33,8 @@ public class StubOrientationController implements IOrientationController {
   }
 
   @Override
-  public int getActivityRotationDegrees() {
-    return 0;
+  public void tearDown() {
+
   }
 
-  @Override
-  public boolean isInPortrait() {
-    return false;
-  }
 }

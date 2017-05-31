@@ -19,32 +19,15 @@ package com.waz.zclient.controllers.stubs;
 
 import android.app.Activity;
 import android.view.View;
-import com.waz.zclient.controllers.globallayout.GlobalLayoutObserver;
 import com.waz.zclient.controllers.globallayout.IGlobalLayoutController;
 import com.waz.zclient.controllers.globallayout.KeyboardHeightObserver;
 import com.waz.zclient.controllers.globallayout.KeyboardVisibilityObserver;
-import com.waz.zclient.controllers.globallayout.StatusBarVisibilityObserver;
 import com.waz.zclient.controllers.navigation.Page;
-import java.lang.Override;
 
 public class StubGlobalLayoutController implements IGlobalLayoutController {
-  @Override
-  public void removeStatusBarVisibilityObserver(StatusBarVisibilityObserver observer) {
-
-  }
-
-  @Override
-  public void removeGlobalLayoutObserver(GlobalLayoutObserver globalLayoutObserver) {
-
-  }
 
   @Override
   public void addKeyboardVisibilityObserver(KeyboardVisibilityObserver keyboardVisibilityObserver) {
-
-  }
-
-  @Override
-  public void addStatusBarVisibilityObserver(StatusBarVisibilityObserver observer) {
 
   }
 
@@ -89,32 +72,17 @@ public class StubGlobalLayoutController implements IGlobalLayoutController {
   }
 
   @Override
-  public void showStatusBar(Activity activity) {
-
-  }
-
-  @Override
   public void setGlobalLayout(View view) {
 
   }
 
-    @Override
-    public void keepScreenAwake() {
-
-    }
-
-    @Override
-    public void resetScreenAwakeState() {
-
-    }
-
-    @Override
-  public void addGlobalLayoutObserver(GlobalLayoutObserver globalLayoutObserver) {
+  @Override
+  public void keepScreenAwake() {
 
   }
 
   @Override
-  public void hideStatusBar(Activity activity) {
+  public void resetScreenAwakeState() {
 
   }
 }

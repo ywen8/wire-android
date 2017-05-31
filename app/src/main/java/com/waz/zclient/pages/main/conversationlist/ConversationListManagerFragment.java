@@ -393,11 +393,6 @@ public class ConversationListManagerFragment extends BaseFragment<ConversationLi
         }
     }
 
-    @Override
-    public void onPageStateHasChanged(Page page) {
-
-    }
-
     //////////////////////////////////////////////////////////////////////////////////////////
     //
     //  PickUserFragment.Container
@@ -507,15 +502,13 @@ public class ConversationListManagerFragment extends BaseFragment<ConversationLi
                 Fragment fragment = getChildFragmentManager().findFragmentByTag(PickUserFragment.TAG());
                 if (fragment == null ||
                     !(fragment instanceof PickUserFragment)) {
-                    getControllerFactory().getOnboardingController().incrementPeoplePickerShowCount();
-                    PickUserFragment pickUserFragment = PickUserFragment.newInstance(false, null);
                     getChildFragmentManager()
                         .beginTransaction()
                         .setCustomAnimations(R.anim.slide_in_from_bottom_pick_user,
                                              R.anim.open_new_conversation__thread_list_out,
                                              R.anim.open_new_conversation__thread_list_in,
                                              R.anim.slide_out_to_bottom_pick_user)
-                        .replace(R.id.fl__conversation_list_main, pickUserFragment, PickUserFragment.TAG())
+                        .replace(R.id.fl__conversation_list_main, PickUserFragment.newInstance(false, null), PickUserFragment.TAG())
                         .addToBackStack(PickUserFragment.TAG())
                         .commit();
                 }
@@ -906,11 +899,6 @@ public class ConversationListManagerFragment extends BaseFragment<ConversationLi
 
     @Override
     public void onShowEditConversationName(boolean show) {
-
-    }
-
-    @Override
-    public void setListOffset(int offset) {
 
     }
 

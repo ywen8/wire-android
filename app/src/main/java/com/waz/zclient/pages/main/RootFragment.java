@@ -293,8 +293,6 @@ public class RootFragment extends BaseFragment<RootFragment.Container> implement
             return;
         }
 
-        getControllerFactory().getBackgroundController().expand(false);
-
         final IConversation.Type type = toConversation.getType();
         // This must be posted because onCurrentConversationHasChanged()
         // might still be running and iterating over the observers -
@@ -649,11 +647,6 @@ public class RootFragment extends BaseFragment<RootFragment.Container> implement
 
     @Override
     public void onShowEditConversationName(boolean show) {
-
-    }
-
-    @Override
-    public void setListOffset(int offset) {
 
     }
 

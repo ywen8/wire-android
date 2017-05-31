@@ -39,15 +39,6 @@
         android:layout_height="match_parent"
         />
 
-    <!--
-    the overlay container onboarding hints
--->
-    <FrameLayout
-        android:id="@+id/fl_fragment_main_onboarding"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        />
-
     <FrameLayout
         android:id="@+id/fl__overlay_container"
         android:layout_width="match_parent"

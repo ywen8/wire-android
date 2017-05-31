@@ -713,10 +713,6 @@ public class CursorLayout extends FrameLayout implements
             dividerView.setBackgroundColor(defaultDividerColor);
         }
 
-        if (cursorCallback != null) {
-            cursorCallback.onClosedMessageEditing();
-        }
-
         ColorStateList cursorButtonColor = ThemeUtils.isDarkTheme(getContext()) ?
             ResourcesCompat.getColorStateList(getResources(), R.color.wire__text_color_primary_dark_selector, null) :
             ResourcesCompat.getColorStateList(getResources(), R.color.wire__text_color_primary_light_selector, null);

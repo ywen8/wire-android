@@ -40,8 +40,6 @@ public interface CursorCallback {
 
     void onApprovedMessageEditing(Message message);
 
-    void onClosedMessageEditing();
-
     void onEmojiButtonClicked(boolean showEmojiKeyboard);
 
     void onEphemeralButtonClicked(EphemeralExpiration currentEphemeralExpiration);

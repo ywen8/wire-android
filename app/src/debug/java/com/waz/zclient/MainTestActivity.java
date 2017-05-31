@@ -120,11 +120,6 @@ public class MainTestActivity extends TestActivity implements MainPhoneFragment.
     }
 
     @Override
-    public void onPageStateHasChanged(Page page) {
-
-    }
-
-    @Override
     public void onAccentColorChangedRemotely(Object sender, int color) {
 
     }

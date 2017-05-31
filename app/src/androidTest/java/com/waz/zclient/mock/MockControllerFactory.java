@@ -21,12 +21,10 @@ import android.app.Activity;
 import android.view.View;
 import com.waz.zclient.controllers.IControllerFactory;
 import com.waz.zclient.controllers.accentcolor.IAccentColorController;
-import com.waz.zclient.controllers.background.IBackgroundController;
 import com.waz.zclient.controllers.background.IDialogBackgroundImageController;
 import com.waz.zclient.controllers.calling.ICallingController;
 import com.waz.zclient.controllers.camera.ICameraController;
 import com.waz.zclient.controllers.confirmation.IConfirmationController;
-import com.waz.zclient.controllers.conversationlist.IConversationListController;
 import com.waz.zclient.controllers.currentfocus.IFocusController;
 import com.waz.zclient.controllers.deviceuser.IDeviceUserController;
 import com.waz.zclient.controllers.drawing.IDrawingController;
@@ -36,18 +34,15 @@ import com.waz.zclient.controllers.loadtimelogger.ILoadTimeLoggerController;
 import com.waz.zclient.controllers.location.ILocationController;
 import com.waz.zclient.controllers.mentioning.IMentioningController;
 import com.waz.zclient.controllers.navigation.INavigationController;
-import com.waz.zclient.controllers.onboarding.IOnboardingController;
 import com.waz.zclient.controllers.orientation.IOrientationController;
 import com.waz.zclient.controllers.password.IPasswordController;
 import com.waz.zclient.controllers.permission.IRequestPermissionsController;
 import com.waz.zclient.controllers.sharing.ISharingController;
 import com.waz.zclient.controllers.singleimage.ISingleImageController;
 import com.waz.zclient.controllers.stubs.StubAccentColorController;
-import com.waz.zclient.controllers.stubs.StubBackgroundController;
 import com.waz.zclient.controllers.stubs.StubCallingController;
 import com.waz.zclient.controllers.stubs.StubCameraController;
 import com.waz.zclient.controllers.stubs.StubConfirmationController;
-import com.waz.zclient.controllers.stubs.StubConversationListController;
 import com.waz.zclient.controllers.stubs.StubConversationScreenController;
 import com.waz.zclient.controllers.stubs.StubDeviceUserController;
 import com.waz.zclient.controllers.stubs.StubDialogBackgroundImageController;
@@ -59,7 +54,6 @@ import com.waz.zclient.controllers.stubs.StubLoadTimeLoggerController;
 import com.waz.zclient.controllers.stubs.StubLocationController;
 import com.waz.zclient.controllers.stubs.StubMentioningController;
 import com.waz.zclient.controllers.stubs.StubNavigationController;
-import com.waz.zclient.controllers.stubs.StubOnboardingController;
 import com.waz.zclient.controllers.stubs.StubOrientationController;
 import com.waz.zclient.controllers.stubs.StubPasswordController;
 import com.waz.zclient.controllers.stubs.StubPickUserController;
@@ -71,12 +65,10 @@ import com.waz.zclient.controllers.stubs.StubThemeController;
 import com.waz.zclient.controllers.stubs.StubUserPreferencesController;
 import com.waz.zclient.controllers.stubs.StubUsernamesController;
 import com.waz.zclient.controllers.stubs.StubVerificationController;
-import com.waz.zclient.controllers.stubs.StubVibratorController;
 import com.waz.zclient.controllers.theme.IThemeController;
 import com.waz.zclient.controllers.usernames.IUsernamesController;
 import com.waz.zclient.controllers.userpreferences.IUserPreferencesController;
 import com.waz.zclient.controllers.verification.IVerificationController;
-import com.waz.zclient.controllers.vibrator.IVibratorController;
 import com.waz.zclient.pages.main.conversation.controller.IConversationScreenController;
 import com.waz.zclient.pages.main.conversationpager.controller.ISlidingPaneController;
 import com.waz.zclient.pages.main.pickuser.controller.IPickUserController;
@@ -86,8 +78,6 @@ import static org.mockito.Mockito.spy;
 public class MockControllerFactory implements IControllerFactory {
   protected IAccentColorController accentColorController = spy(StubAccentColorController.class);
 
-  protected IBackgroundController backgroundController = spy(StubBackgroundController.class);
-
   protected IDialogBackgroundImageController dialogBackgroundImageController = spy(StubDialogBackgroundImageController.class);
 
   protected ICallingController callingController = spy(StubCallingController.class);
@@ -95,8 +85,6 @@ public class MockControllerFactory implements IControllerFactory {
   protected ICameraController cameraController = spy(StubCameraController.class);
 
   protected IConfirmationController confirmationController = spy(StubConfirmationController.class);
-
-  protected IConversationListController conversationListController = spy(StubConversationListController.class);
 
   protected IFocusController focusController = spy(StubFocusController.class);
 
@@ -116,8 +104,6 @@ public class MockControllerFactory implements IControllerFactory {
 
   protected INavigationController navigationController = spy(StubNavigationController.class);
 
-  protected IOnboardingController onboardingController = spy(StubOnboardingController.class);
-
   protected IOrientationController orientationController = spy(StubOrientationController.class);
 
   protected IPasswordController passwordController = spy(StubPasswordController.class);
@@ -133,8 +119,6 @@ public class MockControllerFactory implements IControllerFactory {
   protected IUserPreferencesController userPreferencesController = spy(StubUserPreferencesController.class);
 
   protected IVerificationController verificationController = spy(StubVerificationController.class);
-
-  protected IVibratorController vibratorController = spy(StubVibratorController.class);
 
   protected IConversationScreenController conversationScreenController = spy(StubConversationScreenController.class);
 
@@ -174,16 +158,6 @@ public class MockControllerFactory implements IControllerFactory {
   }
 
   @Override
-  public IOnboardingController getOnboardingController() {
-    return onboardingController;
-  }
-
-  @Override
-  public IVibratorController getVibratorController() {
-    return vibratorController;
-  }
-
-  @Override
   public IUserPreferencesController getUserPreferencesController() {
     return userPreferencesController;
   }
@@ -218,11 +192,6 @@ public class MockControllerFactory implements IControllerFactory {
   }
 
   @Override
-  public IBackgroundController getBackgroundController() {
-    return backgroundController;
-  }
-
-  @Override
   public ILocationController getLocationController() {
     return locationController;
   }
@@ -245,11 +214,6 @@ public class MockControllerFactory implements IControllerFactory {
   @Override
   public IThemeController getThemeController() {
     return themeController;
-  }
-
-  @Override
-  public IConversationListController getConversationListController() {
-    return conversationListController;
   }
 
   @Override

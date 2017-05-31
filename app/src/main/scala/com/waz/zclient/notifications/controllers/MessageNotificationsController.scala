@@ -58,12 +58,12 @@ import com.waz.threading.Threading
 import com.waz.utils.events.{EventContext, Signal}
 import com.waz.zclient._
 import com.waz.zclient.controllers.userpreferences.UserPreferencesController
-import com.waz.zclient.controllers.vibrator.VibratorController
 import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.utils.IntentUtils._
 import com.waz.zclient.utils.RingtoneUtils
 import com.waz.zms.NotificationsAndroidService
 import org.threeten.bp.Instant
+
 import scala.concurrent.duration._
 
 class MessageNotificationsController(implicit inj: Injector, cxt: Context, eventContext: EventContext) extends Injectable {
@@ -201,8 +201,9 @@ class MessageNotificationsController(implicit inj: Injector, cxt: Context, event
       .setPriority(NotificationCompat.PRIORITY_HIGH)
 
 
-    if (VibratorController.isEnabledInPreferences(cxt) && !silent) {
-      builder.setVibrate(VibratorController.resolveResource(cxt.getResources, R.array.new_message_gcm))
+    if (context.getSharedPreferences(UserPreferencesController.USER_PREFS_TAG, Context.MODE_PRIVATE)
+      .getBoolean(context.getString(R.string.pref_options_vibration_key), true) && !silent) {
+      builder.setVibrate(getIntArray(R.array.new_message_gcm).map(_.toLong))
     }
     builder.build
   }
@@ -238,8 +239,9 @@ class MessageNotificationsController(implicit inj: Injector, cxt: Context, event
         .addAction(R.drawable.ic_action_reply, getString(R.string.notification__action__reply), getNotificationReplyIntent(cxt, n.convId.str, requestBase + 2))
     }
 
-    if (VibratorController.isEnabledInPreferences(cxt) && !silent) {
-      builder.setVibrate(VibratorController.resolveResource(cxt.getResources, R.array.new_message_gcm))
+    if (context.getSharedPreferences(UserPreferencesController.USER_PREFS_TAG, Context.MODE_PRIVATE)
+      .getBoolean(context.getString(R.string.pref_options_vibration_key), true) && !silent) {
+      builder.setVibrate(getIntArray(R.array.new_message_gcm).map(_.toLong))
     }
     builder.build
   }
@@ -273,8 +275,9 @@ class MessageNotificationsController(implicit inj: Injector, cxt: Context, event
       .setCategory(NotificationCompat.CATEGORY_MESSAGE)
       .setPriority(NotificationCompat.PRIORITY_HIGH)
 
-    if (VibratorController.isEnabledInPreferences(cxt) && !silent) {
-      builder.setVibrate(VibratorController.resolveResource(cxt.getResources, R.array.new_message_gcm))
+    if (context.getSharedPreferences(UserPreferencesController.USER_PREFS_TAG, Context.MODE_PRIVATE)
+      .getBoolean(context.getString(R.string.pref_options_vibration_key), true) && !silent) {
+      builder.setVibrate(getIntArray(R.array.new_message_gcm).map(_.toLong))
     }
     if (isSingleConv) {
       val requestBase = System.currentTimeMillis.toInt
