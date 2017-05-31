@@ -48,7 +48,7 @@ public class UserPreferencesController implements IUserPreferencesController {
     private static final String USER_PREF_APP_CRASH_DETAILS = "USER_PREF_APP_CRASH_DETAILS";
     private static final String USER_PREF_LOGGED_IN = "USER_PREF_LOGGED_IN_%s";
     private static final String USER_PREF_AB_TESTING_UUID = "USER_PREF_AB_TESTING_UUID";
-    private static final String USER_PREF_ACTION_PREFIX = "USER_PREF_ACTION_PREFIX";
+    public static final String USER_PREF_ACTION_PREFIX = "USER_PREF_ACTION_PREFIX";
     private static final String USER_PREF_RECENT_EMOJIS = "USER_PREF_RECENT_EMOJIS";
     private static final String USER_PREF_UNSUPPORTED_EMOJIS = "USER_PREF_UNSUPPORTED_EMOJIS";
     private static final String USER_PREF_UNSUPPORTED_EMOJIS_CHECKED = "USER_PREF_UNSUPPORTED_EMOJIS_CHECKED";

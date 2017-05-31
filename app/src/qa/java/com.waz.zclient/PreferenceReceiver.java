@@ -24,6 +24,9 @@ import android.content.SharedPreferences;
 import com.waz.zclient.controllers.userpreferences.UserPreferencesController;
 import com.waz.zclient.core.R;
 
+import static com.waz.zclient.controllers.userpreferences.IUserPreferencesController.DO_NOT_SHOW_SHARE_CONTACTS_DIALOG;
+import static com.waz.zclient.controllers.userpreferences.UserPreferencesController.USER_PREF_ACTION_PREFIX;
+
 public class PreferenceReceiver extends BroadcastReceiver {
 
     public static final String AUTO_ANSWER_CALL_INTENT = "com.waz.zclient.intent.action.AUTO_ANSWER_CALL";
@@ -33,6 +36,7 @@ public class PreferenceReceiver extends BroadcastReceiver {
     public static final String DISABLE_GCM_INTENT = "com.waz.zclient.intent.action.DISABLE_GCM";
 
     public static final String SILENT_MODE = "com.waz.zclient.intent.action.SILENT_MODE";
+    public static final String NO_CONTACT_SHARING = "com.waz.zclient.intent.action.NO_CONTACT_SHARING";
 
     @Override
     public void onReceive(Context context, Intent intent) {
@@ -64,6 +68,11 @@ public class PreferenceReceiver extends BroadcastReceiver {
                     .apply();
                 preferences.edit()
                     .putString(context.getString(R.string.pref_options_ringtones_text_key), "")
+                    .apply();
+                break;
+            case NO_CONTACT_SHARING:
+                preferences.edit()
+                    .putBoolean(USER_PREF_ACTION_PREFIX + DO_NOT_SHOW_SHARE_CONTACTS_DIALOG, true)
                     .apply();
                 break;
         }
