@@ -182,8 +182,21 @@ class NormalConversationListRow(context: Context, attrs: AttributeSet, style: In
 
   avatarInfo.on(Threading.Background){
     case (convId, convType, members, alpha) if conversationData.forall(_.id == convId) =>
-      avatar.setMembers(members.map(_.id), convId, convType)
+      val cType =
+      if (convType == ConversationType.Group && members.size == 1 && conversationData.exists(_.team.nonEmpty))
+        ConversationType.OneToOne
+      else
+        convType
+      avatar.setMembers(members.map(_.id), convId, cType)
       avatar.setAlpha(alpha)
+    case _ =>
+      ZLog.debug("Outdated avatar info")
+  }
+  avatarInfo.on(Threading.Ui){
+    case (convId, convType, members, alpha) if conversationData.forall(_.id == convId) =>
+      if (convType == ConversationType.Group && members.size == 1 && conversationData.exists(_.team.nonEmpty)) {
+        avatar.setConversationType(ConversationType.OneToOne)
+      }
     case _ =>
       ZLog.debug("Outdated avatar info")
   }
@@ -208,7 +221,6 @@ class NormalConversationListRow(context: Context, attrs: AttributeSet, style: In
 
   private def hideSubtitle(): Unit = title.setGravity(Gravity.CENTER_VERTICAL)
 
-  def getConversation: IConversation = null
   def setConversation(conversationData: ConversationData): Unit = {
     if (this.conversationData.forall(_.id != conversationData.id)) {
       this.conversationData = Some(conversationData)
@@ -217,7 +229,7 @@ class NormalConversationListRow(context: Context, attrs: AttributeSet, style: In
       subtitle.setText("")
       avatar.setConversationType(conversationData.convType)
       avatar.clearImages()
-      avatar.setAlpha(1f)
+      avatar.setAlpha(getResourceFloat(R.dimen.conversation_avatar_alpha_active))
       conversationId.publish(Some(conversationData.id), Threading.Background)
       closeImmediate()
     }
