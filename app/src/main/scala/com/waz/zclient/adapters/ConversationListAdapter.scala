@@ -25,7 +25,7 @@ import com.waz.ZLog
 import com.waz.ZLog.ImplicitTag._
 import com.waz.api.IConversation
 import com.waz.model.ConversationData.ConversationType
-import com.waz.model.{ConversationData, UserId}
+import com.waz.model._
 import com.waz.service.ZMessaging
 import com.waz.threading.Threading
 import com.waz.utils.events.{EventContext, EventStream, Signal}
@@ -46,15 +46,12 @@ class ConversationListAdapter(context: Context)(implicit injector: Injector, eve
     z <- zms
     conversations <- z.convsStorage.convsSignal
     mode <- currentMode
+    userTeams <- teamAndUsersController.teams
     teamOrUser <- teamAndUsersController.currentTeamOrUser
   } yield
     conversations.conversations
       .filter{ conversationData =>
-        val teamFilter = teamOrUser match {
-          case Right(teamData) => conversationData.team.contains(teamData.id)
-          case _ => conversationData.team.isEmpty
-        }
-        mode.filter(conversationData) && teamFilter
+        mode.filter(conversationData) && mode.teamsPredicate(conversationData, teamOrUser, userTeams)
       }
       .toSeq
       .sorted(mode.sort)
@@ -176,6 +173,12 @@ object ConversationListAdapter {
     val nameId: Int
     val filter: (ConversationData) => Boolean
     val sort = ConversationData.ConversationDataOrdering
+    val teamsPredicate = (conversationData: ConversationData, currentTeamOrUser: Either[UserData, TeamData], userTeams: Seq[TeamData]) => {
+      currentTeamOrUser match {
+        case Right(teamData) => conversationData.team.contains(teamData.id)
+        case _ => conversationData.team.forall(tid => !userTeams.exists(_.id == tid))
+      }
+    }
   }
 
   case object Normal extends ListMode {
