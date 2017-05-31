@@ -55,9 +55,6 @@ import com.waz.zclient.ui.views.tab.TabIndicatorLayout;
 import com.waz.zclient.utils.ViewUtils;
 import com.waz.zclient.views.menus.FooterMenuCallback;
 
-import scala.collection.Seq;
-import scala.collection.mutable.ArraySeq;
-
 public class TabbedParticipantBodyFragment extends BaseFragment<TabbedParticipantBodyFragment.Container> implements
                                                                                                ParticipantsStoreObserver,
                                                                                                AccentColorObserver,
@@ -277,8 +274,8 @@ public class TabbedParticipantBodyFragment extends BaseFragment<TabbedParticipan
             otrClientsModelObserver.clear();
             return;
         }
-        permissionToRemove = ((BaseActivity)getActivity()).injectJava(TeamsAndUserController.class).hasRemoveMemberPermission(new ConvId(conversation.getId()));
-        permissionToCreate = ((BaseActivity)getActivity()).injectJava(TeamsAndUserController.class).hasCreateConversationPermission();
+        permissionToRemove = ((BaseActivity) getActivity()).injectJava(TeamsAndUserController.class).hasRemoveMemberPermission(new ConvId(conversation.getId()));
+        permissionToCreate = ((BaseActivity) getActivity()).injectJava(TeamsAndUserController.class).hasCreateConversationPermission();
         final User updatedUser;
         if (conversation.getType() == IConversation.Type.ONE_TO_ONE) {
             updatedUser = conversation.getOtherParticipant();
@@ -427,7 +424,7 @@ public class TabbedParticipantBodyFragment extends BaseFragment<TabbedParticipan
                 getControllerFactory().getConversationScreenController().hideParticipants(true, false);
                 BaseActivity activity = (BaseActivity) getActivity();
                 activity.injectJava(TeamsAndUserController.class).createAndOpenConversation(
-                    new UserId[]{ new UserId(user.getId())},
+                    new UserId[]{new UserId(user.getId())},
                     ConversationChangeRequester.START_CONVERSATION,
                     activity);
             }
