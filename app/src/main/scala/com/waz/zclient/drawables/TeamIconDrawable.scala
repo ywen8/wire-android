@@ -159,7 +159,7 @@ class TeamIconDrawable(implicit inj: Injector, eventContext: EventContext) exten
   private def diameter(bounds: Rect = getBounds): Int = Math.min(bounds.width, bounds.height)
 
   private def updateDrawable(bounds: Rect): Unit = {
-    val diam = diameter(bounds) - diameter(bounds) * 0.085f
+    val diam = diameter(bounds) - diameter(bounds) * 0.1f
     val textSize = diam / 2.5f
     val borderWidth = diam * 0.05f
     val borderOffset = borderWidth * 4
