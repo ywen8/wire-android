@@ -26,7 +26,7 @@ import android.view.{KeyEvent, LayoutInflater, View}
 import android.view.inputmethod.EditorInfo
 import android.widget.{FrameLayout, TextView}
 import com.waz.api.User
-import com.waz.zclient.R
+import com.waz.zclient.{R, ViewHelper}
 import com.waz.zclient.ui.utils.TypefaceUtils
 import com.waz.zclient.utils.ViewUtils
 import com.waz.zclient.views.{PickableElement, PickerSpannableEditText}
@@ -43,12 +43,13 @@ object SearchBoxView {
 
 }
 
-class SearchBoxView(val context: Context, val attrs: AttributeSet, val defStyleAttr: Int) extends FrameLayout(context, attrs, defStyleAttr) {
-  init(context)
+class SearchBoxView(val context: Context, val attrs: AttributeSet, val defStyleAttr: Int) extends FrameLayout(context, attrs, defStyleAttr) with ViewHelper {
   private var inputEditText: PickerSpannableEditText = null
   private var clearButton: TextView = null
   private var colorBottomBorder: View = null
   private var callback: SearchBoxView.Callback = null
+
+  init(context)
 
   def this(context: Context, attrs: AttributeSet) {
     this(context, attrs, 0)
@@ -60,9 +61,9 @@ class SearchBoxView(val context: Context, val attrs: AttributeSet, val defStyleA
 
   private def init(context: Context): Unit = {
     LayoutInflater.from(context).inflate(R.layout.search_box_view, this, true)
-    clearButton = ViewUtils.getView(this, R.id.gtv_pickuser__clearbutton)
-    inputEditText = ViewUtils.getView(this, R.id.puet_pickuser__searchbox)
-    colorBottomBorder = ViewUtils.getView(this, R.id.v_people_picker__input__color_bottom_border)
+    clearButton = findById[TextView](R.id.gtv_pickuser__clearbutton)
+    inputEditText = findById[PickerSpannableEditText](R.id.puet_pickuser__searchbox)
+    colorBottomBorder = findById[View](R.id.v_people_picker__input__color_bottom_border)
     val hintColorStartUI = ContextCompat.getColor(getContext, R.color.text__secondary_light)
     inputEditText.setTypeface(TypefaceUtils.getTypeface(context.getString(R.string.wire__typeface__light)))
     inputEditText.setCallback(new PickerSpannableEditText.Callback() {

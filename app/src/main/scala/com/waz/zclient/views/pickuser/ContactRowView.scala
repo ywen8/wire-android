@@ -30,7 +30,6 @@ import com.waz.zclient.controllers.global.AccentColorController
 import com.waz.zclient.core.api.scala.ModelObserver
 import com.waz.zclient.pages.main.pickuser.controller.IPickUserController
 import com.waz.zclient.ui.views.ZetaButton
-import com.waz.zclient.utils.ViewUtils
 import com.waz.zclient.{Injectable, R, ViewHelper}
 
 object ContactRowView {
@@ -54,9 +53,9 @@ class ContactRowView(val context: Context, val attrs: AttributeSet, val defStyle
 
   inflate(R.layout.list_row_contactlist_user, this, addToParent = true)
 
-  private val chathead: ChatheadView = ViewUtils.getView(this, R.id.cv__contactlist__user__chathead)
-  private val contactListItemTextView: ContactListItemTextView = ViewUtils.getView(this, R.id.clitv__contactlist__user__text_view)
-  private val contactInviteButton: ZetaButton = ViewUtils.getView(this, R.id.zb__contactlist__user_selected_button)
+  private val chathead = findById[ChatheadView](R.id.cv__contactlist__user__chathead)
+  private val contactListItemTextView = findById[ContactListItemTextView](R.id.clitv__contactlist__user__text_view)
+  private val contactInviteButton = findById[ZetaButton](R.id.zb__contactlist__user_selected_button)
 
   private var user = Option.empty[User]
   private var contactDetails = Option.empty[ContactDetails]

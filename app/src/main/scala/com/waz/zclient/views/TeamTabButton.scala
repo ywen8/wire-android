@@ -32,7 +32,6 @@ import com.waz.zclient.controllers.global.AccentColorController
 import com.waz.zclient.drawables.TeamIconDrawable
 import com.waz.zclient.ui.text.TypefaceTextView
 import com.waz.zclient.ui.views.CircleView
-import com.waz.zclient.utils.ViewUtils
 import com.waz.zclient.{R, ViewHelper}
 
 class TeamTabButton(val context: Context, val attrs: AttributeSet, val defStyleAttr: Int) extends FrameLayout(context, attrs, defStyleAttr) with ViewHelper {
@@ -42,9 +41,9 @@ class TeamTabButton(val context: Context, val attrs: AttributeSet, val defStyleA
   inflate(R.layout.view_team_tab)
   setLayoutParams(new LayoutParams(context.getResources.getDimensionPixelSize(R.dimen.teams_tab_width), ViewGroup.LayoutParams.MATCH_PARENT))
 
-  val icon = ViewUtils.getView(this, R.id.team_icon).asInstanceOf[ImageView]
-  val name = ViewUtils.getView(this, R.id.team_name).asInstanceOf[TypefaceTextView]
-  val unreadIndicator = ViewUtils.getView(this, R.id.unread_indicator).asInstanceOf[CircleView]
+  val icon = findById[ImageView](R.id.team_icon)
+  val name = findById[TypefaceTextView](R.id.team_name)
+  val unreadIndicator = findById[CircleView](R.id.unread_indicator)
   val animationDuration = getResources.getInteger(R.integer.team_tabs__animation_duration)
   val accentColor = inject[AccentColorController].accentColor
 

@@ -30,7 +30,7 @@ import com.waz.zclient.drawables.ListSeparatorDrawable
 import com.waz.zclient.ui.text.{GlyphTextView, TypefaceTextView}
 import com.waz.zclient.ui.views.CircleView
 import com.waz.zclient.utils.ContextUtils._
-import com.waz.zclient.utils.{RichView, ViewUtils}
+import com.waz.zclient.utils.RichView
 import com.waz.zclient.views.{TeamTabButton, TeamTabsView}
 import com.waz.zclient.{R, ViewHelper}
 
@@ -41,11 +41,11 @@ abstract class ConversationListTopToolbar(val context: Context, val attrs: Attri
 
   inflate(R.layout.view_conv_list_top)
 
-  val bottomBorder = ViewUtils.getView(this, R.id.conversation_list__border).asInstanceOf[View]
-  val glyphButton = ViewUtils.getView(this, R.id.conversation_list_settings).asInstanceOf[GlyphTextView]
-  val title = ViewUtils.getView(this, R.id.conversation_list_title).asInstanceOf[TypefaceTextView]
-  val settingsIndicator = ViewUtils.getView(this, R.id.conversation_list_settings_indicator).asInstanceOf[CircleView]
-  val tabsContainer = ViewUtils.getView(this, R.id.team_tabs_container).asInstanceOf[TeamTabsView]
+  val bottomBorder = findById[View](R.id.conversation_list__border)
+  val glyphButton = findById[GlyphTextView](R.id.conversation_list_settings)
+  val title = findById[TypefaceTextView](R.id.conversation_list_title)
+  val settingsIndicator = findById[CircleView](R.id.conversation_list_settings_indicator)
+  val tabsContainer = findById[TeamTabsView](R.id.team_tabs_container)
 
   val onRightButtonClick = EventStream[View]()
 

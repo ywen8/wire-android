@@ -27,6 +27,7 @@ import com.waz.service.images.BitmapSignal
 import com.waz.threading.Threading
 import com.waz.ui.MemoryImageCache.BitmapRequest.Single
 import com.waz.utils.events.{EventContext, Signal}
+import com.waz.utils.returning
 import com.waz.zclient.drawables.TeamIconDrawable._
 import com.waz.zclient.{Injectable, Injector}
 
@@ -41,30 +42,34 @@ class TeamIconDrawable(implicit inj: Injector, eventContext: EventContext) exten
   var text = ""
   var corners = UserCorners
 
-  val borderPaint = new Paint(Paint.ANTI_ALIAS_FLAG)
-  borderPaint.setColor(Color.TRANSPARENT)
-  borderPaint.setStyle(Paint.Style.STROKE)
-  borderPaint.setStrokeJoin(Paint.Join.ROUND)
-  borderPaint.setStrokeCap(Paint.Cap.ROUND)
-  borderPaint.setDither(true)
-  borderPaint.setPathEffect(new CornerPathEffect(10f))
+  val borderPaint = returning(new Paint(Paint.ANTI_ALIAS_FLAG)) { paint =>
+    paint.setColor(Color.TRANSPARENT)
+    paint.setStyle(Paint.Style.STROKE)
+    paint.setStrokeJoin(Paint.Join.ROUND)
+    paint.setStrokeCap(Paint.Cap.ROUND)
+    paint.setDither(true)
+    paint.setPathEffect(new CornerPathEffect(10f))
+  }
 
-  val innerPaint = new Paint(Paint.ANTI_ALIAS_FLAG)
-  innerPaint.setColor(Color.TRANSPARENT)
-  innerPaint.setStyle(Paint.Style.FILL)
-  innerPaint.setStrokeJoin(Paint.Join.ROUND)
-  innerPaint.setStrokeCap(Paint.Cap.ROUND)
-  innerPaint.setDither(true)
-  innerPaint.setPathEffect(new CornerPathEffect(8f))
+  val innerPaint = returning(new Paint(Paint.ANTI_ALIAS_FLAG)) { paint =>
+    paint.setColor(Color.TRANSPARENT)
+    paint.setStyle(Paint.Style.FILL)
+    paint.setStrokeJoin(Paint.Join.ROUND)
+    paint.setStrokeCap(Paint.Cap.ROUND)
+    paint.setDither(true)
+    paint.setPathEffect(new CornerPathEffect(8f))
+  }
 
-  val textPaint = new Paint(Paint.ANTI_ALIAS_FLAG)
-  textPaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.CLEAR))
-  textPaint.setTextAlign(Paint.Align.CENTER)
-  textPaint.setColor(Color.TRANSPARENT)
-  textPaint.setAntiAlias(true)
+  val textPaint = returning(new Paint(Paint.ANTI_ALIAS_FLAG)){ paint =>
+    paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.CLEAR))
+    paint.setTextAlign(Paint.Align.CENTER)
+    paint.setColor(Color.TRANSPARENT)
+    paint.setAntiAlias(true)
+  }
 
-  val bitmapPaint = new Paint(Paint.ANTI_ALIAS_FLAG)
-  bitmapPaint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC_IN))
+  val bitmapPaint = returning(new Paint(Paint.ANTI_ALIAS_FLAG)){ paint =>
+    paint.setXfermode(new PorterDuffXfermode(PorterDuff.Mode.SRC_IN))
+  }
 
   val innerPath = new Path()
   val borderPath = new Path()
