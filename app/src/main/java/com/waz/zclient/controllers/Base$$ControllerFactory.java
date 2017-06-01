@@ -22,9 +22,7 @@ import android.content.Context;
 import android.view.View;
 import com.waz.zclient.controllers.accentcolor.AccentColorController;
 import com.waz.zclient.controllers.accentcolor.IAccentColorController;
-import com.waz.zclient.controllers.background.BackgroundController;
 import com.waz.zclient.controllers.background.DialogBackgroundImageController;
-import com.waz.zclient.controllers.background.IBackgroundController;
 import com.waz.zclient.controllers.background.IDialogBackgroundImageController;
 import com.waz.zclient.controllers.calling.CallingController;
 import com.waz.zclient.controllers.calling.ICallingController;
@@ -32,8 +30,6 @@ import com.waz.zclient.controllers.camera.CameraController;
 import com.waz.zclient.controllers.camera.ICameraController;
 import com.waz.zclient.controllers.confirmation.ConfirmationController;
 import com.waz.zclient.controllers.confirmation.IConfirmationController;
-import com.waz.zclient.controllers.conversationlist.ConversationListController;
-import com.waz.zclient.controllers.conversationlist.IConversationListController;
 import com.waz.zclient.controllers.currentfocus.FocusController;
 import com.waz.zclient.controllers.currentfocus.IFocusController;
 import com.waz.zclient.controllers.deviceuser.DeviceUserController;
@@ -51,8 +47,6 @@ import com.waz.zclient.controllers.mentioning.IMentioningController;
 import com.waz.zclient.controllers.mentioning.MentioningController;
 import com.waz.zclient.controllers.navigation.INavigationController;
 import com.waz.zclient.controllers.navigation.NavigationController;
-import com.waz.zclient.controllers.onboarding.IOnboardingController;
-import com.waz.zclient.controllers.onboarding.OnboardingController;
 import com.waz.zclient.controllers.orientation.IOrientationController;
 import com.waz.zclient.controllers.orientation.OrientationController;
 import com.waz.zclient.controllers.password.IPasswordController;
@@ -71,8 +65,6 @@ import com.waz.zclient.controllers.userpreferences.IUserPreferencesController;
 import com.waz.zclient.controllers.userpreferences.UserPreferencesController;
 import com.waz.zclient.controllers.verification.IVerificationController;
 import com.waz.zclient.controllers.verification.VerificationController;
-import com.waz.zclient.controllers.vibrator.IVibratorController;
-import com.waz.zclient.controllers.vibrator.VibratorController;
 import com.waz.zclient.pages.main.conversation.controller.ConversationScreenController;
 import com.waz.zclient.pages.main.conversation.controller.IConversationScreenController;
 import com.waz.zclient.pages.main.conversationpager.controller.ISlidingPaneController;
@@ -83,8 +75,6 @@ import com.waz.zclient.pages.main.pickuser.controller.PickUserController;
 public abstract class Base$$ControllerFactory implements IControllerFactory {
   protected IAccentColorController accentColorController;
 
-  protected IBackgroundController backgroundController;
-
   protected IDialogBackgroundImageController dialogBackgroundImageController;
 
   protected ICallingController callingController;
@@ -92,8 +82,6 @@ public abstract class Base$$ControllerFactory implements IControllerFactory {
   protected ICameraController cameraController;
 
   protected IConfirmationController confirmationController;
-
-  protected IConversationListController conversationListController;
 
   protected IFocusController focusController;
 
@@ -113,8 +101,6 @@ public abstract class Base$$ControllerFactory implements IControllerFactory {
 
   protected INavigationController navigationController;
 
-  protected IOnboardingController onboardingController;
-
   protected IOrientationController orientationController;
 
   protected IPasswordController passwordController;
@@ -130,8 +116,6 @@ public abstract class Base$$ControllerFactory implements IControllerFactory {
   protected IUserPreferencesController userPreferencesController;
 
   protected IVerificationController verificationController;
-
-  protected IVibratorController vibratorController;
 
   protected IConversationScreenController conversationScreenController;
 
@@ -184,10 +168,6 @@ public abstract class Base$$ControllerFactory implements IControllerFactory {
       accentColorController.tearDown();
       accentColorController = null;
     }
-    if (backgroundController != null) {
-      backgroundController.tearDown();
-      backgroundController = null;
-    }
     if (dialogBackgroundImageController != null) {
       dialogBackgroundImageController.tearDown();
       dialogBackgroundImageController = null;
@@ -204,12 +184,7 @@ public abstract class Base$$ControllerFactory implements IControllerFactory {
       confirmationController.tearDown();
       confirmationController = null;
     }
-    if (conversationListController != null) {
-      conversationListController.tearDown();
-      conversationListController = null;
-    }
     if (focusController != null) {
-      focusController.tearDown();
       focusController = null;
     }
     if (deviceUserController != null) {
@@ -244,10 +219,6 @@ public abstract class Base$$ControllerFactory implements IControllerFactory {
       navigationController.tearDown();
       navigationController = null;
     }
-    if (onboardingController != null) {
-      onboardingController.tearDown();
-      onboardingController = null;
-    }
     if (orientationController != null) {
       orientationController.tearDown();
       orientationController = null;
@@ -279,10 +250,6 @@ public abstract class Base$$ControllerFactory implements IControllerFactory {
     if (verificationController != null) {
       verificationController.tearDown();
       verificationController = null;
-    }
-    if (vibratorController != null) {
-      vibratorController.tearDown();
-      vibratorController = null;
     }
     if (conversationScreenController != null) {
       conversationScreenController.tearDown();
@@ -350,15 +317,6 @@ public abstract class Base$$ControllerFactory implements IControllerFactory {
   }
 
   @Override
-  public IConversationListController getConversationListController() {
-    verifyLifecycle();
-    if (conversationListController == null) {
-      conversationListController = new ConversationListController();
-    }
-    return conversationListController;
-  }
-
-  @Override
   public IVerificationController getVerificationController() {
     verifyLifecycle();
     if (verificationController == null) {
@@ -410,15 +368,6 @@ public abstract class Base$$ControllerFactory implements IControllerFactory {
       requestPermissionsController = new RequestPermissionsController();
     }
     return requestPermissionsController;
-  }
-
-  @Override
-  public IVibratorController getVibratorController() {
-    verifyLifecycle();
-    if (vibratorController == null) {
-      vibratorController = new VibratorController(this.context);
-    }
-    return vibratorController;
   }
 
   @Override
@@ -493,26 +442,7 @@ public abstract class Base$$ControllerFactory implements IControllerFactory {
   @Override
   public void setActivity(Activity activity) {
     getGlobalLayoutController().setActivity(activity);
-    getOrientationController().setActivity(activity);
     getUsernameController().setActivity(activity);
-  }
-
-  @Override
-  public IOnboardingController getOnboardingController() {
-    verifyLifecycle();
-    if (onboardingController == null) {
-      onboardingController = new OnboardingController(this.context);
-    }
-    return onboardingController;
-  }
-
-  @Override
-  public IBackgroundController getBackgroundController() {
-    verifyLifecycle();
-    if (backgroundController == null) {
-      backgroundController = new BackgroundController();
-    }
-    return backgroundController;
   }
 
   protected abstract void initLoadTimeLoggerController();

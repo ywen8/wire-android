@@ -28,7 +28,6 @@ import android.support.v4.app.ShareCompat;
 import android.util.AttributeSet;
 import android.view.View;
 import com.waz.api.Self;
-import com.waz.api.User;
 import com.waz.utils.wrappers.AndroidURI;
 import com.waz.utils.wrappers.AndroidURIUtil;
 import com.waz.utils.wrappers.URI;
@@ -120,10 +119,6 @@ public class ShareActivity extends BaseActivity implements AccentColorObserver,
         super.onDestroy();
     }
 
-    private void setUserImage(User callingUser) {
-        getControllerFactory().getBackgroundController().setImageAsset(callingUser.getPicture());
-    }
-
     //////////////////////////////////////////////////////////////////////////////////////////
     //
     //  AccentColorObserver
@@ -140,10 +135,6 @@ public class ShareActivity extends BaseActivity implements AccentColorObserver,
         if (!self.isLoggedIn()) {
             // User not logged in
             showUserNotLoggedInDialog();
-        } else if (self.isEmailVerified()) {
-            // User logged in
-            User callingUser = getStoreFactory().getZMessagingApiStore().getApi().getSelf().getUser();
-            setUserImage(callingUser);
         }
     }
 

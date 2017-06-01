@@ -31,10 +31,8 @@ import java.util.Set;
 public class GlobalLayoutController implements IGlobalLayoutController {
     public static final String TAG = GlobalLayoutController.class.getName();
 
-    protected Set<GlobalLayoutObserver> globalLayoutObservers = new HashSet<>();
     protected Set<KeyboardVisibilityObserver> keyboardVisibilityObservers = new HashSet<>();
     protected Set<KeyboardHeightObserver> keyboardHeightObservers = new HashSet<>();
-    protected Set<StatusBarVisibilityObserver> statusBarVisibilityObservers = new HashSet<>();
 
     private View globalLayout;
     private Activity activity;
@@ -58,7 +56,6 @@ public class GlobalLayoutController implements IGlobalLayoutController {
         globalLayoutListener = new ViewTreeObserver.OnGlobalLayoutListener() {
             @Override
             public void onGlobalLayout() {
-                notifyGlobalLayoutHasChanged();
                 keyboardListener.onLayoutChange();
             }
         };
@@ -102,23 +99,6 @@ public class GlobalLayoutController implements IGlobalLayoutController {
         activity = null;
         keyboardListener = null;
     }
-
-    @Override
-    public void addGlobalLayoutObserver(GlobalLayoutObserver globalLayoutObserver) {
-        globalLayoutObservers.add(globalLayoutObserver);
-    }
-
-    @Override
-    public void removeGlobalLayoutObserver(GlobalLayoutObserver globalLayoutObserver) {
-        globalLayoutObservers.remove(globalLayoutObserver);
-    }
-
-    protected void notifyGlobalLayoutHasChanged() {
-        for (GlobalLayoutObserver globalLayoutObserver : globalLayoutObservers) {
-            globalLayoutObserver.onGlobalLayoutChanged();
-        }
-    }
-
 
     @Override
     public void addKeyboardVisibilityObserver(KeyboardVisibilityObserver keyboardVisibilityObserver) {
@@ -195,38 +175,6 @@ public class GlobalLayoutController implements IGlobalLayoutController {
 
         }
         return softInputMode;
-    }
-
-    @Override
-    public void addStatusBarVisibilityObserver(StatusBarVisibilityObserver observer) {
-        statusBarVisibilityObservers.add(observer);
-    }
-
-    @Override
-    public void removeStatusBarVisibilityObserver(StatusBarVisibilityObserver observer) {
-        statusBarVisibilityObservers.remove(observer);
-    }
-
-    @Override
-    public void showStatusBar(Activity activity) {
-        if (activity == null) {
-            return;
-        }
-        activity.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
-        for (StatusBarVisibilityObserver observer : statusBarVisibilityObservers) {
-            observer.onStatusBarVisibilityChanged(true);
-        }
-    }
-
-    @Override
-    public void hideStatusBar(Activity activity) {
-        if (activity == null) {
-            return;
-        }
-        activity.getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
-        for (StatusBarVisibilityObserver observer : statusBarVisibilityObservers) {
-            observer.onStatusBarVisibilityChanged(false);
-        }
     }
 
     @Override

@@ -366,7 +366,6 @@ public class AppEntryActivity extends BaseActivity implements VerifyPhoneFragmen
             return;
         }
         FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-        getControllerFactory().getBackgroundController().setSelf(getStoreFactory().getZMessagingApiStore().getApi().getSelf());
         setDefaultAnimation(transaction)
             .replace(R.id.fl_main_content, OTRPhoneAddEmailFragment.newInstance(), OTRPhoneAddEmailFragment.TAG)
             .addToBackStack(OTRPhoneAddEmailFragment.TAG)
@@ -653,8 +652,4 @@ public class AppEntryActivity extends BaseActivity implements VerifyPhoneFragmen
         }
     }
 
-    @Override
-    public void onPageStateHasChanged(Page page) {
-
-    }
 }

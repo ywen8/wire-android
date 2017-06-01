@@ -32,13 +32,12 @@ import com.waz.service.ZMessaging
 import com.waz.service.messages.MessageAndLikes
 import com.waz.threading.{CancellableFuture, Threading}
 import com.waz.utils._
-import com.waz.utils.wrappers.{AndroidURIUtil, URI}
 import com.waz.utils.events.{EventContext, EventStream, Signal}
+import com.waz.utils.wrappers.{AndroidURIUtil, URI}
 import com.waz.zclient.common.controllers.{PermissionsController, WriteExternalStoragePermission}
 import com.waz.zclient.controllers.global.KeyboardController
 import com.waz.zclient.controllers.userpreferences.IUserPreferencesController
 import com.waz.zclient.notifications.controllers.ImageNotificationsController
-import com.waz.zclient.pages.main.conversation.controller.IConversationScreenController
 import com.waz.zclient.pages.main.conversation.views.MessageBottomSheetDialog
 import com.waz.zclient.pages.main.conversation.views.MessageBottomSheetDialog.{Callback, MessageAction}
 import com.waz.zclient.ui.cursor.CursorLayout
@@ -249,13 +248,11 @@ class EditActionSupport(ctx: WireContext, cursor: CursorLayout) extends Injectab
 
   private implicit val eventContext = inject[EventContext]
   private val actionsController = inject[MessageActionsController]
-  private val convScreenController = inject[IConversationScreenController]
   private val keyboardController = inject[KeyboardController]
 
   actionsController.onMessageAction {
     case (MessageAction.EDIT, message) =>
       cursor.editMessage(message)
-      convScreenController.setMessageBeingEdited(message)
       // TODO: don't show keyboard directly, KeyboardController should handle that in more general way
       // Add small delay so triggering keyboard works
       CancellableFuture.delayed(200.millis) {

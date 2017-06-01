@@ -44,12 +44,6 @@ public interface IFocusController {
     int CONTACT_LIST_SEARCH = 8;
     int NONE = 9;
 
-    void tearDown();
-
-    void addFocusObserver(FocusObserver focusObserver);
-
-    void removeFocusObserver(FocusObserver focusObserver);
-
     void setFocus(@FocusLocation int currentFocus);
 
     @FocusLocation int getCurrentFocus();

@@ -20,7 +20,6 @@ package com.waz.zclient.controllers.singleimage;
 import android.view.View;
 import com.waz.api.Message;
 import com.waz.api.User;
-import com.waz.utils.wrappers.URI;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,7 +29,6 @@ public class SingleImageController implements ISingleImageController {
     private List<SingleImageObserver> observerList;
     private View imageContainer;
     private Message message;
-    private boolean containerOutOfScreen;
 
     public SingleImageController() {
         observerList = new ArrayList<>();
@@ -75,33 +73,8 @@ public class SingleImageController implements ISingleImageController {
     }
 
     @Override
-    public void showVideo(URI uri) {
-        for (SingleImageObserver observer : observerList) {
-            observer.onShowVideo(uri);
-        }
-    }
-
-    @Override
-    public void hideVideo() {
-        for (SingleImageObserver observer : observerList) {
-            observer.onHideVideo();
-        }
-    }
-
-    @Override
     public void setViewReferences(View imageContainer) {
         this.imageContainer = imageContainer;
-        this.containerOutOfScreen = false;
-    }
-
-    @Override
-    public void setContainerOutOfScreen(boolean containerOutOfScreen) {
-        this.containerOutOfScreen = containerOutOfScreen;
-    }
-
-    @Override
-    public boolean isContainerOutOfScreen() {
-        return containerOutOfScreen;
     }
 
     @Override
@@ -120,6 +93,5 @@ public class SingleImageController implements ISingleImageController {
     public void clearReferences() {
         message = null;
         imageContainer = null;
-        containerOutOfScreen = false;
     }
 }

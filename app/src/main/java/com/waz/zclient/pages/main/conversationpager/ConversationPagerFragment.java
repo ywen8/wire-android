@@ -299,11 +299,6 @@ public class ConversationPagerFragment extends BaseFragment<ConversationPagerFra
         return ((BaseActivity) getActivity()).injectJava(CollectionController.class);
     }
 
-    @Override
-    public void onPageStateHasChanged(Page page) {
-
-    }
-
     public interface Container {
         void onOpenUrl(String url);
     }

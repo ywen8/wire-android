@@ -56,8 +56,6 @@ public interface IConversationScreenController {
 
     User getRequestedDeviceTabUser();
 
-    void setOffset(int offset);
-
     boolean isShowingParticipant();
 
     void resetToMessageStream();
@@ -97,10 +95,6 @@ public interface IConversationScreenController {
     void showCurrentOtrClient();
 
     void hideOtrClient();
-
-    void setMessageBeingEdited(Message message);
-
-    boolean isMessageBeingEdited(Message message);
 
     void showLikesList(Message message);
 }

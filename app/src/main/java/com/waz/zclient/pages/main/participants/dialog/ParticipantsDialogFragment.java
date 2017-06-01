@@ -661,11 +661,6 @@ public class ParticipantsDialogFragment extends BaseFragment<ParticipantsDialogF
     }
 
     @Override
-    public void setListOffset(int offset) {
-
-    }
-
-    @Override
     public void onHeaderViewMeasured(int participantHeaderHeight) {
 
     }

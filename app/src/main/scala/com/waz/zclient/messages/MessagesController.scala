@@ -63,7 +63,6 @@ class MessagesController()(implicit injector: Injector, ev: EventContext) extend
 
     // XXX: This is a bit fragile. We are deducing signal state from loosely related events, and we rely on their order.
     navigationController.addNavigationControllerObserver(new NavigationControllerObserver {
-      override def onPageStateHasChanged(page: Page) = ()
       override def onPageVisible(page: Page) =
         pageVisible ! (page == Page.MESSAGE_STREAM || ViewUtils.isInLandscape(context.getResources.getConfiguration))
     })

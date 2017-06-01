@@ -47,9 +47,6 @@
     <string translatable="false" name="forced_update__button__font">@string/wire__typeface__regular</string>
     <string translatable="false" name="mediaplayer__font">@string/wire__typeface__light</string>
     <string translatable="false" name="network_indicator__font">@string/wire__typeface__bold</string>
-    <string translatable="false" name="onboarding_hint__font">@string/wire__typeface__light</string>
-    <string translatable="false" name="onboarding_hint__discover_change_profile_picture__text_font">@string/wire__typeface__light</string>
-    <string translatable="false" name="onboarding_hint__app_map__subtitle__font">@string/wire__typeface__medium</string>
     <string translatable="false" name="option_menu__font_name">@string/wire__typeface__light</string>
     <string translatable="false" name="sharing_indicator__font">@string/wire__typeface__bold</string>
     <string translatable="false" name="single_image_message__name__font">@string/wire__typeface__bold</string>

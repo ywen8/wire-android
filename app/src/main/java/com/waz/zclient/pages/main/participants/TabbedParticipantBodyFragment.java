@@ -311,11 +311,6 @@ public class TabbedParticipantBodyFragment extends BaseFragment<TabbedParticipan
     }
 
     @Override
-    public void setListOffset(int offset) {
-
-    }
-
-    @Override
     public void onHeaderViewMeasured(int participantHeaderHeight) {
 
     }

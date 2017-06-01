@@ -17,7 +17,6 @@
  */
 package com.waz.zclient.utils;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
@@ -37,20 +36,6 @@ public enum SquareOrientation {
     SquareOrientation(int orientation, int activityOrientation) {
         this.orientation = orientation;
         this.activityOrientation = activityOrientation;
-    }
-
-    public static SquareOrientation getOrientation(Activity activity) {
-        switch (activity.getWindowManager().getDefaultDisplay().getRotation()) {
-            case Surface.ROTATION_0:
-                return getOrientation(0, activity);
-            case Surface.ROTATION_90:
-                return getOrientation(270, activity);
-            case Surface.ROTATION_180:
-                return getOrientation(180, activity);
-            case Surface.ROTATION_270:
-                return getOrientation(90, activity);
-        }
-        return PORTRAIT_STRAIGHT;
     }
 
     /*

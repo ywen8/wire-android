@@ -33,7 +33,6 @@ import com.waz.api.UpdateListener;
 import com.waz.api.User;
 import com.waz.zclient.OnBackPressedListener;
 import com.waz.zclient.R;
-import com.waz.zclient.controllers.navigation.NavigationController;
 import com.waz.zclient.controllers.navigation.Page;
 import com.waz.zclient.controllers.navigation.PagerControllerObserver;
 import com.waz.zclient.core.stores.connect.IConnectStore;
@@ -46,7 +45,6 @@ import com.waz.zclient.pages.main.connect.ConnectRequestLoadMode;
 import com.waz.zclient.pages.main.connect.PendingConnectRequestManagerFragment;
 import com.waz.zclient.pages.main.conversation.ConversationManagerFragment;
 import com.waz.zclient.ui.utils.MathUtils;
-
 import timber.log.Timber;
 
 public class SecondPageFragment extends BaseFragment<SecondPageFragment.Container> implements OnBackPressedListener,
@@ -305,10 +303,7 @@ public class SecondPageFragment extends BaseFragment<SecondPageFragment.Containe
 
     @Override
     public void onPageSelected(int position) {
-        // TO CONVERSATION LIST
-        if (position == NavigationController.FIRST_PAGE) {
-            getControllerFactory().getOnboardingController().incrementSwipeToConversationListCount(getControllerFactory().getNavigationController().getCurrentRightPage());
-        }
+
     }
 
     @Override

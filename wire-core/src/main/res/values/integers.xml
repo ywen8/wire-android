@@ -148,11 +148,6 @@
     <integer name="notifications__system__led_off">1000</integer>
     <integer name="notifications__system__led_on">300</integer>
 
-    <integer name="onboarding__show_hint__discover_search__count">0</integer>
-    <integer name="onboarding__show_hint__discover_conversationlist_from_conversation__count">0</integer>
-    <integer name="onboarding__show_hint__discover_conversationlist_from_profile__count">0</integer>
-    <integer name="onboarding__show_hint__discover_participants__count">0</integer>
-
     <integer name="participants__header__max_length">80</integer>
 
     <integer name="password_validator__min_password_length">8</integer>

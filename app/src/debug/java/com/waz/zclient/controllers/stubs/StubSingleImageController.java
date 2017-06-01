@@ -20,7 +20,6 @@ package com.waz.zclient.controllers.stubs;
 import android.view.View;
 import com.waz.api.Message;
 import com.waz.api.User;
-import com.waz.utils.wrappers.URI;
 import com.waz.zclient.controllers.singleimage.ISingleImageController;
 import com.waz.zclient.controllers.singleimage.SingleImageObserver;
 
@@ -57,17 +56,7 @@ public class StubSingleImageController implements ISingleImageController {
     }
 
     @Override
-    public boolean isContainerOutOfScreen() {
-        return false;
-    }
-
-    @Override
     public void tearDown() {
-
-    }
-
-    @Override
-    public void setContainerOutOfScreen(boolean containerOutOfScreen) {
 
     }
 
@@ -86,13 +75,4 @@ public class StubSingleImageController implements ISingleImageController {
 
     }
 
-    @Override
-    public void showVideo(URI uri) {
-
-    }
-
-    @Override
-    public void hideVideo() {
-
-    }
 }

@@ -138,7 +138,6 @@ class MainActivity extends BaseActivity
   }
 
   override def onStart() = {
-    getControllerFactory.getBackgroundController.setSelf(getStoreFactory.getZMessagingApiStore.getApi.getSelf)
     info("onStart")
 
     zms.map(_.global.googleApi).head.map(_.checkGooglePlayServicesAvailable(this))
@@ -195,16 +194,10 @@ class MainActivity extends BaseActivity
     overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
   }
 
-  override protected def onPostResume() = {
-    super.onPostResume()
-    getControllerFactory.getNavigationController.markActivityResumed()
-  }
-
   override protected def onPause() = {
     info("onPause")
     Localytics.dismissCurrentInAppMessage()
     Localytics.clearInAppMessageDisplayActivity()
-    getControllerFactory.getNavigationController.markActivityPaused()
     super.onPause()
   }
 
@@ -224,7 +217,6 @@ class MainActivity extends BaseActivity
     getStoreFactory.getProfileStore.removeProfileStoreObserver(this)
     getControllerFactory.getNavigationController.removeNavigationControllerObserver(this)
     getControllerFactory.getUserPreferencesController.setLastAccentColor(getStoreFactory.getProfileStore.getAccentColor)
-    getControllerFactory.getBackgroundController.onStop()
   }
 
   override def onBackPressed(): Unit = {
@@ -508,8 +500,6 @@ class MainActivity extends BaseActivity
       case _ => warn(s"Unknown page: $page")
     }
   }
-
-  def onPageStateHasChanged(page: Page) = ()
 
   def onConnectUserUpdated(user: User, usertype: IConnectStore.UserRequester) = ()
 
