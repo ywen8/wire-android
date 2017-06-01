@@ -20,7 +20,6 @@ package com.waz.zclient;
 import com.waz.api.IConversation;
 import com.waz.api.Self;
 import com.waz.api.User;
-import com.waz.api.VoiceChannel;
 import com.waz.zclient.controllers.accentcolor.AccentColorObserver;
 import com.waz.zclient.controllers.calling.CallingObserver;
 import com.waz.zclient.controllers.navigation.NavigationControllerObserver;
@@ -45,7 +44,6 @@ public class MainTestActivity extends TestActivity implements MainPhoneFragment.
                                                               ConnectStoreObserver,
                                                               NavigationControllerObserver,
                                                               CallingObserver,
-                                                              VoiceChannel.JoinCallback,
                                                               OtrDeviceLimitFragment.Container,
                                                               ZMessagingApiStoreObserver {
 
@@ -86,31 +84,6 @@ public class MainTestActivity extends TestActivity implements MainPhoneFragment.
 
     @Override
     public void onOpenUrl(String url) {
-
-    }
-
-    @Override
-    public void onCallJoined() {
-
-    }
-
-    @Override
-    public void onAlreadyJoined() {
-
-    }
-
-    @Override
-    public void onCallJoinError(String s) {
-
-    }
-
-    @Override
-    public void onConversationTooBig(int i, int i1) {
-
-    }
-
-    @Override
-    public void onVoiceChannelFull(int i) {
 
     }
 

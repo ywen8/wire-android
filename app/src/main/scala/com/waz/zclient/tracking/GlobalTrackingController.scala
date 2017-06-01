@@ -38,21 +38,19 @@ import com.waz.service.downloads.DownloadRequest.WireAssetRequest
 import com.waz.service.{NetworkModeService, ZMessaging}
 import com.waz.threading.Threading
 import com.waz.utils.events.{EventContext, Signal}
-import com.waz.zclient.controllers.tracking.events.calling.EndedCallAVSMetricsEvent
+import com.waz.utils.{returning, _}
+import com.waz.zclient._
+import com.waz.zclient.controllers.tracking.events.launch.AppLaunch
+import com.waz.zclient.controllers.tracking.events.otr.VerifiedConversationEvent
+import com.waz.zclient.controllers.tracking.screens.{ApplicationScreen, RegistrationScreen}
 import com.waz.zclient.controllers.userpreferences.UserPreferencesController
 import com.waz.zclient.core.controllers.tracking
 import com.waz.zclient.core.controllers.tracking.attributes.{Attribute, RangedAttribute}
 import com.waz.zclient.core.controllers.tracking.events.AVSMetricEvent
 import com.waz.zclient.core.controllers.tracking.events.media.CompletedMediaActionEvent
 import com.waz.zclient.core.controllers.tracking.events.onboarding.GeneratedUsernameEvent
-import com.waz.zclient._
-import org.threeten.bp.{Duration, Instant}
-import com.waz.utils._
-import com.waz.utils.returning
-import com.waz.zclient.controllers.tracking.events.launch.AppLaunch
-import com.waz.zclient.controllers.tracking.events.otr.VerifiedConversationEvent
-import com.waz.zclient.controllers.tracking.screens.{ApplicationScreen, RegistrationScreen}
 import com.waz.zclient.utils.ContextUtils._
+import org.threeten.bp.{Duration, Instant}
 
 import scala.collection.JavaConverters._
 import scala.concurrent.Future
@@ -222,33 +220,6 @@ class GlobalTrackingController(implicit inj: Injector, cxt: WireContext, eventCo
       case (msg, error) if msg.isAssetMessage =>
         tagEvent(FailedFileUploadEvent(error))
       case _ =>
-    }
-
-    zms.flowmanager.onAvsMetricsReceived { avsMetrics =>
-      zms.users.withSelfUserFuture { selfUser =>
-        zms.convsContent.convByRemoteId(avsMetrics.rConvId).flatMap {
-          case Some(conv) =>
-            zms.voice.getVoiceChannel(conv.id, selfUser).map { ch =>
-              ch.data.tracking.joined.fold() { instant =>
-
-                verbose(s"AVS metrics: $avsMetrics")
-                // TODO: Separate video call when avsMetrics.isVideoCall() works
-                /*
-                if (avsMetrics.isVideoCall()) {
-                    trackingController.tagAVSMetricEvent(new EndedVideoCallAVSMetricsEvent(avsMetrics));
-                } else {
-                    trackingController.tagAVSMetricEvent(new EndedCallAVSMetricsEvent(avsMetrics));
-                }
-                */
-
-                avsMetrics.isVideoCall = ch.data.video.isVideoCall
-                avsMetrics.kindOfCall = ch.data.tracking.kindOfCall
-                tagAVSMetricEvent(new EndedCallAVSMetricsEvent(avsMetrics))
-              }
-            }
-          case None => Future.successful(())
-        }
-      }
     }
 
     connStats.flatMap { stats => Signal.wrap(stats.lostOnPingDuration) } { duration =>

@@ -552,24 +552,13 @@ class MainActivity extends BaseActivity
   }
 
   private def handleOnStartCall(withVideo: Boolean) = {
-    if ((PhoneUtils.getPhoneState(this) eq PhoneState.IDLE) && getActiveVoiceChannels.hasOngoingCall) cannotStartAlreadyHaveVoiceActive(withVideo)
-    else if (PhoneUtils.getPhoneState(this) ne PhoneState.IDLE) cannotStartGSM()
+    if (PhoneUtils.getPhoneState(this) ne PhoneState.IDLE) cannotStartGSM()
     else startCallIfInternet(withVideo)
   }
 
-  private def getActiveVoiceChannels: ActiveVoiceChannels = getStoreFactory.getZMessagingApiStore.getApi.getActiveVoiceChannels
+  private def startCall(withVideo: Boolean) = Option(getStoreFactory.getConversationStore.getCurrentConversation).foreach {
 
-  private def startCall(withVideo: Boolean) = Option(getStoreFactory.getConversationStore.getCurrentConversation).map(c => (c, c.getVoiceChannel)).foreach {
-    case (c, vc) if c.hasUnjoinedCall && vc.isVideoCall != withVideo =>
-      ViewUtils.showAlertDialog(
-        this,
-        getString(R.string.calling__cannot_start__ongoing_different_kind__title, c.getName),
-        getString(R.string.calling__cannot_start__ongoing_different_kind__message),
-        getString(R.string.calling__cannot_start__button),
-        null,
-        true)
-
-    case (c, vc) if c.getType == IConversation.Type.GROUP && c.getUsers.size() >= 5 =>
+    case c if c.getType == IConversation.Type.GROUP && c.getUsers.size() >= 5 =>
       ViewUtils.showAlertDialog(
         this,
         getString(R.string.group_calling_title),
@@ -578,32 +567,13 @@ class MainActivity extends BaseActivity
         getString(R.string.group_calling_cancel),
         new DialogInterface.OnClickListener() {
           def onClick(dialog: DialogInterface, which: Int) = {
-            callPermissionController.startCall(new ConvId(vc.getConversation.getId), withVideo, getControllerFactory.getUserPreferencesController.isVariableBitRateEnabled)
+            callPermissionController.startCall(new ConvId(c.getId), withVideo, getControllerFactory.getUserPreferencesController.isVariableBitRateEnabled)
           }
       }, null)
 
-    case (_, vc) =>
-      callPermissionController.startCall(new ConvId(vc.getConversation.getId), withVideo, getControllerFactory.getUserPreferencesController.isVariableBitRateEnabled)
-  }
+    case c =>
+      callPermissionController.startCall(new ConvId(c.getId), withVideo, getControllerFactory.getUserPreferencesController.isVariableBitRateEnabled)
 
-  private def cannotStartAlreadyHaveVoiceActive(withVideo: Boolean) = {
-    ViewUtils.showAlertDialog(this,
-      R.string.calling__cannot_start__ongoing_voice__title,
-      R.string.calling__cannot_start__ongoing_voice__message,
-      R.string.calling__cannot_start__ongoing_voice__button_positive,
-      R.string.calling__cannot_start__ongoing_voice__button_negative,
-      new DialogInterface.OnClickListener() {
-        def onClick(dialog: DialogInterface, which: Int) =
-          for {
-            sf <- Option(getStoreFactory) if !sf.isTornDown
-            ongoing <- Option(getActiveVoiceChannels.getOngoingCall)
-          } {
-            ongoing.leave()
-            new Handler().postDelayed(new Runnable() {
-              def run() = Option(getStoreFactory).filter(!_.isTornDown).foreach(_ => startCall(withVideo))
-            }, getResources.getInteger(R.integer.calling__new_outgoing_call__delay_after_hangup))
-          }
-      }, null)
   }
 
   private def cannotStartGSM() =

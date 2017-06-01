@@ -20,7 +20,6 @@ package com.waz.zclient.core.stores.stub;
 import android.content.Context;
 import android.net.Uri;
 import com.waz.api.AccentColor;
-import com.waz.api.ActiveVoiceChannels;
 import com.waz.api.Avs;
 import com.waz.api.ConnectionIndicator;
 import com.waz.api.Contacts;
@@ -166,11 +165,6 @@ public class StubZMessagingApiStore implements IZMessagingApiStore {
 
             @Override
             public IncomingMessagesList getIncomingMessages() {
-                return null;
-            }
-
-            @Override
-            public ActiveVoiceChannels getActiveVoiceChannels() {
                 return null;
             }
 

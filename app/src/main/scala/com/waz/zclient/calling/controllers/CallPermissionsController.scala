@@ -17,14 +17,12 @@
  */
 package com.waz.zclient.calling.controllers
 
-import com.waz.api.VoiceChannelState
 import com.waz.content.GlobalPreferences.AutoAnswerCallPrefKey
 import com.waz.model.ConvId
+import com.waz.service.call.CallInfo.CallState.OtherCalling
 import com.waz.threading.Threading
 import com.waz.zclient._
 import com.waz.zclient.common.controllers.{CameraPermission, PermissionsController, RecordAudioPermission}
-
-import scala.concurrent.Future
 
 /**
   * This class is intended to be a relatively small controller that every PermissionsActivity can have access to in order
@@ -44,7 +42,7 @@ class CallPermissionsController(implicit inj: Injector, cxt: WireContext) extend
   for {
     cId <- convId
     incomingCall <- callState.map {
-      case VoiceChannelState.OTHER_CALLING => true
+      case OtherCalling => true
       case _ => false
     }
     autoAnswer <- prefs.flatMap(_.preference(AutoAnswerCallPrefKey).signal)
@@ -56,27 +54,17 @@ class CallPermissionsController(implicit inj: Injector, cxt: WireContext) extend
     * underlying service
     */
   def startCall(convId: ConvId, withVideo: Boolean = false, variableBitRate: Boolean = false): Unit = {
-    def start() = v3Service.head.map(_.startCall(convId, withVideo))
-
-    def reject(v3: Boolean) = v3 match {
-      case true => v3Service.head.map(_.endCall(convId))
-      case _ => v2Service.head.map(_.silenceVoiceChannel(convId))
-    }
-
-    for {
-      incoming <- convIdOpt.head.map(_.isDefined)
-      v3 <- if (incoming) isV3Call.head else Future(true)
-    } {
+    convIdOpt.head.map(_.isDefined).map { incoming =>
       permissionsController.requiring(if (withVideo) Set(CameraPermission, RecordAudioPermission) else Set(RecordAudioPermission)) {
         if (!incoming) setVariableBitRateMode(variableBitRate)
-        start()
+        callingService.head.map(_.startCall(convId, withVideo))
       }(R.string.calling__cannot_start__title, if (withVideo) R.string.calling__cannot_start__no_video_permission__message else R.string.calling__cannot_start__no_permission__message,
-        if (incoming) reject(v3))
+        if (incoming) callingService.head.map(_.endCall(convId)))
     }
   }
 
   def setVariableBitRateMode(enabled: Boolean): Unit = {
     val cbrOn = if(enabled) 0 else 1 // in SE it's reversed: we DISABLE cbr instead of enabling vbr and vice versa
-    v3Service.head.map(_.setAudioConstantBitRateEnabled(cbrOn))
+    callingService.head.map(_.setAudioConstantBitRateEnabled(cbrOn))
   }
 }

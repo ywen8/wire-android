@@ -295,10 +295,6 @@
     <string name="calling__cannot_start__no_video_permission__message">To video call, grant permission to access the microphone and camera.</string>
     <string name="calling__cannot_start__button">OK</string>
     <string name="calling__cannot_start__button_settings">Settings</string>
-    <string name="calling__cannot_start__ongoing_voice__title">Answer call?</string>
-    <string name="calling__cannot_start__ongoing_voice__message">Your current call will end.</string>
-    <string name="calling__cannot_start__ongoing_voice__button_positive">Answer</string>
-    <string name="calling__cannot_start__ongoing_voice__button_negative">Cancel</string>
     <string name="calling__video_call__slow_connection__message">You might experience issues during the call</string>
     <string name="calling__header__joining">joining</string>
     <string name="calling__header__outgoing_subtitle">ringing</string>
