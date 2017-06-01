@@ -36,7 +36,7 @@ import com.waz.zclient.ui.R;
 
 public class DrawingCanvasView extends View {
 
-    private Bitmap bitmap;
+    private Bitmap bitmap = null;
     private Bitmap backgroundBitmap;
     private Canvas canvas;
     private Path path;
@@ -126,12 +126,14 @@ public class DrawingCanvasView extends View {
 
     @Override
     protected void onDraw(Canvas canvas) {
-        canvas.drawColor(Color.TRANSPARENT);
-        canvas.drawBitmap(bitmap, 0, 0, bitmapPaint);
-        if (drawEmoji) {
-            canvas.drawText(emoji, currentX, currentY, emojiPaint);
-        } else {
-            canvas.drawPath(path, drawingPaint);
+        if (bitmap != null) {
+            canvas.drawColor(Color.TRANSPARENT);
+            canvas.drawBitmap(bitmap, 0, 0, bitmapPaint);
+            if (drawEmoji) {
+                canvas.drawText(emoji, currentX, currentY, emojiPaint);
+            } else {
+                canvas.drawPath(path, drawingPaint);
+            }
         }
     }
 
