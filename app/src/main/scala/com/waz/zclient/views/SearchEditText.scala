@@ -19,6 +19,7 @@ package com.waz.zclient.views
 
 import android.content.Context
 import android.content.res.TypedArray
+import android.support.v4.content.ContextCompat
 import android.util.AttributeSet
 import android.widget.RelativeLayout
 import android.widget.TextView.OnEditorActionListener
@@ -70,7 +71,15 @@ class SearchEditText(context: Context, attrs: AttributeSet, style: Int) extends 
 
   def setCursorColor(accentColor: Int) = searchBox.setAccentColor(accentColor)
 
-  def setTextColor(color: Int) = searchBox.setTextColor(color)
+  def applyDarkTheme(apply: Boolean): Unit ={
+    if (apply) {
+      searchBox.setTextColor(ContextCompat.getColor(getContext, R.color.text__primary_dark))
+      searchBox.setCompoundDrawablesRelativeWithIntrinsicBounds(ContextCompat.getDrawable(getContext, R.drawable.search), null, null, null)
+    } else {
+      searchBox.setTextColor(ContextCompat.getColor(getContext, R.color.text__primary_light))
+      searchBox.setCompoundDrawablesRelativeWithIntrinsicBounds(ContextCompat.getDrawable(getContext, R.drawable.search_dark), null, null, null)
+    }
+  }
 
   def setOnEditorActionListener(listener: OnEditorActionListener) = searchBox.setOnEditorActionListener(listener)
 
