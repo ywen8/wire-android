@@ -46,11 +46,11 @@ class TeamTabsView(val context: Context, val attrs: AttributeSet, val defStyleAt
 }
 
 class TeamTabViewHolder(view: TeamTabButton) extends RecyclerView.ViewHolder(view){
-  def bind(data: Either[UserData, TeamData], selected: Boolean): Unit = {
+  def bind(data: Either[UserData, TeamData], selected: Boolean, unreadCount: Int): Unit = {
     view.setTag(data)
     data match {
-      case Left(userData) => view.setUserData(userData, selected)
-      case Right(teamData) => view.setTeamData(teamData, selected)
+      case Left(userData) => view.setUserData(userData, selected, unreadCount)
+      case Right(teamData) => view.setTeamData(teamData, selected, unreadCount)
     }
   }
 }
@@ -62,12 +62,12 @@ class TeamTabsAdapter(context: Context)(implicit injector: Injector, eventContex
 
   val onItemClick = EventStream[Either[UserData, TeamData]]()
 
-  private var teams = Option.empty[Seq[TeamData]]
-  private var self = Option.empty[UserData]
+  private var teams = Option.empty[Seq[(TeamData, Int)]]
+  private var self = Option.empty[(UserData, Int)]
 
   onItemClick{ controller.currentTeamOrUser ! _ }
 
-  Signal(controller.self, controller.teams, controller.currentTeamOrUser).on(Threading.Ui){
+  Signal(controller.selfAndUnreadCount, controller.teamsAndUnreadCount, controller.currentTeamOrUser).on(Threading.Ui){
     case (cSelf, cTeams, _) =>
       self = Some(cSelf)
       teams = Some(cTeams.toSeq)
@@ -79,8 +79,17 @@ class TeamTabsAdapter(context: Context)(implicit injector: Injector, eventContex
   override def onBindViewHolder(holder: TeamTabViewHolder, position: Int) = {
     getItem(position) match {
       case Some(data) =>
-        val selected = controller.currentTeamOrUser.currentValue.contains(data)
-        holder.bind(data, selected)
+        val userOrTeam = data match {
+          case Left((userData, _)) => Left(userData)
+          case Right((teamData, _)) => Right(teamData)
+        }
+        val count = data match {
+          case Left((_, c)) => c
+          case Right((_, c)) => c
+          case _ => 0
+        }
+        val selected = controller.currentTeamOrUser.currentValue.contains(userOrTeam)
+        holder.bind(userOrTeam, selected, count)
       case _ =>
         ZLog.error("Invalid get item index")
     }
@@ -97,7 +106,7 @@ class TeamTabsAdapter(context: Context)(implicit injector: Injector, eventContex
     new TeamTabViewHolder(view)
   }
 
-  def getItem(position: Int): Option[Either[UserData, TeamData]] = {
+  def getItem(position: Int): Option[Either[(UserData, Int), (TeamData, Int)]] = {
     position match {
       case 0 =>
         self.map(Left(_))
