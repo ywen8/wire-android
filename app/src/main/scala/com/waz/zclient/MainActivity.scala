@@ -228,20 +228,14 @@ class MainActivity extends BaseActivity
   }
 
   override def onBackPressed(): Unit = {
-    info("onBackPressed")
-
-    Seq(
-      R.id.fl__calling__container,
-      R.id.fl_main_content,
-      R.id.fl_main_otr_warning
-    ).foreach { id =>
-      getSupportFragmentManager.findFragmentById(id) match {
-        case f: OnBackPressedListener if f.onBackPressed() => return
-        case _ =>
+    val backPressedAlready = Seq(R.id.fl__calling__container, R.id.fl_main_content, R.id.fl_main_otr_warning)
+      .map(getSupportFragmentManager.findFragmentById)
+      .exists {
+        case f: OnBackPressedListener => f.onBackPressed()
+        case _ => false
       }
-    }
 
-    super.onBackPressed()
+    if(!backPressedAlready) super.onBackPressed()
   }
 
   override protected def onActivityResult(requestCode: Int, resultCode: Int, data: Intent) = {

@@ -26,6 +26,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
@@ -89,6 +90,7 @@ import com.waz.zclient.ui.utils.MathUtils;
 import com.waz.zclient.utils.LayoutSpec;
 import com.waz.zclient.utils.TrackingUtils;
 import com.waz.zclient.utils.ViewUtils;
+import timber.log.Timber;
 
 import java.util.ArrayList;
 
@@ -689,9 +691,11 @@ public class RootFragment extends BaseFragment<RootFragment.Container> implement
         slidingPaneLayout.postDelayed(new Runnable() {
             @Override
             public void run() {
-                if (slidingPaneLayout == null) {
+                FragmentActivity activity = getActivity();
+                if (activity == null || slidingPaneLayout == null || ViewUtils.isInLandscape(activity)) {
                     return;
                 }
+
                 slidingPaneLayout.closePane();
             }
         }, startDelay);
@@ -741,6 +745,7 @@ public class RootFragment extends BaseFragment<RootFragment.Container> implement
 
     @Override
     public boolean onBackPressed() {
+
         Fragment fragment = getChildFragmentManager().findFragmentByTag(ParticipantsDialogFragment.TAG);
         if (fragment instanceof OnBackPressedListener &&
             ((OnBackPressedListener) fragment).onBackPressed()) {
@@ -782,7 +787,12 @@ public class RootFragment extends BaseFragment<RootFragment.Container> implement
             return true;
         }
 
-        if (slidingPaneLayout != null && !slidingPaneLayout.isOpen()) {
+        if (slidingPaneLayout == null) {
+            Timber.w("onBackPressed while RootFragment is destroyed");
+            return true;
+        }
+
+        if (!slidingPaneLayout.isOpen()) {
             slidingPaneLayout.openPane();
             return true;
         }
