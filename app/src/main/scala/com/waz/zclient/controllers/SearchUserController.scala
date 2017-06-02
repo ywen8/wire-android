@@ -49,7 +49,7 @@ class SearchUserController(initialState: SearchState)(implicit injector: Injecto
     z <- zms
     searchState <- searchState
     members <- searchState.addingToConversation.fold(Signal.const(Set[UserId]()))(ConversationMembersSignal(_))
-  } yield members
+  } yield members.filterNot(_ == z.selfUserId)
 
   val onSelectedUserAdded = EventStream[UserId]()
   val onSelectedUserRemoved = EventStream[UserId]()
