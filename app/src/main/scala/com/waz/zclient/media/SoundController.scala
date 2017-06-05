@@ -25,6 +25,7 @@ import android.text.TextUtils
 import com.waz.ZLog.ImplicitTag._
 import com.waz.ZLog.{error, verbose}
 import com.waz.media.manager.MediaManager
+import com.waz.media.manager.context.IntensityLevel
 import com.waz.service.ZMessaging
 import com.waz.utils.events.{EventContext, Signal}
 import com.waz.zclient.controllers.userpreferences.UserPreferencesController
@@ -43,14 +44,18 @@ class SoundController(implicit inj: Injector, cxt: Context) extends Injectable {
   private val vibrator = Option(inject[Vibrator])
 
   private val mediaManager = zms.map(_.mediamanager.mediaManager)
+  private val soundIntensity = zms.flatMap(_.mediamanager.soundIntensity)
 
   private var _mediaManager = Option.empty[MediaManager]
   mediaManager(_mediaManager = _)
 
   setCustomSoundUrisFromPreferences(cxt.getSharedPreferences(UserPreferencesController.USER_PREFS_TAG, Context.MODE_PRIVATE))
 
+  private def soundIntensityNone = soundIntensity.currentValue == Some(IntensityLevel.NONE)
+  private def soundIntensityFull = soundIntensity.currentValue == None || soundIntensity.currentValue == Some(IntensityLevel.FULL)
+
   def setIncomingRingTonePlaying(play: Boolean) = {
-    setMediaPlaying(R.raw.ringing_from_them, play)
+    if (!soundIntensityNone) setMediaPlaying(R.raw.ringing_from_them, play)
     setVibrating(R.array.ringing_from_them, play, loop = true)
   }
 
@@ -60,29 +65,29 @@ class SoundController(implicit inj: Injector, cxt: Context) extends Injectable {
   //that both files stops is a fix for the symptom, but not the root cause - which could be affecting other things...
   def setOutgoingRingTonePlaying(play: Boolean, isVideo: Boolean = false) =
     if (play) {
-      setMediaPlaying(if (isVideo) R.raw.ringing_from_me_video else R.raw.ringing_from_me, play = true)
+      if (soundIntensityFull) setMediaPlaying(if (isVideo) R.raw.ringing_from_me_video else R.raw.ringing_from_me, play = true)
     } else {
       setMediaPlaying(R.raw.ringing_from_me_video, play = false)
       setMediaPlaying(R.raw.ringing_from_me, play = false)
     }
 
   def playCallEstablishedSound() = {
-    setMediaPlaying(R.raw.ready_to_talk)
+    if (soundIntensityFull) setMediaPlaying(R.raw.ready_to_talk)
     setVibrating(R.array.ready_to_talk)
   }
 
   def playCallEndedSound() = {
+    if (soundIntensityFull) setMediaPlaying(R.raw.talk_later)
     setVibrating(R.array.talk_later)
-    setMediaPlaying(R.raw.talk_later)
   }
 
   def playCallDroppedSound() = {
-    setMediaPlaying(R.raw.call_drop)
+    if (soundIntensityFull) setMediaPlaying(R.raw.call_drop)
     setVibrating(R.array.call_dropped)
   }
 
   def playAlert() = {
-    setMediaPlaying(R.raw.alert)
+    if (soundIntensityFull) setMediaPlaying(R.raw.alert)
     setVibrating(R.array.alert)
   }
 
@@ -90,21 +95,22 @@ class SoundController(implicit inj: Injector, cxt: Context) extends Injectable {
     setVibrating(R.array.alert)
 
   def playMessageIncomingSound(firstMessage: Boolean) = {
-    setMediaPlaying(if (firstMessage) R.raw.first_message else R.raw.new_message)
+    if (firstMessage && !soundIntensityNone) setMediaPlaying(R.raw.first_message)
+    else if (soundIntensityFull) setMediaPlaying(R.raw.new_message)
     setVibrating(R.array.new_message)
   }
 
   def playPingFromThem() = {
-    setMediaPlaying(R.raw.ping_from_them)
+    if (!soundIntensityNone) setMediaPlaying(R.raw.ping_from_them)
     setVibrating(R.array.ping_from_them)
   }
 
   //no vibration needed
   def playPingFromMe() =
-    setMediaPlaying(R.raw.ping_from_me)
+    if (!soundIntensityNone) setMediaPlaying(R.raw.ping_from_me)
 
   def playCameraShutterSound() = {
-    setMediaPlaying(R.raw.camera)
+    if (soundIntensityFull) setMediaPlaying(R.raw.camera)
     setVibrating(R.array.camera)
   }
 
