@@ -90,7 +90,8 @@ class SearchUserController(initialState: SearchState)(implicit injector: Injecto
     z <- zms
     searchState <- searchState
     members <- searchTeamMembersForState(z, searchState)
-  } yield members.toSeq.sortBy(_.getDisplayName)
+    excludedUsers <- excludedUsers
+  } yield members.filter(u => !excludedUsers.contains(u.id)).toSeq.sortBy(_.getDisplayName)
 
   private def searchTeamMembersForState(z:ZMessaging, searchState: SearchState): Signal[Set[UserData]] = {
     searchState.teamId.fold{
@@ -116,7 +117,8 @@ class SearchUserController(initialState: SearchState)(implicit injector: Injecto
     z <- zms
     searchState <- searchState
     users <- if (searchState.shouldShowDirectorySearch) z.userSearch.searchUserData(getSearchQuery(searchState.filter)) else Signal(SeqMap.empty[UserId, UserData])
-  } yield users.values
+    excludedUsers <- excludedUsers
+  } yield users.values.filter(u => !excludedUsers.contains(u.id))
 
   val connectedUsersSignal = for {
     z <- zms
