@@ -817,7 +817,7 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
     view.getId match {
       case R.id.zb__pickuser__confirmation_button =>
         KeyboardUtils.hideKeyboard(getActivity)
-        onConversationButtonClicked()
+        getContainer.onSelectedUsers(getSelectedUsersJava, ConversationChangeRequester.START_CONVERSATION)
       case R.id.zb__pickuser__generic_invite =>
         sendGenericInvite(false)
       case R.id.ll_pickuser__error_invite =>
