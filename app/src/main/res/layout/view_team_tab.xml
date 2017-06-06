@@ -38,27 +38,27 @@
 
         <com.waz.zclient.ui.views.CircleView
             android:id="@+id/unread_indicator_icon"
-            android:layout_width="10dp"
-            android:layout_height="10dp"
+            android:layout_width="@dimen/unread_indicator_top_size"
+            android:layout_height="@dimen/unread_indicator_top_size"
             android:layout_gravity="top|end"
             android:visibility="visible"
-            android:layout_marginEnd="5dp"
-            android:layout_marginTop="5dp"/>
+            android:layout_marginEnd="@dimen/unread_indicator_top_margin"
+            android:layout_marginTop="@dimen/unread_indicator_top_margin"/>
 
     </FrameLayout>
 
     <RelativeLayout
         android:id="@+id/team_name_container"
-        android:layout_width="200dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         >
 
         <com.waz.zclient.ui.views.CircleView
             android:id="@+id/unread_indicator_text"
-            android:layout_width="6dp"
-            android:layout_height="6dp"
-            android:layout_marginStart="-10dp"
+            android:layout_width="@dimen/unread_indicator_name_size"
+            android:layout_height="@dimen/unread_indicator_name_size"
+            android:layout_marginStart="@dimen/unread_indicator_name_margin"
             android:layout_alignStart="@+id/team_name"
             android:layout_centerVertical="true"
             android:visibility="visible"/>
@@ -74,7 +74,7 @@
             android:textAlignment="center"
             android:textColor="@color/white"
             android:textSize="@dimen/wire__text_size__small"
-            android:layout_marginStart="20dp"
+            android:layout_marginStart="@dimen/wire__padding__20"
             app:font="@string/wire__typeface__regular"/>
 
     </RelativeLayout>
