@@ -45,9 +45,6 @@
     <!-- Calling-->
     <integer name="calling_animation_duration_medium">350</integer>
     <integer name="calling_animation_duration_long">550</integer>
-    <integer name="calling__new_outgoing_call__delay_after_hangup">600</integer>
-
-
 
     <!-- Cursor-->
     <integer name="cursor__max_lines">6</integer>

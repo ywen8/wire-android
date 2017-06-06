@@ -33,8 +33,6 @@ import com.waz.api.SyncState;
 import com.waz.api.UiSignal;
 import com.waz.api.UpdateListener;
 import com.waz.api.User;
-import com.waz.api.VoiceChannel;
-import com.waz.api.VoiceChannelState;
 import com.waz.api.ZMessagingApi;
 import com.waz.zclient.core.stores.connect.InboxLinkConversation;
 import com.waz.zclient.core.stores.conversation.ConversationChangeRequester;
@@ -186,11 +184,6 @@ public class ScalaConversationStore implements IConversationStore {
     }
 
     @Override
-    public int getPositionInList(IConversation conversation) {
-        return conversationsList.getConversationIndex(conversation.getId());
-    }
-
-    @Override
     public IConversation getConversation(String conversationId) {
         if (conversationId == null || conversationsList == null) {
             return null;
@@ -236,11 +229,6 @@ public class ScalaConversationStore implements IConversationStore {
     @Override
     public IConversation getCurrentConversation() {
         return selectedConversation;
-    }
-
-    @Override
-    public String getCurrentConversationId() {
-        return (selectedConversation == null) ? null : selectedConversation.getId();
     }
 
     @Override
@@ -305,20 +293,6 @@ public class ScalaConversationStore implements IConversationStore {
             return 0;
         }
         return establishedConversationsList.size();
-    }
-
-    @Override
-    public boolean hasOngoingCallInCurrentConversation() {
-        if (selectedConversation == null) {
-            return false;
-        }
-        VoiceChannel voiceChannel = selectedConversation.getVoiceChannel();
-        if (voiceChannel == null) {
-            return false;
-        }
-        VoiceChannelState state = voiceChannel.getState();
-        return state != VoiceChannelState.NO_ACTIVE_USERS &&
-               state != VoiceChannelState.UNKNOWN;
     }
 
     @Override

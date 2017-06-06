@@ -21,7 +21,6 @@ import android.os.Bundle
 import android.support.v7.widget.{LinearLayoutManager, RecyclerView}
 import android.view.animation.Animation
 import android.view.{LayoutInflater, View, ViewGroup}
-import com.waz.api.VoiceChannel
 import com.waz.model.ConversationData
 import com.waz.model.ConversationData.ConversationType
 import com.waz.model.otr.Client
@@ -49,7 +48,7 @@ import com.waz.zclient.views.conversationlist.{ArchiveTopToolbar, ConversationLi
 import com.waz.zclient.{BaseActivity, FragmentHelper, OnBackPressedListener, R}
 import com.waz.zclient.utils.RichView
 
-abstract class ConversationListFragment extends BaseFragment[ConversationListFragment.Container] with FragmentHelper with VoiceChannel.JoinCallback {
+abstract class ConversationListFragment extends BaseFragment[ConversationListFragment.Container] with FragmentHelper {
 
   val layoutId: Int
   lazy val teamsAndUsersController = inject[TeamsAndUserController]
@@ -144,32 +143,6 @@ abstract class ConversationListFragment extends BaseFragment[ConversationListFra
       0,
       false,
       1f)
-  }
-
-  override def onCallJoined() = {}
-
-  override def onAlreadyJoined() = {}
-
-  override def onCallJoinError(message: String) = {}
-
-  override def onConversationTooBig(memberCount: Int, maxMembers: Int) = {
-    ViewUtils.showAlertDialog(
-      getActivity,
-      getString(R.string.calling__conversation_full__title),
-      getResources.getQuantityString(R.plurals.calling__conversation_full__message, maxMembers, new Integer(maxMembers)),
-      getString(R.string.alert_dialog__confirmation),
-      null,
-      false)
-  }
-
-  override def onVoiceChannelFull(maxJoined: Int) = {
-    ViewUtils.showAlertDialog(
-      getActivity,
-      getString(R.string.calling__voice_channel_full__title),
-      getResources.getQuantityString(R.plurals.calling__voice_channel_full__message, maxJoined, new Integer(maxJoined)),
-      getString(R.string.alert_dialog__confirmation),
-      null,
-      false)
   }
 }
 

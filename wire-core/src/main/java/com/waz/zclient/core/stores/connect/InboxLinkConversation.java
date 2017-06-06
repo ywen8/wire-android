@@ -31,7 +31,6 @@ import com.waz.api.MessagesList;
 import com.waz.api.UpdateListener;
 import com.waz.api.User;
 import com.waz.api.Verification;
-import com.waz.api.VoiceChannel;
 import com.waz.api.EphemeralExpiration;
 
 import java.util.ArrayList;
@@ -77,11 +76,6 @@ public class InboxLinkConversation implements IConversation, UpdateListener {
 
     public int getSize() {
         return size;
-    }
-
-    @Override
-    public VoiceChannel getVoiceChannel() {
-        return null;
     }
 
     @Override
@@ -146,21 +140,6 @@ public class InboxLinkConversation implements IConversation, UpdateListener {
 
     @Override
     public boolean isMuted() {
-        return false;
-    }
-
-    @Override
-    public boolean hasVoiceChannel() {
-        return false;
-    }
-
-    @Override
-    public boolean hasUnjoinedCall() {
-        return false;
-    }
-
-    @Override
-    public boolean isVoiceChannelMuted() {
         return false;
     }
 
