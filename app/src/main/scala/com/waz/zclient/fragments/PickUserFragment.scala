@@ -269,9 +269,8 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
       userSelectionConfirmationButton.setText(if (getArguments.getBoolean(PickUserFragment.ARGUMENT_GROUP_CONVERSATION)) getString(R.string.people_picker__confirm_button_title__add_to_conversation)
       else getString(R.string.people_picker__confirm_button_title__create_conversation))
       ViewUtils.setHeight(searchBoxView, getResources.getDimensionPixelSize(R.dimen.searchbox__height__with_toolbar))
-      searchBoxView.setTextColor(if (ThemeUtils.isDarkTheme(getContext)) ContextCompat.getColor(getContext, R.color.text__primary_dark) else ContextCompat.getColor(getContext, R.color.text__primary_light))
-    }
-    else {
+      searchBoxView.applyDarkTheme(ThemeUtils.isDarkTheme(getContext))
+    } else {
       // Use constant style for left side start ui
       val textColor: Int = ContextCompat.getColor(getContext, R.color.text__primary_dark)
       errorMessageViewHeader.setTextColor(textColor)
@@ -285,6 +284,7 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
       divider.setVisibility(View.GONE)
       val title = teamsAndUserController.getCurrentUserOrTeamName
       ViewUtils.getView(rootView, R.id.pickuser_title).asInstanceOf[TypefaceTextView].setText(title)
+      searchBoxView.applyDarkTheme(true)
       startUiToolbar.inflateMenu(R.menu.toolbar_close_white)
       startUiToolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
         override def onMenuItemClick(item: MenuItem): Boolean = {

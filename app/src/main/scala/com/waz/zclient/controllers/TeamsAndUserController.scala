@@ -33,6 +33,7 @@ class TeamsAndUserController(implicit injector: Injector, context: Context, ec: 
   private implicit val tag: LogTag = logTagFor[TeamsAndUserController]
 
   val zms = inject[Signal[ZMessaging]]
+
   val teams = for {
     z <- zms
     teams <- z.teams.getSelfTeams.orElse(Signal(Set[TeamData]()))
@@ -45,6 +46,20 @@ class TeamsAndUserController(implicit injector: Injector, context: Context, ec: 
   } yield self
 
   val currentTeamOrUser = Signal[Either[UserData, TeamData]]()
+
+  val selfAndUnreadCount = for {
+    z <- zms
+    self <- self
+    convs <- z.convsStorage.convsSignal
+  } yield (self, convs.conversations.filter(_.team.isEmpty).map(_.unreadCount).sum)
+
+  val teamsAndUnreadCount = for {
+    z <- zms
+    teams <- teams
+    convs <- z.convsStorage.convsSignal
+  } yield teams.map(t => t -> convs.conversations.filter(_.team.contains(t.id)).map(_.unreadCount).sum).toMap
+
+
   self.head.map{s => currentTeamOrUser ! Left(s)} //TODO: initial value
 
   //Things for java
