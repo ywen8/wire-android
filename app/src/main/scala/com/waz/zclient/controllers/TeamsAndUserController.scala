@@ -47,6 +47,20 @@ class TeamsAndUserController(implicit injector: Injector, context: Context, ec: 
 
   val currentTeamOrUser = Signal[Either[UserData, TeamData]]()
 
+  private val selfAndTeams = for {
+    self <- self
+    teams <- teams
+  } yield (self, teams)
+
+  selfAndTeams{
+    case (self, teams) =>
+      currentTeamOrUser.mutate {
+        case Left(user) => Left(user)
+        case Right(team) if teams.exists(_.id == team.id) => Right(team)
+        case _ => Left(self)
+      }
+  }
+
   val selfAndUnreadCount = for {
     z <- zms
     self <- self
@@ -57,8 +71,7 @@ class TeamsAndUserController(implicit injector: Injector, context: Context, ec: 
     z <- zms
     teams <- teams
     convs <- z.convsStorage.convsSignal
-  } yield teams.map(t => t -> convs.conversations.filter(_.team.contains(t.id)).map(_.unreadCount).sum).toMap
-
+  } yield teams.map(t => t -> convs.conversations.filter(c => !c.hidden && !c.archived && !c.muted && c.team.contains(t.id)).map(_.unreadCount).sum).toMap
 
   self.head.map{s => currentTeamOrUser ! Left(s)} //TODO: initial value
 
