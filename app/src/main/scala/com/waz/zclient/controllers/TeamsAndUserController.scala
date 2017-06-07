@@ -51,7 +51,7 @@ class TeamsAndUserController(implicit injector: Injector, context: Context, ec: 
     z <- zms
     self <- self
     convs <- z.convsStorage.convsSignal
-  } yield (self, convs.conversations.filter(_.team.isEmpty).map(_.unreadCount).sum)
+  } yield (self, convs.conversations.filter(c => !c.hidden && !c.archived && !c.muted && c.team.isEmpty).map(_.unreadCount).sum)
 
   val teamsAndUnreadCount = for {
     z <- zms

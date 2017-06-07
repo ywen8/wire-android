@@ -30,7 +30,7 @@ import com.waz.zclient.utils.{ConversationMembersSignal, SearchUtils, UiStorage}
 import scala.collection.immutable.Set
 
 case class SearchState(filter: String, hasSelectedUsers: Boolean, addingToConversation: Option[ConvId], teamId: Option[TeamId] = None){
-  val shouldShowTopUsers = filter.isEmpty && !hasSelectedUsers && teamId.isEmpty && addingToConversation.isEmpty
+  val shouldShowTopUsers = filter.isEmpty && teamId.isEmpty && addingToConversation.isEmpty
   val shouldShowAbContacts = addingToConversation.isEmpty && !hasSelectedUsers && teamId.isEmpty
   val shouldShowGroupConversations = filter.nonEmpty && !hasSelectedUsers && addingToConversation.isEmpty
   val shouldShowDirectorySearch = filter.nonEmpty && !hasSelectedUsers && addingToConversation.isEmpty
