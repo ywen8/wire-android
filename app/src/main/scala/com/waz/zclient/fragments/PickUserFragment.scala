@@ -817,7 +817,7 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
     view.getId match {
       case R.id.zb__pickuser__confirmation_button =>
         KeyboardUtils.hideKeyboard(getActivity)
-        getContainer.onSelectedUsers(getSelectedUsersJava, ConversationChangeRequester.START_CONVERSATION)
+        getContainer.onSelectedUsers(getSelectedAndExcludedUsersJava, ConversationChangeRequester.START_CONVERSATION)
       case R.id.zb__pickuser__generic_invite =>
         sendGenericInvite(false)
       case R.id.ll_pickuser__error_invite =>
@@ -875,6 +875,10 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
 
   private def getSelectedUsersJava: java.util.List[User] = {
     searchUserController.selectedUsers.map(uid => getStoreFactory.getPickUserStore.getUser(uid.str)).toList.asJava
+  }
+
+  private def getSelectedAndExcludedUsersJava: java.util.List[User] = {
+    getSelectedAndExcluded.map(uid => getStoreFactory.getPickUserStore.getUser(uid.str)).toList.asJava
   }
 
   // XXX Only show contact sharing dialogs for PERSONAL START UI
