@@ -24,7 +24,6 @@ import com.waz.api.ZMessagingApi;
 import com.waz.zclient.core.stores.inappnotification.InAppNotificationStore;
 
 public class ScalaInAppNotificationStore extends InAppNotificationStore implements IncomingMessagesList.MessageListener,
-                                                                                   IncomingMessagesList.KnockListener,
                                                                                    ErrorsList.ErrorListener {
 
     private IncomingMessagesList incomingMessages;
@@ -33,7 +32,6 @@ public class ScalaInAppNotificationStore extends InAppNotificationStore implemen
     public ScalaInAppNotificationStore(ZMessagingApi zMessagingApi) {
         incomingMessages = zMessagingApi.getIncomingMessages();
         incomingMessages.addMessageListener(this);
-        incomingMessages.addKnockListener(this);
 
         syncErrors = zMessagingApi.getErrors();
         syncErrors.addErrorListener(this);
@@ -42,7 +40,6 @@ public class ScalaInAppNotificationStore extends InAppNotificationStore implemen
     @Override
     public void tearDown() {
         incomingMessages.removeMessageListener(this);
-        incomingMessages.removeKnockListener(this);
         incomingMessages = null;
 
         syncErrors.removeErrorListener(this);
@@ -82,11 +79,6 @@ public class ScalaInAppNotificationStore extends InAppNotificationStore implemen
     @Override
     public void onError(ErrorsList.ErrorDescription error) {
         notifySyncErrorObservers(error);
-    }
-
-    @Override
-    public void onKnock(final Message message) {
-        notifyIncomingKnock(message);
     }
 
 }

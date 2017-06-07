@@ -24,8 +24,6 @@ public interface InAppNotificationStoreObserver {
 
     void onIncomingMessage(Message message);
 
-    void onIncomingKnock(KnockingEvent knock);
-
     void onSyncError(ErrorsList.ErrorDescription error);
 
 }
