@@ -190,6 +190,7 @@ class ImageFragment extends BaseFragment[ImageFragment.Container] with FragmentH
   }
 
   override def onBackPressed() = {
+    collectionController.focusedItem ! None
     false
   }
 

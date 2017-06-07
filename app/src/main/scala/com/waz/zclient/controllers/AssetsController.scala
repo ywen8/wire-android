@@ -126,11 +126,11 @@ class AssetsController(implicit context: Context, inj: Injector, ec: EventContex
       observer.clear()
       imObserver.clear()
     }
-    p.future foreach { m =>
+    p.future.foreach( m => if (!(m.isEphemeral && m.isExpired)) {
       verbose(s"message loaded, opening single image for $m")
       singleImage.setViewReferences(container)
       singleImage.showSingleImage(m)
-    }
+    })
   }
 
   //FIXME: don't use java api
