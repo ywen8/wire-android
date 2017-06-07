@@ -43,7 +43,6 @@ import com.waz.zclient.conversation.CollectionController;
 import com.waz.zclient.conversation.CollectionFragment;
 import com.waz.zclient.conversation.ShareToMultipleFragment;
 import com.waz.zclient.core.stores.inappnotification.InAppNotificationStoreObserver;
-import com.waz.zclient.core.stores.inappnotification.KnockingEvent;
 import com.waz.zclient.fragments.ImageFragment;
 import com.waz.zclient.pages.BaseFragment;
 import com.waz.zclient.pages.main.conversation.SingleImageUserFragment;
@@ -330,11 +329,6 @@ public class MainPhoneFragment extends BaseFragment<MainPhoneFragment.Container>
 
     @Override
     public void onIncomingMessage(Message message) {
-        // ignore
-    }
-
-    @Override
-    public void onIncomingKnock(KnockingEvent knock) {
         // ignore
     }
 

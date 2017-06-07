@@ -38,7 +38,6 @@ import com.waz.zclient.controllers.confirmation.IConfirmationController;
 import com.waz.zclient.controllers.navigation.Page;
 import com.waz.zclient.controllers.singleimage.SingleImageObserver;
 import com.waz.zclient.core.stores.inappnotification.InAppNotificationStoreObserver;
-import com.waz.zclient.core.stores.inappnotification.KnockingEvent;
 import com.waz.zclient.fragments.ImageFragment;
 import com.waz.zclient.pages.BaseFragment;
 import com.waz.zclient.pages.main.conversation.SingleImageUserFragment;
@@ -218,11 +217,6 @@ public class MainTabletFragment extends BaseFragment<MainTabletFragment.Containe
 
     @Override
     public void onIncomingMessage(Message message) {
-        // ignore
-    }
-
-    @Override
-    public void onIncomingKnock(KnockingEvent knock) {
         // ignore
     }
 

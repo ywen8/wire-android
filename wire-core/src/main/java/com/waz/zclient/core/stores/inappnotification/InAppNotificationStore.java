@@ -17,7 +17,6 @@
  */
 package com.waz.zclient.core.stores.inappnotification;
 
-import android.os.SystemClock;
 import com.waz.api.ErrorsList;
 import com.waz.api.Message;
 
@@ -40,14 +39,6 @@ public abstract class InAppNotificationStore implements IInAppNotificationStore 
     protected void notifyIncomingMessageObservers(Message message) {
         for (InAppNotificationStoreObserver observer : inAppNotificationObservers) {
             observer.onIncomingMessage(message);
-        }
-    }
-
-    protected void notifyIncomingKnock(Message knock) {
-        for (InAppNotificationStoreObserver observer : inAppNotificationObservers) {
-            observer.onIncomingKnock(new KnockingEvent(knock.getUser(),
-                                                       knock.getConversationId(),
-                                                       SystemClock.uptimeMillis() + 50));
         }
     }
 
