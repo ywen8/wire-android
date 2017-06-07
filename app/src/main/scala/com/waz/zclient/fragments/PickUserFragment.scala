@@ -791,16 +791,10 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
       return
     }
     if (isAddingToConversation) {
-      val numberOfSelectedUsers: Int = getSelectedAndExcluded.size
-      val visible: Boolean = if (getArguments.getBoolean(PickUserFragment.ARGUMENT_GROUP_CONVERSATION)) numberOfSelectedUsers > 0
-      else numberOfSelectedUsers > 1
-      userSelectionConfirmationContainer.setVisibility(if (visible) View.VISIBLE
-      else View.GONE)
-    }
-    else {
+      userSelectionConfirmationContainer.setVisibility(if (getSelectedUsers.nonEmpty) View.VISIBLE else View.GONE)
+    } else {
       val visible: Boolean = show || searchUserController.selectedUsers.nonEmpty
-      conversationQuickMenu.setVisibility(if (visible) View.VISIBLE
-      else View.GONE)
+      conversationQuickMenu.setVisibility(if (visible) View.VISIBLE else View.GONE)
       genericInviteContainer.setVisibility(if (visible || isKeyboardVisible || !isPrivateSpace) View.GONE else View.VISIBLE)
     }
   }
@@ -817,7 +811,7 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
     view.getId match {
       case R.id.zb__pickuser__confirmation_button =>
         KeyboardUtils.hideKeyboard(getActivity)
-        onConversationButtonClicked()
+        getContainer.onSelectedUsers(getSelectedAndExcludedUsersJava, ConversationChangeRequester.START_CONVERSATION)
       case R.id.zb__pickuser__generic_invite =>
         sendGenericInvite(false)
       case R.id.ll_pickuser__error_invite =>
@@ -875,6 +869,10 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
 
   private def getSelectedUsersJava: java.util.List[User] = {
     searchUserController.selectedUsers.map(uid => getStoreFactory.getPickUserStore.getUser(uid.str)).toList.asJava
+  }
+
+  private def getSelectedAndExcludedUsersJava: java.util.List[User] = {
+    getSelectedAndExcluded.map(uid => getStoreFactory.getPickUserStore.getUser(uid.str)).toList.asJava
   }
 
   // XXX Only show contact sharing dialogs for PERSONAL START UI
