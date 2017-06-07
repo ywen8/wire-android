@@ -141,7 +141,7 @@ class NormalConversationListRow(context: Context, attrs: AttributeSet, style: In
     memberSeq <- Signal.sequence(memberIds.map(uid => UserSignal(uid)).toSeq:_*)
   } yield {
     val opacity =
-      if ((memberIds.isEmpty && conv.convType == ConversationType.Group) || conv.convType == ConversationType.WaitForConnection || !conv.activeMember)
+      if ((memberIds.isEmpty && conv.convType == ConversationType.Group) || conv.convType == ConversationType.WaitForConnection || !conv.isActive)
         getResourceFloat(R.dimen.conversation_avatar_alpha_inactive)
       else
         getResourceFloat(R.dimen.conversation_avatar_alpha_active)
@@ -347,7 +347,7 @@ object ConversationListRow {
                                  typing:           Boolean,
                                  availableCalls:   Map[ConvId, CallInfo]): ConversationBadge.Status = {
 
-    if (availableCalls.contains(conversationData.id) || conversationData.unjoinedCall) {
+    if (availableCalls.contains(conversationData.id)) {
       ConversationBadge.IncomingCall
     } else if (conversationData.convType == ConversationType.WaitForConnection || conversationData.convType == ConversationType.Incoming) {
       ConversationBadge.WaitingConnection
@@ -430,7 +430,7 @@ object ConversationListRow {
       otherMember.flatMap(_.handle.map(_.string)).fold("")(StringUtils.formatHandle)
     } else if (memberIds.count(_ != selfId) == 0 && conv.convType == ConversationType.Group) {
       getString(R.string.conversation_list__empty_conv__subtitle)
-    } else if (unreadMessages.isEmpty &&  !conv.activeMember) {
+    } else if (unreadMessages.isEmpty &&  !conv.isActive) {
       getString(R.string.conversation_list__left_you)
     } else if ((conv.muted || conv.incomingKnockMessage.nonEmpty || conv.missedCallMessage.nonEmpty) && typingUser.isEmpty) {
       val normalMessageCount = unreadMessages.count(m => !m.isSystemMessage && m.msgType != Message.Type.KNOCK)
