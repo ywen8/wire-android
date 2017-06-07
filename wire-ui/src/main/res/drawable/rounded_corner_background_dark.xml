@@ -19,11 +19,7 @@
 
 -->
 <shape xmlns:android="http://schemas.android.com/apk/res/android">
-    <solid android:color="#FFFFFFFF" />
-    <stroke
-        android:width="@dimen/background__picture__outer_stroke_width"
-        android:color="#FFFFFFFF"
-        />
+    <solid android:color="@color/background_dark" />
     <corners android:radius="@dimen/background__picture__corner_radius" />
     <padding
         android:left="@dimen/background__picture__outer_stroke_width"
@@ -31,5 +27,4 @@
         android:right="@dimen/background__picture__outer_stroke_width"
         android:bottom="@dimen/background__picture__outer_stroke_width"
         />
-
 </shape>

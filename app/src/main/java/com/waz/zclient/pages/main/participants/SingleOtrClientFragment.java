@@ -128,7 +128,7 @@ public class SingleOtrClientFragment extends BaseFragment<SingleOtrClientFragmen
         }
 
         if (LayoutSpec.isTablet(getActivity())) {
-            view.setBackgroundResource(R.drawable.rounded_corner_background_white);
+            view.setBackgroundResource(R.drawable.rounded_corner_background_light);
         }
 
         view.setOnClickListener(this);

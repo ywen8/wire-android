@@ -164,6 +164,9 @@
         <item name="lowerCollectionToolbar">@drawable/lower_toolbar_collection_background__dark</item>
         <item name="searchBackgroundDividerDrawable">@drawable/search_bottom_divider_dark</item>
 
+        <!-- Teams -->
+        <item name="roundBackgroundDrawable">@drawable/rounded_corner_background_dark</item>
+
     </style>
 
     <style name="Theme.Light" parent="@style/Theme.Design.Light.NoActionBar">
@@ -308,6 +311,9 @@
         <item name="collectionToolbar">@style/collection_toolbar__light</item>
         <item name="lowerCollectionToolbar">@drawable/lower_toolbar_collection_background__light</item>
         <item name="searchBackgroundDividerDrawable">@drawable/search_bottom_divider_light</item>
+
+        <!-- Teams -->
+        <item name="roundBackgroundDrawable">@drawable/rounded_corner_background_light</item>
 
     </style>
 

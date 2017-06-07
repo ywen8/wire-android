@@ -142,4 +142,7 @@
     <attr name="lowerCollectionToolbar" format="reference" />
     <attr name="searchBackgroundDividerDrawable" format="reference" />
 
+    <!-- Teams -->
+    <attr name="roundBackgroundDrawable" format="reference" />
+
 </resources>

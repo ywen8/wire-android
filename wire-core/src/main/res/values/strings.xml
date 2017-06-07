@@ -1183,4 +1183,5 @@
     <string name="conversation_list__header__title">CONVERSATIONS</string>
     <string name="conversation_list__header__archive_title">ARCHIVE</string>
     <string name="guest_indicator">GUEST</string>
+    <string name="participant_tab_guest_indicator">Guest in %1$s</string>
 </resources>

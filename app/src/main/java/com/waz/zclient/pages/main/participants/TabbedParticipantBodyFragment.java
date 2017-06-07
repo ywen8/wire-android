@@ -47,7 +47,7 @@ import com.waz.zclient.core.stores.participants.ParticipantsStoreObserver;
 import com.waz.zclient.pages.BaseFragment;
 import com.waz.zclient.pages.main.conversation.controller.ConversationScreenControllerObserver;
 import com.waz.zclient.pages.main.conversation.controller.IConversationScreenController;
-import com.waz.zclient.pages.main.participants.views.ParticipantDetailsTab;
+import com.waz.zclient.views.ParticipantDetailsTab;
 import com.waz.zclient.pages.main.participants.views.ParticipantOtrDeviceAdapter;
 import com.waz.zclient.pages.main.participants.views.TabbedParticipantPagerAdapter;
 import com.waz.zclient.tracking.GlobalTrackingController;
