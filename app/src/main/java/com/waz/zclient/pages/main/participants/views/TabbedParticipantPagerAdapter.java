@@ -25,6 +25,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import com.waz.zclient.R;
 import com.waz.zclient.utils.ViewUtils;
+import com.waz.zclient.views.ParticipantDetailsTab;
 
 public class TabbedParticipantPagerAdapter extends PagerAdapter implements RecyclerView.RecyclerListener {
 

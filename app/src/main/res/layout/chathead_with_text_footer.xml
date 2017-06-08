@@ -49,7 +49,8 @@
             android:layout_gravity="bottom"
             android:gravity="center"
             android:text="@string/guest_indicator"
-            android:background="@drawable/rounded_corner_background_white"
+            android:background="?roundBackgroundDrawable"
+            android:textColor="?wirePrimaryTextColor"
             android:textSize="@dimen/wire__text_size__small"
             android:visibility="gone"
             />

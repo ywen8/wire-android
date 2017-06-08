@@ -30,7 +30,7 @@
         android:layout_width="@dimen/participant_dialog__initial_width"
         android:layout_height="@dimen/participant_dialog__regular_height"
         android:layout_gravity="top|left"
-        android:background="@drawable/rounded_corner_background_white"
+        android:background="@drawable/rounded_corner_background_light"
         >
 
         <FrameLayout
