@@ -141,16 +141,6 @@ public class StubConversationStore implements IConversationStore {
   }
 
   @Override
-  public boolean hasOngoingCallInCurrentConversation() {
-    return false;
-  }
-
-  @Override
-  public int getPositionInList(IConversation conversation) {
-    return 0;
-  }
-
-  @Override
   public void createGroupConversation(Iterable<User> users, ConversationChangeRequester conversationChangerSender) {
 
   }
@@ -208,10 +198,5 @@ public class StubConversationStore implements IConversationStore {
   @Override
   public void loadConversation(String conversationId, OnConversationLoadedListener onConversationLoadedListener) {
 
-  }
-
-  @Override
-  public String getCurrentConversationId() {
-    return null;
   }
 }

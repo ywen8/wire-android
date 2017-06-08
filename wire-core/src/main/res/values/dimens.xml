@@ -203,10 +203,6 @@
     <dimen name="wire__otr__message__height">32dp</dimen>
     <dimen name="wire__dialog__min_width">104dp</dimen>
 
-    <!-- From the App module-->
-    <dimen name="background__max_offset_x">40dp</dimen>
-    <dimen name="background__max_offset_y">50dp</dimen>
-
     <dimen name="chathead__picker__glyph__font_size">20dp</dimen>
     <dimen name="chathead__min_size_large_border">80dp</dimen>
     <dimen name="chathead__border_width">2dp</dimen>
@@ -630,14 +626,6 @@
     <!-- Screen height of a "large" screen. Screens smaller than this will not show logo on registration page -->
     <dimen name="new_reg__title_ab_test__hide_logo__screen_height">580dp</dimen>
 
-    <dimen name="onboarding_hint__discover_change_profile_picture__text_size">@dimen/wire__text_size__small</dimen>
-    <dimen name="onboarding_hint__discover_change_accent_color__margin_bottom">60dp</dimen>
-    <dimen name="onboarding_hint__app_map__dismiss_button__margin_bottom">8dp</dimen>
-    <dimen name="onboarding_hint__app_map__title__margin_top">28dp</dimen>
-    <dimen name="onboarding_hint__app_map__title__font_size">20dp</dimen>
-    <dimen name="onboarding_hint__app_map__subtitle__font_size">13dp</dimen>
-    <dimen name="onboarding_hint__app_map__subtitle__spacing">18dp</dimen>
-
     <dimen name="option_menu__font_size">20dp</dimen>
     <dimen name="option_menu__tile_height">56dp</dimen>
 
@@ -872,4 +860,8 @@
     <dimen name="teams_tab_bottom_offset">6dp</dimen>
     <dimen name="teams_tab_bottom_offset_half">3dp</dimen>
     <dimen name="conversation_list_toolbar_height">62dp</dimen>
+    <dimen name="unread_indicator_top_size">10dp</dimen>
+    <dimen name="unread_indicator_top_margin">5dp</dimen>
+    <dimen name="unread_indicator_name_size">6dp</dimen>
+    <dimen name="unread_indicator_name_margin">-10dp</dimen>
 </resources>

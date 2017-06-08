@@ -38,7 +38,6 @@ import com.waz.zclient.core.stores.conversation.ConversationStoreObserver;
 import com.waz.zclient.core.stores.conversation.InboxLoadRequester;
 import com.waz.zclient.core.stores.conversation.OnInboxLoadedListener;
 import com.waz.zclient.core.stores.inappnotification.InAppNotificationStoreObserver;
-import com.waz.zclient.core.stores.inappnotification.KnockingEvent;
 import com.waz.zclient.pages.BaseFragment;
 import com.waz.zclient.pages.main.connect.views.ConnectRequestInboxListView;
 import com.waz.zclient.utils.LayoutSpec;
@@ -287,11 +286,6 @@ public class ConnectRequestInboxFragment extends BaseFragment<ConnectRequestInbo
         if (message.getMessageType() == Message.Type.CONNECT_REQUEST) {
             getStoreFactory().getConversationStore().loadConnectRequestInboxConversations(this, InboxLoadRequester.CONNECT_REQUEST_NOTIFICATION);
         }
-    }
-
-    @Override
-    public void onIncomingKnock(KnockingEvent knock) {
-
     }
 
     @Override

@@ -24,10 +24,6 @@ import com.waz.zclient.controllers.navigation.Page;
 public interface IGlobalLayoutController {
     void tearDown();
 
-    void addGlobalLayoutObserver(GlobalLayoutObserver globalLayoutObserver);
-
-    void removeGlobalLayoutObserver(GlobalLayoutObserver globalLayoutObserver);
-
     void addKeyboardVisibilityObserver(KeyboardVisibilityObserver keyboardVisibilityObserver);
 
     void removeKeyboardVisibilityObserver(KeyboardVisibilityObserver keyboardVisibilityObserver);
@@ -39,14 +35,6 @@ public interface IGlobalLayoutController {
     void setSoftInputModeForPage(Page page);
 
     int getSoftInputModeForPage(Page page);
-
-    void addStatusBarVisibilityObserver(StatusBarVisibilityObserver observer);
-
-    void removeStatusBarVisibilityObserver(StatusBarVisibilityObserver observer);
-
-    void showStatusBar(Activity activity);
-
-    void hideStatusBar(Activity activity);
 
     boolean isKeyboardVisible();
 

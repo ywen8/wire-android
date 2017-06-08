@@ -429,11 +429,6 @@ public class ParticipantHeaderFragment extends BaseFragment<ParticipantHeaderFra
     }
 
     @Override
-    public void setListOffset(int offset) {
-
-    }
-
-    @Override
     public void onHeaderViewMeasured(int participantHeaderHeight) {
 
     }

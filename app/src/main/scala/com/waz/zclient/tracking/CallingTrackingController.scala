@@ -20,9 +20,11 @@ package com.waz.zclient.tracking
 import android.content.Context
 import com.waz.ZLog.ImplicitTag._
 import com.waz.ZLog._
-import com.waz.api.{CauseForCallStateEvent, NetworkMode, VoiceChannelState}
+import com.waz.api.NetworkMode
 import com.waz.model.ConvId
 import com.waz.service.call.AvsV3.ClosedReason.{Interrupted, Normal}
+import com.waz.service.call.CallInfo.CallState
+import com.waz.service.call.CallInfo.CallState._
 import com.waz.threading.Threading
 import com.waz.utils.RichInstant
 import com.waz.utils.events.EventContext
@@ -60,16 +62,15 @@ class CallingTrackingController(implicit injector: Injector, ctx: Context, ec: E
   private var callEstablished = Option.empty[Instant]
   private var prevInfo = Option.empty[CallingTrackingInfo]
 
-  import com.waz.api.VoiceChannelState._
 
   callStateOpt.onChanged {
-    case Some(st) if st != NO_ACTIVE_USERS && st != UNKNOWN =>
+    case Some(st) if st != NotActive =>
       verbose(s"Call state changed to: $st")
       //Calculate times now in case information gathering is delayed
-      if (st == SELF_JOINING)
+      if (st == SelfJoining)
         startedJoining = Some(Instant.now)
 
-      if (st == SELF_CONNECTED)
+      if (st == SelfConnected)
         callEstablished = Some(Instant.now)
 
       val estDuration = startedJoining.getOrElse(Instant.now).until(Instant.now)
@@ -77,19 +78,19 @@ class CallingTrackingController(implicit injector: Injector, ctx: Context, ec: E
       getCallTrackingInfo(st) map {
         case info@CallingTrackingInfo(_, _, v3Call, isVideoCall, isGroupCall, wasUiActive, withOtto, incoming, convMemCount) =>
           st match {
-            case OTHER_CALLING =>
+            case OtherCalling =>
               tagEvent(ReceivedCallEvent(v3Call, isVideoCall, isGroupCall, wasUiActive, withOtto))
 
-            case SELF_CALLING =>
+            case SelfCalling =>
               //The extra CompletedMediaActionEvent is here to simplify contributor events on localytics
               import CompletedMediaType._
               tagEvent(new CompletedMediaActionEvent(if (isVideoCall) VIDEO_CALL else AUDIO_CALL, if (isGroupCall) "GROUP" else "ONE_TO_ONE", withOtto, false, ""))
               tagEvent(StartedCallEvent(v3Call, isVideoCall, isGroupCall, withOtto))
 
-            case SELF_JOINING => //For calling v3, this will only ever be for incoming calls
+            case SelfJoining => //For calling v3, this will only ever be for incoming calls
               tagEvent(JoinedCallEvent(v3Call, isVideoCall, isGroupCall, convMemCount, incoming, wasUiActive, withOtto))
 
-            case SELF_CONNECTED =>
+            case SelfConnected =>
               tagEvent(EstablishedCallEvent(v3Call, isVideoCall, isGroupCall, convMemCount, incoming, wasUiActive, withOtto, estDuration))
               startedJoining = None
 
@@ -101,23 +102,17 @@ class CallingTrackingController(implicit injector: Injector, ctx: Context, ec: E
     case st =>
       val callDuration = callEstablished.getOrElse(Instant.now).until(Instant.now)
       prevInfo.foreach { p =>
-        if (p.state == SELF_CONNECTED || p.state == SELF_JOINING) {
+        if (p.state == SelfConnected || p.state == SelfJoining) {
 
           (for {
             z <- zms.head
             Some(info) <- z.calling.previousCall.head
-            voice <- z.voice.voiceChannelSignal(p.convId).map(_.tracking).head
-            cause <- if (p.isV3Call)
-              info match {
+            cause <- info match {
                 case call if call.closedReason == Normal => Future.successful(if (call.hangupRequested) "SELF" else "OTHER")
                 case call if call.closedReason == Interrupted => Future.successful("gsm_call")
                 case _ => z.network.networkMode.head.map(networkModeString)
-              } else voice match {
-                case tr if tr.cause == CauseForCallStateEvent.REQUESTED => Future.successful(if (tr.requestedLocally) "SELF" else "OTHER")
-                case tr if tr.cause == CauseForCallStateEvent.INTERRUPTED => Future.successful("gsm_call")
-                case _ => z.network.networkMode.head.map(networkModeString)
               }
-            callParticipants = if (p.isV3Call) info.maxParticipants else voice.maxNumParticipants
+            callParticipants = info.maxParticipants
           } yield (cause, callParticipants)).map {
             case (cause, callParticipants) =>
               tagEvent(EndedCallEvent(p.isV3Call, p.isVideoCall, cause = cause, p.isGroupCall, p.convMemCount, callParticipants, p.isIncoming, p.wasUiActive, p.withOtto, callDuration))
@@ -132,17 +127,16 @@ class CallingTrackingController(implicit injector: Injector, ctx: Context, ec: E
     * If there is no active call, then a lot of these signals will potentially be empty and this future will never complete.
     * This also means we need to keep track of the previous info for the case in which we move from an active call to an inactive state.
     */
-  private def getCallTrackingInfo(st: VoiceChannelState) = for {
+  private def getCallTrackingInfo(st: CallState) = for {
     zms         <- zMessaging.head
     conv        <- conversation.head
     withOtto    <- isOtto(conv, zms.usersStorage)
-    isV3        <- isV3Call.head
     video       <- videoCall.head
     isGroup     <- groupCall.head
     incoming    <- incomingCall.head
     convMembers <- zms.membersStorage.getActiveUsers(conv.id)
     wasUiActive = wasUiActiveOnCallStart
-  } yield CallingTrackingInfo(st, conv.id, isV3, video, isGroup, wasUiActive, withOtto, prevInfo.exists(_.isIncoming) || incoming, convMembers.size)
+  } yield CallingTrackingInfo(st, conv.id, isV3Call = true, isVideoCall = video, isGroupCall = isGroup, wasUiActive = wasUiActive, withOtto = withOtto, isIncoming = prevInfo.exists(_.isIncoming) || incoming, convMembers.size)
 }
 
 object CallingTrackingController {
@@ -157,7 +151,7 @@ object CallingTrackingController {
     case _ => ""
   }
 
-  case class CallingTrackingInfo(state:        VoiceChannelState,
+  case class CallingTrackingInfo(state:        CallState,
                                  convId:       ConvId,
                                  isV3Call:     Boolean,
                                  isVideoCall:  Boolean,

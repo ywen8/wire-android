@@ -366,17 +366,12 @@ public class SingleImageUserFragment extends BaseFragment<SingleImageUserFragmen
                       .setDuration(zoomOutAndRotateBackOnCloseDuration)
                       .start();
 
-        final boolean imageOffScreenInList = getControllerFactory().getSingleImageController().isContainerOutOfScreen();
         ViewPropertyAnimator exitAnimation = animatingImageView.animate();
-        if (imageOffScreenInList) {
-            exitAnimation.alpha(0);
-        } else {
-            exitAnimation.x(clickedImageLocation.x)
-                         .y(clickedImageLocation.y)
-                         .rotation(0f)
-                         .scaleX(1f)
-                         .scaleY(1f);
-        }
+        exitAnimation.x(clickedImageLocation.x)
+                     .y(clickedImageLocation.y)
+                     .rotation(0f)
+                     .scaleX(1f)
+                     .scaleY(1f);
         exitAnimation.setDuration(openAnimationDuration)
                      .setStartDelay(zoomOutAndRotateBackOnCloseDuration)
                      .setInterpolator(new Expo.EaseOut())
@@ -385,13 +380,8 @@ public class SingleImageUserFragment extends BaseFragment<SingleImageUserFragmen
                          public void run() {
                              animatingImageView.setVisibility(View.VISIBLE);
                              messageTouchImageView.setVisibility(View.GONE);
-                             if (imageOffScreenInList) {
-                                 getControllerFactory().getSingleImageController().getImageContainer().setVisibility(
-                                     View.VISIBLE);
-                             } else {
-                                 getControllerFactory().getSingleImageController().getImageContainer().setVisibility(
-                                     View.INVISIBLE);
-                             }
+                             getControllerFactory().getSingleImageController().getImageContainer().setVisibility(
+                                 View.INVISIBLE);
                          }
                      })
                      .withEndAction(new Runnable() {

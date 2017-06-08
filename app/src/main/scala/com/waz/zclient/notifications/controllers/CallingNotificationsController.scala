@@ -37,13 +37,12 @@ package com.waz.zclient.notifications.controllers
 import android.app.{Notification, NotificationManager, PendingIntent}
 import android.support.v4.app.NotificationCompat
 import com.waz.ZLog._
-import com.waz.api.VoiceChannelState
-import com.waz.api.VoiceChannelState._
 import com.waz.bitmap.BitmapUtils
-import com.waz.model.VoiceChannelData.ChannelState
 import com.waz.model.{AssetData, ConvId}
 import com.waz.service.assets.AssetService.BitmapResult
 import com.waz.service.assets.AssetService.BitmapResult.BitmapLoaded
+import com.waz.service.call.CallInfo.CallState
+import com.waz.service.call.CallInfo.CallState._
 import com.waz.service.images.BitmapSignal
 import com.waz.threading.Threading
 import com.waz.ui.MemoryImageCache.BitmapRequest.Regular
@@ -54,7 +53,7 @@ import com.waz.zclient.calling.controllers.GlobalCallingController
 import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.utils.IntentUtils.getNotificationAppLaunchIntent
 import com.waz.zclient.{Injectable, Injector, R, WireContext}
-import com.waz.zms.CallService
+import com.waz.zms.CallWakeService
 
 class CallingNotificationsController(implicit cxt: WireContext, eventContext: EventContext, inj: Injector) extends Injectable {
 
@@ -71,7 +70,7 @@ class CallingNotificationsController(implicit cxt: WireContext, eventContext: Ev
     active <- activeCall
     state <- callStateOpt
   } yield (active, state)).on(Threading.Ui) {
-    case (true, Some(OTHER_CALLING)) => notificationManager.cancel(ZETA_CALL_INCOMING_NOTIFICATION_ID)
+    case (true, Some(OtherCalling)) => notificationManager.cancel(ZETA_CALL_INCOMING_NOTIFICATION_ID)
     case (true, _) => notificationManager.cancel(ZETA_CALL_ONGOING_NOTIFICATION_ID)
     case (false, _) =>
       notificationManager.cancel(ZETA_CALL_ONGOING_NOTIFICATION_ID)
@@ -116,17 +115,16 @@ class CallingNotificationsController(implicit cxt: WireContext, eventContext: Ev
         .setPriority(NotificationCompat.PRIORITY_MAX)
 
       state match {
-        case OTHER_CALLING |
-             OTHERS_CONNECTED => //not in a call, silence or join
+        case OtherCalling => //not in a call, silence or join
           val silence = silenceIntent(conv.id)
           builder
             .addAction(R.drawable.ic_menu_silence_call_w, getString(R.string.system_notification__silence_call), silence)
             .addAction(R.drawable.ic_menu_join_call_w, getString(R.string.system_notification__join_call), if (group) joinGroupIntent(conv.id) else joinIntent(conv.id))
             .setDeleteIntent(silence)
 
-        case SELF_CONNECTED |
-             SELF_CALLING |
-             SELF_JOINING => //in a call, leave
+        case SelfConnected |
+             SelfCalling |
+             SelfJoining => //in a call, leave
           builder.addAction(R.drawable.ic_menu_end_call_w, getString(R.string.system_notification__leave_call), leaveIntent(conv.id))
 
         case _ => //no available action
@@ -135,12 +133,12 @@ class CallingNotificationsController(implicit cxt: WireContext, eventContext: Ev
       def buildNotification = {
         val notification = builder.build
         notification.priority = Notification.PRIORITY_MAX
-        if (ChannelState.isOngoing(state)) notification.flags |= Notification.FLAG_NO_CLEAR
+        if (state != NotActive) notification.flags |= Notification.FLAG_NO_CLEAR
         notification
       }
 
       def showNotification() =
-        notificationManager.notify(if (ChannelState.isOngoing(state)) ZETA_CALL_ONGOING_NOTIFICATION_ID else ZETA_CALL_INCOMING_NOTIFICATION_ID, buildNotification)
+        notificationManager.notify(if (state != NotActive) ZETA_CALL_ONGOING_NOTIFICATION_ID else ZETA_CALL_INCOMING_NOTIFICATION_ID, buildNotification)
 
       LoggedTry(showNotification()).recover { case e =>
         error(s"Notify failed: try without bitmap. Error: $e")
@@ -152,21 +150,21 @@ class CallingNotificationsController(implicit cxt: WireContext, eventContext: Ev
       }
   }
 
-  private def getCallStateMessage(state: VoiceChannelState, isVideoCall: Boolean): String = state match {
-    case SELF_CALLING |
-         SELF_JOINING => if (isVideoCall) getString(R.string.system_notification__outgoing_video) else getString(R.string.system_notification__outgoing)
-    case OTHER_CALLING => if (isVideoCall) getString(R.string.system_notification__incoming_video) else getString(R.string.system_notification__incoming)
-    case SELF_CONNECTED => getString(R.string.system_notification__ongoing)
+  private def getCallStateMessage(state: CallState, isVideoCall: Boolean): String = state match {
+    case SelfCalling |
+         SelfJoining => if (isVideoCall) getString(R.string.system_notification__outgoing_video) else getString(R.string.system_notification__outgoing)
+    case OtherCalling => if (isVideoCall) getString(R.string.system_notification__incoming_video) else getString(R.string.system_notification__incoming)
+    case SelfConnected => getString(R.string.system_notification__ongoing)
     case _ => ""
 
   }
 
-  private def silenceIntent(convId: ConvId) = pendingIntent(SilenceRequestCode, CallService.silenceIntent(Context.wrap(cxt), convId))
+  private def silenceIntent(convId: ConvId) = pendingIntent(SilenceRequestCode, CallWakeService.silenceIntent(Context.wrap(cxt), convId))
 
-  private def leaveIntent(convId: ConvId) = pendingIntent(LeaveRequestCode, CallService.leaveIntent(Context.wrap(cxt), convId))
+  private def leaveIntent(convId: ConvId) = pendingIntent(LeaveRequestCode, CallWakeService.leaveIntent(Context.wrap(cxt), convId))
 
-  private def joinIntent(convId: ConvId) = pendingIntent(JoinRequestCode, CallService.joinIntent(Context.wrap(cxt), convId))
-  private def joinGroupIntent(convId: ConvId) = pendingIntent(JoinRequestCode, CallService.joinGroupIntent(Context.wrap(cxt), convId))
+  private def joinIntent(convId: ConvId) = pendingIntent(JoinRequestCode, CallWakeService.joinIntent(Context.wrap(cxt), convId))
+  private def joinGroupIntent(convId: ConvId) = pendingIntent(JoinRequestCode, CallWakeService.joinGroupIntent(Context.wrap(cxt), convId))
 
   private def pendingIntent(reqCode: Int, intent: Intent) = PendingIntent.getService(cxt, reqCode, AndroidIntentUtil.unwrap(intent), PendingIntent.FLAG_UPDATE_CURRENT)
 }

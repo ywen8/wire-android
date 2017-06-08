@@ -25,7 +25,6 @@ import android.support.v4.app.FragmentManager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-
 import com.waz.api.ConversationsList;
 import com.waz.api.IConversation;
 import com.waz.api.ImageAsset;
@@ -225,7 +224,6 @@ public class ConversationManagerFragment extends BaseFragment<ConversationManage
         if (LayoutSpec.isPhone(getContext())) {
             KeyboardUtils.hideKeyboard(getActivity());
         }
-        this.getControllerFactory().getOnboardingController().incrementParticipantsShowCount();
         this.getControllerFactory().getNavigationController().setRightPage(Page.PARTICIPANT, TAG);
 
         getChildFragmentManager()
@@ -251,15 +249,6 @@ public class ConversationManagerFragment extends BaseFragment<ConversationManage
     @Override
     public void onShowEditConversationName(boolean show) {
 
-    }
-
-    @Override
-    public void setListOffset(int offset) {
-        if (getContainer() == null || getControllerFactory().getNavigationController().getCurrentRightPage() == Page.PARTICIPANT) {
-            return;
-        }
-        float fac = (PARALLAX_FACTOR * offset) / headerHeight;
-        getControllerFactory().getNavigationController().setScreenOffsetYFactor(-fac);
     }
 
     @Override

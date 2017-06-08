@@ -30,7 +30,7 @@ import com.waz.zclient.utils.{ConversationMembersSignal, SearchUtils, UiStorage}
 import scala.collection.immutable.Set
 
 case class SearchState(filter: String, hasSelectedUsers: Boolean, addingToConversation: Option[ConvId], teamId: Option[TeamId] = None){
-  val shouldShowTopUsers = filter.isEmpty && !hasSelectedUsers && teamId.isEmpty && addingToConversation.isEmpty
+  val shouldShowTopUsers = filter.isEmpty && teamId.isEmpty && addingToConversation.isEmpty
   val shouldShowAbContacts = addingToConversation.isEmpty && !hasSelectedUsers && teamId.isEmpty
   val shouldShowGroupConversations = filter.nonEmpty && !hasSelectedUsers && addingToConversation.isEmpty
   val shouldShowDirectorySearch = filter.nonEmpty && !hasSelectedUsers && addingToConversation.isEmpty
@@ -49,7 +49,7 @@ class SearchUserController(initialState: SearchState)(implicit injector: Injecto
     z <- zms
     searchState <- searchState
     members <- searchState.addingToConversation.fold(Signal.const(Set[UserId]()))(ConversationMembersSignal(_))
-  } yield members
+  } yield members.filterNot(_ == z.selfUserId)
 
   val onSelectedUserAdded = EventStream[UserId]()
   val onSelectedUserRemoved = EventStream[UserId]()
@@ -90,7 +90,8 @@ class SearchUserController(initialState: SearchState)(implicit injector: Injecto
     z <- zms
     searchState <- searchState
     members <- searchTeamMembersForState(z, searchState)
-  } yield members.toSeq.sortBy(_.getDisplayName)
+    excludedUsers <- excludedUsers
+  } yield members.filter(u => !excludedUsers.contains(u.id)).toSeq.sortBy(_.getDisplayName)
 
   private def searchTeamMembersForState(z:ZMessaging, searchState: SearchState): Signal[Set[UserData]] = {
     searchState.teamId.fold{
@@ -116,7 +117,8 @@ class SearchUserController(initialState: SearchState)(implicit injector: Injecto
     z <- zms
     searchState <- searchState
     users <- if (searchState.shouldShowDirectorySearch) z.userSearch.searchUserData(getSearchQuery(searchState.filter)) else Signal(SeqMap.empty[UserId, UserData])
-  } yield users.values
+    excludedUsers <- excludedUsers
+  } yield users.values.filter(u => !excludedUsers.contains(u.id))
 
   val connectedUsersSignal = for {
     z <- zms

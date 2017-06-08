@@ -147,12 +147,6 @@ protected class AudioParticipantChatheadView(val context: Context, val attrs: At
     case _ => View.GONE
   }.on(Threading.Ui)(nameView.setVisibility)
 
-  (for {
-    (vcs, convId) <- controller.glob.v2ServiceAndCurrentConvId
-    userId <- userId
-    volume <- vcs.volumeChanged(convId, userId)
-  } yield volume).on(Threading.Ui)(gainView.onGainHasChanged)
-
   def setSize(size: Int, isFirst: Boolean, isLast: Boolean): Unit = {
     val params = new RecyclerView.LayoutParams(WRAP_CONTENT, WRAP_CONTENT)
     val leftMargin = if (isFirst) largeChatheadMargin else normalChatheadMargin

@@ -63,7 +63,6 @@ import com.waz.zclient.pages.main.profile.preferences.dialogs.WireRingtonePrefer
 import com.waz.zclient.tracking.GlobalTrackingController;
 import com.waz.zclient.utils.LayoutSpec;
 import com.waz.zclient.utils.ViewUtils;
-
 import timber.log.Timber;
 
 public class ZetaPreferencesActivity extends BasePreferenceActivity implements AccountPreferences.Container,
@@ -294,7 +293,6 @@ public class ZetaPreferencesActivity extends BasePreferenceActivity implements A
             @Override
             public void execute(NetworkMode networkMode) {
                 getStoreFactory().getProfileStore().setUserPicture(imageAsset);
-                getControllerFactory().getBackgroundController().setImageAsset(imageAsset);
                 injectJava(GlobalTrackingController.class).tagEvent(new ChangedProfilePictureEvent());
             }
 

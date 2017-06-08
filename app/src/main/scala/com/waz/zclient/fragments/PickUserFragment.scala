@@ -269,9 +269,8 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
       userSelectionConfirmationButton.setText(if (getArguments.getBoolean(PickUserFragment.ARGUMENT_GROUP_CONVERSATION)) getString(R.string.people_picker__confirm_button_title__add_to_conversation)
       else getString(R.string.people_picker__confirm_button_title__create_conversation))
       ViewUtils.setHeight(searchBoxView, getResources.getDimensionPixelSize(R.dimen.searchbox__height__with_toolbar))
-      searchBoxView.setTextColor(if (ThemeUtils.isDarkTheme(getContext)) ContextCompat.getColor(getContext, R.color.text__primary_dark) else ContextCompat.getColor(getContext, R.color.text__primary_light))
-    }
-    else {
+      searchBoxView.applyDarkTheme(ThemeUtils.isDarkTheme(getContext))
+    } else {
       // Use constant style for left side start ui
       val textColor: Int = ContextCompat.getColor(getContext, R.color.text__primary_dark)
       errorMessageViewHeader.setTextColor(textColor)
@@ -285,6 +284,7 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
       divider.setVisibility(View.GONE)
       val title = teamsAndUserController.getCurrentUserOrTeamName
       ViewUtils.getView(rootView, R.id.pickuser_title).asInstanceOf[TypefaceTextView].setText(title)
+      searchBoxView.applyDarkTheme(true)
       startUiToolbar.inflateMenu(R.menu.toolbar_close_white)
       startUiToolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
         override def onMenuItemClick(item: MenuItem): Boolean = {
@@ -466,26 +466,29 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
 
   override def onConversationButtonClicked(): Unit = {
     KeyboardUtils.hideKeyboard(getActivity)
-    createAndOpenConversation(getSelectedUsers.toSeq, ConversationChangeRequester.START_CONVERSATION)
+    val users = if (isAddingToConversation) getSelectedAndExcluded else getSelectedUsers
+    createAndOpenConversation(users.toSeq, ConversationChangeRequester.START_CONVERSATION)
   }
 
   override def onVideoCallButtonClicked(): Unit = {
     KeyboardUtils.hideKeyboard(getActivity)
-    val users = getSelectedUsersJava
+    val users = if (isAddingToConversation) getSelectedAndExcluded else getSelectedUsers
     if (users.size > 1) {
       throw new IllegalStateException("A video call cannot be started with more than one user. The button should not be visible " + "if multiple users are selected.")
     }
-    createAndOpenConversation(getSelectedUsers.toSeq, ConversationChangeRequester.START_CONVERSATION_FOR_VIDEO_CALL)
+    createAndOpenConversation(users.toSeq, ConversationChangeRequester.START_CONVERSATION_FOR_VIDEO_CALL)
   }
 
   override def onCallButtonClicked(): Unit = {
     KeyboardUtils.hideKeyboard(getActivity)
-    createAndOpenConversation(getSelectedUsers.toSeq, ConversationChangeRequester.START_CONVERSATION_FOR_CALL)
+    val users = if (isAddingToConversation) getSelectedAndExcluded else getSelectedUsers
+    createAndOpenConversation(users.toSeq, ConversationChangeRequester.START_CONVERSATION_FOR_CALL)
   }
 
   override def onCameraButtonClicked(): Unit = {
     KeyboardUtils.hideKeyboard(getActivity)
-    createAndOpenConversation(getSelectedUsers.toSeq, ConversationChangeRequester.START_CONVERSATION_FOR_CAMERA)
+    val users = if (isAddingToConversation) getSelectedAndExcluded else getSelectedUsers
+    createAndOpenConversation(users.toSeq, ConversationChangeRequester.START_CONVERSATION_FOR_CAMERA)
   }
 
   def onSearchBoxIsEmpty(): Unit = {
@@ -595,7 +598,9 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
     getStoreFactory.getConversationStore.setCurrentConversation(conversation, ConversationChangeRequester.START_CONVERSATION)
   }
 
-  override def getSelectedUsers: Set[UserId] = searchUserController.selectedUsers.toSet
+  override def getSelectedUsers: Set[UserId] = searchUserController.selectedUsers
+
+  def getSelectedAndExcluded: Set[UserId] = searchUserController.selectedUsers ++ searchUserController.excludedUsers.currentValue.getOrElse(Set[UserId]())
 
   override def onContactListUserClicked(userId: UserId): Unit = {
     val user: User = getStoreFactory.getZMessagingApiStore.getApi.getUser(userId.str)
@@ -786,16 +791,10 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
       return
     }
     if (isAddingToConversation) {
-      val numberOfSelectedUsers: Int = searchUserController.selectedUsers.size
-      val visible: Boolean = if (getArguments.getBoolean(PickUserFragment.ARGUMENT_GROUP_CONVERSATION)) numberOfSelectedUsers > 0
-      else numberOfSelectedUsers > 1
-      userSelectionConfirmationContainer.setVisibility(if (visible) View.VISIBLE
-      else View.GONE)
-    }
-    else {
+      userSelectionConfirmationContainer.setVisibility(if (getSelectedUsers.nonEmpty) View.VISIBLE else View.GONE)
+    } else {
       val visible: Boolean = show || searchUserController.selectedUsers.nonEmpty
-      conversationQuickMenu.setVisibility(if (visible) View.VISIBLE
-      else View.GONE)
+      conversationQuickMenu.setVisibility(if (visible) View.VISIBLE else View.GONE)
       genericInviteContainer.setVisibility(if (visible || isKeyboardVisible || !isPrivateSpace) View.GONE else View.VISIBLE)
     }
   }
@@ -805,14 +804,14 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
     else getString(R.string.conversation_quick_menu__conversation_button__single_label)
     conversationQuickMenu.setConversationButtonText(label)
     val hasPermissions = currentTeam.isEmpty || searchUserController.selectedUsers.size == 1 || teamPermissions.contains(TeamMemberData.Permission.CreateConversation)
-    conversationQuickMenu.setVisibility(if (hasPermissions) View.VISIBLE else View.GONE)
+    conversationQuickMenu.setVisibility(if (hasPermissions && !isAddingToConversation) View.VISIBLE else View.GONE)
   }
 
   override def onClick(view: View): Unit = {
     view.getId match {
       case R.id.zb__pickuser__confirmation_button =>
         KeyboardUtils.hideKeyboard(getActivity)
-        getContainer.onSelectedUsers(getSelectedUsersJava, ConversationChangeRequester.START_CONVERSATION)
+        getContainer.onSelectedUsers(getSelectedAndExcludedUsersJava, ConversationChangeRequester.START_CONVERSATION)
       case R.id.zb__pickuser__generic_invite =>
         sendGenericInvite(false)
       case R.id.ll_pickuser__error_invite =>
@@ -870,6 +869,10 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
 
   private def getSelectedUsersJava: java.util.List[User] = {
     searchUserController.selectedUsers.map(uid => getStoreFactory.getPickUserStore.getUser(uid.str)).toList.asJava
+  }
+
+  private def getSelectedAndExcludedUsersJava: java.util.List[User] = {
+    getSelectedAndExcluded.map(uid => getStoreFactory.getPickUserStore.getUser(uid.str)).toList.asJava
   }
 
   // XXX Only show contact sharing dialogs for PERSONAL START UI

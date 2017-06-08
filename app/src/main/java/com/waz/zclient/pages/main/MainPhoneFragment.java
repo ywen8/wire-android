@@ -19,20 +19,15 @@ package com.waz.zclient.pages.main;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
-import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import com.waz.api.ErrorsList;
-import com.waz.api.IConversation;
 import com.waz.api.Message;
 import com.waz.api.User;
 import com.waz.model.MessageData;
-import com.waz.utils.wrappers.URI;
 import com.waz.zclient.BaseActivity;
 import com.waz.zclient.OnBackPressedListener;
 import com.waz.zclient.R;
@@ -43,22 +38,17 @@ import com.waz.zclient.controllers.confirmation.ConfirmationRequest;
 import com.waz.zclient.controllers.confirmation.IConfirmationController;
 import com.waz.zclient.controllers.giphy.GiphyObserver;
 import com.waz.zclient.controllers.navigation.Page;
-import com.waz.zclient.controllers.onboarding.OnboardingControllerObserver;
 import com.waz.zclient.controllers.singleimage.SingleImageObserver;
 import com.waz.zclient.conversation.CollectionController;
 import com.waz.zclient.conversation.CollectionFragment;
 import com.waz.zclient.conversation.ShareToMultipleFragment;
 import com.waz.zclient.core.stores.inappnotification.InAppNotificationStoreObserver;
-import com.waz.zclient.core.stores.inappnotification.KnockingEvent;
 import com.waz.zclient.fragments.ImageFragment;
 import com.waz.zclient.pages.BaseFragment;
 import com.waz.zclient.pages.main.conversation.SingleImageUserFragment;
-import com.waz.zclient.pages.main.conversation.VideoPlayerFragment;
 import com.waz.zclient.pages.main.conversationlist.ConfirmationFragment;
 import com.waz.zclient.pages.main.conversationpager.ConversationPagerFragment;
 import com.waz.zclient.pages.main.giphy.GiphySharingPreviewFragment;
-import com.waz.zclient.pages.main.onboarding.OnBoardingHintFragment;
-import com.waz.zclient.pages.main.onboarding.OnBoardingHintType;
 import com.waz.zclient.utils.SyncErrorUtils;
 import com.waz.zclient.utils.ViewUtils;
 import com.waz.zclient.views.menus.ConfirmationMenu;
@@ -66,8 +56,6 @@ import net.hockeyapp.android.ExceptionHandler;
 
 public class MainPhoneFragment extends BaseFragment<MainPhoneFragment.Container> implements OnBackPressedListener,
                                                                                             ConversationPagerFragment.Container,
-                                                                                            OnBoardingHintFragment.Container,
-                                                                                            OnboardingControllerObserver,
                                                                                             SingleImageObserver,
                                                                                             SingleImageUserFragment.Container,
                                                                                             GiphyObserver,
@@ -107,24 +95,16 @@ public class MainPhoneFragment extends BaseFragment<MainPhoneFragment.Container>
         super.onStart();
         getStoreFactory().getInAppNotificationStore().addInAppNotificationObserver(this);
         getControllerFactory().getSingleImageController().addSingleImageObserver(this);
-        getControllerFactory().getOnboardingController().addOnboardingControllerObserver(this);
         getControllerFactory().getGiphyController().addObserver(this);
         getControllerFactory().getConfirmationController().addConfirmationObserver(this);
         getControllerFactory().getAccentColorController().addAccentColorObserver(this);
         getCollectionController().addObserver(this);
-
-        OnBoardingHintFragment fragment = (OnBoardingHintFragment) getChildFragmentManager().findFragmentByTag(
-            OnBoardingHintFragment.TAG);
-        if (fragment != null) {
-            getControllerFactory().getOnboardingController().setCurrentHintType(fragment.getOnBoardingHintType());
-        }
     }
 
     @Override
     public void onStop() {
         getControllerFactory().getGiphyController().removeObserver(this);
         getControllerFactory().getSingleImageController().removeSingleImageObserver(this);
-        getControllerFactory().getOnboardingController().removeOnboardingControllerObserver(this);
         getControllerFactory().getConfirmationController().removeConfirmationObserver(this);
         getControllerFactory().getAccentColorController().removeAccentColorObserver(this);
         getStoreFactory().getInAppNotificationStore().removeInAppNotificationObserver(this);
@@ -165,16 +145,11 @@ public class MainPhoneFragment extends BaseFragment<MainPhoneFragment.Container>
             return true;
         }
 
-        // Clear any overlays
-        dismissOnBoardingHint(OnBoardingHintType.NONE);
-
         if (getChildFragmentManager().getBackStackEntryCount() > 0) {
             Fragment topFragment = getChildFragmentManager().findFragmentByTag(getChildFragmentManager().getBackStackEntryAt(
                 getChildFragmentManager().getBackStackEntryCount() - 1).getName());
             if (topFragment instanceof SingleImageUserFragment) {
                 return ((SingleImageUserFragment) topFragment).onBackPressed();
-            } else if (topFragment instanceof VideoPlayerFragment) {
-                return ((VideoPlayerFragment) topFragment).onBackPressed();
             } else if (topFragment instanceof GiphySharingPreviewFragment) {
                 if (!((GiphySharingPreviewFragment) topFragment).onBackPressed()) {
                     getChildFragmentManager().popBackStackImmediate(GiphySharingPreviewFragment.TAG,
@@ -218,67 +193,6 @@ public class MainPhoneFragment extends BaseFragment<MainPhoneFragment.Container>
         getContainer().onOpenUrl(url);
     }
 
-    //////////////////////////////////////////////////////////////////////////////////////////
-    //
-    //  OnBoardingHintFragment
-    //
-    //////////////////////////////////////////////////////////////////////////////////////////
-
-    @Override
-    public void dismissOnBoardingHint(OnBoardingHintType requestedType) {
-        getControllerFactory().getOnboardingController().hideOnboardingHint(requestedType);
-    }
-
-    @Override
-    public void onShowOnboardingHint(final OnBoardingHintType hintType, int delayMilSec) {
-        if (hintType == OnBoardingHintType.NONE) {
-            return;
-        }
-
-        new Handler(Looper.myLooper()).postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                if (getContainer() == null || !isResumed()) {
-                    return;
-                }
-
-                // Additional check if hint types match. Some animations go through conversation list and might trigger pull down hint
-                Page currentPage = getControllerFactory().getNavigationController().getCurrentPage();
-                IConversation currentConversation = getStoreFactory().getConversationStore().getCurrentConversation();
-
-                boolean currentConversationHasDraft = TextUtils.isEmpty(getStoreFactory().getDraftStore().getDraft(
-                    getStoreFactory().getConversationStore().getCurrentConversation()));
-                OnBoardingHintType currentHintType = getControllerFactory().getOnboardingController().getCurrentOnBoardingHint(
-                    currentPage,
-                    currentConversation,
-                    currentConversationHasDraft);
-                if (hintType != currentHintType) {
-                    return;
-                }
-
-                getChildFragmentManager().popBackStackImmediate(OnBoardingHintFragment.TAG,
-                                                                FragmentManager.POP_BACK_STACK_INCLUSIVE);
-                getChildFragmentManager()
-                    .beginTransaction()
-                    .setCustomAnimations(R.anim.fade_in,
-                                         R.anim.slide_out_to_top,
-                                         R.anim.slide_in_from_bottom,
-                                         R.anim.fade_out)
-                    .add(R.id.fl_fragment_main_onboarding,
-                         OnBoardingHintFragment.newInstance(hintType),
-                         OnBoardingHintFragment.TAG)
-                    .addToBackStack(OnBoardingHintFragment.TAG)
-                    .commit();
-            }
-        }, delayMilSec);
-    }
-
-    @Override
-    public void onHideOnboardingHint(OnBoardingHintType type) {
-        getChildFragmentManager().popBackStackImmediate(OnBoardingHintFragment.TAG,
-                                                        FragmentManager.POP_BACK_STACK_INCLUSIVE);
-    }
-
     @Override
     public void onShowSingleImage(Message message) {
         getChildFragmentManager().beginTransaction()
@@ -304,23 +218,6 @@ public class MainPhoneFragment extends BaseFragment<MainPhoneFragment.Container>
     @Override
     public void onHideSingleImage() {
 
-    }
-
-    @Override
-    public void onShowVideo(URI uri) {
-        getChildFragmentManager().beginTransaction()
-                                 .add(R.id.fl__overlay_container,
-                                      VideoPlayerFragment.newInstance(uri),
-                                      VideoPlayerFragment.TAG)
-                                 .addToBackStack(VideoPlayerFragment.TAG)
-                                 .commit();
-        getControllerFactory().getNavigationController().setRightPage(Page.SINGLE_MESSAGE, TAG);
-    }
-
-    @Override
-    public void onHideVideo() {
-        getChildFragmentManager().popBackStackImmediate(VideoPlayerFragment.TAG,
-                                                        FragmentManager.POP_BACK_STACK_INCLUSIVE);
     }
 
     @Override
@@ -432,11 +329,6 @@ public class MainPhoneFragment extends BaseFragment<MainPhoneFragment.Container>
 
     @Override
     public void onIncomingMessage(Message message) {
-        // ignore
-    }
-
-    @Override
-    public void onIncomingKnock(KnockingEvent knock) {
         // ignore
     }
 

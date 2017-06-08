@@ -29,7 +29,6 @@ import android.view.ViewGroup;
 import com.waz.api.ErrorsList;
 import com.waz.api.Message;
 import com.waz.api.User;
-import com.waz.utils.wrappers.URI;
 import com.waz.zclient.OnBackPressedListener;
 import com.waz.zclient.R;
 import com.waz.zclient.controllers.accentcolor.AccentColorObserver;
@@ -39,15 +38,13 @@ import com.waz.zclient.controllers.confirmation.IConfirmationController;
 import com.waz.zclient.controllers.navigation.Page;
 import com.waz.zclient.controllers.singleimage.SingleImageObserver;
 import com.waz.zclient.core.stores.inappnotification.InAppNotificationStoreObserver;
-import com.waz.zclient.core.stores.inappnotification.KnockingEvent;
 import com.waz.zclient.fragments.ImageFragment;
 import com.waz.zclient.pages.BaseFragment;
-import com.waz.zclient.views.BackgroundFrameLayout;
 import com.waz.zclient.pages.main.conversation.SingleImageUserFragment;
-import com.waz.zclient.pages.main.conversation.VideoPlayerFragment;
 import com.waz.zclient.pages.main.conversationlist.ConfirmationFragment;
 import com.waz.zclient.utils.SyncErrorUtils;
 import com.waz.zclient.utils.ViewUtils;
+import com.waz.zclient.views.BackgroundFrameLayout;
 import com.waz.zclient.views.menus.ConfirmationMenu;
 import net.hockeyapp.android.ExceptionHandler;
 
@@ -201,24 +198,6 @@ public class MainTabletFragment extends BaseFragment<MainTabletFragment.Containe
     }
 
     @Override
-    public void onShowVideo(URI uri) {
-        getChildFragmentManager().beginTransaction()
-                                 .add(R.id.fl__overlay_container,
-                                      VideoPlayerFragment.newInstance(uri),
-                                      VideoPlayerFragment.TAG)
-                                 .addToBackStack(VideoPlayerFragment.TAG)
-                                 .commit();
-        getControllerFactory().getNavigationController().setRightPage(Page.SINGLE_MESSAGE, TAG);
-    }
-
-    @Override
-    public void onHideVideo() {
-        getChildFragmentManager().popBackStackImmediate(VideoPlayerFragment.TAG,
-                                                        FragmentManager.POP_BACK_STACK_INCLUSIVE);
-    }
-
-
-    @Override
     public void onRequestConfirmation(ConfirmationRequest confirmationRequest, @IConfirmationController.ConfirmationMenuRequester int requester) {
         if (requester != IConfirmationController.CONVERSATION) {
             return;
@@ -238,11 +217,6 @@ public class MainTabletFragment extends BaseFragment<MainTabletFragment.Containe
 
     @Override
     public void onIncomingMessage(Message message) {
-        // ignore
-    }
-
-    @Override
-    public void onIncomingKnock(KnockingEvent knock) {
         // ignore
     }
 

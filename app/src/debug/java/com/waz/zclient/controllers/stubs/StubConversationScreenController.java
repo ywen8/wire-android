@@ -48,11 +48,6 @@ public class StubConversationScreenController implements IConversationScreenCont
     }
 
     @Override
-    public void setOffset(int offset) {
-
-    }
-
-    @Override
     public void addPeopleToConversation() {
 
     }
@@ -75,11 +70,6 @@ public class StubConversationScreenController implements IConversationScreenCont
     @Override
     public boolean isShowingUser() {
         return false;
-    }
-
-    @Override
-    public void setMessageBeingEdited(Message message) {
-
     }
 
     @Override
@@ -135,11 +125,6 @@ public class StubConversationScreenController implements IConversationScreenCont
     @Override
     public void hideParticipants(boolean backOrButtonPressed, boolean hideByConversationChange) {
 
-    }
-
-    @Override
-    public boolean isMessageBeingEdited(Message message) {
-        return false;
     }
 
     @Override

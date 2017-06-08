@@ -18,9 +18,7 @@
 package com.waz.zclient.controllers.stubs;
 
 import com.waz.zclient.controllers.theme.IThemeController;
-import com.waz.zclient.controllers.theme.ThemeObserver;
 import com.waz.zclient.ui.theme.OptionsTheme;
-import java.lang.Override;
 
 public class StubThemeController implements IThemeController {
   @Override
@@ -54,17 +52,7 @@ public class StubThemeController implements IThemeController {
   }
 
   @Override
-  public void removeThemeObserver(ThemeObserver themeObserver) {
-
-  }
-
-  @Override
   public void toggleTheme(boolean fromPreferences) {
-
-  }
-
-  @Override
-  public void addThemeObserver(ThemeObserver themeObserver) {
 
   }
 

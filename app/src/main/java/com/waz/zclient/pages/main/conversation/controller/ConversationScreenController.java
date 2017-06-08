@@ -37,7 +37,6 @@ public class ConversationScreenController implements IConversationScreenControll
     private boolean conversationStreamUiReady;
     private DialogLaunchMode launchMode;
     private User showDevicesTabForUser;
-    private Message messageBeingEdited;
 
     @Override
     public void addConversationControllerObservers(ConversationScreenControllerObserver conversationScreenControllerObserver) {
@@ -99,13 +98,6 @@ public class ConversationScreenController implements IConversationScreenControll
     @Override
     public User getRequestedDeviceTabUser() {
         return showDevicesTabForUser;
-    }
-
-    @Override
-    public void setOffset(int offset) {
-        for (ConversationScreenControllerObserver conversationScreenControllerObserver : conversationScreenControllerObservers) {
-            conversationScreenControllerObserver.setListOffset(offset);
-        }
     }
 
     @Override
@@ -248,20 +240,6 @@ public class ConversationScreenController implements IConversationScreenControll
         for (ConversationScreenControllerObserver observer : conversationScreenControllerObservers) {
             observer.onHideOtrClient();
         }
-    }
-
-    @Override
-    public void setMessageBeingEdited(Message message) {
-        messageBeingEdited = message;
-    }
-
-    @Override
-    public boolean isMessageBeingEdited(Message message) {
-        if (messageBeingEdited == null ||
-            message == null) {
-            return false;
-        }
-        return messageBeingEdited.getId().equals(message.getId());
     }
 
     @Override

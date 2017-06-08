@@ -17,24 +17,10 @@
  */
 package com.waz.zclient.controllers.orientation;
 
-import android.app.Activity;
-import com.waz.zclient.utils.SquareOrientation;
-
 public interface IOrientationController {
-
-    void setActivity(Activity activity);
-
     void tearDown();
 
     void addOrientationControllerObserver(OrientationControllerObserver orientationControllerObserver);
 
     void removeOrientationControllerObserver(OrientationControllerObserver orientationControllerObserver);
-
-    SquareOrientation getLastKnownOrientation();
-
-    boolean isInPortrait();
-
-    int getDeviceOrientation();
-
-    int getActivityRotationDegrees();
 }

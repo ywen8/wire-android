@@ -19,12 +19,17 @@ package com.waz.zclient.ui.views;
 
 import android.content.Context;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.Rect;
 import android.util.AttributeSet;
 import android.view.View;
 
 public class CircleView extends View {
     private final Paint paint;
+    private final Paint borderPaint;
+    private final Rect clipBounds = new Rect();
+    private final float border = 2f;
 
     public void setAccentColor(int color) {
         paint.setColor(color);
@@ -42,12 +47,15 @@ public class CircleView extends View {
     public CircleView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        borderPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        borderPaint.setColor(Color.WHITE);
     }
 
     @Override
     protected void onDraw(Canvas canvas) {
-        super.onDraw(canvas);
-        float radius = Math.min(canvas.getWidth(), canvas.getHeight()) / 2;
-        canvas.drawCircle(canvas.getWidth() / 2, canvas.getHeight() / 2, radius, paint);
+        canvas.getClipBounds(clipBounds);
+        float radius = Math.min(clipBounds.width(), clipBounds.height()) / 2;
+        canvas.drawCircle(clipBounds.centerX(), clipBounds.centerY(), radius, borderPaint);
+        canvas.drawCircle(clipBounds.centerX(), clipBounds.centerY(), radius - border, paint);
     }
 }

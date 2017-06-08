@@ -31,8 +31,6 @@ public interface ConversationScreenControllerObserver {
 
     void onShowEditConversationName(boolean show);
 
-    void setListOffset(int offset);
-
     void onHeaderViewMeasured(int participantHeaderHeight);
 
     void onScrollParticipantsList(int verticalOffset, boolean scrolledToBottom);

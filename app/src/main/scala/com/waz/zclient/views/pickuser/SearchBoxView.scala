@@ -22,14 +22,13 @@ import android.graphics.Color
 import android.os.Build
 import android.support.v4.content.ContextCompat
 import android.util.AttributeSet
-import android.view.{KeyEvent, LayoutInflater, View}
 import android.view.inputmethod.EditorInfo
+import android.view.{KeyEvent, LayoutInflater, View}
 import android.widget.{FrameLayout, TextView}
 import com.waz.api.User
-import com.waz.zclient.{R, ViewHelper}
 import com.waz.zclient.ui.utils.TypefaceUtils
-import com.waz.zclient.utils.ViewUtils
 import com.waz.zclient.views.{PickableElement, PickerSpannableEditText}
+import com.waz.zclient.{R, ViewHelper}
 
 object SearchBoxView {
 

@@ -19,6 +19,4 @@ package com.waz.zclient.controllers.navigation;
 
 public interface NavigationControllerObserver {
     void onPageVisible(Page page);
-
-    void onPageStateHasChanged(Page page);
 }

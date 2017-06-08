@@ -19,7 +19,6 @@ package com.waz.zclient.controllers.singleimage;
 
 import com.waz.api.Message;
 import com.waz.api.User;
-import com.waz.utils.wrappers.URI;
 
 public interface SingleImageObserver {
     void onShowSingleImage(Message message);
@@ -28,7 +27,4 @@ public interface SingleImageObserver {
 
     void onHideSingleImage();
 
-    void onShowVideo(URI uri);
-
-    void onHideVideo();
 }

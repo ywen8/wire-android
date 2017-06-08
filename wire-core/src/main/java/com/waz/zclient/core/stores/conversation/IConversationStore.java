@@ -90,8 +90,6 @@ public interface IConversationStore extends IStore {
      */
     void setCurrentConversationToNext(ConversationChangeRequester requester);
 
-    int getPositionInList(IConversation conversation);
-
     /**
      * For use when archiving a conversation - you need to set a new current conversation
      *
@@ -136,10 +134,6 @@ public interface IConversationStore extends IStore {
     void loadConnectRequestInboxConversations(OnInboxLoadedListener onConversationsLoadedListener, InboxLoadRequester inboxLoadRequester);
 
     int getNumberOfActiveConversations();
-
-    boolean hasOngoingCallInCurrentConversation();
-
-    String getCurrentConversationId();
 
     SyncState getConversationSyncingState();
 
