@@ -21,13 +21,14 @@ import com.waz.api.{Contact, Contacts, UpdateListener}
 import com.waz.model.SearchQuery.{Recommended, RecommendedHandle, TopPeople}
 import com.waz.model._
 import com.waz.service.{SearchKey, ZMessaging}
-import com.waz.threading.Threading
+import com.waz.threading.{CancellableFuture, Threading}
 import com.waz.utils.SeqMap
-import com.waz.utils.events.{EventContext, EventStream, Signal}
+import com.waz.utils.events.{EventContext, EventStream, RefreshingSignal, Signal}
 import com.waz.zclient.{Injectable, Injector}
 import com.waz.zclient.utils.{ConversationMembersSignal, SearchUtils, UiStorage}
 
 import scala.collection.immutable.Set
+import scala.concurrent.Future
 
 case class SearchState(filter: String, hasSelectedUsers: Boolean, addingToConversation: Option[ConvId], teamId: Option[TeamId] = None){
   val shouldShowTopUsers = filter.isEmpty && teamId.isEmpty && addingToConversation.isEmpty
@@ -53,6 +54,7 @@ class SearchUserController(initialState: SearchState)(implicit injector: Injecto
 
   val onSelectedUserAdded = EventStream[UserId]()
   val onSelectedUserRemoved = EventStream[UserId]()
+  val selectedUsersSignal = new RefreshingSignal[Set[UserId], UserId](CancellableFuture.successful(selectedUsers), EventStream.union(onSelectedUserAdded, onSelectedUserRemoved))
   EventStream.union(onSelectedUserAdded, onSelectedUserRemoved).on(Threading.Ui) { _ =>
     setHasSelectedUsers(selectedUsers.nonEmpty)
   }

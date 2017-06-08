@@ -207,9 +207,7 @@ class PickUsersAdapter(topUsersOnItemTouchListener: SearchResultOnItemTouchListe
     viewType match {
       case TopUsers =>
         val view = LayoutInflater.from(parent.getContext).inflate(R.layout.startui_top_users, parent, false)
-        val topUserAdapter: TopUserAdapter = new TopUserAdapter(new TopUserAdapter.Callback() {
-          override def getSelectedUsers = searchUserController.selectedUsers
-        })
+        val topUserAdapter: TopUserAdapter = new TopUserAdapter(searchUserController.selectedUsersSignal)
         new viewholders.TopUsersViewHolder(view, topUserAdapter, parent.getContext)
       case ConnectedUser | UnconnectedUser =>
         val view = LayoutInflater.from(parent.getContext).inflate(R.layout.startui_user, parent, false)
