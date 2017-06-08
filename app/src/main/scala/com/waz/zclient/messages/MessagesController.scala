@@ -70,8 +70,9 @@ class MessagesController()(implicit injector: Injector, ev: EventContext) extend
     slidingPaneController.addObserver(new SlidingPaneObserver {
       override def onPanelClosed(panel: View) = ()
       override def onPanelSlide(panel: View, slideOffset: Float) = ()
-      override def onPanelOpened(panel: View) =
+      override def onPanelOpened(panel: View) = {
         pageVisible ! false
+      }
     })
 
     uiActive flatMap {

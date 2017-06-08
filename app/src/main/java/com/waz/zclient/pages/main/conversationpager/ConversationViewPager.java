@@ -27,8 +27,6 @@ import java.lang.reflect.Field;
 
 public class ConversationViewPager extends ViewPager {
 
-
-
     public ConversationViewPager(Context context) {
         super(context);
         postInitViewPager();
@@ -37,7 +35,6 @@ public class ConversationViewPager extends ViewPager {
         super(context, attrs);
         postInitViewPager();
     }
-
 
     private ViewPagerScroller viewPagerScroller = null;
 

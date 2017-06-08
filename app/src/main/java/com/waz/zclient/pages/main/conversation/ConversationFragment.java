@@ -29,6 +29,7 @@ import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.FragmentActivity;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.ActionMenuView;
 import android.support.v7.widget.Toolbar;
@@ -91,6 +92,7 @@ import com.waz.zclient.controllers.mentioning.MentioningObserver;
 import com.waz.zclient.controllers.navigation.NavigationControllerObserver;
 import com.waz.zclient.controllers.navigation.Page;
 import com.waz.zclient.controllers.navigation.PagerControllerObserver;
+import com.waz.zclient.controllers.orientation.OrientationControllerObserver;
 import com.waz.zclient.controllers.permission.RequestPermissionsObserver;
 import com.waz.zclient.controllers.singleimage.SingleImageObserver;
 import com.waz.zclient.controllers.tracking.events.conversation.EditedMessageEvent;
@@ -138,12 +140,14 @@ import com.waz.zclient.ui.cursor.CursorLayout;
 import com.waz.zclient.ui.cursor.CursorMenuItem;
 import com.waz.zclient.ui.utils.KeyboardUtils;
 import com.waz.zclient.ui.views.e2ee.ShieldView;
-import com.waz.zclient.utils.AssetUtils;
-import com.waz.zclient.utils.Callback;
+
 import com.waz.zclient.utils.LayoutSpec;
 import com.waz.zclient.utils.PermissionUtils;
-import com.waz.zclient.utils.TrackingUtils;
+import com.waz.zclient.utils.SquareOrientation;
 import com.waz.zclient.utils.ViewUtils;
+import com.waz.zclient.utils.TrackingUtils;
+import com.waz.zclient.utils.AssetUtils;
+import com.waz.zclient.utils.Callback;
 import com.waz.zclient.views.LoadingIndicatorView;
 import com.waz.zclient.views.MentioningFragment;
 
@@ -175,7 +179,8 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
                                                                                                   EmojiKeyboardLayout.Callback,
                                                                                                   ExtendedCursorContainer.Callback,
                                                                                                   EphemeralLayout.Callback,
-                                                                                                  TypingIndicatorView.Callback {
+                                                                                                  TypingIndicatorView.Callback,
+                                                                                                  OrientationControllerObserver {
     public static final String TAG = ConversationFragment.class.getName();
     private static final String SAVED_STATE_PREVIEW = "SAVED_STATE_PREVIEW";
     private static final int REQUEST_VIDEO_CAPTURE = 911;
@@ -215,6 +220,7 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
     private MessageBottomSheetDialog messageBottomSheetDialog;
     private MessagesListView listView;
     private Self self = null;
+    private Boolean isInLandscape = null;
 
     public static ConversationFragment newInstance() {
         return new ConversationFragment();
@@ -264,6 +270,34 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
             }
         }
     };
+
+    @Override
+    public void onOrientationHasChanged(SquareOrientation squareOrientation) {
+        boolean isInLandscape = ViewUtils.isInLandscape(getContext());
+
+        if (this.isInLandscape == null) {
+            this.isInLandscape = isInLandscape; // initial call, just set the flag
+            return;
+        }
+
+        if (isInLandscape != this.isInLandscape) {
+            this.isInLandscape = isInLandscape;
+            boolean conversationListVisible = (getControllerFactory().getNavigationController().getCurrentPage() == Page.CONVERSATION_LIST);
+
+            if (isInLandscape && !conversationListVisible) {
+                int duration = getResources().getInteger(R.integer.framework_animation_duration_short);
+                // post to give the RootFragment the chance to drive its animations first
+                new Handler().postDelayed(new Runnable() {
+                    @Override public void run() {
+                        FragmentActivity activity = getActivity();
+                        if (activity != null) {
+                            activity.onBackPressed();
+                        }
+                    }
+                }, duration);
+            }
+        }
+    }
 
     private final MessageContent.Asset.ErrorHandler assetErrorHandler = new MessageContent.Asset.ErrorHandler() {
         @Override
@@ -439,9 +473,10 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
         toolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (cursorLayout == null || (LayoutSpec.isTablet(getContext()) && ViewUtils.isInLandscape(getContext()))) {
+                if (cursorLayout == null) {
                     return;
                 }
+
                 cursorLayout.closeEditMessage(false);
                 getActivity().onBackPressed();
                 KeyboardUtils.closeKeyboardIfShown(getActivity());
@@ -508,6 +543,7 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
         getControllerFactory().getGlobalLayoutController().addKeyboardHeightObserver(extendedCursorContainer);
         getControllerFactory().getGlobalLayoutController().addKeyboardVisibilityObserver(extendedCursorContainer);
         getControllerFactory().getRequestPermissionsController().addObserver(this);
+        getControllerFactory().getOrientationController().addOrientationControllerObserver(this);
         cursorLayout.setCursorCallback(this);
         cursorLayout.showSendButtonAsEnterKey(!getControllerFactory().getUserPreferencesController().isCursorSendButtonEnabled());
         hideSendButtonIfNeeded();
@@ -578,6 +614,7 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
         cursorLayout.setCursorCallback(null);
         getControllerFactory().getGlobalLayoutController().removeKeyboardHeightObserver(extendedCursorContainer);
         getControllerFactory().getGlobalLayoutController().removeKeyboardVisibilityObserver(extendedCursorContainer);
+        getControllerFactory().getOrientationController().removeOrientationControllerObserver(this);
         if (BuildConfig.SHOW_MENTIONING) {
             getControllerFactory().getMentioningController().removeObserver(this);
         }
@@ -1042,9 +1079,6 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
 
     @Override
     public void onPanelOpened(View panel) {
-        if (ViewUtils.isInLandscape(getActivity())) {
-            return;
-        }
         KeyboardUtils.closeKeyboardIfShown(getActivity());
     }
 
@@ -1104,7 +1138,6 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
     @SuppressLint("NewApi")
     @Override
     public void onCursorButtonClicked(CursorMenuItem cursorMenuItem) {
-
         final IConversation conversation = getStoreFactory().getConversationStore().getCurrentConversation();
         switch (cursorMenuItem) {
             case AUDIO_MESSAGE:

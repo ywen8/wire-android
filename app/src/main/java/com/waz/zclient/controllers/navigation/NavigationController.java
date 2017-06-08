@@ -101,6 +101,7 @@ public class NavigationController implements INavigationController {
         if (currentPagerPos == position) {
             return;
         }
+
         currentPagerPos = position;
         if (currentPagerPos == 0) {
             setVisiblePage(lastPageLeft, PAGER_TAG);
