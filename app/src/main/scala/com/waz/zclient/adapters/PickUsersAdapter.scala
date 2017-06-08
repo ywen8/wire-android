@@ -63,7 +63,7 @@ class PickUsersAdapter(topUsersOnItemTouchListener: SearchResultOnItemTouchListe
   private var contacts = Seq[Contact]()
   private var directoryResults = Seq[UserData]()
 
-  searchUserController.allDataSignal.throttle(750.millis).on(Threading.Ui) {
+  searchUserController.allDataSignal.throttle(500.millis).on(Threading.Ui) {
     case (newTopUsers, newTeamMembers, newConversations, newConnectedUsers, newContacts, newDirectoryResults) =>
       topUsers = newTopUsers
       teamMembers = newTeamMembers
@@ -207,9 +207,7 @@ class PickUsersAdapter(topUsersOnItemTouchListener: SearchResultOnItemTouchListe
     viewType match {
       case TopUsers =>
         val view = LayoutInflater.from(parent.getContext).inflate(R.layout.startui_top_users, parent, false)
-        val topUserAdapter: TopUserAdapter = new TopUserAdapter(new TopUserAdapter.Callback() {
-          override def getSelectedUsers = searchUserController.selectedUsers
-        })
+        val topUserAdapter: TopUserAdapter = new TopUserAdapter(searchUserController.selectedUsersSignal)
         new viewholders.TopUsersViewHolder(view, topUserAdapter, parent.getContext)
       case ConnectedUser | UnconnectedUser =>
         val view = LayoutInflater.from(parent.getContext).inflate(R.layout.startui_user, parent, false)
