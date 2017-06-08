@@ -63,7 +63,7 @@ class PickUsersAdapter(topUsersOnItemTouchListener: SearchResultOnItemTouchListe
   private var contacts = Seq[Contact]()
   private var directoryResults = Seq[UserData]()
 
-  searchUserController.allDataSignal.throttle(750.millis).on(Threading.Ui) {
+  searchUserController.allDataSignal.throttle(500.millis).on(Threading.Ui) {
     case (newTopUsers, newTeamMembers, newConversations, newConnectedUsers, newContacts, newDirectoryResults) =>
       topUsers = newTopUsers
       teamMembers = newTeamMembers
