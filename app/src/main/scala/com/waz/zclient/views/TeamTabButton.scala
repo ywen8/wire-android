@@ -64,18 +64,18 @@ class TeamTabButton(val context: Context, val attrs: AttributeSet, val defStyleA
 
   icon.setImageDrawable(drawable)
   setLayerType(View.LAYER_TYPE_SOFTWARE, null)
-  params.topMargin = height / 2 - getResources.getDimensionPixelSize(R.dimen.teams_tab_bottom_offset)
+  params.topMargin = height / 2 - getResources.getDimensionPixelSize(R.dimen.teams_tab_text_bottom_margin)
   unreadIndicatorName.setAlpha(0f)
 
   accentColor.on(Threading.Ui){ accentColor =>
     selectedColor = accentColor.getColor()
+    drawable.setBorderColor(accentColor.getColor())
     unreadIndicatorIcon.setAccentColor(accentColor.getColor())
     unreadIndicatorName.setAccentColor(accentColor.getColor())
   }
 
   def setTeamData(teamData: TeamData, selected: Boolean, unreadCount: Int): Unit = {
-    val color = if (selected) selectedColor else Color.TRANSPARENT
-    drawable.setInfo(NameParts.maybeInitial(teamData.name).getOrElse(""), color, TeamIconDrawable.TeamCorners)
+    drawable.setInfo(NameParts.maybeInitial(teamData.name).getOrElse(""), TeamIconDrawable.TeamCorners, selected)
     name.setText(teamData.name)
     drawable.assetId ! None
     buttonSelected = selected
@@ -84,8 +84,7 @@ class TeamTabButton(val context: Context, val attrs: AttributeSet, val defStyleA
   }
 
   def setUserData(userData: UserData, selected: Boolean, unreadCount: Int): Unit = {
-    val color = if (selected) AccentColor(userData.accent).getColor() else Color.TRANSPARENT
-    drawable.setInfo(NameParts.maybeInitial(userData.displayName).getOrElse(""), color, TeamIconDrawable.UserCorners)
+    drawable.setInfo(NameParts.maybeInitial(userData.displayName).getOrElse(""), TeamIconDrawable.UserCorners, selected)
     name.setText(userData.displayName)
     drawable.assetId ! userData.picture
     buttonSelected = selected
@@ -102,7 +101,7 @@ class TeamTabButton(val context: Context, val attrs: AttributeSet, val defStyleA
   }
 
   def animateCollapse(): Unit = {
-    val margin = height / 2 - getResources.getDimensionPixelSize(R.dimen.teams_tab_bottom_offset_half)
+    val margin = (height - getResources.getDimensionPixelSize(R.dimen.teams_tab_text_bottom_margin)) / 2
     nameContainer.animate().translationY(-margin).setDuration(animationDuration).start()
     iconContainer.animate().translationY(-margin).alpha(0f).setDuration(animationDuration).start()
     unreadIndicatorName.animate().alpha(1f).start()

@@ -17,6 +17,7 @@
  */
 package com.waz.zclient.drawables
 
+import android.content.Context
 import android.graphics._
 import android.graphics.drawable.Drawable
 import com.waz.ZLog
@@ -29,18 +30,23 @@ import com.waz.ui.MemoryImageCache.BitmapRequest.Single
 import com.waz.utils.events.{EventContext, Signal}
 import com.waz.utils.returning
 import com.waz.zclient.drawables.TeamIconDrawable._
-import com.waz.zclient.{Injectable, Injector}
+import com.waz.zclient.{Injectable, Injector, R}
 
 object TeamIconDrawable {
   val TeamCorners = 6
   val UserCorners = 0
 }
 
-class TeamIconDrawable(implicit inj: Injector, eventContext: EventContext) extends Drawable with Injectable {
+class TeamIconDrawable(implicit inj: Injector, eventContext: EventContext, ctx: Context) extends Drawable with Injectable {
   private implicit val tag = ZLog.logTagFor[TeamIconDrawable]
 
   var text = ""
   var corners = UserCorners
+  var selected = false
+
+  private val selectedDiameter = ctx.getResources.getDimensionPixelSize(R.dimen.team_tab_drawable_diameter)
+  private val borderGapWidth = ctx.getResources.getDimensionPixelSize(R.dimen.team_tab_drawable_gap)
+  private val borderWidth = ctx.getResources.getDimensionPixelSize(R.dimen.team_tab_drawable_border)
 
   val borderPaint = returning(new Paint(Paint.ANTI_ALIAS_FLAG)) { paint =>
     paint.setColor(Color.TRANSPARENT)
@@ -57,7 +63,7 @@ class TeamIconDrawable(implicit inj: Injector, eventContext: EventContext) exten
     paint.setStrokeJoin(Paint.Join.ROUND)
     paint.setStrokeCap(Paint.Cap.ROUND)
     paint.setDither(true)
-    paint.setPathEffect(new CornerPathEffect(8f))
+    paint.setPathEffect(new CornerPathEffect(6f))
   }
 
   val textPaint = returning(new Paint(Paint.ANTI_ALIAS_FLAG)){ paint =>
@@ -106,7 +112,7 @@ class TeamIconDrawable(implicit inj: Injector, eventContext: EventContext) exten
         val textX = getBounds.centerX
         canvas.drawText(text, textX, textY, textPaint)
     }
-    canvas.drawPath(borderPath, borderPaint)
+    if (selected) canvas.drawPath(borderPath, borderPaint)
   }
 
   def computeMatrix(bmWidth: Int, bmHeight: Int, bounds: Rect, matrix: Matrix): Unit = {
@@ -161,16 +167,12 @@ class TeamIconDrawable(implicit inj: Injector, eventContext: EventContext) exten
 
   override def getIntrinsicWidth = super.getIntrinsicWidth
 
-  private def diameter(bounds: Rect = getBounds): Int = Math.min(bounds.width, bounds.height)
-
   private def updateDrawable(bounds: Rect): Unit = {
-    val diam = diameter(bounds) - diameter(bounds) * 0.1f
+    val diam = if (selected) selectedDiameter else selectedDiameter + 2 * (borderGapWidth + borderWidth)
     val textSize = diam / 2.5f
-    val borderWidth = diam * 0.05f
-    val borderOffset = borderWidth * 4
 
-    drawPolygon(innerPath, (diam - borderOffset) / 2, corners)
-    drawPolygon(borderPath, diam / 2, corners)
+    drawPolygon(innerPath, diam / 2, corners)
+    drawPolygon(borderPath, diam / 2 + borderGapWidth + borderWidth, corners)
 
     textPaint.setTextSize(textSize)
     borderPaint.setStrokeWidth(borderWidth)
@@ -182,11 +184,16 @@ class TeamIconDrawable(implicit inj: Injector, eventContext: EventContext) exten
     invalidateSelf()
   }
 
-  def setInfo(text: String, borderColor:Int, corners: Int): Unit = {
+  def setInfo(text: String, corners: Int, selected: Boolean): Unit = {
     this.text = text
-    borderPaint.setColor(borderColor)
     innerPaint.setColor(Color.WHITE)
     this.corners = corners
+    this.selected = selected
     bounds.currentValue.foreach(updateDrawable)
+  }
+
+  def setBorderColor(color: Int): Unit = {
+    borderPaint.setColor(color)
+    invalidateSelf()
   }
 }

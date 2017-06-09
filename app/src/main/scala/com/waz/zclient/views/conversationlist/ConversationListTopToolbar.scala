@@ -18,7 +18,7 @@
 package com.waz.zclient.views.conversationlist
 
 import android.content.Context
-import android.util.AttributeSet
+import android.util.{AttributeSet, TypedValue}
 import android.view.View
 import android.view.View.{OnClickListener, OnLayoutChangeListener}
 import android.widget.FrameLayout
@@ -72,6 +72,19 @@ abstract class ConversationListTopToolbar(val context: Context, val attrs: Attri
       separatorDrawable.animateExpand()
     }
   }
+
+  override def onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) = {
+    val tv = new TypedValue()
+    val height =
+      if (context.getTheme.resolveAttribute(R.attr.actionBarSize, tv, true))
+        TypedValue.complexToDimensionPixelSize(tv.data, getResources.getDisplayMetrics)
+      else
+        getDimenPx(R.dimen.teams_tab_default_height)(context)
+    val heightOffset = getDimenPx(R.dimen.teams_tab_bottom_offset)(context)
+
+    val heightSpec = View.MeasureSpec.makeMeasureSpec(height + heightOffset, View.MeasureSpec.EXACTLY)
+    super.onMeasure(widthMeasureSpec, heightSpec)
+  }
 }
 
 class NormalTopToolbar(override val context: Context, override val attrs: AttributeSet, override val defStyleAttr: Int)  extends ConversationListTopToolbar(context, attrs, defStyleAttr){
@@ -80,7 +93,7 @@ class NormalTopToolbar(override val context: Context, override val attrs: Attrib
 
   val controller = inject[TeamsAndUserController]
 
-  glyphButton.setText(R.string.glyph__settings)
+  glyphButton.setText(R.string.glyph__profile)
   controller.teams.on(Threading.Ui) { teams =>
     tabsContainer.setVisible(teams.nonEmpty)
     title.setVisible(teams.isEmpty)
