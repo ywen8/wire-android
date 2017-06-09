@@ -70,6 +70,7 @@ import com.waz.api.UpdateListener;
 import com.waz.api.User;
 import com.waz.api.UsersList;
 import com.waz.api.Verification;
+import com.waz.model.ConvId;
 import com.waz.utils.wrappers.URI;
 import com.waz.zclient.BaseActivity;
 import com.waz.zclient.BuildConfig;
@@ -78,6 +79,7 @@ import com.waz.zclient.R;
 import com.waz.zclient.WireContext;
 import com.waz.zclient.camera.controllers.GlobalCameraController;
 import com.waz.zclient.controllers.IControllerFactory;
+import com.waz.zclient.controllers.TeamsAndUserController;
 import com.waz.zclient.controllers.accentcolor.AccentColorObserver;
 import com.waz.zclient.controllers.calling.CallingObserver;
 import com.waz.zclient.controllers.confirmation.ConfirmationCallback;
@@ -238,18 +240,24 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
             shieldView.setVisibility(model.getVerified() == Verification.VERIFIED ? View.VISIBLE : View.GONE);
 
             toolbarTitle.setText(model.getName());
-            toolbar.getMenu().clear();
+
             if (!model.isMemberOfConversation()) {
                 return;
             }
 
             inflateCollectionIcon();
 
-            if (model.getType() == IConversation.Type.ONE_TO_ONE) {
-                toolbar.inflateMenu(R.menu.conversation_header_menu_video);
-            } else {
-                toolbar.inflateMenu(R.menu.conversation_header_menu_audio);
-            }
+            inject(TeamsAndUserController.class).setIsGroupListener(new ConvId(model.getId()), new Callback<Boolean>() {
+                @Override
+                public void callback(Boolean isGroup) {
+                    toolbar.getMenu().clear();
+                    if (!isGroup) {
+                        toolbar.inflateMenu(R.menu.conversation_header_menu_video);
+                    } else {
+                        toolbar.inflateMenu(R.menu.conversation_header_menu_audio);
+                    }
+                }
+            });
         }
     };
 

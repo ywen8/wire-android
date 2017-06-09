@@ -26,16 +26,17 @@ import android.net.Uri;
 import android.os.Build;
 import android.support.test.runner.AndroidJUnit4;
 import android.view.View;
+
 import com.waz.api.AccentColor;
 import com.waz.api.IConversation;
 import com.waz.zclient.MainTestActivity;
 import com.waz.zclient.R;
 import com.waz.zclient.controllers.accentcolor.IAccentColorController;
-import com.waz.zclient.controllers.calling.ICallingController;
 import com.waz.zclient.pages.main.conversation.controller.IConversationScreenController;
 import com.waz.zclient.testutils.CustomViewAssertions;
 import com.waz.zclient.testutils.FragmentTest;
 import com.waz.zclient.testutils.MockHelper;
+
 import org.hamcrest.Matcher;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -105,54 +106,6 @@ public class ConversationFragmentTest extends FragmentTest<MainTestActivity> {
 
         onView(withText(conversationName)).perform(click());
         verify(mockScreenController).showParticipants(any(View.class), anyBoolean());
-    }
-
-    @Test
-    public void assertAudioCallInitatedInOneToOneConversation() throws InterruptedException {
-        IConversation mockConversation = mock(IConversation.class);
-        when(mockConversation.getType()).thenReturn(IConversation.Type.ONE_TO_ONE);
-        when(mockConversation.isMemberOfConversation()).thenReturn(true);
-
-        ICallingController mockCallingController = activity.getControllerFactory().getCallingController();
-
-        MockHelper.setupConversationMocks(mockConversation, activity);
-        attachFragment(ConversationFragment.newInstance(), ConversationFragment.TAG);
-
-        onView(withId(R.id.action_audio_call)).check(isVisible());
-        onView(withId(R.id.action_audio_call)).perform(click());
-        verify(mockCallingController).startCall(false);
-    }
-
-    @Test
-    public void assertAudioCallInitatedInGroupConversation() throws InterruptedException {
-        IConversation mockConversation = mock(IConversation.class);
-        when(mockConversation.getType()).thenReturn(IConversation.Type.GROUP);
-        when(mockConversation.isMemberOfConversation()).thenReturn(true);
-
-        ICallingController mockCallingController = activity.getControllerFactory().getCallingController();
-
-        MockHelper.setupConversationMocks(mockConversation, activity);
-        attachFragment(ConversationFragment.newInstance(), ConversationFragment.TAG);
-
-        onView(withId(R.id.action_audio_call)).check(isVisible());
-        onView(withId(R.id.action_audio_call)).perform(click());
-        verify(mockCallingController).startCall(false);
-    }
-
-    @Test
-    public void assertVideoCallInitatedInOneToOneConversation() throws InterruptedException {
-        IConversation mockConversation = mock(IConversation.class);
-        when(mockConversation.getType()).thenReturn(IConversation.Type.ONE_TO_ONE);
-        when(mockConversation.isMemberOfConversation()).thenReturn(true);
-
-        ICallingController mockCallingController = activity.getControllerFactory().getCallingController();
-
-        MockHelper.setupConversationMocks(mockConversation, activity);
-        attachFragment(ConversationFragment.newInstance(), ConversationFragment.TAG);
-
-        onView(withId(R.id.action_video_call)).check(isVisible());
-        onView(withId(R.id.action_video_call)).perform(click());
-        verify(mockCallingController).startCall(true);
     }
 
     @Test
