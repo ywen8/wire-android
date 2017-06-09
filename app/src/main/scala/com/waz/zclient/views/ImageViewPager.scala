@@ -49,34 +49,72 @@ import scala.collection.mutable
 class ImageViewPager(context: Context, attrs: AttributeSet) extends ViewPager(context, attrs) with ViewHelper {
   def this(context: Context) = this(context, null)
 
-  lazy val zms = inject[Signal[ZMessaging]]
-  lazy val messageActions = inject[MessageActionsController]
   lazy val collectionController = inject[CollectionController]
 
-  val imageSwipeAdapter = new ImageSwipeAdapter(getContext)
-  setAdapter(imageSwipeAdapter)
-
-  addOnPageChangeListener(new OnPageChangeListener {
-    override def onPageScrollStateChanged(state: Int): Unit = {}
-    override def onPageScrolled(position: Int, positionOffset: Float, positionOffsetPixels: Int): Unit = {}
-    override def onPageSelected(position: Int): Unit = collectionController.focusedItem ! imageSwipeAdapter.getItem(position)
-  })
-  setPageTransformer(false, new CustomPagerTransformer (CustomPagerTransformer.SLIDE))
-
-  val focusedItemPos = for {
+  val messageData = for {
     Some(msg) <- collectionController.focusedItem
-    cursor <- imageSwipeAdapter.cursor
-    pos <- Signal.future(cursor.positionForMessage(msg))
-  } yield pos
+  } yield msg
 
-  focusedItemPos.on(Threading.Ui) {
-    pos =>
-      if (pos >= 0) setCurrentItem(pos, false)
+  private var imageAdapter: Option[PagerAdapter] = None
+
+  messageData { msg => imageAdapter match {
+    case None => setImageAdapter(msg)
+    case Some(adapter) => adapter match { // Maciek: needed for an AN-5315 corner case where focusedItem gives two different messages and the second one is correct
+      case _: ImageSwipeAdapter if msg.isEphemeral => setImageAdapter(msg)
+      case a: SingleImageAdapter => setImageAdapter(msg)
+      case _ =>
+    }
+  }}
+
+  private def setImageAdapter(msg: MessageData): Unit = {
+    val adapter = if (msg.isEphemeral) singleImageAdapter(msg) else imageSwipeAdapter()
+    setAdapter(adapter)
+    imageAdapter = Some(adapter)
+  }
+
+  private def singleImageAdapter(msg: MessageData) = {
+    clearOnPageChangeListeners()
+    setPageTransformer(false, null)
+    setCurrentItem(0, false)
+    new SingleImageAdapter(getContext, msg)
+  }
+
+  private def imageSwipeAdapter() = {
+    val adapter = new ImageSwipeAdapter(getContext)
+    setPageTransformer(false, new CustomPagerTransformer (CustomPagerTransformer.SLIDE))
+    addOnPageChangeListener(new OnPageChangeListener {
+      override def onPageScrollStateChanged(state: Int): Unit = {}
+      override def onPageScrolled(position: Int, positionOffset: Float, positionOffsetPixels: Int): Unit = {}
+      override def onPageSelected(position: Int): Unit = collectionController.focusedItem ! adapter.getItem(position)
+    })
+    messageData.flatMap(adapter.positionForMessage).on(Threading.Ui) { pos => if (pos >= 0) setCurrentItem(pos, false) }
+    adapter
   }
 
 }
 
-class ImageSwipeAdapter(context: Context)(implicit injector: Injector, ev: EventContext) extends PagerAdapter with Injectable{ self =>
+class SingleImageAdapter(context: Context, val msg: MessageData)(implicit injector: Injector, ev: EventContext) extends PagerAdapter with Injectable { self =>
+  override def isViewFromObject(view: View, obj: scala.Any): Boolean = true
+
+  override def getCount: Int = 1
+
+  override def instantiateItem(container: ViewGroup, position: Int): AnyRef = {
+    val imageView = new SwipeImageView(context)
+    imageView.setLayoutParams(new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT))
+    imageView.setImageDrawable(new ColorDrawable(Color.TRANSPARENT))
+    imageView.setMessageData(msg)
+    container.addView(imageView)
+    imageView
+  }
+
+  override def destroyItem(container: ViewGroup, position: Int, obj: scala.Any): Unit = {
+    val view = obj.asInstanceOf[SwipeImageView]
+    view.resetZoom()
+    container.removeView(view)
+  }
+}
+
+class ImageSwipeAdapter(context: Context)(implicit injector: Injector, ev: EventContext) extends PagerAdapter with Injectable { self =>
 
   private val discardedImages = mutable.Queue[SwipeImageView]()
 
@@ -107,6 +145,14 @@ class ImageSwipeAdapter(context: Context)(implicit injector: Injector, ev: Event
     Some(c) <- conv
   } yield new RecyclerCursor(c.id, zs, notifier, Some(MessageFilter(Some(Images.typeFilter))))
 
+  implicit val executionContext = Threading.Ui
+
+  def positionForMessage(msg: MessageData): Signal[Int] =
+    for {
+    c <- cursor
+    pos <- Signal.future(c.positionForMessage(msg))
+  } yield pos
+
   cursor.on(Threading.Ui) { c =>
     if (!recyclerCursor.contains(c)) {
       recyclerCursor.foreach(_.close())
@@ -115,11 +161,9 @@ class ImageSwipeAdapter(context: Context)(implicit injector: Injector, ev: Event
     }
   }
 
-  def getItem(position: Int): Option[MessageData] = {
-    recyclerCursor.flatMap{
-      case c if c.count > position => Some(c.apply(position).message)
-      case _ => None
-    }
+  def getItem(position: Int): Option[MessageData] = recyclerCursor.flatMap {
+    case c if c.count > position => Some(c.apply(position).message)
+    case _ => None
   }
 
   override def instantiateItem(container: ViewGroup, position: Int): AnyRef = {
@@ -139,14 +183,12 @@ class ImageSwipeAdapter(context: Context)(implicit injector: Injector, ev: Event
     container.removeView(view)
   }
 
-  override def isViewFromObject(view: View, obj: scala.Any): Boolean = {
-    view.getTag.equals(obj.asInstanceOf[View].getTag)
-  }
+  override def isViewFromObject(view: View, obj: scala.Any): Boolean = view.getTag.equals(obj.asInstanceOf[View].getTag)
 
   override def getCount: Int = recyclerCursor.fold(0)(_.count)
 }
 
-class SwipeImageView(context: Context, attrs: AttributeSet, style: Int)(implicit injector: Injector, ev: EventContext) extends TouchImageView(context, attrs, style) with Injectable{
+class SwipeImageView(context: Context, attrs: AttributeSet, style: Int)(implicit injector: Injector, ev: EventContext) extends TouchImageView(context, attrs, style) with Injectable {
   def this(context: Context, attrs: AttributeSet)(implicit injector: Injector, ev: EventContext) = this(context, attrs, 0)
   def this(context: Context)(implicit injector: Injector, ev: EventContext) = this(context, null, 0)
 
@@ -155,15 +197,18 @@ class SwipeImageView(context: Context, attrs: AttributeSet, style: Int)(implicit
 
   private val messageData: SourceSignal[MessageData] = Signal[MessageData]()
   private val onLayoutChanged = EventStream[Unit]()
-  private val messageAndLikes = zms.zip(messageData).flatMap{
+
+  private val messageAndLikes = zms.zip(messageData).flatMap {
     case (z, md) => Signal.future(z.msgAndLikes.combineWithLikes(md))
     case _ => Signal[MessageAndLikes]()
   }
+
   messageAndLikes.disableAutowiring()
 
   messageData.on(Threading.Ui){
     md => setAsset(md.assetId)
   }
+
   onLayoutChanged.on(Threading.Ui){
     _ => messageData.currentValue.foreach(md => setAsset(md.assetId))
   }
