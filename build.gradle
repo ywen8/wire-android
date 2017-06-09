@@ -76,7 +76,7 @@ ext {
     playServicesVersion = '10.0.1'
 
     audioVersion = System.getenv("AUDIO_VERSION") ?: '1.209.0@aar'
-    zMessagingDevVersionBase = '100.1538'
+    zMessagingDevVersionBase = '100.1541'
     zMessagingDevVersion = "${zMessagingDevVersionBase}@aar"
     // Release version number must be like this X.0(.Y)
     zMessagingReleaseVersion = System.getenv("ZMESSAGING_VERSION") ?: '100.2.366@aar'
@@ -157,7 +157,10 @@ ext {
             translations        : 'com.wire:wiretranslations:1.+',
 
             //Json parser
-            gson                : 'com.google.code.gson:gson:2.2.4'
+            gson                : 'com.google.code.gson:gson:2.2.4',
+
+            // Java Native Access
+            jna                 : 'net.java.dev.jna:jna:4.4.0@aar'
     ]
 }
 

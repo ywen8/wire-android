@@ -39,6 +39,11 @@ android {
         exclude 'lib/mips/librs.decode.so'
         exclude 'lib/mips/librsjni.so'
         exclude 'lib/mips/libRSSupport.so'
+        exclude 'lib/arm64-v8a/libjnidispatch.so'
+        exclude 'lib/armeabi/libjnidispatch.so'
+        exclude 'lib/mips/libjnidispatch.so'
+        exclude 'lib/mips64/libjnidispatch.so'
+        exclude 'lib/x86_64/libjnidispatch.so'
     }
 
     testOptions {
@@ -375,6 +380,7 @@ dependencies {
 
     //Translations
     compile deps.translations
+    compile deps.jna
 }
 
 tasks.withType(ScalaCompile) {
