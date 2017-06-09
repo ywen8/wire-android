@@ -58,7 +58,6 @@ import com.waz.zclient.core.stores.conversation.{ConversationChangeRequester, Co
 import com.waz.zclient.core.stores.profile.ProfileStoreObserver
 import com.waz.zclient.pages.main.connectivity.ConnectivityFragment
 import com.waz.zclient.pages.main.grid.GridFragment
-import com.waz.zclient.pages.main.profile.ZetaPreferencesActivity
 import com.waz.zclient.pages.main.{MainPhoneFragment, MainTabletFragment}
 import com.waz.zclient.pages.startup.UpdateFragment
 import com.waz.zclient.tracking.{GlobalTrackingController, UiTrackingController}
@@ -250,7 +249,7 @@ class MainActivity extends BaseActivity
       page match {
         case LOCALYTICS_DEEPLINK_SEARCH |
              LOCALYTICS_DEEPLINK_PROFILE => restartAppWithPage(page)
-        case LOCALYTICS_DEEPLINK_SETTINGS => startActivity(ZetaPreferencesActivity.getDefaultIntent(this))
+        case LOCALYTICS_DEEPLINK_SETTINGS => startActivity(PreferencesActivity.getDefaultIntent(this))
       }
     }
   }
@@ -521,7 +520,7 @@ class MainActivity extends BaseActivity
 
   def manageDevices() = {
     getSupportFragmentManager.popBackStackImmediate
-    startActivity(ZetaPreferencesActivity.getOtrDevicesPreferencesIntent(this))
+    startActivity(PreferencesActivity.getOtrDevicesPreferencesIntent(this))
   }
 
   def dismissOtrDeviceLimitFragment() = getSupportFragmentManager.popBackStackImmediate
