@@ -858,10 +858,14 @@
     <dimen name="teams_tab_indicator_size">8dp</dimen>
     <dimen name="team_tabs_max_width">240dp</dimen>
     <dimen name="teams_tab_bottom_offset">6dp</dimen>
-    <dimen name="teams_tab_bottom_offset_half">3dp</dimen>
-    <dimen name="conversation_list_toolbar_height">62dp</dimen>
+    <dimen name="teams_tab_text_bottom_margin">4dp</dimen>
+    <dimen name="conversation_list_toolbar_height">64dp</dimen>
     <dimen name="unread_indicator_top_size">10dp</dimen>
     <dimen name="unread_indicator_top_margin">5dp</dimen>
     <dimen name="unread_indicator_name_size">6dp</dimen>
     <dimen name="unread_indicator_name_margin">-10dp</dimen>
+
+    <dimen name="team_tab_drawable_diameter">18dp</dimen>
+    <dimen name="team_tab_drawable_gap">2dp</dimen>
+    <dimen name="team_tab_drawable_border">1.5dp</dimen>
 </resources>

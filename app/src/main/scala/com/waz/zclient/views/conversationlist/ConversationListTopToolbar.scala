@@ -18,7 +18,7 @@
 package com.waz.zclient.views.conversationlist
 
 import android.content.Context
-import android.util.AttributeSet
+import android.util.{AttributeSet, TypedValue}
 import android.view.View
 import android.view.View.{OnClickListener, OnLayoutChangeListener}
 import android.widget.FrameLayout
@@ -71,6 +71,19 @@ abstract class ConversationListTopToolbar(val context: Context, val attrs: Attri
     } else {
       separatorDrawable.animateExpand()
     }
+  }
+
+  override def onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) = {
+    val tv = new TypedValue()
+    val height =
+      if (context.getTheme.resolveAttribute(R.attr.actionBarSize, tv, true))
+        TypedValue.complexToDimensionPixelSize(tv.data, getResources.getDisplayMetrics)
+      else
+        getDimenPx(R.dimen.teams_tab_default_height)(context)
+    val heightOffset = getDimenPx(R.dimen.teams_tab_bottom_offset)(context)
+
+    val heightSpec = View.MeasureSpec.makeMeasureSpec(height + heightOffset, View.MeasureSpec.EXACTLY)
+    super.onMeasure(widthMeasureSpec, heightSpec)
   }
 }
 

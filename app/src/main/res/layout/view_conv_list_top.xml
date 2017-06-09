@@ -55,7 +55,7 @@
         android:layout_width="@dimen/conversation_list__action_icon__size__big"
         android:layout_height="@dimen/conversation_list__action_icon__size__big"
         android:layout_gravity="start|center_vertical"
-        android:layout_marginBottom="@dimen/teams_tab_bottom_offset_half"
+        android:layout_marginBottom="@dimen/teams_tab_text_bottom_margin"
         >
 
         <com.waz.zclient.ui.text.GlyphTextView

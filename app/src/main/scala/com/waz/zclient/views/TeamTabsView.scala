@@ -88,7 +88,11 @@ class TeamTabsAdapter(context: Context)(implicit injector: Injector, eventContex
           case Right((_, c)) => c
           case _ => 0
         }
-        val selected = controller.currentTeamOrUser.currentValue.contains(userOrTeam)
+        val selected = (controller.currentTeamOrUser.currentValue, userOrTeam) match {
+          case (Some(Left(currentUser)), Left(user)) => currentUser.id == user.id
+          case (Some(Right(currentTeam)), Right(team)) => currentTeam.id == team.id
+          case _ => false
+        }
         holder.bind(userOrTeam, selected, count)
       case _ =>
         ZLog.error("Invalid get item index")
