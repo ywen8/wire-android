@@ -80,7 +80,7 @@ class NormalTopToolbar(override val context: Context, override val attrs: Attrib
 
   val controller = inject[TeamsAndUserController]
 
-  glyphButton.setText(R.string.glyph__settings)
+  glyphButton.setText(R.string.glyph__profile)
   controller.teams.on(Threading.Ui) { teams =>
     tabsContainer.setVisible(teams.nonEmpty)
     title.setVisible(teams.isEmpty)
