@@ -22,14 +22,15 @@ import android.os.Bundle;
 import android.support.v4.content.res.ResourcesCompat;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
+import com.waz.model.ConvId;
 import com.waz.zclient.core.controllers.tracking.events.notifications.OpenedQuickReplyEvent;
-import com.waz.zclient.pages.main.popup.QuickReplyFragment;
+import com.waz.zclient.quickreply.QuickReplyFragment;
 import com.waz.zclient.tracking.GlobalTrackingController;
 import com.waz.zclient.ui.utils.KeyboardUtils;
 import com.waz.zclient.utils.IntentUtils;
 import com.waz.zclient.utils.ViewUtils;
 
-public class PopupActivity extends BaseActivity implements QuickReplyFragment.Container {
+public class PopupActivity extends BaseActivity {
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -72,8 +73,7 @@ public class PopupActivity extends BaseActivity implements QuickReplyFragment.Co
 
         getSupportFragmentManager().beginTransaction()
             .replace(R.id.fl__quick_reply__container,
-                QuickReplyFragment.newInstance(conversationId),
-                QuickReplyFragment.TAG)
+                QuickReplyFragment.newInstance(new ConvId(conversationId)))
             .commit();
     }
 
