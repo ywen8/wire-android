@@ -530,7 +530,7 @@ public class ParticipantBodyFragment extends BaseFragment<ParticipantBodyFragmen
         final IConversation conversation = getStoreFactory().getConversationStore().getCurrentConversation();
         if (conversation.getType() == IConversation.Type.ONE_TO_ONE) {
             if (user.isMe()) {
-                footerMenu.setLeftActionText(getString(R.string.glyph__profile));
+                footerMenu.setLeftActionText(getString(R.string.glyph__people));
                 footerMenu.setLeftActionLabelText(getString(R.string.popover__action__profile));
 
                 footerMenu.setRightActionText("");
@@ -544,7 +544,7 @@ public class ParticipantBodyFragment extends BaseFragment<ParticipantBodyFragmen
             }
         } else {
             if (user.isMe()) {
-                footerMenu.setLeftActionText(getString(R.string.glyph__profile));
+                footerMenu.setLeftActionText(getString(R.string.glyph__people));
                 footerMenu.setLeftActionLabelText(getString(R.string.popover__action__profile));
 
                 footerMenu.setRightActionText(getString(R.string.glyph__minus));

@@ -167,7 +167,7 @@ public class VoiceFilterGridLayout extends FrameLayout implements
         if (r == 0) {
             switch (c) {
                 case 0:
-                    return R.string.glyph__profile;
+                    return R.string.glyph__people;
                 case 1:
                     return R.string.glyph__filter_helium;
                 case 2:

@@ -44,7 +44,7 @@
     <string translatable="false" tools:ignore="UnusedResources" name="glyph__equalizer">\uE135</string>
     <string translatable="false" tools:ignore="UnusedResources" name="glyph__ping">\uE137</string>
     <string translatable="false" tools:ignore="UnusedResources" name="glyph__fullscreen">\uE139</string>
-    <string translatable="false" tools:ignore="UnusedResources" name="glyph__profile">\uE142</string>
+    <string translatable="false" tools:ignore="UnusedResources" name="glyph__people">\uE142</string>
     <string translatable="false" tools:ignore="UnusedResources" name="glyph__camera">\uE143</string>
     <string translatable="false" tools:ignore="UnusedResources" name="glyph__snap">\uE144</string>
     <string translatable="false" tools:ignore="UnusedResources" name="glyph__picture">\uE145</string>
@@ -135,4 +135,5 @@
     <string translatable="false" tools:ignore="UnusedResources" name="glyph__keyboard_timed">\uE736</string>
     <string translatable="false" tools:ignore="UnusedResources" name="glyph__emoji_timed">\uE737</string>
     <string translatable="false" tools:ignore="UnusedResources" name="glyph__dismiss">\uE262</string>
+    <string translatable="false" tools:ignore="UnusedResources" name="glyph__profile">\uE265</string>
 </resources>
