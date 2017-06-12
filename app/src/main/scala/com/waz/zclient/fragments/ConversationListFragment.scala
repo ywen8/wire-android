@@ -40,14 +40,13 @@ import com.waz.zclient.pages.main.conversationlist.views.ListActionsView
 import com.waz.zclient.pages.main.conversationlist.views.ListActionsView.Callback
 import com.waz.zclient.pages.main.conversationlist.views.listview.SwipeListView
 import com.waz.zclient.pages.main.pickuser.controller.IPickUserController
+import com.waz.zclient.preferences.PreferencesActivity
 import com.waz.zclient.tracking.GlobalTrackingController
 import com.waz.zclient.ui.text.TypefaceTextView
 import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.utils.{RichView, ViewUtils}
 import com.waz.zclient.views.conversationlist.{ArchiveTopToolbar, ConversationListTopToolbar, NormalTopToolbar}
 import com.waz.zclient.{BaseActivity, FragmentHelper, OnBackPressedListener, R}
-import com.waz.zclient._
-import com.waz.zclient.preferences.PreferencesActivity
 
 abstract class ConversationListFragment extends BaseFragment[ConversationListFragment.Container] with FragmentHelper {
 
