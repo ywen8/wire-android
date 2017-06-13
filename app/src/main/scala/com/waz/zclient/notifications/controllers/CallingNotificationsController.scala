@@ -38,7 +38,7 @@ import android.app.{Notification, NotificationManager, PendingIntent}
 import android.support.v4.app.NotificationCompat
 import com.waz.ZLog._
 import com.waz.bitmap.BitmapUtils
-import com.waz.model.{AssetData, ConvId}
+import com.waz.model.{AccountId, AssetData, ConvId}
 import com.waz.service.assets.AssetService.BitmapResult
 import com.waz.service.assets.AssetService.BitmapResult.BitmapLoaded
 import com.waz.service.call.CallInfo.CallState
@@ -90,14 +90,15 @@ class CallingNotificationsController(implicit cxt: WireContext, eventContext: Ev
   }
 
   (for {
+    z <- zms
     conv <- conversation
     callerName <- callerData.map(_.name)
     state <- callState
     group <- groupCall
     video <- videoCall
     bmp <- bitmap
-  } yield (conv, callerName, state, group, video, bmp)).on(Threading.Ui) {
-    case (conv, callerName, state, group, video, bmp) =>
+  } yield (z.accountId, conv, callerName, state, group, video, bmp)).on(Threading.Ui) {
+    case (account, conv, callerName, state, group, video, bmp) =>
       val message = getCallStateMessage(state, video)
       val title = if (group) getString(R.string.system_notification__group_call_title, callerName, conv.displayName) else conv.displayName
 
@@ -116,16 +117,16 @@ class CallingNotificationsController(implicit cxt: WireContext, eventContext: Ev
 
       state match {
         case OtherCalling => //not in a call, silence or join
-          val silence = silenceIntent(conv.id)
+          val silence = silenceIntent(account, conv.id)
           builder
             .addAction(R.drawable.ic_menu_silence_call_w, getString(R.string.system_notification__silence_call), silence)
-            .addAction(R.drawable.ic_menu_join_call_w, getString(R.string.system_notification__join_call), if (group) joinGroupIntent(conv.id) else joinIntent(conv.id))
+            .addAction(R.drawable.ic_menu_join_call_w, getString(R.string.system_notification__join_call), if (group) joinGroupIntent(account, conv.id) else joinIntent(account, conv.id))
             .setDeleteIntent(silence)
 
         case SelfConnected |
              SelfCalling |
              SelfJoining => //in a call, leave
-          builder.addAction(R.drawable.ic_menu_end_call_w, getString(R.string.system_notification__leave_call), leaveIntent(conv.id))
+          builder.addAction(R.drawable.ic_menu_end_call_w, getString(R.string.system_notification__leave_call), leaveIntent(account, conv.id))
 
         case _ => //no available action
       }
@@ -159,12 +160,12 @@ class CallingNotificationsController(implicit cxt: WireContext, eventContext: Ev
 
   }
 
-  private def silenceIntent(convId: ConvId) = pendingIntent(SilenceRequestCode, CallWakeService.silenceIntent(Context.wrap(cxt), convId))
+  private def silenceIntent(account: AccountId, convId: ConvId) = pendingIntent(SilenceRequestCode, CallWakeService.silenceIntent(Context.wrap(cxt), account, convId))
 
-  private def leaveIntent(convId: ConvId) = pendingIntent(LeaveRequestCode, CallWakeService.leaveIntent(Context.wrap(cxt), convId))
+  private def leaveIntent(account: AccountId, convId: ConvId) = pendingIntent(LeaveRequestCode, CallWakeService.leaveIntent(Context.wrap(cxt), account, convId))
 
-  private def joinIntent(convId: ConvId) = pendingIntent(JoinRequestCode, CallWakeService.joinIntent(Context.wrap(cxt), convId))
-  private def joinGroupIntent(convId: ConvId) = pendingIntent(JoinRequestCode, CallWakeService.joinGroupIntent(Context.wrap(cxt), convId))
+  private def joinIntent(account: AccountId, convId: ConvId) = pendingIntent(JoinRequestCode, CallWakeService.joinIntent(Context.wrap(cxt), account, convId))
+  private def joinGroupIntent(account: AccountId, convId: ConvId) = pendingIntent(JoinRequestCode, CallWakeService.joinGroupIntent(Context.wrap(cxt), account, convId))
 
   private def pendingIntent(reqCode: Int, intent: Intent) = PendingIntent.getService(cxt, reqCode, AndroidIntentUtil.unwrap(intent), PendingIntent.FLAG_UPDATE_CURRENT)
 }
