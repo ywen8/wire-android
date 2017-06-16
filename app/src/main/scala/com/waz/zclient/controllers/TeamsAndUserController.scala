@@ -22,8 +22,8 @@ import com.waz.ZLog._
 import com.waz.model.ConversationData.ConversationType
 import com.waz.model._
 import com.waz.service.ZMessaging
-import com.waz.threading.Threading
-import com.waz.utils.events.{EventContext, Signal}
+import com.waz.threading.{CancellableFuture, Threading}
+import com.waz.utils.events.{EventContext, EventStream, RefreshingSignal, Signal}
 import com.waz.zclient.core.stores.conversation.ConversationChangeRequester
 import com.waz.zclient.utils.Callback
 import com.waz.zclient.{BaseActivity, Injectable, Injector}
@@ -74,6 +74,27 @@ class TeamsAndUserController(implicit injector: Injector, context: Context, ec: 
     teams <- teams
     convs <- z.convsStorage.convsSignal
   } yield teams.map(t => t -> convs.conversations.filter(c => !c.hidden && !c.archived && !c.muted && c.team.contains(t.id)).map(_.unreadCount).sum).toMap
+
+  val currentGuests = (for {
+    Right(team) <- currentTeamOrUser
+    teamService <- zms.map(_.teams)
+    members     <- zms.map(_.teamMemberStorage)
+  } yield (team, teamService, members)).flatMap {
+    case (team, ts, members) =>
+
+      val changes = EventStream.union(
+        members.onChanged.map(_.map(_.teamId)),
+        members.onDeleted.map(_.map(_._2))
+      ).filter(_.contains(team.id))
+
+      new RefreshingSignal[Set[UserId], Seq[TeamId]](CancellableFuture.lift(ts.findGuests(team.id)), changes)
+  }.orElse(Signal.const(Set.empty[UserId]))
+
+  private var _currentGuests = Set.empty[UserId]
+
+  currentGuests { _currentGuests = _ }
+
+  def isGuest(userId: UserId) = _currentGuests.contains(userId)
 
   self.head.map{s => currentTeamOrUser ! Left(s)} //TODO: initial value
 
