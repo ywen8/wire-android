@@ -48,7 +48,7 @@ import com.waz.zclient.pages.main.conversation.controller.IConversationScreenCon
 import com.waz.zclient.pages.main.conversationpager.controller.ISlidingPaneController
 import com.waz.zclient.pages.main.pickuser.controller.IPickUserController
 import com.waz.zclient.tracking.{CallingTrackingController, GlobalTrackingController, UiTrackingController}
-import com.waz.zclient.utils.{BackendPicker, BuildConfigUtils, Callback, UiStorage}
+import com.waz.zclient.utils.{BackStackNavigator, BackendPicker, BuildConfigUtils, Callback, UiStorage}
 import com.waz.zclient.views.ImageController
 
 object WireApplication {
@@ -86,6 +86,7 @@ object WireApplication {
     bind [GlobalCameraController]  to new GlobalCameraController(new AndroidCameraFactory)
     bind [SelectionController]     to new SelectionController()
     bind [SoundController]         to new SoundController
+    bind [BackStackNavigator]      to new BackStackNavigator
 
     //notifications
     bind [MessageNotificationsController]  to new MessageNotificationsController()
