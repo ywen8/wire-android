@@ -76,7 +76,7 @@ ext {
     playServicesVersion = '10.0.1'
 
     audioVersion = System.getenv("AUDIO_VERSION") ?: '1.209.0@aar'
-    zMessagingDevVersionBase = '101.1548'
+    zMessagingDevVersionBase = '101.1557'
     zMessagingDevVersion = "${zMessagingDevVersionBase}@aar"
     // Release version number must be like this X.0(.Y)
     zMessagingReleaseVersion = System.getenv("ZMESSAGING_VERSION") ?: '101.1.369@aar'
@@ -124,7 +124,7 @@ ext {
 
             // Other
             timber               : 'com.jakewharton.timber:timber:4.1.1',
-            hockey               : 'net.hockeyapp.android:HockeySDK:3.7.2',
+            hockey               : 'net.hockeyapp.android:HockeySDK:4.1.4',
             threetenabp          : 'com.jakewharton.threetenabp:threetenabp:1.0.3',
             localytics           : 'com.localytics.android:library:3.8.2',
             rebound              : 'com.facebook.rebound:rebound:0.3.8',
