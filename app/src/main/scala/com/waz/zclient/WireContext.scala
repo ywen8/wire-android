@@ -185,7 +185,7 @@ trait ActivityHelper extends Activity with ViewFinder with Injectable with WireC
 class ViewHolder[T <: View](id: Int, finder: ViewFinder) {
   var view = Option.empty[T]
 
-  def get: T = view.getOrElse { returning(finder.findById(id)) { t => view = Some(t) } }
+  def get: T = view.getOrElse { returning(finder.findById[T](id)) { t => view = Some(t) } }
 
   def clear() = view = Option.empty
 }
