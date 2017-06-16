@@ -26,10 +26,9 @@ import android.net.Uri
 import android.os.{Build, Bundle, Handler}
 import android.support.v4.app.Fragment
 import android.text.TextUtils
-import com.google.android.gms.common.{ConnectionResult, GoogleApiAvailability}
 import com.localytics.android.Localytics
 import com.waz.ZLog.ImplicitTag._
-import com.waz.ZLog.{error, info, warn}
+import com.waz.ZLog.{error, info, verbose, warn}
 import com.waz.api.{NetworkMode, _}
 import com.waz.model.ConvId
 import com.waz.service.ZMessaging
@@ -140,8 +139,6 @@ class MainActivity extends BaseActivity
   override def onStart() = {
     info("onStart")
 
-    zms.map(_.global.googleApi).head.map(_.checkGooglePlayServicesAvailable(this))
-
     overridePendingTransition(R.anim.fade_in, R.anim.fade_out)
     getStoreFactory.getProfileStore.addProfileStoreObserver(this)
     getStoreFactory.getConnectStore.addConnectRequestObserver(this)
@@ -173,7 +170,9 @@ class MainActivity extends BaseActivity
   override protected def onResume() = {
     info("onResume")
     super.onResume()
-    verifyGooglePlayServicesStatus()
+
+    Option(ZMessaging.currentGlobal).foreach(_.googleApi.checkGooglePlayServicesAvailable(this))
+
     val trackingEnabled = getSharedPreferences(UserPreferencesController.USER_PREFS_TAG, Context.MODE_PRIVATE).getBoolean(getString(R.string.pref_advanced_analytics_enabled_key), true)
     if (trackingEnabled) HockeyCrashReporting.checkForCrashes(getApplicationContext, getControllerFactory.getUserPreferencesController.getDeviceId, globalTracking)
     else {
@@ -233,7 +232,7 @@ class MainActivity extends BaseActivity
   override protected def onActivityResult(requestCode: Int, resultCode: Int, data: Intent) = {
     info(s"OnActivity requestCode: $requestCode, resultCode: $resultCode")
     super.onActivityResult(requestCode, resultCode, data)
-    zms.map(_.global.googleApi).head.map(_.onActivityResult(requestCode, resultCode))
+    Option(ZMessaging.currentGlobal).foreach(_.googleApi.onActivityResult(requestCode, resultCode))
     getSupportFragmentManager.findFragmentById(R.id.fl_main_content).onActivityResult(requestCode, resultCode, data)
   }
 
@@ -275,16 +274,6 @@ class MainActivity extends BaseActivity
     getControllerFactory.getOrientationController
     // Here comes code for adding other dependencies to controllers...
     getControllerFactory.getNavigationController.setIsLandscape(ViewUtils.isInLandscape(this))
-  }
-
-  private def verifyGooglePlayServicesStatus() = {
-    val deviceGooglePlayServicesState: Int = GoogleApiAvailability.getInstance().isGooglePlayServicesAvailable(getApplicationContext)
-    val errorShown: Boolean = getControllerFactory.getUserPreferencesController.hasPlayServicesErrorShown
-    if (deviceGooglePlayServicesState == ConnectionResult.SERVICE_VERSION_UPDATE_REQUIRED && !errorShown) {
-      GoogleApiAvailability.getInstance().getErrorDialog(this, deviceGooglePlayServicesState, MainActivity.REQUEST_CODE_GOOGLE_PLAY_SERVICES_DIALOG).show()
-      getControllerFactory.getUserPreferencesController.setPlayServicesErrorShown(true)
-    }
-    else if (deviceGooglePlayServicesState == ConnectionResult.SUCCESS) getControllerFactory.getUserPreferencesController.setPlayServicesErrorShown(false)
   }
 
   ///////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -643,6 +632,5 @@ class MainActivity extends BaseActivity
 }
 
 object MainActivity {
-  val REQUEST_CODE_GOOGLE_PLAY_SERVICES_DIALOG: Int = 56571
   private val LAUNCH_CONVERSATION_CHANGE_DELAY: Int = 123
 }
