@@ -40,6 +40,7 @@ import com.waz.api.OtrClient;
 import com.waz.api.SyncState;
 import com.waz.api.User;
 import com.waz.api.UsersList;
+import com.waz.model.UserId;
 import com.waz.zclient.BaseActivity;
 import com.waz.zclient.OnBackPressedListener;
 import com.waz.zclient.R;
@@ -773,8 +774,8 @@ public class ParticipantFragment extends BaseFragment<ParticipantFragment.Contai
             }
             return;
         }
-        Boolean isTeamSpace = ((BaseActivity) getActivity()).injectJava(TeamsAndUserController.class).isTeamSpace();
-        if (isTeamSpace) {
+        TeamsAndUserController teamsAndUserController = ((BaseActivity) getActivity()).injectJava(TeamsAndUserController.class);
+        if (teamsAndUserController.isTeamSpace() && !teamsAndUserController.isGuest(new UserId(user.getId()))) {
             showAcceptedUser(user);
         } else {
             switch (user.getConnectionStatus()) {

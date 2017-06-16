@@ -22,10 +22,12 @@ import android.content.pm.PackageManager;
 import com.waz.api.AudioAssetForUpload;
 import com.waz.api.AudioEffect;
 import com.waz.api.ContactMethod;
+import com.waz.api.EphemeralExpiration;
 import com.waz.api.IConversation;
 import com.waz.api.Message;
 import com.waz.api.Permission;
 import com.waz.api.User;
+import com.waz.model.ConversationData;
 import com.waz.zclient.R;
 import com.waz.zclient.adapters.PickUsersAdapter;
 import com.waz.zclient.controllers.drawing.DrawingController;
@@ -248,6 +250,14 @@ public class TrackingUtils {
                                                                   conversation.isOtto(),
                                                                   conversation.isEphemeral(),
                                                                   String.valueOf(conversation.getEphemeralExpiration().duration().toSeconds())));
+    }
+
+    public static void onSentTextMessage(GlobalTrackingController trackingController, ConversationData conversation, Boolean isOtto) {
+        trackingController.tagEvent(new CompletedMediaActionEvent(CompletedMediaType.TEXT,
+                                                                  conversation.convType().name(),
+                                                                  isOtto,
+                                                                  conversation.ephemeral() != EphemeralExpiration.NONE,
+                                                                  String.valueOf(conversation.ephemeral().duration().toSeconds())));
     }
 
     public static void onSentGifMessage(GlobalTrackingController trackingController, IConversation conversation) {
