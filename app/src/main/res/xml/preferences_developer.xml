@@ -77,17 +77,10 @@
 
     </PreferenceCategory>
 
-    <PreferenceCategory
-        android:key="@string/pref_dev_category_net_debug_key"
-        android:title="@string/pref_dev_category_net_debug_title"
-        >
-
-        <Preference
-            android:key="@string/pref_dev_net_debug_key"
-            android:title="@string/pref_dev_net_debug_title"
-            android:summary="@string/pref_dev_net_debug_summary"
-            />
-
-    </PreferenceCategory>
+    <Preference
+        android:key="@string/pref_dev_category_sign_in_account_key"
+        android:title="@string/pref_dev_category_sign_in_account_title"
+        android:summary="@string/pref_dev_category_sign_in_account_summary"
+        />
 
 </PreferenceScreen>

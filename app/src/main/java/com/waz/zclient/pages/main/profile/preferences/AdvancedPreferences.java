@@ -25,12 +25,12 @@ import com.waz.zclient.BaseActivity;
 import com.waz.zclient.R;
 import com.waz.zclient.core.controllers.tracking.events.Event;
 import com.waz.zclient.core.controllers.tracking.events.settings.ChangedImageDownloadPreferenceEvent;
-import com.waz.zclient.pages.BasePreferenceFragment;
+import com.waz.zclient.preferences.BasePreferenceFragment;
 import com.waz.zclient.tracking.GlobalTrackingController;
 import com.waz.zclient.utils.DebugUtils;
 import timber.log.Timber;
 
-public class AdvancedPreferences extends BasePreferenceFragment<AdvancedPreferences.Container> {
+public class AdvancedPreferences extends BasePreferenceFragment {
 
     private Preference debugReportPreference;
 
@@ -83,8 +83,5 @@ public class AdvancedPreferences extends BasePreferenceFragment<AdvancedPreferen
             }
         }
         return event;
-    }
-
-    public interface Container {
     }
 }

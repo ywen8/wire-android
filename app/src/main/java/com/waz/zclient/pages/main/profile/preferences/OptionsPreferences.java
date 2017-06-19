@@ -38,8 +38,8 @@ import com.waz.zclient.core.controllers.tracking.events.settings.ChangedImageDow
 import com.waz.zclient.core.controllers.tracking.events.settings.ChangedSendButtonSettingEvent;
 import com.waz.zclient.core.controllers.tracking.events.settings.ChangedThemeEvent;
 import com.waz.zclient.media.SoundController;
-import com.waz.zclient.pages.BasePreferenceFragment;
 import com.waz.zclient.pages.main.profile.preferences.dialogs.WireRingtonePreferenceDialogFragment;
+import com.waz.zclient.preferences.BasePreferenceFragment;
 import com.waz.zclient.tracking.GlobalTrackingController;
 import com.waz.zclient.utils.LayoutSpec;
 import com.waz.zclient.utils.PermissionUtils;
@@ -48,8 +48,8 @@ import net.xpece.android.support.preference.RingtonePreference;
 import net.xpece.android.support.preference.SwitchPreference;
 
 
-public class OptionsPreferences extends BasePreferenceFragment<OptionsPreferences.Container> implements SharedPreferences.OnSharedPreferenceChangeListener,
-                                                                                                        RequestPermissionsObserver {
+public class OptionsPreferences extends BasePreferenceFragment implements SharedPreferences.OnSharedPreferenceChangeListener,
+                                                                          RequestPermissionsObserver {
 
     private Preference.OnPreferenceChangeListener bindPreferenceSummaryToValueListener = new PreferenceSummaryChangeListener();
     private RingtonePreference ringtonePreference;
@@ -128,7 +128,7 @@ public class OptionsPreferences extends BasePreferenceFragment<OptionsPreference
                    key.equals(textTonePreference.getKey()) ||
                    key.equals(pingPreference.getKey())) {
 
-            SoundController ctrl = inject(SoundController.class);
+            SoundController ctrl = injectJava(SoundController.class);
             if (ctrl != null) {
                 ctrl.setCustomSoundUrisFromPreferences(sharedPreferences);
             }
@@ -151,7 +151,7 @@ public class OptionsPreferences extends BasePreferenceFragment<OptionsPreference
             event = new ChangedSendButtonSettingEvent(sendButtonIsOn);
         } else if (key.equals(getString(R.string.pref_options_vbr_key))) {
             boolean vbrOn = sharedPreferences.getBoolean(key, false);
-            CallPermissionsController ctrl = inject(CallPermissionsController.class);
+            CallPermissionsController ctrl = injectJava(CallPermissionsController.class);
             if (ctrl != null) {
                 ctrl.setVariableBitRateMode(vbrOn);
             }
@@ -195,9 +195,6 @@ public class OptionsPreferences extends BasePreferenceFragment<OptionsPreference
             preference.setSummary(RingtonePreference.getRingtoneTitle(context, uri));
             return true;
         }
-    }
-
-    public interface Container {
     }
 
     @Override

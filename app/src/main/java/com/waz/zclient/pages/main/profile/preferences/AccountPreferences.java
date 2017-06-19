@@ -27,6 +27,7 @@ import android.text.TextUtils;
 import android.view.View;
 import android.widget.EditText;
 import com.waz.zclient.BaseActivity;
+import com.waz.zclient.preferences.PreferencesActivity;
 import com.waz.zclient.R;
 import com.waz.zclient.controllers.accentcolor.AccentColorObserver;
 import com.waz.zclient.controllers.tracking.events.profile.ResetPassword;
@@ -34,8 +35,6 @@ import com.waz.zclient.controllers.tracking.events.profile.SignOut;
 import com.waz.zclient.core.controllers.tracking.events.session.LoggedOutEvent;
 import com.waz.zclient.core.controllers.tracking.events.settings.EditedUsernameEvent;
 import com.waz.zclient.core.stores.profile.ProfileStoreObserver;
-import com.waz.zclient.pages.BasePreferenceFragment;
-import com.waz.zclient.pages.main.profile.ZetaPreferencesActivity;
 import com.waz.zclient.pages.main.profile.camera.CameraContext;
 import com.waz.zclient.pages.main.profile.preferences.dialogs.AccentColorPreferenceDialogFragment;
 import com.waz.zclient.pages.main.profile.preferences.dialogs.AddEmailAndPasswordPreferenceDialogFragment;
@@ -44,6 +43,7 @@ import com.waz.zclient.pages.main.profile.preferences.dialogs.ChangeEmailPrefere
 import com.waz.zclient.pages.main.profile.preferences.dialogs.ChangeUsernamePreferenceDialogFragment;
 import com.waz.zclient.pages.main.profile.preferences.dialogs.VerifyEmailPreferenceFragment;
 import com.waz.zclient.pages.main.profile.preferences.dialogs.VerifyPhoneNumberPreferenceFragment;
+import com.waz.zclient.preferences.BasePreferenceFragment;
 import com.waz.zclient.tracking.GlobalTrackingController;
 import com.waz.zclient.ui.utils.TextViewUtils;
 import com.waz.zclient.utils.StringUtils;
@@ -51,15 +51,15 @@ import com.waz.zclient.utils.ViewUtils;
 
 import net.xpece.android.support.preference.EditTextPreference;
 
-public class AccountPreferences extends BasePreferenceFragment<AccountPreferences.Container> implements ProfileStoreObserver,
-                                                                                                        SharedPreferences.OnSharedPreferenceChangeListener,
-                                                                                                        VerifyPhoneNumberPreferenceFragment.Container,
-                                                                                                        VerifyEmailPreferenceFragment.Container,
-                                                                                                        AddEmailAndPasswordPreferenceDialogFragment.Container,
-                                                                                                        ChangeEmailPreferenceDialogFragment.Container,
-                                                                                                        AddPhoneNumberPreferenceDialogFragment.Container,
-                                                                                                        ChangeUsernamePreferenceDialogFragment.Container,
-                                                                                                        AccentColorObserver {
+public class AccountPreferences extends BasePreferenceFragment implements ProfileStoreObserver,
+                                                                          SharedPreferences.OnSharedPreferenceChangeListener,
+                                                                          VerifyPhoneNumberPreferenceFragment.Container,
+                                                                          VerifyEmailPreferenceFragment.Container,
+                                                                          AddEmailAndPasswordPreferenceDialogFragment.Container,
+                                                                          ChangeEmailPreferenceDialogFragment.Container,
+                                                                          AddPhoneNumberPreferenceDialogFragment.Container,
+                                                                          ChangeUsernamePreferenceDialogFragment.Container,
+                                                                          AccentColorObserver {
 
     public static final String TAG = AccountPreferences.class.getName();
     private EditTextPreference namePreference;
@@ -84,7 +84,7 @@ public class AccountPreferences extends BasePreferenceFragment<AccountPreference
     public void onCreatePreferences2(Bundle savedInstanceState, String rootKey) {
         super.onCreatePreferences2(savedInstanceState, rootKey);
         addPreferencesFromResource(R.xml.preferences_account);
-        boolean shouldShowUsernameEdit = getArguments().getBoolean(ZetaPreferencesActivity.SHOW_USERNAME_EDIT);
+        boolean shouldShowUsernameEdit = getArguments().getBoolean(PreferencesActivity.ShowUsernameEdit());
         namePreference = (EditTextPreference) findPreference(getString(R.string.pref_account_name_key));
         namePreference.setOnEditTextCreatedListener(new EditTextPreference.OnEditTextCreatedListener() {
             @Override
@@ -455,8 +455,5 @@ public class AccountPreferences extends BasePreferenceFragment<AccountPreference
     @Override
     public void onUsernameChanged(String username) {
         onMyUsernameHasChanged(username);
-    }
-
-    public interface Container {
     }
 }

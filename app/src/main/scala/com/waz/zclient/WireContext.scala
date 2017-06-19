@@ -21,12 +21,12 @@ import android.annotation.SuppressLint
 import android.app.{Activity, Service}
 import android.content.{Context, ContextWrapper}
 import android.support.v4.app.{Fragment, FragmentActivity}
+import android.support.v7.preference.Preference
 import android.view.{LayoutInflater, View, ViewGroup, ViewStub}
 import com.waz.ZLog
 import com.waz.ZLog._
 import com.waz.utils.events._
 import com.waz.utils.returning
-import net.xpece.android.support.preference.Preference
 
 import scala.language.implicitConversions
 
@@ -128,6 +128,10 @@ trait FragmentHelper extends Fragment with ViewFinder with Injectable with Event
     if (res != null) res.asInstanceOf[V]
     else getActivity.findViewById(id).asInstanceOf[V]
   }
+
+  def findById[V <: View](parent: View, id: Int) =
+    parent.findViewById(id).asInstanceOf[V]
+
   def view[V <: View](id: Int) = {
     val h = new ViewHolder[V](id, this)
     views ::= h
@@ -193,4 +197,14 @@ class ViewHolder[T <: View](id: Int, finder: ViewFinder) {
 trait PreferenceHelper extends Preference with Injectable with EventContext {
   lazy implicit val wContext = WireContext(getContext)
   lazy implicit val injector = wContext.injector
+
+  override def onAttached(): Unit = {
+    super.onAttached()
+    onContextStart()
+  }
+
+  override def onDetached(): Unit = {
+    onContextStop()
+    super.onDetached()
+  }
 }
