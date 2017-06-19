@@ -110,10 +110,6 @@ public interface IUserPreferencesController {
 
     void setLastEphemeralValue(long value);
 
-    boolean hasPlayServicesErrorShown();
-
-    void setPlayServicesErrorShown(boolean value);
-
     boolean isVariableBitRateEnabled();
 
     boolean swapForceVerboseLogging();
