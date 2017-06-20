@@ -22,7 +22,6 @@ import android.renderscript.RenderScript
 import android.support.multidex.MultiDexApplication
 import com.waz.ZLog.ImplicitTag._
 import com.waz.ZLog.{debug, verbose}
-import com.waz.api
 import com.waz.api.{NetworkMode, ZMessagingApi, ZMessagingApiFactory, ZmsVersion}
 import com.waz.content.GlobalPreferences
 import com.waz.log.InternalLog
