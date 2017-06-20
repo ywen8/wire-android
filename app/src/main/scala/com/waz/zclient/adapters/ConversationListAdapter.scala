@@ -22,7 +22,7 @@ import android.support.v7.widget.RecyclerView
 import android.view.View.OnLongClickListener
 import android.view.{View, ViewGroup}
 import com.waz.ZLog.ImplicitTag._
-import com.waz.ZLog.{error, verbose}
+import com.waz.ZLog.error
 import com.waz.api.IConversation
 import com.waz.model.ConversationData.ConversationType
 import com.waz.model._
@@ -43,8 +43,14 @@ class ConversationListAdapter(context: Context)(implicit injector: Injector, eve
   lazy val zms = inject[Signal[ZMessaging]]
   lazy val userAccountsController = inject[UserAccountsController]
   val currentMode = Signal[ListMode]()
-  lazy val conversationsSignal = for {
-    z <- zms
+
+  var _conversations = Seq.empty[ConversationData]
+  var _incomingRequests = (Seq.empty[ConversationData], Seq.empty[UserId])
+
+  lazy val conversations = for {
+    z             <- zms
+    processing    <- z.convOrder.processing
+    if !processing
     conversations <- z.convsStorage.convsSignal
     mode <- currentMode
   } yield
@@ -55,11 +61,12 @@ class ConversationListAdapter(context: Context)(implicit injector: Injector, eve
       .toSeq
       .sorted(mode.sort)
 
-  var conversations = Seq.empty[ConversationData]
-  var incomingRequests = (Seq.empty[ConversationData], Seq.empty[UserId])
 
-  lazy val incomingRequestsSignal = for {
-    z <- zms
+
+  lazy val incomingRequests = for {
+    z             <- zms
+    processing    <- z.convOrder.processing
+    if !processing
     conversations <- z.convsStorage.convsSignal.map(_.conversations.filter(Incoming.filter).toSeq)
     members <- Signal.sequence(conversations.map(c => z.membersStorage.activeMembers(c.id).map(_.find(_ != z.selfUserId))):_*)
     mode <- currentMode
@@ -70,26 +77,26 @@ class ConversationListAdapter(context: Context)(implicit injector: Injector, eve
 
   var maxAlpha = 1.0f
 
-  Signal(conversationsSignal, incomingRequestsSignal).on(Threading.Ui) {
+  Signal(conversations, incomingRequests).on(Threading.Ui) {
     case (convs, requests) =>
-      conversations = convs
-      incomingRequests = requests
+      _conversations = convs
+      _incomingRequests = requests
       notifyDataSetChanged()
   }
 
   private def getConversation(position: Int): Option[ConversationData] = {
-    conversations.lift(position)
+    _conversations.lift(position)
   }
 
   private def getItem(position: Int): Option[ConversationData] =
-    incomingRequests._2 match {
+    _incomingRequests._2 match {
       case Seq() => getConversation(position)
       case _ => if (position == 0) None else getConversation(position - 1)
     }
 
   override def getItemCount = {
-    val incoming = if (incomingRequests._2.nonEmpty) 1 else 0
-    conversations.size + incoming
+    val incoming = if (_incomingRequests._2.nonEmpty) 1 else 0
+    _conversations.size + incoming
   }
 
   override def onBindViewHolder(holder: ConversationRowViewHolder, position: Int) = {
@@ -101,7 +108,7 @@ class ConversationListAdapter(context: Context)(implicit injector: Injector, eve
           normalViewHolder.bind(item)
         }
       case incomingViewHolder: IncomingConversationRowViewHolder =>
-        incomingViewHolder.bind(incomingRequests)
+        incomingViewHolder.bind(_incomingRequests)
     }
   }
 
@@ -135,7 +142,7 @@ class ConversationListAdapter(context: Context)(implicit injector: Injector, eve
         IncomingConversationRowViewHolder(returning(new IncomingConversationListRow(context)) { r =>
           r.setOnClickListener(new View.OnClickListener {
             override def onClick(view: View): Unit = {
-              incomingRequests._1.headOption.foreach(onConversationClick ! _ )
+              _incomingRequests._1.headOption.foreach(onConversationClick ! _ )
             }
           })
         })
@@ -146,7 +153,7 @@ class ConversationListAdapter(context: Context)(implicit injector: Injector, eve
     getItem(position).fold(position)(_.id.str.hashCode)
 
   override def getItemViewType(position: Int): Int =
-    if (position == 0 && incomingRequests._2.nonEmpty)
+    if (position == 0 && _incomingRequests._2.nonEmpty)
       IncomingViewType
     else
       NormalViewType
