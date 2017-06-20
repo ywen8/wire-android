@@ -27,6 +27,7 @@ import android.view.animation.Animation;
 import android.widget.TextView;
 import com.waz.api.IConversation;
 import com.waz.api.User;
+import com.waz.model.UserId;
 import com.waz.zclient.BaseActivity;
 import com.waz.zclient.R;
 import com.waz.zclient.common.views.UserDetailsView;
