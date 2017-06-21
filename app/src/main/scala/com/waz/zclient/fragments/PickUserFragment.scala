@@ -613,7 +613,7 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
           val myName: String = self.getDisplayName
           val message: String = getString(R.string.connect__message, user.getName, myName)
           user.connect(message)
-          trackingController.tagEvent(new SentConnectRequestEvent(SentConnectRequestEvent.EventContext.INVITE_CONTACT_LIST, user.getCommonConnectionsCount))
+          trackingController.tagEvent(new SentConnectRequestEvent(SentConnectRequestEvent.EventContext.INVITE_CONTACT_LIST))
         }(Threading.Ui)
       case _ =>
     }
