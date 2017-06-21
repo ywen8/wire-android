@@ -82,7 +82,7 @@ class ChangeHandleFragment extends DialogFragment with FragmentHelper {
       if (lowercaseString != normalText) handleEditText.setText(lowercaseString)
       else {
         val error = validateUsername(normalText)
-        usernameInputLayout.setError(getErrorMessage(error))
+        setErrorMessage(error)
         error match {
           case NoError =>
             for {
@@ -91,15 +91,15 @@ class ChangeHandleFragment extends DialogFragment with FragmentHelper {
               if !curHandle.map(_.string).contains(normalText)
               _ <- z.zNetClient.withErrorHandling("isUsernameAvailable", Request.Head(Usernames.checkSingleAvailabilityPath + normalText)) {
                 case Response(SuccessHttpStatus(), _, _) =>
-                  usernameInputLayout.setError(getErrorMessage(AlreadyTaken))
+                  setErrorMessage(AlreadyTaken)
                   okButton.setEnabled(false)
 
                 case Response(HttpStatus(Status.NotFound, _), _, _) =>
-                  usernameInputLayout.setError("")
+                  setErrorMessage("")
                   okButton.setEnabled(editingEnabled)
 
                 case _ =>
-                  usernameInputLayout.setError(getString(R.string.pref__account_action__dialog__change_username__error_unknown))
+                  setErrorMessage(R.string.pref__account_action__dialog__change_username__error_unknown)
                   enableEditing()
                   editBoxShakeAnimation()
               }
@@ -137,12 +137,12 @@ class ChangeHandleFragment extends DialogFragment with FragmentHelper {
 
                   case Left(err) =>
                     warn(s"Failed to update username: $err")
-                    usernameInputLayout.setError(getString(R.string.pref__account_action__dialog__change_username__error_unknown))
+                    setErrorMessage(R.string.pref__account_action__dialog__change_username__error_unknown)
                     enableEditing()
                 }
 
               case err =>
-                usernameInputLayout.setError(getErrorMessage(err))
+                setErrorMessage(err)
                 enableEditing()
                 editBoxShakeAnimation()
             }
@@ -223,9 +223,9 @@ class ChangeHandleFragment extends DialogFragment with FragmentHelper {
     super.onStop()
   }
 
-  private def getErrorMessage(error: ValidationError): String = {
+  private def setErrorMessage(error: ValidationError): Unit = {
     import ValidationError._
-    error match {
+    val str = error match {
       case NoError           => " "
       case TooLong           => " "
       case TooShort          => " "
@@ -233,7 +233,14 @@ class ChangeHandleFragment extends DialogFragment with FragmentHelper {
       case AlreadyTaken      => getString(R.string.pref__account_action__dialog__change_username__error_already_taken)
       case _                 => getString(R.string.pref__account_action__dialog__change_username__error_unknown)
     }
+    setErrorMessage(str)
   }
+
+  private def setErrorMessage(resId: Int): Unit =
+    setErrorMessage(getString(resId))
+
+  private def setErrorMessage(str: String): Unit =
+    Option(getActivity).filter(_ => isAdded).foreach(_ => usernameInputLayout.setError(str))
 
   private def editBoxShakeAnimation() =
     handleEditText.startAnimation(AnimationUtils.loadAnimation(getContext, R.anim.shake_animation))
