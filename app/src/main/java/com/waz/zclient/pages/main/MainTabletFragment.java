@@ -37,7 +37,7 @@ import com.waz.zclient.controllers.confirmation.ConfirmationRequest;
 import com.waz.zclient.controllers.confirmation.IConfirmationController;
 import com.waz.zclient.controllers.navigation.Page;
 import com.waz.zclient.controllers.singleimage.SingleImageObserver;
-import com.waz.zclient.core.stores.inappnotification.InAppNotificationStoreObserver;
+import com.waz.zclient.core.stores.inappnotification.SyncErrorObserver;
 import com.waz.zclient.fragments.ImageFragment;
 import com.waz.zclient.pages.BaseFragment;
 import com.waz.zclient.pages.main.conversation.SingleImageUserFragment;
@@ -57,7 +57,7 @@ public class MainTabletFragment extends BaseFragment<MainTabletFragment.Containe
                                                                                    ConfirmationObserver,
                                                                                    AccentColorObserver,
                                                                                    ConfirmationFragment.Container,
-                                                                                   InAppNotificationStoreObserver {
+    SyncErrorObserver {
 
     public static final String TAG = MainTabletFragment.class.getName();
 
@@ -214,12 +214,7 @@ public class MainTabletFragment extends BaseFragment<MainTabletFragment.Containe
     public void onAccentColorHasChanged(Object sender, int color) {
         confirmationMenu.setButtonColor(color);
     }
-
-    @Override
-    public void onIncomingMessage(Message message) {
-        // ignore
-    }
-
+    
     @Override
     public void onSyncError(ErrorsList.ErrorDescription error) {
         if (getActivity() == null) {

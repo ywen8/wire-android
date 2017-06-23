@@ -46,6 +46,7 @@ import com.waz.model.MessageData;
 import com.waz.zclient.BaseActivity;
 import com.waz.zclient.OnBackPressedListener;
 import com.waz.zclient.R;
+import com.waz.zclient.connect.ConnectRequestFragment;
 import com.waz.zclient.controllers.collections.CollectionsObserver;
 import com.waz.zclient.controllers.drawing.DrawingController;
 import com.waz.zclient.controllers.drawing.DrawingObserver;
@@ -64,7 +65,6 @@ import com.waz.zclient.core.stores.conversation.ConversationChangeRequester;
 import com.waz.zclient.core.stores.conversation.ConversationStoreObserver;
 import com.waz.zclient.core.stores.participants.ParticipantsStoreObserver;
 import com.waz.zclient.pages.BaseFragment;
-import com.waz.zclient.pages.main.connect.ConnectRequestInboxManagerFragment;
 import com.waz.zclient.pages.main.connect.ConnectRequestLoadMode;
 import com.waz.zclient.pages.main.connect.PendingConnectRequestManagerFragment;
 import com.waz.zclient.pages.main.conversation.ConversationFragment;
@@ -99,7 +99,7 @@ public class RootFragment extends BaseFragment<RootFragment.Container> implement
                                                                        ConversationStoreObserver,
                                                                        SlidingPaneObserver,
                                                                        PendingConnectRequestManagerFragment.Container,
-                                                                       ConnectRequestInboxManagerFragment.Container,
+                                                                       ConnectRequestFragment.Container,
                                                                        ParticipantsDialogFragment.Container,
                                                                        PagerControllerObserver,
                                                                        ConversationScreenControllerObserver,
@@ -316,8 +316,8 @@ public class RootFragment extends BaseFragment<RootFragment.Container> implement
                         page = Page.PENDING_CONNECT_REQUEST_AS_CONVERSATION;
                         break;
                     case INCOMING_CONNECTION:
-                        fragment = ConnectRequestInboxManagerFragment.newInstance(toConversation.getId());
-                        tag = ConnectRequestInboxManagerFragment.TAG;
+                        fragment = ConnectRequestFragment.newInstance(toConversation.getId());
+                        tag = ConnectRequestFragment.FragmentTag();
                         page = Page.CONNECT_REQUEST_INBOX;
                         break;
                     case GROUP:
@@ -434,14 +434,7 @@ public class RootFragment extends BaseFragment<RootFragment.Container> implement
         if (nextConversation == null) {
             return;
         }
-        getStoreFactory().getConversationStore().setCurrentConversation(nextConversation,
-                                                                        ConversationChangeRequester.START_CONVERSATION);
-    }
-
-    @Override
-    public void onAcceptedUser(IConversation conversation) {
-        getStoreFactory().getConversationStore().setCurrentConversation(conversation,
-                                                                        ConversationChangeRequester.START_CONVERSATION);
+        getStoreFactory().getConversationStore().setCurrentConversation(nextConversation, ConversationChangeRequester.START_CONVERSATION);
     }
 
     @Override

@@ -19,7 +19,7 @@ package com.waz.zclient.core.stores.stub;
 
 import com.waz.api.ErrorsList;
 import com.waz.zclient.core.stores.inappnotification.IInAppNotificationStore;
-import com.waz.zclient.core.stores.inappnotification.InAppNotificationStoreObserver;
+import com.waz.zclient.core.stores.inappnotification.SyncErrorObserver;
 
 public class StubInAppNotificationStore implements IInAppNotificationStore {
   @Override
@@ -38,12 +38,12 @@ public class StubInAppNotificationStore implements IInAppNotificationStore {
   }
 
   @Override
-  public void addInAppNotificationObserver(InAppNotificationStoreObserver messageListener) {
+  public void addInAppNotificationObserver(SyncErrorObserver messageListener) {
 
   }
 
   @Override
-  public void removeInAppNotificationObserver(InAppNotificationStoreObserver messageListener) {
+  public void removeInAppNotificationObserver(SyncErrorObserver messageListener) {
 
   }
 

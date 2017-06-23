@@ -24,26 +24,20 @@ import java.util.HashSet;
 import java.util.Set;
 
 public abstract class InAppNotificationStore implements IInAppNotificationStore {
-    protected Set<InAppNotificationStoreObserver> inAppNotificationObservers = new HashSet<>();
+    protected Set<SyncErrorObserver> inAppNotificationObservers = new HashSet<>();
 
     @Override
-    public void addInAppNotificationObserver(InAppNotificationStoreObserver messageListener) {
+    public void addInAppNotificationObserver(SyncErrorObserver messageListener) {
         inAppNotificationObservers.add(messageListener);
     }
 
     @Override
-    public void removeInAppNotificationObserver(InAppNotificationStoreObserver messageListener) {
+    public void removeInAppNotificationObserver(SyncErrorObserver messageListener) {
         inAppNotificationObservers.remove(messageListener);
     }
 
-    protected void notifyIncomingMessageObservers(Message message) {
-        for (InAppNotificationStoreObserver observer : inAppNotificationObservers) {
-            observer.onIncomingMessage(message);
-        }
-    }
-
     protected void notifySyncErrorObservers(ErrorsList.ErrorDescription error) {
-        for (InAppNotificationStoreObserver observer : inAppNotificationObservers) {
+        for (SyncErrorObserver observer : inAppNotificationObservers) {
             observer.onSyncError(error);
         }
     }

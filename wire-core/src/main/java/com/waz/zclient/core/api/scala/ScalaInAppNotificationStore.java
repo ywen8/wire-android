@@ -18,30 +18,20 @@
 package com.waz.zclient.core.api.scala;
 
 import com.waz.api.ErrorsList;
-import com.waz.api.IncomingMessagesList;
-import com.waz.api.Message;
 import com.waz.api.ZMessagingApi;
 import com.waz.zclient.core.stores.inappnotification.InAppNotificationStore;
 
-public class ScalaInAppNotificationStore extends InAppNotificationStore implements IncomingMessagesList.MessageListener,
-                                                                                   ErrorsList.ErrorListener {
+public class ScalaInAppNotificationStore extends InAppNotificationStore implements ErrorsList.ErrorListener {
 
-    private IncomingMessagesList incomingMessages;
     private ErrorsList syncErrors;
 
     public ScalaInAppNotificationStore(ZMessagingApi zMessagingApi) {
-        incomingMessages = zMessagingApi.getIncomingMessages();
-        incomingMessages.addMessageListener(this);
-
         syncErrors = zMessagingApi.getErrors();
         syncErrors.addErrorListener(this);
     }
 
     @Override
     public void tearDown() {
-        incomingMessages.removeMessageListener(this);
-        incomingMessages = null;
-
         syncErrors.removeErrorListener(this);
         syncErrors = null;
     }
@@ -69,11 +59,6 @@ public class ScalaInAppNotificationStore extends InAppNotificationStore implemen
             }
         }
         return null;
-    }
-
-    @Override
-    public void onIncomingMessage(Message message) {
-        notifyIncomingMessageObservers(message);
     }
 
     @Override

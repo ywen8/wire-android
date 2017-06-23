@@ -31,8 +31,10 @@ import com.waz.api.IConversation;
 import com.waz.api.SyncState;
 import com.waz.api.UpdateListener;
 import com.waz.api.User;
+import com.waz.model.UserId;
 import com.waz.zclient.OnBackPressedListener;
 import com.waz.zclient.R;
+import com.waz.zclient.connect.ConnectRequestFragment;
 import com.waz.zclient.controllers.navigation.Page;
 import com.waz.zclient.controllers.navigation.PagerControllerObserver;
 import com.waz.zclient.core.stores.connect.IConnectStore;
@@ -40,7 +42,6 @@ import com.waz.zclient.core.stores.connect.InboxLinkConversation;
 import com.waz.zclient.core.stores.conversation.ConversationChangeRequester;
 import com.waz.zclient.core.stores.conversation.ConversationStoreObserver;
 import com.waz.zclient.pages.BaseFragment;
-import com.waz.zclient.pages.main.connect.ConnectRequestInboxManagerFragment;
 import com.waz.zclient.pages.main.connect.ConnectRequestLoadMode;
 import com.waz.zclient.pages.main.connect.PendingConnectRequestManagerFragment;
 import com.waz.zclient.pages.main.conversation.ConversationManagerFragment;
@@ -53,7 +54,7 @@ public class SecondPageFragment extends BaseFragment<SecondPageFragment.Containe
                                                                                               PagerControllerObserver,
                                                                                               PendingConnectRequestManagerFragment.Container,
                                                                                               UpdateListener,
-                                                                                              ConnectRequestInboxManagerFragment.Container {
+                                                                                              ConnectRequestFragment.Container {
     public static final String TAG = SecondPageFragment.class.getName();
     private static final String SECOND_PAGE_POSITION = "SECOND_PAGE_POSITION";
     public static final String ARGUMENT_CONVERSATION_ID = "ARGUMENT_CONVERSATION_ID";
@@ -187,13 +188,13 @@ public class SecondPageFragment extends BaseFragment<SecondPageFragment.Containe
                 if (switchingToConnectRequestInbox) {
                     Bundle arguments = new Bundle();
                     arguments.putString(ARGUMENT_CONVERSATION_ID, toConversation.getId());
-                    openPage(Page.CONNECT_REQUEST_INBOX, arguments, conversationChangerSender);
+                    openPage(Page.CONNECT_REQUEST_INBOX, arguments);
                 } else if (switchingToPendingConnectRequest) {
                     Bundle arguments = new Bundle();
                     arguments.putString(ARGUMENT_CONVERSATION_ID, toConversation.getId());
-                    openPage(Page.CONNECT_REQUEST_PENDING, arguments, conversationChangerSender);
+                    openPage(Page.CONNECT_REQUEST_PENDING, arguments);
                 } else {
-                    openPage(Page.MESSAGE_STREAM, new Bundle(), conversationChangerSender);
+                    openPage(Page.MESSAGE_STREAM, new Bundle());
                 }
             }
         });
@@ -209,7 +210,7 @@ public class SecondPageFragment extends BaseFragment<SecondPageFragment.Containe
 
     }
 
-    private void openPage(Page page, Bundle arguments, ConversationChangeRequester conversationChangerSender) {
+    private void openPage(Page page, Bundle arguments) {
         if (getContainer() == null || !isResumed()) {
             return;
         }
@@ -217,8 +218,9 @@ public class SecondPageFragment extends BaseFragment<SecondPageFragment.Containe
 
         if (currentPage != null && currentPage.equals(page)) {
             // Scroll to a certain connect request in inbox
-            if (fragment instanceof ConnectRequestInboxManagerFragment) {
-                ((ConnectRequestInboxManagerFragment) fragment).setVisibleConnectRequest(arguments);
+            if (fragment instanceof ConnectRequestFragment) {
+                //TODO set a preference or something
+                ((ConnectRequestFragment) fragment).setVisibleConnectRequest(new UserId(arguments.getString(ARGUMENT_CONVERSATION_ID)));
             }
 
             if (page != Page.CONNECT_REQUEST_PENDING) {
@@ -257,9 +259,8 @@ public class SecondPageFragment extends BaseFragment<SecondPageFragment.Containe
                 break;
             case CONNECT_REQUEST_INBOX:
                 getControllerFactory().getNavigationController().setRightPage(Page.CONNECT_REQUEST_INBOX, TAG);
-                pageFragment = ConnectRequestInboxManagerFragment.newInstance(arguments.getString(
-                    ARGUMENT_CONVERSATION_ID));
-                tag = ConnectRequestInboxManagerFragment.TAG;
+                pageFragment = ConnectRequestFragment.newInstance(arguments.getString(ARGUMENT_CONVERSATION_ID));
+                tag = ConnectRequestFragment.FragmentTag();
                 break;
             case MESSAGE_STREAM:
                 getControllerFactory().getNavigationController().setRightPage(Page.MESSAGE_STREAM, TAG);
@@ -329,19 +330,8 @@ public class SecondPageFragment extends BaseFragment<SecondPageFragment.Containe
                                                                         ConversationChangeRequester.CONNECT_REQUEST_ACCEPTED);
     }
 
-    //////////////////////////////////////////////////////////////////////////////////////////
-    //
-    //  ConnectRequestInboxManagerFragment.Container
-    //
-    //////////////////////////////////////////////////////////////////////////////////////////
-
     @Override
     public void dismissInboxFragment() {
-        getControllerFactory().getNavigationController().setVisiblePage(Page.CONVERSATION_LIST, TAG);
-    }
-
-    @Override
-    public void onAcceptedUser(IConversation conversation) {
         getControllerFactory().getNavigationController().setVisiblePage(Page.CONVERSATION_LIST, TAG);
     }
 
@@ -356,7 +346,7 @@ public class SecondPageFragment extends BaseFragment<SecondPageFragment.Containe
         if ((selectedConversationType == IConversation.Type.INCOMING_CONNECTION ||
              selectedConversationType == IConversation.Type.WAIT_FOR_CONNECTION) &&
             selectedConversation.getType() == IConversation.Type.ONE_TO_ONE) {
-            openPage(Page.MESSAGE_STREAM, new Bundle(), ConversationChangeRequester.CONNECT_REQUEST_ACCEPTED);
+            openPage(Page.MESSAGE_STREAM, new Bundle());
         }
         selectedConversationType = selectedConversation.getType();
     }

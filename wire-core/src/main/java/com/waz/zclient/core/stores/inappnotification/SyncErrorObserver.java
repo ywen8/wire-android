@@ -18,11 +18,8 @@
 package com.waz.zclient.core.stores.inappnotification;
 
 import com.waz.api.ErrorsList;
-import com.waz.api.Message;
 
-public interface InAppNotificationStoreObserver {
-
-    void onIncomingMessage(Message message);
+public interface SyncErrorObserver {
 
     void onSyncError(ErrorsList.ErrorDescription error);
 

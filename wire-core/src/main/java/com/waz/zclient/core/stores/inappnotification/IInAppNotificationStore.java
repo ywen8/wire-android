@@ -24,10 +24,10 @@ import com.waz.zclient.core.stores.IStore;
 public interface IInAppNotificationStore extends IStore {
 
     /* adds an observer for incoming messages */
-    void addInAppNotificationObserver(InAppNotificationStoreObserver messageListener);
+    void addInAppNotificationObserver(SyncErrorObserver messageListener);
 
     /* removes an observer of incoming messages */
-    void removeInAppNotificationObserver(InAppNotificationStoreObserver messageListener);
+    void removeInAppNotificationObserver(SyncErrorObserver messageListener);
 
     void dismissError(String errorId);
 

@@ -115,7 +115,7 @@ import com.waz.zclient.core.controllers.tracking.events.media.StartedRecordingAu
 import com.waz.zclient.core.stores.IStoreFactory;
 import com.waz.zclient.core.stores.conversation.ConversationChangeRequester;
 import com.waz.zclient.core.stores.conversation.ConversationStoreObserver;
-import com.waz.zclient.core.stores.inappnotification.InAppNotificationStoreObserver;
+import com.waz.zclient.core.stores.inappnotification.SyncErrorObserver;
 import com.waz.zclient.core.stores.network.DefaultNetworkAction;
 import com.waz.zclient.core.stores.participants.ParticipantsStoreObserver;
 import com.waz.zclient.media.SoundController;
@@ -163,7 +163,7 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
                                                                                                   KeyboardVisibilityObserver,
                                                                                                   AccentColorObserver,
                                                                                                   ParticipantsStoreObserver,
-                                                                                                  InAppNotificationStoreObserver,
+                                                                                                  SyncErrorObserver,
                                                                                                   NavigationControllerObserver,
                                                                                                   SlidingPaneObserver,
                                                                                                   SingleImageObserver,
@@ -970,11 +970,6 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
         conversationLoadingIndicatorViewView.setColor(color);
         audioMessageRecordingView.setAccentColor(color);
         extendedCursorContainer.setAccentColor(color);
-    }
-
-    @Override
-    public void onIncomingMessage(Message message) {
-
     }
 
     @Override

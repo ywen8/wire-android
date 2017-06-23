@@ -27,7 +27,6 @@ import com.waz.api.ConversationsList;
 import com.waz.api.Credentials;
 import com.waz.api.ErrorsList;
 import com.waz.api.Giphy;
-import com.waz.api.IncomingMessagesList;
 import com.waz.api.InitListener;
 import com.waz.api.Invitations;
 import com.waz.api.KindOfAccess;
@@ -160,11 +159,6 @@ public class StubZMessagingApiStore implements IZMessagingApiStore {
 
             @Override
             public ZCache getCache() {
-                return null;
-            }
-
-            @Override
-            public IncomingMessagesList getIncomingMessages() {
                 return null;
             }
 

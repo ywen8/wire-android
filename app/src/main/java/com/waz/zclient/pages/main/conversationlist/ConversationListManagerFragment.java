@@ -106,7 +106,6 @@ import java.util.List;
 public class ConversationListManagerFragment extends BaseFragment<ConversationListManagerFragment.Container> implements
                                                                                                    PickUserControllerScreenObserver,
                                                                                                    ConversationStoreObserver,
-                                                                                                   OnInboxLoadedListener,
                                                                                                    OnBackPressedListener,
                                                                                                    ConversationListFragment.Container,
                                                                                                    OptionsMenuFragment.Container,
@@ -1167,12 +1166,6 @@ public class ConversationListManagerFragment extends BaseFragment<ConversationLi
         if (ctrl != null) {
             ctrl.playAlert();
         }
-    }
-
-    @Override
-    public void onConnectRequestInboxConversationsLoaded(List<IConversation> conversations,
-                                                         InboxLoadRequester inboxLoadRequester) {
-
     }
 
     public void hideFirstAssignUsernameScreen() {

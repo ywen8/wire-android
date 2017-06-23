@@ -25,7 +25,7 @@ import com.waz.api.IConversation;
 import com.waz.zclient.MainTestActivity;
 import com.waz.zclient.R;
 import com.waz.zclient.core.stores.inappnotification.IInAppNotificationStore;
-import com.waz.zclient.core.stores.inappnotification.InAppNotificationStoreObserver;
+import com.waz.zclient.core.stores.inappnotification.SyncErrorObserver;
 import com.waz.zclient.testutils.FragmentTest;
 import com.waz.zclient.testutils.MockHelper;
 import org.junit.Test;
@@ -112,11 +112,11 @@ public class AudioRecordingTest extends FragmentTest<MainTestActivity> {
             @Override
             public Void answer(InvocationOnMock invocation) {
                 Object[] args = invocation.getArguments();
-                InAppNotificationStoreObserver u = (InAppNotificationStoreObserver) args[0];
+                SyncErrorObserver u = (SyncErrorObserver) args[0];
                 u.onSyncError(mockErrorDescription);
                 return null;
             }
-        }).when(mockInAppNotificationStore).addInAppNotificationObserver(any(InAppNotificationStoreObserver.class));
+        }).when(mockInAppNotificationStore).addInAppNotificationObserver(any(SyncErrorObserver.class));
 
         // attach fragment
         attachFragment(ConversationFragment.newInstance(), ConversationFragment.TAG);

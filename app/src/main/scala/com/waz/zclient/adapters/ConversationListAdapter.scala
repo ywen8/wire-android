@@ -49,7 +49,7 @@ class ConversationListAdapter(context: Context)(implicit injector: Injector, eve
 
   lazy val conversations = for {
     z             <- zms
-    processing    <- z.convOrder.processing
+    processing    <- z.push.processing
     if !processing
     conversations <- z.convsStorage.convsSignal
     mode <- currentMode
@@ -61,11 +61,9 @@ class ConversationListAdapter(context: Context)(implicit injector: Injector, eve
       .toSeq
       .sorted(mode.sort)
 
-
-
   lazy val incomingRequests = for {
     z             <- zms
-    processing    <- z.convOrder.processing
+    processing    <- z.push.processing
     if !processing
     conversations <- z.convsStorage.convsSignal.map(_.conversations.filter(Incoming.filter).toSeq)
     members <- Signal.sequence(conversations.map(c => z.membersStorage.activeMembers(c.id).map(_.find(_ != z.selfUserId))):_*)

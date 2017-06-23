@@ -678,17 +678,6 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
 
   override def getDestination: Int = if(isAddingToConversation) IPickUserController.CONVERSATION else IPickUserController.STARTUI
 
-  private def handleEmptySearchResult(errorHeader: String, errorBody: String, showBlankScreen: Boolean): Unit = {
-    setErrorMessage(errorHeader, errorBody)
-    if (showBlankScreen) {
-      errorMessageViewContainer.setVisibility(View.INVISIBLE)
-      searchResultRecyclerView.setClickable(false)
-      searchResultRecyclerView.setVisibility(View.GONE)
-    } else {
-      showErrorMessage()
-    }
-  }
-
   private def setErrorMessage(header: String, body: String): Unit = {
     errorMessageViewHeader.setText(header)
     if (body != null) {
