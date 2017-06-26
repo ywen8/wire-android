@@ -148,49 +148,4 @@ public class FileUploadTest extends FragmentTest<MainTestActivity> {
         onView(withText(activity.getString(R.string.asset_upload_error__not_found__title))).check(isVisible());
     }
 
-    @Test
-    @SuppressLint("NewApi")
-    public void assertFileIsLargeWarningShowed() throws InterruptedException {
-        IConversation mockConversation = mock(IConversation.class);
-        when(mockConversation.getType()).thenReturn(IConversation.Type.ONE_TO_ONE);
-        when(mockConversation.isMemberOfConversation()).thenReturn(true);
-        when(mockConversation.isActive()).thenReturn(true);
-        MockHelper.setupConversationMocks(mockConversation, activity);
-        IConversationStore mockConversationStore = activity.getStoreFactory().getConversationStore();
-
-        // Mock intent result
-        String action;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-            action = Intent.ACTION_OPEN_DOCUMENT;
-        } else {
-            action = Intent.ACTION_GET_CONTENT;
-        }
-        Matcher<Intent> expectedIntent = allOf(hasAction(action), hasType("*/*"));
-        Intent intent = new Intent();
-        intent.setData(Uri.parse("file:///tmp/whatever.txt"));
-        Instrumentation.ActivityResult result = new Instrumentation.ActivityResult(Activity.RESULT_OK, intent);
-        intending(expectedIntent).respondWith(result);
-
-        doAnswer(new Answer<Void>() {
-            @Override
-            public Void answer(InvocationOnMock invocation) {
-                Object[] args = invocation.getArguments();
-                MessageContent.Asset.ErrorHandler errorHandler = (MessageContent.Asset.ErrorHandler) args[1];
-                errorHandler.noWifiAndFileIsLarge(20 * 1024 * 1024, NetworkMode._3G, mock(MessageContent.Asset.Answer.class));
-                return null;
-            }
-        }).when(mockConversationStore).sendMessage(any(AssetForUpload.class), any(MessageContent.Asset.ErrorHandler.class));
-
-        // attach fragment
-        attachFragment(ConversationFragment.newInstance(), ConversationFragment.TAG);
-
-        // verify stuff
-        Thread.sleep(500);
-        onView(withId(R.id.cursor_menu_item_more)).perform(click());
-        Thread.sleep(500);
-        onView(withId(R.id.cursor_menu_item_file)).perform(click());
-        Thread.sleep(200);
-
-        onView(withText(activity.getString(R.string.asset_upload_warning__large_file__title))).check(isVisible());
-    }
 }

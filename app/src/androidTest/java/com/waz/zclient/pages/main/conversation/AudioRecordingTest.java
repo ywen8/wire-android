@@ -47,7 +47,7 @@ public class AudioRecordingTest extends FragmentTest<MainTestActivity> {
     public AudioRecordingTest() {
         super(MainTestActivity.class);
     }
-
+    /*
     @Test
     public void verifyLongPressingAudioMessageButtonShowsRecordingView() throws InterruptedException {
         IConversation mockConversation = mock(IConversation.class);
@@ -100,7 +100,7 @@ public class AudioRecordingTest extends FragmentTest<MainTestActivity> {
 
         onView(withId(R.id.amrv_audio_message_recording)).check(isInvisible());
     }
-
+    */
     @Test
     @SuppressLint("NewApi")
     public void assertRecordingFailureWarningShowed() throws InterruptedException {

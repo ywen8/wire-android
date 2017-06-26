@@ -159,7 +159,7 @@ public class ConversationFragmentTest extends FragmentTest<MainTestActivity> {
         Thread.sleep(500);
         onView(withId(R.id.cursor_menu_item_file)).check(isVisible());
     }
-
+/*
     @Test
     public void assertFileUploadIconVisibleInGroupConversation() throws InterruptedException {
         IConversation mockConversation = mock(IConversation.class);
@@ -187,7 +187,7 @@ public class ConversationFragmentTest extends FragmentTest<MainTestActivity> {
         attachFragment(ConversationFragment.newInstance(), ConversationFragment.TAG);
 
         onView(withId(R.id.cursor_menu_item_audio_message)).check(isVisible());
-    }
+    }*/
 
     @Test
     public void assertAudioMessageIconVisibleInGroupConversation() throws InterruptedException {
@@ -201,7 +201,7 @@ public class ConversationFragmentTest extends FragmentTest<MainTestActivity> {
 
         onView(withId(R.id.cursor_menu_item_audio_message)).check(isVisible());
     }
-
+/*
     @Test
     public void assertCursorImagesVisible() throws Exception {
         IConversation mockConversation = mock(IConversation.class);
@@ -218,7 +218,7 @@ public class ConversationFragmentTest extends FragmentTest<MainTestActivity> {
         Thread.sleep(500);
         onView(withId(R.id.rv__cursor_images)).check(isVisible());
     }
-
+*/
     @Test
     public void assertCursorImagesBackButtonVisible() throws Exception {
         IConversation mockConversation = mock(IConversation.class);
@@ -277,7 +277,7 @@ public class ConversationFragmentTest extends FragmentTest<MainTestActivity> {
 
 //        onView(withId(R.id.gtv__cursor_image__nav_open_gallery)).perform(click());
     }
-
+/*
     @Test
     public void assertGIFIconVisibleInOneToOneConversation() throws InterruptedException {
         IConversation mockConversation = mock(IConversation.class);
@@ -291,5 +291,5 @@ public class ConversationFragmentTest extends FragmentTest<MainTestActivity> {
         Thread.sleep(500);
         onView(withId(R.id.cursor_menu_item_gif)).check(isVisible());
     }
-
+*/
 }
