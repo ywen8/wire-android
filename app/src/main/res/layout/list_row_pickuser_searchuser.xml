@@ -44,4 +44,25 @@
         android:layout_marginStart="@dimen/people_picker__search_result__chathead__padding_right"
         android:gravity="start|center_vertical"/>
 
+    <View
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+
+    <com.waz.zclient.ui.text.TypefaceTextView
+        android:id="@+id/guest_indicator"
+        android:visibility="gone"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/list_indicator_between_padding"
+        android:paddingStart="@dimen/wire__padding__small"
+        android:paddingEnd="@dimen/wire__padding__small"
+        android:text="@string/people_picker__guest_label"
+        android:textColor="@color/text__primary_light"
+        android:textSize="@dimen/wire__text_size__small"
+        android:gravity="center|end"
+        android:background="@drawable/rounded_corner_background_bubble"
+        app:font="@string/wire__typeface__light"
+        />
+
 </LinearLayout>

@@ -172,75 +172,16 @@
         android:layout_gravity="bottom"
         />
 
-    <FrameLayout
-        android:id="@+id/fl__pickuser__confirmation_button_container"
+    <com.waz.zclient.views.FlatWireButton
+        android:id="@+id/confirmation_button"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom"
-        style="?wireBackground"
-        >
+        android:layout_height="@dimen/flat_wire_button_height"
+        />
 
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="@dimen/people_picker__border_line__height"
-            android:layout_gravity="top"
-            style="?wireDivider"
-            />
-
-        <com.waz.zclient.ui.views.ZetaButton
-            android:id="@+id/zb__pickuser__confirmation_button"
-            android:layout_width="match_parent"
-            android:layout_height="@dimen/framework_confirmation_menu_button_height"
-            android:layout_marginStart="@dimen/wire__padding__big"
-            android:layout_marginEnd="@dimen/wire__padding__big"
-            android:layout_marginBottom="@dimen/wire__padding__big"
-            android:layout_marginTop="@dimen/wire__padding__big"
-            android:text="@string/people_picker__confirm_button_title__add_to_conversation"
-            app:font="@string/wire__typeface__light"
-            style="?pickUserAddButton"
-            />
-
-    </FrameLayout>
-
-    <FrameLayout
-        android:id="@+id/fl__pickuser__generic_invite__container"
+    <com.waz.zclient.views.FlatWireButton
+        android:id="@+id/invite_button"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        >
-
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="@dimen/people_picker__border_line__height"
-            android:layout_gravity="top"
-            android:background="@color/separator_dark"
-            />
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:paddingTop="@dimen/contactlist__generic_invite_button__margin_vertical"
-            android:paddingBottom="@dimen/contactlist__generic_invite_button__margin_vertical"
-            android:paddingStart="@dimen/wire__padding__big"
-            android:paddingEnd="@dimen/wire__padding__big"
-            >
-
-            <com.waz.zclient.ui.views.ZetaButton
-                android:id="@+id/zb__pickuser__generic_invite"
-                android:layout_width="match_parent"
-                android:layout_height="@dimen/button__height"
-                android:layout_gravity="top"
-                android:gravity="center"
-                android:textColor="@color/text__primary_dark"
-                android:textSize="@dimen/wire__text_size__small"
-                android:textAllCaps="true"
-                android:text="@string/people_picker__contact_list__generic_invite__button__label"
-                app:font="@string/wire__typeface__light"
-                />
-
-        </LinearLayout>
-
-    </FrameLayout>
+        android:layout_height="@dimen/flat_wire_button_height"
+        />
 
 </LinearLayout>
