@@ -63,23 +63,23 @@ public class UsernameEditFragmentTest extends FragmentTest<MainTestActivity> {
         onView(withId(R.id.acet__change_username)).check(matches(withText(StringUtils.truncate(currentUsername + typeText, 21))));
     }
 
-    @Test
-    public void assertShortUsernameShowsError() throws InterruptedException {
-        String currentUsername = "";
-        attachFragment(ChangeUsernamePreferenceDialogFragment.newInstance(currentUsername, true), ChangeUsernamePreferenceDialogFragment.TAG);
-        Thread.sleep(400);
-        onView(withId(R.id.acet__change_username)).perform(typeTextIntoFocusedView("1"));
-        Thread.sleep(400);
-        onView(withId(R.id.til__change_username)).check(new ViewAssertion() {
-            @Override
-            public void check(View view, NoMatchingViewException noViewFoundException) {
-                CharSequence error = ((TextInputLayout) view).getError();
-                if (error == null || error.length() == 0) {
-                    throw new AssertionFailedError("Error field is empty");
-                }
-            }
-        });
-    }
+//    @Test
+//    public void assertShortUsernameShowsError() throws InterruptedException {
+//        String currentUsername = "";
+//        attachFragment(ChangeUsernamePreferenceDialogFragment.newInstance(currentUsername, true), ChangeUsernamePreferenceDialogFragment.TAG);
+//        Thread.sleep(400);
+//        onView(withId(R.id.acet__change_username)).perform(typeTextIntoFocusedView("1"));
+//        Thread.sleep(400);
+//        onView(withId(R.id.til__change_username)).check(new ViewAssertion() {
+//            @Override
+//            public void check(View view, NoMatchingViewException noViewFoundException) {
+//                CharSequence error = ((TextInputLayout) view).getError();
+//                if (error == null || error.length() == 0) {
+//                    throw new AssertionFailedError("Error field is empty");
+//                }
+//            }
+//        });
+//    }
 
     @Test
     public void assertInvalidUsernameCantBeSet() throws InterruptedException {

@@ -109,17 +109,17 @@ public class SingleOtrClientFragmentTest extends FragmentTest<MainTestActivity> 
         onView(withId(R.id.ttv__single_otr_client__description)).check(hasText(text));
     }
 
-    @Test
-    public void launchFragmentWithParameters_shouldDisplayDisplayNameInText() {
-        User mockUser = mock(User.class);
-        OtrClient mockOtrClient = mock(OtrClient.class);
-        setupMocksForOtherOtrClient(mockUser, mockOtrClient);
-
-        attachFragment(SingleOtrClientFragment.newInstance(mockOtrClient, mockUser), SingleOtrClientFragment.TAG);
-
-        String text = activity.getString(R.string.otr__participant__single_device__description, DEFAULT_DISPLAY_NAME);
-        onView(withId(R.id.ttv__single_otr_client__description)).check(hasText(text));
-    }
+//    @Test
+//    public void launchFragmentWithParameters_shouldDisplayDisplayNameInText() {
+//        User mockUser = mock(User.class);
+//        OtrClient mockOtrClient = mock(OtrClient.class);
+//        setupMocksForOtherOtrClient(mockUser, mockOtrClient);
+//
+//        attachFragment(SingleOtrClientFragment.newInstance(mockOtrClient, mockUser), SingleOtrClientFragment.TAG);
+//
+//        String text = activity.getString(R.string.otr__participant__single_device__description, DEFAULT_DISPLAY_NAME);
+//        onView(withId(R.id.ttv__single_otr_client__description)).check(hasText(text));
+//    }
 
     @Test
     public void launchFragmentWithParametersAndClickVerify_shouldUpdateOtrClient() {
