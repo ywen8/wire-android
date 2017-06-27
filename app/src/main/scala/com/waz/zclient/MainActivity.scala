@@ -28,7 +28,7 @@ import android.support.v4.app.Fragment
 import android.text.TextUtils
 import com.localytics.android.Localytics
 import com.waz.ZLog.ImplicitTag._
-import com.waz.ZLog.{error, info, verbose, warn}
+import com.waz.ZLog.{error, info, warn}
 import com.waz.api.{NetworkMode, _}
 import com.waz.model.ConvId
 import com.waz.service.ZMessaging
@@ -56,7 +56,7 @@ import com.waz.zclient.core.stores.api.ZMessagingApiStoreObserver
 import com.waz.zclient.core.stores.connect.{ConnectStoreObserver, IConnectStore}
 import com.waz.zclient.core.stores.conversation.{ConversationChangeRequester, ConversationStoreObserver}
 import com.waz.zclient.core.stores.profile.ProfileStoreObserver
-import com.waz.zclient.pages.main.connectivity.ConnectivityFragment
+import com.waz.zclient.fragments.ConnectivityFragment
 import com.waz.zclient.pages.main.grid.GridFragment
 import com.waz.zclient.pages.main.{MainPhoneFragment, MainTabletFragment}
 import com.waz.zclient.pages.startup.UpdateFragment
@@ -75,7 +75,6 @@ class MainActivity extends BaseActivity
   with MainPhoneFragment.Container
   with MainTabletFragment.Container
   with GridFragment.Container
-  with ConnectivityFragment.Container
   with UpdateFragment.Container
   with ProfileStoreObserver
   with ConnectStoreObserver
@@ -116,7 +115,7 @@ class MainActivity extends BaseActivity
 
     if (savedInstanceState == null) {
       val fragmentTransaction = fragmentManager.beginTransaction
-      fragmentTransaction.add(R.id.fl__offline__container, ConnectivityFragment.newInstance, ConnectivityFragment.TAG)
+      fragmentTransaction.add(R.id.fl__offline__container, ConnectivityFragment(), ConnectivityFragment.FragmentTag)
       if (BuildConfig.SHOW_GRIDOVERLAY) fragmentTransaction.add(R.id.fl_main_grid, GridFragment.newInstance, GridFragment.TAG)
       fragmentTransaction.commit
     } else getControllerFactory.getNavigationController.onActivityCreated(savedInstanceState)

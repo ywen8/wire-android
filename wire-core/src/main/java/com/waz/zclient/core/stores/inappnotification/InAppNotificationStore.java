@@ -18,7 +18,6 @@
 package com.waz.zclient.core.stores.inappnotification;
 
 import com.waz.api.ErrorsList;
-import com.waz.api.Message;
 
 import java.util.HashSet;
 import java.util.Set;
