@@ -120,17 +120,17 @@ public class ConversationFragmentTest extends FragmentTest<MainTestActivity> {
         onView(withId(R.id.action_video_call)).check(CustomViewAssertions.isNull());
     }
 
-    @Test
-    public void assertNoVideoCallButtonInNonActiveConversation() throws InterruptedException {
-        IConversation mockConversation = mock(IConversation.class);
-        when(mockConversation.getType()).thenReturn(IConversation.Type.ONE_TO_ONE);
-        when(mockConversation.isMemberOfConversation()).thenReturn(false);
-
-        MockHelper.setupConversationMocks(mockConversation, activity);
-        attachFragment(ConversationFragment.newInstance(), ConversationFragment.TAG);
-
-        onView(withId(R.id.action_video_call)).check(CustomViewAssertions.isNull());
-    }
+//    @Test
+//    public void assertNoVideoCallButtonInNonActiveConversation() throws InterruptedException {
+//        IConversation mockConversation = mock(IConversation.class);
+//        when(mockConversation.getType()).thenReturn(IConversation.Type.ONE_TO_ONE);
+//        when(mockConversation.isMemberOfConversation()).thenReturn(false);
+//
+//        MockHelper.setupConversationMocks(mockConversation, activity);
+//        attachFragment(ConversationFragment.newInstance(), ConversationFragment.TAG);
+//
+//        onView(withId(R.id.action_video_call)).check(CustomViewAssertions.isNull());
+//    }
 
     @Test
     public void assertNoAudioCallButtonInNonActiveConversation() throws InterruptedException {
@@ -219,28 +219,29 @@ public class ConversationFragmentTest extends FragmentTest<MainTestActivity> {
         onView(withId(R.id.rv__cursor_images)).check(isVisible());
     }
 */
-    @Test
-    public void assertCursorImagesBackButtonVisible() throws Exception {
-        IConversation mockConversation = mock(IConversation.class);
-        when(mockConversation.getType()).thenReturn(IConversation.Type.GROUP);
-        when(mockConversation.isMemberOfConversation()).thenReturn(true);
-        when(mockConversation.isActive()).thenReturn(true);
 
-        MockHelper.setupConversationMocks(mockConversation, activity);
-        attachFragment(ConversationFragment.newInstance(), ConversationFragment.TAG);
-
-        onView(withId(R.id.cursor_menu_item_camera)).check(isVisible());
-        onView(withId(R.id.cursor_menu_item_camera)).perform(click());
-        Thread.sleep(500);
-
-        onView(withId(R.id.rv__cursor_images)).check(isVisible());
-        onView(withId(R.id.gtv__cursor_image__nav_camera_back)).check(isGone());
-
-        onView(withId(R.id.rv__cursor_images)).perform(swipeLeft());
-        Thread.sleep(200);
-
-        onView(withId(R.id.gtv__cursor_image__nav_camera_back)).check(isVisible());
-    }
+//    @Test
+//    public void assertCursorImagesBackButtonVisible() throws Exception {
+//        IConversation mockConversation = mock(IConversation.class);
+//        when(mockConversation.getType()).thenReturn(IConversation.Type.GROUP);
+//        when(mockConversation.isMemberOfConversation()).thenReturn(true);
+//        when(mockConversation.isActive()).thenReturn(true);
+//
+//        MockHelper.setupConversationMocks(mockConversation, activity);
+//        attachFragment(ConversationFragment.newInstance(), ConversationFragment.TAG);
+//
+//        onView(withId(R.id.cursor_menu_item_camera)).check(isVisible());
+//        onView(withId(R.id.cursor_menu_item_camera)).perform(click());
+//        Thread.sleep(500);
+//
+//        onView(withId(R.id.rv__cursor_images)).check(isVisible());
+//        onView(withId(R.id.gtv__cursor_image__nav_camera_back)).check(isGone());
+//
+//        onView(withId(R.id.rv__cursor_images)).perform(swipeLeft());
+//        Thread.sleep(200);
+//
+//        onView(withId(R.id.gtv__cursor_image__nav_camera_back)).check(isVisible());
+//    }
 
     @Test
     public void assertCursorImagesBackButtonShowsCamera() throws Exception {
