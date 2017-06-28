@@ -35,7 +35,7 @@ public class VerifyEmailPreferenceFragment extends BaseDialogFragment<VerifyEmai
     public static final String TAG = VerifyEmailPreferenceFragment.class.getSimpleName();
     private static final String ARG_EMAIL = "ARG_EMAIL";
 
-    public static Fragment newInstance(String email) {
+    public static VerifyEmailPreferenceFragment newInstance(String email) {
         final VerifyEmailPreferenceFragment fragment = new VerifyEmailPreferenceFragment();
         final Bundle arg = new Bundle();
         arg.putString(ARG_EMAIL, email);
@@ -77,7 +77,6 @@ public class VerifyEmailPreferenceFragment extends BaseDialogFragment<VerifyEmai
                     return;
                 }
                 dismiss();
-                getContainer().changeEmail(email);
             }
         });
 
@@ -100,6 +99,5 @@ public class VerifyEmailPreferenceFragment extends BaseDialogFragment<VerifyEmai
     }
 
     public interface Container {
-        void changeEmail(String email);
     }
 }

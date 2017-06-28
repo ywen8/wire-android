@@ -240,7 +240,7 @@ case class DeviceDetailsViewController(view: DeviceDetailsView, clientId: Client
       z <- zms
       _ <- z.otrClientsService.deleteClient(clientId, password).map {
         case Right(_) =>
-          passwordController.password ! Some(password)
+          passwordController.setPassword(password)
           context.asInstanceOf[BaseActivity].onBackPressed()
           tracking.tagEvent(new RemovedOwnOtrClientEvent)
         case Left(ErrorResponse(_, msg, _)) =>

@@ -26,19 +26,22 @@ import android.util.AttributeSet
 import android.view.View
 import android.widget.LinearLayout
 import com.waz.api.impl.AccentColor
+import com.waz.model.EmailAddress
 import com.waz.service.ZMessaging
 import com.waz.threading.Threading
 import com.waz.utils.events.{EventContext, EventStream, Signal}
+import com.waz.utils.returning
 import com.waz.zclient._
+import com.waz.zclient.controllers.global.PasswordController
 import com.waz.zclient.controllers.tracking.events.profile.SignOut
 import com.waz.zclient.core.controllers.tracking.events.session.LoggedOutEvent
-import com.waz.zclient.pages.main.profile.preferences.dialogs.{AddEmailAndPasswordPreferenceDialogFragment, AddPhoneNumberPreferenceDialogFragment}
+import com.waz.zclient.pages.main.profile.preferences.dialogs.{AddPhoneNumberPreferenceDialogFragment, ChangeEmailDialog}
 import com.waz.zclient.pages.main.profile.preferences.views.{EditNameDialog, TextButton}
 import com.waz.zclient.preferences.PreferencesActivity
 import com.waz.zclient.preferences.dialogs.AccentColorPickerFragment
 import com.waz.zclient.tracking.GlobalTrackingController
 import com.waz.zclient.utils.ViewUtils._
-import com.waz.zclient.utils.{BackStackNavigator, StringUtils, UiStorage, UserSignal, BackStackKey}
+import com.waz.zclient.utils.{BackStackKey, BackStackNavigator, StringUtils, UiStorage, UserSignal}
 import com.waz.zclient.views.ImageAssetDrawable
 import com.waz.zclient.views.ImageAssetDrawable.{RequestBuilder, ScaleType}
 import com.waz.zclient.views.ImageController.{ImageSource, WireImage}
@@ -128,10 +131,12 @@ object AccountBackStackKey {
 }
 
 class AccountViewController(view: AccountView)(implicit inj: Injector, ec: EventContext, context: Context) extends Injectable {
-  val zms = inject[Signal[ZMessaging]]
+
+  val zms                = inject[Signal[ZMessaging]]
   implicit val uiStorage = inject[UiStorage]
-  lazy val tracking = inject[GlobalTrackingController]
-  val navigator = inject[BackStackNavigator]
+  lazy val tracking      = inject[GlobalTrackingController]
+  val navigator          = inject[BackStackNavigator]
+  val password           = inject[PasswordController].password
 
   val self = for {
     zms <- zms
@@ -173,28 +178,50 @@ class AccountViewController(view: AccountView)(implicit inj: Injector, ec: Event
   }
 
   view.onNameClick.onUi { _ =>
-    self.head.map{ self =>
+    self.head.map { self =>
       showPrefDialog(EditNameDialog.newInstance(self.name), EditNameDialog.Tag)
-    }(Threading.Ui)
+    } (Threading.Ui)
   }
 
   view.onHandleClick.onUi { _ =>
-    self.head.map{ self =>
+    self.head.map { self =>
       import com.waz.zclient.preferences.dialogs.ChangeHandleFragment._
       showPrefDialog(newInstance(self.handle.fold("")(_.string), cancellable = true), FragmentTag)
-    }(Threading.Ui)
+    } (Threading.Ui)
   }
 
-  //TODO: How to handle email verification?
+  /**
+    * TODO store pending email address in AccountData
+    * if a user backs out of the verify email fragment before they've actually verified it, then we lose the new
+    * email and the fact there is a pending verification for this user. This can be a little confusing
+    *
+    * We could temporarily store the email in the account data and continually remind the user to verifiy it
+    * every time they open the account settings, for example (until say 24 hours have passed)
+    */
   view.onEmailClick.onUi { _ =>
-    self.head.map{ self =>
-      import AddEmailAndPasswordPreferenceDialogFragment._
-      showPrefDialog(newInstance, TAG)
-    }(Threading.Ui)
+    import Threading.Implicits.Ui
+    for {
+      email <- self.head.map(_.email)
+      pw    <- password.head
+    } {
+      showPrefDialog(
+        returning(ChangeEmailDialog(addingEmail = email.isEmpty, needsPassword = pw.isEmpty)) {
+          _.onEmailChanged { e =>
+            import com.waz.zclient.pages.main.profile.preferences.dialogs.VerifyEmailPreferenceFragment._
+            val f = newInstance(e)
+            //hide the verification screen when complete
+            self.map(_.email).onChanged.filter(_.contains(EmailAddress(e))).onUi { _ =>
+              f.dismiss()
+            }
+            showPrefDialog(f, TAG)
+          }
+        },
+        ChangeEmailDialog.FragmentTag)
+    }
   }
 
   view.onPhoneClick.onUi { _ =>
-    account.head.map{ account =>
+    account.head.map { account =>
       import AddPhoneNumberPreferenceDialogFragment._
       showPrefDialog(newInstance(account.phone.map(_.str).getOrElse("")), TAG)
     }(Threading.Ui)
@@ -203,13 +230,14 @@ class AccountViewController(view: AccountView)(implicit inj: Injector, ec: Event
   view.onPictureClick.onUi(_ => navigator.goTo(ProfilePictureBackStackKey()))
 
   view.onAccentClick.onUi { _ =>
-    self.head.map{ self =>
+    self.head.map { self =>
       showPrefDialog(new AccentColorPickerFragment(), AccentColorPickerFragment.fragmentTag)
     }(Threading.Ui)
   }
 
   view.onResetClick.onUi { _ =>
-    self.head.map{ self =>
+    self.head.map { self =>
+      //TODO
     }(Threading.Ui)
   }
 
@@ -232,6 +260,7 @@ class AccountViewController(view: AccountView)(implicit inj: Injector, ec: Event
 
   view.onDeleteClick.onUi { _ =>
     self.head.map{ self =>
+      //TODO
     }(Threading.Ui)
   }
 
