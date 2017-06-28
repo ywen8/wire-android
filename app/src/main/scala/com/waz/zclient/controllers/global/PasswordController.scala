@@ -40,6 +40,4 @@ class PasswordController (implicit inj: Injector) extends Injectable {
     case _ => password ! None
   }
 
-  def setPassword(p: String) = password ! Some(p)
-
 }

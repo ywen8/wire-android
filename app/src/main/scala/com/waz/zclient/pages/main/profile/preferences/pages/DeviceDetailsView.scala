@@ -34,14 +34,16 @@ import com.waz.service.ZMessaging
 import com.waz.sync.SyncResult
 import com.waz.threading.Threading
 import com.waz.utils.events.{EventContext, EventStream, Signal}
+import com.waz.utils.returning
 import com.waz.zclient.controllers.global.PasswordController
 import com.waz.zclient.controllers.tracking.events.otr.{RemovedOwnOtrClientEvent, UnverifiedOwnOtrClientEvent, VerifiedOwnOtrClientEvent}
 import com.waz.zclient.pages.main.profile.preferences.DevicesPreferencesUtil
-import com.waz.zclient.pages.main.profile.preferences.dialogs.RemoveDevicePreferenceDialogFragment
+import com.waz.zclient.pages.main.profile.preferences.dialogs.RemoveDeviceDialog
 import com.waz.zclient.pages.main.profile.preferences.views.{SwitchPreference, TextButton}
 import com.waz.zclient.tracking.GlobalTrackingController
 import com.waz.zclient.ui.text.TypefaceTextView
 import com.waz.zclient.ui.utils.TextViewUtils
+import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.utils.{BackStackKey, RichView, ViewUtils, ZTimeFormatter}
 import com.waz.zclient.{Injectable, Injector, R, ViewHelper, _}
 import org.threeten.bp.{Instant, LocalDateTime, ZoneId}
@@ -174,7 +176,7 @@ case class DeviceDetailsViewController(view: DeviceDetailsView, clientId: Client
   import Threading.Implicits.Background
   val zms      = inject[Signal[ZMessaging]]
   val tracking = inject[GlobalTrackingController]
-  val password = inject[PasswordController]
+  val passwordController = inject[PasswordController]
 
   val clientAndIsSelf = for {
     z      <- zms
@@ -227,30 +229,35 @@ case class DeviceDetailsViewController(view: DeviceDetailsView, clientId: Client
   }
 
   view.onDeviceRemoved { _ =>
-    password.password.head.map {
-      case Some(p) =>
-        for {
-          z <- zms
-          _ <- z.otrClientsService.deleteClient(clientId, p).map {
-            case Right(_) =>
-              context.asInstanceOf[BaseActivity].onBackPressed()
-              tracking.tagEvent(new RemovedOwnOtrClientEvent)
-            case Left(ErrorResponse(_, msg, _)) =>
-              showRemoveDeviceDialog()
-          } (Threading.Ui)
-        } {}
+    passwordController.password.head.map {
+      case Some(p) => removeDevice(p)
       case _ => showRemoveDeviceDialog()
     }
   }
 
-  private def showRemoveDeviceDialog(): Unit = {
+  private def removeDevice(password: String): Unit = {
+    for {
+      z <- zms
+      _ <- z.otrClientsService.deleteClient(clientId, password).map {
+        case Right(_) =>
+          passwordController.password ! Some(password)
+          context.asInstanceOf[BaseActivity].onBackPressed()
+          tracking.tagEvent(new RemovedOwnOtrClientEvent)
+        case Left(ErrorResponse(_, msg, _)) =>
+          showRemoveDeviceDialog(Some(getString(R.string.otr__remove_device__error)))
+      } (Threading.Ui)
+    } {}
+  }
+
+  private def showRemoveDeviceDialog(error: Option[String] = None): Unit = {
     client.map(_.model).head.map { n =>
+      val fragment = returning(RemoveDeviceDialog.newInstance(n, error))(_.onDelete(removeDevice))
       context.asInstanceOf[BaseActivity]
         .getSupportFragmentManager
         .beginTransaction
         .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
-        .add(RemoveDevicePreferenceDialogFragment.newInstance(n), RemoveDevicePreferenceDialogFragment.TAG)
-        .addToBackStack(RemoveDevicePreferenceDialogFragment.TAG)
+        .add(fragment, RemoveDeviceDialog.FragmentTag)
+        .addToBackStack(RemoveDeviceDialog.FragmentTag)
         .commit
     }
   }
