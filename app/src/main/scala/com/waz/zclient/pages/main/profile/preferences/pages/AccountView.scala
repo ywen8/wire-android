@@ -46,13 +46,13 @@ import com.waz.zclient.views.ImageController.{ImageSource, WireImage}
 import scala.concurrent.Future
 
 trait AccountView {
-  val onNameClick: EventStream[Unit]
+  val onNameClick:   EventStream[Unit]
   val onHandleClick: EventStream[Unit]
-  val onEmailClick: EventStream[Unit]
-  val onPhoneClick: EventStream[Unit]
-  val onPictureClick: EventStream[Unit]
+  val onEmailClick:  EventStream[Unit]
+  val onPhoneClick:  EventStream[Unit]
+  val onPictureClick:EventStream[Unit]
   val onAccentClick: EventStream[Unit]
-  val onResetClick: EventStream[Unit]
+  val onResetClick:  EventStream[Unit]
   val onLogoutClick: EventStream[Unit]
   val onDeleteClick: EventStream[Unit]
 
@@ -147,7 +147,7 @@ class AccountViewController(view: AccountView)(implicit inj: Injector, ec: Event
 
   view.setPictureDrawable(new ImageAssetDrawable(selfPicture, scaleType = ScaleType.CenterInside, request = RequestBuilder.Round))
 
-  self.on(Threading.Ui) { self =>
+  self.onUi { self =>
     self.handle.foreach(handle => view.setHandle(StringUtils.formatHandle(handle.string)))
     view.setName(self.getDisplayName)
     view.setAccentDrawable(new Drawable {
@@ -167,18 +167,18 @@ class AccountViewController(view: AccountView)(implicit inj: Injector, ec: Event
     })
   }
 
-  account.on(Threading.Ui){ account =>
+  account.onUi { account =>
     view.setEmail(account.email.fold("-")(_.str))
     view.setPhone(account.phone.fold("-")(_.str))
   }
 
-  view.onNameClick.on(Threading.Ui){ _ =>
+  view.onNameClick.onUi { _ =>
     self.head.map{ self =>
       showPrefDialog(EditNameDialog.newInstance(self.name), EditNameDialog.Tag)
     }(Threading.Ui)
   }
 
-  view.onHandleClick.on(Threading.Ui){ _ =>
+  view.onHandleClick.onUi { _ =>
     self.head.map{ self =>
       import com.waz.zclient.preferences.dialogs.ChangeHandleFragment._
       showPrefDialog(newInstance(self.handle.fold("")(_.string), cancellable = true), FragmentTag)
@@ -186,34 +186,34 @@ class AccountViewController(view: AccountView)(implicit inj: Injector, ec: Event
   }
 
   //TODO: How to handle email verification?
-  view.onEmailClick.on(Threading.Ui){ _ =>
+  view.onEmailClick.onUi { _ =>
     self.head.map{ self =>
       import AddEmailAndPasswordPreferenceDialogFragment._
       showPrefDialog(newInstance, TAG)
     }(Threading.Ui)
   }
 
-  view.onPhoneClick.on(Threading.Ui){ _ =>
+  view.onPhoneClick.onUi { _ =>
     account.head.map{ account =>
       import AddPhoneNumberPreferenceDialogFragment._
       showPrefDialog(newInstance(account.phone.map(_.str).getOrElse("")), TAG)
     }(Threading.Ui)
   }
 
-  view.onPictureClick.on(Threading.Ui){ _ => navigator.goTo(ProfilePictureBackStackKey()) }
+  view.onPictureClick.onUi(_ => navigator.goTo(ProfilePictureBackStackKey()))
 
-  view.onAccentClick.on(Threading.Ui){ _ =>
+  view.onAccentClick.onUi { _ =>
     self.head.map{ self =>
       showPrefDialog(new AccentColorPickerFragment(), AccentColorPickerFragment.fragmentTag)
     }(Threading.Ui)
   }
 
-  view.onResetClick.on(Threading.Ui){ _ =>
+  view.onResetClick.onUi { _ =>
     self.head.map{ self =>
     }(Threading.Ui)
   }
 
-  view.onLogoutClick.on(Threading.Ui){ _ =>
+  view.onLogoutClick.onUi { _ =>
     self.head.map{ self =>
       showAlertDialog(context, null,
         context.getString(R.string.pref_account_sign_out_warning_message),
@@ -230,7 +230,7 @@ class AccountViewController(view: AccountView)(implicit inj: Injector, ec: Event
     }(Threading.Ui)
   }
 
-  view.onDeleteClick.on(Threading.Ui){ _ =>
+  view.onDeleteClick.onUi { _ =>
     self.head.map{ self =>
     }(Threading.Ui)
   }

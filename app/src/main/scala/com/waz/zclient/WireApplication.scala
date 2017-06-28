@@ -33,7 +33,7 @@ import com.waz.zclient.camera.controllers.{AndroidCameraFactory, GlobalCameraCon
 import com.waz.zclient.common.controllers.{PermissionActivity, PermissionsController, PermissionsWrapper}
 import com.waz.zclient.controllers._
 import com.waz.zclient.controllers.drawing.IDrawingController
-import com.waz.zclient.controllers.global.{AccentColorController, KeyboardController, SelectionController}
+import com.waz.zclient.controllers.global.{AccentColorController, KeyboardController, PasswordController, SelectionController}
 import com.waz.zclient.controllers.navigation.INavigationController
 import com.waz.zclient.controllers.singleimage.ISingleImageController
 import com.waz.zclient.controllers.userpreferences.IUserPreferencesController
@@ -80,6 +80,7 @@ object WireApplication {
 
     // global controllers
     bind [AccentColorController]   to new AccentColorController()
+    bind [PasswordController]      to new PasswordController()
     bind [GlobalCallingController] to new GlobalCallingController()
     bind [GlobalCameraController]  to new GlobalCameraController(new AndroidCameraFactory)
     bind [SelectionController]     to new SelectionController()

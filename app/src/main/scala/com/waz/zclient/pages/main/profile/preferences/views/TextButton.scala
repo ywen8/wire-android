@@ -35,10 +35,10 @@ class TextButton(context: Context, attrs: AttributeSet, style: Int) extends Rela
 
   inflate(layoutId)
 
-  val title = Option(findById[TypefaceTextView](R.id.preference_title))
-  val subtitle = Option(findById[TypefaceTextView](R.id.preference_subtitle))
+  val title     = Option(findById[TypefaceTextView](R.id.preference_title))
+  val subtitle  = Option(findById[TypefaceTextView](R.id.preference_subtitle))
   val iconStart = Option(findById[ImageView](R.id.preference_icon_start))
-  val iconEnd = Option(findById[ImageView](R.id.preference_icon_end))
+  val iconEnd   = Option(findById[ImageView](R.id.preference_icon_end))
 
   val onClickEvent = EventStream[View]()
   val onLongClickEvent = EventStream[View]()
@@ -46,10 +46,10 @@ class TextButton(context: Context, attrs: AttributeSet, style: Int) extends Rela
   private val attributesArray: TypedArray =
     context.getTheme.obtainStyledAttributes(attrs, R.styleable.TextButton, 0, 0)
 
-  val titleAttr = Option(attributesArray.getString(R.styleable.TextButton_title))
-  val subtitleAttr = Option(attributesArray.getString(R.styleable.TextButton_subtitle))
+  val titleAttr         = Option(attributesArray.getString(R.styleable.TextButton_title))
+  val subtitleAttr      = Option(attributesArray.getString(R.styleable.TextButton_subtitle))
   val drawableStartAttr = Option(attributesArray.getDrawable(R.styleable.TextButton_iconStart))
-  val drawableEndAttr = Option(attributesArray.getDrawable(R.styleable.TextButton_iconEnd))
+  val drawableEndAttr   = Option(attributesArray.getDrawable(R.styleable.TextButton_iconEnd))
 
   title.foreach(title => titleAttr.foreach(title.setText))
   subtitle.foreach(subtitle => setOptionText(subtitle, subtitleAttr))
@@ -69,21 +69,17 @@ class TextButton(context: Context, attrs: AttributeSet, style: Int) extends Rela
 
   def layoutId = R.layout.preference_text_button
 
-  def setTitle(text: String): Unit = {
+  def setTitle(text: String): Unit =
     title.foreach(_.setText(text))
-  }
 
-  def setSubtitle(text: String): Unit = {
+  def setSubtitle(text: String): Unit =
     subtitle.foreach(subtitle => setOptionText(subtitle, Some(text)))
-  }
 
-  def setDrawableStart(drawable: Option[Drawable]): Unit = {
+  def setDrawableStart(drawable: Option[Drawable]): Unit =
     iconStart.foreach(iconStart => setOptionDrawable(iconStart, drawable))
-  }
 
-  def setDrawableEnd(drawable: Option[Drawable]): Unit = {
+  def setDrawableEnd(drawable: Option[Drawable]): Unit =
     iconEnd.foreach(iconStart => setOptionDrawable(iconStart, drawable))
-  }
 
   protected def setOptionDrawable(imageView: ImageView, drawable: Option[Drawable]): Unit = {
     drawable.fold {

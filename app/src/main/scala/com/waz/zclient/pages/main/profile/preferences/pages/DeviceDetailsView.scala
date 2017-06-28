@@ -17,31 +17,52 @@
  */
 package com.waz.zclient.pages.main.profile.preferences.pages
 
-import android.content.{ClipData, ClipboardManager, Context}
+import android.app.{Activity, FragmentTransaction}
+import android.content.DialogInterface.OnClickListener
+import android.content.{ClipData, ClipboardManager, Context, DialogInterface}
 import android.os.Bundle
 import android.text.format.DateFormat
 import android.util.AttributeSet
 import android.view.View
 import android.widget.{LinearLayout, ScrollView, Toast}
+import com.waz.ZLog.ImplicitTag._
+import com.waz.ZLog._
+import com.waz.api.impl.ErrorResponse
+import com.waz.model.ConvId
 import com.waz.model.otr.{ClientId, Location}
 import com.waz.service.ZMessaging
+import com.waz.sync.SyncResult
 import com.waz.threading.Threading
-import com.waz.utils.events.{EventContext, Signal}
+import com.waz.utils.events.{EventContext, EventStream, Signal}
+import com.waz.zclient.controllers.global.PasswordController
+import com.waz.zclient.controllers.tracking.events.otr.{RemovedOwnOtrClientEvent, UnverifiedOwnOtrClientEvent, VerifiedOwnOtrClientEvent}
 import com.waz.zclient.pages.main.profile.preferences.DevicesPreferencesUtil
+import com.waz.zclient.pages.main.profile.preferences.dialogs.RemoveDevicePreferenceDialogFragment
 import com.waz.zclient.pages.main.profile.preferences.views.{SwitchPreference, TextButton}
+import com.waz.zclient.tracking.GlobalTrackingController
 import com.waz.zclient.ui.text.TypefaceTextView
 import com.waz.zclient.ui.utils.TextViewUtils
-import com.waz.zclient.utils.{BackStackKey, RichView, ZTimeFormatter}
-import com.waz.zclient.{Injectable, Injector, R, ViewHelper}
+import com.waz.zclient.utils.{BackStackKey, RichView, ViewUtils, ZTimeFormatter}
+import com.waz.zclient.{Injectable, Injector, R, ViewHelper, _}
 import org.threeten.bp.{Instant, LocalDateTime, ZoneId}
 
+import scala.util.Try
+
 trait DeviceDetailsView {
+  val onVerifiedChecked: EventStream[Boolean]
+  val onSessionReset:    EventStream[Unit]
+  val onDeviceRemoved:   EventStream[Unit]
+
   def setName(name: String)
   def setId(id: String)
   def setActivated(regTime: Instant, regLocation: Option[Location])
   def setFingerPrint(fingerprint: String)
   def setActionsVisible(visible: Boolean)
   def setVerified(verified: Boolean)
+
+  //TODO make a super trait for these?
+  def showToast(rId: Int): Unit
+  def showDialog(msg: Int, positive: Int, negative: Int, onNeg: => Unit = {}, onPos: => Unit = {}): Unit
 }
 
 class DeviceDetailsViewImpl(context: Context, attrs: AttributeSet, style: Int) extends ScrollView(context, attrs, style) with DeviceDetailsView with ViewHelper {
@@ -50,12 +71,18 @@ class DeviceDetailsViewImpl(context: Context, attrs: AttributeSet, style: Int) e
 
   inflate(R.layout.preferences_device_details_layout)
 
-  val nameView = findById[TypefaceTextView](R.id.device_detail_name)
-  val idView = findById[TypefaceTextView](R.id.device_detail_id)
-  val activatedView = findById[TypefaceTextView](R.id.device_detail_activated)
-  val fingerprintView = findById[TextButton](R.id.device_detail_fingerprint)
-  val actionsView = findById[LinearLayout](R.id.device_detail_actions)
-  val verifiedSwitch = findById[SwitchPreference](R.id.device_detail_verified)
+  val nameView         = findById[TypefaceTextView](R.id.device_detail_name)
+  val idView           = findById[TypefaceTextView](R.id.device_detail_id)
+  val activatedView    = findById[TypefaceTextView](R.id.device_detail_activated)
+  val fingerprintView  = findById[TextButton]      (R.id.device_detail_fingerprint)
+  val actionsView      = findById[LinearLayout]    (R.id.device_detail_actions)
+  val verifiedSwitch   = findById[SwitchPreference](R.id.device_detail_verified)
+  val resetSessionView = findById[TextButton]      (R.id.device_detail_reset)
+  val removeDeviceView = findById[TextButton]      (R.id.device_detail_remove)
+
+  override val onVerifiedChecked = verifiedSwitch.onCheckedChange
+  override val onSessionReset    = resetSessionView.onClickEvent.map(_ => {})
+  override val onDeviceRemoved   = removeDeviceView.onClickEvent.map(_ => {})
 
   private var fingerprint = ""
 
@@ -90,17 +117,29 @@ class DeviceDetailsViewImpl(context: Context, attrs: AttributeSet, style: Int) e
     context.getString(R.string.pref_devices_device_activation_summary, time, regLocation.fold("?")(_.getName))
   }
 
-
-
   fingerprintView.onClickEvent{ _ =>
     val clipboard: ClipboardManager = getContext.getSystemService(Context.CLIPBOARD_SERVICE).asInstanceOf[ClipboardManager]
     val clip: ClipData = ClipData.newPlainText(getContext.getString(R.string.pref_devices_device_fingerprint_copy_description), fingerprint)
     clipboard.setPrimaryClip(clip)
-    Toast.makeText(getContext, R.string.pref_devices_device_fingerprint_copy_toast, Toast.LENGTH_SHORT).show()
+    showToast(R.string.pref_devices_device_fingerprint_copy_toast)
   }
 
-  override def setVerified(verified: Boolean) = {
+  override def setVerified(verified: Boolean) =
     verifiedSwitch.setChecked(verified)
+
+  override def showToast(rId: Int) =
+    Toast.makeText(getContext, rId, Toast.LENGTH_LONG).show()
+
+  override def showDialog(msg: Int, positive: Int, negative: Int, onNeg: => Unit = {}, onPos: => Unit = {}) = {
+    Try(getContext.asInstanceOf[Activity]).toOption.foreach { a =>
+      ViewUtils.showAlertDialog(a, R.string.empty_string, msg, positive, negative,
+        new OnClickListener {
+          override def onClick(dialog: DialogInterface, which: Int): Unit = onNeg
+        },
+        new OnClickListener() {
+          override def onClick(dialog: DialogInterface, which: Int) = onPos
+        })
+    }
   }
 }
 
@@ -114,9 +153,8 @@ case class DeviceDetailsBackStackKey(args: Bundle) extends BackStackKey(args) {
 
   override def layoutId = R.layout.preferences_device_details
 
-  override def onViewAttached(v: View) = {
-    controller = Option(v.asInstanceOf[DeviceDetailsViewImpl]).map(view => DeviceDetailsViewController(view, deviceId)(view.injector, view))
-  }
+  override def onViewAttached(v: View) =
+    controller = Option(v.asInstanceOf[DeviceDetailsViewImpl]).map(view => DeviceDetailsViewController(view, deviceId)(view.injector, view, v.getContext))
 
   override def onViewDetached() = {
     controller = None
@@ -132,22 +170,88 @@ object DeviceDetailsBackStackKey {
   }
 }
 
-case class DeviceDetailsViewController(view: DeviceDetailsView, clientId: ClientId)(implicit inj: Injector, ec: EventContext) extends Injectable {
-  val zms = inject[Signal[ZMessaging]]
-  val client = for {
-    zms <- zms
-    client <- Signal.future(zms.otrClientsService.getClient(zms.selfUserId, clientId))
-    fp <- zms.otrService.fingerprintSignal(zms.selfUserId, clientId).orElse(Signal(Some(Array())))//TODO: this isn't returning remote fingerprints for some reason...
-  } yield (client, fp, zms.clientId == clientId)
+case class DeviceDetailsViewController(view: DeviceDetailsView, clientId: ClientId)(implicit inj: Injector, ec: EventContext, context: Context) extends Injectable {
+  import Threading.Implicits.Background
+  val zms      = inject[Signal[ZMessaging]]
+  val tracking = inject[GlobalTrackingController]
+  val password = inject[PasswordController]
 
-  client.on(Threading.Ui){
-    case (Some(client), fingerprint, self) =>
-      view.setName(client.model)
-      view.setId(client.id.str)
-      view.setActivated(client.regTime.getOrElse(Instant.EPOCH), client.regLocation)
-      fingerprint.foreach(fp => view.setFingerPrint(new String(fp)))
+  val clientAndIsSelf = for {
+    z      <- zms
+    Some(client) <- Signal.future(z.otrClientsService.getClient(z.selfUserId, clientId))
+  } yield (client, z.clientId == clientId)
+
+  val client = clientAndIsSelf.map(_._1)
+
+  val fingerprint = for {
+    z  <- zms
+    c  <- clientAndIsSelf
+    fp <- z.otrService.fingerprintSignal(z.selfUserId, clientId).map(_.map(new String(_))).orElse(Signal.const(None))
+  } yield fp
+
+  Signal(clientAndIsSelf, fingerprint).onUi {
+    case ((c, self), fp) =>
+      view.setName(c.model)
+      view.setId(c.id.str)
+      view.setActivated(c.regTime.getOrElse(Instant.EPOCH), c.regLocation)
+      fp.foreach(view.setFingerPrint)
       view.setActionsVisible(!self)
     case _ =>
   }
 
+  client.map(_.isVerified).onUi(view.setVerified)
+
+  view.onVerifiedChecked { checked =>
+    for {
+      z <- zms.head
+      _ <- z.otrClientsStorage.updateVerified(z.selfUserId, clientId, checked)
+      _ <- tracking.tagEvent(if (checked) new VerifiedOwnOtrClientEvent else new UnverifiedOwnOtrClientEvent)
+    } {}
+  }
+
+  view.onSessionReset(_ => resetSession())
+
+  private def resetSession(): Unit = {
+    zms.head.flatMap { zms =>
+      zms.convsStats.selectedConvIdPref() flatMap { conv =>
+        zms.otrService.resetSession(conv.getOrElse(ConvId(zms.selfUserId.str)), zms.selfUserId, clientId) flatMap zms.syncRequests.scheduler.await
+      }
+    }.recover {
+      case e: Throwable => SyncResult.failed()
+    }.map {
+      case SyncResult.Success => view.showToast(R.string.otr__reset_session__message_ok)
+      case SyncResult.Failure(err, _) =>
+        warn(s"session reset failed: $err")
+        view.showDialog(R.string.otr__reset_session__message_fail, R.string.otr__reset_session__button_ok, R.string.otr__reset_session__button_fail, onPos = resetSession())
+    }(Threading.Ui)
+  }
+
+  view.onDeviceRemoved { _ =>
+    password.password.head.map {
+      case Some(p) =>
+        for {
+          z <- zms
+          _ <- z.otrClientsService.deleteClient(clientId, p).map {
+            case Right(_) =>
+              context.asInstanceOf[BaseActivity].onBackPressed()
+              tracking.tagEvent(new RemovedOwnOtrClientEvent)
+            case Left(ErrorResponse(_, msg, _)) =>
+              showRemoveDeviceDialog()
+          } (Threading.Ui)
+        } {}
+      case _ => showRemoveDeviceDialog()
+    }
+  }
+
+  private def showRemoveDeviceDialog(): Unit = {
+    client.map(_.model).head.map { n =>
+      context.asInstanceOf[BaseActivity]
+        .getSupportFragmentManager
+        .beginTransaction
+        .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
+        .add(RemoveDevicePreferenceDialogFragment.newInstance(n), RemoveDevicePreferenceDialogFragment.TAG)
+        .addToBackStack(RemoveDevicePreferenceDialogFragment.TAG)
+        .commit
+    }
+  }
 }
