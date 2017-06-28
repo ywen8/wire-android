@@ -17,27 +17,15 @@
  */
 package com.waz.zclient.controllers.global
 
-import com.waz.ZLog.ImplicitTag._
-import com.waz.ZLog.verbose
 import com.waz.service.ZMessaging
 import com.waz.utils.events.Signal
 import com.waz.zclient.{Injectable, Injector}
 
-class PasswordController (implicit inj: Injector) extends Injectable {
-
-  import com.waz.utils.events.EventContext.Implicits.global
+class PasswordController(implicit inj: Injector) extends Injectable {
 
   //Only ever stored in memory for user convenience
   val password = Signal(Option.empty[String])
 
-  //TODO DELETE THIS!
-  password { p =>
-    verbose(s"Storing password: $p in memory")
-  }
-
-  inject[Signal[Option[ZMessaging]]].map {
-    case Some(z) => password ! z.account.account.password
-    case _ => password ! None
-  }
+  inject[Signal[Option[ZMessaging]]].map(_.flatMap(_.account.account.password))(password ! _)
 
 }
