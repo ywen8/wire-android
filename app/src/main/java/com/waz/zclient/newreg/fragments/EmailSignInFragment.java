@@ -29,6 +29,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
 import android.widget.TextView;
+import com.waz.service.ZMessaging;
 import com.waz.zclient.BaseActivity;
 import com.waz.zclient.R;
 import com.waz.zclient.controllers.navigation.Page;
@@ -67,8 +68,8 @@ public class EmailSignInFragment extends BaseFragment<EmailSignInFragment.Contai
     private TextView textViewGoToPhoneSignIn;
     private TextView resetPasswordTextView;
     private PhoneConfirmationButton signInButton;
-    private View buttonBack;
     private TabIndicatorLayout tabIndicatorLayout;
+    private View closeAddAccountButton;
 
     private IAppEntryStore.ErrorCallback errorCallback = new IAppEntryStore.ErrorCallback() {
         @Override
@@ -100,16 +101,10 @@ public class EmailSignInFragment extends BaseFragment<EmailSignInFragment.Contai
         guidedEditTextPassword = ViewUtils.getView(view, R.id.get__sign_in__password);
         resetPasswordTextView = ViewUtils.getView(view, R.id.ttv_signin_forgot_password);
         tabIndicatorLayout = ViewUtils.getView(view, R.id.til__app_entry);
+        closeAddAccountButton = ViewUtils.getView(view, R.id.close_add_account);
 
         textViewGoToPhoneSignIn = ViewUtils.getView(view, R.id.ttv__new_reg__sign_in__go_to__phone);
         signInButton = ViewUtils.getView(view, R.id.pcb__signin__email);
-
-        buttonBack = ViewUtils.getView(view, R.id.ll__activation_button__back);
-
-        // as there is supposed to be another version of the signup screen in 12.2015
-        // I am keeping the basic structure of the layouts and I am switching the elements
-        // that are not visible so far
-        buttonBack.setVisibility(View.GONE);
 
         guidedEditTextEmail.setResource(R.layout.guided_edit_text_sign_in__email);
         guidedEditTextEmail.setValidator(EmailValidator.newInstanceAcceptingEverything());
@@ -187,11 +182,12 @@ public class EmailSignInFragment extends BaseFragment<EmailSignInFragment.Contai
         super.onResume();
         textViewGoToPhoneSignIn.setOnClickListener(this);
         resetPasswordTextView.setOnClickListener(this);
-        buttonBack.setOnClickListener(this);
         signInButton.setOnClickListener(this);
+        closeAddAccountButton.setOnClickListener(this);
         getControllerFactory().getGlobalLayoutController().setSoftInputModeForPage(Page.PHONE_REGISTRATION);
         KeyboardUtils.showKeyboard(getActivity());
         tabIndicatorLayout.setCallback(this);
+        closeAddAccountButton.setVisibility(ZMessaging.currentAccounts().hasLoggedInAccount() ? View.VISIBLE : View.GONE);
     }
 
     @Override
@@ -199,7 +195,7 @@ public class EmailSignInFragment extends BaseFragment<EmailSignInFragment.Contai
         tabIndicatorLayout.setCallback(null);
         textViewGoToPhoneSignIn.setOnClickListener(null);
         resetPasswordTextView.setOnClickListener(null);
-        buttonBack.setOnClickListener(null);
+        closeAddAccountButton.setOnClickListener(null);
         signInButton.setOnClickListener(null);
         super.onPause();
     }
@@ -253,8 +249,10 @@ public class EmailSignInFragment extends BaseFragment<EmailSignInFragment.Contai
     @Override
     public void onClick(View view) {
         switch (view.getId()) {
-            case R.id.ll__activation_button__back:
-                goBack();
+            case R.id.close_add_account:
+                if (getContainer() != null) {
+                    getContainer().abortAddAccount();
+                }
                 break;
             case R.id.ttv_signin_forgot_password:
                 onPasswordResetButtonClicked();
@@ -308,5 +306,7 @@ public class EmailSignInFragment extends BaseFragment<EmailSignInFragment.Contai
         int getAccentColor();
 
         void enableProgress(boolean enabled);
+
+        void abortAddAccount();
     }
 }

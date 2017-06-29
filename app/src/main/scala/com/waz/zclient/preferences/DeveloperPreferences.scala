@@ -24,10 +24,10 @@ import android.support.v7.preference.PreferenceFragmentCompat.ARG_PREFERENCE_ROO
 import android.widget.Toast
 import com.waz.content.GlobalPreferences
 import com.waz.content.Preferences.PrefKey
+import com.waz.service.ZMessaging
 import com.waz.threading.Threading
 import com.waz.utils.returning
 import com.waz.zclient.R
-import com.waz.zclient.preferences.dialogs.AccountSignInPreference
 import com.waz.zclient.utils.{DebugUtils, RichPreference}
 
 class DeveloperPreferences extends BasePreferenceFragment {
@@ -47,10 +47,7 @@ class DeveloperPreferences extends BasePreferenceFragment {
   private lazy val versionInfoPreference = returning(findPref[Preference](R.string.pref_dev_version_info_id_key))(_.setSummary(DebugUtils.getVersion(getContext)))
 
   private lazy val accountSignInPreference = returning(findPref[Preference](R.string.pref_dev_category_sign_in_account_key)) {
-    _.onClick(getChildFragmentManager.beginTransaction
-      .add(new AccountSignInPreference, AccountSignInPreference.FragmentTag)
-      .addToBackStack(AccountSignInPreference.FragmentTag)
-      .commit)
+    _.onClick(ZMessaging.currentAccounts.logout(false))
   }
 
   override def onCreatePreferences2(savedInstanceState: Bundle, rootKey: String) = {
