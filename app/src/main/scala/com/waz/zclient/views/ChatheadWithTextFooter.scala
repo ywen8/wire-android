@@ -24,12 +24,11 @@ import android.util.AttributeSet
 import android.view.View
 import android.widget.LinearLayout
 import com.waz.ZLog
-import com.waz.model.{TeamData, UserData, UserId}
+import com.waz.model.{UserData, UserId}
 import com.waz.service.ZMessaging
 import com.waz.threading.Threading
 import com.waz.utils.events.Signal
 import com.waz.zclient.common.views.ChatheadView
-import com.waz.zclient.controllers.UserAccountsController
 import com.waz.zclient.ui.text.{TextTransform, TypefaceTextView}
 import com.waz.zclient.ui.theme.ThemeUtils
 import com.waz.zclient.utils.ViewUtils
@@ -55,7 +54,8 @@ class ChatheadWithTextFooter(val context: Context, val attrs: AttributeSet, val 
     z <- inject[Signal[ZMessaging]]
     uId <- userId
     data <- z.usersStorage.signal(uId)
-  } yield (data, false) //TODO: this false means guest status
+    guests <- z.teams.guests
+  } yield (data, guests.contains(uId)) // true means guest status
 
   setOrientation(LinearLayout.VERTICAL)
   initAttributes(attrs)

@@ -24,11 +24,12 @@ import android.util.AttributeSet
 import android.view.View
 import android.view.View.MeasureSpec
 import android.view.View.MeasureSpec.{EXACTLY, makeMeasureSpec}
+import com.waz.ZLog
 import com.waz.api.User.ConnectionStatus
 import com.waz.api.User.ConnectionStatus._
 import com.waz.api.impl.AccentColor
 import com.waz.api.{ContactDetails, User}
-import com.waz.model.{AssetData, TeamData, UserData, UserId}
+import com.waz.model.{AssetData, UserData, UserId}
 import com.waz.service.ZMessaging
 import com.waz.service.assets.AssetService.BitmapResult
 import com.waz.service.assets.AssetService.BitmapResult.BitmapLoaded
@@ -278,7 +279,14 @@ protected class ChatheadController(val setSelectable:            Boolean        
     case _ => UNCONNECTED
   }
 
-  val teamMember = Signal.const(false)//TODO: check if it's a team member
+  val teamMember = for {
+    zms <- zMessaging
+    userTeamId <- chatheadInfo.map {
+      case Some(Left(user)) => user.teamId
+      case _ => None
+    }
+    selfTeamId <- zms.teams.selfTeam.map(_.map(_.id))
+  } yield selfTeamId.isDefined && userTeamId == selfTeamId
 
   val hasBeenInvited = chatheadInfo.map {
     case Some(Left(user)) => false
