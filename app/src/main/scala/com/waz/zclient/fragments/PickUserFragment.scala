@@ -139,10 +139,8 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
   private var errorMessageViewBody: TypefaceTextView = null
   private var errorMessageViewContainer: LinearLayout = null
   private var conversationQuickMenu: ConversationQuickMenu = null
-  private var userSelectionConfirmationButton: ZetaButton = null
-  private var userSelectionConfirmationContainer: View = null
-  private var genericInviteContainer: View = null
-  private var genericInviteButton: ZetaButton = null
+  private var userSelectionConfirmationButton: FlatWireButton = null
+  private var inviteButton: FlatWireButton = null
   private var searchBoxView: SearchEditText = null
   private var toolbarTitle: TypefaceTextView = null
 
@@ -243,12 +241,12 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
     conversationQuickMenu = ViewUtils.getView(rootView, R.id.cqm__pickuser__quick_menu)
     conversationQuickMenu.setCallback(this)
     conversationQuickMenu.setVisibility(View.GONE)
-    userSelectionConfirmationContainer = ViewUtils.getView(rootView, R.id.fl__pickuser__confirmation_button_container)
-    userSelectionConfirmationContainer.setVisibility(View.GONE)
-    userSelectionConfirmationButton = ViewUtils.getView(rootView, R.id.zb__pickuser__confirmation_button)
-    genericInviteContainer = ViewUtils.getView(rootView, R.id.fl__pickuser__generic_invite__container)
-    genericInviteButton = ViewUtils.getView(rootView, R.id.zb__pickuser__generic_invite)
-    genericInviteButton.setIsFilled(false)
+    userSelectionConfirmationButton = ViewUtils.getView(rootView, R.id.confirmation_button)
+    userSelectionConfirmationButton.setGlyph(R.string.glyph__add_people)
+    userSelectionConfirmationButton.setVisibility(View.GONE)
+    inviteButton = ViewUtils.getView(rootView, R.id.invite_button)
+    inviteButton.setText(R.string.people_picker__generic_invite_button_text)
+    inviteButton.setGlyph(R.string.glyph__invite)
     // Error message
     errorMessageViewContainer = ViewUtils.getView(rootView, R.id.fl_pickuser__error_message_container)
     errorMessageViewContainer.setVisibility(View.GONE)
@@ -257,17 +255,18 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
     errorMessageViewSendInvite = ViewUtils.getView(rootView, R.id.ll_pickuser__error_invite)
     showLoadingBarDelay = getResources.getInteger(R.integer.people_picker__loading_bar__show_delay)
     if (isAddingToConversation) {
-      genericInviteContainer.setVisibility(View.GONE)
+      inviteButton.setVisibility(View.GONE)
       divider.setVisibility(View.VISIBLE)
       conversationToolbar.setVisibility(View.VISIBLE)
       startUiToolbar.setVisibility(View.GONE)
       toolbarHeader.setText(if (getArguments.getBoolean(PickUserFragment.ARGUMENT_GROUP_CONVERSATION)) getString(R.string.people_picker__toolbar_header__group)
       else getString(R.string.people_picker__toolbar_header__one_to_one))
-      userSelectionConfirmationButton.setText(if (getArguments.getBoolean(PickUserFragment.ARGUMENT_GROUP_CONVERSATION)) getString(R.string.people_picker__confirm_button_title__add_to_conversation)
-      else getString(R.string.people_picker__confirm_button_title__create_conversation))
+      userSelectionConfirmationButton.setText(if (getArguments.getBoolean(PickUserFragment.ARGUMENT_GROUP_CONVERSATION)) R.string.people_picker__confirm_button_title__add_to_conversation
+      else R.string.people_picker__confirm_button_title__create_conversation)
       ViewUtils.setHeight(searchBoxView, getResources.getDimensionPixelSize(R.dimen.searchbox__height__with_toolbar))
       searchBoxView.applyDarkTheme(ThemeUtils.isDarkTheme(getContext))
     } else {
+      inviteButton.setVisibility(if (isPrivateSpace) View.VISIBLE else View.GONE)
       // Use constant style for left side start ui
       val textColor: Int = ContextCompat.getColor(getContext, R.color.text__primary_dark)
       errorMessageViewHeader.setTextColor(textColor)
@@ -293,7 +292,6 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
       })
       userAccountsController.currentUser.on(Threading.Ui) {
         case Some(userData) =>
-          genericInviteContainer.setVisibility(View.GONE)
           toolbarTitle.setText(userData.getDisplayName)
         case _ =>
       }
@@ -301,8 +299,6 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
 
     accentColor.on(Threading.Ui) { color =>
       conversationQuickMenu.setAccentColor(color)
-      userSelectionConfirmationButton.setAccentColor(color)
-      genericInviteButton.setAccentColor(color, true)
       searchBoxView.setCursorColor(color)
     }
 
@@ -351,7 +347,7 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
 
   override def onResume(): Unit = {
     super.onResume()
-    genericInviteButton.setOnClickListener(this)
+    inviteButton.setOnClickListener(this)
     userSelectionConfirmationButton.setOnClickListener(this)
     errorMessageViewSendInvite.setOnClickListener(this)
     if (!isAddingToConversation) {
@@ -374,7 +370,7 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
   }
 
   override def onPause(): Unit = {
-    genericInviteButton.setOnClickListener(null)
+    inviteButton.setOnClickListener(null)
     userSelectionConfirmationButton.setOnClickListener(null)
     errorMessageViewSendInvite.setOnClickListener(null)
     super.onPause()
@@ -394,10 +390,8 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
     errorMessageViewContainer = null
     searchResultRecyclerView = null
     conversationQuickMenu = null
-    userSelectionConfirmationContainer = null
     userSelectionConfirmationButton = null
-    genericInviteButton = null
-    genericInviteContainer = null
+    inviteButton = null
     searchBoxView = null
     conversationToolbar = null
     toolbarHeader = null
@@ -441,7 +435,7 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
         View.GONE
       else
         View.VISIBLE
-    genericInviteContainer.setVisibility(inviteVisibility)
+    inviteButton.setVisibility(inviteVisibility)
   }
 
   private def createAndOpenConversation(users: Seq[UserId], requester: ConversationChangeRequester): Unit = {
@@ -776,11 +770,11 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
       return
     }
     if (isAddingToConversation) {
-      userSelectionConfirmationContainer.setVisibility(if (getSelectedUsers.nonEmpty) View.VISIBLE else View.GONE)
+      userSelectionConfirmationButton.setVisibility(if (getSelectedUsers.nonEmpty) View.VISIBLE else View.GONE)
     } else {
       val visible: Boolean = show || searchUserController.selectedUsers.nonEmpty
       conversationQuickMenu.setVisibility(if (visible) View.VISIBLE else View.GONE)
-      genericInviteContainer.setVisibility(if (visible || isKeyboardVisible || !isPrivateSpace) View.GONE else View.VISIBLE)
+      inviteButton.setVisibility(if (visible || isKeyboardVisible || !isPrivateSpace) View.GONE else View.VISIBLE)
     }
   }
 
@@ -794,10 +788,10 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
 
   override def onClick(view: View): Unit = {
     view.getId match {
-      case R.id.zb__pickuser__confirmation_button =>
+      case R.id.confirmation_button =>
         KeyboardUtils.hideKeyboard(getActivity)
         getContainer.onSelectedUsers(getSelectedAndExcludedUsersJava, ConversationChangeRequester.START_CONVERSATION)
-      case R.id.zb__pickuser__generic_invite =>
+      case R.id.invite_button =>
         sendGenericInvite(false)
       case R.id.ll_pickuser__error_invite =>
         sendGenericInvite(true)

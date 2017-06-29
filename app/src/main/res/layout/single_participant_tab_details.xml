@@ -18,32 +18,41 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 -->
-<merge xmlns:android="http://schemas.android.com/apk/res/android">
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+       xmlns:tools="http://schemas.android.com/tools">
 
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:gravity="center">
+        android:gravity="center"
+        tools:ignore="UselessParent">
+
+        <FrameLayout
+            android:layout_width="@dimen/profile__image__width"
+            android:layout_height="@dimen/profile__image__height"
+            >
 
         <com.waz.zclient.views.images.ImageAssetImageView
             android:id="@+id/iaiv__single_participant"
-            android:layout_width="@dimen/profile__image__width"
-            android:layout_height="@dimen/profile__image__height"
-            android:layout_centerInParent="true"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:padding="@dimen/wire__padding__tiny"
             />
 
         <com.waz.zclient.ui.text.TypefaceTextView
             android:id="@+id/participant_guest_indicator"
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_below="@+id/iaiv__single_participant"
-            android:layout_centerHorizontal="true"
-            android:padding="@dimen/wire__padding__16"
-            android:textColor="?wireSecondaryTextColor"
-            android:ellipsize="end"
-            android:maxLines="2"
+            android:layout_gravity="bottom|center_horizontal"
+            android:paddingStart="@dimen/wire__padding__small"
+            android:paddingEnd="@dimen/wire__padding__small"
+            android:background="?roundBackgroundDrawable"
+            android:textColor="?wirePrimaryTextColor"
+            android:textSize="@dimen/wire__text_size__small"
             android:visibility="gone"/>
+
+        </FrameLayout>
 
     </RelativeLayout>
 

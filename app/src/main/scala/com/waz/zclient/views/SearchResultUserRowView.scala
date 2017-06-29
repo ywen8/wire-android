@@ -19,9 +19,14 @@ package com.waz.zclient.views
 
 import android.content.Context
 import android.util.AttributeSet
+import android.view.View
 import android.widget.FrameLayout
-import com.waz.model.UserData
+import com.waz.model.{UserData, UserId}
+import com.waz.service.ZMessaging
+import com.waz.threading.Threading
+import com.waz.utils.events.Signal
 import com.waz.zclient.common.views.ChatheadView
+import com.waz.zclient.ui.text.TypefaceTextView
 import com.waz.zclient.views.pickuser.{ContactListItemTextView, UserRowView}
 import com.waz.zclient.{R, ViewHelper}
 
@@ -33,12 +38,23 @@ class SearchResultUserRowView(val context: Context, val attrs: AttributeSet, val
 
   private val chathead = findById[ChatheadView](R.id.cv_pickuser__searchuser_chathead)
   private val contactListItemTextView = findById[ContactListItemTextView](R.id.clitv__contactlist__user__text_view)
+  private val guestLabel = findById[TypefaceTextView](R.id.guest_indicator)
   private var showContactInfo: Boolean = false
+  private val userId = Signal[UserId]()
+
+  //TODO fix this
+  private val guestSignal = for {
+    z <- inject[Signal[ZMessaging]]
+    //currentTeam <- inject[TeamsAndUserController].currentTeamOrUser.map(_.fold(_ => Option.empty[TeamData], Some(_)))
+    uId <- userId
+    //guests <- Signal.future(currentTeam.fold(Future.successful(Set[UserId]()))(team => z.teams.findGuests(team.id)))
+  } yield false //guests.contains(uId)
 
   var userData = Option.empty[UserData]
 
   def setUser(userData: UserData): Unit = {
     this.userData = Some(userData)
+    userId ! userData.id
     contactListItemTextView.setUser(userData, showContactInfo)
     chathead.setUserId(userData.id)
   }
@@ -60,5 +76,9 @@ class SearchResultUserRowView(val context: Context, val attrs: AttributeSet, val
 
   def applyDarkTheme(): Unit = {
     contactListItemTextView.applyDarkTheme()
+  }
+
+  guestSignal.on(Threading.Ui) { guest =>
+    guestLabel.setVisibility(if (guest) View.VISIBLE else View.GONE)
   }
 }

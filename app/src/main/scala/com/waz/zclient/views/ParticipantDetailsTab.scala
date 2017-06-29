@@ -24,17 +24,13 @@ import android.view.View
 import android.widget.LinearLayout
 import com.waz.api.User
 import com.waz.model.{TeamData, UserId}
-import com.waz.service.ZMessaging
 import com.waz.threading.Threading
 import com.waz.utils.events.Signal
-import com.waz.zclient.controllers.UserAccountsController
 import com.waz.zclient.ui.text.TypefaceTextView
 import com.waz.zclient.utils.UiStorage
 import com.waz.zclient.views.images.ImageAssetImageView
 import com.waz.zclient.views.menus.{FooterMenu, FooterMenuCallback}
 import com.waz.zclient.{R, ViewHelper}
-
-import scala.concurrent.Future
 
 class ParticipantDetailsTab(val context: Context, val attrs: AttributeSet, val defStyleAttr: Int) extends LinearLayout(context, attrs, defStyleAttr) with ViewHelper {
   def this(context: Context, attrs: AttributeSet) = this(context, attrs, 0)
@@ -51,13 +47,15 @@ class ParticipantDetailsTab(val context: Context, val attrs: AttributeSet, val d
   setOrientation(LinearLayout.VERTICAL)
 
   private val userId = Signal[UserId]()
-  private val isGuest = Signal((false, Option.empty[TeamData]))
+  private val isGuest = Signal(false)
 
   isGuest.on(Threading.Ui) {
-    case (true, Some(teamName)) =>
+    case true =>
       guestIndicationText.setVisibility(View.VISIBLE)
-      guestIndicationText.setText(getResources.getString(R.string.participant_tab_guest_indicator, teamName))
-    case _ => guestIndicationText.setVisibility(View.GONE)
+      guestIndicationText.setText(getResources.getString(R.string.participant_tab_guest_indicator_label))
+    case _ =>
+      guestIndicationText.setVisibility(View.GONE)
+      guestIndicationText.setText("")
   }
 
 

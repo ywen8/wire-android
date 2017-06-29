@@ -138,8 +138,8 @@
     <string name="people_picker__search_result_team_members_header_title">Team Members</string>
     <string name="people_picker__invite_header_title">Invite</string>
     <string name="people_picker__confirm_button_title">Create conversation</string>
-    <string name="people_picker__confirm_button_title__add_to_conversation">ADD</string>
-    <string name="people_picker__confirm_button_title__create_conversation">CREATE</string>
+    <string name="people_picker__confirm_button_title__add_to_conversation">Add People to Group</string>
+    <string name="people_picker__confirm_button_title__create_conversation">Create Group</string>
     <string name="people_picker__error_message__no_results">No matching results.</string>
     <string name="people_picker__error_message__no_results__no_shared_contacts">Find people by name or email address</string>
     <string name="people_picker__error_message__no_results__invalid_email__no_shared_contacts">Please enter a valid email address or</string>
@@ -151,6 +151,7 @@
     <string name="people_picker__toolbar_header__group">Add people</string>
     <string name="people_picker__toolbar_header__one_to_one">Create group</string>
     <string name="people_picker__search_result__expander_title">Show all %1$s ↓</string>
+    <string name="people_picker__guest_label">Guest</string>
 
     <!-- start ui / people picker, contacts sharing -->
     <string name="people_picker__share_contacts__title">Share Contacts</string>
@@ -183,7 +184,7 @@
     <string name="people_picker__contact_list__contact_selection_button__label">INVITE</string>
     <string name="people_picker__contact_list__invite_dialog__title">Send invitation</string>
     <string name="people_picker__contact_list__searchbox__hint">\u0020 SEARCH BY NAME</string>
-    <string name="people_picker__contact_list__generic_invite__button__label">INVITE MORE PEOPLE</string>
+    <string name="people_picker__generic_invite_button_text">Invite People to Join Wire</string>
     <plurals name="people_picker__contact_list_contact_sub_label_common_friends">
         <item quantity="one">%1$d person in common</item>
         <item quantity="other">%1$d people in common</item>
@@ -1183,5 +1184,5 @@
     <string name="conversation_list__header__title">CONVERSATIONS</string>
     <string name="conversation_list__header__archive_title">ARCHIVE</string>
     <string name="guest_indicator">GUEST</string>
-    <string name="participant_tab_guest_indicator">Guest in %1$s</string>
+    <string name="participant_tab_guest_indicator_label">Guest</string>
 </resources>
