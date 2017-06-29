@@ -18,14 +18,12 @@
 package com.waz.zclient.common.views
 
 import android.content.Context
-import android.content.res.TypedArray
 import android.graphics._
 import android.text.TextUtils
 import android.util.AttributeSet
 import android.view.View
 import android.view.View.MeasureSpec
 import android.view.View.MeasureSpec.{EXACTLY, makeMeasureSpec}
-import com.waz.ZLog
 import com.waz.api.User.ConnectionStatus
 import com.waz.api.User.ConnectionStatus._
 import com.waz.api.impl.AccentColor
@@ -37,7 +35,7 @@ import com.waz.service.assets.AssetService.BitmapResult.BitmapLoaded
 import com.waz.service.images.BitmapSignal
 import com.waz.threading.Threading
 import com.waz.ui.MemoryImageCache.BitmapRequest.{Round, Single}
-import com.waz.utils.NameParts
+import com.waz.utils.{NameParts, returning}
 import com.waz.utils.events.{EventContext, Signal}
 import com.waz.zclient.ui.utils.TypefaceUtils
 import com.waz.zclient.utils.ContextUtils._
@@ -51,50 +49,50 @@ class ChatheadView(val context: Context, val attrs: AttributeSet, val defStyleAt
   import ChatheadView._
 
   def this(context: Context, attrs: AttributeSet) = this(context, attrs, 0)
-
   def this(context: Context) = this(context, null)
 
-  private val initialsTypeface = TypefaceUtils.getTypeface(getString(R.string.chathead__user_initials__font))
+  private val initialsTypeface  = TypefaceUtils.getTypeface(getString(R.string.chathead__user_initials__font))
   private val initialsFontColor = getColor(R.color.chathead__user_initials__font_color)
-  private val iconOverlayColor = getColor(R.color.chathead__glyph__overlay_color)
-  private val grayScaleColor = getColor(R.color.chathead__non_connected__color)
-  private val overlayColor = getColor(R.color.text__secondary_light)
+  private val iconOverlayColor  = getColor(R.color.chathead__glyph__overlay_color)
+  private val grayScaleColor    = getColor(R.color.chathead__non_connected__color)
+  private val overlayColor      = getColor(R.color.text__secondary_light)
 
-  private val a: TypedArray = context.getTheme.obtainStyledAttributes(attrs, R.styleable.ChatheadView, 0, 0)
+  private val a = context.getTheme.obtainStyledAttributes(attrs, R.styleable.ChatheadView, 0, 0)
 
   private val ctrl = new ChatheadController(
     a.getBoolean(R.styleable.ChatheadView_isSelectable, false),
     a.getBoolean(R.styleable.ChatheadView_show_border, true),
-    Some(new Border(
+    Some(Border(
       getDimen(R.dimen.chathead__min_size_large_border).toInt,
       getDimen(R.dimen.chathead__border_width).toInt,
       getDimen(R.dimen.chathead__large_border_width).toInt)),
     ColorVal(overlayColor),
     a.getBoolean(R.styleable.ChatheadView_is_round, true),
     ColorVal(a.getColor(R.styleable.ChatheadView_default_background, Color.GRAY)),
-    a.getBoolean(R.styleable.ChatheadView_show_waiting, true)
+    a.getBoolean(R.styleable.ChatheadView_show_waiting, true),
+    a.getBoolean(R.styleable.ChatheadView_gray_on_unconnected, true)
   )
-  private val allowIcon = a.getBoolean(R.styleable.ChatheadView_allow_icon, true)
+  private val allowIcon                       = a.getBoolean(R.styleable.ChatheadView_allow_icon, true)
   private val swapBackgroundAndInitialsColors = a.getBoolean(R.styleable.ChatheadView_swap_background_and_initial_colors, false)
-  private val iconFontSize = a.getDimensionPixelSize(R.styleable.ChatheadView_glyph_size, getResources.getDimensionPixelSize(R.dimen.chathead__picker__glyph__font_size))
-  private val initialsFontSize = a.getDimensionPixelSize(R.styleable.ChatheadView_initials_font_size, defaultInitialFontSize)
+  private val iconFontSize                    = a.getDimensionPixelSize(R.styleable.ChatheadView_glyph_size, getResources.getDimensionPixelSize(R.dimen.chathead__picker__glyph__font_size))
+  private val initialsFontSize                = a.getDimensionPixelSize(R.styleable.ChatheadView_initials_font_size, defaultInitialFontSize)
   a.recycle()
 
-  private val initialsTextPaint = new Paint(Paint.ANTI_ALIAS_FLAG)
-  initialsTextPaint.setTextAlign(Paint.Align.CENTER)
-  initialsTextPaint.setTypeface(initialsTypeface)
+  private val initialsTextPaint = returning(new Paint(Paint.ANTI_ALIAS_FLAG)) { p =>
+    p.setTextAlign(Paint.Align.CENTER)
+    p.setTypeface(initialsTypeface)
+  }
 
-  private val backgroundPaint = new Paint(Paint.ANTI_ALIAS_FLAG)
-  backgroundPaint.setColor(Color.TRANSPARENT)
+  private val backgroundPaint = returning(new Paint(Paint.ANTI_ALIAS_FLAG))(_.setColor(Color.TRANSPARENT))
 
-  private val iconTextPaint = new Paint(Paint.ANTI_ALIAS_FLAG)
-  iconTextPaint.setTextAlign(Paint.Align.CENTER)
-  iconTextPaint.setColor(initialsFontColor)
-  iconTextPaint.setTypeface(TypefaceUtils.getTypeface(TypefaceUtils.getGlyphsTypefaceName))
-  iconTextPaint.setTextSize(iconFontSize)
+  private val iconTextPaint = returning(new Paint(Paint.ANTI_ALIAS_FLAG)) { p =>
+    p.setTextAlign(Paint.Align.CENTER)
+    p.setColor(initialsFontColor)
+    p.setTypeface(TypefaceUtils.getTypeface(TypefaceUtils.getGlyphsTypefaceName))
+    p.setTextSize(iconFontSize)
+  }
 
-  private val glyphOverlayPaint = new Paint(Paint.ANTI_ALIAS_FLAG)
-  glyphOverlayPaint.setColor(iconOverlayColor)
+  private val glyphOverlayPaint = returning(new Paint(Paint.ANTI_ALIAS_FLAG))(_.setColor(iconOverlayColor))
 
   private val grayScaleColorMatrix = new ColorMatrix()
 
@@ -222,14 +220,14 @@ class ChatheadView(val context: Context, val attrs: AttributeSet, val defStyleAt
     cy - ((textPaint.descent + textPaint.ascent) / 2f)
   }
 
-  private def getGlyphText(selected: Boolean, contactHasBeenInvited: Boolean, connectionStatus: ConnectionStatus, showWating: Boolean): String = {
+  private def getGlyphText(selected: Boolean, contactHasBeenInvited: Boolean, connectionStatus: ConnectionStatus, showWaiting: Boolean): String = {
     if (selected) {
       getResources.getString(selectedUserGlyphId)
     } else if (contactHasBeenInvited) {
       getResources.getString(pendingAddressBookContactGlyphId)
     } else {
       connectionStatus match {
-        case PENDING_FROM_OTHER | PENDING_FROM_USER | IGNORED if showWating => getResources.getString(pendingUserGlyphId)
+        case PENDING_FROM_OTHER | PENDING_FROM_USER | IGNORED if showWaiting => getResources.getString(pendingUserGlyphId)
         case BLOCKED => getResources.getString(blockedUserGlyphId)
         case _ => ""
       }
@@ -247,16 +245,15 @@ object ChatheadView {
   private val defaultInitialFontSize = -1
 }
 
-protected class ChatheadController(val setSelectable: Boolean = false,
-                                             val showBorder: Boolean = true,
-                                             val border: Option[Border] = None,
-                                             val contactBackgroundColor: ColorVal = ColorVal(Color.GRAY),
-                                             val isRound: Boolean = true,
-                                             val defaultBackgroundColor: ColorVal = ColorVal(Color.GRAY),
-                                             val showWaitingForConnection: Boolean = true)
-                                            (implicit inj: Injector, eventContext: EventContext) extends Injectable {
-
-  private implicit val logtag = ZLog.logTagFor[ChatheadController]
+protected class ChatheadController(val setSelectable:            Boolean        = false,
+                                   val showBorder:               Boolean        = true,
+                                   val border:                   Option[Border] = None,
+                                   val contactBackgroundColor:   ColorVal       = ColorVal(Color.GRAY),
+                                   val isRound:                  Boolean        = true,
+                                   val defaultBackgroundColor:   ColorVal       = ColorVal(Color.GRAY),
+                                   val showWaitingForConnection: Boolean        = true,
+                                   val grayscaleOnUnconnected:   Boolean        = true)
+                                  (implicit inj: Injector, eventContext: EventContext) extends Injectable {
 
   val zMessaging = inject[Signal[ZMessaging]]
   val teamsAndUserController = inject[UserAccountsController]
@@ -305,7 +302,7 @@ protected class ChatheadController(val setSelectable: Boolean = false,
     case (Some(Left(user)), isTeamMember) => !(user.isConnected || user.isSelf || isTeamMember)
     case (Some(Right(contactDetails)), _) => false
     case _ => false
-  }
+  }.map(_ && grayscaleOnUnconnected)
 
   val assetId = chatheadInfo.map {
     case Some(Left(user)) => user.picture
@@ -349,7 +346,7 @@ protected class ChatheadController(val setSelectable: Boolean = false,
   val invalidate = Signal(bitmap, selected, borderWidth).zip(Signal(initials, hasBeenInvited, connectionStatus)).onChanged
 }
 
-case class Border(val minSizeForLargeBorderWidth: Int, val smallBorderWidth: Int, val largeBorderWidth: Int) {
+case class Border(minSizeForLargeBorderWidth: Int, smallBorderWidth: Int, largeBorderWidth: Int) {
   def getWidth(viewWidth: Int) = {
     if (viewWidth < minSizeForLargeBorderWidth) smallBorderWidth else largeBorderWidth
   }

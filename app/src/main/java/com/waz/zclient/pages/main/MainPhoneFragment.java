@@ -42,7 +42,7 @@ import com.waz.zclient.controllers.singleimage.SingleImageObserver;
 import com.waz.zclient.conversation.CollectionController;
 import com.waz.zclient.conversation.CollectionFragment;
 import com.waz.zclient.conversation.ShareToMultipleFragment;
-import com.waz.zclient.core.stores.inappnotification.InAppNotificationStoreObserver;
+import com.waz.zclient.core.stores.inappnotification.SyncErrorObserver;
 import com.waz.zclient.fragments.ImageFragment;
 import com.waz.zclient.pages.BaseFragment;
 import com.waz.zclient.pages.main.conversation.SingleImageUserFragment;
@@ -63,7 +63,7 @@ public class MainPhoneFragment extends BaseFragment<MainPhoneFragment.Container>
                                                                                             AccentColorObserver,
                                                                                             CollectionsObserver,
                                                                                             ConfirmationFragment.Container,
-                                                                                            InAppNotificationStoreObserver {
+    SyncErrorObserver {
 
     public static final String TAG = MainPhoneFragment.class.getName();
     private ConfirmationMenu confirmationMenu;
@@ -325,11 +325,6 @@ public class MainPhoneFragment extends BaseFragment<MainPhoneFragment.Container>
             return;
         }
         confirmationMenu.setButtonColor(color);
-    }
-
-    @Override
-    public void onIncomingMessage(Message message) {
-        // ignore
     }
 
     @Override

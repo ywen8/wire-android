@@ -149,6 +149,7 @@
         <attr name="default_background" format="color"/>
         <attr name="is_round" format="boolean"/>
         <attr name="show_waiting" format="boolean"/>
+        <attr name="gray_on_unconnected" format="boolean"/>
     </declare-styleable>
 
     <declare-styleable name="ChatheadWithTextFooter">

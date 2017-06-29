@@ -30,6 +30,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.Toast;
+
 import com.waz.api.ConversationsList;
 import com.waz.api.CredentialsUpdateListener;
 import com.waz.api.IConversation;
@@ -41,7 +42,6 @@ import com.waz.api.User;
 import com.waz.zclient.BaseActivity;
 import com.waz.zclient.LaunchActivity;
 import com.waz.zclient.OnBackPressedListener;
-import com.waz.zclient.preferences.PreferencesActivity;
 import com.waz.zclient.R;
 import com.waz.zclient.controllers.accentcolor.AccentColorObserver;
 import com.waz.zclient.controllers.confirmation.ConfirmationCallback;
@@ -67,11 +67,10 @@ import com.waz.zclient.core.controllers.tracking.events.onboarding.SeenUsernameT
 import com.waz.zclient.core.stores.connect.IConnectStore;
 import com.waz.zclient.core.stores.conversation.ConversationChangeRequester;
 import com.waz.zclient.core.stores.conversation.ConversationStoreObserver;
-import com.waz.zclient.core.stores.conversation.InboxLoadRequester;
-import com.waz.zclient.core.stores.conversation.OnInboxLoadedListener;
 import com.waz.zclient.fragments.ArchiveListFragment;
 import com.waz.zclient.fragments.ConversationListFragment;
 import com.waz.zclient.fragments.NormalConversationListFragment;
+import com.waz.zclient.fragments.PickUserFragment;
 import com.waz.zclient.media.SoundController;
 import com.waz.zclient.newreg.fragments.FirstTimeAssignUsernameFragment;
 import com.waz.zclient.pages.BaseFragment;
@@ -84,11 +83,11 @@ import com.waz.zclient.pages.main.conversation.controller.IConversationScreenCon
 import com.waz.zclient.pages.main.participants.OptionsMenuControl;
 import com.waz.zclient.pages.main.participants.OptionsMenuFragment;
 import com.waz.zclient.pages.main.participants.dialog.ParticipantsDialogFragment;
-import com.waz.zclient.fragments.PickUserFragment;
 import com.waz.zclient.pages.main.pickuser.controller.IPickUserController;
 import com.waz.zclient.pages.main.pickuser.controller.PickUserControllerScreenObserver;
 import com.waz.zclient.pages.main.profile.camera.CameraContext;
 import com.waz.zclient.pages.main.profile.camera.CameraFragment;
+import com.waz.zclient.preferences.PreferencesActivity;
 import com.waz.zclient.tracking.GlobalTrackingController;
 import com.waz.zclient.ui.animation.interpolators.penner.Expo;
 import com.waz.zclient.ui.animation.interpolators.penner.Quart;
@@ -106,7 +105,6 @@ import java.util.List;
 public class ConversationListManagerFragment extends BaseFragment<ConversationListManagerFragment.Container> implements
                                                                                                    PickUserControllerScreenObserver,
                                                                                                    ConversationStoreObserver,
-                                                                                                   OnInboxLoadedListener,
                                                                                                    OnBackPressedListener,
                                                                                                    ConversationListFragment.Container,
                                                                                                    OptionsMenuFragment.Container,
@@ -1167,12 +1165,6 @@ public class ConversationListManagerFragment extends BaseFragment<ConversationLi
         if (ctrl != null) {
             ctrl.playAlert();
         }
-    }
-
-    @Override
-    public void onConnectRequestInboxConversationsLoaded(List<IConversation> conversations,
-                                                         InboxLoadRequester inboxLoadRequester) {
-
     }
 
     public void hideFirstAssignUsernameScreen() {

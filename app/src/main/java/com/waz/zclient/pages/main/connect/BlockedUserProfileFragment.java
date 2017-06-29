@@ -25,6 +25,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.widget.TextView;
+
 import com.waz.api.IConversation;
 import com.waz.api.User;
 import com.waz.zclient.BaseActivity;

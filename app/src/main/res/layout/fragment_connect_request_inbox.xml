@@ -23,9 +23,9 @@
              android:layout_height="match_parent"
              style="?attr/wireBackground"
     >
-    
-        <com.waz.zclient.pages.main.connect.views.ConnectRequestInboxListView
-            android:id="@+id/crlv_connect_request_inbox__list"
+
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/connect_request_list"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_gravity="center"
