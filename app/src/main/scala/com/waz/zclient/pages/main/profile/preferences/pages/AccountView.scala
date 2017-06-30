@@ -35,7 +35,7 @@ import com.waz.zclient._
 import com.waz.zclient.controllers.global.PasswordController
 import com.waz.zclient.controllers.tracking.events.profile.SignOut
 import com.waz.zclient.core.controllers.tracking.events.session.LoggedOutEvent
-import com.waz.zclient.pages.main.profile.preferences.dialogs.{AddPhoneNumberPreferenceDialogFragment, ChangeEmailDialog}
+import com.waz.zclient.pages.main.profile.preferences.dialogs.{AddPhoneNumberPreferenceDialogFragment, ChangeEmailDialog, ChangePhoneDialog}
 import com.waz.zclient.pages.main.profile.preferences.views.{EditNameDialog, TextButton}
 import com.waz.zclient.preferences.PreferencesActivity
 import com.waz.zclient.preferences.dialogs.AccentColorPickerFragment
@@ -49,15 +49,15 @@ import com.waz.zclient.views.ImageController.{ImageSource, WireImage}
 import scala.concurrent.Future
 
 trait AccountView {
-  val onNameClick:   EventStream[Unit]
-  val onHandleClick: EventStream[Unit]
-  val onEmailClick:  EventStream[Unit]
-  val onPhoneClick:  EventStream[Unit]
-  val onPictureClick:EventStream[Unit]
-  val onAccentClick: EventStream[Unit]
-  val onResetClick:  EventStream[Unit]
-  val onLogoutClick: EventStream[Unit]
-  val onDeleteClick: EventStream[Unit]
+  val onNameClick:          EventStream[Unit]
+  val onHandleClick:        EventStream[Unit]
+  val onEmailClick:         EventStream[Unit]
+  val onPhoneClick:         EventStream[Unit]
+  val onPictureClick:       EventStream[Unit]
+  val onAccentClick:        EventStream[Unit]
+  val onPasswordResetClick: EventStream[Unit]
+  val onLogoutClick:        EventStream[Unit]
+  val onDeleteClick:        EventStream[Unit]
 
   def setName(name: String): Unit
   def setHandle(handle: String): Unit
@@ -83,15 +83,15 @@ class AccountViewImpl(context: Context, attrs: AttributeSet, style: Int) extends
   val logoutButton        = findById[TextButton](R.id.preferences_account_logout)
   val deleteAccountButton = findById[TextButton](R.id.preferences_account_delete)
 
-  override val onNameClick    = nameButton.onClickEvent.map(_ => ())
-  override val onHandleClick  = handleButton.onClickEvent.map(_ => ())
-  override val onEmailClick   = emailButton.onClickEvent.map(_ => ())
-  override val onPhoneClick   = phoneButton.onClickEvent.map(_ => ())
-  override val onPictureClick = pictureButton.onClickEvent.map(_ => ())
-  override val onAccentClick  = colorButton.onClickEvent.map(_ => ())
-  override val onResetClick   = resetPasswordButton.onClickEvent.map(_ => ())
-  override val onLogoutClick  = logoutButton.onClickEvent.map(_ => ())
-  override val onDeleteClick  = deleteAccountButton.onClickEvent.map(_ => ())
+  override val onNameClick          = nameButton.onClickEvent.map(_ => ())
+  override val onHandleClick        = handleButton.onClickEvent.map(_ => ())
+  override val onEmailClick         = emailButton.onClickEvent.map(_ => ())
+  override val onPhoneClick         = phoneButton.onClickEvent.map(_ => ())
+  override val onPictureClick       = pictureButton.onClickEvent.map(_ => ())
+  override val onAccentClick        = colorButton.onClickEvent.map(_ => ())
+  override val onPasswordResetClick = resetPasswordButton.onClickEvent.map(_ => ())
+  override val onLogoutClick        = logoutButton.onClickEvent.map(_ => ())
+  override val onDeleteClick        = deleteAccountButton.onClickEvent.map(_ => ())
 
   override def setName(name: String) = nameButton.setTitle(name)
 
@@ -220,11 +220,28 @@ class AccountViewController(view: AccountView)(implicit inj: Injector, ec: Event
     }
   }
 
+  //TODO move most of this information to the dialogs themselves -- it's too tricky here to sort out what thread things are running on...
   view.onPhoneClick.onUi { _ =>
-    account.head.map { account =>
-      import AddPhoneNumberPreferenceDialogFragment._
-      showPrefDialog(newInstance(account.phone.map(_.str).getOrElse("")), TAG)
-    }(Threading.Ui)
+    import Threading.Implicits.Ui
+    for {
+      email <- self.head.map(_.email)
+      ph    <- self.head.map(_.phone)
+    } {
+      showPrefDialog(
+        returning(ChangePhoneDialog(ph.map(_.str), email.isDefined)) {
+          _.onPhoneChanged {
+            case Some(p) =>
+              import com.waz.zclient.pages.main.profile.preferences.dialogs.VerifyPhoneNumberPreferenceFragment._
+              val f = newInstance(p.str)
+              //hide the verification screen when complete
+              self.map(_.phone).onChanged.filter(_.contains(p)).onUi { _ =>
+                f.dismiss()
+              }
+              showPrefDialog(f, TAG)
+          }
+        },
+        ChangePhoneDialog.FragmentTag)
+    }
   }
 
   view.onPictureClick.onUi(_ => navigator.goTo(ProfilePictureBackStackKey()))
@@ -235,7 +252,7 @@ class AccountViewController(view: AccountView)(implicit inj: Injector, ec: Event
     }(Threading.Ui)
   }
 
-  view.onResetClick.onUi { _ =>
+  view.onPasswordResetClick.onUi { _ =>
     self.head.map { self =>
       //TODO
     }(Threading.Ui)

@@ -32,6 +32,7 @@ import com.waz.zclient.calling.controllers.{CallPermissionsController, CurrentCa
 import com.waz.zclient.camera.controllers.{AndroidCameraFactory, GlobalCameraController}
 import com.waz.zclient.common.controllers.{PermissionActivity, PermissionsController, PermissionsWrapper}
 import com.waz.zclient.controllers._
+import com.waz.zclient.controllers.deviceuser.IDeviceUserController
 import com.waz.zclient.controllers.drawing.IDrawingController
 import com.waz.zclient.controllers.global.{AccentColorController, KeyboardController, PasswordController, SelectionController}
 import com.waz.zclient.controllers.navigation.INavigationController
@@ -77,6 +78,7 @@ object WireApplication {
     bind [ISingleImageController]        toProvider controllerFactory.getSingleImageController
     bind [ISlidingPaneController]        toProvider controllerFactory.getSlidingPaneController
     bind [IDrawingController]            toProvider controllerFactory.getDrawingController
+    bind [IDeviceUserController]         toProvider controllerFactory.getDeviceUserController
 
     // global controllers
     bind [AccentColorController]   to new AccentColorController()

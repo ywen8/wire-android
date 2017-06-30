@@ -53,7 +53,7 @@ public class VerifyPhoneNumberPreferenceFragment extends BaseDialogFragment<Veri
     private final char[] verificationCode = new char[CODE_LENGTH];
     private List<EditText> textBoxes;
 
-    public static Fragment newInstance(String phoneNumber) {
+    public static VerifyPhoneNumberPreferenceFragment newInstance(String phoneNumber) {
         final VerifyPhoneNumberPreferenceFragment fragment = new VerifyPhoneNumberPreferenceFragment();
         final Bundle args = new Bundle();
         args.putString(ARG_PHONE, phoneNumber);
@@ -131,7 +131,6 @@ public class VerifyPhoneNumberPreferenceFragment extends BaseDialogFragment<Veri
                     return;
                 }
                 dismiss();
-                getContainer().changePhoneNumber(number);
             }
         });
         final TextView resendButton = ViewUtils.getView(view, R.id.tv__resend_button);
@@ -229,6 +228,5 @@ public class VerifyPhoneNumberPreferenceFragment extends BaseDialogFragment<Veri
     }
 
     public interface Container {
-        void changePhoneNumber(String phoneNumber);
     }
 }
