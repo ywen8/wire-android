@@ -17,9 +17,10 @@
  */
 package com.waz.zclient.pages.main.profile.preferences.pages
 
-import android.content.{Context, DialogInterface}
+import android.content.{Context, DialogInterface, Intent}
 import android.graphics.drawable.Drawable
 import android.graphics.{Canvas, ColorFilter, Paint, PixelFormat}
+import android.net.Uri
 import android.os.{Bundle, Parcel, Parcelable}
 import android.support.v4.app.{Fragment, FragmentTransaction}
 import android.util.AttributeSet
@@ -33,13 +34,15 @@ import com.waz.utils.events.{EventContext, EventStream, Signal}
 import com.waz.utils.returning
 import com.waz.zclient._
 import com.waz.zclient.controllers.global.PasswordController
-import com.waz.zclient.controllers.tracking.events.profile.SignOut
+import com.waz.zclient.controllers.tracking.events.profile.{ResetPassword, SignOut}
 import com.waz.zclient.core.controllers.tracking.events.session.LoggedOutEvent
-import com.waz.zclient.pages.main.profile.preferences.dialogs.{AddPhoneNumberPreferenceDialogFragment, ChangeEmailDialog, ChangePhoneDialog}
+import com.waz.zclient.pages.main.profile.preferences.dialogs.{ChangeEmailDialog, ChangePhoneDialog}
 import com.waz.zclient.pages.main.profile.preferences.views.{EditNameDialog, TextButton}
 import com.waz.zclient.preferences.PreferencesActivity
 import com.waz.zclient.preferences.dialogs.AccentColorPickerFragment
 import com.waz.zclient.tracking.GlobalTrackingController
+import com.waz.zclient.ui.utils.TextViewUtils._
+import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.utils.ViewUtils._
 import com.waz.zclient.utils.{BackStackKey, BackStackNavigator, StringUtils, UiStorage, UserSignal}
 import com.waz.zclient.views.ImageAssetDrawable
@@ -112,15 +115,13 @@ case class AccountBackStackKey(args: Bundle = new Bundle()) extends BackStackKey
 
   override def layoutId = R.layout.preferences_account
 
-  var controller = Option.empty[AccountViewController]
+  private var controller = Option.empty[AccountViewController]
 
-  override def onViewAttached(v: View) = {
+  override def onViewAttached(v: View) =
     controller = Option(v.asInstanceOf[AccountViewImpl]).map(view => new AccountViewController(view)(view.wContext.injector, view, view.getContext))
-  }
 
-  override def onViewDetached() = {
+  override def onViewDetached() =
     controller = None
-  }
 }
 
 object AccountBackStackKey {
@@ -221,6 +222,7 @@ class AccountViewController(view: AccountView)(implicit inj: Injector, ec: Event
   }
 
   //TODO move most of this information to the dialogs themselves -- it's too tricky here to sort out what thread things are running on...
+  //currently blocks a little...
   view.onPhoneClick.onUi { _ =>
     import Threading.Implicits.Ui
     for {
@@ -253,31 +255,47 @@ class AccountViewController(view: AccountView)(implicit inj: Injector, ec: Event
   }
 
   view.onPasswordResetClick.onUi { _ =>
-    self.head.map { self =>
-      //TODO
-    }(Threading.Ui)
+    tracking.tagEvent(new ResetPassword(ResetPassword.Location.FROM_PROFILE))
+    context.startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(getString(R.string.url_password_reset))))
   }
 
   view.onLogoutClick.onUi { _ =>
-    self.head.map{ self =>
+    self.head.map { self =>
       showAlertDialog(context, null,
-        context.getString(R.string.pref_account_sign_out_warning_message),
-        context.getString(R.string.pref_account_sign_out_warning_verify),
-        context.getString(R.string.pref_account_sign_out_warning_cancel),
+        getString(R.string.pref_account_sign_out_warning_message),
+        getString(R.string.pref_account_sign_out_warning_verify),
+        getString(R.string.pref_account_sign_out_warning_cancel),
         new DialogInterface.OnClickListener() {
           def onClick(dialog: DialogInterface, which: Int) = {
             context.asInstanceOf[PreferencesActivity].getControllerFactory.getUsernameController.tearDown()
             // TODO: Remove old SignOut event https://wearezeta.atlassian.net/browse/AN-4232
             Future.sequence(Seq(tracking.tagEvent(new SignOut), tracking.tagEvent(new LoggedOutEvent)))(Seq.canBuildFrom, Threading.Background)
-            zms.map(_.account).head.flatMap(_.logout())(Threading.Ui)
+            zms.map(_.account).head.flatMap(_.logout())(Threading.Background)
           }
         }, null)
     }(Threading.Ui)
   }
 
   view.onDeleteClick.onUi { _ =>
-    self.head.map{ self =>
-      //TODO
+    self.head.map { self =>
+      val email = self.email.map(_.str)
+      val phone = self.phone.map(_.str)
+
+      val message: String = (email, phone) match {
+        case (Some(e), _)    => getString(R.string.pref_account_delete_warning_message_email, e)
+        case (None, Some(p)) => getString(R.string.pref_account_delete_warning_message_sms, p)
+        case _ => ""
+      }
+
+      showAlertDialog(context,
+        getString(R.string.pref_account_delete_warning_title),
+        getBoldText(context, message),
+        getString(R.string.pref_account_delete_warning_verify),
+        getString(R.string.pref_account_delete_warning_cancel),
+        new DialogInterface.OnClickListener() {
+          def onClick(dialog: DialogInterface, which: Int) =
+            zms.head.map(_.users.deleteAccount())(Threading.Background)
+        }, null)
     }(Threading.Ui)
   }
 
