@@ -28,7 +28,7 @@ import com.waz.api.User.ConnectionStatus
 import com.waz.api.User.ConnectionStatus._
 import com.waz.api.impl.AccentColor
 import com.waz.api.{ContactDetails, User}
-import com.waz.model.{AssetData, TeamData, UserData, UserId}
+import com.waz.model.{AssetData, UserData, UserId}
 import com.waz.service.ZMessaging
 import com.waz.service.assets.AssetService.BitmapResult
 import com.waz.service.assets.AssetService.BitmapResult.BitmapLoaded
@@ -278,7 +278,14 @@ protected class ChatheadController(val setSelectable:            Boolean        
     case _ => UNCONNECTED
   }
 
-  val teamMember = Signal.const(false)//TODO: check if it's a team member
+  val teamMember = for {
+    zms <- zMessaging
+    uId <- assignInfo.map {
+      case Some(Left(userId)) => Some(userId)
+      case _ => None
+    }
+    isTeam <- uId.map(id => zms.teams.isGuest(id).map(_ == false)).getOrElse(Signal.const(false))
+  } yield isTeam
 
   val hasBeenInvited = chatheadInfo.map {
     case Some(Left(user)) => false
