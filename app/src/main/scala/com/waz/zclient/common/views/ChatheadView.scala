@@ -24,7 +24,6 @@ import android.util.AttributeSet
 import android.view.View
 import android.view.View.MeasureSpec
 import android.view.View.MeasureSpec.{EXACTLY, makeMeasureSpec}
-import com.waz.ZLog
 import com.waz.api.User.ConnectionStatus
 import com.waz.api.User.ConnectionStatus._
 import com.waz.api.impl.AccentColor
@@ -281,12 +280,12 @@ protected class ChatheadController(val setSelectable:            Boolean        
 
   val teamMember = for {
     zms <- zMessaging
-    userTeamId <- chatheadInfo.map {
-      case Some(Left(user)) => user.teamId
+    uId <- assignInfo.map {
+      case Some(Left(userId)) => Some(userId)
       case _ => None
     }
-    selfTeamId <- zms.teams.selfTeam.map(_.map(_.id))
-  } yield selfTeamId.isDefined && userTeamId == selfTeamId
+    isTeam <- uId.map(id => zms.teams.isGuest(id).map(_ == false)).getOrElse(Signal.const(false))
+  } yield isTeam
 
   val hasBeenInvited = chatheadInfo.map {
     case Some(Left(user)) => false

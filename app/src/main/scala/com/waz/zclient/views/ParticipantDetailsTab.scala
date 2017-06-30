@@ -23,7 +23,7 @@ import android.util.AttributeSet
 import android.view.View
 import android.widget.LinearLayout
 import com.waz.api.User
-import com.waz.model.{TeamData, UserId}
+import com.waz.model.UserId
 import com.waz.service.ZMessaging
 import com.waz.threading.Threading
 import com.waz.utils.events.Signal
@@ -48,12 +48,12 @@ class ParticipantDetailsTab(val context: Context, val attrs: AttributeSet, val d
   setOrientation(LinearLayout.VERTICAL)
 
   private val userId = Signal[UserId]()
+
   private val isGuest = for{
     z <- inject[Signal[ZMessaging]]
     uId <- userId
-    guests <- z.teams.guests
-  } yield guests.contains(uId)
-
+    isGuest <- z.teams.isGuest(uId)
+  } yield isGuest
 
   isGuest.on(Threading.Ui) {
     case true =>
@@ -63,7 +63,6 @@ class ParticipantDetailsTab(val context: Context, val attrs: AttributeSet, val d
       guestIndicationText.setVisibility(View.GONE)
       guestIndicationText.setText("")
   }
-
 
   def setUser(user: User) {
     Option(user).fold{

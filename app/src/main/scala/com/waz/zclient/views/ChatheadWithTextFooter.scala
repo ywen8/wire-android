@@ -35,8 +35,6 @@ import com.waz.zclient.utils.ViewUtils
 import com.waz.zclient.views.pickuser.UserRowView
 import com.waz.zclient.{R, ViewHelper}
 
-import scala.concurrent.Future
-
 class ChatheadWithTextFooter(val context: Context, val attrs: AttributeSet, val defStyleAttr: Int) extends LinearLayout(context, attrs, defStyleAttr) with ViewHelper with UserRowView {
   def this(context: Context, attrs: AttributeSet) = this(context, attrs, 0)
   def this(context: Context) = this(context, null)
@@ -54,8 +52,8 @@ class ChatheadWithTextFooter(val context: Context, val attrs: AttributeSet, val 
     z <- inject[Signal[ZMessaging]]
     uId <- userId
     data <- z.usersStorage.signal(uId)
-    guests <- z.teams.guests
-  } yield (data, guests.contains(uId)) // true means guest status
+    isGuest <- z.teams.isGuest(uId)
+  } yield (data, isGuest) // true means guest status
 
   setOrientation(LinearLayout.VERTICAL)
   initAttributes(attrs)

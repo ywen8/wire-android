@@ -320,14 +320,13 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
       }
     })
 
-    (for {
+    for {
       z <- zms
       team <- z.teams.selfTeam
       accountData <- z.account.accountData
-    } yield (team, accountData)){
-      case (team, accountData) =>
-        currentTeam = team
-        teamPermissions = accountData.selfPermissions
+    } {
+      currentTeam = team
+      teamPermissions = accountData.selfPermissions
     }
 
     rootView
