@@ -41,8 +41,8 @@ import com.waz.zclient.controllers.drawing.IDrawingController
 import com.waz.zclient.controllers.drawing.IDrawingController.DrawingMethod
 import com.waz.zclient.controllers.singleimage.ISingleImageController
 import com.waz.zclient.core.api.scala.ModelObserver
+import com.waz.zclient.messages.MessageBottomSheetDialog.MessageAction
 import com.waz.zclient.messages.controllers.MessageActionsController
-import com.waz.zclient.pages.main.conversation.views.MessageBottomSheetDialog.MessageAction
 import com.waz.zclient.ui.utils.TypefaceUtils
 import com.waz.zclient.utils.AssetUtils
 import com.waz.zclient.utils.ContextUtils._
@@ -81,8 +81,8 @@ class AssetsController(implicit context: Context, inj: Injector, ec: EventContex
   val onAudioPlayed = EventStream[AssetData]()
 
   messageActionsController.onMessageAction {
-    case (MessageAction.OPEN_FILE, msg) =>
-      zms.head.flatMap(_.assetsStorage.get(AssetId(msg.getId))) foreach {
+    case (MessageAction.OpenFile, msg) =>
+      zms.head.flatMap(_.assetsStorage.get(msg.assetId)) foreach {
         case Some(asset) => openFile(asset)
         case None => // TODO: show error
       }

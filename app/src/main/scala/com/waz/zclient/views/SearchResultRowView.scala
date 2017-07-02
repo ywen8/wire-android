@@ -30,10 +30,10 @@ import com.waz.utils.events.Signal
 import com.waz.zclient.common.views.ChatheadView
 import com.waz.zclient.controllers.global.AccentColorController
 import com.waz.zclient.conversation.{CollectionController, CollectionUtils}
+import com.waz.zclient.messages.MessageBottomSheetDialog.MessageAction
 import com.waz.zclient.messages.MsgPart.Text
 import com.waz.zclient.messages.controllers.MessageActionsController
 import com.waz.zclient.messages.{MessageViewPart, MsgPart, UsersController}
-import com.waz.zclient.pages.main.conversation.views.MessageBottomSheetDialog.MessageAction
 import com.waz.zclient.ui.text.TypefaceTextView
 import com.waz.zclient.ui.utils.{ColorUtils, TextViewUtils}
 import com.waz.zclient.utils.ZTimeFormatter._
@@ -47,6 +47,7 @@ trait SearchResultRowView extends MessageViewPart with ViewHelper{
 
 class TextSearchResultRowView(context: Context, attrs: AttributeSet, style: Int) extends LinearLayout(context, attrs, style) with SearchResultRowView{
   import TextSearchResultRowView._
+  import Threading.Implicits.Ui
   def this(context: Context, attrs: AttributeSet) = this(context, attrs, 0)
   def this(context: Context) = this(context, null, 0)
 
@@ -104,14 +105,11 @@ class TextSearchResultRowView(context: Context, attrs: AttributeSet, style: Int)
     case _ =>
   }
 
-  val uiMessage = message.map(_.id) collect {
-    case id => ZMessaging.currentUi.messages.cachedOrNew(id)
-  }
-  uiMessage { _ =>  }
-
   this.onClick{
-    collectionController.focusedItem ! message.currentValue
-    uiMessage.currentValue.foreach(m => messageActionsController.onMessageAction ! (MessageAction.REVEAL, m))
+    message.head.foreach { m =>
+      collectionController.focusedItem ! Some(m)
+      messageActionsController.onMessageAction ! (MessageAction.Reveal, m)
+    }
   }
 }
 

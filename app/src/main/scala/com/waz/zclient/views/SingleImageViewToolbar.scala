@@ -21,20 +21,21 @@ import android.content.Context
 import android.support.v4.content.ContextCompat
 import android.util.AttributeSet
 import android.widget.LinearLayout
-import com.waz.ZLog.ImplicitTag._
 import com.waz.model.Liking
 import com.waz.service.ZMessaging
 import com.waz.threading.Threading
 import com.waz.utils.events.Signal
 import com.waz.zclient.conversation.CollectionController
+import com.waz.zclient.messages.MessageBottomSheetDialog.MessageAction
 import com.waz.zclient.messages.controllers.MessageActionsController
-import com.waz.zclient.pages.main.conversation.views.MessageBottomSheetDialog.MessageAction
 import com.waz.zclient.utils.RichView
 import com.waz.zclient.{R, ViewHelper}
 
 class SingleImageViewToolbar(context: Context, attrs: AttributeSet, style: Int) extends LinearLayout(context, attrs, style) with ViewHelper {
   def this(context: Context, attrs: AttributeSet) = this(context, attrs, 0)
   def this(context: Context) = this(context, null, 0)
+
+  import Threading.Implicits.Ui
 
   inflate(R.layout.single_image_view_toolbar_layout)
 
@@ -48,10 +49,7 @@ class SingleImageViewToolbar(context: Context, attrs: AttributeSet, style: Int) 
   private val deleteButton: GlyphButton = findById(R.id.toolbar_delete)
   private val viewButton: GlyphButton = findById(R.id.toolbar_view)
 
-  val message = collectionController.focusedItem.map(_.map(_.id)) collect {
-    case Some(id) => ZMessaging.currentUi.messages.cachedOrNew(id)
-  }
-  message { _ =>  }
+  val message = collectionController.focusedItem collect { case Some(msg) => msg }
 
   val likedBySelf = collectionController.focusedItem flatMap {
     case Some(m) => zms.flatMap { z =>
@@ -77,17 +75,13 @@ class SingleImageViewToolbar(context: Context, attrs: AttributeSet, style: Int) 
   Seq(likeButton, downloadButton, shareButton, deleteButton, viewButton)
     .foreach(_.setPressedBackgroundColor(ContextCompat.getColor(getContext, R.color.light_graphite)))
 
-  likeButton.onClick( message.currentValue.foreach(msg => messageActionsController.onMessageAction ! (MessageAction.LIKE, msg)))
-  downloadButton.onClick( message.currentValue.foreach(msg => messageActionsController.onMessageAction ! (MessageAction.SAVE, msg)))
-  shareButton.onClick( message.currentValue.foreach(msg => messageActionsController.onMessageAction ! (MessageAction.FORWARD, msg)))
+  likeButton.onClick( message.head.foreach(msg => messageActionsController.onMessageAction ! (MessageAction.Like, msg)))
+  downloadButton.onClick( message.head.foreach(msg => messageActionsController.onMessageAction ! (MessageAction.Save, msg)))
+  shareButton.onClick( message.head.foreach(msg => messageActionsController.onMessageAction ! (MessageAction.Forward, msg)))
 
-  deleteButton.onClick( message.currentValue.foreach{ msg =>
-    if (msg.getUser.isMe) {
-      messageActionsController.showDeleteDialog(msg)
-    } else {
-      messageActionsController.onMessageAction ! (MessageAction.DELETE_LOCAL, msg)
-    }
+  deleteButton.onClick( message.head.foreach { msg =>
+    messageActionsController.onMessageAction ! (MessageAction.Delete, msg)
   })
 
-  viewButton.onClick(message.currentValue.foreach { msg => messageActionsController.onMessageAction ! (MessageAction.REVEAL, msg)})
+  viewButton.onClick(message.head.foreach { msg => messageActionsController.onMessageAction ! (MessageAction.Reveal, msg)})
 }

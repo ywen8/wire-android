@@ -35,9 +35,9 @@ import com.waz.utils.events.Signal
 import com.waz.zclient.controllers.global.AccentColorController
 import com.waz.zclient.conversation.CollectionAdapter.AdapterState
 import com.waz.zclient.conversation.CollectionController._
+import com.waz.zclient.messages.MessageBottomSheetDialog.MessageAction
 import com.waz.zclient.messages.controllers.MessageActionsController
 import com.waz.zclient.pages.BaseFragment
-import com.waz.zclient.pages.main.conversation.views.MessageBottomSheetDialog.MessageAction
 import com.waz.zclient.ui.text.{GlyphTextView, TypefaceEditText, TypefaceTextView}
 import com.waz.zclient.ui.theme.ThemeUtils
 import com.waz.zclient.ui.utils.KeyboardUtils
@@ -109,7 +109,7 @@ class CollectionFragment extends BaseFragment[CollectionFragment.Container] with
     controller.focusedItem ! None
 
     messageActionsController.onMessageAction.on(Threading.Ui){
-      case (MessageAction.REVEAL, _) =>
+      case (MessageAction.Reveal, _) =>
         KeyboardUtils.closeKeyboardIfShown(getActivity)
         controller.closeCollection
         controller.focusedItem.mutate {

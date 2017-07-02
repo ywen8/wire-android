@@ -17,16 +17,14 @@
  */
 package com.waz.zclient.messages.controllers
 
-import java.util
-
 import android.app.{Activity, ProgressDialog}
 import android.content.DialogInterface.OnDismissListener
 import android.content._
-import android.support.v4.app.{FragmentManager, ShareCompat}
+import android.support.v4.app.ShareCompat
 import android.support.v7.app.AlertDialog
 import android.widget.Toast
 import com.waz.ZLog.ImplicitTag._
-import com.waz.api.{Asset, ImageAsset, Message}
+import com.waz.api.Message
 import com.waz.model._
 import com.waz.service.ZMessaging
 import com.waz.service.messages.MessageAndLikes
@@ -37,9 +35,9 @@ import com.waz.utils.wrappers.{AndroidURIUtil, URI}
 import com.waz.zclient.common.controllers.{PermissionsController, WriteExternalStoragePermission}
 import com.waz.zclient.controllers.global.KeyboardController
 import com.waz.zclient.controllers.userpreferences.IUserPreferencesController
+import com.waz.zclient.messages.MessageBottomSheetDialog
+import com.waz.zclient.messages.MessageBottomSheetDialog.{MessageAction, Params}
 import com.waz.zclient.notifications.controllers.ImageNotificationsController
-import com.waz.zclient.pages.main.conversation.views.MessageBottomSheetDialog
-import com.waz.zclient.pages.main.conversation.views.MessageBottomSheetDialog.{Callback, MessageAction}
 import com.waz.zclient.ui.cursor.CursorLayout
 import com.waz.zclient.ui.utils.KeyboardUtils
 import com.waz.zclient.utils.ContextUtils._
@@ -57,33 +55,32 @@ class MessageActionsController(implicit injector: Injector, ctx: Context, ec: Ev
   private lazy val clipboardManager     = inject[ClipboardManager]
   private lazy val permissions          = inject[PermissionsController]
   private lazy val imageNotifications   = inject[ImageNotificationsController]
-  private lazy val fragmentManager      = inject[FragmentManager]
 
   private val zms = inject[Signal[ZMessaging]]
 
-  val onMessageAction = EventStream[(MessageAction, Message)]()
+  val onMessageAction = EventStream[(MessageAction, MessageData)]()
 
-  val onDeleteConfirmed = EventStream[(Message, Boolean)]() // Boolean == isRecall(true) or localDelete(false)
-  val onAssetSaved = EventStream[Asset]()
+  val onDeleteConfirmed = EventStream[(MessageData, Boolean)]() // Boolean == isRecall(true) or localDelete(false)
+  val onAssetSaved = EventStream[AssetData]()
 
   val messageToReveal = Signal[Option[MessageData]]()
 
   private var dialog = Option.empty[MessageBottomSheetDialog]
 
-  private val callback = new Callback {
-    override def onAction(action: MessageAction, message: Message): Unit = onMessageAction ! (action, message)
-  }
-
   onMessageAction {
-    case (MessageAction.COPY, message)             => copyMessage(message)
-    case (MessageAction.DELETE_GLOBAL, message)    => recallMessage(message)
-    case (MessageAction.DELETE_LOCAL, message)     => deleteMessage(message)
-    case (MessageAction.FORWARD, message)          => forwardMessage(message)
-    case (MessageAction.LIKE, message)             => toggleLike(message)
-    case (MessageAction.UNLIKE, message)           => toggleLike(message)
-    case (MessageAction.SAVE, message)             => saveMessage(message)
-    case (MessageAction.REVEAL, message)           => revealMessageInConversation(message)
-    case (MessageAction.DELETE, message)           => promptDeleteMessage(message)
+    case (MessageAction.Copy, message)             => copyMessage(message)
+    case (MessageAction.DeleteGlobal, message)     => recallMessage(message)
+    case (MessageAction.DeleteLocal, message)      => deleteMessage(message)
+    case (MessageAction.Forward, message)          => forwardMessage(message)
+    case (MessageAction.Save, message)             => saveMessage(message)
+    case (MessageAction.Reveal, message)           => revealMessageInConversation(message)
+    case (MessageAction.Delete, message)           => promptDeleteMessage(message)
+    case (MessageAction.Like, msg) =>
+      zms.head.flatMap(_.reactions.like(msg.convId, msg.id)) foreach { _ =>
+        userPrefsController.setPerformedAction(IUserPreferencesController.LIKED_MESSAGE)
+      }
+    case (MessageAction.Unlike, msg) =>
+      zms.head.flatMap(_.reactions.unlike(msg.convId, msg.id))
     case _ => // should be handled somewhere else
   }
 
@@ -91,69 +88,57 @@ class MessageActionsController(implicit injector: Injector, ctx: Context, ec: Ev
     override def onDismiss(dialogInterface: DialogInterface): Unit = dialog = None
   }
 
-  private def isConvMember(conv: ConvId) = zms.head.flatMap { zs =>
-    zs.membersStorage.isActiveMember(conv, zs.selfUserId)
-  }
-
   def showDialog(data: MessageAndLikes, fromCollection: Boolean = false): Boolean = {
-    val msg = data.message
-    (for {
-      isMember <- isConvMember(msg.convId)
-      _ <- keyboardController.hideKeyboardIfVisible()   // TODO: keyboard should be handled in more generic way
-      message = ZMessaging.currentUi.messages.cachedOrUpdated(data)
-    } yield {
+    // TODO: keyboard should be handled in more generic way
+    keyboardController.hideKeyboardIfVisible().map { _ =>
       dialog.foreach(_.dismiss())
       dialog = Some(
-        returning(new MessageBottomSheetDialog(context, R.style.message__bottom_sheet__base, message, isMember, fromCollection, callback)) { d =>
+        returning(new MessageBottomSheetDialog(context, R.style.message__bottom_sheet__base, data.message, Params(collection = fromCollection))) { d =>
           d.setOnDismissListener(onDismissed)
           d.show()
         }
       )
-    }).recoverWithLog()
+    }.recoverWithLog()
     true
   }
 
-  def showDeleteDialog(message: Message): Unit = {
-    val options = new util.HashSet[MessageAction]()
-    options.add(MessageAction.DELETE_LOCAL)
-    options.add(MessageAction.DELETE_GLOBAL)
-    val dialog = new MessageBottomSheetDialog(context, R.style.message__bottom_sheet__base, message, true, true, callback, options)
-    dialog.show()
+  def showDeleteDialog(message: MessageData): Unit = {
+    new MessageBottomSheetDialog(context,
+                                 R.style.message__bottom_sheet__base, message,
+                                 Params(collection = true, delCollapsed = false),
+                                 Seq(MessageAction.DeleteLocal, MessageAction.DeleteGlobal))
+      .show()
   }
 
-  private def toggleLike(message: Message) = {
-    if (message.isLikedByThisUser)
-      message.unlike()
-    else {
-      message.like()
-      userPrefsController.setPerformedAction(IUserPreferencesController.LIKED_MESSAGE)
+  private def copyMessage(message: MessageData) =
+    zms.head.flatMap(_.users.getUser(message.userId)) foreach {
+      case Some(user) =>
+        val clip = ClipData.newPlainText(getString(R.string.conversation__action_mode__copy__description, user.getDisplayName), message.contentString)
+        clipboardManager.setPrimaryClip(clip)
+        Toast.makeText(context, R.string.conversation__action_mode__copy__toast, Toast.LENGTH_SHORT).show()
+      case None =>
+        // invalid message, ignoring
     }
-  }
 
-  private def copyMessage(message: Message) = {
-    val clip = ClipData.newPlainText(getString(R.string.conversation__action_mode__copy__description, message.getUser.getDisplayName), message.getBody)
-    clipboardManager.setPrimaryClip(clip)
-    Toast.makeText(context, R.string.conversation__action_mode__copy__toast, Toast.LENGTH_SHORT).show()
-  }
-
-  private def deleteMessage(message: Message) =
+  private def deleteMessage(message: MessageData) =
     showDeleteDialog(R.string.conversation__message_action__delete_for_me) {
-      message.delete()
-      onDeleteConfirmed ! (message, false)
+      zms.head.flatMap(_.convsUi.deleteMessage(message.convId, message.id)) foreach { _ =>
+        onDeleteConfirmed ! (message, false)
+      }
     }
 
-  private def recallMessage(message: Message) =
+  private def recallMessage(message: MessageData) =
     showDeleteDialog(R.string.conversation__message_action__delete_for_everyone) {
-      message.recall()
-      onDeleteConfirmed ! (message, true)
+      zms.head.flatMap(_.convsUi.recallMessage(message.convId, message.id)) foreach { _ =>
+        onDeleteConfirmed ! (message, true)
+      }
     }
 
-  private def promptDeleteMessage(message: Message) = {
-    if (message.getUser.isMe)
-      showDeleteDialog(message)
-    else
-      deleteMessage(message)
-  }
+  private def promptDeleteMessage(message: MessageData) =
+    zms.head.map(_.selfUserId) foreach {
+      case user if user == message.userId => showDeleteDialog(message)
+      case _ => deleteMessage(message)
+    }
 
   private def showDeleteDialog(title: Int)(onSuccess: => Unit) =
     new AlertDialog.Builder(context)
@@ -170,68 +155,75 @@ class MessageActionsController(implicit injector: Injector, ctx: Context, ec: Ev
       .create()
       .show()
 
-  private def forwardMessage(message: Message) = {
-    val asset = message.getAsset
+  private def getAsset(assetId: AssetId) = for {
+    z <- zms.head
+    asset <- z.assets.getAssetData(assetId)
+    uri <- z.assets.getContentUri(assetId)
+  } yield (asset, uri)
+
+
+  private def forwardMessage(message: MessageData) = {
     val intentBuilder = ShareCompat.IntentBuilder.from(context)
     intentBuilder.setChooserTitle(R.string.conversation__action_mode__fwd__chooser__title)
-    if (asset.isEmpty) { // TODO: handle location and other non text messages
-      intentBuilder.setType("text/plain")
-      intentBuilder.setText(message.getBody)
-      intentBuilder.startChooser()
-    } else {
+    if (message.isAssetMessage) {
       val dialog = ProgressDialog.show(context,
         getString(R.string.conversation__action_mode__fwd__dialog__title),
         getString(R.string.conversation__action_mode__fwd__dialog__message), true, true, null)
 
-      asset.getContentUri(new Asset.LoadCallback[URI]() {
-        def onLoaded(uri: URI): Unit = {
+      getAsset(message.assetId) foreach {
+        case (Some(data), Some(uri)) =>
           dialog.dismiss()
-          val mimeType = asset.getMimeType
-          intentBuilder.setType(if (mimeType.equals("text/plain")) "text/*" else mimeType)
+          intentBuilder.setType(if (data.mime.str.equals("text/plain")) "text/*" else data.mime.str)
           intentBuilder.addStream(AndroidURIUtil.unwrap(uri))
           intentBuilder.startChooser()
-        }
-        def onLoadFailed(): Unit = {
+        case _ =>
           // TODO: show error info
           dialog.dismiss()
-        }
-      })
+      }
+    } else { // TODO: handle location and other non text messages
+      intentBuilder.setType("text/plain")
+      intentBuilder.setText(message.contentString)
+      intentBuilder.startChooser()
     }
   }
 
-  private def saveMessage(message: Message) =
+  private def saveMessage(message: MessageData) =
     permissions.withPermissions(WriteExternalStoragePermission) {  // TODO: provide explanation dialog - use requiring with message str
-      if (message.getMessageType == Message.Type.ASSET) { // TODO: simplify once SE asset v3 is merged, we should be able to handle that without special conditions
-        val asset = message.getImage
-        asset.saveImageToGallery(new ImageAsset.SaveCallback() {
-          def imageSaved(uri: URI): Unit = {
-            imageNotifications.showImageSavedNotification(asset.getId, uri)
+      if (message.msgType == Message.Type.ASSET) { // TODO: simplify once SE asset v3 is merged, we should be able to handle that without special conditions
+
+        val saveFuture = for {
+          z <- zms.head
+          asset <- z.assets.getAssetData(message.assetId) if asset.isDefined
+          uri <- z.imageLoader.saveImageToGallery(asset.get)
+        } yield uri
+
+        saveFuture onComplete {
+          case Success(Some(uri)) =>
+            imageNotifications.showImageSavedNotification(message.assetId, uri)
             Toast.makeText(context, R.string.message_bottom_menu_action_save_ok, Toast.LENGTH_SHORT).show()
-          }
-          def imageSavingFailed(ex: Exception): Unit =
+          case _ =>
             Toast.makeText(context, com.waz.zclient.ui.R.string.content__file__action__save_error, Toast.LENGTH_SHORT).show()
-        })
+        }
       } else {
         val dialog = ProgressDialog.show(context, getString(R.string.conversation__action_mode__fwd__dialog__title), getString(R.string.conversation__action_mode__fwd__dialog__message), true, true, null)
-        val asset = message.getAsset
-        asset.saveToDownloads(new Asset.LoadCallback[URI]() {
-          def onLoaded(uri: URI): Unit = {
-            onAssetSaved ! asset
+        zms.head.flatMap(_.assets.saveAssetToDownloads(message.assetId)) foreach {
+          case Some(file) =>
+            zms.head.flatMap(_.assets.getAssetData(message.assetId)) foreach {
+              case Some(data) => onAssetSaved ! data
+              case None => // should never happen
+            }
             Toast.makeText(context, com.waz.zclient.ui.R.string.content__file__action__save_completed, Toast.LENGTH_SHORT).show()
-            context.sendBroadcast(returning(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE))(_.setData(AndroidURIUtil.unwrap(uri))))
+            context.sendBroadcast(returning(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE))(_.setData(AndroidURIUtil.unwrap(URI.fromFile(file)))))
             dialog.dismiss()
-          }
-
-          def onLoadFailed(): Unit = {
+          case None =>
             Toast.makeText(context, com.waz.zclient.ui.R.string.content__file__action__save_error, Toast.LENGTH_SHORT).show()
             dialog.dismiss()
-          }
-        })
+        }
       }
     }
 
-  private def revealMessageInConversation(message: Message) = {
-    zms.head.flatMap(z => z.messagesStorage.get(MessageId(message.getId))).onComplete{
+  private def revealMessageInConversation(message: MessageData) = {
+    zms.head.flatMap(z => z.messagesStorage.get(message.id)).onComplete{
       case Success(msg) =>  messageToReveal ! msg
       case _ =>
     }
@@ -244,20 +236,26 @@ class MessageActionsController(implicit injector: Injector, ctx: Context, ec: Ev
   */
 class EditActionSupport(ctx: WireContext, cursor: CursorLayout) extends Injectable {
   import scala.concurrent.duration._
+  import Threading.Implicits.Ui
   private implicit val injector: Injector = ctx.injector
 
   private implicit val eventContext = inject[EventContext]
+  private val zms = inject[Signal[ZMessaging]]
   private val actionsController = inject[MessageActionsController]
-  private val keyboardController = inject[KeyboardController]
 
   actionsController.onMessageAction {
-    case (MessageAction.EDIT, message) =>
-      cursor.editMessage(message)
-      // TODO: don't show keyboard directly, KeyboardController should handle that in more general way
-      // Add small delay so triggering keyboard works
-      CancellableFuture.delayed(200.millis) {
-        KeyboardUtils.showKeyboard(inject[Activity])
-      } (Threading.Ui)
+    case (MessageAction.Edit, message) =>
+      zms.head.flatMap(_.msgAndLikes.getMessageAndLikes(message.id)) foreach {
+        case Some(msg) =>
+          cursor.editMessage(ZMessaging.currentUi.messages.cachedOrUpdated(msg, userAction = false))
+          // TODO: don't show keyboard directly, KeyboardController should handle that in more general way
+          // Add small delay so triggering keyboard works
+          CancellableFuture.delayed(200.millis) {
+            KeyboardUtils.showKeyboard(inject[Activity])
+          } (Threading.Ui)
+        case None =>
+          // should not happen, ignoring
+      }
     case _ => // ignore
   }
 }
