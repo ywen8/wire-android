@@ -1,20 +1,20 @@
 /**
- * Wire
- * Copyright (C) 2017 Wire Swiss GmbH
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
+  * Wire
+  * Copyright (C) 2017 Wire Swiss GmbH
+  *
+  * This program is free software: you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License as published by
+  * the Free Software Foundation, either version 3 of the License, or
+  * (at your option) any later version.
+  *
+  * This program is distributed in the hope that it will be useful,
+  * but WITHOUT ANY WARRANTY; without even the implied warranty of
+  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  * GNU General Public License for more details.
+  *
+  * You should have received a copy of the GNU General Public License
+  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  */
 package com.waz.zclient.views
 
 import android.content.Context
@@ -42,13 +42,11 @@ class SearchResultUserRowView(val context: Context, val attrs: AttributeSet, val
   private var showContactInfo: Boolean = false
   private val userId = Signal[UserId]()
 
-  //TODO fix this
-  private val guestSignal = for {
+  private val isGuest = for{
     z <- inject[Signal[ZMessaging]]
-    //currentTeam <- inject[TeamsAndUserController].currentTeamOrUser.map(_.fold(_ => Option.empty[TeamData], Some(_)))
     uId <- userId
-    //guests <- Signal.future(currentTeam.fold(Future.successful(Set[UserId]()))(team => z.teams.findGuests(team.id)))
-  } yield false //guests.contains(uId)
+    isGuest <- z.teams.isGuest(uId)
+  } yield isGuest
 
   var userData = Option.empty[UserData]
 
@@ -78,7 +76,7 @@ class SearchResultUserRowView(val context: Context, val attrs: AttributeSet, val
     contactListItemTextView.applyDarkTheme()
   }
 
-  guestSignal.on(Threading.Ui) { guest =>
+  isGuest.on(Threading.Ui) { guest =>
     guestLabel.setVisibility(if (guest) View.VISIBLE else View.GONE)
   }
 }
