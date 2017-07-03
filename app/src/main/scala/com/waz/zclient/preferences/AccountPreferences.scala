@@ -242,7 +242,7 @@ class AccountPreferences extends BasePreferenceFragment
             _ <- tracking.tagEvent(new SignOut)
             _ <- tracking.tagEvent(new LoggedOutEvent)
             _ = getControllerFactory.getUsernameController.tearDown()
-            _ <- selfAcc.head.flatMap(_.logout())
+            _ <- selfAcc.head.flatMap(_.logout(true))
           } yield {}
         }
       }, null)
