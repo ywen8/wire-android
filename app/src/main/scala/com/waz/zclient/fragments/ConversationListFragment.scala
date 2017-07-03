@@ -180,7 +180,7 @@ class NormalConversationFragment extends ConversationListFragment {
   lazy val incomingClients = for{
     z <- zms
     color <- accentColor
-    clients <- z.account.account.clientId.fold(Signal.empty[Seq[Client]])(aid => z.otrClientsStorage.incomingClientsSignal(z.selfUserId, aid))
+    clients <- z.account.accountData.flatMap(_.clientId.fold(Signal.empty[Seq[Client]])(aid => z.otrClientsStorage.incomingClientsSignal(z.selfUserId, aid)))
   } yield (color.getColor(), clients)
 
   lazy val hasConversationsAndArchive = for {

@@ -74,7 +74,7 @@ class AccountPreferences extends BasePreferenceFragment
 
     (for {
       email    <- selfUser.map(_.email.map(_.str).filter(_.nonEmpty))
-      verified <- selfAcc.map(_.account.verified)
+      verified <- selfAcc.flatMap(_.accountData.map(_.verified))
     } yield (email, verified)).on(Threading.Ui) {
       case (Some(e), isVerified) =>
         if (isVerified) getChildFragmentManager.popBackStack(VerifyEmailPreferenceFragment.TAG, POP_BACK_STACK_INCLUSIVE)
