@@ -26,7 +26,6 @@ import com.waz.api.InputStateIndicator;
 import com.waz.api.MembersList;
 import com.waz.api.Message;
 import com.waz.api.MessageContent;
-import com.waz.api.MessagesList;
 import com.waz.api.User;
 import com.waz.api.Verification;
 import com.waz.api.VoiceChannel;
@@ -34,21 +33,13 @@ import com.waz.api.VoiceChannel;
 @SuppressLint("ParcelCreator")
 public class MockConversation extends MockObservable implements IConversation {
 
-    private MockMessagesList messages;
-
     public MockConversation(int id) {
         super(id);
-        messages = new MockMessagesList(this);
     }
 
     @Override
     public Type getType() {
         return null;
-    }
-
-    @Override
-    public MessagesList getMessages() {
-        return messages;
     }
 
     @Override
