@@ -17,8 +17,6 @@
  */
 package com.waz.zclient.controllers.global
 
-import com.waz.ZLog.ImplicitTag._
-import com.waz.ZLog.verbose
 import com.waz.service.ZMessaging
 import com.waz.utils.events.Signal
 import com.waz.zclient.{Injectable, Injector}
@@ -32,10 +30,6 @@ class PasswordController(implicit inj: Injector) extends Injectable {
   lazy val zms = inject[Signal[ZMessaging]]
 
   val password = zms.flatMap(_.account.accountData).map(_.password)
-
-  password { p =>
-    verbose(s"Password updated: $p")
-  }
 
   //The password is never saved in the database, this will just update the in-memory version of the current account
   //so that the password is globally correct.
