@@ -38,6 +38,7 @@ import com.waz.api.OtrClient;
 import com.waz.api.Self;
 import com.waz.api.UpdateListener;
 import com.waz.api.ZMessagingApi;
+import com.waz.service.ZMessaging;
 import com.waz.zclient.core.controllers.tracking.attributes.OutcomeAttribute;
 import com.waz.zclient.core.controllers.tracking.attributes.RegistrationEventContext;
 import com.waz.zclient.core.controllers.tracking.events.registration.EditSelfUser;
@@ -215,7 +216,11 @@ public class AppEntryStore implements IAppEntryStore, ErrorsList.ErrorListener {
 
         // Start registration
         if (LayoutSpec.isPhone(context)) {
-            setState(AppEntryState.PHONE_REGISTER);
+            if (ZMessaging.currentAccounts().hasLoggedInAccount()) {
+                setState(AppEntryState.EMAIL_SIGN_IN);
+            } else {
+                setState(AppEntryState.PHONE_REGISTER);
+            }
         } else {
             setState(AppEntryState.EMAIL_WELCOME);
         }

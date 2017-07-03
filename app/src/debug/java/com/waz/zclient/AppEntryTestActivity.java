@@ -184,6 +184,11 @@ public class AppEntryTestActivity extends TestActivity implements VerifyPhoneFra
     }
 
     @Override
+    public void abortAddAccount() {
+
+    }
+
+    @Override
     public void openCountryBox() {
 
     }
