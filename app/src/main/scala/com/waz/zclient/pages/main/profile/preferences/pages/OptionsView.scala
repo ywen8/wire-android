@@ -19,6 +19,7 @@ package com.waz.zclient.pages.main.profile.preferences.pages
 
 import android.content.Context
 import android.os.Bundle
+import android.support.v4.app.{Fragment, FragmentTransaction}
 import android.util.AttributeSet
 import android.view.View
 import android.widget.LinearLayout
@@ -27,6 +28,7 @@ import com.waz.service.ZMessaging
 import com.waz.threading.Threading
 import com.waz.utils.events.{EventContext, EventStream, Signal}
 import com.waz.zclient._
+import com.waz.zclient.pages.main.profile.preferences.dialogs.DownloadImagesListDialog
 import com.waz.zclient.pages.main.profile.preferences.views.{SwitchPreference, TextButton}
 import com.waz.zclient.utils.BackStackKey
 
@@ -51,14 +53,17 @@ class OptionsViewImpl(context: Context, attrs: AttributeSet, style: Int) extends
   def this(context: Context, attrs: AttributeSet) = this(context, attrs, 0)
   def this(context: Context) = this(context, null, 0)
 
+  protected lazy val zms = inject[Signal[ZMessaging]]
+
   inflate(R.layout.preferences_options_layout)
 
-  val contactsSwitch    = findById[SwitchPreference](R.id.preferences_contacts)
-  val vbrSwitch         = findById[SwitchPreference](R.id.preferences_vbr)
-  val vibrationSwitch   = findById[SwitchPreference](R.id.preferences_vibration)
-  val darkThemeSwitch   = findById[SwitchPreference](R.id.preferences_dark_theme)
-  val sendButtonSwitch  = findById[SwitchPreference](R.id.preferences_send_button)
-  val soundsButton      = findById[TextButton](R.id.preferences_sounds)
+  val contactsSwitch       = findById[SwitchPreference](R.id.preferences_contacts)
+  val vbrSwitch            = findById[SwitchPreference](R.id.preferences_vbr)
+  val vibrationSwitch      = findById[SwitchPreference](R.id.preferences_vibration)
+  val darkThemeSwitch      = findById[SwitchPreference](R.id.preferences_dark_theme)
+  val sendButtonSwitch     = findById[SwitchPreference](R.id.preferences_send_button)
+  val soundsButton         = findById[TextButton](R.id.preferences_sounds)
+  val downloadImagesButton = findById[TextButton](R.id.preferences_options_image_download)
 
   override val onVbrSwitch        = vbrSwitch.onCheckedChange
   override val onVibrationSwitch  = vibrationSwitch.onCheckedChange
@@ -66,6 +71,11 @@ class OptionsViewImpl(context: Context, attrs: AttributeSet, style: Int) extends
 
   contactsSwitch.setPreference(GlobalPreferences.ShareContacts)
   darkThemeSwitch.setPreference(GlobalPreferences.DarkTheme)
+
+  downloadImagesButton.onClickEvent { _ =>
+    implicit val ec = Threading.Ui
+    zms.head.flatMap(_.prefs.preference(GlobalPreferences.DownloadImages).apply()).map(pref => showPrefDialog(DownloadImagesListDialog(pref), DownloadImagesListDialog.Tag))
+  }
 
   override def setVbr(active: Boolean) = vbrSwitch.setChecked(active)
 
@@ -81,7 +91,21 @@ class OptionsViewImpl(context: Context, attrs: AttributeSet, style: Int) extends
 
   override def setPingTone(string: String) = {}
 
-  override def setDownloadPictures(string: String) = {}
+  override def setDownloadPictures(string: String) = {
+    val keys = getResources.getStringArray(R.array.zms_image_download_values)
+    val names = getResources.getStringArray(R.array.pref_options_image_download_entries)
+    downloadImagesButton.setSubtitle(names.apply(keys.indexOf(string)))
+  }
+
+  private def showPrefDialog(f: Fragment, tag: String) = {
+    context.asInstanceOf[BaseActivity]
+      .getSupportFragmentManager
+      .beginTransaction
+      .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
+      .add(f, tag)
+      .addToBackStack(tag)
+      .commit
+  }
 }
 
 case class OptionsBackStackKey(args: Bundle = new Bundle()) extends BackStackKey(args) {
