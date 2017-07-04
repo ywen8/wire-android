@@ -82,8 +82,10 @@ public class OptionsPreferences extends BasePreferenceFragment implements Shared
 
         shareContactsPreference = (SwitchPreference) findPreference(getString(R.string.pref_share_contacts_key));
         UserAccountsController ctrl = injectJava(UserAccountsController.class);
-        shareContactsPreference.setVisible(!ctrl.isTeamAccount());
-
+        if (ctrl != null) {
+            shareContactsPreference.setVisible(!ctrl.isTeamAccount());
+        }
+        
         bindPreferenceSummaryToValue(ringtonePreference);
         bindPreferenceSummaryToValue(textTonePreference);
         bindPreferenceSummaryToValue(pingPreference);
@@ -143,11 +145,14 @@ public class OptionsPreferences extends BasePreferenceFragment implements Shared
             boolean wifiOnly = stringValue.equals(getContext().getString(R.string.zms_image_download_value_wifi));
             event = new ChangedImageDownloadPreferenceEvent(wifiOnly);
         } else if (key.equals(getString(R.string.pref_share_contacts_key))) {
-            boolean shareContacts = sharedPreferences.getBoolean(key, false);
-            event = new ChangedContactsPermissionEvent(shareContacts, true);
-            boolean hasContactsReadPermission = PermissionUtils.hasSelfPermissions(getContext(), Manifest.permission.READ_CONTACTS);
-            if (shareContacts && !hasContactsReadPermission) {
-                ActivityCompat.requestPermissions(getActivity(), new String[]{Manifest.permission.READ_CONTACTS}, PermissionUtils.REQUEST_READ_CONTACTS);
+            UserAccountsController ctrl = injectJava(UserAccountsController.class);
+            if (ctrl != null && !ctrl.isTeamAccount()) {
+                boolean shareContacts = sharedPreferences.getBoolean(key, false);
+                event = new ChangedContactsPermissionEvent(shareContacts, true);
+                boolean hasContactsReadPermission = PermissionUtils.hasSelfPermissions(getContext(), Manifest.permission.READ_CONTACTS);
+                if (shareContacts && !hasContactsReadPermission) {
+                    ActivityCompat.requestPermissions(getActivity(), new String[]{Manifest.permission.READ_CONTACTS}, PermissionUtils.REQUEST_READ_CONTACTS);
+                }
             }
         } else if (key.equals(getString(R.string.pref_options_theme_switch_key))) {
             getControllerFactory().getThemeController().toggleThemePending(true);
