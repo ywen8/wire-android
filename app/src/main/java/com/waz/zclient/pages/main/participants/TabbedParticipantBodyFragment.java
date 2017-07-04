@@ -274,7 +274,7 @@ public class TabbedParticipantBodyFragment extends BaseFragment<TabbedParticipan
             otrClientsModelObserver.clear();
             return;
         }
-        permissionToRemove = ((BaseActivity) getActivity()).injectJava(UserAccountsController.class).hasRemoveMemberPermission(new ConvId(conversation.getId()));
+        permissionToRemove = ((BaseActivity) getActivity()).injectJava(UserAccountsController.class).hasRemoveConversationMemberPermission(new ConvId(conversation.getId()));
         permissionToCreate = ((BaseActivity) getActivity()).injectJava(UserAccountsController.class).hasCreateConversationPermission();
         final User updatedUser;
         if (conversation.getType() == IConversation.Type.ONE_TO_ONE) {

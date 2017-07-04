@@ -325,7 +325,7 @@ public class ParticipantBodyFragment extends BaseFragment<ParticipantBodyFragmen
             imageAssetImageView.setVisibility(View.GONE);
 
             // Check if self user is member for group conversation and has permission to add
-            Boolean permissionToAdd = ((BaseActivity) getActivity()).injectJava(UserAccountsController.class).hasAddMemberPermission(new ConvId(conversation.getId()));
+            Boolean permissionToAdd = ((BaseActivity) getActivity()).injectJava(UserAccountsController.class).hasAddConversationMemberPermission(new ConvId(conversation.getId()));
             if (conversation.isMemberOfConversation() && permissionToAdd) {
                 footerMenu.setLeftActionText(getString(R.string.glyph__add_people));
                 footerMenu.setRightActionText(getString(R.string.glyph__more));
@@ -357,7 +357,7 @@ public class ParticipantBodyFragment extends BaseFragment<ParticipantBodyFragmen
                         return;
                     }
                 }
-                Boolean permissionToAdd = ((BaseActivity) getActivity()).injectJava(UserAccountsController.class).hasAddMemberPermission(new ConvId(conversation.getId()));
+                Boolean permissionToAdd = ((BaseActivity) getActivity()).injectJava(UserAccountsController.class).hasAddConversationMemberPermission(new ConvId(conversation.getId()));
                 if (!conversation.isMemberOfConversation() || !permissionToAdd) {
                     return;
                 }
