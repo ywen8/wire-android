@@ -44,6 +44,15 @@ class UserAccountsController(implicit injector: Injector, context: Context, ec: 
     user <- account.flatMap(_.userId).fold(Signal.const(Option.empty[UserData]))(accId => zms.usersStorage.signal(accId).map(Some(_)))
   } yield user
 
+  for {
+    zms <- zms
+    accountData <- zms.account.accountData
+  } yield {
+    _permissions = accountData.selfPermissions
+  }
+
+  private var _permissions = Set[AccountData.Permission]()
+
   //Things for java
   //TODO hacky mchackerson - needed for the conversation fragment, remove ASAP
   def setIsGroupListener(id: ConvId, callback: Callback[java.lang.Boolean]): Unit =
@@ -72,9 +81,7 @@ class UserAccountsController(implicit injector: Injector, context: Context, ec: 
   }
 
   def isTeamAccount = zms.map(_.teamId).currentValue.flatten.isDefined
-
-  //TODO: wait for BE specs about the accounts
-  def hasCreateConversationPermission: Boolean = true //TODO: Will this bee needed with the accounts stuff?
-  def hasRemoveMemberPermission(convId: ConvId): Boolean = true
-  def hasAddMemberPermission(convId: ConvId): Boolean = true
+  def hasCreateConversationPermission: Boolean = !isTeamAccount || _permissions(AccountData.Permission.CreateConversation)
+  def hasRemoveConversationMemberPermission(convId: ConvId): Boolean = !isTeamAccount || _permissions(AccountData.Permission.RemoveConversationMember)
+  def hasAddConversationMemberPermission(convId: ConvId): Boolean = !isTeamAccount || _permissions(AccountData.Permission.AddConversationMember)
 }
