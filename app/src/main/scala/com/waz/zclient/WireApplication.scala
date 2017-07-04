@@ -25,7 +25,7 @@ import com.waz.ZLog.verbose
 import com.waz.api.{NetworkMode, ZMessagingApi, ZMessagingApiFactory, ZmsVersion}
 import com.waz.content.GlobalPreferences
 import com.waz.log.InternalLog
-import com.waz.service.{MediaManagerService, NetworkModeService, ZMessaging}
+import com.waz.service.{NetworkModeService, ZMessaging}
 import com.waz.utils.events.{EventContext, Signal, Subscription}
 import com.waz.zclient.api.scala.ScalaStoreFactory
 import com.waz.zclient.calling.controllers.{CallPermissionsController, CurrentCallController, GlobalCallingController}
@@ -48,7 +48,7 @@ import com.waz.zclient.pages.main.conversation.controller.IConversationScreenCon
 import com.waz.zclient.pages.main.conversationpager.controller.ISlidingPaneController
 import com.waz.zclient.pages.main.pickuser.controller.IPickUserController
 import com.waz.zclient.tracking.{CallingTrackingController, GlobalTrackingController, UiTrackingController}
-import com.waz.zclient.utils.{BackStackNavigator, BackendPicker, BuildConfigUtils, Callback, UiStorage}
+import com.waz.zclient.utils.{BackStackNavigator, BackendPicker, Callback, UiStorage}
 import com.waz.zclient.views.ImageController
 
 object WireApplication {
@@ -65,7 +65,6 @@ object WireApplication {
     bind [Signal[ZMessaging]]          to inject[Signal[Option[ZMessaging]]].collect { case Some(z) => z }
     bind [GlobalPreferences]           to ZMessaging.currentGlobal.prefs
     bind [NetworkModeService]          to ZMessaging.currentGlobal.network
-    bind [MediaManagerService]         to ZMessaging.currentGlobal.mediaManager
 
     // old controllers
     // TODO: remove controller factory, reimplement those controllers
@@ -170,7 +169,7 @@ class WireApplication extends MultiDexApplication with WireContext with Injectab
     if (storeFactory == null) {
       storeFactory = new ScalaStoreFactory(getApplicationContext)
       //TODO initialization of ZMessaging happens here - make this more explicit?
-      storeFactory.getZMessagingApiStore.getAvs.setLogLevel(BuildConfigUtils.getLogLevelAVS(this))
+      storeFactory.getZMessagingApiStore.getApi
     }
 
     inject[MessageNotificationsController]

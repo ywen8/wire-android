@@ -19,7 +19,7 @@ package com.waz.zclient.controllers
 
 import android.content.Context
 import com.waz.ZLog
-import com.waz.content.GlobalPreferences
+import com.waz.content.UserPreferences
 import com.waz.service.ZMessaging
 import com.waz.threading.Threading
 import com.waz.utils.events.{EventContext, Signal}
@@ -37,7 +37,7 @@ class ThemeController(implicit injector: Injector, context: Context, ec: EventCo
   val optionsDarkTheme: OptionsTheme = new OptionsDarkTheme(context)
   val optionsLightTheme: OptionsTheme = new OptionsLightTheme(context)
 
-  val darkTheme = zms.flatMap(_.prefs.preference(GlobalPreferences.DarkTheme).signal)
+  val darkTheme = zms.flatMap(_.userPrefs.preference(UserPreferences.DarkTheme).signal)
 
   private var _darkTheme = false
   darkTheme{ _darkTheme = _ }
@@ -46,7 +46,7 @@ class ThemeController(implicit injector: Injector, context: Context, ec: EventCo
   darkTheme.head.map{ _previousTheme = _ }(Threading.Ui)
 
   def setDarkTheme(active: Boolean): Unit = {
-    zms.head.flatMap(_.prefs.preference(GlobalPreferences.DarkTheme).update(active))(Threading.Background)
+    zms.head.flatMap(_.userPrefs.preference(UserPreferences.DarkTheme).update(active))(Threading.Background)
   }
 
   def toggleDarkTheme(): Unit ={

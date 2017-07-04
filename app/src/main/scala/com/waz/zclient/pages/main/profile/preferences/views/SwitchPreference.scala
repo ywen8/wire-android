@@ -56,7 +56,7 @@ class SwitchPreference(context: Context, attrs: AttributeSet, style: Int) extend
     lazy val pref = for {
       z <- zms
       pKey <- prefKey
-    } yield z.prefs.preference(pKey)
+    } yield z.userPrefs.preference(pKey)
 
     pref.flatMap(_.signal).on(Threading.Ui) { setChecked }
     onCheckedChange.on(Threading.Ui) { value =>

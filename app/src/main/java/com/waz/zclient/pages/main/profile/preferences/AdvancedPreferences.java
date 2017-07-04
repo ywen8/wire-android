@@ -72,8 +72,7 @@ public class AdvancedPreferences extends BasePreferenceFragment {
         Event event = null;
         if (key.equals(getString(R.string.pref_options_image_download_key))) {
             String stringValue = sharedPreferences.getString(key, "");
-            boolean wifiOnly = stringValue.equals(getContext().getString(R.string.zms_image_download_value_wifi));
-            event = new ChangedImageDownloadPreferenceEvent(wifiOnly);
+            event = new ChangedImageDownloadPreferenceEvent(false);
         } else if (key.equals(getString(R.string.pref_advanced_analytics_enabled_key))) {
             try {
                 (((BaseActivity) getActivity()).injectJava(GlobalTrackingController.class)).setTrackingEnabled(sharedPreferences.getBoolean(key, false));

@@ -22,13 +22,6 @@
                   android:title="@string/pref_options_screen_title"
     >
 
-    <SwitchPreference
-        android:defaultValue="false"
-        android:key="@string/pref_share_contacts_key"
-        android:title="@string/pref_options_contacts_title"
-        android:summary="@string/pref_options_contacts_summary"
-        />
-
     <PreferenceCategory
         android:key="@string/pref_options_calls_category_key"
         android:title="@string/pref_options_calls_category_title"
@@ -56,7 +49,6 @@
             android:dialogTitle="@string/pref_options_sounds_title"
             android:defaultValue="@string/pref_options_sounds_default"
             android:entries="@array/pref_options_sounds_entries"
-            android:entryValues="@array/pref_sound_option_values"
             />
 
         <SwitchPreference
@@ -129,7 +121,6 @@
             android:defaultValue="@string/pref_options_image_download_default"
             android:dialogTitle="@string/pref_options_image_download_title"
             android:entries="@array/pref_options_image_download_entries"
-            android:entryValues="@array/zms_image_download_values"
             android:key="@string/pref_options_image_download_key"
             android:title="@string/pref_options_image_download_title"
             />

@@ -287,12 +287,12 @@ public class UserPreferencesController implements IUserPreferencesController {
 
     @Override
     public boolean hasShareContactsEnabled() {
-        return userPreferences.getBoolean(context.getString(R.string.pref_share_contacts_key), false);
+        return false;//TODO: new prefs?
     }
 
     @Override
     public void setShareContactsEnabled(boolean enabled) {
-        userPreferences.edit().putBoolean(context.getString(R.string.pref_share_contacts_key), enabled).apply();
+        //TODO: new prefs?
     }
 
     @Override

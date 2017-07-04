@@ -77,9 +77,11 @@ case class DevicesBackStackKey(args: Bundle = new Bundle()) extends BackStackKey
 }
 
 case class DevicesViewController(view: DevicesView)(implicit inj: Injector, ec: EventContext) extends Injectable {
-  val zms = inject[Signal[ZMessaging]]
+  val zms = inject[Signal[Option[ZMessaging]]]
+  //TODO:
+  //  ZMessaging.currentAccounts.current.map(_.map(accService => accService.storage.otrClientsStorage.signal(accService.account.userId))))
   val clients = for {
-    zms <- zms
+    Some(zms) <- zms
     clients <- zms.otrClientsStorage.signal(zms.selfUserId)
     selfClient <- zms.otrClientsService.selfClient
   } yield (selfClient, clients.clients.values.filter(_.id != selfClient.id).toSeq.sortBy(_.regTime))

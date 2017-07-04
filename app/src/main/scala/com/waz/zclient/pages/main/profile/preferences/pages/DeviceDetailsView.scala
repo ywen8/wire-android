@@ -55,12 +55,12 @@ trait DeviceDetailsView {
   val onSessionReset:    EventStream[Unit]
   val onDeviceRemoved:   EventStream[Unit]
 
-  def setName(name: String)
-  def setId(id: String)
-  def setActivated(regTime: Instant, regLocation: Option[Location])
-  def setFingerPrint(fingerprint: String)
-  def setActionsVisible(visible: Boolean)
-  def setVerified(verified: Boolean)
+  def setName(name: String): Unit
+  def setId(id: String): Unit
+  def setActivated(regTime: Instant, regLocation: Option[Location]): Unit
+  def setFingerPrint(fingerprint: String): Unit
+  def setActionsVisible(visible: Boolean): Unit
+  def setVerified(verified: Boolean): Unit
 
   //TODO make a super trait for these?
   def showToast(rId: Int): Unit

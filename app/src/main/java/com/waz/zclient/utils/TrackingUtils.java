@@ -27,6 +27,7 @@ import com.waz.api.EphemeralExpiration;
 import com.waz.api.IConversation;
 import com.waz.api.Permission;
 import com.waz.api.User;
+import com.waz.media.manager.context.IntensityLevel;
 import com.waz.model.ConversationData;
 import com.waz.zclient.R;
 import com.waz.zclient.adapters.PickUsersAdapter;
@@ -155,12 +156,12 @@ public class TrackingUtils {
     }
 
     public static void tagChangedSoundNotificationLevelEvent(GlobalTrackingController trackingController,
-                                                             String preferenceString,
+                                                             IntensityLevel prefLevel,
                                                              Context context) {
         ChangedSoundNotificationLevelEvent.Level level = ChangedSoundNotificationLevelEvent.Level.ALL_SOUNDS;
-        if (preferenceString.equals(context.getString(R.string.pref_sound_value_none))) {
+        if (prefLevel == IntensityLevel.NONE) {
             level = ChangedSoundNotificationLevelEvent.Level.NO_SOUNDS;
-        } else if (preferenceString.equals(context.getString(R.string.pref_sound_value_some))) {
+        } else if (prefLevel == IntensityLevel.SOME) {
             level = ChangedSoundNotificationLevelEvent.Level.SOME_SOUNDS;
         }
 

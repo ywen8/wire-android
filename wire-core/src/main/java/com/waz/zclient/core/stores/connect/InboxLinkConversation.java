@@ -27,6 +27,7 @@ import com.waz.api.InputStateIndicator;
 import com.waz.api.MembersList;
 import com.waz.api.Message;
 import com.waz.api.MessageContent;
+import com.waz.api.MessagesList;
 import com.waz.api.UpdateListener;
 import com.waz.api.User;
 import com.waz.api.Verification;

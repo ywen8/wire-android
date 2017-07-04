@@ -27,18 +27,17 @@ import com.waz.zclient.FragmentHelper
 abstract class PreferenceListDialog extends DialogFragment with FragmentHelper {
 
   protected val title: String
-  protected val keys: Array[String]
   protected val names: Array[String]
   protected val defaultValue: Int
 
-  protected def updatePref(value: String)
+  protected def updatePref(which: Int): Unit
 
   override def onCreateDialog(savedInstanceState: Bundle) = {
     val builder: AlertDialog.Builder = new AlertDialog.Builder(getActivity)
     builder.setTitle(title)
       .setSingleChoiceItems(names.map(_.asInstanceOf[CharSequence]), defaultValue, new OnClickListener {
         override def onClick(dialog: DialogInterface, which: Int) = {
-          updatePref(keys(which))
+          updatePref(which)
           dismiss()
         }
       })

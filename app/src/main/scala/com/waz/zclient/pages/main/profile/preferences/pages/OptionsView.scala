@@ -26,16 +26,17 @@ import android.support.v4.app.{Fragment, FragmentTransaction}
 import android.util.AttributeSet
 import android.view.View
 import android.widget.LinearLayout
-import com.waz.content.GlobalPreferences
+import com.waz.content.UserPreferences
+import com.waz.media.manager.context.IntensityLevel
 import com.waz.service.ZMessaging
 import com.waz.threading.Threading
 import com.waz.utils.events.{EventContext, EventStream, Signal}
 import com.waz.zclient._
-import com.waz.zclient.pages.main.profile.preferences.dialogs.DownloadImagesListDialog
+import com.waz.zclient.pages.main.profile.preferences.dialogs.SoundLevelDialog
 import com.waz.zclient.pages.main.profile.preferences.pages.OptionsView._
 import com.waz.zclient.pages.main.profile.preferences.views.{SwitchPreference, TextButton}
 import com.waz.zclient.preferences.PreferencesActivity
-import com.waz.zclient.utils.BackStackKey
+import com.waz.zclient.utils.{BackStackKey, RingtoneUtils}
 
 trait OptionsView {
   val onVbrSwitch: EventStream[Boolean]
@@ -44,13 +45,13 @@ trait OptionsView {
 
   def setVbr(active: Boolean): Unit
   def setVibration(active: Boolean): Unit
-   def setSendButton(active: Boolean): Unit
+  def setSendButton(active: Boolean): Unit
 
-  def setSounds(string: String): Unit
+  def setSounds(level: IntensityLevel): Unit
   def setRingtone(string: String): Unit
   def setTextTone(string: String): Unit
   def setPingTone(string: String): Unit
-  def setDownloadPictures(string: String): Unit
+  def setDownloadPictures(wifiOnly: Boolean): Unit
 }
 
 object OptionsView {
@@ -63,6 +64,7 @@ class OptionsViewImpl(context: Context, attrs: AttributeSet, style: Int) extends
   def this(context: Context, attrs: AttributeSet) = this(context, attrs, 0)
   def this(context: Context) = this(context, null, 0)
 
+  implicit val ctx = context
   implicit val ec = Threading.Ui
   protected lazy val zms = inject[Signal[ZMessaging]]
 
@@ -74,7 +76,7 @@ class OptionsViewImpl(context: Context, attrs: AttributeSet, style: Int) extends
   val darkThemeSwitch      = findById[SwitchPreference](R.id.preferences_dark_theme)
   val sendButtonSwitch     = findById[SwitchPreference](R.id.preferences_send_button)
   val soundsButton         = findById[TextButton](R.id.preferences_sounds)
-  val downloadImagesButton = findById[TextButton](R.id.preferences_options_image_download)
+  val downloadImagesSwitch = findById[SwitchPreference](R.id.preferences_options_image_download)
 
   val ringToneButton         = findById[TextButton](R.id.preference_sounds_ringtone)
   val textToneButton         = findById[TextButton](R.id.preference_sounds_text)
@@ -84,24 +86,23 @@ class OptionsViewImpl(context: Context, attrs: AttributeSet, style: Int) extends
   override val onVibrationSwitch  = vibrationSwitch.onCheckedChange
   override val onSendButtonSwitch = sendButtonSwitch.onCheckedChange
 
-  private lazy val defaultRingToneUri: Uri = Uri.parse("android.resource://" + getContext.getPackageName + "/" + R.raw.ringing_from_them)
-  private lazy val defaultTextToneUri: Uri = Uri.parse("android.resource://" + getContext.getPackageName + "/" + R.raw.new_message)
-  private lazy val defaultPingToneUri: Uri = Uri.parse("android.resource://" + getContext.getPackageName + "/" + R.raw.ping_from_them)
+  private lazy val defaultRingToneUri = RingtoneUtils.getUriForRawId(context, R.raw.ringing_from_them)
+  private lazy val defaultTextToneUri = RingtoneUtils.getUriForRawId(context, R.raw.new_message)
+  private lazy val defaultPingToneUri = RingtoneUtils.getUriForRawId(context, R.raw.ping_from_them)
 
   private var ringToneUri = ""
   private var textToneUri = ""
   private var pingToneUri = ""
+  private var soundLevel = IntensityLevel.NONE
 
-  contactsSwitch.setPreference(GlobalPreferences.ShareContacts)
-  darkThemeSwitch.setPreference(GlobalPreferences.DarkTheme)
-
-  downloadImagesButton.onClickEvent { _ =>
-    zms.head.flatMap(_.prefs.preference(GlobalPreferences.DownloadImages).apply()).map(pref => showPrefDialog(DownloadImagesListDialog(pref), DownloadImagesListDialog.Tag))
-  }
+  contactsSwitch.setPreference(UserPreferences.ShareContacts)
+  darkThemeSwitch.setPreference(UserPreferences.DarkTheme)
+  downloadImagesSwitch.setPreference(UserPreferences.DownloadImagesOnWifiOnly)
 
   ringToneButton.onClickEvent{ _ => showRingtonePicker(RingtoneManager.TYPE_RINGTONE, defaultRingToneUri, RingToneResultId, ringToneUri)}
   textToneButton.onClickEvent{ _ => showRingtonePicker(RingtoneManager.TYPE_NOTIFICATION, defaultTextToneUri, TextToneResultId, textToneUri) }
   pingToneButton.onClickEvent{ _ => showRingtonePicker(RingtoneManager.TYPE_NOTIFICATION, defaultPingToneUri, PingToneResultId, pingToneUri) }
+  soundsButton.onClickEvent{ _ => showPrefDialog(SoundLevelDialog(soundLevel), SoundLevelDialog.Tag)}
 
   override def setVbr(active: Boolean) = vbrSwitch.setChecked(active)
 
@@ -109,7 +110,15 @@ class OptionsViewImpl(context: Context, attrs: AttributeSet, style: Int) extends
 
   override def setSendButton(active: Boolean) = sendButtonSwitch.setChecked(active)
 
-  override def setSounds(string: String) = soundsButton.setSubtitle(string)
+  override def setSounds(level: IntensityLevel) = {
+    soundLevel = level
+    val string = soundLevel match {
+      case IntensityLevel.NONE => context.getString(R.string.pref_options_sounds_none)
+      case IntensityLevel.SOME => context.getString(R.string.pref_options_sounds_new_conversations_and_talks_only)
+      case IntensityLevel.FULL => context.getString(R.string.pref_options_sounds_all)
+    }
+    soundsButton.setSubtitle(string)
+  }
 
   override def setRingtone(uri: String) = {
     ringToneUri = uri
@@ -137,10 +146,9 @@ class OptionsViewImpl(context: Context, attrs: AttributeSet, style: Int) extends
     button.setSubtitle(title)
   }
 
-  override def setDownloadPictures(string: String) = {
-    val keys = getResources.getStringArray(R.array.zms_image_download_values).toSeq
+  override def setDownloadPictures(wifiOnly: Boolean) = {
     val names = getResources.getStringArray(R.array.pref_options_image_download_entries).toSeq
-    downloadImagesButton.setSubtitle(names.apply(keys.indexOf(string)))
+    downloadImagesSwitch.setSubtitle(if (wifiOnly) names.head else names.last)
   }
 
   private def showPrefDialog(f: Fragment, tag: String) = {
@@ -187,11 +195,11 @@ case class OptionsBackStackKey(args: Bundle = new Bundle()) extends BackStackKey
 
 class OptionsViewController(view: OptionsView)(implicit inj: Injector, ec: EventContext) extends Injectable {
   val zms = inject[Signal[ZMessaging]]
-  val prefs = zms.map(_.prefs)
+  val userPrefs = zms.map(_.userPrefs)
 
-  prefs.flatMap(_.preference(GlobalPreferences.DownloadImages).signal).on(Threading.Ui){ view.setDownloadPictures }
-
-  prefs.flatMap(_.preference(GlobalPreferences.RingTone).signal).on(Threading.Ui){ view.setRingtone }
-  prefs.flatMap(_.preference(GlobalPreferences.TextTone).signal).on(Threading.Ui){ view.setTextTone }
-  prefs.flatMap(_.preference(GlobalPreferences.PingTone).signal).on(Threading.Ui){ view.setPingTone }
+  userPrefs.flatMap(_.preference(UserPreferences.DownloadImagesOnWifiOnly).signal).on(Threading.Ui){ view.setDownloadPictures }
+  userPrefs.flatMap(_.preference(UserPreferences.Sounds).signal).on(Threading.Ui){ view.setSounds }
+  userPrefs.flatMap(_.preference(UserPreferences.RingTone).signal).on(Threading.Ui){ view.setRingtone }
+  userPrefs.flatMap(_.preference(UserPreferences.TextTone).signal).on(Threading.Ui){ view.setTextTone }
+  userPrefs.flatMap(_.preference(UserPreferences.PingTone).signal).on(Threading.Ui){ view.setPingTone }
 }

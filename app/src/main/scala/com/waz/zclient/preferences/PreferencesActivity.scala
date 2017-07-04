@@ -32,7 +32,7 @@ import android.support.v7.widget.{AppCompatTextView, Toolbar}
 import android.view.{MenuItem, View, ViewGroup}
 import android.widget.{TextSwitcher, TextView, Toast, ViewSwitcher}
 import com.waz.api.ImageAsset
-import com.waz.content.GlobalPreferences
+import com.waz.content.{GlobalPreferences, UserPreferences}
 import com.waz.content.GlobalPreferences.CurrentAccountPref
 import com.waz.service.ZMessaging
 import com.waz.threading.Threading
@@ -44,7 +44,7 @@ import com.waz.zclient.core.controllers.tracking.events.settings.ChangedProfileP
 import com.waz.zclient.pages.main.profile.camera.{CameraContext, CameraFragment}
 import com.waz.zclient.pages.main.profile.preferences._
 import com.waz.zclient.pages.main.profile.preferences.dialogs.WireRingtonePreferenceDialogFragment
-import com.waz.zclient.pages.main.profile.preferences.pages.{OptionsView, ProfileBackStackKey}
+import com.waz.zclient.pages.main.profile.preferences.pages.{DevicesBackStackKey, OptionsView, ProfileBackStackKey}
 import com.waz.zclient.tracking.GlobalTrackingController
 import com.waz.zclient.utils.{BackStackNavigator, LayoutSpec, ViewUtils}
 import com.waz.zclient.{ActivityHelper, BaseActivity, MainActivity, R}
@@ -97,7 +97,14 @@ class PreferencesActivity extends BaseActivity
     if (LayoutSpec.isPhone(this)) ViewUtils.lockScreenOrientation(Configuration.ORIENTATION_PORTRAIT, this)
     if (savedInstanceState == null) {
       backStackNavigator.setup(findViewById(R.id.content).asInstanceOf[ViewGroup])
-      backStackNavigator.goTo(ProfileBackStackKey())
+
+      if(Option(getIntent.getExtras).exists(_.getBoolean(ShowOtrDevices, false))) {
+        backStackNavigator.goTo(DevicesBackStackKey())
+      } else {
+        backStackNavigator.goTo(ProfileBackStackKey())
+      }
+
+
       backStackNavigator.currentState.on(Threading.Ui){ state =>
         setTitle(state.nameId)
       }
@@ -151,11 +158,11 @@ class PreferencesActivity extends BaseActivity
 
       val pickedUri = Option(data.getParcelableExtra(RingtoneManager.EXTRA_RINGTONE_PICKED_URI).asInstanceOf[Uri])
       val key = requestCode match {
-        case OptionsView.RingToneResultId => GlobalPreferences.RingTone
-        case OptionsView.TextToneResultId => GlobalPreferences.TextTone
-        case OptionsView.PingToneResultId => GlobalPreferences.PingTone
+        case OptionsView.RingToneResultId => UserPreferences.RingTone
+        case OptionsView.TextToneResultId => UserPreferences.TextTone
+        case OptionsView.PingToneResultId => UserPreferences.PingTone
       }
-      zms.head.flatMap(_.prefs.preference(key).update(pickedUri.fold("")(_.toString)))(Threading.Ui)
+      zms.head.flatMap(_.userPrefs.preference(key).update(pickedUri.fold("")(_.toString)))(Threading.Ui)
     }
   }
 

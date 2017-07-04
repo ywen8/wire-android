@@ -63,22 +63,6 @@
                 android:orientation="vertical"
                 >
 
-                <com.waz.zclient.pages.main.profile.preferences.views.TextButton
-                    android:layout_width="match_parent"
-                    android:layout_height="@dimen/preference_button_height"
-                    app:title="Samsung bla bla"
-                    app:subtitle="ID: aa bb aa bb aa bb aa bb aa bb"
-                    app:iconEnd="@drawable/shield_full"
-                    />
-
-                <com.waz.zclient.pages.main.profile.preferences.views.TextButton
-                    android:layout_width="match_parent"
-                    android:layout_height="@dimen/preference_button_height"
-                    app:title="Samsung bla bla"
-                    app:subtitle="ID: aa bb aa bb aa bb aa bb aa bb"
-                    app:iconEnd="@drawable/shield_half"
-                    />
-
             </LinearLayout>
 
             <com.waz.zclient.ui.text.TypefaceTextView

@@ -270,7 +270,7 @@ class AccountViewController(view: AccountView)(implicit inj: Injector, ec: Event
             context.asInstanceOf[PreferencesActivity].getControllerFactory.getUsernameController.tearDown()
             // TODO: Remove old SignOut event https://wearezeta.atlassian.net/browse/AN-4232
             Future.sequence(Seq(tracking.tagEvent(new SignOut), tracking.tagEvent(new LoggedOutEvent)))(Seq.canBuildFrom, Threading.Background)
-            zms.map(_.account).head.flatMap(_.logout())(Threading.Background)
+            zms.map(_.account).head.flatMap(_.logout(true))(Threading.Background)
           }
         }, null)
     }(Threading.Ui)
