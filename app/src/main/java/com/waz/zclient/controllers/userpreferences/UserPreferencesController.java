@@ -286,16 +286,6 @@ public class UserPreferencesController implements IUserPreferencesController {
     }
 
     @Override
-    public boolean hasShareContactsEnabled() {
-        return false;//TODO: new prefs?
-    }
-
-    @Override
-    public void setShareContactsEnabled(boolean enabled) {
-        //TODO: new prefs?
-    }
-
-    @Override
     public long getLastEphemeralValue() {
         return userPreferences.getLong(USER_PREF_LAST_EPHEMERAL_VALUE, 0);
     }

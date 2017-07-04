@@ -190,15 +190,6 @@ public class StubUserPreferencesController implements IUserPreferencesController
   }
 
   @Override
-  public boolean hasShareContactsEnabled() {
-    return false;
-  }
-
-  @Override
-  public void setShareContactsEnabled(boolean enabled) {
-  }
-
-  @Override
   public long getLastEphemeralValue() {
     return 0;
   }

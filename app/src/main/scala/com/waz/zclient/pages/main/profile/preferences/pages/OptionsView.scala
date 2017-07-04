@@ -196,8 +196,7 @@ case class OptionsBackStackKey(args: Bundle = new Bundle()) extends BackStackKey
 class OptionsViewController(view: OptionsView)(implicit inj: Injector, ec: EventContext) extends Injectable {
   val zms = inject[Signal[ZMessaging]]
   val userPrefs = zms.map(_.userPrefs)
-
-  //TODO: SHARE CONTACTS PREF
+  
   //TODO: VBR PREF
   //TODO: VIBRATION PREF
   //TODO: SEND ENTER PREF

@@ -209,12 +209,11 @@ public class OptionsPreferences extends BasePreferenceFragment implements Shared
     @Override
     public void onRequestPermissionsResult(int requestCode, int[] grantResults) {
         if (requestCode == PermissionUtils.REQUEST_READ_CONTACTS) {
-            getControllerFactory().getUserPreferencesController().setShareContactsEnabled(false);
-            UserAccountsController ctrl = injectJava(UserAccountsController.class);
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED && !ctrl.isTeamAccount()) {
+            //getControllerFactory().getUserPreferencesController().setShareContactsEnabled(false);
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 //Changing the value of the shareContacts seems to be the
                 //only way to trigger a refresh on the sync engine...
-                getControllerFactory().getUserPreferencesController().setShareContactsEnabled(true);
+                //getControllerFactory().getUserPreferencesController().setShareContactsEnabled(true);
             }
         }
     }
