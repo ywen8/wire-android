@@ -18,8 +18,11 @@
 package com.waz.zclient.preferences
 
 import android.annotation.SuppressLint
+import android.app.Activity
 import android.content.res.Configuration
 import android.content.{Context, Intent}
+import android.media.RingtoneManager
+import android.net.Uri
 import android.os.Bundle
 import android.support.annotation.Nullable
 import android.support.v4.app.{Fragment, FragmentManager, FragmentTransaction}
@@ -41,7 +44,7 @@ import com.waz.zclient.core.controllers.tracking.events.settings.ChangedProfileP
 import com.waz.zclient.pages.main.profile.camera.{CameraContext, CameraFragment}
 import com.waz.zclient.pages.main.profile.preferences._
 import com.waz.zclient.pages.main.profile.preferences.dialogs.WireRingtonePreferenceDialogFragment
-import com.waz.zclient.pages.main.profile.preferences.pages.ProfileBackStackKey
+import com.waz.zclient.pages.main.profile.preferences.pages.{OptionsView, ProfileBackStackKey}
 import com.waz.zclient.tracking.GlobalTrackingController
 import com.waz.zclient.utils.{BackStackNavigator, LayoutSpec, ViewUtils}
 import com.waz.zclient.{ActivityHelper, BaseActivity, MainActivity, R}
@@ -59,6 +62,7 @@ class PreferencesActivity extends BaseActivity
   private lazy val toolbar: Toolbar        = findById(R.id.toolbar)
 
   private lazy val backStackNavigator = inject[BackStackNavigator]
+  private lazy val zms = inject[Signal[ZMessaging]]
 
   private lazy val actionBar = returning(getSupportActionBar) { ab =>
     ab.setDisplayHomeAsUpEnabled(true)
@@ -142,6 +146,17 @@ class PreferencesActivity extends BaseActivity
     super.onActivityResult(requestCode, resultCode, data)
     val fragment: Fragment = getSupportFragmentManager.findFragmentById(R.id.fl__root__camera)
     if (fragment != null) fragment.onActivityResult(requestCode, resultCode, data)
+
+    if (resultCode == Activity.RESULT_OK && Seq(OptionsView.RingToneResultId, OptionsView.TextToneResultId, OptionsView.PingToneResultId).contains(requestCode)) {
+
+      val pickedUri = Option(data.getParcelableExtra(RingtoneManager.EXTRA_RINGTONE_PICKED_URI).asInstanceOf[Uri])
+      val key = requestCode match {
+        case OptionsView.RingToneResultId => GlobalPreferences.RingTone
+        case OptionsView.TextToneResultId => GlobalPreferences.TextTone
+        case OptionsView.PingToneResultId => GlobalPreferences.PingTone
+      }
+      zms.head.flatMap(_.prefs.preference(key).update(pickedUri.fold("")(_.toString)))(Threading.Ui)
+    }
   }
 
   override def onOptionsItemSelected(item: MenuItem): Boolean = {
