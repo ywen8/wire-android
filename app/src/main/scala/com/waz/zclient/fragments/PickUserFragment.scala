@@ -823,7 +823,7 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
   }
 
   override def onRequestPermissionsResult(requestCode: Int, grantResults: Array[Int]): Unit = {
-    if (requestCode == PermissionUtils.REQUEST_READ_CONTACTS) {
+    if (requestCode == PermissionUtils.REQUEST_READ_CONTACTS && !userAccountsController.isTeamAccount) {
       getControllerFactory.getUserPreferencesController.setShareContactsEnabled(false)
       if (grantResults.length > 0) {
         if (grantResults(0) == PackageManager.PERMISSION_GRANTED) {
@@ -881,9 +881,10 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
   }
 
   private def requestShareContactsPermissions(): Unit = {
-    if (getControllerFactory == null || getControllerFactory.isTornDown) {
+    if (getControllerFactory == null || getControllerFactory.isTornDown || userAccountsController.isTeamAccount) {
       return
     }
+
     if (PermissionUtils.hasSelfPermissions(getContext, Manifest.permission.READ_CONTACTS)) {
       getControllerFactory.getUserPreferencesController.setShareContactsEnabled(true)
     }

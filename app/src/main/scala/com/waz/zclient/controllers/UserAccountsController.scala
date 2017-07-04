@@ -27,6 +27,7 @@ import com.waz.utils.events.{EventContext, Signal}
 import com.waz.zclient.core.stores.conversation.ConversationChangeRequester
 import com.waz.zclient.utils.Callback
 import com.waz.zclient.{BaseActivity, Injectable, Injector}
+import timber.log.Timber
 
 import scala.concurrent.Future
 
@@ -84,4 +85,5 @@ class UserAccountsController(implicit injector: Injector, context: Context, ec: 
   def hasCreateConversationPermission: Boolean = !isTeamAccount || _permissions(AccountData.Permission.CreateConversation)
   def hasRemoveConversationMemberPermission(convId: ConvId): Boolean = !isTeamAccount || _permissions(AccountData.Permission.RemoveConversationMember)
   def hasAddConversationMemberPermission(convId: ConvId): Boolean = !isTeamAccount || _permissions(AccountData.Permission.AddConversationMember)
+
 }
