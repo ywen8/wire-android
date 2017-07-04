@@ -774,7 +774,7 @@ public class ParticipantFragment extends BaseFragment<ParticipantFragment.Contai
             }
             return;
         }
-        Boolean isTeamSpace = ((BaseActivity) getActivity()).injectJava(UserAccountsController.class).isTeamSpace();
+        Boolean isTeamSpace = ((BaseActivity) getActivity()).injectJava(UserAccountsController.class).isTeamAccount();
         if (isTeamSpace) {
             showAcceptedUser(user);
         } else {
