@@ -27,7 +27,6 @@ import com.waz.utils.events.{EventContext, Signal}
 import com.waz.zclient.core.stores.conversation.ConversationChangeRequester
 import com.waz.zclient.utils.Callback
 import com.waz.zclient.{BaseActivity, Injectable, Injector}
-import timber.log.Timber
 
 import scala.concurrent.Future
 
