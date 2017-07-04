@@ -95,9 +95,9 @@ class NormalTopToolbar(override val context: Context, override val attrs: Attrib
 
   glyphButton.setText(R.string.glyph__profile)
   controller.accounts.on(Threading.Ui) { accounts =>
-    tabsContainer.setVisible(accounts.nonEmpty)
-    title.setVisible(accounts.isEmpty)
-    separatorDrawable.setDuration(if (accounts.isEmpty) 0 else animationDuration)
+    tabsContainer.setVisible(accounts.size != 1)
+    title.setVisible(accounts.size == 1)
+    separatorDrawable.setDuration(if (accounts.size == 1) 0 else animationDuration)
     onTabsChanged(tabsContainer)
   }
 
