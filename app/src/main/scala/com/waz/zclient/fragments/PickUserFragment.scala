@@ -142,7 +142,6 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
   private var searchBoxView: SearchEditText = null
   private var toolbarTitle: TypefaceTextView = null
 
-  private var currentTeam = Option.empty[TeamData]
   private var teamPermissions = Set[AccountData.Permission]()
 
   private implicit lazy val uiStorage = inject[UiStorage]
@@ -264,7 +263,7 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
       ViewUtils.setHeight(searchBoxView, getResources.getDimensionPixelSize(R.dimen.searchbox__height__with_toolbar))
       searchBoxView.applyDarkTheme(ThemeUtils.isDarkTheme(getContext))
     } else {
-      inviteButton.setVisibility(if (isPrivateSpace) View.VISIBLE else View.GONE)
+      inviteButton.setVisibility(if (isPrivateAccount) View.VISIBLE else View.GONE)
       // Use constant style for left side start ui
       val textColor: Int = ContextCompat.getColor(getContext, R.color.text__primary_dark)
       errorMessageViewHeader.setTextColor(textColor)
@@ -322,10 +321,8 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
 
     for {
       z <- zms
-      team <- z.teams.selfTeam
       accountData <- z.account.accountData
     } {
-      currentTeam = team
       teamPermissions = accountData.selfPermissions
     }
 
@@ -348,7 +345,7 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
     else {
       searchUserController.setFilter("")
     }
-    if (!isAddingToConversation && isPrivateSpace)
+    if (!isAddingToConversation && isPrivateAccount)
       showShareContactsDialog()
   }
 
@@ -367,9 +364,9 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
           if (searchBoxView == null || numberOfActiveConversations <= PickUserFragment.SHOW_KEYBOARD_THRESHOLD) {
             return
           }
-          currentTeam.foreach{ team =>
-              searchBoxView.setFocus()
-              KeyboardUtils.showKeyboard(getActivity)
+          if (isTeamAccount) {
+            searchBoxView.setFocus()
+            KeyboardUtils.showKeyboard(getActivity)
           }
         }
       }, getResources.getInteger(R.integer.people_picker__keyboard__show_delay))
@@ -438,7 +435,7 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
       return
     }
     val inviteVisibility: Int =
-      if (keyboardIsVisible || searchUserController.selectedUsers.nonEmpty || !isPrivateSpace)
+      if (keyboardIsVisible || searchUserController.selectedUsers.nonEmpty || isTeamAccount)
         View.GONE
       else
         View.VISIBLE
@@ -551,7 +548,7 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
     TrackingUtils.onUserSelectedInStartUI(trackingController, user, anchorView.isInstanceOf[ChatheadWithTextFooter], isAddingToConversation, position, searchResultAdapter)
 
     UserSignal(userId).head.map{userData =>
-      if (userData.connection == ConnectionStatus.Accepted || currentTeam.nonEmpty) {
+      if (userData.connection == ConnectionStatus.Accepted || isTeamAccount) {
         if (anchorView.isSelected) {
           searchUserController.addUser(userId)
         } else {
@@ -770,7 +767,7 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
     } else {
       val visible: Boolean = show || searchUserController.selectedUsers.nonEmpty
       conversationQuickMenu.setVisibility(if (visible) View.VISIBLE else View.GONE)
-      inviteButton.setVisibility(if (visible || isKeyboardVisible || !isPrivateSpace) View.GONE else View.VISIBLE)
+      inviteButton.setVisibility(if (visible || isKeyboardVisible || isTeamAccount) View.GONE else View.VISIBLE)
     }
   }
 
@@ -778,7 +775,7 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
     val label: String = if (searchUserController.selectedUsers.size > 1) getString(R.string.conversation_quick_menu__conversation_button__group_label)
     else getString(R.string.conversation_quick_menu__conversation_button__single_label)
     conversationQuickMenu.setConversationButtonText(label)
-    val hasPermissions = currentTeam.isEmpty || searchUserController.selectedUsers.size == 1 || teamPermissions.contains(AccountData.Permission.CreateConversation)
+    val hasPermissions = isPrivateAccount || searchUserController.selectedUsers.size == 1 || teamPermissions.contains(AccountData.Permission.CreateConversation)
     conversationQuickMenu.setVisibility(if (hasPermissions && !isAddingToConversation) View.VISIBLE else View.GONE)
   }
 
@@ -811,7 +808,9 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
     getArguments.getBoolean(PickUserFragment.ARGUMENT_ADD_TO_CONVERSATION)
   }
 
-  private def isPrivateSpace: Boolean = currentTeam.isEmpty
+  private def isPrivateAccount: Boolean = !isTeamAccount
+
+  private def isTeamAccount: Boolean = userAccountsController.isTeamAccount
 
   private def addingToConversation: Option[ConvId] = {
     Option(getArguments.getString(PickUserFragment.ARGUMENT_CONVERSATION_ID)).map(ConvId(_))

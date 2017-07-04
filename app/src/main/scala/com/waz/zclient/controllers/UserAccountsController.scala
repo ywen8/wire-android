@@ -71,9 +71,10 @@ class UserAccountsController(implicit injector: Injector, context: Context, ec: 
     }(Threading.Ui)
   }
 
+  def isTeamAccount = zms.map(_.teamId).currentValue.flatten.isDefined
+
   //TODO: wait for BE specs about the accounts
   def hasCreateConversationPermission: Boolean = true //TODO: Will this bee needed with the accounts stuff?
   def hasRemoveMemberPermission(convId: ConvId): Boolean = true
   def hasAddMemberPermission(convId: ConvId): Boolean = true
-  def isTeamSpace: Boolean = false
 }
