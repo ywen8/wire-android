@@ -30,6 +30,7 @@ import android.support.v7.preference.PreferenceCategory;
 import com.waz.zclient.BaseActivity;
 import com.waz.zclient.R;
 import com.waz.zclient.calling.controllers.CallPermissionsController;
+import com.waz.zclient.controllers.UserAccountsController;
 import com.waz.zclient.controllers.permission.RequestPermissionsObserver;
 import com.waz.zclient.core.controllers.tracking.events.Event;
 import com.waz.zclient.core.controllers.tracking.events.settings.ChangedBitRateModeEvent;
@@ -56,6 +57,7 @@ public class OptionsPreferences extends BasePreferenceFragment implements Shared
     private RingtonePreference textTonePreference;
     private RingtonePreference pingPreference;
     private SwitchPreference themePreference;
+    private SwitchPreference shareContactsPreference;
 
     public static OptionsPreferences newInstance(String rootKey, Bundle extras) {
         OptionsPreferences f = new OptionsPreferences();
@@ -78,6 +80,12 @@ public class OptionsPreferences extends BasePreferenceFragment implements Shared
         pingPreference.setShowSilent(true);
         setDefaultRingtones();
 
+        shareContactsPreference = (SwitchPreference) findPreference(getString(R.string.pref_share_contacts_key));
+        UserAccountsController ctrl = injectJava(UserAccountsController.class);
+        if (ctrl != null) {
+            shareContactsPreference.setVisible(!ctrl.isTeamAccount());
+        }
+        
         bindPreferenceSummaryToValue(ringtonePreference);
         bindPreferenceSummaryToValue(textTonePreference);
         bindPreferenceSummaryToValue(pingPreference);
@@ -137,11 +145,14 @@ public class OptionsPreferences extends BasePreferenceFragment implements Shared
             boolean wifiOnly = stringValue.equals(getContext().getString(R.string.zms_image_download_value_wifi));
             event = new ChangedImageDownloadPreferenceEvent(wifiOnly);
         } else if (key.equals(getString(R.string.pref_share_contacts_key))) {
-            boolean shareContacts = sharedPreferences.getBoolean(key, false);
-            event = new ChangedContactsPermissionEvent(shareContacts, true);
-            boolean hasContactsReadPermission = PermissionUtils.hasSelfPermissions(getContext(), Manifest.permission.READ_CONTACTS);
-            if (shareContacts && !hasContactsReadPermission) {
-                ActivityCompat.requestPermissions(getActivity(), new String[]{Manifest.permission.READ_CONTACTS}, PermissionUtils.REQUEST_READ_CONTACTS);
+            UserAccountsController ctrl = injectJava(UserAccountsController.class);
+            if (ctrl != null && !ctrl.isTeamAccount()) {
+                boolean shareContacts = sharedPreferences.getBoolean(key, false);
+                event = new ChangedContactsPermissionEvent(shareContacts, true);
+                boolean hasContactsReadPermission = PermissionUtils.hasSelfPermissions(getContext(), Manifest.permission.READ_CONTACTS);
+                if (shareContacts && !hasContactsReadPermission) {
+                    ActivityCompat.requestPermissions(getActivity(), new String[]{Manifest.permission.READ_CONTACTS}, PermissionUtils.REQUEST_READ_CONTACTS);
+                }
             }
         } else if (key.equals(getString(R.string.pref_options_theme_switch_key))) {
             getControllerFactory().getThemeController().toggleThemePending(true);
@@ -201,7 +212,8 @@ public class OptionsPreferences extends BasePreferenceFragment implements Shared
     public void onRequestPermissionsResult(int requestCode, int[] grantResults) {
         if (requestCode == PermissionUtils.REQUEST_READ_CONTACTS) {
             getControllerFactory().getUserPreferencesController().setShareContactsEnabled(false);
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            UserAccountsController ctrl = injectJava(UserAccountsController.class);
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED && !ctrl.isTeamAccount()) {
                 //Changing the value of the shareContacts seems to be the
                 //only way to trigger a refresh on the sync engine...
                 getControllerFactory().getUserPreferencesController().setShareContactsEnabled(true);
