@@ -36,7 +36,7 @@
             >
 
             <com.waz.zclient.pages.main.profile.preferences.views.SwitchPreference
-                android:id="@+id/preferences_contacts"
+                android:id="@+id/preferences_analytics"
                 android:layout_width="match_parent"
                 android:layout_height="@dimen/preference_button_height"
                 app:subtitle="@string/pref_advanced_analytics_summary"
@@ -44,7 +44,7 @@
                 />
 
             <com.waz.zclient.pages.main.profile.preferences.views.TextButton
-                android:id="@+id/preferences_sounds"
+                android:id="@+id/preferences_debug_report"
                 android:layout_width="match_parent"
                 android:layout_height="@dimen/preference_button_height"
                 app:subtitle="@string/pref_advanced_debug_report_summary"

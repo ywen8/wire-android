@@ -197,6 +197,11 @@ class OptionsViewController(view: OptionsView)(implicit inj: Injector, ec: Event
   val zms = inject[Signal[ZMessaging]]
   val userPrefs = zms.map(_.userPrefs)
 
+  //TODO: SHARE CONTACTS PREF
+  //TODO: VBR PREF
+  //TODO: VIBRATION PREF
+  //TODO: SEND ENTER PREF
+
   userPrefs.flatMap(_.preference(UserPreferences.DownloadImagesOnWifiOnly).signal).on(Threading.Ui){ view.setDownloadPictures }
   userPrefs.flatMap(_.preference(UserPreferences.Sounds).signal).on(Threading.Ui){ view.setSounds }
   userPrefs.flatMap(_.preference(UserPreferences.RingTone).signal).on(Threading.Ui){ view.setRingtone }

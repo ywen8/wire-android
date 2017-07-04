@@ -17,11 +17,13 @@
  */
 package com.waz.zclient.pages.main.profile.preferences.pages
 
-import android.content.Context
+import android.content.{Context, Intent}
+import android.net.Uri
 import android.os.Bundle
 import android.util.AttributeSet
 import android.view.View
 import android.widget.LinearLayout
+import com.waz.zclient.pages.main.profile.preferences.views.TextButton
 import com.waz.zclient.{R, ViewHelper}
 import com.waz.zclient.utils.BackStackKey
 
@@ -30,6 +32,17 @@ class SupportView(context: Context, attrs: AttributeSet, style: Int) extends Lin
   def this(context: Context) = this(context, null, 0)
 
   inflate(R.layout.preferences_support_layout)
+
+  val websiteButton = findById[TextButton](R.id.settings_support_website)
+  val contactButton = findById[TextButton](R.id.settings_support_contact)
+
+  websiteButton.onClickEvent{ _ =>
+    context.startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(context.getString(R.string.pref_support_website_url))))
+  }
+
+  contactButton.onClickEvent{ _ =>
+    context.startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(context.getString(R.string.pref_support_contact_url))))
+  }
 }
 
 case class SupportBackStackKey(args: Bundle = new Bundle()) extends BackStackKey(args) {

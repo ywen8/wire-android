@@ -17,13 +17,16 @@
  */
 package com.waz.zclient.pages.main.profile.preferences.pages
 
+import android.app.Activity
 import android.content.Context
 import android.os.Bundle
 import android.util.AttributeSet
 import android.view.View
 import android.widget.LinearLayout
+import com.waz.content.UserPreferences
+import com.waz.zclient.pages.main.profile.preferences.views.{SwitchPreference, TextButton}
+import com.waz.zclient.utils.{BackStackKey, DebugUtils}
 import com.waz.zclient.{R, ViewHelper}
-import com.waz.zclient.utils.BackStackKey
 
 trait AdvancedView
 
@@ -32,6 +35,14 @@ class AdvancedViewImpl(context: Context, attrs: AttributeSet, style: Int) extend
   def this(context: Context) = this(context, null, 0)
 
   inflate(R.layout.preferences_advanced_layout)
+
+  val analyticsSwitch = findById[SwitchPreference](R.id.preferences_analytics)
+  val submitReport = findById[TextButton](R.id.preferences_debug_report)
+
+  analyticsSwitch.setPreference(UserPreferences.AnalyticsEnabled)
+  submitReport.onClickEvent{ _ =>
+    DebugUtils.sendDebugReport(context.asInstanceOf[Activity])
+  }
 }
 
 case class AdvancedBackStackKey(args: Bundle = new Bundle()) extends BackStackKey(args) {
