@@ -179,9 +179,7 @@ case class DeviceDetailsViewController(view: DeviceDetailsView, clientId: Client
   val passwordController = inject[PasswordController]
   val backStackNavigator = inject[BackStackNavigator]
 
-  val accountService = for {
-    Some(accountService) <- ZMessaging.currentAccounts.currentAccountService
-  } yield accountService
+  val accountService =  ZMessaging.currentAccounts.currentAccountService.collect{case Some(a) => a}
 
   val otrClientsService = accountService.flatMap(_.userModule).map(_.clientsService)
 
@@ -190,7 +188,7 @@ case class DeviceDetailsViewController(view: DeviceDetailsView, clientId: Client
     accData    <- accService.accountData
     Some(userId) <- accService.userId
     clients     <- accService.storage.otrClientsStorage.signal(userId)
-  } yield (clients.clients(clientId), accData.clientId.contains(clientId))
+  } yield (clients.clients.get(clientId), accData.clientId.contains(clientId))
 
   val client = clientAndIsSelf.map(_._1)
 
@@ -201,7 +199,7 @@ case class DeviceDetailsViewController(view: DeviceDetailsView, clientId: Client
   } yield fp
 
   Signal(clientAndIsSelf, fingerprint).onUi {
-    case ((c, self), fp) =>
+    case ((Some(c), self), fp) =>
       view.setName(c.model)
       view.setId(c.id.str)
       view.setActivated(c.regTime.getOrElse(Instant.EPOCH), c.regLocation)
@@ -210,7 +208,7 @@ case class DeviceDetailsViewController(view: DeviceDetailsView, clientId: Client
     case _ =>
   }
 
-  client.map(_.isVerified).onUi(view.setVerified)
+  client.map(_.exists(_.isVerified)).onUi(view.setVerified)
 
   view.onVerifiedChecked { checked =>
     for {
@@ -247,22 +245,21 @@ case class DeviceDetailsViewController(view: DeviceDetailsView, clientId: Client
 
   private def removeDevice(password: String): Unit = {
     for {
-      otrClientsService <- otrClientsService
+      otrClientsService <- otrClientsService.head
       _ <- otrClientsService.deleteClient(clientId, password).map {
         case Right(_) =>
           passwordController.setPassword(password)
           context.asInstanceOf[BaseActivity].onBackPressed()
           tracking.tagEvent(new RemovedOwnOtrClientEvent)
-          backStackNavigator.back()
         case Left(ErrorResponse(_, msg, _)) =>
           showRemoveDeviceDialog(Some(getString(R.string.otr__remove_device__error)))
       } (Threading.Ui)
-    } {}
+    } yield ()
   }
 
   private def showRemoveDeviceDialog(error: Option[String] = None): Unit = {
-    client.map(_.model).head.map { n =>
-      val fragment = returning(RemoveDeviceDialog.newInstance(n, error))(_.onDelete(removeDevice))
+    client.map(_.map(_.model)).head.map { n =>
+      val fragment = returning(RemoveDeviceDialog.newInstance(n.getOrElse(""), error))(_.onDelete(removeDevice))
       context.asInstanceOf[BaseActivity]
         .getSupportFragmentManager
         .beginTransaction

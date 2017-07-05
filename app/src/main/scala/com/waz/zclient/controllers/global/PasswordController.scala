@@ -18,27 +18,19 @@
 package com.waz.zclient.controllers.global
 
 import com.waz.service.ZMessaging
-import com.waz.utils.events.Signal
-import com.waz.zclient.{Injectable, Injector}
-import com.waz.utils.events.EventContext
 import com.waz.threading.Threading
+import com.waz.zclient.{Injectable, Injector}
 
 class PasswordController(implicit inj: Injector) extends Injectable {
   import Threading.Implicits.Background
-  import EventContext.Implicits.global
 
-  val accountData = for {
-    Some(accountService) <- ZMessaging.currentAccounts.currentAccountService
-    accountData <- accountService.accountData
-  } yield accountData
-
-  val password = accountData.map(_.password)
+  val password = ZMessaging.currentAccounts.currentAccountData.map(_.flatMap(_.password))
 
   //The password is never saved in the database, this will just update the in-memory version of the current account
   //so that the password is globally correct.
   def setPassword(p: String) =
     for {
-      accountData <- accountData.head
+      Some(accountData) <- ZMessaging.currentAccounts.currentAccountData.head
       _ <- ZMessaging.currentAccounts.storage.update(accountData.id, _.copy(password = Some(p)))
     } yield {}
 
