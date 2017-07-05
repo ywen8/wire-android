@@ -17,18 +17,32 @@
  */
 package com.waz.zclient.pages.main.profile.preferences.pages
 
-import android.content.Context
+import android.content.{Context, Intent}
 import android.os.Bundle
 import android.util.AttributeSet
 import android.view.View
 import android.widget.LinearLayout
+import com.waz.ZLog
+import com.waz.service.ZMessaging
 import com.waz.threading.Threading
+import com.waz.utils.events.{EventContext, EventStream, Signal}
+import com.waz.zclient.controllers.global.AccentColorController
+import com.waz.zclient.controllers.tracking.events.connect.OpenedGenericInviteMenuEvent
+import com.waz.zclient.controllers.tracking.screens.ApplicationScreen
 import com.waz.zclient.pages.main.profile.preferences.views.TextButton
-import com.waz.zclient.utils.{BackStackNavigator, BackStackKey}
-import com.waz.zclient.{R, ViewHelper}
+import com.waz.zclient.tracking.GlobalTrackingController
+import com.waz.zclient.utils.{BackStackKey, BackStackNavigator, IntentUtils, StringUtils, UiStorage, UserSignal}
+import com.waz.zclient.views.FlatWireButton
+import com.waz.zclient.{Injectable, Injector, R, ViewHelper}
 
+trait SettingsView {
 
-class SettingsView(context: Context, attrs: AttributeSet, style: Int) extends LinearLayout(context, attrs, style) with ViewHelper {
+  val onInviteClick: EventStream[Unit]
+
+  def startInviteIntent(name: String, handle: String): Unit
+}
+
+class SettingsViewImpl(context: Context, attrs: AttributeSet, style: Int) extends LinearLayout(context, attrs, style) with SettingsView with ViewHelper {
   def this(context: Context, attrs: AttributeSet) = this(context, attrs, 0)
   def this(context: Context) = this(context, null, 0)
 
@@ -44,6 +58,7 @@ class SettingsView(context: Context, attrs: AttributeSet, style: Int) extends Li
   val aboutButton = findById[TextButton](R.id.settings_about)
   val devButton = findById[TextButton](R.id.settings_dev)
   val avsButton = findById[TextButton](R.id.settings_avs)
+  val inviteButton = findById[FlatWireButton](R.id.profile_invite)
 
   accountButton.onClickEvent.on(Threading.Ui) { _ => navigator.goTo(AccountBackStackKey()) }
   devicesButton.onClickEvent.on(Threading.Ui) { _ => navigator.goTo(DevicesBackStackKey())}
@@ -53,6 +68,19 @@ class SettingsView(context: Context, attrs: AttributeSet, style: Int) extends Li
   aboutButton.onClickEvent.on(Threading.Ui) { _ => navigator.goTo(AboutBackStackKey()) }
   devButton.onClickEvent.on(Threading.Ui) { _ => navigator.goTo(DevSettingsBackStackKey()) }
   avsButton.onClickEvent.on(Threading.Ui) { _ => navigator.goTo(AvsBackStackKey()) }
+
+  override val onInviteClick: EventStream[Unit] = inviteButton.onClickEvent.map(_ => ())
+  inviteButton.setText(R.string.people_picker__generic_invite_button_text)
+  inviteButton.setGlyph(R.string.glyph__invite)
+
+  override def startInviteIntent(name: String, handle: String) = {
+    val sharingIntent =
+      IntentUtils.getInviteIntent(
+        context.getString(R.string.people_picker__invite__share_text__header, name),
+        context.getString(R.string.people_picker__invite__share_text__body, StringUtils.formatHandle(handle)))
+    context.startActivity(Intent.createChooser(sharingIntent, context.getString(R.string.people_picker__invite__share_details_dialog)))
+  }
+
 }
 
 case class SettingsBackStackKey(args: Bundle = new Bundle()) extends BackStackKey(args) {
@@ -61,8 +89,36 @@ case class SettingsBackStackKey(args: Bundle = new Bundle()) extends BackStackKe
 
   override def layoutId = R.layout.preferences_settings
 
-  override def onViewAttached(v: View) = {}
+  var controller = Option.empty[SettingsViewController]
 
-  override def onViewDetached() = {}
+  override def onViewAttached(v: View) = {
+    controller = Option(v.asInstanceOf[SettingsViewImpl]).map(sv => new SettingsViewController(sv)(sv.injector, sv))
+  }
+
+  override def onViewDetached() = {
+    controller = None
+  }
+}
+
+class SettingsViewController(view: SettingsView)(implicit inj: Injector, ec: EventContext) extends Injectable {
+  import ZLog.ImplicitTag.implicitLogTag
+  val zms = inject[Signal[ZMessaging]]
+  implicit val uiStorage = inject[UiStorage]
+  val globalTrackingController = inject[GlobalTrackingController]
+
+  val selfInfo = for {
+    z <- zms
+    self <- UserSignal(z.selfUserId)
+  } yield (self.getDisplayName, self.handle.fold("")(_.string))
+
+  view.onInviteClick.onUi{ _ =>
+    selfInfo.currentValue.foreach {
+      case (name, handle) =>
+        view.startInviteIntent(name, handle)
+        globalTrackingController.tagEvent(new OpenedGenericInviteMenuEvent(OpenedGenericInviteMenuEvent.EventContext.SETTINGS))
+        globalTrackingController.onApplicationScreen(ApplicationScreen.SEND_GENERIC_INVITE_MENU)
+      case _ =>
+    }
+  }
 }
 

@@ -97,13 +97,10 @@
 
     </ScrollView>
 
-    <com.waz.zclient.pages.main.profile.preferences.views.TextButton
+    <com.waz.zclient.views.FlatWireButton
         android:id="@+id/profile_invite"
         android:layout_width="match_parent"
-        android:layout_height="@dimen/preference_button_height"
-        android:background="@color/accent_blue"
-        app:title="@string/pref_invite_title"
-        app:iconStart="@drawable/ic_action_about"
+        android:layout_height="@dimen/flat_wire_button_height"
         />
 
 </merge>

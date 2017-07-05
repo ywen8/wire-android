@@ -32,7 +32,7 @@
         android:layout_centerVertical="true"
         android:layout_alignParentStart="true"
         android:id="@+id/preference_icon_start"
-        android:layout_marginStart="16dp"
+        android:layout_marginStart="@dimen/preference_button_padding"
         />
 
     <LinearLayout
@@ -53,7 +53,7 @@
             android:textSize="@dimen/wire__text_size__regular"
             android:ellipsize="end"
             android:textColor="@color/white"
-            app:font="@string/wire__typeface__regular"
+            app:font="@string/wire__typeface__light"
             />
 
         <com.waz.zclient.ui.text.TypefaceTextView
@@ -64,7 +64,7 @@
             android:ellipsize="end"
             android:visibility="visible"
             android:textColor="@color/light_graphite"
-            app:font="@string/wire__typeface__regular"
+            app:font="@string/wire__typeface__light"
             />
 
     </LinearLayout>

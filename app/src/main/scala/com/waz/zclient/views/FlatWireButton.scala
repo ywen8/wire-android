@@ -20,9 +20,11 @@ package com.waz.zclient.views
 
 import android.content.Context
 import android.util.AttributeSet
-import android.view.{Gravity, ViewGroup}
+import android.view.View.{OnClickListener, OnLongClickListener}
+import android.view.{Gravity, View, ViewGroup}
 import android.widget.FrameLayout.LayoutParams
 import android.widget.LinearLayout
+import com.waz.utils.events.EventStream
 import com.waz.zclient.controllers.global.AccentColorController
 import com.waz.zclient.ui.text.{GlyphTextView, TypefaceTextView}
 import com.waz.zclient.{R, ViewHelper}
@@ -38,10 +40,16 @@ class FlatWireButton(context: Context, attrs: AttributeSet, style: Int) extends 
   val text = findById[TypefaceTextView](R.id.text)
   val accentColor = inject[AccentColorController].accentColor
 
+  val onClickEvent = EventStream[View]()
+
   setGravity(Gravity.CENTER)
   accentColor.onUi{ accentColor =>
     setBackgroundColor(accentColor.getColor())
   }
+
+  setOnClickListener(new OnClickListener {
+    override def onClick(v: View) = onClickEvent ! v
+  })
 
   def setText(textId: Int): Unit = text.setText(textId)
   def setGlyph(glyphId: Int): Unit = glyph.setText(glyphId)
