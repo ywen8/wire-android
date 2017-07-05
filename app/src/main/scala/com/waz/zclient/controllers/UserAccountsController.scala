@@ -46,6 +46,8 @@ class UserAccountsController(implicit injector: Injector, context: Context, ec: 
 
   private var _permissions = Set[AccountData.Permission]()
 
+  private var _teamData = Option.empty[TeamData]
+
   val permissions = for {
     zms <- zms
     accountData <- zms.account.accountData
@@ -54,6 +56,17 @@ class UserAccountsController(implicit injector: Injector, context: Context, ec: 
   permissions { p =>
     _permissions = p
   }
+
+  val teamDataSignal = for {
+    zms <- zms
+    teamData <- zms.teams.selfTeam
+  } yield teamData
+
+  teamDataSignal { data =>
+    _teamData = data
+  }
+
+  def teamData = _teamData
 
   //Things for java
   //TODO hacky mchackerson - needed for the conversation fragment, remove ASAP
@@ -82,7 +95,9 @@ class UserAccountsController(implicit injector: Injector, context: Context, ec: 
     }(Threading.Ui)
   }
 
-  def isTeamAccount = zms.map(_.teamId).currentValue.flatten.isDefined
+  def teamId = zms.map(_.teamId).currentValue.flatten
+  def isTeamAccount = teamId.isDefined
+
   def hasCreateConversationPermission: Boolean = !isTeamAccount || _permissions(AccountData.Permission.CreateConversation)
   def hasRemoveConversationMemberPermission(convId: ConvId): Boolean = !isTeamAccount || _permissions(AccountData.Permission.RemoveConversationMember)
   def hasAddConversationMemberPermission(convId: ConvId): Boolean = !isTeamAccount || _permissions(AccountData.Permission.AddConversationMember)

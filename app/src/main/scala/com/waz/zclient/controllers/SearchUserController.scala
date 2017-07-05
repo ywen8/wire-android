@@ -31,6 +31,7 @@ import scala.collection.immutable.Set
 
 case class SearchState(filter: String, hasSelectedUsers: Boolean, addingToConversation: Option[ConvId], teamId: Option[TeamId] = None){
   val shouldShowTopUsers = filter.isEmpty && teamId.isEmpty && addingToConversation.isEmpty
+  val shouldShowTeamMembersAndGuests = filter.isEmpty && teamId.isDefined
   val shouldShowAbContacts = addingToConversation.isEmpty && !hasSelectedUsers && teamId.isEmpty
   val shouldShowGroupConversations = filter.nonEmpty && !hasSelectedUsers && addingToConversation.isEmpty
   val shouldShowDirectorySearch = filter.nonEmpty && !hasSelectedUsers && addingToConversation.isEmpty
@@ -76,8 +77,8 @@ class SearchUserController(initialState: SearchState)(implicit injector: Injecto
     searchState.mutate(_.copy(hasSelectedUsers = hasSelectedUsers))
   }
 
-  def setState(filter: String, hasSelectedUsers: Boolean, addingToConversation: Option[ConvId]): Unit = {
-    searchState ! SearchState(filter, hasSelectedUsers, addingToConversation)
+  def setState(filter: String, hasSelectedUsers: Boolean, addingToConversation: Option[ConvId], teamId: Option[TeamId]): Unit = {
+    searchState ! SearchState(filter, hasSelectedUsers, addingToConversation, teamId)
   }
 
   val topUsersSignal = for {
@@ -86,22 +87,6 @@ class SearchUserController(initialState: SearchState)(implicit injector: Injecto
     excludedUsers <- excludedUsers
     searchState <- searchState
   } yield if (searchState.shouldShowTopUsers) users.values.filter(u => !excludedUsers.contains(u.id)) else IndexedSeq()
-
-  val teamMembersSignal = for {
-    z <- zms
-    searchState <- searchState
-    members <- searchTeamMembersForState(z, searchState)
-    excludedUsers <- excludedUsers
-  } yield members.filter(u => !excludedUsers.contains(u.id)).toSeq.sortBy(_.getDisplayName)
-
-  private def searchTeamMembersForState(z:ZMessaging, searchState: SearchState): Signal[Set[UserData]] = {
-    searchState.teamId.fold{
-      Signal.const(Set[UserData]())
-    } { teamId =>
-      val searchKey = if (searchState.filter.isEmpty) None else Some(SearchKey(searchState.filter))
-      Signal.future(z.teams.searchTeamMembers(searchKey, handleOnly = Handle.containsSymbol(searchState.filter)))
-    }
-  }
 
   val conversationsSignal = for {
     z <- zms
@@ -117,6 +102,54 @@ class SearchUserController(initialState: SearchState)(implicit injector: Injecto
     }
   }.distinct
 
+  private val localSearchSignal: Signal[(Vector[UserData], Vector[UserData])] = for {
+    z <- zms
+    searchState <- searchState
+    acceptedOrBlocked <- z.users.acceptedOrBlockedUsers
+    members <- if (searchState.teamId.isDefined) searchTeamMembersForState(z, searchState) else Signal.const(Set.empty[UserData])
+    guests <- if (searchState.teamId.isDefined) z.teams.guests else Signal.const(Set.empty[UserId])
+    excludedIds <- excludedUsers
+  } yield sortUsers(acceptedOrBlocked.valuesIterator, members, guests, excludedIds, z.selfUserId, searchState)
+
+  private def sortUsers(connected: Iterator[UserData],
+                        members: Set[UserData],
+                        guestsIds: Set[UserId],
+                        excludedIds: Set[UserId],
+                        selfId: UserId,
+                        searchState: SearchState): (Vector[UserData], Vector[UserData]) = {
+    val users = connected.filter(SearchUtils.ConnectedUsersPredicate(
+      searchState.filter,
+      excludedIds.map(_.str),
+      alsoSearchByEmail = true,
+      showBlockedUsers = true,
+      searchByHandleOnly = Handle.containsSymbol(searchState.filter)))
+
+    // we want to display team members even if they are not connected, but guests only if they are connected
+    val usersMerged = (users.toSet ++ members).toVector
+    val teamAndGuests = (members.map(_.id) ++ guestsIds) -- excludedIds
+
+    usersMerged.filterNot(_.id == selfId).sortBy(_.getDisplayName).partition(u => teamAndGuests.contains(u.id))
+  }
+
+  private def searchTeamMembersForState(z:ZMessaging, searchState: SearchState): Signal[Set[UserData]] = {
+    searchState.teamId.fold{
+      Signal.const(Set[UserData]())
+    } { teamId =>
+      val searchKey = if (searchState.filter.isEmpty) None else Some(SearchKey(searchState.filter))
+      Signal.future(z.teams.searchTeamMembers(searchKey, handleOnly = Handle.containsSymbol(searchState.filter)))
+    }
+  }
+
+  val teamMembersAndGuestsSignal = for {
+    searchState <- searchState
+    (teamAndGuests, _) <- localSearchSignal
+  } yield if (searchState.shouldShowTeamMembersAndGuests) teamAndGuests else IndexedSeq()
+
+  val connectedUsersSignal = for {
+    searchState <- searchState
+    (_, connectedUsers) <- localSearchSignal
+  } yield if (searchState.shouldShowSearchedContacts) connectedUsers else IndexedSeq()
+
   val searchSignal = for {
     z <- zms
     searchState <- searchState
@@ -126,24 +159,6 @@ class SearchUserController(initialState: SearchState)(implicit injector: Injecto
       Signal(SeqMap.empty[UserId, UserData])
     excludedUsers <- excludedUsers
   } yield users.values.filter(u => !excludedUsers.contains(u.id))
-
-  val connectedUsersSignal = for {
-    z <- zms
-    searchState <- searchState
-    excludedUsers <- excludedUsers.map(_.map(_.str).toSet)
-    users <-
-    if (searchState.shouldShowSearchedContacts)
-      z.users.acceptedOrBlockedUsers.map(_.valuesIterator
-        .filter(SearchUtils.ConnectedUsersPredicate(
-          searchState.filter,
-          excludedUsers,
-          alsoSearchByEmail = true,
-          showBlockedUsers = true,
-          searchByHandleOnly = Handle.containsSymbol(searchState.filter),
-          searchState.teamId)).toVector)
-    else
-      Signal(Vector[UserData]())
-  } yield users
 
   //TODO: remove this old api....
   val contactsSignal = Signal[Seq[Contact]]()
@@ -166,14 +181,14 @@ class SearchUserController(initialState: SearchState)(implicit injector: Injecto
   }
 
   val allDataSignal = for{
-    topUsers         <- topUsersSignal.orElse(Signal(IndexedSeq()))
-    teamMembers      <- teamMembersSignal.orElse(Signal(Seq()))
-    conversations    <- conversationsSignal.orElse(Signal(Seq()))
-    connectedUsers   <- connectedUsersSignal.orElse(Signal(Vector()))
-    searchState      <- searchState
-    contacts         <- if (searchState.shouldShowAbContacts) contactsSignal.orElse(Signal(Seq())) else Signal(Seq[Contact]())
-    directoryResults <- searchSignal.orElse(Signal(IndexedSeq()))
-  } yield (topUsers, teamMembers, conversations, connectedUsers, contacts, directoryResults)
+    topUsers              <- topUsersSignal.orElse(Signal(IndexedSeq()))
+    teamMembersAndGuests  <- teamMembersAndGuestsSignal.orElse(Signal(IndexedSeq()))
+    conversations         <- conversationsSignal.orElse(Signal(Seq()))
+    connectedUsers        <- connectedUsersSignal.orElse(Signal(Vector()))
+    searchState           <- searchState
+    contacts              <- if (searchState.shouldShowAbContacts) contactsSignal.orElse(Signal(Seq())) else Signal(Seq[Contact]())
+    directoryResults      <- searchSignal.orElse(Signal(IndexedSeq()))
+  } yield (topUsers, teamMembersAndGuests, conversations, connectedUsers, contacts, directoryResults)
 
   private def getSearchQuery(str: String): SearchQuery = {
     if (Handle.containsSymbol(str))
