@@ -77,7 +77,7 @@ class TeamTabButton(val context: Context, val attrs: AttributeSet, val defStyleA
   }
 
   def setUserData(accountData: AccountData, userData: UserData, selected: Boolean, unreadCount: Int): Unit = {
-    drawable.setInfo(NameParts.maybeInitial(userData.displayName).getOrElse(""), TeamIconDrawable.UserCorners, selected)
+    drawable.setInfo(NameParts.maybeInitial(userData.displayName).getOrElse(""), if (accountData.isTeamAccount) TeamIconDrawable.TeamCorners else TeamIconDrawable.UserCorners, selected)
     name.setText(userData.getDisplayName)
     drawable.assetId ! userData.picture
     buttonSelected = selected
