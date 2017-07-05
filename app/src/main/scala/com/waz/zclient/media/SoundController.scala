@@ -62,8 +62,12 @@ class SoundController(implicit inj: Injector, cxt: Context) extends Injectable {
     case _ =>
   }
 
-  private def soundIntensityNone = soundIntensity.currentValue == Some(IntensityLevel.NONE)
-  private def soundIntensityFull = soundIntensity.currentValue == None || soundIntensity.currentValue == Some(IntensityLevel.FULL)
+  val vibrationEnabled = zms.flatMap(_.userPrefs.preference(UserPreferences.VibrateEnabled).signal)
+  var _vibrationEnabled = false
+  vibrationEnabled { _vibrationEnabled = _ }
+
+  private def soundIntensityNone = soundIntensity.currentValue.contains(IntensityLevel.NONE)
+  private def soundIntensityFull = soundIntensity.currentValue.isEmpty || soundIntensity.currentValue.contains(IntensityLevel.FULL)
 
   def setIncomingRingTonePlaying(play: Boolean) = {
     if (!soundIntensityNone) setMediaPlaying(R.raw.ringing_from_them, play)
@@ -130,7 +134,7 @@ class SoundController(implicit inj: Injector, cxt: Context) extends Injectable {
     */
   private def setVibrating(patternId: Int, play: Boolean = true, loop: Boolean = false): Unit = {
     (audioManager, vibrator) match {
-      case (Some(am), Some(vib)) if play && am.getRingerMode != AudioManager.RINGER_MODE_SILENT && isVibrationEnabled =>
+      case (Some(am), Some(vib)) if play && am.getRingerMode != AudioManager.RINGER_MODE_SILENT && _vibrationEnabled =>
         vib.cancel() // cancel any current vibrations
         vib.vibrate(getIntArray(patternId).map(_.toLong), if (loop) 0 else -1)
       case (_, Some(vib)) => vib.cancel()
@@ -176,10 +180,5 @@ class SoundController(implicit inj: Injector, cxt: Context) extends Injectable {
     catch {
       case e: Exception => error(s"Could not set custom uri: $uri", e)
     }
-  }
-
-  private def isVibrationEnabled: Boolean = {
-    val preferences = cxt.getSharedPreferences(UserPreferencesController.USER_PREFS_TAG, Context.MODE_PRIVATE)
-    preferences.getBoolean(getString(R.string.pref_options_vibration_key), true)
   }
 }
