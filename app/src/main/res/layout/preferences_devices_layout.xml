@@ -31,6 +31,7 @@
             >
 
             <com.waz.zclient.ui.text.TypefaceTextView
+                android:id="@+id/current_device_title"
                 android:layout_width="match_parent"
                 android:layout_height="@dimen/preference_button_height"
                 android:text="@string/pref_devices_current_device_category_title"

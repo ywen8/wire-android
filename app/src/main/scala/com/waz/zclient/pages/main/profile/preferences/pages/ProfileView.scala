@@ -20,6 +20,7 @@ package com.waz.zclient.pages.main.profile.preferences.pages
 import android.content.Context
 import android.graphics.drawable.Drawable
 import android.os.Bundle
+import android.support.v4.app.{Fragment, FragmentTransaction}
 import android.util.AttributeSet
 import android.view.View
 import android.view.View.OnClickListener
@@ -30,9 +31,10 @@ import com.waz.service.ZMessaging
 import com.waz.threading.Threading
 import com.waz.utils.events.{EventContext, Signal}
 import com.waz.zclient._
+import com.waz.zclient.pages.main.profile.preferences.dialogs.AddAccountDialog
 import com.waz.zclient.pages.main.profile.preferences.views.TextButton
 import com.waz.zclient.ui.text.TypefaceTextView
-import com.waz.zclient.utils.{BackStackNavigator, StringUtils, UiStorage, UserSignal, BackStackKey}
+import com.waz.zclient.utils.{BackStackKey, BackStackNavigator, StringUtils, UiStorage, UserSignal}
 import com.waz.zclient.views.ImageAssetDrawable
 import com.waz.zclient.views.ImageAssetDrawable.{RequestBuilder, ScaleType}
 import com.waz.zclient.views.ImageController.{ImageSource, WireImage}
@@ -56,7 +58,14 @@ class ProfileViewImpl(context: Context, attrs: AttributeSet, style: Int) extends
   val userPicture = findById[ImageView](R.id.profile_user_picture)
   val userHandleText = findById[TypefaceTextView](R.id.profile_user_handle)
 
+  val createTeamButton = findById[TextButton](R.id.profile_create_team)
+  val addAccountButton = findById[TextButton](R.id.profile_add_account)
   val settingsButton = findById[TextButton](R.id.profile_settings)
+
+  addAccountButton.onClickEvent.on(Threading.Ui) { _ =>
+    //showPrefDialog(new AddAccountDialog, AddAccountDialog.Tag)
+    ZMessaging.currentAccounts.logout(false)
+  }
 
   settingsButton.onClickEvent.on(Threading.Ui) { _ =>
     navigator.goTo(SettingsBackStackKey())
@@ -73,6 +82,16 @@ class ProfileViewImpl(context: Context, attrs: AttributeSet, style: Int) extends
   override def setProfilePictureDrawable(drawable: Drawable): Unit = userPicture.setImageDrawable(drawable)
 
   override def setAccentColor(color: Int): Unit = {}
+
+  private def showPrefDialog(f: Fragment, tag: String) = {
+    context.asInstanceOf[BaseActivity]
+      .getSupportFragmentManager
+      .beginTransaction
+      .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
+      .add(f, tag)
+      .addToBackStack(tag)
+      .commit
+  }
 }
 object ProfileView {
   val Tag = ZLog.logTagFor[ProfileView]

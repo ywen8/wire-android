@@ -44,7 +44,7 @@ import com.waz.zclient.tracking.GlobalTrackingController
 import com.waz.zclient.ui.text.TypefaceTextView
 import com.waz.zclient.ui.utils.TextViewUtils
 import com.waz.zclient.utils.ContextUtils._
-import com.waz.zclient.utils.{BackStackKey, RichView, ViewUtils, ZTimeFormatter}
+import com.waz.zclient.utils.{BackStackKey, BackStackNavigator, RichView, ViewUtils, ZTimeFormatter}
 import com.waz.zclient.{Injectable, Injector, R, ViewHelper, _}
 import org.threeten.bp.{Instant, LocalDateTime, ZoneId}
 
@@ -177,16 +177,25 @@ case class DeviceDetailsViewController(view: DeviceDetailsView, clientId: Client
   val zms      = inject[Signal[ZMessaging]]
   val tracking = inject[GlobalTrackingController]
   val passwordController = inject[PasswordController]
+  val backStackNavigator = inject[BackStackNavigator]
+
+  val accountService = for {
+    Some(accountService) <- ZMessaging.currentAccounts.currentAccountService
+  } yield accountService
+
+  val otrClientsService = accountService.flatMap(_.userModule).map(_.clientsService)
 
   val clientAndIsSelf = for {
-    z      <- zms
-    Some(client) <- Signal.future(z.otrClientsService.getClient(z.selfUserId, clientId))
-  } yield (client, z.clientId == clientId)
+    accService <- accountService
+    accData    <- accService.accountData
+    Some(userId) <- accService.userId
+    clients     <- accService.storage.otrClientsStorage.signal(userId)
+  } yield (clients.clients(clientId), accData.clientId.contains(clientId))
 
   val client = clientAndIsSelf.map(_._1)
 
   val fingerprint = for {
-    z  <- zms
+    z <- zms
     c  <- clientAndIsSelf
     fp <- z.otrService.fingerprintSignal(z.selfUserId, clientId).map(_.map(new String(_))).orElse(Signal.const(None))
   } yield fp
@@ -205,8 +214,9 @@ case class DeviceDetailsViewController(view: DeviceDetailsView, clientId: Client
 
   view.onVerifiedChecked { checked =>
     for {
-      z <- zms.head
-      _ <- z.otrClientsStorage.updateVerified(z.selfUserId, clientId, checked)
+      Some(userId) <- accountService.flatMap(_.userId)
+      otrClientsStorage <- accountService.map(_.storage.otrClientsStorage)
+      _ <- otrClientsStorage.updateVerified(userId, clientId, checked)
       _ <- tracking.tagEvent(if (checked) new VerifiedOwnOtrClientEvent else new UnverifiedOwnOtrClientEvent)
     } {}
   }
@@ -237,12 +247,13 @@ case class DeviceDetailsViewController(view: DeviceDetailsView, clientId: Client
 
   private def removeDevice(password: String): Unit = {
     for {
-      z <- zms
-      _ <- z.otrClientsService.deleteClient(clientId, password).map {
+      otrClientsService <- otrClientsService
+      _ <- otrClientsService.deleteClient(clientId, password).map {
         case Right(_) =>
           passwordController.setPassword(password)
           context.asInstanceOf[BaseActivity].onBackPressed()
           tracking.tagEvent(new RemovedOwnOtrClientEvent)
+          backStackNavigator.back()
         case Left(ErrorResponse(_, msg, _)) =>
           showRemoveDeviceDialog(Some(getString(R.string.otr__remove_device__error)))
       } (Threading.Ui)

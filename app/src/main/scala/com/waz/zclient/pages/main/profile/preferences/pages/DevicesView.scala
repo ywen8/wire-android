@@ -24,14 +24,14 @@ import android.view.View
 import android.widget.{LinearLayout, ScrollView}
 import com.waz.model.otr.Client
 import com.waz.service.ZMessaging
-import com.waz.threading.Threading
 import com.waz.utils.events.{EventContext, Signal}
 import com.waz.zclient.pages.main.profile.preferences.views.DeviceButton
+import com.waz.zclient.ui.text.TypefaceTextView
 import com.waz.zclient.utils.{BackStackKey, BackStackNavigator}
 import com.waz.zclient.{Injectable, Injector, R, ViewHelper}
 
 trait DevicesView {
-  def setSelfDevice(device: Client): Unit
+  def setSelfDevice(device: Option[Client]): Unit
   def setOtherDevices(devices: Seq[Client]): Unit
 }
 
@@ -43,12 +43,21 @@ class DevicesViewImpl(context: Context, attrs: AttributeSet, style: Int) extends
 
   private val navigator = inject[BackStackNavigator]
 
+  val currentDeviceTitle = findById[TypefaceTextView](R.id.current_device_title)
   val selfDeviceButton = findById[DeviceButton](R.id.current_device)
   val deviceList = findById[LinearLayout](R.id.device_list)
 
-  override def setSelfDevice(device: Client): Unit = {
-    selfDeviceButton.setDevice(device, self = true)
-    selfDeviceButton.onClickEvent { _ => navigator.goTo(DeviceDetailsBackStackKey(device.id.str)) }
+  override def setSelfDevice(device: Option[Client]): Unit = {
+    device.fold {
+      selfDeviceButton.setVisibility(View.GONE)
+      currentDeviceTitle.setVisibility(View.GONE)
+    } { device =>
+      selfDeviceButton.setVisibility(View.VISIBLE)
+      currentDeviceTitle.setVisibility(View.VISIBLE)
+      selfDeviceButton.setDevice(device, self = true)
+      selfDeviceButton.onClickEvent { _ => navigator.goTo(DeviceDetailsBackStackKey(device.id.str)) }
+    }
+
   }
 
   override def setOtherDevices(devices: Seq[Client]): Unit = {
@@ -78,18 +87,20 @@ case class DevicesBackStackKey(args: Bundle = new Bundle()) extends BackStackKey
 
 case class DevicesViewController(view: DevicesView)(implicit inj: Injector, ec: EventContext) extends Injectable {
   val zms = inject[Signal[Option[ZMessaging]]]
-  //TODO:
-  //  ZMessaging.currentAccounts.current.map(_.map(accService => accService.storage.otrClientsStorage.signal(accService.account.userId))))
-  val clients = for {
-    Some(zms) <- zms
-    clients <- zms.otrClientsStorage.signal(zms.selfUserId)
-    selfClient <- zms.otrClientsService.selfClient
-  } yield (selfClient, clients.clients.values.filter(_.id != selfClient.id).toSeq.sortBy(_.regTime))
 
-  clients.on(Threading.Ui){
-    case (selfClient, otherClients) =>
-      view.setSelfDevice(selfClient)
-      view.setOtherDevices(otherClients)
-    case _=>
-  }
+  val otherClients = for {
+    Some(accService) <- ZMessaging.currentAccounts.currentAccountService
+    Some(userId) <- accService.accountData.map(_.userId)
+    selfClientId <- accService.accountData.map(_.clientId)
+    clients <- accService.storage.otrClientsStorage.signal(userId)
+  } yield clients.clients.values.filter(client => !selfClientId.contains(client.id)).toSeq.sortBy(_.regTime)
+
+  val selfClient = for {
+    zms <- zms
+    selfClient <- zms.fold(Signal.const(Option.empty[Client]))(_.otrClientsService.selfClient.map(Option(_)))
+  } yield selfClient
+
+  selfClient.onUi{ view.setSelfDevice }
+  otherClients.onUi{ view.setOtherDevices }
+
 }

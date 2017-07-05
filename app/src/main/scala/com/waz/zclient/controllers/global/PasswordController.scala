@@ -27,16 +27,19 @@ class PasswordController(implicit inj: Injector) extends Injectable {
   import Threading.Implicits.Background
   import EventContext.Implicits.global
 
-  lazy val zms = inject[Signal[ZMessaging]]
+  val accountData = for {
+    Some(accountService) <- ZMessaging.currentAccounts.currentAccountService
+    accountData <- accountService.accountData
+  } yield accountData
 
-  val password = zms.flatMap(_.account.accountData).map(_.password)
+  val password = accountData.map(_.password)
 
   //The password is never saved in the database, this will just update the in-memory version of the current account
   //so that the password is globally correct.
   def setPassword(p: String) =
     for {
-      z <- zms.head
-      _ <- z.accountsStorage.update(z.account.id, _.copy(password = Some(p)))
+      accountData <- accountData.head
+      _ <- ZMessaging.currentAccounts.storage.update(accountData.id, _.copy(password = Some(p)))
     } yield {}
 
 }
