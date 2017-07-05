@@ -44,14 +44,16 @@ class UserAccountsController(implicit injector: Injector, context: Context, ec: 
     user <- account.flatMap(_.userId).fold(Signal.const(Option.empty[UserData]))(accId => zms.usersStorage.signal(accId).map(Some(_)))
   } yield user
 
-  for {
+  private var _permissions = Set[AccountData.Permission]()
+
+  val permissions = for {
     zms <- zms
     accountData <- zms.account.accountData
-  } yield {
-    _permissions = accountData.selfPermissions
-  }
+  } yield accountData.selfPermissions
 
-  private var _permissions = Set[AccountData.Permission]()
+  permissions { p =>
+    _permissions = p
+  }
 
   //Things for java
   //TODO hacky mchackerson - needed for the conversation fragment, remove ASAP
@@ -68,7 +70,7 @@ class UserAccountsController(implicit injector: Injector, context: Context, ec: 
       z <- zms.head
       user <- z.usersStorage.get(z.selfUserId)
       conv <-
-        if (users.length == 1)
+        if (users.length == 1 && !isTeamAccount)
           z.convsUi.getOrCreateOneToOneConversation(users.head)
         else
           z.convsUi.createGroupConversation(ConvId(), users)
