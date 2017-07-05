@@ -217,7 +217,7 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
       }
     })
 
-    searchUserController = new SearchUserController(SearchState("", hasSelectedUsers = false, addingToConversation = addingToConversation, None))
+    searchUserController = new SearchUserController(SearchState("", hasSelectedUsers = false, addingToConversation = addingToConversation, teamId = userAccountsController.teamId))
     searchUserController.setContacts(getStoreFactory.getZMessagingApiStore.getApi.getContacts)
     searchResultAdapter = new PickUsersAdapter(new SearchResultOnItemTouchListener(getActivity, this), this, searchUserController, getControllerFactory.getThemeController.isDarkTheme || !isAddingToConversation)
     searchResultRecyclerView = ViewUtils.getView(rootView, R.id.rv__pickuser__header_list_view)
