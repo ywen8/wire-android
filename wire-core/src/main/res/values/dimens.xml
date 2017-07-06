@@ -674,7 +674,7 @@
     <dimen name="people_picker__user_row__height">52dp</dimen>
     <dimen name="people_picker__search_result__chathead__padding_right">20dp</dimen>
     <dimen name="people_picker__search_result__row__padding_bottom">4dp</dimen>
-    <dimen name="people_picker__search_result__row__padding_horizontal">24dp</dimen>
+    <dimen name="people_picker__search_result__row__padding_horizontal">16dp</dimen>
     <dimen name="contactlist__user_selection_button__width">80dp</dimen>
     <dimen name="contactlist__generic_invite_button__margin_vertical">14dp</dimen>
     <dimen name="contactlist__user_selection_button__bottom_margin">6dp</dimen>

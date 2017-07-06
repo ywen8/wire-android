@@ -29,7 +29,6 @@ import com.waz.media.manager.MediaManager
 import com.waz.media.manager.context.IntensityLevel
 import com.waz.service.ZMessaging
 import com.waz.utils.events.{EventContext, Signal}
-import com.waz.zclient.controllers.userpreferences.UserPreferencesController
 import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.utils.RingtoneUtils.{getUriForRawId, isDefaultValue}
 import com.waz.zclient.{R, _}

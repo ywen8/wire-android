@@ -20,7 +20,7 @@ package com.waz.zclient.views
 
 import android.content.Context
 import android.util.AttributeSet
-import android.view.View.{OnClickListener, OnLongClickListener}
+import android.view.View.OnClickListener
 import android.view.{Gravity, View, ViewGroup}
 import android.widget.FrameLayout.LayoutParams
 import android.widget.LinearLayout

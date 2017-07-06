@@ -31,7 +31,6 @@ import com.waz.service.ZMessaging
 import com.waz.threading.Threading
 import com.waz.utils.events.{EventContext, Signal}
 import com.waz.zclient._
-import com.waz.zclient.pages.main.profile.preferences.dialogs.AddAccountDialog
 import com.waz.zclient.pages.main.profile.preferences.views.TextButton
 import com.waz.zclient.ui.text.TypefaceTextView
 import com.waz.zclient.utils.{BackStackKey, BackStackNavigator, StringUtils, UiStorage, UserSignal}
@@ -63,7 +62,6 @@ class ProfileViewImpl(context: Context, attrs: AttributeSet, style: Int) extends
   val settingsButton = findById[TextButton](R.id.profile_settings)
 
   addAccountButton.onClickEvent.on(Threading.Ui) { _ =>
-    //showPrefDialog(new AddAccountDialog, AddAccountDialog.Tag)
     ZMessaging.currentAccounts.logout(false)
   }
 

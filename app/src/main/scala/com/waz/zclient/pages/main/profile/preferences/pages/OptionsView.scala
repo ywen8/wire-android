@@ -30,7 +30,7 @@ import com.waz.content.UserPreferences
 import com.waz.media.manager.context.IntensityLevel
 import com.waz.service.ZMessaging
 import com.waz.threading.Threading
-import com.waz.utils.events.{EventContext, EventStream, Signal}
+import com.waz.utils.events.{EventContext, Signal}
 import com.waz.zclient._
 import com.waz.zclient.pages.main.profile.preferences.dialogs.SoundLevelDialog
 import com.waz.zclient.pages.main.profile.preferences.pages.OptionsView._

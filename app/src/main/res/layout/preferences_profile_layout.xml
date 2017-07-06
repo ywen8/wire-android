@@ -18,7 +18,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 -->
-<merge xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
               xmlns:app="http://schemas.android.com/apk/res-auto"
               android:orientation="vertical"
               android:layout_width="match_parent"
@@ -27,18 +27,11 @@
     <com.waz.zclient.ui.text.TypefaceTextView
         android:id="@+id/profile_user_name"
         android:layout_width="match_parent"
-        android:layout_height="@dimen/preference_button_height"
+        android:layout_height="wrap_content"
         android:gravity="center"
         android:textSize="@dimen/wire__text_size__medium"
-        app:font="@string/wire__typeface__regular"
-        />
-
-    <ImageView
-        android:id="@+id/profile_user_picture"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:padding="@dimen/wire__padding__16"
+        app:font="@string/wire__typeface__light"
+        android:layout_marginTop="@dimen/wire__padding__8"
         />
 
     <com.waz.zclient.ui.text.TypefaceTextView
@@ -46,13 +39,42 @@
         android:layout_width="match_parent"
         android:gravity="center"
         android:textSize="@dimen/wire__text_size__regular"
-        android:layout_height="@dimen/preference_button_height"
-        app:font="@string/wire__typeface__regular"
+        android:layout_height="wrap_content"
+        app:font="@string/wire__typeface__light"
+        android:layout_marginTop="@dimen/wire__padding__8"
         />
+    <FrameLayout
+        android:layout_width="300dp"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:padding="@dimen/wire__padding__16"
+        android:layout_gravity="center_horizontal"
+        >
 
-    <Space
+        <ImageView
+            android:id="@+id/profile_user_picture"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:padding="@dimen/wire__padding__16"
+            />
+
+        <ImageView
+            android:id="@+id/profile_user_team_icon"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:layout_margin="24dp"
+            android:layout_gravity="bottom|end"
+            />
+
+    </FrameLayout>
+
+    <com.waz.zclient.ui.text.TypefaceTextView
+        android:id="@+id/profile_user_team"
         android:layout_width="match_parent"
+        android:gravity="top|center_horizontal"
+        android:textSize="@dimen/wire__text_size__regular"
         android:layout_height="@dimen/preference_button_height"
+        app:font="@string/wire__typeface__light"
         />
 
     <com.waz.zclient.pages.main.profile.preferences.views.TextButton
@@ -79,4 +101,4 @@
         app:iconStart="@drawable/ic_action_advanced"
         />
 
-</merge>
+</LinearLayout>
