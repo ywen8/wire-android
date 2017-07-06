@@ -82,7 +82,7 @@ public class OptionsPreferences extends BasePreferenceFragment implements Shared
         pingPreference.setShowSilent(true);
         setDefaultRingtones();
 
-        shareContactsPreference = (SwitchPreference) findPreference(getString(R.string.pref_share_contacts_key));
+        shareContactsPreference = (SwitchPreference) findPreference("");
         UserAccountsController ctrl = injectJava(UserAccountsController.class);
         if (ctrl != null) {
             shareContactsPreference.setVisible(!ctrl.isTeamAccount());
@@ -142,9 +142,9 @@ public class OptionsPreferences extends BasePreferenceFragment implements Shared
             }
         } else if (key.equals(getString(R.string.pref_options_image_download_key))) {
             String stringValue = sharedPreferences.getString(key, "");
-            boolean wifiOnly = stringValue.equals(getContext().getString(R.string.zms_image_download_value_wifi));
+            boolean wifiOnly = true;
             event = new ChangedImageDownloadPreferenceEvent(wifiOnly);
-        } else if (key.equals(getString(R.string.pref_share_contacts_key))) {
+        } else if (key.equals("")) {
             UserAccountsController ctrl = injectJava(UserAccountsController.class);
             if (ctrl != null && !ctrl.isTeamAccount()) {
                 boolean shareContacts = sharedPreferences.getBoolean(key, false);

@@ -355,7 +355,7 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
     else {
       searchUserController.setFilter("")
     }
-    if (!isAddingToConversation && isPrivateSpace){
+    if (!isAddingToConversation && isPrivateAccount){
       implicit val ec = Threading.Ui
       zms.head.flatMap(_.userPrefs.preference(UserPreferences.ShareContacts).apply()).map{ showShareContactsDialog }
     }
