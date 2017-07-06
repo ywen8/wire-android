@@ -372,7 +372,7 @@ public class SingleParticipantFragment extends BaseFragment<SingleParticipantFra
         String text = getString(R.string.confirmation_menu__block_text_with_name, user.getDisplayName());
         String confirm = getString(R.string.confirmation_menu__confirm_block);
         String cancel = getString(R.string.confirmation_menu__cancel);
-        OptionsTheme optionsTheme = ((BaseActivity)getActivity()).injectJava(ThemeController.class).getThemeDependentOptionsTheme();
+        OptionsTheme optionsTheme = ((BaseActivity) getActivity()).injectJava(ThemeController.class).getThemeDependentOptionsTheme();
 
         ConfirmationRequest request = new ConfirmationRequest.Builder()
             .withHeader(header)

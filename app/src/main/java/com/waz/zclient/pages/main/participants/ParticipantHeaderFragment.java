@@ -175,7 +175,7 @@ public class ParticipantHeaderFragment extends BaseFragment<ParticipantHeaderFra
         getControllerFactory().getConversationScreenController().addConversationControllerObservers(this);
         getControllerFactory().getAccentColorController().addAccentColorObserver(this);
 
-        if (!((BaseActivity)getActivity()).injectJava(ThemeController.class).isDarkTheme()) {
+        if (!((BaseActivity) getActivity()).injectJava(ThemeController.class).isDarkTheme()) {
             headerEditText.setAccentColor(getControllerFactory().getAccentColorController().getColor());
         }
     }
@@ -534,7 +534,7 @@ public class ParticipantHeaderFragment extends BaseFragment<ParticipantHeaderFra
         if (isGroupConversation) {
             return;
         }
-        if (!((BaseActivity)getActivity()).injectJava(ThemeController.class).isDarkTheme()) {
+        if (!((BaseActivity) getActivity()).injectJava(ThemeController.class).isDarkTheme()) {
             headerEditText.setAccentColor(color);
         }
     }

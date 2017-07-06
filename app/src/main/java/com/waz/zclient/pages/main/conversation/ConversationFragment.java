@@ -566,7 +566,7 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
         }
 
         syncIndicatorModelObserver.resumeListening();
-        audioMessageRecordingView.setDarkTheme(((BaseActivity)getActivity()).injectJava(ThemeController.class).isDarkTheme());
+        audioMessageRecordingView.setDarkTheme(((BaseActivity) getActivity()).injectJava(ThemeController.class).isDarkTheme());
 
         if (!getControllerFactory().getConversationScreenController().isConversationStreamUiInitialized()) {
             getStoreFactory().getConversationStore().addConversationStoreObserverAndUpdate(this);
@@ -1662,7 +1662,7 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
             .withConfirmationCallback(callback)
             .withCancelButton()
             .withBackgroundImage(R.drawable.degradation_overlay)
-            .withWireTheme(((BaseActivity)getActivity()).injectJava(ThemeController.class).getThemeDependentOptionsTheme())
+            .withWireTheme(((BaseActivity) getActivity()).injectJava(ThemeController.class).getThemeDependentOptionsTheme())
             .build();
 
         getControllerFactory().getConfirmationController().requestConfirmation(request,

@@ -97,14 +97,14 @@ public class OptionsMenuFragment extends BaseFragment<OptionsMenuFragment.Contai
         if (savedInstanceState != null) {
             switch (OptionsTheme.Type.values()[savedInstanceState.getInt(ARGUMENT_WIRE_THEME)]) {
                 case DARK:
-                    optionsTheme = ((BaseActivity)getActivity()).injectJava(ThemeController.class).optionsDarkTheme();
+                    optionsTheme = ((BaseActivity) getActivity()).injectJava(ThemeController.class).optionsDarkTheme();
                     break;
                 case LIGHT:
-                    optionsTheme = ((BaseActivity)getActivity()).injectJava(ThemeController.class).optionsLightTheme();
+                    optionsTheme = ((BaseActivity) getActivity()).injectJava(ThemeController.class).optionsLightTheme();
                     break;
             }
         } else {
-            optionsTheme = ((BaseActivity)getActivity()).injectJava(ThemeController.class).optionsLightTheme();
+            optionsTheme = ((BaseActivity) getActivity()).injectJava(ThemeController.class).optionsLightTheme();
         }
 
         return view;

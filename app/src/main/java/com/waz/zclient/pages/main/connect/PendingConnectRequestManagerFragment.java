@@ -264,7 +264,7 @@ public class PendingConnectRequestManagerFragment extends BaseFragment<PendingCo
             .withPositiveButton(confirm)
             .withNegativeButton(cancel)
             .withConfirmationCallback(callback)
-            .withWireTheme(((BaseActivity)getActivity()).injectJava(ThemeController.class).getThemeDependentOptionsTheme())
+            .withWireTheme(((BaseActivity) getActivity()).injectJava(ThemeController.class).getThemeDependentOptionsTheme())
             .build();
 
         getControllerFactory().getConfirmationController().requestConfirmation(request, IConfirmationController.USER_PROFILE);

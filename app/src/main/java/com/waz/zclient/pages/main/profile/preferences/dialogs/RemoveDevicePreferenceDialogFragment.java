@@ -33,7 +33,6 @@ import android.widget.TextView;
 import com.waz.api.OtrClient;
 import com.waz.zclient.BaseActivity;
 import com.waz.zclient.R;
-import com.waz.zclient.controllers.global.PasswordController;
 import com.waz.zclient.controllers.tracking.events.otr.RemovedOwnOtrClientEvent;
 import com.waz.zclient.pages.BaseDialogFragment;
 import com.waz.zclient.tracking.GlobalTrackingController;

@@ -136,7 +136,7 @@ public class TabbedParticipantBodyFragment extends BaseFragment<TabbedParticipan
         View view = inflater.inflate(R.layout.fragment_participants_single_tabbed, viewGroup, false);
         TabIndicatorLayout tabIndicatorLayout = ViewUtils.getView(view, R.id.til_single_participant_tabs);
         int color;
-        if (((BaseActivity)getActivity()).injectJava(ThemeController.class).isDarkTheme()) {
+        if (((BaseActivity) getActivity()).injectJava(ThemeController.class).isDarkTheme()) {
             if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
                 //noinspection deprecation
                 color = getResources().getColor(R.color.text__secondary_dark);

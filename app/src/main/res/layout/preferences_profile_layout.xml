@@ -44,7 +44,7 @@
         android:layout_marginTop="@dimen/wire__padding__8"
         />
     <FrameLayout
-        android:layout_width="300dp"
+        android:layout_width="@dimen/settings_profile_picture_size"
         android:layout_height="0dp"
         android:layout_weight="1"
         android:padding="@dimen/wire__padding__16"
@@ -60,9 +60,9 @@
 
         <ImageView
             android:id="@+id/profile_user_team_icon"
-            android:layout_width="64dp"
-            android:layout_height="64dp"
-            android:layout_margin="24dp"
+            android:layout_width="@dimen/settings_profile_team_icon_size"
+            android:layout_height="@dimen/settings_profile_team_icon_size"
+            android:layout_margin="@dimen/settings_profile_team_icon_margin"
             android:layout_gravity="bottom|end"
             />
 

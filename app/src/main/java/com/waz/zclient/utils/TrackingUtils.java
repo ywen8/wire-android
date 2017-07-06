@@ -29,7 +29,6 @@ import com.waz.api.Permission;
 import com.waz.api.User;
 import com.waz.media.manager.context.IntensityLevel;
 import com.waz.model.ConversationData;
-import com.waz.zclient.R;
 import com.waz.zclient.adapters.PickUsersAdapter;
 import com.waz.zclient.controllers.drawing.DrawingController;
 import com.waz.zclient.controllers.tracking.events.connect.SelectedTopUser;

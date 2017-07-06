@@ -669,7 +669,7 @@ public class ParticipantBodyFragment extends BaseFragment<ParticipantBodyFragmen
             .withNegativeButton(cancel)
             .withConfirmationCallback(callback)
             .withCheckboxLabel(checkboxLabel)
-            .withWireTheme(((BaseActivity)getActivity()).injectJava(ThemeController.class).getThemeDependentOptionsTheme())
+            .withWireTheme(((BaseActivity) getActivity()).injectJava(ThemeController.class).getThemeDependentOptionsTheme())
             .withCheckboxSelectedByDefault()
             .build();
 

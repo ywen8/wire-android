@@ -874,4 +874,7 @@
     <dimen name="preference_button_image_size">16dp</dimen>
     <dimen name="preference_button_padding">16dp</dimen>
     <dimen name="preference_devices_count_width">28dp</dimen>
+    <dimen name="settings_profile_picture_size">300dp</dimen>
+    <dimen name="settings_profile_team_icon_size">64dp</dimen>
+    <dimen name="settings_profile_team_icon_margin">24dp</dimen>
 </resources>
