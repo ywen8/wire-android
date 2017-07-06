@@ -63,8 +63,6 @@ public interface IUserPreferencesController {
 
     String getDeviceId();
 
-    boolean isCursorSendButtonEnabled();
-
     void setVerificationCode(String code);
 
     void removeVerificationCode();

@@ -80,11 +80,6 @@ public class StubUserPreferencesController implements IUserPreferencesController
   }
 
   @Override
-  public boolean isCursorSendButtonEnabled() {
-    return false;
-  }
-
-  @Override
   public void removeVerificationCode() {
 
   }
