@@ -18,9 +18,10 @@
 package com.waz.zclient.conversation
 
 import android.content.Context
-import com.waz.api.{Message, VoiceChannelState}
+import com.waz.api.Message
 import com.waz.model._
 import com.waz.service.call.CallInfo
+import com.waz.service.call.CallInfo.CallState
 import com.waz.testutils.TestUtils._
 import com.waz.testutils.ViewTestActivity
 import com.waz.utils.events.EventContext
@@ -132,7 +133,7 @@ class ConversationListRowTest extends JUnitSuite {
   }
 
   def createGenericCallInfo(): CallInfo ={
-    CallInfo(ConvId(convId), UserId(), VoiceChannelState.OTHER_CALLING)
+    CallInfo(ConvId(convId), UserId(), CallState.OtherCalling, isGroup = true)
   }
 
   def createMessage(mId: String, cId: String, uId:String, content: String, tpe: Message.Type): MessageData = {

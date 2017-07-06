@@ -17,7 +17,6 @@
  */
 package com.waz.zclient.core.stores.api;
 
-import com.waz.api.Avs;
 import com.waz.api.ZMessagingApi;
 
 public interface IZMessagingApiStore {
@@ -29,8 +28,6 @@ public interface IZMessagingApiStore {
     boolean isInitialized();
 
     ZMessagingApi getApi();
-
-    Avs getAvs();
 
     void logout();
 

@@ -18,7 +18,6 @@
 package com.waz.zclient.core.stores.api;
 
 import android.content.Context;
-import com.waz.api.Avs;
 import com.waz.api.InitListener;
 import com.waz.api.Self;
 import com.waz.api.UpdateListener;
@@ -75,11 +74,6 @@ public class ZMessagingApiStore implements IZMessagingApiStore,
             zMessagingApi.onInit(this);
         }
         return zMessagingApi;
-    }
-
-    @Override
-    public Avs getAvs() {
-        return getApi().getAvs();
     }
 
     @Override

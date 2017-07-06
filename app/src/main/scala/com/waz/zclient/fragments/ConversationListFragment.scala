@@ -178,9 +178,10 @@ class NormalConversationFragment extends ConversationListFragment {
   lazy val zms = inject[Signal[ZMessaging]]
   lazy val accentColor = inject[AccentColorController].accentColor
   lazy val incomingClients = for{
-    z <- zms
-    color <- accentColor
-    clients <- z.account.accountData.flatMap(_.clientId.fold(Signal.empty[Seq[Client]])(aid => z.otrClientsStorage.incomingClientsSignal(z.selfUserId, aid)))
+    z       <- zms
+    color   <- accentColor
+    acc     <- z.account.accountData
+    clients <- acc.clientId.fold(Signal.empty[Seq[Client]])(aid => z.otrClientsStorage.incomingClientsSignal(z.selfUserId, aid))
   } yield (color.getColor(), clients)
 
   lazy val hasConversationsAndArchive = for {

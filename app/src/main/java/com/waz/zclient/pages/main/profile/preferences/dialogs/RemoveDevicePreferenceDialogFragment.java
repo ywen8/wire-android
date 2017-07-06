@@ -125,8 +125,8 @@ public class RemoveDevicePreferenceDialogFragment extends BaseDialogFragment<Rem
                     return;
                 }
                 dismiss();
-                getControllerFactory().getPasswordController().setPassword(password);
                 ((BaseActivity) getActivity()).injectJava(GlobalTrackingController.class).tagEvent(new RemovedOwnOtrClientEvent());
+                getControllerFactory().getPasswordController().setPassword(password);
                 getContainer().onCurrentDeviceDeleted();
             }
 

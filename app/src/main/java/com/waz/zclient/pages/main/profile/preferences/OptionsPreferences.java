@@ -20,13 +20,13 @@ package com.waz.zclient.pages.main.profile.preferences;
 import android.Manifest;
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.RawRes;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.preference.Preference;
 import android.support.v7.preference.PreferenceCategory;
+import com.waz.media.manager.context.IntensityLevel;
 import com.waz.zclient.BaseActivity;
 import com.waz.zclient.R;
 import com.waz.zclient.calling.controllers.CallPermissionsController;
@@ -37,7 +37,6 @@ import com.waz.zclient.core.controllers.tracking.events.settings.ChangedBitRateM
 import com.waz.zclient.core.controllers.tracking.events.settings.ChangedContactsPermissionEvent;
 import com.waz.zclient.core.controllers.tracking.events.settings.ChangedImageDownloadPreferenceEvent;
 import com.waz.zclient.core.controllers.tracking.events.settings.ChangedSendButtonSettingEvent;
-import com.waz.zclient.core.controllers.tracking.events.settings.ChangedThemeEvent;
 import com.waz.zclient.media.SoundController;
 import com.waz.zclient.pages.main.profile.preferences.dialogs.WireRingtonePreferenceDialogFragment;
 import com.waz.zclient.preferences.BasePreferenceFragment;
@@ -45,6 +44,7 @@ import com.waz.zclient.tracking.GlobalTrackingController;
 import com.waz.zclient.utils.LayoutSpec;
 import com.waz.zclient.utils.PermissionUtils;
 import com.waz.zclient.utils.TrackingUtils;
+
 import net.xpece.android.support.preference.RingtonePreference;
 import net.xpece.android.support.preference.SwitchPreference;
 
@@ -80,18 +80,16 @@ public class OptionsPreferences extends BasePreferenceFragment implements Shared
         pingPreference.setShowSilent(true);
         setDefaultRingtones();
 
-        shareContactsPreference = (SwitchPreference) findPreference(getString(R.string.pref_share_contacts_key));
+        shareContactsPreference = (SwitchPreference) findPreference("");
         UserAccountsController ctrl = injectJava(UserAccountsController.class);
         if (ctrl != null) {
             shareContactsPreference.setVisible(!ctrl.isTeamAccount());
         }
-        
+
         bindPreferenceSummaryToValue(ringtonePreference);
         bindPreferenceSummaryToValue(textTonePreference);
         bindPreferenceSummaryToValue(pingPreference);
 
-        themePreference = (SwitchPreference) findPreference(getString(R.string.pref_options_theme_switch_key));
-        themePreference.setChecked(getControllerFactory().getThemeController().isDarkTheme());
 
         if (LayoutSpec.isTablet(getActivity())) {
             PreferenceCategory requestedOptionsCategory = (PreferenceCategory) findPreference(getString(R.string.pref_options_requested_category_key));
@@ -129,7 +127,7 @@ public class OptionsPreferences extends BasePreferenceFragment implements Shared
         if (key.equals(getString(R.string.pref_options_sounds_key))) {
             String stringValue = sharedPreferences.getString(key, "");
             TrackingUtils.tagChangedSoundNotificationLevelEvent(((BaseActivity) getActivity()).injectJava(GlobalTrackingController.class),
-                                                                stringValue,
+                    IntensityLevel.FULL,
                                                                 getContext());
 
         } else if (key.equals(ringtonePreference.getKey()) ||
@@ -137,14 +135,11 @@ public class OptionsPreferences extends BasePreferenceFragment implements Shared
                    key.equals(pingPreference.getKey())) {
 
             SoundController ctrl = injectJava(SoundController.class);
-            if (ctrl != null) {
-                ctrl.setCustomSoundUrisFromPreferences(sharedPreferences);
-            }
         } else if (key.equals(getString(R.string.pref_options_image_download_key))) {
             String stringValue = sharedPreferences.getString(key, "");
-            boolean wifiOnly = stringValue.equals(getContext().getString(R.string.zms_image_download_value_wifi));
+            boolean wifiOnly = true;
             event = new ChangedImageDownloadPreferenceEvent(wifiOnly);
-        } else if (key.equals(getString(R.string.pref_share_contacts_key))) {
+        } else if ("".equals(key)) {
             UserAccountsController ctrl = injectJava(UserAccountsController.class);
             if (ctrl != null && !ctrl.isTeamAccount()) {
                 boolean shareContacts = sharedPreferences.getBoolean(key, false);
@@ -154,9 +149,6 @@ public class OptionsPreferences extends BasePreferenceFragment implements Shared
                     ActivityCompat.requestPermissions(getActivity(), new String[]{Manifest.permission.READ_CONTACTS}, PermissionUtils.REQUEST_READ_CONTACTS);
                 }
             }
-        } else if (key.equals(getString(R.string.pref_options_theme_switch_key))) {
-            getControllerFactory().getThemeController().toggleThemePending(true);
-            event = new ChangedThemeEvent(getControllerFactory().getThemeController().isDarkTheme());
         } else if (key.equals(getString(R.string.pref_options_cursor_send_button_key))) {
             boolean sendButtonIsOn = sharedPreferences.getBoolean(key, true);
             event = new ChangedSendButtonSettingEvent(sendButtonIsOn);
@@ -210,14 +202,5 @@ public class OptionsPreferences extends BasePreferenceFragment implements Shared
 
     @Override
     public void onRequestPermissionsResult(int requestCode, int[] grantResults) {
-        if (requestCode == PermissionUtils.REQUEST_READ_CONTACTS) {
-            getControllerFactory().getUserPreferencesController().setShareContactsEnabled(false);
-            UserAccountsController ctrl = injectJava(UserAccountsController.class);
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED && !ctrl.isTeamAccount()) {
-                //Changing the value of the shareContacts seems to be the
-                //only way to trigger a refresh on the sync engine...
-                getControllerFactory().getUserPreferencesController().setShareContactsEnabled(true);
-            }
-        }
     }
 }

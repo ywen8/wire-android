@@ -42,6 +42,8 @@ import com.waz.api.User;
 import com.waz.zclient.BaseActivity;
 import com.waz.zclient.LaunchActivity;
 import com.waz.zclient.OnBackPressedListener;
+import com.waz.zclient.controllers.ThemeController;
+import com.waz.zclient.preferences.PreferencesActivity;
 import com.waz.zclient.R;
 import com.waz.zclient.controllers.accentcolor.AccentColorObserver;
 import com.waz.zclient.controllers.confirmation.ConfirmationCallback;
@@ -87,7 +89,6 @@ import com.waz.zclient.pages.main.pickuser.controller.IPickUserController;
 import com.waz.zclient.pages.main.pickuser.controller.PickUserControllerScreenObserver;
 import com.waz.zclient.pages.main.profile.camera.CameraContext;
 import com.waz.zclient.pages.main.profile.camera.CameraFragment;
-import com.waz.zclient.preferences.PreferencesActivity;
 import com.waz.zclient.tracking.GlobalTrackingController;
 import com.waz.zclient.ui.animation.interpolators.penner.Expo;
 import com.waz.zclient.ui.animation.interpolators.penner.Quart;
@@ -943,7 +944,7 @@ public class ConversationListManagerFragment extends BaseFragment<ConversationLi
 
         optionsMenuControl.createMenu(conversation,
                                       requester,
-                                      getControllerFactory().getThemeController().getOptionsDarkTheme());
+                                      ((BaseActivity) getActivity()).injectJava(ThemeController.class).optionsDarkTheme());
         optionsMenuControl.open();
     }
 
@@ -1019,7 +1020,7 @@ public class ConversationListManagerFragment extends BaseFragment<ConversationLi
             .withPositiveButton(confirm)
             .withNegativeButton(cancel)
             .withConfirmationCallback(callback)
-            .withWireTheme(getControllerFactory().getThemeController().getOptionsDarkTheme())
+            .withWireTheme(((BaseActivity) getActivity()).injectJava(ThemeController.class).optionsDarkTheme())
             .build();
 
         getControllerFactory().getConfirmationController().requestConfirmation(request,
@@ -1099,7 +1100,7 @@ public class ConversationListManagerFragment extends BaseFragment<ConversationLi
             .withNegativeButton(cancel)
             .withConfirmationCallback(callback)
             .withCheckboxLabel(checkboxLabel)
-            .withWireTheme(getControllerFactory().getThemeController().getOptionsDarkTheme())
+            .withWireTheme(((BaseActivity) getActivity()).injectJava(ThemeController.class).optionsDarkTheme())
             .build();
 
         getControllerFactory().getConfirmationController().requestConfirmation(request,
@@ -1155,7 +1156,7 @@ public class ConversationListManagerFragment extends BaseFragment<ConversationLi
             .withPositiveButton(confirm)
             .withNegativeButton(cancel)
             .withConfirmationCallback(callback)
-            .withWireTheme(getControllerFactory().getThemeController().getOptionsDarkTheme())
+            .withWireTheme(((BaseActivity) getActivity()).injectJava(ThemeController.class).optionsDarkTheme())
             .build();
 
         getControllerFactory().getConfirmationController().requestConfirmation(request,

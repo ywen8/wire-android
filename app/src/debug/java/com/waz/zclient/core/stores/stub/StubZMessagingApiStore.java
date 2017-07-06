@@ -18,9 +18,8 @@
 package com.waz.zclient.core.stores.stub;
 
 import android.content.Context;
-import android.net.Uri;
+
 import com.waz.api.AccentColor;
-import com.waz.api.Avs;
 import com.waz.api.ConnectionIndicator;
 import com.waz.api.Contacts;
 import com.waz.api.ConversationsList;
@@ -40,7 +39,6 @@ import com.waz.api.User;
 import com.waz.api.Usernames;
 import com.waz.api.ZCache;
 import com.waz.api.ZMessagingApi;
-import com.waz.media.manager.MediaManager;
 import com.waz.zclient.core.stores.api.IZMessagingApiStore;
 import com.waz.zclient.core.stores.api.ZMessagingApiStoreObserver;
 
@@ -168,16 +166,6 @@ public class StubZMessagingApiStore implements IZMessagingApiStore {
             }
 
             @Override
-            public MediaManager getMediaManager() {
-                return null;
-            }
-
-            @Override
-            public Uri getMediaResourceUri(String s) {
-                return null;
-            }
-
-            @Override
             public Contacts getContacts() {
                 return null;
             }
@@ -189,11 +177,6 @@ public class StubZMessagingApiStore implements IZMessagingApiStore {
 
             @Override
             public ErrorsList getErrors() {
-                return null;
-            }
-
-            @Override
-            public Avs getAvs() {
                 return null;
             }
 
@@ -217,11 +200,6 @@ public class StubZMessagingApiStore implements IZMessagingApiStore {
                 return null;
             }
         };
-    }
-
-    @Override
-    public Avs getAvs() {
-        return null;
     }
 
     @Override

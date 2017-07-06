@@ -63,8 +63,6 @@ public interface IUserPreferencesController {
 
     String getDeviceId();
 
-    boolean isCursorSendButtonEnabled();
-
     void setVerificationCode(String code);
 
     void removeVerificationCode();
@@ -101,10 +99,6 @@ public interface IUserPreferencesController {
     Set<String> getUnsupportedEmojis();
 
     boolean hasCheckedForUnsupportedEmojis(int version);
-
-    boolean hasShareContactsEnabled();
-
-    void setShareContactsEnabled(boolean enabled);
 
     long getLastEphemeralValue();
 

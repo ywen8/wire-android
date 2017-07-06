@@ -64,9 +64,9 @@ public class AvsOptionsDialogFragment extends BaseDialogFragment<AvsOptionsDialo
         loggingTextView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                boolean updatedValue = !getStoreFactory().getZMessagingApiStore().getAvs().isLoggingEnabled();
-                getStoreFactory().getZMessagingApiStore().getAvs().setLoggingEnabled(updatedValue);
-                updateButton(loggingTextView, updatedValue);
+                //boolean updatedValue = !getStoreFactory().getZMessagingApiStore().getAvs().isLoggingEnabled();
+                //getStoreFactory().getZMessagingApiStore().getAvs().setLoggingEnabled(updatedValue);
+                //updateButton(loggingTextView, updatedValue);
             }
         });
         postSessionIdTextView = ViewUtils.getView(view, R.id.avs__post_session_id);
@@ -101,7 +101,7 @@ public class AvsOptionsDialogFragment extends BaseDialogFragment<AvsOptionsDialo
     @Override
     public void onResume() {
         super.onResume();
-        updateButton(loggingTextView, getStoreFactory().getZMessagingApiStore().getAvs().isLoggingEnabled());
+        //updateButton(loggingTextView, getStoreFactory().getZMessagingApiStore().getAvs().isLoggingEnabled());
         updateButton(postSessionIdTextView, getControllerFactory().getUserPreferencesController().isPostSessionIdToConversation());
     }
 

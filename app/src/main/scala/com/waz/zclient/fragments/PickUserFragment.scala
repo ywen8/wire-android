@@ -34,6 +34,7 @@ import android.widget.TextView.OnEditorActionListener
 import android.widget._
 import com.waz.ZLog
 import com.waz.api._
+import com.waz.content.UserPreferences
 import com.waz.model.UserData.ConnectionStatus
 import com.waz.model._
 import com.waz.service.ZMessaging
@@ -48,7 +49,7 @@ import com.waz.zclient.controllers.permission.RequestPermissionsObserver
 import com.waz.zclient.controllers.tracking.events.connect.{EnteredSearchEvent, OpenedConversationEvent, OpenedGenericInviteMenuEvent, SentConnectRequestEvent}
 import com.waz.zclient.controllers.tracking.screens.ApplicationScreen
 import com.waz.zclient.controllers.userpreferences.IUserPreferencesController
-import com.waz.zclient.controllers.{SearchState, SearchUserController, UserAccountsController}
+import com.waz.zclient.controllers.{SearchState, SearchUserController, ThemeController, UserAccountsController}
 import com.waz.zclient.core.controllers.tracking.attributes.ConversationType
 import com.waz.zclient.core.stores.conversation.{ConversationChangeRequester, InboxLoadRequester, OnInboxLoadedListener}
 import com.waz.zclient.core.stores.network.DefaultNetworkAction
@@ -152,6 +153,7 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
   private lazy val trackingController = inject[GlobalTrackingController]
   private lazy val userAccountsController = inject[UserAccountsController]
   private lazy val accentColor = inject[AccentColorController].accentColor.map(_.getColor())
+  private lazy val themeController = inject[ThemeController]
 
   private case class PickableUser(userId : UserId, userName: String) extends PickableElement {
     def id: String = userId.str
@@ -219,7 +221,7 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
 
     searchUserController = new SearchUserController(SearchState("", hasSelectedUsers = false, addingToConversation = addingToConversation, teamId = userAccountsController.teamId))
     searchUserController.setContacts(getStoreFactory.getZMessagingApiStore.getApi.getContacts)
-    searchResultAdapter = new PickUsersAdapter(new SearchResultOnItemTouchListener(getActivity, this), this, searchUserController, getControllerFactory.getThemeController.isDarkTheme || !isAddingToConversation)
+    searchResultAdapter = new PickUsersAdapter(new SearchResultOnItemTouchListener(getActivity, this), this, searchUserController, themeController.isDarkTheme || !isAddingToConversation)
     searchResultRecyclerView = ViewUtils.getView(rootView, R.id.rv__pickuser__header_list_view)
     searchResultRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity))
     searchResultRecyclerView.setAdapter(searchResultAdapter)
@@ -353,8 +355,10 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
     else {
       searchUserController.setFilter("")
     }
-    if (!isAddingToConversation && isPrivateAccount)
-      showShareContactsDialog()
+    if (!isAddingToConversation && isPrivateAccount){
+      implicit val ec = Threading.Ui
+      zms.head.flatMap(_.userPrefs.preference(UserPreferences.ShareContacts).apply()).map{ showShareContactsDialog }
+    }
   }
 
   override def onResume(): Unit = {
@@ -831,13 +835,13 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
   }
 
   override def onRequestPermissionsResult(requestCode: Int, grantResults: Array[Int]): Unit = {
-    if (requestCode == PermissionUtils.REQUEST_READ_CONTACTS && !userAccountsController.isTeamAccount) {
-      getControllerFactory.getUserPreferencesController.setShareContactsEnabled(false)
+    if (requestCode == PermissionUtils.REQUEST_READ_CONTACTS) {
+      updateShareContacts(false)
       if (grantResults.length > 0) {
         if (grantResults(0) == PackageManager.PERMISSION_GRANTED) {
           //Changing the value of the shareContacts seems to be the
           //only way to trigger a refresh on the sync engine...
-          getControllerFactory.getUserPreferencesController.setShareContactsEnabled(true)
+          updateShareContacts(true)
         } else if (grantResults(0) == PackageManager.PERMISSION_DENIED) {
           val showRationale = shouldShowRequestPermissionRationale(Manifest.permission.READ_CONTACTS)
           if (!showRationale && getControllerFactory != null && !getControllerFactory.isTornDown) {
@@ -858,10 +862,10 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
   }
 
   // XXX Only show contact sharing dialogs for PERSONAL START UI
-  private def showShareContactsDialog(): Unit = {
+  private def showShareContactsDialog(hasShareContactsEnabled: Boolean): Unit = {
     val prefController = getControllerFactory.getUserPreferencesController
     // Doesn't have _our_ contact sharing setting enabled, maybe show dialog
-    if (!prefController.hasShareContactsEnabled && !prefController.hasPerformedAction(IUserPreferencesController.DO_NOT_SHOW_SHARE_CONTACTS_DIALOG)) {
+    if (!hasShareContactsEnabled && !prefController.hasPerformedAction(IUserPreferencesController.DO_NOT_SHOW_SHARE_CONTACTS_DIALOG)) {
       // show initial dialog
       val checkBoxView= View.inflate(getContext, R.layout.dialog_checkbox, null)
       val checkBox = checkBoxView.findViewById(R.id.checkbox).asInstanceOf[CheckBox]
@@ -894,10 +898,14 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
     }
 
     if (PermissionUtils.hasSelfPermissions(getContext, Manifest.permission.READ_CONTACTS)) {
-      getControllerFactory.getUserPreferencesController.setShareContactsEnabled(true)
+      updateShareContacts(true)
     }
     else {
       ActivityCompat.requestPermissions(getActivity, Array[String](Manifest.permission.READ_CONTACTS), PermissionUtils.REQUEST_READ_CONTACTS)
     }
+  }
+
+  private def updateShareContacts(share: Boolean): Unit ={
+    zms.head.flatMap(_.userPrefs.preference(UserPreferences.ShareContacts).update(share)) (Threading.Background)
   }
 }

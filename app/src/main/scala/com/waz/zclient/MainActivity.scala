@@ -181,8 +181,8 @@ class MainActivity extends BaseActivity
     }
     Localytics.setInAppMessageDisplayActivity(this)
     Localytics.handleTestMode(getIntent)
-    if (getControllerFactory.getThemeController.isRestartPending) {
-      getControllerFactory.getThemeController.removePendingRestart()
+    if (themeController.shouldActivityRestart) {
+      themeController.activityRestarted()
       restartActivity()
     }
   }

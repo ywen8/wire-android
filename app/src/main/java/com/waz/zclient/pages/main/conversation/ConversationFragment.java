@@ -75,11 +75,11 @@ import com.waz.utils.wrappers.URI;
 import com.waz.zclient.BaseActivity;
 import com.waz.zclient.BuildConfig;
 import com.waz.zclient.OnBackPressedListener;
-import com.waz.zclient.preferences.PreferencesActivity;
 import com.waz.zclient.R;
 import com.waz.zclient.WireContext;
 import com.waz.zclient.camera.controllers.GlobalCameraController;
 import com.waz.zclient.controllers.IControllerFactory;
+import com.waz.zclient.controllers.ThemeController;
 import com.waz.zclient.controllers.UserAccountsController;
 import com.waz.zclient.controllers.accentcolor.AccentColorObserver;
 import com.waz.zclient.controllers.calling.CallingObserver;
@@ -134,6 +134,8 @@ import com.waz.zclient.pages.main.conversationlist.ConversationListAnimation;
 import com.waz.zclient.pages.main.conversationpager.controller.SlidingPaneObserver;
 import com.waz.zclient.pages.main.pickuser.controller.IPickUserController;
 import com.waz.zclient.pages.main.profile.camera.CameraContext;
+import com.waz.zclient.preferences.PreferencesActivity;
+import com.waz.zclient.preferences.ScalaPreferencesController;
 import com.waz.zclient.tracking.GlobalTrackingController;
 import com.waz.zclient.ui.animation.interpolators.penner.Expo;
 import com.waz.zclient.ui.audiomessage.AudioMessageRecordingView;
@@ -142,14 +144,13 @@ import com.waz.zclient.ui.cursor.CursorLayout;
 import com.waz.zclient.ui.cursor.CursorMenuItem;
 import com.waz.zclient.ui.utils.KeyboardUtils;
 import com.waz.zclient.ui.views.e2ee.ShieldView;
-
+import com.waz.zclient.utils.AssetUtils;
+import com.waz.zclient.utils.Callback;
 import com.waz.zclient.utils.LayoutSpec;
 import com.waz.zclient.utils.PermissionUtils;
 import com.waz.zclient.utils.SquareOrientation;
-import com.waz.zclient.utils.ViewUtils;
 import com.waz.zclient.utils.TrackingUtils;
-import com.waz.zclient.utils.AssetUtils;
-import com.waz.zclient.utils.Callback;
+import com.waz.zclient.utils.ViewUtils;
 import com.waz.zclient.views.LoadingIndicatorView;
 import com.waz.zclient.views.MentioningFragment;
 
@@ -456,55 +457,55 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
         typingIndicatorView = ViewUtils.getView(view, R.id.tiv_typing_indicator_view);
         typingIndicatorView.setCallback(this);
         listView = ViewUtils.getView(view, R.id.messages_list_view);
-        toolbar.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                getControllerFactory().getConversationScreenController().showParticipants(toolbar, false);
-            }
-        });
-        toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
-            @Override
-            public boolean onMenuItemClick(MenuItem item) {
-                switch (item.getItemId()) {
-                    case R.id.action_audio_call:
-                        getControllerFactory().getCallingController().startCall(false);
-                        cursorLayout.closeEditMessage(false);
-                        return true;
-                    case R.id.action_video_call:
-                        getControllerFactory().getCallingController().startCall(true);
-                        cursorLayout.closeEditMessage(false);
-                        return true;
+            toolbar.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    getControllerFactory().getConversationScreenController().showParticipants(toolbar, false);
                 }
-                return false;
-            }
-        });
-        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (cursorLayout == null) {
-                    return;
+            });
+            toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
+                @Override
+                public boolean onMenuItemClick(MenuItem item) {
+                    switch (item.getItemId()) {
+                        case R.id.action_audio_call:
+                            getControllerFactory().getCallingController().startCall(false);
+                            cursorLayout.closeEditMessage(false);
+                            return true;
+                        case R.id.action_video_call:
+                            getControllerFactory().getCallingController().startCall(true);
+                            cursorLayout.closeEditMessage(false);
+                            return true;
+                    }
+                    return false;
                 }
+            });
+            toolbar.setNavigationOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if (cursorLayout == null) {
+                        return;
+                    }
 
-                cursorLayout.closeEditMessage(false);
-                getActivity().onBackPressed();
-                KeyboardUtils.closeKeyboardIfShown(getActivity());
-            }
-        });
-
-        leftMenu.setOnMenuItemClickListener(new ActionMenuView.OnMenuItemClickListener() {
-            @Override
-            public boolean onMenuItemClick(MenuItem item) {
-                switch (item.getItemId()) {
-                    case R.id.action_collection:
-                        getCollectionController().openCollection();
-                        return true;
+                    cursorLayout.closeEditMessage(false);
+                    getActivity().onBackPressed();
+                    KeyboardUtils.closeKeyboardIfShown(getActivity());
                 }
-                return false;
-            }
-        });
+            });
 
-        if (LayoutSpec.isTablet(getContext()) && ViewUtils.isInLandscape(getContext())) {
-            toolbar.setNavigationIcon(null);
+            leftMenu.setOnMenuItemClickListener(new ActionMenuView.OnMenuItemClickListener() {
+                @Override
+                public boolean onMenuItemClick(MenuItem item) {
+                    switch (item.getItemId()) {
+                        case R.id.action_collection:
+                            getCollectionController().openCollection();
+                            return true;
+                    }
+                    return false;
+                }
+            });
+
+            if (LayoutSpec.isTablet(getContext()) && ViewUtils.isInLandscape(getContext())) {
+                toolbar.setNavigationIcon(null);
         }
 
         conversationLoadingIndicatorViewView = ViewUtils.getView(view, R.id.lbv__conversation__loading_indicator);
@@ -553,7 +554,7 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
         getControllerFactory().getRequestPermissionsController().addObserver(this);
         getControllerFactory().getOrientationController().addOrientationControllerObserver(this);
         cursorLayout.setCursorCallback(this);
-        cursorLayout.showSendButtonAsEnterKey(!getControllerFactory().getUserPreferencesController().isCursorSendButtonEnabled());
+        cursorLayout.showSendButtonAsEnterKey(!getPreferencesController().isSendButtonEnabled());
         hideSendButtonIfNeeded();
         final String draftText = getStoreFactory().getDraftStore().getDraft(getStoreFactory().getConversationStore().getCurrentConversation());
         if (!TextUtils.isEmpty(draftText)) {
@@ -565,7 +566,7 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
         }
 
         syncIndicatorModelObserver.resumeListening();
-        audioMessageRecordingView.setDarkTheme(getControllerFactory().getThemeController().isDarkTheme());
+        audioMessageRecordingView.setDarkTheme(((BaseActivity) getActivity()).injectJava(ThemeController.class).isDarkTheme());
 
         if (!getControllerFactory().getConversationScreenController().isConversationStreamUiInitialized()) {
             getStoreFactory().getConversationStore().addConversationStoreObserverAndUpdate(this);
@@ -949,7 +950,7 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
             }
         }
 
-        if (getControllerFactory().getUserPreferencesController().isCursorSendButtonEnabled()) {
+        if (getPreferencesController().isSendButtonEnabled()) {
             cursorLayout.showSendButton(!TextUtils.isEmpty(text));
         }
     }
@@ -1233,6 +1234,10 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
 
     private GlobalCameraController getCameraController() {
         return ((BaseActivity) getActivity()).injectJava(GlobalCameraController.class);
+    }
+
+    private ScalaPreferencesController getPreferencesController() {
+        return ((BaseActivity) getActivity()).injectJava(ScalaPreferencesController.class);
     }
 
     private void openExtendedCursor(ExtendedCursorContainer.Type type) {
@@ -1657,7 +1662,7 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
             .withConfirmationCallback(callback)
             .withCancelButton()
             .withBackgroundImage(R.drawable.degradation_overlay)
-            .withWireTheme(getControllerFactory().getThemeController().getThemeDependentOptionsTheme())
+            .withWireTheme(((BaseActivity) getActivity()).injectJava(ThemeController.class).getThemeDependentOptionsTheme())
             .build();
 
         getControllerFactory().getConfirmationController().requestConfirmation(request,
@@ -1885,7 +1890,7 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
     }
 
     private void hideSendButtonIfNeeded() {
-        if (!getControllerFactory().getUserPreferencesController().isCursorSendButtonEnabled() || TextUtils.isEmpty(cursorLayout.getText())) {
+        if (!getPreferencesController().isSendButtonEnabled() || TextUtils.isEmpty(cursorLayout.getText())) {
             cursorLayout.showSendButton(false);
         }
     }

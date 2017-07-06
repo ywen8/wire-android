@@ -17,18 +17,18 @@
  */
 package com.waz.zclient.media
 
-import android.content.{Context, SharedPreferences}
+import android.content.Context
 import android.media.AudioManager
 import android.net.Uri
 import android.os.Vibrator
 import android.text.TextUtils
 import com.waz.ZLog.ImplicitTag._
 import com.waz.ZLog.{error, verbose}
+import com.waz.content.UserPreferences
 import com.waz.media.manager.MediaManager
 import com.waz.media.manager.context.IntensityLevel
 import com.waz.service.ZMessaging
 import com.waz.utils.events.{EventContext, Signal}
-import com.waz.zclient.controllers.userpreferences.UserPreferencesController
 import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.utils.RingtoneUtils.{getUriForRawId, isDefaultValue}
 import com.waz.zclient.{R, _}
@@ -49,10 +49,24 @@ class SoundController(implicit inj: Injector, cxt: Context) extends Injectable {
   private var _mediaManager = Option.empty[MediaManager]
   mediaManager(_mediaManager = _)
 
-  setCustomSoundUrisFromPreferences(cxt.getSharedPreferences(UserPreferencesController.USER_PREFS_TAG, Context.MODE_PRIVATE))
+  val tonePrefs = for {
+    zms <- zms
+    ringTone <- zms.userPrefs.preference(UserPreferences.RingTone).signal
+    textTone <- zms.userPrefs.preference(UserPreferences.TextTone).signal
+    pingTone <- zms.userPrefs.preference(UserPreferences.PingTone).signal
+  } yield (ringTone, textTone, pingTone)
 
-  private def soundIntensityNone = soundIntensity.currentValue == Some(IntensityLevel.NONE)
-  private def soundIntensityFull = soundIntensity.currentValue == None || soundIntensity.currentValue == Some(IntensityLevel.FULL)
+  tonePrefs {
+    case (ring, text, ping) => setCustomSoundUrisFromPreferences(ring, text, ping)
+    case _ =>
+  }
+
+  val vibrationEnabled = zms.flatMap(_.userPrefs.preference(UserPreferences.VibrateEnabled).signal)
+  var _vibrationEnabled = false
+  vibrationEnabled { _vibrationEnabled = _ }
+
+  private def soundIntensityNone = soundIntensity.currentValue.contains(IntensityLevel.NONE)
+  private def soundIntensityFull = soundIntensity.currentValue.isEmpty || soundIntensity.currentValue.contains(IntensityLevel.FULL)
 
   def setIncomingRingTonePlaying(play: Boolean) = {
     if (!soundIntensityNone) setMediaPlaying(R.raw.ringing_from_them, play)
@@ -119,7 +133,7 @@ class SoundController(implicit inj: Injector, cxt: Context) extends Injectable {
     */
   private def setVibrating(patternId: Int, play: Boolean = true, loop: Boolean = false): Unit = {
     (audioManager, vibrator) match {
-      case (Some(am), Some(vib)) if play && am.getRingerMode != AudioManager.RINGER_MODE_SILENT && isVibrationEnabled =>
+      case (Some(am), Some(vib)) if play && am.getRingerMode != AudioManager.RINGER_MODE_SILENT && _vibrationEnabled =>
         vib.cancel() // cancel any current vibrations
         vib.vibrate(getIntArray(patternId).map(_.toLong), if (loop) 0 else -1)
       case (_, Some(vib)) => vib.cancel()
@@ -143,17 +157,15 @@ class SoundController(implicit inj: Injector, cxt: Context) extends Injectable {
     *
     * Then for the other ids related to that group, they are all set to either the default, or whatever new uri is specified
     */
-  def setCustomSoundUrisFromPreferences(preferences: SharedPreferences) = {
+  def setCustomSoundUrisFromPreferences(ringTonePref: String, textTonePref: String, pingTonePref: String) = {
     Seq(
-      (R.string.pref_options_ringtones_ringtone_key, R.raw.ringing_from_them, Seq(R.raw.ringing_from_me, R.raw.ringing_from_me_video, R.raw.ringing_from_them_incall)),
-      (R.string.pref_options_ringtones_ping_key,     R.raw.ping_from_them,    Seq(R.raw.ping_from_me)),
-      (R.string.pref_options_ringtones_text_key,     R.raw.new_message,       Seq(R.raw.first_message, R.raw.new_message_gcm))
-    ).map { case (uriPrefKey, mainId, otherIds) => (Option(preferences.getString(getString(uriPrefKey), null)), mainId, otherIds) }.foreach {
-      case (Some(uri), mainId, otherIds) =>
-        val isDefault = isDefaultValue(cxt, uri, R.raw.ringing_from_them)
+      (ringTonePref, R.raw.ringing_from_them, Seq(R.raw.ringing_from_me, R.raw.ringing_from_me_video, R.raw.ringing_from_them_incall)),
+      (pingTonePref, R.raw.ping_from_them,    Seq(R.raw.ping_from_me)),
+      (textTonePref, R.raw.new_message,       Seq(R.raw.first_message, R.raw.new_message_gcm))
+    ).foreach { case (uri, mainId, otherIds) =>
+        val isDefault = uri == null || isDefaultValue(cxt, uri, R.raw.ringing_from_them)
         setCustomSoundUri(mainId, uri)
         otherIds.foreach(id => setCustomSoundUri(id, if (isDefault) getUriForRawId(cxt, id).toString else uri))
-      case _ =>
     }
   }
 
@@ -167,10 +179,5 @@ class SoundController(implicit inj: Injector, cxt: Context) extends Injectable {
     catch {
       case e: Exception => error(s"Could not set custom uri: $uri", e)
     }
-  }
-
-  private def isVibrationEnabled: Boolean = {
-    val preferences = cxt.getSharedPreferences(UserPreferencesController.USER_PREFS_TAG, Context.MODE_PRIVATE)
-    preferences.getBoolean(getString(R.string.pref_options_vibration_key), true)
   }
 }

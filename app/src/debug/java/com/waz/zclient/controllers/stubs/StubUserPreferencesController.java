@@ -80,11 +80,6 @@ public class StubUserPreferencesController implements IUserPreferencesController
   }
 
   @Override
-  public boolean isCursorSendButtonEnabled() {
-    return false;
-  }
-
-  @Override
   public void removeVerificationCode() {
 
   }
@@ -187,15 +182,6 @@ public class StubUserPreferencesController implements IUserPreferencesController
   @Override
   public void setCrashException(String exception, String details) {
 
-  }
-
-  @Override
-  public boolean hasShareContactsEnabled() {
-    return false;
-  }
-
-  @Override
-  public void setShareContactsEnabled(boolean enabled) {
   }
 
   @Override

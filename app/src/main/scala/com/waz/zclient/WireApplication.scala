@@ -21,22 +21,22 @@ import android.os.Build
 import android.renderscript.RenderScript
 import android.support.multidex.MultiDexApplication
 import com.waz.ZLog.ImplicitTag._
-import com.waz.ZLog.{debug, verbose}
+import com.waz.ZLog.verbose
 import com.waz.api.{NetworkMode, ZMessagingApi, ZMessagingApiFactory, ZmsVersion}
 import com.waz.content.GlobalPreferences
 import com.waz.log.InternalLog
-import com.waz.service.{MediaManagerService, NetworkModeService, ZMessaging}
+import com.waz.service.{NetworkModeService, ZMessaging}
 import com.waz.utils.events.{EventContext, Signal, Subscription}
 import com.waz.zclient.api.scala.ScalaStoreFactory
 import com.waz.zclient.calling.controllers.{CallPermissionsController, CurrentCallController, GlobalCallingController}
 import com.waz.zclient.camera.controllers.{AndroidCameraFactory, GlobalCameraController}
 import com.waz.zclient.common.controllers.{PermissionActivity, PermissionsController, PermissionsWrapper}
 import com.waz.zclient.controllers._
+import com.waz.zclient.controllers.deviceuser.IDeviceUserController
 import com.waz.zclient.controllers.drawing.IDrawingController
-import com.waz.zclient.controllers.global.{AccentColorController, KeyboardController, SelectionController}
+import com.waz.zclient.controllers.global.{AccentColorController, KeyboardController, PasswordController, SelectionController}
 import com.waz.zclient.controllers.navigation.INavigationController
 import com.waz.zclient.controllers.singleimage.ISingleImageController
-import com.waz.zclient.controllers.theme.IThemeController
 import com.waz.zclient.controllers.userpreferences.IUserPreferencesController
 import com.waz.zclient.conversation.CollectionController
 import com.waz.zclient.core.stores.IStoreFactory
@@ -47,8 +47,9 @@ import com.waz.zclient.notifications.controllers.{CallingNotificationsController
 import com.waz.zclient.pages.main.conversation.controller.IConversationScreenController
 import com.waz.zclient.pages.main.conversationpager.controller.ISlidingPaneController
 import com.waz.zclient.pages.main.pickuser.controller.IPickUserController
+import com.waz.zclient.preferences.ScalaPreferencesController
 import com.waz.zclient.tracking.{CallingTrackingController, GlobalTrackingController, UiTrackingController}
-import com.waz.zclient.utils.{BackendPicker, BuildConfigUtils, Callback, UiStorage}
+import com.waz.zclient.utils.{BackStackNavigator, BackendPicker, Callback, UiStorage}
 import com.waz.zclient.views.ImageController
 
 object WireApplication {
@@ -65,13 +66,11 @@ object WireApplication {
     bind [Signal[ZMessaging]]          to inject[Signal[Option[ZMessaging]]].collect { case Some(z) => z }
     bind [GlobalPreferences]           to ZMessaging.currentGlobal.prefs
     bind [NetworkModeService]          to ZMessaging.currentGlobal.network
-    bind [MediaManagerService]         to ZMessaging.currentGlobal.mediaManager
 
     // old controllers
     // TODO: remove controller factory, reimplement those controllers
     bind [IControllerFactory]            toProvider controllerFactory
     bind [IPickUserController]           toProvider controllerFactory.getPickUserController
-    bind [IThemeController]              toProvider controllerFactory.getThemeController
     bind [IConversationScreenController] toProvider controllerFactory.getConversationScreenController
     bind [INavigationController]         toProvider controllerFactory.getNavigationController
     bind [IUserPreferencesController]    toProvider controllerFactory.getUserPreferencesController
@@ -79,13 +78,16 @@ object WireApplication {
     bind [ISingleImageController]        toProvider controllerFactory.getSingleImageController
     bind [ISlidingPaneController]        toProvider controllerFactory.getSlidingPaneController
     bind [IDrawingController]            toProvider controllerFactory.getDrawingController
+    bind [IDeviceUserController]         toProvider controllerFactory.getDeviceUserController
 
     // global controllers
     bind [AccentColorController]   to new AccentColorController()
+    bind [PasswordController]      to new PasswordController()
     bind [GlobalCallingController] to new GlobalCallingController()
     bind [GlobalCameraController]  to new GlobalCameraController(new AndroidCameraFactory)
     bind [SelectionController]     to new SelectionController()
     bind [SoundController]         to new SoundController
+    bind [ThemeController]         to new ThemeController
 
     //notifications
     bind [MessageNotificationsController]  to new MessageNotificationsController()
@@ -124,6 +126,8 @@ object WireApplication {
     bind [SharingController]         to new SharingController()
     bind [UserAccountsController]    to new UserAccountsController()
     bind [UiStorage]                 to new UiStorage()
+    bind [BackStackNavigator]        to new BackStackNavigator()
+    bind [ScalaPreferencesController]to new ScalaPreferencesController()
 
     /**
       * Since tracking controllers will immediately instantiate other necessary controllers, we keep them separated
@@ -167,7 +171,7 @@ class WireApplication extends MultiDexApplication with WireContext with Injectab
     if (storeFactory == null) {
       storeFactory = new ScalaStoreFactory(getApplicationContext)
       //TODO initialization of ZMessaging happens here - make this more explicit?
-      storeFactory.getZMessagingApiStore.getAvs.setLogLevel(BuildConfigUtils.getLogLevelAVS(this))
+      storeFactory.getZMessagingApiStore.getApi
     }
 
     inject[MessageNotificationsController]
