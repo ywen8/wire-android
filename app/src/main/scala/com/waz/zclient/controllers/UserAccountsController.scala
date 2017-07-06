@@ -47,6 +47,7 @@ class UserAccountsController(implicit injector: Injector, context: Context, ec: 
   private var _permissions = Set[AccountData.Permission]()
 
   private var _teamData = Option.empty[TeamData]
+  private var _teamId = Option.empty[TeamId]
 
   val permissions = for {
     zms <- zms
@@ -64,6 +65,10 @@ class UserAccountsController(implicit injector: Injector, context: Context, ec: 
 
   teamDataSignal { data =>
     _teamData = data
+    data match {
+      case Some(team) => _teamId = Some(team.id)
+      case _ => _teamId = None
+    }
   }
 
   def teamData = _teamData
@@ -86,7 +91,7 @@ class UserAccountsController(implicit injector: Injector, context: Context, ec: 
         if (users.length == 1 && !isTeamAccount)
           z.convsUi.getOrCreateOneToOneConversation(users.head)
         else
-          z.convsUi.createGroupConversation(ConvId(), users)
+          z.convsUi.createGroupConversation(ConvId(), users, teamId)
     } yield conv
 
     createConv.map{ convData =>
