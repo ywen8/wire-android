@@ -28,7 +28,6 @@ import com.waz.api.Message;
 import com.waz.api.MessageContent;
 import com.waz.api.User;
 import com.waz.api.Verification;
-import com.waz.api.VoiceChannel;
 
 @SuppressLint("ParcelCreator")
 public class MockConversation extends MockObservable implements IConversation {
@@ -95,26 +94,6 @@ public class MockConversation extends MockObservable implements IConversation {
     @Override
     public boolean isMuted() {
         return false;
-    }
-
-    @Override
-    public boolean hasVoiceChannel() {
-        return false;
-    }
-
-    @Override
-    public boolean hasUnjoinedCall() {
-        return false;
-    }
-
-    @Override
-    public boolean isVoiceChannelMuted() {
-        return false;
-    }
-
-    @Override
-    public VoiceChannel getVoiceChannel() {
-        return null;
     }
 
     @Override
