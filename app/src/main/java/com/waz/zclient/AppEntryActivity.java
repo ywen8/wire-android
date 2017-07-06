@@ -34,7 +34,7 @@ import com.waz.api.ImageAsset;
 import com.waz.api.ImageAssetFactory;
 import com.waz.api.LoadHandle;
 import com.waz.api.Self;
-import com.waz.service.Accounts;
+import com.waz.service.AccountsService;
 import com.waz.service.ZMessaging;
 import com.waz.utils.wrappers.AndroidURIUtil;
 import com.waz.zclient.controllers.navigation.NavigationControllerObserver;
@@ -259,7 +259,7 @@ public class AppEntryActivity extends BaseActivity implements VerifyPhoneFragmen
     @Override
     public void abortAddAccount() {
         enableProgress(true);
-        ZMessaging.currentAccounts().fallbackToLastAccount(new Accounts.SwapAccountCallback() {
+        ZMessaging.currentAccounts().fallbackToLastAccount(new AccountsService.SwapAccountCallback() {
             @Override
             public void onSwapComplete() {
                 enableProgress(false);
