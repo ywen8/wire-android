@@ -26,7 +26,6 @@ import com.waz.ZLog
 import com.waz.ZLog._
 import com.waz.model._
 import com.waz.service.ZMessaging
-import com.waz.threading.Threading
 import com.waz.utils.events.{EventContext, EventStream, Signal}
 import com.waz.zclient.controllers.UserAccountsController
 import com.waz.zclient.utils.{UiStorage, UserSignal}
@@ -49,15 +48,15 @@ class TeamTabsView(val context: Context, val attrs: AttributeSet, val defStyleAt
 
 class TeamTabViewHolder(view: TeamTabButton) extends RecyclerView.ViewHolder(view){
 
-  def bind(accountData: AccountData, userData: UserData, selected: Boolean, unreadCount: Int): Unit = {
-    view.setUserData(accountData, userData, selected, unreadCount)
+  def bind(accountData: AccountData, team: Option[TeamData], userData: UserData, selected: Boolean, unreadCount: Int): Unit = {
+    view.setUserData(accountData, team, userData, selected, unreadCount)
   }
 }
 
 class TeamTabsAdapter(context: Context)(implicit injector: Injector, eventContext: EventContext) extends RecyclerView.Adapter[TeamTabViewHolder] with Injectable {
   private implicit val tag: LogTag = logTagFor[TeamTabsAdapter]
 
-  val controller = inject[UserAccountsController]
+  val controller         = inject[UserAccountsController]
   implicit val uiStorage = inject[UiStorage]
 
   val onItemClick = EventStream[AccountData]()
@@ -68,13 +67,24 @@ class TeamTabsAdapter(context: Context)(implicit injector: Injector, eventContex
 
   val usersSignal = for {
     accounts <- controller.accounts
+    teams <- {
+      Signal.sequence(accounts.map(_.teamId match {
+        case Right(Some(t)) => ZMessaging.currentGlobal.teamsStorage.optSignal(t)
+        case _              => Signal.const(Option.empty[TeamData])
+      }):_*)
+    }
     users <- Signal.sequence(accounts.flatMap(_.userId).map(UserSignal(_)):_*)
-  } yield accounts.zip(users).sortBy(_._1.id.str)
+  } yield {
+    (accounts, teams, users).zipped.toList.sortBy {
+      case (acc, _, _) => (acc.isTeamAccount(), acc.id.str)
+    }
+  }
 
-  private var users = Seq[(AccountData, UserData, Int)]()
+  //Int = message count
+  private var users = Seq[(AccountData, Option[TeamData], UserData, Int)]()
 
-  usersSignal.on(Threading.Ui){ users =>
-      this.users = users.map(u => (u._1, u._2, 0))
+  usersSignal.onUi { users =>
+      this.users = users.map { case (a, t, u) => (a, t, u, 0) }
       notifyDataSetChanged()
   }
 
@@ -82,13 +92,13 @@ class TeamTabsAdapter(context: Context)(implicit injector: Injector, eventContex
 
   override def onBindViewHolder(holder: TeamTabViewHolder, position: Int) = {
     getItem(position) match {
-      case Some((accountData, userData, messageCount)) =>
+      case Some((accountData, team, userData, messageCount)) =>
 
         val selected = ZMessaging.currentAccounts.activeAccount.currentValue match {
           case Some(Some(currentAccount)) => currentAccount.id == accountData.id
           case _ => false
         }
-        holder.bind(accountData, userData, selected, messageCount)
+        holder.bind(accountData, team, userData, selected, messageCount)
       case _ =>
         ZLog.error("Invalid get item index")
     }
@@ -104,7 +114,7 @@ class TeamTabsAdapter(context: Context)(implicit injector: Injector, eventContex
     new TeamTabViewHolder(view)
   }
 
-  def getItem(position: Int): Option[(AccountData, UserData, Int)] = {
+  def getItem(position: Int): Option[(AccountData, Option[TeamData], UserData, Int)] = {
     users.lift(position)
   }
 }

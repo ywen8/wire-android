@@ -42,13 +42,14 @@ class TeamTabButton(val context: Context, val attrs: AttributeSet, val defStyleA
   inflate(R.layout.view_team_tab)
   setLayoutParams(new LayoutParams(context.getResources.getDimensionPixelSize(R.dimen.teams_tab_width), ViewGroup.LayoutParams.MATCH_PARENT))
 
-  val icon = findById[ImageView](R.id.team_icon)
-  val name = findById[TypefaceTextView](R.id.team_name)
-  val iconContainer = findById[FrameLayout](R.id.team_icon_container)
-  val nameContainer = findById[RelativeLayout](R.id.team_name_container)
+  val icon                = findById[ImageView](R.id.team_icon)
+  val name                = findById[TypefaceTextView](R.id.team_name)
+  val iconContainer       = findById[FrameLayout](R.id.team_icon_container)
+  val nameContainer       = findById[RelativeLayout](R.id.team_name_container)
   val unreadIndicatorIcon = findById[CircleView](R.id.unread_indicator_icon)
   val unreadIndicatorName = findById[CircleView](R.id.unread_indicator_text)
-  val animationDuration = getResources.getInteger(R.integer.team_tabs__animation_duration)
+  val animationDuration   = getResources.getInteger(R.integer.team_tabs__animation_duration)
+
   val accentColor = inject[AccentColorController].accentColor
 
   val drawable = new TeamIconDrawable
@@ -76,17 +77,19 @@ class TeamTabButton(val context: Context, val attrs: AttributeSet, val defStyleA
     unreadIndicatorName.setAccentColor(accentColor.getColor())
   }
 
-  def setUserData(accountData: AccountData, userData: UserData, selected: Boolean, unreadCount: Int): Unit = {
-    if (accountData.isTeamAccount()) {
-      // TODO change to team name once TeamData is moved to GlobalDB
-      drawable.setInfo(NameParts.maybeInitial(userData.getDisplayName).getOrElse(""), TeamIconDrawable.TeamCorners, selected)
-      name.setText(userData.getDisplayName)
-      drawable.assetId ! None
-    } else {
-      drawable.setInfo(NameParts.maybeInitial(userData.displayName).getOrElse(""), TeamIconDrawable.UserCorners, selected)
-      name.setText(userData.getDisplayName)
-      drawable.assetId ! userData.picture
+  def setUserData(accountData: AccountData, team: Option[TeamData], userData: UserData, selected: Boolean, unreadCount: Int): Unit = {
+    team match {
+      case Some(t) =>
+        drawable.setInfo(NameParts.maybeInitial(t.name).getOrElse(""), TeamIconDrawable.TeamCorners, selected)
+        name.setText(t.name)
+        // TODO use team icon when ready
+        drawable.assetId ! None
+      case _ =>
+        drawable.setInfo(NameParts.maybeInitial(userData.displayName).getOrElse(""), TeamIconDrawable.UserCorners, selected)
+        name.setText(userData.getDisplayName)
+        drawable.assetId ! userData.picture
     }
+
     buttonSelected = selected
     unreadIndicatorName.setVisible(unreadCount > 0 && !selected)
     unreadIndicatorIcon.setVisible(unreadCount > 0 && !selected)
