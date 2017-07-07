@@ -31,9 +31,9 @@ import com.waz.threading.Threading
 import com.waz.utils.events.{EventStream, Signal}
 import com.waz.zclient.controllers.drawing.IDrawingController
 import com.waz.zclient.conversation.CollectionController
+import com.waz.zclient.messages.MessageBottomSheetDialog.MessageAction
 import com.waz.zclient.messages.controllers.MessageActionsController
 import com.waz.zclient.pages.BaseFragment
-import com.waz.zclient.pages.main.conversation.views.MessageBottomSheetDialog.MessageAction
 import com.waz.zclient.ui.animation.interpolators.penner.{Expo, Quart}
 import com.waz.zclient.ui.cursor.CursorMenuItem
 import com.waz.zclient.ui.text.TypefaceTextView
@@ -74,9 +74,7 @@ class ImageFragment extends BaseFragment[ImageFragment.Container] with FragmentH
     }
     case None => Signal.const(false)
   }
-  lazy val message = collectionController.focusedItem.map(_.map(_.id)) collect {
-    case Some(id) => ZMessaging.currentUi.messages.cachedOrNew(id)
-  } disableAutowiring()
+  lazy val message = collectionController.focusedItem collect { case Some(msg) => msg }
 
   lazy val imageAsset = collectionController.focusedItem.flatMap {
     case Some(messageData) => Signal[ImageAsset](ZMessaging.currentUi.images.getImageAsset(messageData.assetId))
@@ -107,16 +105,16 @@ class ImageFragment extends BaseFragment[ImageFragment.Container] with FragmentH
     likedBySelf.on(Threading.Ui) {
       case true =>
         bottomToolbar.topToolbar.cursorItems ! Seq(
-          MessageActionToolbarItem(MessageAction.UNLIKE),
-          MessageActionToolbarItem(MessageAction.FORWARD),
+          MessageActionToolbarItem(MessageAction.Unlike),
+          MessageActionToolbarItem(MessageAction.Forward),
           CursorActionToolbarItem(CursorMenuItem.SKETCH),
           CursorActionToolbarItem(CursorMenuItem.EMOJI),
           CursorActionToolbarItem(CursorMenuItem.KEYBOARD),
           MoreToolbarItem)
       case false =>
         bottomToolbar.topToolbar.cursorItems ! Seq(
-          MessageActionToolbarItem(MessageAction.LIKE),
-          MessageActionToolbarItem(MessageAction.FORWARD),
+          MessageActionToolbarItem(MessageAction.Like),
+          MessageActionToolbarItem(MessageAction.Forward),
           CursorActionToolbarItem(CursorMenuItem.SKETCH),
           CursorActionToolbarItem(CursorMenuItem.EMOJI),
           CursorActionToolbarItem(CursorMenuItem.KEYBOARD),
@@ -146,10 +144,10 @@ class ImageFragment extends BaseFragment[ImageFragment.Container] with FragmentH
           case _ =>
         }
       case item: MessageActionToolbarItem =>
-        if (item.action == MessageAction.REVEAL) {
+        if (item.action == MessageAction.Reveal) {
           getFragmentManager.popBackStack()
         }
-        message.currentValue.foreach( msg => messageActionsController.onMessageAction ! (item.action, msg))
+        message.head foreach { msg => messageActionsController.onMessageAction ! (item.action, msg) }
       case _ =>
     }
 
@@ -164,9 +162,9 @@ class ImageFragment extends BaseFragment[ImageFragment.Container] with FragmentH
     }
 
     bottomToolbar.bottomToolbar.cursorItems ! Seq(
-      MessageActionToolbarItem(MessageAction.SAVE),
-      MessageActionToolbarItem(MessageAction.REVEAL),
-      MessageActionToolbarItem(MessageAction.DELETE),
+      MessageActionToolbarItem(MessageAction.Save),
+      MessageActionToolbarItem(MessageAction.Reveal),
+      MessageActionToolbarItem(MessageAction.Delete),
       DummyToolbarItem,
       DummyToolbarItem,
       MoreToolbarItem)

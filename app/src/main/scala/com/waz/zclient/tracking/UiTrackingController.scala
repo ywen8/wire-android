@@ -28,13 +28,13 @@ import com.waz.zclient.controllers.{AssetsController, BrowserController, Sharing
 import com.waz.zclient.conversation.CollectionController
 import com.waz.zclient.core.controllers.tracking.events.media.SentPictureEvent
 import com.waz.zclient.messages.LikesController
+import com.waz.zclient.messages.MessageBottomSheetDialog.MessageAction
+import com.waz.zclient.messages.MessageBottomSheetDialog.MessageAction.{Copy, Forward, Like, Unlike}
 import com.waz.zclient.messages.controllers.MessageActionsController
-import com.waz.zclient.pages.main.conversation.views.MessageBottomSheetDialog.MessageAction
 import com.waz.zclient.{Injectable, Injector}
 import org.threeten.bp.Duration
 
 import scala.concurrent.Future
-import scala.concurrent.Future.{apply => _}
 
 class UiTrackingController(implicit injector: Injector, ctx: Context, ec: EventContext) extends Injectable {
   import GlobalTrackingController._
@@ -53,7 +53,7 @@ class UiTrackingController(implicit injector: Injector, ctx: Context, ec: EventC
   val sharingController     = inject[SharingController]
 
   msgActionController.onMessageAction {
-    case (MessageAction.REVEAL, message) if MessageContentIndex.TextMessageTypes.contains(message.getMessageType) =>
+    case (MessageAction.Reveal, message) if MessageContentIndex.TextMessageTypes.contains(message.msgType) =>
       collectionsController.currentConv.currentValue.foreach { conv =>
         convTrackingData(conv).map{ data =>
           tagEvent(SelectedSearchResultCollectionsEvent(data.convType, data.withOtto))
@@ -62,16 +62,14 @@ class UiTrackingController(implicit injector: Injector, ctx: Context, ec: EventC
     case (action, message) if collectionsController.openedCollection.currentValue.exists(_.nonEmpty) =>
       collectionsController.openedCollection.currentValue.foreach(_.foreach{ info=>
         convTrackingData(info.conversation.id).map { data =>
-          tagEvent(DidItemActionCollectionsEvent(action, message.getMessageType, data.convType, data.withOtto))
+          tagEvent(DidItemActionCollectionsEvent(action, message.msgType, data.convType, data.withOtto))
         }
       })
-    case (action, message) => tagEvent(OpenedMessageActionEvent(action, message.getMessageType.name))
-
-      import MessageAction._
+    case (action, message) => tagEvent(OpenedMessageActionEvent(action, message.msgType.name))
       action match {
-        case COPY            => tagEvent(CopiedMessageEvent(message.getMessageType.name))
-        case FORWARD         => tagEvent(ForwardedMessageEvent(message.getMessageType.name))
-        case a@(LIKE|UNLIKE) => reactedToMessageEvent(MessageId(message.getId), a == LIKE, "menu")
+        case Copy            => tagEvent(CopiedMessageEvent(message.msgType.name))
+        case Forward         => tagEvent(ForwardedMessageEvent(message.msgType.name))
+        case a@(Like|Unlike) => reactedToMessageEvent(message.id, a == Like, "menu")
         case _ => //other types handled after dialog and confirmation
       }
   }
@@ -85,8 +83,8 @@ class UiTrackingController(implicit injector: Injector, ctx: Context, ec: EventC
       tagEvent(ReactedToMessageEvent(liked, withOtto, fromSelf, msgType, convType, isLastMsg, method))
   }
 
-  msgActionController.onDeleteConfirmed { case (m, forEveryone) => tagEvent(DeletedMessageEvent(m.getMessageType.name, forEveryone)) }
-  msgActionController.onAssetSaved(asset => tagEvent(SavedFileEvent(asset.getMimeType, asset.getSizeInBytes.toInt)))
+  msgActionController.onDeleteConfirmed { case (m, forEveryone) => tagEvent(DeletedMessageEvent(m.msgType.name, forEveryone)) }
+  msgActionController.onAssetSaved(asset => tagEvent(SavedFileEvent(asset.mime.str, asset.sizeInBytes.toInt)))
 
   assetsController.onFileOpened {
     case a@AssetData.IsVideo() => tagEvent(OpenedFileEvent(a.mime.str, a.sizeInBytes.toInt))

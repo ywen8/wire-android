@@ -18,8 +18,8 @@
 package com.waz.zclient
 
 import android.annotation.SuppressLint
-import android.app.{Activity, Service}
-import android.content.{Context, ContextWrapper}
+import android.app.{Activity, Dialog, Service}
+import android.content.{Context, ContextWrapper, DialogInterface}
 import android.support.v4.app.{Fragment, FragmentActivity}
 import android.support.v7.preference.Preference
 import android.view.{LayoutInflater, View, ViewGroup, ViewStub}
@@ -156,6 +156,35 @@ trait FragmentHelper extends Fragment with ViewFinder with Injectable with Event
   override def onDestroy(): Unit = {
     super.onDestroy()
     onContextDestroy()
+  }
+}
+
+trait DialogHelper extends Dialog with Injectable with EventContext {
+  val context: Context
+  lazy implicit val injector = context.asInstanceOf[WireContext].injector
+  override implicit def eventContext: EventContext = this
+
+  private var dismissListener = Option.empty[DialogInterface.OnDismissListener]
+
+  super.setOnDismissListener(new DialogInterface.OnDismissListener {
+    override def onDismiss(dialogInterface: DialogInterface): Unit = {
+      dismissListener.foreach(_.onDismiss(dialogInterface))
+      onContextDestroy()
+    }
+  })
+
+  override def onStart(): Unit = {
+    onContextStart()
+    super.onStart()
+  }
+
+  override def onStop(): Unit = {
+    super.onStop()
+    onContextStop()
+  }
+
+  override def setOnDismissListener(listener: DialogInterface.OnDismissListener): Unit = {
+    dismissListener = Some(listener)
   }
 }
 

@@ -23,7 +23,7 @@ import com.waz.model.Mime
 import com.waz.zclient.core.controllers.tracking.attributes.Attribute._
 import com.waz.zclient.core.controllers.tracking.attributes.RangedAttribute._
 import com.waz.zclient.core.controllers.tracking.attributes.{Attribute, RangedAttribute}
-import com.waz.zclient.pages.main.conversation.views.MessageBottomSheetDialog.MessageAction
+import com.waz.zclient.messages.MessageBottomSheetDialog.MessageAction
 import com.waz.zclient.utils.AssetUtils
 import org.threeten.bp.Duration
 
@@ -36,12 +36,13 @@ case class OpenedMessageActionEvent(action: MessageAction, messageType: String) 
   import MessageAction._
   override val attributes = Map(
     ACTION -> (action match {
-      case DELETE_GLOBAL => "delete_for_everyone"
-      case DELETE_LOCAL  => "delete_for_me"
-      case COPY          => "copy"
-      case EDIT          => "edit"
-      case FORWARD       => "forward"
-      case _             => "other"
+      case DeleteGlobal => "delete_for_everyone"
+      case DeleteLocal  => "delete_for_me"
+      case Delete       => "delete"
+      case Copy         => "copy"
+      case Edit         => "edit"
+      case Forward      => "forward"
+      case _            => "other"
     }),
     TYPE -> messageType
   )
@@ -141,12 +142,13 @@ case class DidItemActionCollectionsEvent(messageAction: MessageAction, messageTy
   override val attributes = baseAttributes ++ Map(
     TYPE   -> trackingType(messageType),
     ACTION -> (messageAction match {
-      case DELETE_GLOBAL => "delete_for_everyone"
-      case DELETE_LOCAL  => "delete_for_me"
-      case COPY          => "copy"
-      case EDIT          => "edit"
-      case FORWARD       => "forward"
-      case _             => "other"
+      case DeleteGlobal => "delete_for_everyone"
+      case DeleteLocal  => "delete_for_me"
+      case Delete       => "delete"
+      case Copy         => "copy"
+      case Edit         => "edit"
+      case Forward      => "forward"
+      case _            => "other"
     })
   )
 }

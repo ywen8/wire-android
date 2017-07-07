@@ -128,7 +128,6 @@ import com.waz.zclient.pages.extendedcursor.ephemeral.EphemeralLayout;
 import com.waz.zclient.pages.extendedcursor.image.CursorImagesLayout;
 import com.waz.zclient.pages.extendedcursor.image.ImagePreviewLayout;
 import com.waz.zclient.pages.extendedcursor.voicefilter.VoiceFilterLayout;
-import com.waz.zclient.pages.main.conversation.views.MessageBottomSheetDialog;
 import com.waz.zclient.pages.main.conversation.views.TypingIndicatorView;
 import com.waz.zclient.pages.main.conversationlist.ConversationListAnimation;
 import com.waz.zclient.pages.main.conversationpager.controller.SlidingPaneObserver;
@@ -220,7 +219,6 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
     private ViewGroup containerPreview;
     private boolean isPreviewShown;
     private boolean isVideoMessageButtonClicked;
-    private MessageBottomSheetDialog messageBottomSheetDialog;
     private MessagesListView listView;
     private Self self = null;
     private Boolean isInLandscape = null;
@@ -608,12 +606,6 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
         super.onPause();
         KeyboardUtils.hideKeyboard(getActivity());
         hideAudioMessageRecording();
-        if (messageBottomSheetDialog != null) {
-            if (messageBottomSheetDialog.isShowing()) {
-                messageBottomSheetDialog.dismiss();
-            }
-            messageBottomSheetDialog = null;
-        }
     }
 
     @Override
