@@ -84,7 +84,7 @@ class TeamTabsAdapter(context: Context)(implicit injector: Injector, eventContex
     getItem(position) match {
       case Some((accountData, userData, messageCount)) =>
 
-        val selected = ZMessaging.currentAccounts.currentAccountData.currentValue match {
+        val selected = ZMessaging.currentAccounts.activeAccount.currentValue match {
           case Some(Some(currentAccount)) => currentAccount.id == accountData.id
           case _ => false
         }

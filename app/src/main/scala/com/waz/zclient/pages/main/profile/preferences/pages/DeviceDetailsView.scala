@@ -179,15 +179,15 @@ case class DeviceDetailsViewController(view: DeviceDetailsView, clientId: Client
   val passwordController = inject[PasswordController]
   val backStackNavigator = inject[BackStackNavigator]
 
-  val accountService =  ZMessaging.currentAccounts.currentAccountService.collect{case Some(a) => a}
+  val accountManager =  ZMessaging.currentAccounts.activeAccountManager.collect{case Some(a) => a}
 
-  val otrClientsService = accountService.flatMap(_.userModule).map(_.clientsService)
+  val otrClientsService = accountManager.flatMap(_.userModule).map(_.clientsService)
 
   val clientAndIsSelf = for {
-    accService <- accountService
-    accData    <- accService.accountData
-    Some(userId) <- accService.userId
-    clients     <- accService.storage.otrClientsStorage.signal(userId)
+    manager      <- accountManager
+    accData      <- manager.accountData
+    Some(userId) <- manager.userId
+    clients      <- manager.storage.otrClientsStorage.signal(userId)
   } yield (clients.clients.get(clientId), accData.clientId.contains(clientId))
 
   val client = clientAndIsSelf.map(_._1)
@@ -212,10 +212,10 @@ case class DeviceDetailsViewController(view: DeviceDetailsView, clientId: Client
 
   view.onVerifiedChecked { checked =>
     for {
-      Some(userId) <- accountService.flatMap(_.userId)
-      otrClientsStorage <- accountService.map(_.storage.otrClientsStorage)
-      _ <- otrClientsStorage.updateVerified(userId, clientId, checked)
-      _ <- tracking.tagEvent(if (checked) new VerifiedOwnOtrClientEvent else new UnverifiedOwnOtrClientEvent)
+      Some(userId)      <- accountManager.flatMap(_.userId)
+      otrClientsStorage <- accountManager.map(_.storage.otrClientsStorage)
+      _                 <- otrClientsStorage.updateVerified(userId, clientId, checked)
+      _                 <- tracking.tagEvent(if (checked) new VerifiedOwnOtrClientEvent else new UnverifiedOwnOtrClientEvent)
     } {}
   }
 

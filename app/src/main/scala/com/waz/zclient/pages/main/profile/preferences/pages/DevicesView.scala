@@ -89,10 +89,10 @@ case class DevicesViewController(view: DevicesView)(implicit inj: Injector, ec: 
   val zms = inject[Signal[Option[ZMessaging]]]
 
   val otherClients = for {
-    Some(accService) <- ZMessaging.currentAccounts.currentAccountService
-    Some(userId) <- accService.accountData.map(_.userId)
-    selfClientId <- accService.accountData.map(_.clientId)
-    clients <- accService.storage.otrClientsStorage.signal(userId)
+    Some(manager) <- ZMessaging.currentAccounts.activeAccountManager
+    Some(userId)  <- manager.accountData.map(_.userId)
+    selfClientId  <- manager.accountData.map(_.clientId)
+    clients       <- manager.storage.otrClientsStorage.signal(userId)
   } yield clients.clients.values.filter(client => !selfClientId.contains(client.id)).toSeq.sortBy(_.regTime)
 
   val selfClient = for {

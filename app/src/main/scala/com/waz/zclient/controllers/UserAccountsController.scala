@@ -39,9 +39,9 @@ class UserAccountsController(implicit injector: Injector, context: Context, ec: 
   val accounts = Option(ZMessaging.currentAccounts).fold(Signal.const[Seq[AccountData]](Seq()))( _.loggedInAccounts )
 
   val currentUser = for {
-    zms <- zms
-    account <- ZMessaging.currentAccounts.currentAccountData
-    user <- account.flatMap(_.userId).fold(Signal.const(Option.empty[UserData]))(accId => zms.usersStorage.signal(accId).map(Some(_)))
+    zms     <- zms
+    account <- ZMessaging.currentAccounts.activeAccount
+    user    <- account.flatMap(_.userId).fold(Signal.const(Option.empty[UserData]))(accId => zms.usersStorage.signal(accId).map(Some(_)))
   } yield user
 
   private var _permissions = Set[AccountData.Permission]()
