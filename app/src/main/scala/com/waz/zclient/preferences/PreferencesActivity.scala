@@ -43,7 +43,7 @@ import com.waz.zclient.core.controllers.tracking.events.settings.ChangedProfileP
 import com.waz.zclient.pages.main.profile.camera.{CameraContext, CameraFragment}
 import com.waz.zclient.pages.main.profile.preferences.pages.{DevicesBackStackKey, OptionsView, ProfileBackStackKey}
 import com.waz.zclient.tracking.GlobalTrackingController
-import com.waz.zclient.utils.{BackStackNavigator, LayoutSpec, ViewUtils}
+import com.waz.zclient.utils.{BackStackNavigator, LayoutSpec, RingtoneUtils, ViewUtils}
 import com.waz.zclient.{ActivityHelper, BaseActivity, MainActivity, R}
 
 class PreferencesActivity extends BaseActivity
@@ -97,7 +97,6 @@ class PreferencesActivity extends BaseActivity
         backStackNavigator.goTo(ProfileBackStackKey())
       }
 
-
       backStackNavigator.currentState.on(Threading.Ui){ state =>
         setTitle(state.nameId)
       }
@@ -150,7 +149,7 @@ class PreferencesActivity extends BaseActivity
         case OptionsView.TextToneResultId => UserPreferences.TextTone
         case OptionsView.PingToneResultId => UserPreferences.PingTone
       }
-      zms.head.flatMap(_.userPrefs.preference(key).update(pickedUri.fold("")(_.toString)))(Threading.Ui)
+      zms.head.flatMap(_.userPrefs.preference(key).update(pickedUri.fold(RingtoneUtils.getSilentValue)(_.toString)))(Threading.Ui)
     }
   }
 

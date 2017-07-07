@@ -23,6 +23,7 @@ import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
 import android.support.v4.app.{Fragment, FragmentTransaction}
+import android.text.TextUtils
 import android.util.AttributeSet
 import android.view.View
 import android.widget.LinearLayout
@@ -122,9 +123,9 @@ class OptionsViewImpl(context: Context, attrs: AttributeSet, style: Int) extends
 
   private def setToneSubtitle(button: TextButton, defaultUri: Uri, uri: String): Unit = {
     val title =
-      if (uri.isEmpty)
-      "Silent" //TODO: res
-    else if (uri.equals(defaultUri.toString))
+      if (RingtoneUtils.isSilent(uri))
+      context.getString(R.string.pref_options_ringtones_silent)
+    else if (uri.isEmpty || uri.equals(defaultUri.toString))
       context.getString(R.string.pref_options_ringtones_default_summary)
     else
       RingtoneManager.getRingtone(context, Uri.parse(uri)).getTitle(context)
@@ -151,9 +152,9 @@ class OptionsViewImpl(context: Context, attrs: AttributeSet, style: Int) extends
     intent.putExtra(RingtoneManager.EXTRA_RINGTONE_TYPE, ringtoneType)
     intent.putExtra(RingtoneManager.EXTRA_RINGTONE_DEFAULT_URI, defaultUri)
     val uri =
-      if(selectedUri.isEmpty)
+      if(RingtoneUtils.isSilent(selectedUri))
         null
-      else if (defaultUri.toString.equals(selectedUri))
+      else if (TextUtils.isEmpty(selectedUri) || defaultUri.toString.equals(selectedUri))
         Settings.System.DEFAULT_RINGTONE_URI
       else
         Uri.parse(selectedUri)

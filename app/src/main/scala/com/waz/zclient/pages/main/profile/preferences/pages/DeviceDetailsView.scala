@@ -198,12 +198,13 @@ case class DeviceDetailsViewController(view: DeviceDetailsView, clientId: Client
     fp <- z.otrService.fingerprintSignal(z.selfUserId, clientId).map(_.map(new String(_))).orElse(Signal.const(None))
   } yield fp
 
-  Signal(clientAndIsSelf, fingerprint).onUi {
-    case ((Some(c), self), fp) =>
+  fingerprint.onUi{ _.foreach(view.setFingerPrint) }
+
+  clientAndIsSelf.onUi {
+    case (Some(c), self) =>
       view.setName(c.model)
       view.setId(c.id.str)
       view.setActivated(c.regTime.getOrElse(Instant.EPOCH), c.regLocation)
-      fp.foreach(view.setFingerPrint)
       view.setActionsVisible(!self)
     case _ =>
   }

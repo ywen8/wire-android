@@ -511,6 +511,7 @@
     <string name="pref_options_ringtones_text_title">Text tone</string>
     <string name="pref_options_ringtones_ping_title">Ping</string>
     <string name="pref_options_ringtones_default_summary">Wire default</string>
+    <string name="pref_options_ringtones_silent">Silent</string>
     <string name="pref_options_image_download_title">Download pictures</string>
     <string name="pref_options_image_download_always">Always</string>
     <string name="pref_options_image_download_wifi">Wi-Fi only</string>

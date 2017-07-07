@@ -30,6 +30,7 @@ import com.waz.media.manager.context.IntensityLevel
 import com.waz.service.ZMessaging
 import com.waz.utils.events.{EventContext, Signal}
 import com.waz.zclient.utils.ContextUtils._
+import com.waz.zclient.utils.RingtoneUtils
 import com.waz.zclient.utils.RingtoneUtils.{getUriForRawId, isDefaultValue}
 import com.waz.zclient.{R, _}
 
@@ -163,9 +164,10 @@ class SoundController(implicit inj: Injector, cxt: Context) extends Injectable {
       (pingTonePref, R.raw.ping_from_them,    Seq(R.raw.ping_from_me)),
       (textTonePref, R.raw.new_message,       Seq(R.raw.first_message, R.raw.new_message_gcm))
     ).foreach { case (uri, mainId, otherIds) =>
-        val isDefault = uri == null || isDefaultValue(cxt, uri, R.raw.ringing_from_them)
-        setCustomSoundUri(mainId, uri)
-        otherIds.foreach(id => setCustomSoundUri(id, if (isDefault) getUriForRawId(cxt, id).toString else uri))
+        val isDefault = TextUtils.isEmpty(uri) || isDefaultValue(cxt, uri, R.raw.ringing_from_them)
+        val finalUri =  if(RingtoneUtils.isSilent(uri)) "" else uri
+        setCustomSoundUri(mainId, finalUri)
+        otherIds.foreach(id => setCustomSoundUri(id, if (isDefault) getUriForRawId(cxt, id).toString else finalUri))
     }
   }
 
