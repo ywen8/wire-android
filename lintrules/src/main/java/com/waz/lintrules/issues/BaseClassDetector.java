@@ -80,8 +80,7 @@ public class BaseClassDetector extends Detector implements Detector.JavaScanner 
         "com.waz.zclient.pages.BaseDialogFragment",
         "com.waz.zclient.pages.BaseFragment",
         "com.waz.zclient.pages.BasePreferenceFragment",
-        "com.waz.zclient.BaseActivity",
-        "com.waz.zclient.BasePreferenceActivity"
+        "com.waz.zclient.BaseActivity"
     };
 
     private static final String CLASS_ACTIVITY = SdkConstants.CLASS_ACTIVITY;

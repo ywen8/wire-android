@@ -31,5 +31,10 @@ class ScalaPreferencesController(implicit inj: Injector, ec: EventContext) exten
   private var _sendButtonEnabled = false
   userPrefs.flatMap(_.preference(UserPreferences.SendButtonEnabled).signal){ _sendButtonEnabled = _ }
 
+  private var _analyticsEnabled = false
+  userPrefs.flatMap(_.preference(UserPreferences.AnalyticsEnabled).signal){ _analyticsEnabled = _ }
+
   def isSendButtonEnabled: Boolean = _sendButtonEnabled
+
+  def isAnalyticsEnabled: Boolean = _analyticsEnabled
 }

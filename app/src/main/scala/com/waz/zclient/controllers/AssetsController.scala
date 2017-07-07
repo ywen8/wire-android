@@ -27,7 +27,6 @@ import android.widget.{TextView, Toast}
 import com.waz.ZLog.ImplicitTag._
 import com.waz.ZLog._
 import com.waz.api.{ImageAsset, Message}
-import com.waz.content.Preferences.PrefKey
 import com.waz.content.UserPreferences
 import com.waz.model.{AssetData, AssetId, MessageData, Mime}
 import com.waz.service.ZMessaging

@@ -19,7 +19,7 @@ package com.waz.zclient
 
 import android.content.Intent._
 import android.content.res.Configuration
-import android.content.{Context, DialogInterface, Intent}
+import android.content.{DialogInterface, Intent}
 import android.graphics.drawable.ColorDrawable
 import android.graphics.{Color, Paint, PixelFormat}
 import android.net.Uri
@@ -30,6 +30,7 @@ import com.localytics.android.Localytics
 import com.waz.ZLog.ImplicitTag._
 import com.waz.ZLog.{error, info, warn}
 import com.waz.api.{NetworkMode, _}
+import com.waz.content.UserPreferences
 import com.waz.model.ConvId
 import com.waz.service.ZMessaging
 import com.waz.threading.Threading
@@ -37,7 +38,6 @@ import com.waz.utils.events.Signal
 import com.waz.utils.returning
 import com.waz.zclient.calling.CallingActivity
 import com.waz.zclient.calling.controllers.CallPermissionsController
-import com.waz.zclient.controllers.{SharingController, UserAccountsController}
 import com.waz.zclient.controllers.accentcolor.AccentColorChangeRequester
 import com.waz.zclient.controllers.calling.CallingObserver
 import com.waz.zclient.controllers.global.{AccentColorController, SelectionController}
@@ -47,7 +47,7 @@ import com.waz.zclient.controllers.tracking.events.connect.AcceptedGenericInvite
 import com.waz.zclient.controllers.tracking.events.exception.ExceptionEvent
 import com.waz.zclient.controllers.tracking.events.profile.SignOut
 import com.waz.zclient.controllers.tracking.screens.ApplicationScreen
-import com.waz.zclient.controllers.userpreferences.UserPreferencesController
+import com.waz.zclient.controllers.{SharingController, UserAccountsController}
 import com.waz.zclient.core.api.scala.AppEntryStore
 import com.waz.zclient.core.controllers.tracking.attributes.OpenedMediaAction
 import com.waz.zclient.core.controllers.tracking.events.media.OpenedMediaActionEvent
@@ -173,7 +173,7 @@ class MainActivity extends BaseActivity
 
     Option(ZMessaging.currentGlobal).foreach(_.googleApi.checkGooglePlayServicesAvailable(this))
 
-    val trackingEnabled = getSharedPreferences(UserPreferencesController.USER_PREFS_TAG, Context.MODE_PRIVATE).getBoolean(getString(R.string.pref_advanced_analytics_enabled_key), true)
+    val trackingEnabled = ZMessaging.currentGlobal.prefs.getFromPref(UserPreferences.AnalyticsEnabled)
     if (trackingEnabled) HockeyCrashReporting.checkForCrashes(getApplicationContext, getControllerFactory.getUserPreferencesController.getDeviceId, globalTracking)
     else {
       HockeyCrashReporting.deleteCrashReports(getApplicationContext)

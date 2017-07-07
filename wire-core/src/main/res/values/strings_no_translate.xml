@@ -92,14 +92,9 @@
     <string translatable="false" name="pref_device_details_reset_session_key">pref_device_details_reset_session_key</string>
     <string translatable="false" name="pref_device_details_remove_key">pref_device_details_remove_key</string>
     <string translatable="false" name="pref_options_vibration_key">pref_vibration_key</string>
-    <string translatable="false" name="pref_options_sounds_key">pref_sound_option_key</string>
-    <string translatable="false" name="pref_options_sounds_default">pref_sound_value_default</string>
-    <string translateble="false" name="pref_options_image_download_default">zms_image_download_default_value</string>
-    <string translateble="false" name="pref_options_image_download_key">zms_image_download_preference_key</string>
     <string translatable="false" name="pref_account_appearance_category_key">pref_account_appearance_category_key</string>
     <string translatable="false" name="pref_account_picture_key">pref_account_picture_key</string>
     <string translatable="false" name="pref_account_color_key">pref_account_color_key</string>
-    <string translatable="false" name="pref_advanced_analytics_enabled_key">zms_analytics_preference_key</string>
     <string translatable="false" name="pref_advanced_debug_report_key">PREF_DEBUG_REPORT</string>
     <string-array translatable="false" name="pref_options_sounds_entries">
         <item>@string/pref_options_sounds_all</item>

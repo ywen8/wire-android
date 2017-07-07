@@ -2,7 +2,7 @@
 <!--
 
     Wire
-    Copyright (C) 2016 Wire Swiss GmbH
+    Copyright (C) 2017 Wire Swiss GmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -18,21 +18,14 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 -->
-<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
-                  android:title="@string/pref_advanced_screen_title"
-    >
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <SwitchPreference
-        android:defaultValue="true"
-        android:key="@string/pref_advanced_analytics_enabled_key"
-        android:summary="@string/pref_advanced_analytics_summary"
-        android:title="@string/pref_advanced_analytics_title"
-        />
+<item android:drawable="@color/background_graphite"/>
 
-    <Preference
-        android:key="@string/pref_advanced_debug_report_key"
-        android:title="@string/pref_advanced_debug_report_title"
-        android:summary="@string/pref_advanced_debug_report_summary"
-        />
+<item>
+    <bitmap
+        android:gravity="center"
+        android:src="@drawable/watermark"/>
+</item>
 
-</PreferenceScreen>
+</layer-list>

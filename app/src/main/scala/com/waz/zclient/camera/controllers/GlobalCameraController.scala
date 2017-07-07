@@ -24,7 +24,6 @@ import android.content.res.Configuration
 import android.graphics.{Rect, SurfaceTexture}
 import android.hardware.Camera
 import android.hardware.Camera.{AutoFocusCallback, PictureCallback, ShutterCallback}
-import android.os.Build
 import android.view.{OrientationEventListener, Surface, WindowManager}
 import com.waz.ZLog
 import com.waz.service.images.ImageAssetGenerator

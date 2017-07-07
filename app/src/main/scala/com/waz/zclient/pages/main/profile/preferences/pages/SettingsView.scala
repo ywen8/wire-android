@@ -26,7 +26,6 @@ import com.waz.ZLog
 import com.waz.service.ZMessaging
 import com.waz.threading.Threading
 import com.waz.utils.events.{EventContext, EventStream, Signal}
-import com.waz.zclient.controllers.global.AccentColorController
 import com.waz.zclient.controllers.tracking.events.connect.OpenedGenericInviteMenuEvent
 import com.waz.zclient.controllers.tracking.screens.ApplicationScreen
 import com.waz.zclient.pages.main.profile.preferences.views.TextButton
