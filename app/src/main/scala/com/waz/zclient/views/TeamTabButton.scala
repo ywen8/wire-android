@@ -77,9 +77,16 @@ class TeamTabButton(val context: Context, val attrs: AttributeSet, val defStyleA
   }
 
   def setUserData(accountData: AccountData, userData: UserData, selected: Boolean, unreadCount: Int): Unit = {
-    drawable.setInfo(NameParts.maybeInitial(userData.displayName).getOrElse(""), if (accountData.isTeamAccount) TeamIconDrawable.TeamCorners else TeamIconDrawable.UserCorners, selected)
-    name.setText(userData.getDisplayName)
-    drawable.assetId ! userData.picture
+    if (accountData.isTeamAccount()) {
+      // TODO change to team name once TeamData is moved to GlobalDB
+      drawable.setInfo(NameParts.maybeInitial(userData.getDisplayName).getOrElse(""), TeamIconDrawable.TeamCorners, selected)
+      name.setText(userData.getDisplayName)
+      drawable.assetId ! None
+    } else {
+      drawable.setInfo(NameParts.maybeInitial(userData.displayName).getOrElse(""), TeamIconDrawable.UserCorners, selected)
+      name.setText(userData.getDisplayName)
+      drawable.assetId ! userData.picture
+    }
     buttonSelected = selected
     unreadIndicatorName.setVisible(unreadCount > 0 && !selected)
     unreadIndicatorIcon.setVisible(unreadCount > 0 && !selected)
