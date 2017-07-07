@@ -64,8 +64,8 @@ trait AccountView {
 
   def setName(name: String): Unit
   def setHandle(handle: String): Unit
-  def setEmail(email: String): Unit
-  def setPhone(phone: String): Unit
+  def setEmail(email: Option[String]): Unit
+  def setPhone(phone: Option[String]): Unit
   def setPictureDrawable(drawable: Drawable): Unit
   def setAccentDrawable(drawable: Drawable): Unit
 }
@@ -100,9 +100,9 @@ class AccountViewImpl(context: Context, attrs: AttributeSet, style: Int) extends
 
   override def setHandle(handle: String) = handleButton.setTitle(handle)
 
-  override def setEmail(email: String) = emailButton.setTitle(email)
+  override def setEmail(email: Option[String]) = emailButton.setTitle(email.getOrElse(getString(R.string.pref_account_add_email_title)))
 
-  override def setPhone(phone: String) = phoneButton.setTitle(phone)
+  override def setPhone(phone: Option[String]) = phoneButton.setTitle(phone.getOrElse(getString(R.string.pref_account_add_phone_title)))
 
   override def setPictureDrawable(drawable: Drawable) = pictureButton.setDrawableStart(Some(drawable))
 
@@ -155,7 +155,7 @@ class AccountViewController(view: AccountView)(implicit inj: Injector, ec: Event
 
   self.onUi { self =>
     self.handle.foreach(handle => view.setHandle(StringUtils.formatHandle(handle.string)))
-    view.setName(self.getDisplayName)
+    view.setName(self.name)
     view.setAccentDrawable(new Drawable {
 
       val paint = new Paint()
@@ -174,8 +174,8 @@ class AccountViewController(view: AccountView)(implicit inj: Injector, ec: Event
   }
 
   account.onUi { account =>
-    view.setEmail(account.email.fold("-")(_.str))
-    view.setPhone(account.phone.fold("-")(_.str))
+    view.setEmail(account.email.map(_.str))
+    view.setPhone(account.phone.map(_.str))
   }
 
   view.onNameClick.onUi { _ =>
@@ -240,6 +240,7 @@ class AccountViewController(view: AccountView)(implicit inj: Injector, ec: Event
                 f.dismiss()
               }
               showPrefDialog(f, TAG)
+            case _ =>
           }
         },
         ChangePhoneDialog.FragmentTag)
