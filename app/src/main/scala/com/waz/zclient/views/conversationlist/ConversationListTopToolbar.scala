@@ -31,7 +31,7 @@ import com.waz.zclient.ui.text.{GlyphTextView, TypefaceTextView}
 import com.waz.zclient.ui.views.CircleView
 import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.utils.RichView
-import com.waz.zclient.views.{TeamTabButton, TeamTabsView}
+import com.waz.zclient.views.{AccountTabButton, AccountTabsView}
 import com.waz.zclient.{R, ViewHelper}
 
 
@@ -45,7 +45,7 @@ abstract class ConversationListTopToolbar(val context: Context, val attrs: Attri
   val glyphButton = findById[GlyphTextView](R.id.conversation_list_settings)
   val title = findById[TypefaceTextView](R.id.conversation_list_title)
   val settingsIndicator = findById[CircleView](R.id.conversation_list_settings_indicator)
-  val tabsContainer = findById[TeamTabsView](R.id.team_tabs_container)
+  val tabsContainer = findById[AccountTabsView](R.id.team_tabs_container)
 
   val onRightButtonClick = EventStream[View]()
 
@@ -125,9 +125,9 @@ class NormalTopToolbar(override val context: Context, override val attrs: Attrib
     if (tabsContainer.isVisible) {
       (0 until tabsContainer.getChildCount).map(tabsContainer.getChildAt).foreach{ child =>
         if (scrolledToTop)
-          child.asInstanceOf[TeamTabButton].animateExpand()
+          child.asInstanceOf[AccountTabButton].animateExpand()
         else
-          child.asInstanceOf[TeamTabButton].animateCollapse()
+          child.asInstanceOf[AccountTabButton].animateCollapse()
       }
     }
   }
