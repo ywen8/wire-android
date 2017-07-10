@@ -290,12 +290,15 @@ class MainActivity extends BaseActivity
       return
     }
     // step 2 - no one is logged in
-    if (!self.isLoggedIn) {
-      // finally - no one is logged in
-      error("No user is logged in")
-      openSignUpPage()
-      return
-    }
+    ZMessaging.currentAccounts.activeAccountPref().map {
+      case Some(account) =>
+      case None => {
+        // finally - no one is logged in
+        error("No user is logged in")
+        openSignUpPage()
+      }
+    }(Threading.Ui)
+
     import com.waz.api.ClientRegistrationState._
     self.getClientRegistrationState match {
       case PASSWORD_MISSING =>

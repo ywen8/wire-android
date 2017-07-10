@@ -490,7 +490,7 @@ public class AppEntryStore implements IAppEntryStore, ErrorsList.ErrorListener {
                     setState(AppEntryState.EMAIL_SET_PICTURE);
                     break;
                 }
-                if (self.getPhone().isEmpty()) {
+                if (self.getPhone().isEmpty() && !self.isTeamAccount()) {
                     setState(AppEntryState.EMAIL_SET_PHONE);
                     break;
                 }
