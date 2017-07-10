@@ -24,23 +24,28 @@ import android.view.ViewGroup.MarginLayoutParams
 import android.view.{View, ViewGroup}
 import android.widget.FrameLayout.LayoutParams
 import android.widget.{FrameLayout, ImageView, RelativeLayout}
-import com.waz.api.impl.{AccentColor, AccentColors}
+import com.waz.api.impl.AccentColors
 import com.waz.model._
+import com.waz.service.ZMessaging
 import com.waz.threading.Threading
 import com.waz.utils.NameParts
+import com.waz.ZLog.ImplicitTag._
+import com.waz.utils.events.Signal
 import com.waz.zclient.controllers.global.AccentColorController
 import com.waz.zclient.drawables.TeamIconDrawable
 import com.waz.zclient.ui.text.TypefaceTextView
 import com.waz.zclient.ui.views.CircleView
+import com.waz.zclient.utils.{RichView, UiStorage, UserSignal}
 import com.waz.zclient.{R, ViewHelper}
-import com.waz.zclient.utils.RichView
 
-class TeamTabButton(val context: Context, val attrs: AttributeSet, val defStyleAttr: Int) extends FrameLayout(context, attrs, defStyleAttr) with ViewHelper {
+class AccountTabButton(val context: Context, val attrs: AttributeSet, val defStyleAttr: Int) extends FrameLayout(context, attrs, defStyleAttr) with ViewHelper {
   def this(context: Context, attrs: AttributeSet) = this(context, attrs, 0)
   def this(context: Context) = this(context, null)
 
   inflate(R.layout.view_team_tab)
   setLayoutParams(new LayoutParams(context.getResources.getDimensionPixelSize(R.dimen.teams_tab_width), ViewGroup.LayoutParams.MATCH_PARENT))
+
+  implicit val uiStorage = inject[UiStorage]
 
   val icon                = findById[ImageView](R.id.team_icon)
   val name                = findById[TypefaceTextView](R.id.team_name)
@@ -62,8 +67,41 @@ class TeamTabButton(val context: Context, val attrs: AttributeSet, val defStyleA
       getResources.getDimensionPixelSize(R.dimen.teams_tab_default_height)
 
   private var selectedColor = AccentColors.defaultColor.getColor()
-  private var buttonSelected = false
-  var accountData = Option.empty[AccountData]
+
+  private val accountId = Signal[AccountId]()
+
+  val account = accountId.flatMap(ZMessaging.currentAccounts.storage.signal).disableAutowiring()
+
+  val selected = (for {
+    acc    <- accountId
+    active <- ZMessaging.currentAccounts.activeAccountPref.signal
+  } yield active.contains(acc))
+    .disableAutowiring()
+
+  val teamOrUser: Signal[Either[TeamData, UserData]] = account.flatMap { acc =>
+    acc.teamId match {
+      case Right(Some(t)) => ZMessaging.currentGlobal.teamsStorage.signal(t).map(Left(_))
+      case _ => (acc.userId match {
+        case Some(id) => UserSignal(id)
+        case None     => Signal.empty[UserData]
+      }).map(Right(_))
+    }
+  }
+
+  (for {
+    s   <- selected
+    tOu <- teamOrUser
+  } yield (tOu, s)).onUi {
+    case (Right(user), s) =>
+      drawable.setInfo(NameParts.maybeInitial(user.displayName).getOrElse(""), TeamIconDrawable.UserCorners, s)
+      name.setText(user.getDisplayName)
+      drawable.assetId ! user.picture
+    case (Left(team), s) =>
+      drawable.setInfo(NameParts.maybeInitial(team.name).getOrElse(""), TeamIconDrawable.TeamCorners, s)
+      name.setText(team.name)
+      // TODO use team icon when ready
+      drawable.assetId ! None
+  }
 
   icon.setImageDrawable(drawable)
   setLayerType(View.LAYER_TYPE_SOFTWARE, null)
@@ -77,23 +115,11 @@ class TeamTabButton(val context: Context, val attrs: AttributeSet, val defStyleA
     unreadIndicatorName.setAccentColor(accentColor.getColor())
   }
 
-  def setUserData(accountData: AccountData, team: Option[TeamData], userData: UserData, selected: Boolean, unreadCount: Int): Unit = {
-    team match {
-      case Some(t) =>
-        drawable.setInfo(NameParts.maybeInitial(t.name).getOrElse(""), TeamIconDrawable.TeamCorners, selected)
-        name.setText(t.name)
-        // TODO use team icon when ready
-        drawable.assetId ! None
-      case _ =>
-        drawable.setInfo(NameParts.maybeInitial(userData.displayName).getOrElse(""), TeamIconDrawable.UserCorners, selected)
-        name.setText(userData.getDisplayName)
-        drawable.assetId ! userData.picture
-    }
-
-    buttonSelected = selected
-    unreadIndicatorName.setVisible(unreadCount > 0 && !selected)
-    unreadIndicatorIcon.setVisible(unreadCount > 0 && !selected)
-    this.accountData = Some(accountData)
+  def setAccount(id: AccountId) = {
+    accountId ! id
+    //TODO - re-introduce unread badge
+    unreadIndicatorName.setVisible(false) //unreadCount > 0 && !selected)
+    unreadIndicatorIcon.setVisible(false) //unreadCount > 0 && !selected)
   }
 
   def animateExpand(): Unit = {
@@ -110,7 +136,7 @@ class TeamTabButton(val context: Context, val attrs: AttributeSet, val defStyleA
     iconContainer.animate().translationY(-margin).alpha(0f).setDuration(animationDuration).start()
     unreadIndicatorName.animate().alpha(1f).start()
     unreadIndicatorIcon.animate().alpha(0f).start()
-    val textColor = if (buttonSelected) selectedColor else Color.WHITE
+    val textColor = if (selected.currentValue.getOrElse(false)) selectedColor else Color.WHITE
     name.setTextColor(textColor)
   }
 }

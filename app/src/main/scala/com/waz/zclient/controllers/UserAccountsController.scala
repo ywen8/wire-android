@@ -36,7 +36,7 @@ class UserAccountsController(implicit injector: Injector, context: Context, ec: 
 
   val zms = inject[Signal[ZMessaging]]
 
-  val accounts = Option(ZMessaging.currentAccounts).fold(Signal.const[Seq[AccountData]](Seq()))( _.loggedInAccounts )
+  val accounts = Option(ZMessaging.currentAccounts).fold(Signal.const[Seq[AccountData]](Seq()))( _.loggedInAccounts.map(_.sortBy(acc => (acc.isTeamAccount, acc.id.str))))
 
   val currentUser = for {
     zms     <- zms

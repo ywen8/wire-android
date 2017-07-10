@@ -39,7 +39,7 @@
         android:layout_height="match_parent"
         android:layout_gravity="center"
         >
-        <com.waz.zclient.views.TeamTabsView
+        <com.waz.zclient.views.AccountTabsView
             android:id="@+id/team_tabs_container"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
