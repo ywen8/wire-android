@@ -80,7 +80,7 @@ class PickUsersAdapter(topUsersOnItemTouchListener: SearchResultOnItemTouchListe
     updateMergedResults()
   }
 
-  private def updateMergedResults(): Unit ={
+  private def updateMergedResults(): Unit = {
     mergedResult = Seq()
 
     val teamName = userAccountsController.teamData.map(_.name).getOrElse("")
@@ -125,6 +125,7 @@ class PickUsersAdapter(topUsersOnItemTouchListener: SearchResultOnItemTouchListe
         }
       }
     }
+
     def addGroupConversations(): Unit = {
       if (conversations.nonEmpty) {
         mergedResult = mergedResult ++ Seq(SearchResult(SectionHeader, GroupConversationsSection, 0, teamName))
@@ -139,6 +140,7 @@ class PickUsersAdapter(topUsersOnItemTouchListener: SearchResultOnItemTouchListe
         }
       }
     }
+
     def addConnections(): Unit = {
       if (directoryResults.nonEmpty) {
         mergedResult = mergedResult ++ Seq(SearchResult(SectionHeader, DirectorySection, 0))

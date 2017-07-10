@@ -63,13 +63,7 @@ class UserAccountsController(implicit injector: Injector, context: Context, ec: 
     teamData <- zms.teams.selfTeam
   } yield teamData
 
-  teamDataSignal { data =>
-    _teamData = data
-    data match {
-      case Some(team) => _teamId = Some(team.id)
-      case _ => _teamId = None
-    }
-  }
+  teamDataSignal { data => _teamData = data }
 
   def teamData = _teamData
 
@@ -100,8 +94,10 @@ class UserAccountsController(implicit injector: Injector, context: Context, ec: 
     }(Threading.Ui)
   }
 
-  def teamId = zms.map(_.teamId).currentValue.flatten
-  def isTeamAccount = teamId.isDefined
+  zms.map(_.teamId) { case teamId => _teamId = teamId }
+
+  def teamId = _teamId
+  def isTeamAccount = _teamId.isDefined
 
   def hasCreateConversationPermission: Boolean = !isTeamAccount || _permissions(AccountData.Permission.CreateConversation)
   def hasRemoveConversationMemberPermission(convId: ConvId): Boolean = !isTeamAccount || _permissions(AccountData.Permission.RemoveConversationMember)

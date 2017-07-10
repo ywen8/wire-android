@@ -181,13 +181,13 @@ class SearchUserController(initialState: SearchState)(implicit injector: Injecto
   }
 
   val allDataSignal = for{
-    topUsers              <- topUsersSignal.orElse(Signal(IndexedSeq()))
-    teamMembersAndGuests  <- teamMembersAndGuestsSignal.orElse(Signal(IndexedSeq()))
-    conversations         <- conversationsSignal.orElse(Signal(Seq()))
-    connectedUsers        <- connectedUsersSignal.orElse(Signal(Vector()))
+    topUsers              <- topUsersSignal.orElse(Signal.const(IndexedSeq.empty[UserData]))
+    teamMembersAndGuests  <- teamMembersAndGuestsSignal.orElse(Signal.const(IndexedSeq.empty[UserData]))
+    conversations         <- conversationsSignal.orElse(Signal.const(Seq.empty[ConversationData]))
+    connectedUsers        <- connectedUsersSignal.orElse(Signal.const(IndexedSeq.empty[UserData]))
     searchState           <- searchState
-    contacts              <- if (searchState.shouldShowAbContacts) contactsSignal.orElse(Signal(Seq())) else Signal(Seq[Contact]())
-    directoryResults      <- searchSignal.orElse(Signal(IndexedSeq()))
+    contacts              <- if (searchState.shouldShowAbContacts) contactsSignal.orElse(Signal.const(Seq.empty[Contact])) else Signal(Seq.empty[Contact])
+    directoryResults      <- searchSignal.orElse(Signal.const(IndexedSeq.empty[UserData]))
   } yield (topUsers, teamMembersAndGuests, conversations, connectedUsers, contacts, directoryResults)
 
   private def getSearchQuery(str: String): SearchQuery = {
