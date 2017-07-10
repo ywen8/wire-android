@@ -98,7 +98,7 @@ class SearchUserController(initialState: SearchState)(implicit injector: Injecto
   } yield convs.filter{ conv =>
     searchState.teamId match {
       case Some(tId) => conv.team.contains(tId)
-      case _ => conv.team.isEmpty
+      case _ => true
     }
   }.distinct
 
