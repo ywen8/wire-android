@@ -37,7 +37,7 @@ class MessageBottomSheetDialog(val context: Context,
                                message: MessageData,
                                params: Params,
                                operations: Seq[MessageAction] = Seq.empty)
-    extends BottomSheetDialog(context, theme) with DialogHelper {
+  extends BottomSheetDialog(context, theme) with DialogHelper {
 
   lazy val zmessaging = inject[Signal[ZMessaging]]
   lazy val messageActionsController = inject[MessageActionsController]
@@ -219,13 +219,13 @@ object MessageBottomSheetDialog {
 
     case object Edit extends MessageAction(R.id.message_bottom_menu_item_edit, R.string.glyph__edit, R.string.message_bottom_menu_action_edit) {
       override def enabled(msg: MessageData, zms: ZMessaging, p: Params): Signal[Boolean] =
-      msg.msgType match {
-        case TEXT_EMOJI_ONLY | TEXT | RICH_MEDIA if !msg.isEphemeral && msg.userId == zms.selfUserId =>
-          if (p.collection) Signal const false
-          else isMemberOfConversation(msg.convId, zms)
-        case _ =>
-          Signal const false
-      }
+        msg.msgType match {
+          case TEXT_EMOJI_ONLY | TEXT | RICH_MEDIA if !msg.isEphemeral && msg.userId == zms.selfUserId =>
+            if (p.collection) Signal const false
+            else isMemberOfConversation(msg.convId, zms)
+          case _ =>
+            Signal const false
+        }
     }
 
   }
