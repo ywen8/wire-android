@@ -967,7 +967,7 @@
     <string name="single_image__save_to_disk__error">Unable to save image, no access to external storage</string>
     <string name="conversation_list__label_action__contacts">PEOPLE</string>
     <string name="conversation_list__hint_header">Conversations start here</string>
-    <string name="conversation_list__hint_text">Start a conversation or invite more people to join. Call, message and share in private or with groups.</string>
+    <string name="conversation_list__hint_text">Start a conversation. Call, message and share in private or with groups.</string>
     <string name="conversation_list__action_join_call">JOIN</string>
 
     <!-- Conversation Toolbar -->
@@ -1011,7 +1011,7 @@
     <!-- no contacts -->
     <string name="no_conversation_in_list__header">No conversations yet</string>
     <string name="all_archived__header">Everything archived</string>
-    <string name="no_conversation_in_list__message">Start a conversation, create a group or invite people to join.</string>
+    <string name="no_conversation_in_list__message">Start a conversation or create a group.</string>
 
     <string name="cursor__type_a_message">TYPE A MESSAGE</string>
     <string name="cursor__ephemeral_message">TIMED MESSAGE</string>
