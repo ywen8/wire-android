@@ -24,7 +24,7 @@ import com.waz.zclient.{Injectable, Injector}
 class PasswordController(implicit inj: Injector) extends Injectable {
   import Threading.Implicits.Background
 
-  val password = ZMessaging.currentAccounts.activeAccount.map(_.flatMap(_.password))
+  val password = ZMessaging.currentAccounts.activeAccount.map(_.flatMap(_.password)).disableAutowiring()
 
   //The password is never saved in the database, this will just update the in-memory version of the current account
   //so that the password is globally correct.
