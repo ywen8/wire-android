@@ -33,11 +33,13 @@ import com.waz.zclient.tracking.GlobalTrackingController
 import com.waz.zclient.utils.{BackStackKey, BackStackNavigator, IntentUtils, StringUtils, UiStorage, UserSignal}
 import com.waz.zclient.views.FlatWireButton
 import com.waz.zclient.{Injectable, Injector, R, ViewHelper}
+import com.waz.zclient.utils.RichView
 
 trait SettingsView {
 
   val onInviteClick: EventStream[Unit]
 
+  def setInviteButtonEnabled(enabled: Boolean): Unit
   def startInviteIntent(name: String, handle: String): Unit
 }
 
@@ -80,6 +82,7 @@ class SettingsViewImpl(context: Context, attrs: AttributeSet, style: Int) extend
     context.startActivity(Intent.createChooser(sharingIntent, context.getString(R.string.people_picker__invite__share_details_dialog)))
   }
 
+  override def setInviteButtonEnabled(enabled: Boolean) = inviteButton.setVisible(enabled)
 }
 
 case class SettingsBackStackKey(args: Bundle = new Bundle()) extends BackStackKey(args) {
@@ -110,7 +113,9 @@ class SettingsViewController(view: SettingsView)(implicit inj: Injector, ec: Eve
     self <- UserSignal(z.selfUserId)
   } yield (self.getDisplayName, self.handle.fold("")(_.string))
 
-  view.onInviteClick.onUi{ _ =>
+  val team = zms.flatMap(_.teams.selfTeam)
+
+  view.onInviteClick.onUi { _ =>
     selfInfo.currentValue.foreach {
       case (name, handle) =>
         view.startInviteIntent(name, handle)
@@ -118,6 +123,10 @@ class SettingsViewController(view: SettingsView)(implicit inj: Injector, ec: Eve
         globalTrackingController.onApplicationScreen(ApplicationScreen.SEND_GENERIC_INVITE_MENU)
       case _ =>
     }
+  }
+
+  team.onUi { team =>
+    view.setInviteButtonEnabled(team.isEmpty)
   }
 }
 

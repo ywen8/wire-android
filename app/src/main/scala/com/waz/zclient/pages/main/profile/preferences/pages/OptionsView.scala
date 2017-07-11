@@ -38,6 +38,7 @@ import com.waz.zclient.pages.main.profile.preferences.pages.OptionsView._
 import com.waz.zclient.pages.main.profile.preferences.views.{SwitchPreference, TextButton}
 import com.waz.zclient.preferences.PreferencesActivity
 import com.waz.zclient.utils.{BackStackKey, RingtoneUtils}
+import com.waz.zclient.utils.RichView
 
 trait OptionsView {
   def setSounds(level: IntensityLevel): Unit
@@ -45,6 +46,7 @@ trait OptionsView {
   def setTextTone(string: String): Unit
   def setPingTone(string: String): Unit
   def setDownloadPictures(wifiOnly: Boolean): Unit
+  def setShareEnabled(enabled: Boolean): Unit
 }
 
 object OptionsView {
@@ -137,6 +139,9 @@ class OptionsViewImpl(context: Context, attrs: AttributeSet, style: Int) extends
     downloadImagesSwitch.setSubtitle(if (wifiOnly) names.head else names.last)
   }
 
+
+  override def setShareEnabled(enabled: Boolean) = contactsSwitch.setVisible(enabled)
+
   private def showPrefDialog(f: Fragment, tag: String) = {
     context.asInstanceOf[BaseActivity]
       .getSupportFragmentManager
@@ -182,10 +187,13 @@ case class OptionsBackStackKey(args: Bundle = new Bundle()) extends BackStackKey
 class OptionsViewController(view: OptionsView)(implicit inj: Injector, ec: EventContext) extends Injectable {
   val zms = inject[Signal[ZMessaging]]
   val userPrefs = zms.map(_.userPrefs)
+  val team = zms.flatMap(_.teams.selfTeam)
 
   userPrefs.flatMap(_.preference(UserPreferences.DownloadImagesOnWifiOnly).signal).on(Threading.Ui){ view.setDownloadPictures }
   userPrefs.flatMap(_.preference(UserPreferences.Sounds).signal).on(Threading.Ui){ view.setSounds }
   userPrefs.flatMap(_.preference(UserPreferences.RingTone).signal).on(Threading.Ui){ view.setRingtone }
   userPrefs.flatMap(_.preference(UserPreferences.TextTone).signal).on(Threading.Ui){ view.setTextTone }
   userPrefs.flatMap(_.preference(UserPreferences.PingTone).signal).on(Threading.Ui){ view.setPingTone }
+
+  team.onUi{ team => view.setShareEnabled(team.isEmpty) }
 }

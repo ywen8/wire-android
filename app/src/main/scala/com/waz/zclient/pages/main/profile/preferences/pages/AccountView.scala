@@ -48,7 +48,7 @@ import com.waz.zclient.utils.{BackStackKey, BackStackNavigator, StringUtils, UiS
 import com.waz.zclient.views.ImageAssetDrawable
 import com.waz.zclient.views.ImageAssetDrawable.{RequestBuilder, ScaleType}
 import com.waz.zclient.views.ImageController.{ImageSource, WireImage}
-
+import com.waz.zclient.utils.RichView
 import scala.concurrent.Future
 
 trait AccountView {
@@ -68,6 +68,7 @@ trait AccountView {
   def setPhone(phone: Option[String]): Unit
   def setPictureDrawable(drawable: Drawable): Unit
   def setAccentDrawable(drawable: Drawable): Unit
+  def setDeleteAccountEnabled(enabled: Boolean): Unit
 }
 
 class AccountViewImpl(context: Context, attrs: AttributeSet, style: Int) extends LinearLayout(context, attrs, style) with AccountView with ViewHelper {
@@ -107,6 +108,8 @@ class AccountViewImpl(context: Context, attrs: AttributeSet, style: Int) extends
   override def setPictureDrawable(drawable: Drawable) = pictureButton.setDrawableStart(Some(drawable))
 
   override def setAccentDrawable(drawable: Drawable) = colorButton.setDrawableStart(Some(drawable))
+
+  override def setDeleteAccountEnabled(enabled: Boolean) = deleteAccountButton.setVisible(enabled)
 }
 
 case class AccountBackStackKey(args: Bundle = new Bundle()) extends BackStackKey(args) {
@@ -149,6 +152,8 @@ class AccountViewController(view: AccountView)(implicit inj: Injector, ec: Event
     account <- zms.account.accountData
   } yield account
 
+  val team = zms.flatMap(_.teams.selfTeam)
+
   val selfPicture: Signal[ImageSource] = self.map(_.picture).collect{case Some(pic) => WireImage(pic)}
 
   view.setPictureDrawable(new ImageAssetDrawable(selfPicture, scaleType = ScaleType.CenterInside, request = RequestBuilder.Round))
@@ -177,6 +182,8 @@ class AccountViewController(view: AccountView)(implicit inj: Injector, ec: Event
     view.setEmail(account.email.map(_.str))
     view.setPhone(account.phone.map(_.str))
   }
+
+  team.onUi { team => view.setDeleteAccountEnabled(team.isEmpty) }
 
   view.onNameClick.onUi { _ =>
     self.head.map { self =>

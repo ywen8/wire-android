@@ -98,8 +98,4 @@ class TextButton(context: Context, attrs: AttributeSet, style: Int) extends Rela
     }
   }
 
-  override def setEnabled(enabled: Boolean) = {
-    super.setEnabled(enabled)
-    setAlpha(if (enabled) 1.0f else 0.5f)
-  }
 }
