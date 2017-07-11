@@ -32,7 +32,7 @@ import com.waz.zclient.pages.main.profile.preferences.views.TextButton
 import com.waz.zclient.tracking.GlobalTrackingController
 import com.waz.zclient.utils.{BackStackKey, BackStackNavigator, IntentUtils, StringUtils, UiStorage, UserSignal}
 import com.waz.zclient.views.FlatWireButton
-import com.waz.zclient.{Injectable, Injector, R, ViewHelper}
+import com.waz.zclient._
 import com.waz.zclient.utils.RichView
 
 trait SettingsView {
@@ -41,6 +41,7 @@ trait SettingsView {
 
   def setInviteButtonEnabled(enabled: Boolean): Unit
   def startInviteIntent(name: String, handle: String): Unit
+  def setDevSettingsEnabled(enabled: Boolean): Unit
 }
 
 class SettingsViewImpl(context: Context, attrs: AttributeSet, style: Int) extends LinearLayout(context, attrs, style) with SettingsView with ViewHelper {
@@ -83,6 +84,11 @@ class SettingsViewImpl(context: Context, attrs: AttributeSet, style: Int) extend
   }
 
   override def setInviteButtonEnabled(enabled: Boolean) = inviteButton.setVisible(enabled)
+
+  override def setDevSettingsEnabled(enabled: Boolean) = {
+    devButton.setVisible(enabled)
+    avsButton.setVisible(enabled)
+  }
 }
 
 case class SettingsBackStackKey(args: Bundle = new Bundle()) extends BackStackKey(args) {
@@ -128,5 +134,7 @@ class SettingsViewController(view: SettingsView)(implicit inj: Injector, ec: Eve
   team.onUi { team =>
     view.setInviteButtonEnabled(team.isEmpty)
   }
+
+  view.setDevSettingsEnabled(BuildConfig.DEBUG)
 }
 
