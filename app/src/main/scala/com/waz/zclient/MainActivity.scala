@@ -38,6 +38,7 @@ import com.waz.utils.events.Signal
 import com.waz.utils.returning
 import com.waz.zclient.calling.CallingActivity
 import com.waz.zclient.calling.controllers.CallPermissionsController
+import com.waz.zclient.controllers.{SharingController, ThemeObservingActivity, UserAccountsController}
 import com.waz.zclient.controllers.accentcolor.AccentColorChangeRequester
 import com.waz.zclient.controllers.calling.CallingObserver
 import com.waz.zclient.controllers.global.{AccentColorController, SelectionController}
@@ -82,7 +83,8 @@ class MainActivity extends BaseActivity
   with CallingObserver
   with OtrDeviceLimitFragment.Container
   with ZMessagingApiStoreObserver
-  with ConversationStoreObserver {
+  with ConversationStoreObserver
+  with ThemeObservingActivity {
 
   import Threading.Implicits.Background
 
@@ -188,16 +190,6 @@ class MainActivity extends BaseActivity
 
     Localytics.setInAppMessageDisplayActivity(this)
     Localytics.handleTestMode(getIntent)
-    if (themeController.shouldActivityRestart) {
-      themeController.activityRestarted()
-      restartActivity()
-    }
-  }
-
-  private def restartActivity() = {
-    finish()
-    startActivity(IntentUtils.getAppLaunchIntent(this))
-    overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
   }
 
   override protected def onPause() = {
