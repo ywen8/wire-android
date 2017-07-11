@@ -32,7 +32,6 @@ import com.waz.zclient.controllers.giphy.IGiphyController;
 import com.waz.zclient.controllers.globallayout.IGlobalLayoutController;
 import com.waz.zclient.controllers.loadtimelogger.ILoadTimeLoggerController;
 import com.waz.zclient.controllers.location.ILocationController;
-import com.waz.zclient.controllers.mentioning.IMentioningController;
 import com.waz.zclient.controllers.navigation.INavigationController;
 import com.waz.zclient.controllers.orientation.IOrientationController;
 import com.waz.zclient.controllers.password.IPasswordController;
@@ -52,7 +51,6 @@ import com.waz.zclient.controllers.stubs.StubGiphyController;
 import com.waz.zclient.controllers.stubs.StubGlobalLayoutController;
 import com.waz.zclient.controllers.stubs.StubLoadTimeLoggerController;
 import com.waz.zclient.controllers.stubs.StubLocationController;
-import com.waz.zclient.controllers.stubs.StubMentioningController;
 import com.waz.zclient.controllers.stubs.StubNavigationController;
 import com.waz.zclient.controllers.stubs.StubOrientationController;
 import com.waz.zclient.controllers.stubs.StubPasswordController;
@@ -97,8 +95,6 @@ public class MockControllerFactory implements IControllerFactory {
   protected ILoadTimeLoggerController loadTimeLoggerController = spy(StubLoadTimeLoggerController.class);
 
   protected ILocationController locationController = spy(StubLocationController.class);
-
-  protected IMentioningController mentioningController = spy(StubMentioningController.class);
 
   protected INavigationController navigationController = spy(StubNavigationController.class);
 
@@ -244,11 +240,6 @@ public class MockControllerFactory implements IControllerFactory {
   @Override
   public ICameraController getCameraController() {
     return cameraController;
-  }
-
-  @Override
-  public IMentioningController getMentioningController() {
-    return mentioningController;
   }
 
   @Override

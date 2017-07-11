@@ -32,7 +32,6 @@ import com.waz.zclient.controllers.giphy.IGiphyController;
 import com.waz.zclient.controllers.globallayout.IGlobalLayoutController;
 import com.waz.zclient.controllers.loadtimelogger.ILoadTimeLoggerController;
 import com.waz.zclient.controllers.location.ILocationController;
-import com.waz.zclient.controllers.mentioning.IMentioningController;
 import com.waz.zclient.controllers.navigation.INavigationController;
 import com.waz.zclient.controllers.orientation.IOrientationController;
 import com.waz.zclient.controllers.password.IPasswordController;
@@ -128,11 +127,6 @@ public class StubControllerFactory implements IControllerFactory {
 
     @Override
     public ILoadTimeLoggerController getLoadTimeLoggerController() {
-        return null;
-    }
-
-    @Override
-    public IMentioningController getMentioningController() {
         return null;
     }
 

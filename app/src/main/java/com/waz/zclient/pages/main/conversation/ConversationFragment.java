@@ -46,6 +46,7 @@ import android.widget.AbsListView;
 import android.widget.FrameLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
 import com.waz.api.AssetFactory;
@@ -73,7 +74,6 @@ import com.waz.api.Verification;
 import com.waz.model.ConvId;
 import com.waz.utils.wrappers.URI;
 import com.waz.zclient.BaseActivity;
-import com.waz.zclient.BuildConfig;
 import com.waz.zclient.OnBackPressedListener;
 import com.waz.zclient.R;
 import com.waz.zclient.WireContext;
@@ -91,7 +91,6 @@ import com.waz.zclient.controllers.drawing.DrawingController;
 import com.waz.zclient.controllers.drawing.IDrawingController;
 import com.waz.zclient.controllers.giphy.GiphyObserver;
 import com.waz.zclient.controllers.globallayout.KeyboardVisibilityObserver;
-import com.waz.zclient.controllers.mentioning.MentioningObserver;
 import com.waz.zclient.controllers.navigation.NavigationControllerObserver;
 import com.waz.zclient.controllers.navigation.Page;
 import com.waz.zclient.controllers.navigation.PagerControllerObserver;
@@ -151,7 +150,6 @@ import com.waz.zclient.utils.SquareOrientation;
 import com.waz.zclient.utils.TrackingUtils;
 import com.waz.zclient.utils.ViewUtils;
 import com.waz.zclient.views.LoadingIndicatorView;
-import com.waz.zclient.views.MentioningFragment;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -167,7 +165,6 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
                                                                                                   NavigationControllerObserver,
                                                                                                   SlidingPaneObserver,
                                                                                                   SingleImageObserver,
-                                                                                                  MentioningObserver,
                                                                                                   GiphyObserver,
                                                                                                   OnBackPressedListener,
                                                                                                   CursorCallback,
@@ -511,14 +508,6 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
 
         conversationLoadingIndicatorViewView = ViewUtils.getView(view, R.id.lbv__conversation__loading_indicator);
 
-        if (BuildConfig.SHOW_MENTIONING) {
-            getChildFragmentManager().beginTransaction()
-                                     .add(R.id.fl__conversation_overlay,
-                                          MentioningFragment.getInstance(),
-                                          MentioningFragment.TAG)
-                                     .commit();
-        }
-
         // invisible footer to scroll over inputfield
         invisibleFooter = new FrameLayout(getActivity());
         AbsListView.LayoutParams params = new AbsListView.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
@@ -560,10 +549,6 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
         final String draftText = getStoreFactory().getDraftStore().getDraft(getStoreFactory().getConversationStore().getCurrentConversation());
         if (!TextUtils.isEmpty(draftText)) {
             cursorLayout.setText(draftText);
-        }
-
-        if (BuildConfig.SHOW_MENTIONING) {
-            getControllerFactory().getMentioningController().addObserver(this);
         }
 
         syncIndicatorModelObserver.resumeListening();
@@ -619,9 +604,6 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
         getControllerFactory().getGlobalLayoutController().removeKeyboardHeightObserver(extendedCursorContainer);
         getControllerFactory().getGlobalLayoutController().removeKeyboardVisibilityObserver(extendedCursorContainer);
         getControllerFactory().getOrientationController().removeOrientationControllerObserver(this);
-        if (BuildConfig.SHOW_MENTIONING) {
-            getControllerFactory().getMentioningController().removeObserver(this);
-        }
         getControllerFactory().getGiphyController().removeObserver(this);
         getControllerFactory().getSingleImageController().removeSingleImageObserver(this);
 
@@ -723,11 +705,6 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
         extendedCursorContainer.close(true);
 
         getControllerFactory().getConversationScreenController().setSingleConversation(toConversation.getType() == IConversation.Type.ONE_TO_ONE);
-
-
-        if (BuildConfig.SHOW_MENTIONING) {
-            getControllerFactory().getMentioningController().setCurrentConversation(toConversation);
-        }
 
         int duration = getResources().getInteger(R.integer.framework_animation_duration_short);
         // post to give the RootFragment the chance to drive its animations first
@@ -863,53 +840,6 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
     @Override
     public void onMenuConversationHasChanged(IConversation fromConversation) {
 
-    }
-
-    @Override
-    public void onCursorPositionChanged(float x, float y) {
-
-    }
-
-    @Override
-    public void onQueryResultChanged(@NonNull List<User> usersList) {
-
-    }
-
-    @Override
-    public void onMentionedUserSelected(@NonNull String query, @NonNull User user) {
-        final int cursorPosition = cursorLayout.getSelection();
-        final String text = cursorLayout.getText();
-        if (cursorPosition == -1 || TextUtils.isEmpty(text)) {
-            cursorLayout.setText(text);
-            cursorLayout.setSelection(text.length());
-            return;
-        }
-        final String[] words = text.split(" ");
-        StringBuilder builder = new StringBuilder();
-        int desiredCursorPosition = 0;
-        boolean inserted = false;
-        for (int i = 0, wordsLength = words.length; i < wordsLength; i++) {
-            String word = words[i];
-            if (!inserted && builder.length() + word.length() + 1 > cursorPosition) {
-                final int diff = word.length() - 1 - query.length();
-                String rest = word.substring(query.length() + 1);
-                builder.append('@')
-                       .append(user.getDisplayName())
-                       .append(' ');
-                if (!TextUtils.isEmpty(rest)) {
-                    builder.append(rest);
-                }
-                desiredCursorPosition = builder.length() - diff;
-                inserted = true;
-            } else {
-                builder.append(word);
-            }
-            if (i < wordsLength - 1) {
-                builder.append(' ');
-            }
-        }
-        cursorLayout.setText(builder.toString());
-        cursorLayout.setSelection(desiredCursorPosition);
     }
 
     @Override
