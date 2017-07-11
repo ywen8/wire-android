@@ -31,11 +31,10 @@ import scala.collection.immutable.Set
 
 case class SearchState(filter: String, hasSelectedUsers: Boolean, addingToConversation: Option[ConvId], teamId: Option[TeamId] = None){
   val shouldShowTopUsers = filter.isEmpty && teamId.isEmpty && addingToConversation.isEmpty
-  val shouldShowTeamMembersAndGuests = filter.isEmpty && teamId.isDefined
+  val shouldShowTeamMembers = teamId.isDefined
   val shouldShowAbContacts = addingToConversation.isEmpty && !hasSelectedUsers && teamId.isEmpty
   val shouldShowGroupConversations = filter.nonEmpty && !hasSelectedUsers && addingToConversation.isEmpty
   val shouldShowDirectorySearch = filter.nonEmpty && !hasSelectedUsers && addingToConversation.isEmpty
-  val shouldShowSearchedContacts = teamId.isEmpty || filter.nonEmpty
 }
 
 class SearchUserController(initialState: SearchState)(implicit injector: Injector, ec: EventContext) extends Injectable {
@@ -86,7 +85,7 @@ class SearchUserController(initialState: SearchState)(implicit injector: Injecto
     users <- z.userSearch.searchUserData(TopPeople)
     excludedUsers <- excludedUsers
     searchState <- searchState
-  } yield if (searchState.shouldShowTopUsers) users.values.filter(u => !excludedUsers.contains(u.id)) else IndexedSeq()
+  } yield if (searchState.shouldShowTopUsers) users.values.filter(u => !excludedUsers.contains(u.id)) else IndexedSeq.empty[UserData]
 
   val conversationsSignal = for {
     z <- zms
@@ -107,13 +106,11 @@ class SearchUserController(initialState: SearchState)(implicit injector: Injecto
     searchState <- searchState
     acceptedOrBlocked <- z.users.acceptedOrBlockedUsers
     members <- if (searchState.teamId.isDefined) searchTeamMembersForState(z, searchState) else Signal.const(Set.empty[UserData])
-    guests <- if (searchState.teamId.isDefined) z.teams.guests else Signal.const(Set.empty[UserId])
     excludedIds <- excludedUsers
-  } yield sortUsers(acceptedOrBlocked.valuesIterator, members, guests, excludedIds, z.selfUserId, searchState)
+  } yield sortUsers(acceptedOrBlocked.valuesIterator, members, excludedIds, z.selfUserId, searchState)
 
   private def sortUsers(connected: Iterator[UserData],
                         members: Set[UserData],
-                        guestsIds: Set[UserId],
                         excludedIds: Set[UserId],
                         selfId: UserId,
                         searchState: SearchState): (Vector[UserData], Vector[UserData]) = {
@@ -125,10 +122,11 @@ class SearchUserController(initialState: SearchState)(implicit injector: Injecto
       searchByHandleOnly = Handle.containsSymbol(searchState.filter)))
 
     // we want to display team members even if they are not connected, but guests only if they are connected
+    // guests = connected users which are not in the team
     val usersMerged = (users.toSet ++ members).toVector
-    val teamAndGuests = (members.map(_.id) ++ guestsIds) -- excludedIds
+    val teamMembers = members.map(_.id) -- excludedIds
 
-    usersMerged.filterNot(_.id == selfId).sortBy(_.getDisplayName).partition(u => teamAndGuests.contains(u.id))
+    usersMerged.filterNot(_.id == selfId).sortBy(_.getDisplayName).partition(u => teamMembers.contains(u.id))
   }
 
   private def searchTeamMembersForState(z:ZMessaging, searchState: SearchState): Signal[Set[UserData]] = {
@@ -140,15 +138,15 @@ class SearchUserController(initialState: SearchState)(implicit injector: Injecto
     }
   }
 
-  val teamMembersAndGuestsSignal = for {
+  val teamMembersSignal = for {
     searchState <- searchState
-    (teamAndGuests, _) <- localSearchSignal
-  } yield if (searchState.shouldShowTeamMembersAndGuests) teamAndGuests else IndexedSeq()
+    (teamMembers, _) <- localSearchSignal
+  } yield if (searchState.shouldShowTeamMembers) teamMembers else IndexedSeq.empty[UserData]
 
   val connectedUsersSignal = for {
     searchState <- searchState
     (_, connectedUsers) <- localSearchSignal
-  } yield if (searchState.shouldShowSearchedContacts) connectedUsers else IndexedSeq()
+  } yield connectedUsers
 
   val searchSignal = for {
     z <- zms
@@ -182,13 +180,13 @@ class SearchUserController(initialState: SearchState)(implicit injector: Injecto
 
   val allDataSignal = for{
     topUsers              <- topUsersSignal.orElse(Signal.const(IndexedSeq.empty[UserData]))
-    teamMembersAndGuests  <- teamMembersAndGuestsSignal.orElse(Signal.const(IndexedSeq.empty[UserData]))
+    teamMembers           <- teamMembersSignal.orElse(Signal.const(IndexedSeq.empty[UserData]))
     conversations         <- conversationsSignal.orElse(Signal.const(Seq.empty[ConversationData]))
-    connectedUsers        <- connectedUsersSignal.orElse(Signal.const(IndexedSeq.empty[UserData]))
+    connectedUsers        <- connectedUsersSignal.orElse(Signal.const(Vector.empty[UserData]))
     searchState           <- searchState
     contacts              <- if (searchState.shouldShowAbContacts) contactsSignal.orElse(Signal.const(Seq.empty[Contact])) else Signal(Seq.empty[Contact])
     directoryResults      <- searchSignal.orElse(Signal.const(IndexedSeq.empty[UserData]))
-  } yield (topUsers, teamMembersAndGuests, conversations, connectedUsers, contacts, directoryResults)
+  } yield (topUsers, teamMembers, conversations, connectedUsers, contacts, directoryResults)
 
   private def getSearchQuery(str: String): SearchQuery = {
     if (Handle.containsSymbol(str))
