@@ -136,4 +136,5 @@
     <string translatable="false" tools:ignore="UnusedResources" name="glyph__emoji_timed">\uE737</string>
     <string translatable="false" tools:ignore="UnusedResources" name="glyph__dismiss">\uE262</string>
     <string translatable="false" tools:ignore="UnusedResources" name="glyph__profile">\uE265</string>
+    <string translatable="false" tools:ignore="UnusedResources" name="glyph__add_team">\uE266</string>
 </resources>

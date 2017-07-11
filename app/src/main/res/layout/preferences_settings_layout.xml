@@ -41,56 +41,56 @@
                 android:id="@+id/settings_account"
                 android:layout_width="match_parent"
                 android:layout_height="@dimen/preference_button_height"
-                app:iconStart="@drawable/ic_action_account"
+                app:iconStart="@string/glyph__addressbook"
                 app:title="Account"/>
 
             <com.waz.zclient.pages.main.profile.preferences.views.DevicesSettingsButton
                 android:id="@+id/settings_devices"
                 android:layout_width="match_parent"
                 android:layout_height="@dimen/preference_button_height"
-                app:iconStart="@drawable/ic_action_devices"
+                app:iconStart="@string/glyph__devices"
                 app:title="@string/pref_devices_screen_title"/>
 
             <com.waz.zclient.pages.main.profile.preferences.views.TextButton
                 android:id="@+id/settings_options"
                 android:layout_width="match_parent"
                 android:layout_height="@dimen/preference_button_height"
-                app:iconStart="@drawable/ic_action_options"
+                app:iconStart="@string/glyph__settings"
                 app:title="Options"/>
 
             <com.waz.zclient.pages.main.profile.preferences.views.TextButton
                 android:id="@+id/settings_advanced"
                 android:layout_width="match_parent"
                 android:layout_height="@dimen/preference_button_height"
-                app:iconStart="@drawable/ic_action_advanced"
+                app:iconStart="@string/glyph__tools"
                 app:title="Advanced"/>
 
             <com.waz.zclient.pages.main.profile.preferences.views.TextButton
                 android:id="@+id/settings_support"
                 android:layout_width="match_parent"
                 android:layout_height="@dimen/preference_button_height"
-                app:iconStart="@drawable/ic_action_support"
+                app:iconStart="@string/glyph__info"
                 app:title="Support"/>
 
             <com.waz.zclient.pages.main.profile.preferences.views.TextButton
                 android:id="@+id/settings_about"
                 android:layout_width="match_parent"
                 android:layout_height="@dimen/preference_button_height"
-                app:iconStart="@drawable/ic_action_about"
+                app:iconStart="@string/glyph__wire"
                 app:title="About"/>
 
             <com.waz.zclient.pages.main.profile.preferences.views.TextButton
                 android:id="@+id/settings_dev"
                 android:layout_width="match_parent"
                 android:layout_height="@dimen/preference_button_height"
-                app:iconStart="@drawable/ic_action_dev"
+                app:iconStart="@string/glyph__filter_robot"
                 app:title="Developer Settings"/>
 
             <com.waz.zclient.pages.main.profile.preferences.views.TextButton
                 android:id="@+id/settings_avs"
                 android:layout_width="match_parent"
                 android:layout_height="@dimen/preference_button_height"
-                app:iconStart="@drawable/ic_action_play_light"
+                app:iconStart="@string/glyph__speaker_loud"
                 app:title="AVS Settings"/>
 
         </LinearLayout>

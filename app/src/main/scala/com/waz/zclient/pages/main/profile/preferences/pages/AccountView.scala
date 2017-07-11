@@ -37,7 +37,7 @@ import com.waz.zclient.controllers.global.PasswordController
 import com.waz.zclient.controllers.tracking.events.profile.{ResetPassword, SignOut}
 import com.waz.zclient.core.controllers.tracking.events.session.LoggedOutEvent
 import com.waz.zclient.pages.main.profile.preferences.dialogs.{ChangeEmailDialog, ChangePhoneDialog}
-import com.waz.zclient.pages.main.profile.preferences.views.{EditNameDialog, TextButton}
+import com.waz.zclient.pages.main.profile.preferences.views.{EditNameDialog, PictureTextButton, TextButton}
 import com.waz.zclient.preferences.PreferencesActivity
 import com.waz.zclient.preferences.dialogs.AccentColorPickerFragment
 import com.waz.zclient.tracking.GlobalTrackingController
@@ -80,8 +80,8 @@ class AccountViewImpl(context: Context, attrs: AttributeSet, style: Int) extends
   val handleButton        = findById[TextButton](R.id.preferences_account_handle)
   val emailButton         = findById[TextButton](R.id.preferences_account_email)
   val phoneButton         = findById[TextButton](R.id.preferences_account_phone)
-  val pictureButton       = findById[TextButton](R.id.preferences_account_picture)
-  val colorButton         = findById[TextButton](R.id.preferences_account_accent)
+  val pictureButton       = findById[PictureTextButton](R.id.preferences_account_picture)
+  val colorButton         = findById[PictureTextButton](R.id.preferences_account_accent)
   val resetPasswordButton = findById[TextButton](R.id.preferences_account_reset_pw)
   val logoutButton        = findById[TextButton](R.id.preferences_account_logout)
   val deleteAccountButton = findById[TextButton](R.id.preferences_account_delete)
