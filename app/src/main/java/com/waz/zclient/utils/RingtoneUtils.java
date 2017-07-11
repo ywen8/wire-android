@@ -35,7 +35,7 @@ public class RingtoneUtils {
         return Uri.parse("android.resource://" + context.getPackageName() + "/" + rawId);
     }
 
-    public static String getSilentValue(){
+    public static String getSilentValue() {
         return "silent";
     }
 
