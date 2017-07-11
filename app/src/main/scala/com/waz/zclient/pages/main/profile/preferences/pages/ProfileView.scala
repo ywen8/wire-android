@@ -17,6 +17,7 @@
  */
 package com.waz.zclient.pages.main.profile.preferences.pages
 
+import android.app.Activity
 import android.content.{Context, Intent}
 import android.graphics.drawable.Drawable
 import android.net.Uri
@@ -74,7 +75,9 @@ class ProfileViewImpl(context: Context, attrs: AttributeSet, style: Int) extends
   }
 
   addAccountButton.onClickEvent.on(Threading.Ui) { _ =>
+    addAccountButton.setEnabled(false)
     ZMessaging.currentAccounts.logout(false)
+      .map( _ => Option(context.asInstanceOf[Activity]).foreach(_.finish())) (Threading.Ui)
   }
 
   settingsButton.onClickEvent.on(Threading.Ui) { _ =>
