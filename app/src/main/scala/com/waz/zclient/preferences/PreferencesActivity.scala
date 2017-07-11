@@ -204,7 +204,6 @@ class PreferencesActivity extends BaseActivity
 object PreferencesActivity {
   val ShowOtrDevices   = "SHOW_OTR_DEVICES"
   val ShowAccount      = "SHOW_ACCOUNT"
-  val ShowUsernameEdit = "SHOW_USERNAME_EDIT"
 
   def getDefaultIntent(context: Context): Intent =
     new Intent(context, classOf[PreferencesActivity])
@@ -212,6 +211,4 @@ object PreferencesActivity {
   def getOtrDevicesPreferencesIntent(context: Context): Intent =
     returning(getDefaultIntent(context))(_.putExtra(ShowOtrDevices, true))
 
-  def getUsernameEditPreferencesIntent(context: Context): Intent =
-    returning(getDefaultIntent(context))(_.putExtra(ShowUsernameEdit, true))
 }

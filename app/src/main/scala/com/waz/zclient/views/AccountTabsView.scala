@@ -22,8 +22,8 @@ import android.support.v7.widget.{LinearLayoutManager, RecyclerView}
 import android.util.AttributeSet
 import android.view.View.OnClickListener
 import android.view.{View, ViewGroup}
-import com.waz.ZLog.{LogTag, error}
 import com.waz.ZLog.ImplicitTag._
+import com.waz.ZLog.error
 import com.waz.model._
 import com.waz.service.ZMessaging
 import com.waz.utils.events.{EventContext, EventStream}
