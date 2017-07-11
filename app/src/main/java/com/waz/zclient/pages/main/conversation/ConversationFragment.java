@@ -249,6 +249,9 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
             inject(UserAccountsController.class).setIsGroupListener(new ConvId(model.getId()), new Callback<Boolean>() {
                 @Override
                 public void callback(Boolean isGroup) {
+                    if (toolbar == null) {
+                        return;
+                    }
                     toolbar.getMenu().clear();
                     if (!isGroup) {
                         toolbar.inflateMenu(R.menu.conversation_header_menu_video);
