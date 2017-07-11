@@ -193,9 +193,10 @@ case class DeviceDetailsViewController(view: DeviceDetailsView, clientId: Client
   val client = clientAndIsSelf.map(_._1)
 
   val fingerprint = for {
-    z <- zms
-    c  <- clientAndIsSelf
-    fp <- z.otrService.fingerprintSignal(z.selfUserId, clientId).map(_.map(new String(_))).orElse(Signal.const(None))
+    c       <- clientAndIsSelf
+    manager <- accountManager
+    Some(userId) <- manager.userId
+    fp      <- manager.fingerprintSignal(userId, clientId).map(_.map(new String(_))).orElse(Signal.const(None))
   } yield fp
 
   fingerprint.onUi{ _.foreach(view.setFingerPrint) }
