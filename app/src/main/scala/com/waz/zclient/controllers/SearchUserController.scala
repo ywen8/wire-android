@@ -102,12 +102,13 @@ class SearchUserController(initialState: SearchState)(implicit injector: Injecto
   }.distinct
 
   private val localSearchSignal: Signal[(Vector[UserData], Vector[UserData])] = for {
-    z <- zms
-    searchState <- searchState
-    acceptedOrBlocked <- z.users.acceptedOrBlockedUsers
-    members <- if (searchState.teamId.isDefined) searchTeamMembersForState(z, searchState) else Signal.const(Set.empty[UserData])
-    excludedIds <- excludedUsers
-  } yield sortUsers(acceptedOrBlocked.valuesIterator, members, excludedIds, z.selfUserId, searchState)
+    z                   <- zms
+    searchState         <- searchState
+    acceptedOrBlocked   <- z.users.acceptedOrBlockedUsers
+    members             <- searchTeamMembersForState(z, searchState)
+    excludedIds         <- excludedUsers
+    usersAlreadyInConv  <- searchConvMembersForState(z, searchState)
+  } yield sortUsers(acceptedOrBlocked.valuesIterator, members, excludedIds ++ usersAlreadyInConv, z.selfUserId, searchState)
 
   private def sortUsers(connected: Iterator[UserData],
                         members: Set[UserData],
@@ -121,21 +122,24 @@ class SearchUserController(initialState: SearchState)(implicit injector: Injecto
       showBlockedUsers = true,
       searchByHandleOnly = Handle.containsSymbol(searchState.filter)))
 
-    // we want to display team members even if they are not connected, but guests only if they are connected
-    // guests = connected users which are not in the team
-    val usersMerged = (users.toSet ++ members).toVector
-    val teamMembers = members.map(_.id) -- excludedIds
+    val teamMembers = members.map(_.id)
 
-    usersMerged.filterNot(_.id == selfId).sortBy(_.getDisplayName).partition(u => teamMembers.contains(u.id))
+    (users.toSet ++ members).toVector
+      .filterNot(u => u.id == selfId || excludedIds.contains(u.id))
+      .sortBy(_.getDisplayName)
+      .partition(u => teamMembers.contains(u.id))
   }
 
-  private def searchTeamMembersForState(z:ZMessaging, searchState: SearchState): Signal[Set[UserData]] = {
-    searchState.teamId.fold{
-      Signal.const(Set[UserData]())
-    } { teamId =>
+  private def searchConvMembersForState(z: ZMessaging, searchState: SearchState) = searchState.addingToConversation match {
+    case None => Signal.const(Set.empty[UserId])
+    case Some(convId) => Signal.future(z.membersStorage.getByConv(convId)).map(_.map(_.userId).toSet)
+  }
+
+  private def searchTeamMembersForState(z:ZMessaging, searchState: SearchState) = searchState.teamId match {
+    case None => Signal.const(Set.empty[UserData])
+    case Some(teamId) =>
       val searchKey = if (searchState.filter.isEmpty) None else Some(SearchKey(searchState.filter))
       Signal.future(z.teams.searchTeamMembers(searchKey, handleOnly = Handle.containsSymbol(searchState.filter)))
-    }
   }
 
   val teamMembersSignal = for {
