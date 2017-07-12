@@ -44,8 +44,8 @@ import com.waz.api.UsersList;
 import com.waz.zclient.BaseActivity;
 import com.waz.zclient.OnBackPressedListener;
 import com.waz.zclient.R;
-import com.waz.zclient.controllers.UserAccountsController;
 import com.waz.zclient.controllers.ThemeController;
+import com.waz.zclient.controllers.UserAccountsController;
 import com.waz.zclient.controllers.confirmation.ConfirmationCallback;
 import com.waz.zclient.controllers.confirmation.ConfirmationRequest;
 import com.waz.zclient.controllers.confirmation.IConfirmationController;
@@ -92,7 +92,6 @@ import com.waz.zclient.utils.ViewUtils;
 import com.waz.zclient.views.DefaultPageTransitionAnimation;
 import com.waz.zclient.views.LoadingIndicatorView;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class ParticipantFragment extends BaseFragment<ParticipantFragment.Container> implements
@@ -353,19 +352,10 @@ public class ParticipantFragment extends BaseFragment<ParticipantFragment.Contai
 
     @Override
     public void participantsUpdated(UsersList participants) {
-        ArrayList<String> participantIds = new ArrayList<>();
-        for (int i = 0; i < participants.size(); i++) {
-            participantIds.add(participants.get(i).getId());
-        }
-
-        // Exclude existing participants of conversation when adding people
-        getStoreFactory().getPickUserStore().setExcludedUsers(participantIds.toArray(new String[participantIds.size()]));
     }
 
     @Override
     public void otherUserUpdated(User otherUser) {
-        // Exclude existing participant of conversation when adding people
-        getStoreFactory().getPickUserStore().setExcludedUsers(new String[] {otherUser.getId()});
     }
 
     //////////////////////////////////////////////////////////////////////////////////////////

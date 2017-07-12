@@ -20,6 +20,7 @@ package com.waz.zclient.controllers;
 import android.app.Activity;
 import android.content.Context;
 import android.view.View;
+
 import com.waz.zclient.controllers.accentcolor.AccentColorController;
 import com.waz.zclient.controllers.accentcolor.IAccentColorController;
 import com.waz.zclient.controllers.background.DialogBackgroundImageController;
@@ -43,8 +44,6 @@ import com.waz.zclient.controllers.globallayout.IGlobalLayoutController;
 import com.waz.zclient.controllers.loadtimelogger.ILoadTimeLoggerController;
 import com.waz.zclient.controllers.location.ILocationController;
 import com.waz.zclient.controllers.location.LocationController;
-import com.waz.zclient.controllers.mentioning.IMentioningController;
-import com.waz.zclient.controllers.mentioning.MentioningController;
 import com.waz.zclient.controllers.navigation.INavigationController;
 import com.waz.zclient.controllers.navigation.NavigationController;
 import com.waz.zclient.controllers.orientation.IOrientationController;
@@ -94,8 +93,6 @@ public abstract class Base$$ControllerFactory implements IControllerFactory {
   protected ILoadTimeLoggerController loadTimeLoggerController;
 
   protected ILocationController locationController;
-
-  protected IMentioningController mentioningController;
 
   protected INavigationController navigationController;
 
@@ -207,10 +204,6 @@ public abstract class Base$$ControllerFactory implements IControllerFactory {
       locationController.tearDown();
       locationController = null;
     }
-    if (mentioningController != null) {
-      mentioningController.tearDown();
-      mentioningController = null;
-    }
     if (navigationController != null) {
       navigationController.tearDown();
       navigationController = null;
@@ -283,15 +276,6 @@ public abstract class Base$$ControllerFactory implements IControllerFactory {
       orientationController = new OrientationController(this.context);
     }
     return orientationController;
-  }
-
-  @Override
-  public IMentioningController getMentioningController() {
-    verifyLifecycle();
-    if (mentioningController == null) {
-      mentioningController = new MentioningController();
-    }
-    return mentioningController;
   }
 
   @Override
