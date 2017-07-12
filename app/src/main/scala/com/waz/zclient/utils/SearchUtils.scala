@@ -17,7 +17,7 @@
  */
 package com.waz.zclient.utils
 
-import com.waz.model.{TeamId, UserData}
+import com.waz.model.UserData
 import com.waz.model.UserData.ConnectionStatus
 import com.waz.service.SearchKey
 
