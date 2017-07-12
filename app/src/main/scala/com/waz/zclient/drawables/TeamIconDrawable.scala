@@ -47,6 +47,7 @@ class TeamIconDrawable(implicit inj: Injector, eventContext: EventContext, ctx: 
   private val selectedDiameter = ctx.getResources.getDimensionPixelSize(R.dimen.team_tab_drawable_diameter)
   private val borderGapWidth = ctx.getResources.getDimensionPixelSize(R.dimen.team_tab_drawable_gap)
   private val borderWidth = ctx.getResources.getDimensionPixelSize(R.dimen.team_tab_drawable_border)
+  private lazy val unselectedDiameter = selectedDiameter + 2 * (borderGapWidth + borderWidth)
 
   val borderPaint = returning(new Paint(Paint.ANTI_ALIAS_FLAG)) { paint =>
     paint.setColor(Color.TRANSPARENT)
@@ -174,7 +175,9 @@ class TeamIconDrawable(implicit inj: Injector, eventContext: EventContext, ctx: 
   override def getIntrinsicWidth = super.getIntrinsicWidth
 
   private def updateDrawable(bounds: Rect): Unit = {
-    val diam = if (selected) selectedDiameter else selectedDiameter + 2 * (borderGapWidth + borderWidth)
+    val scale = Math.min(bounds.width(), bounds.height()).toFloat / (unselectedDiameter.toFloat + borderGapWidth + borderWidth)
+
+    val diam = scale * (if (selected) selectedDiameter else unselectedDiameter)
     val textSize = diam / 2.5f
 
     drawPolygon(innerPath, diam / 2, corners)

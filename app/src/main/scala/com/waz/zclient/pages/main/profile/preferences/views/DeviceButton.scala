@@ -28,7 +28,7 @@ import com.waz.model.otr.Client
 import com.waz.zclient.R
 import com.waz.zclient.ui.utils.TextViewUtils
 
-class DeviceButton(context: Context, attrs: AttributeSet, style: Int) extends TextButton(context, attrs, style) {
+class DeviceButton(context: Context, attrs: AttributeSet, style: Int) extends PictureTextButton(context, attrs, style) {
   def this(context: Context, attrs: AttributeSet) = this(context, attrs, 0)
   def this(context: Context) = this(context, null, 0)
 
@@ -38,7 +38,7 @@ class DeviceButton(context: Context, attrs: AttributeSet, style: Int) extends Te
     title.foreach(_.setText(client.model))
     subtitle.foreach(setOptionText(_, Some(displayId(client))))
     subtitle.foreach(TextViewUtils.boldText)
-    iconEnd.foreach(setOptionDrawable(_, drawableForClient(client, self)))
+    setDrawableEnd(drawableForClient(client, self))
   }
 
   private def drawableForClient(client: Client, self: Boolean): Option[Drawable] = {

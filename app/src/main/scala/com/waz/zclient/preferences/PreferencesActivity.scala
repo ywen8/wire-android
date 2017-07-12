@@ -27,13 +27,12 @@ import android.os.Bundle
 import android.support.annotation.Nullable
 import android.support.v4.app.{Fragment, FragmentManager, FragmentTransaction}
 import android.support.v4.widget.TextViewCompat
-import android.support.v7.preference.{Preference, PreferenceFragmentCompat, PreferenceScreen}
 import android.support.v7.widget.{AppCompatTextView, Toolbar}
 import android.view.{MenuItem, View, ViewGroup}
 import android.widget.{TextSwitcher, TextView, Toast, ViewSwitcher}
 import com.waz.api.ImageAsset
-import com.waz.content.{GlobalPreferences, UserPreferences}
 import com.waz.content.GlobalPreferences.CurrentAccountPref
+import com.waz.content.{GlobalPreferences, UserPreferences}
 import com.waz.service.ZMessaging
 import com.waz.threading.Threading
 import com.waz.utils.events.Signal
@@ -42,23 +41,17 @@ import com.waz.zclient.controllers.accentcolor.AccentColorChangeRequester
 import com.waz.zclient.controllers.global.AccentColorController
 import com.waz.zclient.core.controllers.tracking.events.settings.ChangedProfilePictureEvent
 import com.waz.zclient.pages.main.profile.camera.{CameraContext, CameraFragment}
-import com.waz.zclient.pages.main.profile.preferences._
-import com.waz.zclient.pages.main.profile.preferences.dialogs.WireRingtonePreferenceDialogFragment
 import com.waz.zclient.pages.main.profile.preferences.pages.{DevicesBackStackKey, OptionsView, ProfileBackStackKey}
 import com.waz.zclient.tracking.GlobalTrackingController
-import com.waz.zclient.utils.{BackStackNavigator, LayoutSpec, ViewUtils}
+import com.waz.zclient.utils.{BackStackNavigator, LayoutSpec, RingtoneUtils, ViewUtils}
 import com.waz.zclient.{ActivityHelper, BaseActivity, MainActivity, R}
 
 class PreferencesActivity extends BaseActivity
   with ActivityHelper
-  with CameraFragment.Container
-  with PreferenceFragmentCompat.OnPreferenceStartScreenCallback
-  with PreferenceFragmentCompat.OnPreferenceDisplayDialogCallback
-  with PreferenceScreenStrategy.ReplaceFragment.Callbacks {
+  with CameraFragment.Container {
 
   import PreferencesActivity._
 
-  private lazy val replaceFragmentStrategy = new PreferenceScreenStrategy.ReplaceFragment(this, R.anim.abc_fade_in, R.anim.abc_fade_out, R.anim.abc_fade_in, R.anim.abc_fade_out)
   private lazy val toolbar: Toolbar        = findById(R.id.toolbar)
 
   private lazy val backStackNavigator = inject[BackStackNavigator]
@@ -104,7 +97,6 @@ class PreferencesActivity extends BaseActivity
         backStackNavigator.goTo(ProfileBackStackKey())
       }
 
-
       backStackNavigator.currentState.on(Threading.Ui){ state =>
         setTitle(state.nameId)
       }
@@ -144,11 +136,6 @@ class PreferencesActivity extends BaseActivity
 
   override def getBaseTheme: Int = R.style.Theme_Dark_Preferences
 
-  override def onPreferenceStartScreen(preferenceFragmentCompat: PreferenceFragmentCompat, preferenceScreen: PreferenceScreen): Boolean = {
-    replaceFragmentStrategy.onPreferenceStartScreen(getSupportFragmentManager, preferenceFragmentCompat, preferenceScreen)
-    true
-  }
-
   override protected def onActivityResult(requestCode: Int, resultCode: Int, data: Intent) = {
     super.onActivityResult(requestCode, resultCode, data)
     val fragment: Fragment = getSupportFragmentManager.findFragmentById(R.id.fl__root__camera)
@@ -162,7 +149,7 @@ class PreferencesActivity extends BaseActivity
         case OptionsView.TextToneResultId => UserPreferences.TextTone
         case OptionsView.PingToneResultId => UserPreferences.PingTone
       }
-      zms.head.flatMap(_.userPrefs.preference(key).update(pickedUri.fold("")(_.toString)))(Threading.Ui)
+      zms.head.flatMap(_.userPrefs.preference(key).update(pickedUri.fold(RingtoneUtils.getSilentValue)(_.toString)))(Threading.Ui)
     }
   }
 
@@ -182,42 +169,6 @@ class PreferencesActivity extends BaseActivity
         finish()
     }{ _.onBackPressed() }
   }
-
-  override def onPreferenceDisplayDialog(preferenceFragmentCompat: PreferenceFragmentCompat, preference: Preference): Boolean = {
-    val key = preference.getKey
-    if (Set(
-      R.string.pref_options_ringtones_ping_key,
-      R.string.pref_options_ringtones_text_key,
-      R.string.pref_options_ringtones_ringtone_key
-    ).map(getString).contains(key)) {
-      returning(WireRingtonePreferenceDialogFragment.newInstance(key, preference.getExtras.getInt(WireRingtonePreferenceDialogFragment.EXTRA_DEFAULT))) { f =>
-        f.setTargetFragment(preferenceFragmentCompat, 0)
-        f.show(getSupportFragmentManager, key)
-      }
-      true
-    } else false
-  }
-
-  override def onBuildPreferenceFragment(preferenceScreen: PreferenceScreen): PreferenceFragmentCompat = {
-    val rootKey = preferenceScreen.getKey
-    val extras  = preferenceScreen.getExtras
-    val instance = rootKey match {
-      case k if k == getString(R.string.pref_account_screen_key)        => AccountPreferences.newInstance(rootKey, extras)
-      case k if k == getString(R.string.pref_about_screen_key)          => AboutPreferences.newInstance(rootKey, extras)
-      case k if k == getString(R.string.pref_options_screen_key)        => OptionsPreferences.newInstance(rootKey, extras)
-      case k if k == getString(R.string.pref_support_screen_key)        => SupportPreferences.newInstance(rootKey, extras)
-      case k if k == getString(R.string.pref_advanced_screen_key)       => AdvancedPreferences.newInstance(rootKey, extras)
-      case k if k == getString(R.string.pref_developer_screen_key)      => DeveloperPreferences.newInstance(rootKey, extras)
-      case k if k == getString(R.string.pref_devices_screen_key)        => DevicesPreferences.newInstance(rootKey, extras)
-      case k if k == getString(R.string.pref_device_details_screen_key) => DeviceDetailPreferences.newInstance(rootKey, extras)
-      case _                                                            => RootPreferences.newInstance(rootKey, extras)
-    }
-    resetIntentExtras(preferenceScreen)
-    instance
-  }
-
-  private def resetIntentExtras(preferenceScreen: PreferenceScreen) =
-    Seq(ShowOtrDevices, ShowAccount, ShowUsernameEdit).foreach(preferenceScreen.getExtras.remove)
 
   //TODO do we need to check internet connectivity here?
   override def onBitmapSelected(imageAsset: ImageAsset, imageFromCamera: Boolean, cameraContext: CameraContext) =

@@ -23,6 +23,7 @@ import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
 import android.support.v4.app.{Fragment, FragmentTransaction}
+import android.text.TextUtils
 import android.util.AttributeSet
 import android.view.View
 import android.widget.LinearLayout
@@ -37,6 +38,7 @@ import com.waz.zclient.pages.main.profile.preferences.pages.OptionsView._
 import com.waz.zclient.pages.main.profile.preferences.views.{SwitchPreference, TextButton}
 import com.waz.zclient.preferences.PreferencesActivity
 import com.waz.zclient.utils.{BackStackKey, RingtoneUtils}
+import com.waz.zclient.utils.RichView
 
 trait OptionsView {
   def setSounds(level: IntensityLevel): Unit
@@ -44,6 +46,7 @@ trait OptionsView {
   def setTextTone(string: String): Unit
   def setPingTone(string: String): Unit
   def setDownloadPictures(wifiOnly: Boolean): Unit
+  def setShareEnabled(enabled: Boolean): Unit
 }
 
 object OptionsView {
@@ -122,9 +125,9 @@ class OptionsViewImpl(context: Context, attrs: AttributeSet, style: Int) extends
 
   private def setToneSubtitle(button: TextButton, defaultUri: Uri, uri: String): Unit = {
     val title =
-      if (uri.isEmpty)
-      "Silent" //TODO: res
-    else if (uri.equals(defaultUri.toString))
+      if (RingtoneUtils.isSilent(uri))
+      context.getString(R.string.pref_options_ringtones_silent)
+    else if (uri.isEmpty || uri.equals(defaultUri.toString))
       context.getString(R.string.pref_options_ringtones_default_summary)
     else
       RingtoneManager.getRingtone(context, Uri.parse(uri)).getTitle(context)
@@ -135,6 +138,9 @@ class OptionsViewImpl(context: Context, attrs: AttributeSet, style: Int) extends
     val names = getResources.getStringArray(R.array.pref_options_image_download_entries).toSeq
     downloadImagesSwitch.setSubtitle(if (wifiOnly) names.head else names.last)
   }
+
+
+  override def setShareEnabled(enabled: Boolean) = contactsSwitch.setVisible(enabled)
 
   private def showPrefDialog(f: Fragment, tag: String) = {
     context.asInstanceOf[BaseActivity]
@@ -151,9 +157,9 @@ class OptionsViewImpl(context: Context, attrs: AttributeSet, style: Int) extends
     intent.putExtra(RingtoneManager.EXTRA_RINGTONE_TYPE, ringtoneType)
     intent.putExtra(RingtoneManager.EXTRA_RINGTONE_DEFAULT_URI, defaultUri)
     val uri =
-      if(selectedUri.isEmpty)
+      if(RingtoneUtils.isSilent(selectedUri))
         null
-      else if (defaultUri.toString.equals(selectedUri))
+      else if (TextUtils.isEmpty(selectedUri) || defaultUri.toString.equals(selectedUri))
         Settings.System.DEFAULT_RINGTONE_URI
       else
         Uri.parse(selectedUri)
@@ -181,10 +187,13 @@ case class OptionsBackStackKey(args: Bundle = new Bundle()) extends BackStackKey
 class OptionsViewController(view: OptionsView)(implicit inj: Injector, ec: EventContext) extends Injectable {
   val zms = inject[Signal[ZMessaging]]
   val userPrefs = zms.map(_.userPrefs)
+  val team = zms.flatMap(_.teams.selfTeam)
 
   userPrefs.flatMap(_.preference(UserPreferences.DownloadImagesOnWifiOnly).signal).on(Threading.Ui){ view.setDownloadPictures }
   userPrefs.flatMap(_.preference(UserPreferences.Sounds).signal).on(Threading.Ui){ view.setSounds }
   userPrefs.flatMap(_.preference(UserPreferences.RingTone).signal).on(Threading.Ui){ view.setRingtone }
   userPrefs.flatMap(_.preference(UserPreferences.TextTone).signal).on(Threading.Ui){ view.setTextTone }
   userPrefs.flatMap(_.preference(UserPreferences.PingTone).signal).on(Threading.Ui){ view.setPingTone }
+
+  team.onUi{ team => view.setShareEnabled(team.isEmpty) }
 }

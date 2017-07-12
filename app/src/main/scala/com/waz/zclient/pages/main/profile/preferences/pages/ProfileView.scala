@@ -17,10 +17,11 @@
  */
 package com.waz.zclient.pages.main.profile.preferences.pages
 
-import android.content.Context
+import android.app.Activity
+import android.content.{Context, Intent}
 import android.graphics.drawable.Drawable
+import android.net.Uri
 import android.os.Bundle
-import android.support.v4.app.{Fragment, FragmentTransaction}
 import android.util.AttributeSet
 import android.view.View
 import android.view.View.OnClickListener
@@ -29,8 +30,10 @@ import com.waz.ZLog
 import com.waz.api.impl.AccentColor
 import com.waz.service.ZMessaging
 import com.waz.threading.Threading
+import com.waz.utils.NameParts
 import com.waz.utils.events.{EventContext, Signal}
 import com.waz.zclient._
+import com.waz.zclient.drawables.TeamIconDrawable
 import com.waz.zclient.pages.main.profile.preferences.views.TextButton
 import com.waz.zclient.ui.text.TypefaceTextView
 import com.waz.zclient.utils.{BackStackKey, BackStackNavigator, StringUtils, UiStorage, UserSignal}
@@ -43,6 +46,8 @@ trait ProfileView {
   def setHandle(handle: String): Unit
   def setProfilePictureDrawable(drawable: Drawable): Unit
   def setAccentColor(color: Int): Unit
+  def setTeamName(name: Option[String]): Unit
+  def setAddAccountEnabled(enabled: Boolean): Unit
 }
 
 class ProfileViewImpl(context: Context, attrs: AttributeSet, style: Int) extends LinearLayout(context, attrs, style) with ProfileView with ViewHelper {
@@ -56,13 +61,23 @@ class ProfileViewImpl(context: Context, attrs: AttributeSet, style: Int) extends
   val userNameText = findById[TypefaceTextView](R.id.profile_user_name)
   val userPicture = findById[ImageView](R.id.profile_user_picture)
   val userHandleText = findById[TypefaceTextView](R.id.profile_user_handle)
+  val teamPicture = findById[ImageView](R.id.profile_user_team_icon)
+  val teamNameText = findById[TypefaceTextView](R.id.profile_user_team)
 
   val createTeamButton = findById[TextButton](R.id.profile_create_team)
   val addAccountButton = findById[TextButton](R.id.profile_add_account)
   val settingsButton = findById[TextButton](R.id.profile_settings)
 
+  private lazy val teamDrawable = new TeamIconDrawable
+
+  createTeamButton.onClickEvent.onUi{ _ =>
+    context.startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(context.getString(R.string.create_team_url))))
+  }
+
   addAccountButton.onClickEvent.on(Threading.Ui) { _ =>
+    addAccountButton.setEnabled(false)
     ZMessaging.currentAccounts.logout(false)
+      .map( _ => Option(context.asInstanceOf[Activity]).foreach(_.finish())) (Threading.Ui)
   }
 
   settingsButton.onClickEvent.on(Threading.Ui) { _ =>
@@ -81,15 +96,23 @@ class ProfileViewImpl(context: Context, attrs: AttributeSet, style: Int) extends
 
   override def setAccentColor(color: Int): Unit = {}
 
-  private def showPrefDialog(f: Fragment, tag: String) = {
-    context.asInstanceOf[BaseActivity]
-      .getSupportFragmentManager
-      .beginTransaction
-      .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
-      .add(f, tag)
-      .addToBackStack(tag)
-      .commit
+  override def setTeamName(name: Option[String]) = {
+    name match {
+      case Some(teamName) =>
+        teamDrawable.setInfo(NameParts.maybeInitial(teamName).getOrElse(""), TeamIconDrawable.TeamCorners, selected = false)
+        teamPicture.setImageDrawable(teamDrawable)
+        teamNameText.setText(teamName)
+      case None =>
+        teamPicture.setImageDrawable(null)
+        teamNameText.setText("")
+    }
   }
+
+  override def setAddAccountEnabled(enabled: Boolean) = {
+    addAccountButton.setEnabled(enabled)
+    addAccountButton.setAlpha(if (enabled) 1.0f else 0.5f)
+  }
+
 }
 object ProfileView {
   val Tag = ZLog.logTagFor[ProfileView]
@@ -113,6 +136,7 @@ case class ProfileBackStackKey(args: Bundle = new Bundle()) extends BackStackKey
 }
 
 class ProfileViewController(view: ProfileView)(implicit inj: Injector, ec: EventContext) extends Injectable {
+  import ProfileViewController._
   val zms = inject[Signal[ZMessaging]]
   implicit val uiStorage = inject[UiStorage]
 
@@ -120,6 +144,8 @@ class ProfileViewController(view: ProfileView)(implicit inj: Injector, ec: Event
     zms <- zms
     self <- UserSignal(zms.selfUserId)
   } yield self
+
+  val team = zms.flatMap(_.teams.selfTeam)
 
   val selfPicture: Signal[ImageSource] = self.map(_.picture).collect{case Some(pic) => WireImage(pic)}
 
@@ -130,4 +156,14 @@ class ProfileViewController(view: ProfileView)(implicit inj: Injector, ec: Event
       self.handle.foreach(handle => view.setHandle(StringUtils.formatHandle(handle.string)))
       view.setUserName(self.getDisplayName)
   }
+
+  team.on(Threading.Ui) { team => view.setTeamName(team.map(_.name)) }
+
+  ZMessaging.currentAccounts.loggedInAccounts.map(_.size).on(Threading.Ui) { count =>
+    view.setAddAccountEnabled(count < MaxAccountsCount)
+  }
+}
+
+object ProfileViewController {
+  val MaxAccountsCount = 3
 }

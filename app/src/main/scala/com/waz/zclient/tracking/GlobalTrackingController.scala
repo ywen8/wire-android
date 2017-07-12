@@ -30,7 +30,7 @@ import com.waz.api.Message.Type._
 import com.waz.api.impl.ErrorResponse
 import com.waz.api.{EphemeralExpiration, NetworkMode, Verification}
 import com.waz.content.Preferences.PrefKey
-import com.waz.content.UsersStorage
+import com.waz.content.{UserPreferences, UsersStorage}
 import com.waz.model.ConversationData.ConversationType
 import com.waz.model.UserData.ConnectionStatus.Blocked
 import com.waz.model.{UserId, _}
@@ -137,7 +137,7 @@ class GlobalTrackingController(implicit inj: Injector, cxt: WireContext, eventCo
   }
 
   private def isTrackingEnabled = {
-    val pref = ZMessaging.currentGlobal.prefs.getFromPref(PrefKey[Boolean](getString(R.string.pref_advanced_analytics_enabled_key), true))
+    val pref = ZMessaging.currentGlobal.prefs.getFromPref(UserPreferences.AnalyticsEnabled)
     pref && !BuildConfig.DISABLE_TRACKING_KEEP_LOGGING
   }
 

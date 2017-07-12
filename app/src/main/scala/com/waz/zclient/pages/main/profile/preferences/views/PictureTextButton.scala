@@ -19,16 +19,17 @@ package com.waz.zclient.pages.main.profile.preferences.views
 
 import android.content.Context
 import android.content.res.TypedArray
+import android.graphics.drawable.Drawable
 import android.util.AttributeSet
 import android.view.View
 import android.view.View.{OnClickListener, OnLongClickListener}
-import android.widget.RelativeLayout
+import android.widget.{ImageView, RelativeLayout}
 import com.waz.utils.events.EventStream
 import com.waz.zclient.ui.text.{GlyphTextView, TypefaceTextView}
 import com.waz.zclient.utils.RichView
 import com.waz.zclient.{R, ViewHelper}
 
-class TextButton(context: Context, attrs: AttributeSet, style: Int) extends RelativeLayout(context, attrs, style) with ViewHelper {
+class PictureTextButton(context: Context, attrs: AttributeSet, style: Int) extends RelativeLayout(context, attrs, style) with ViewHelper {
   def this(context: Context, attrs: AttributeSet) = this(context, attrs, 0)
   def this(context: Context) = this(context, null, 0)
 
@@ -36,8 +37,8 @@ class TextButton(context: Context, attrs: AttributeSet, style: Int) extends Rela
 
   val title     = Option(findById[TypefaceTextView](R.id.preference_title))
   val subtitle  = Option(findById[TypefaceTextView](R.id.preference_subtitle))
-  val iconStart = Option(findById[GlyphTextView](R.id.preference_icon_start))
-  val iconEnd   = Option(findById[GlyphTextView](R.id.preference_icon_end))
+  val iconStart = Option(findById[ImageView](R.id.preference_icon_start))
+  val iconEnd   = Option(findById[ImageView](R.id.preference_icon_end))
 
   val onClickEvent = EventStream[View]()
   val onLongClickEvent = EventStream[View]()
@@ -47,13 +48,13 @@ class TextButton(context: Context, attrs: AttributeSet, style: Int) extends Rela
 
   val titleAttr         = Option(attributesArray.getString(R.styleable.TextButton_title))
   val subtitleAttr      = Option(attributesArray.getString(R.styleable.TextButton_subtitle))
-  val iconStartAttr = Option(attributesArray.getResourceId(R.styleable.TextButton_iconStart, 0))
-  val iconEndAttr   = Option(attributesArray.getResourceId(R.styleable.TextButton_iconEnd, 0))
+  val drawableStartAttr = Option(attributesArray.getDrawable(R.styleable.TextButton_iconStart))
+  val drawableEndAttr   = Option(attributesArray.getDrawable(R.styleable.TextButton_iconEnd))
 
   title.foreach(title => titleAttr.foreach(title.setText))
   subtitle.foreach(subtitle => setOptionText(subtitle, subtitleAttr))
-  iconStart.foreach(iconStart => setOptionGlyphId(iconStart, iconStartAttr))
-  iconEnd.foreach(iconEnd => setOptionGlyphId(iconEnd, iconEndAttr))
+  iconStart.foreach(iconStart => setOptionDrawable(iconStart, drawableStartAttr))
+  iconEnd.foreach(iconEnd => setOptionDrawable(iconEnd, drawableEndAttr))
 
   setOnClickListener(new OnClickListener {
     override def onClick(v: View): Unit = onClickEvent ! v
@@ -66,7 +67,7 @@ class TextButton(context: Context, attrs: AttributeSet, style: Int) extends Rela
     }
   })
 
-  def layoutId = R.layout.preference_text_button
+  def layoutId = R.layout.preference_picture_text_button
 
   def setTitle(text: String): Unit =
     title.foreach(_.setText(text))
@@ -74,19 +75,18 @@ class TextButton(context: Context, attrs: AttributeSet, style: Int) extends Rela
   def setSubtitle(text: String): Unit =
     subtitle.foreach(subtitle => setOptionText(subtitle, Some(text)))
 
-  def setIconStart(drawable: Option[Int]): Unit =
-    iconStart.foreach(iconStart => setOptionGlyphId(iconStart, drawable))
+  def setDrawableStart(drawable: Option[Drawable]): Unit =
+    iconStart.foreach(iconStart => setOptionDrawable(iconStart, drawable))
 
-  def setIconEnd(drawable: Option[Int]): Unit =
-    iconEnd.foreach(iconStart => setOptionGlyphId(iconStart, drawable))
+  def setDrawableEnd(drawable: Option[Drawable]): Unit =
+    iconEnd.foreach(iconStart => setOptionDrawable(iconStart, drawable))
 
-  protected def setOptionGlyphId(glyphTextView: GlyphTextView, textId: Option[Int]): Unit = {
-    textId match {
-      case Some(t) if t > 0 =>
-        glyphTextView.setVisible(true)
-        glyphTextView.setText(t)
-      case _ =>
-        glyphTextView.setVisible(false)
+  protected def setOptionDrawable(imageView: ImageView, drawable: Option[Drawable]): Unit = {
+    drawable.fold {
+      imageView.setVisible(false)
+    }{ d =>
+      imageView.setVisible(true)
+      imageView.setImageDrawable(d)
     }
   }
   protected def setOptionText(textView: TypefaceTextView, text:Option[String]): Unit = {
@@ -97,5 +97,4 @@ class TextButton(context: Context, attrs: AttributeSet, style: Int) extends Rela
       textView.setText(t)
     }
   }
-
 }

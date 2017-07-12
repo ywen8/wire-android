@@ -37,7 +37,7 @@ import com.waz.zclient.controllers.global.PasswordController
 import com.waz.zclient.controllers.tracking.events.profile.{ResetPassword, SignOut}
 import com.waz.zclient.core.controllers.tracking.events.session.LoggedOutEvent
 import com.waz.zclient.pages.main.profile.preferences.dialogs.{ChangeEmailDialog, ChangePhoneDialog}
-import com.waz.zclient.pages.main.profile.preferences.views.{EditNameDialog, TextButton}
+import com.waz.zclient.pages.main.profile.preferences.views.{EditNameDialog, PictureTextButton, TextButton}
 import com.waz.zclient.preferences.PreferencesActivity
 import com.waz.zclient.preferences.dialogs.AccentColorPickerFragment
 import com.waz.zclient.tracking.GlobalTrackingController
@@ -48,7 +48,7 @@ import com.waz.zclient.utils.{BackStackKey, BackStackNavigator, StringUtils, UiS
 import com.waz.zclient.views.ImageAssetDrawable
 import com.waz.zclient.views.ImageAssetDrawable.{RequestBuilder, ScaleType}
 import com.waz.zclient.views.ImageController.{ImageSource, WireImage}
-
+import com.waz.zclient.utils.RichView
 import scala.concurrent.Future
 
 trait AccountView {
@@ -64,10 +64,11 @@ trait AccountView {
 
   def setName(name: String): Unit
   def setHandle(handle: String): Unit
-  def setEmail(email: String): Unit
-  def setPhone(phone: String): Unit
+  def setEmail(email: Option[String]): Unit
+  def setPhone(phone: Option[String]): Unit
   def setPictureDrawable(drawable: Drawable): Unit
   def setAccentDrawable(drawable: Drawable): Unit
+  def setDeleteAccountEnabled(enabled: Boolean): Unit
 }
 
 class AccountViewImpl(context: Context, attrs: AttributeSet, style: Int) extends LinearLayout(context, attrs, style) with AccountView with ViewHelper {
@@ -80,8 +81,8 @@ class AccountViewImpl(context: Context, attrs: AttributeSet, style: Int) extends
   val handleButton        = findById[TextButton](R.id.preferences_account_handle)
   val emailButton         = findById[TextButton](R.id.preferences_account_email)
   val phoneButton         = findById[TextButton](R.id.preferences_account_phone)
-  val pictureButton       = findById[TextButton](R.id.preferences_account_picture)
-  val colorButton         = findById[TextButton](R.id.preferences_account_accent)
+  val pictureButton       = findById[PictureTextButton](R.id.preferences_account_picture)
+  val colorButton         = findById[PictureTextButton](R.id.preferences_account_accent)
   val resetPasswordButton = findById[TextButton](R.id.preferences_account_reset_pw)
   val logoutButton        = findById[TextButton](R.id.preferences_account_logout)
   val deleteAccountButton = findById[TextButton](R.id.preferences_account_delete)
@@ -100,13 +101,15 @@ class AccountViewImpl(context: Context, attrs: AttributeSet, style: Int) extends
 
   override def setHandle(handle: String) = handleButton.setTitle(handle)
 
-  override def setEmail(email: String) = emailButton.setTitle(email)
+  override def setEmail(email: Option[String]) = emailButton.setTitle(email.getOrElse(getString(R.string.pref_account_add_email_title)))
 
-  override def setPhone(phone: String) = phoneButton.setTitle(phone)
+  override def setPhone(phone: Option[String]) = phoneButton.setTitle(phone.getOrElse(getString(R.string.pref_account_add_phone_title)))
 
   override def setPictureDrawable(drawable: Drawable) = pictureButton.setDrawableStart(Some(drawable))
 
   override def setAccentDrawable(drawable: Drawable) = colorButton.setDrawableStart(Some(drawable))
+
+  override def setDeleteAccountEnabled(enabled: Boolean) = deleteAccountButton.setVisible(enabled)
 }
 
 case class AccountBackStackKey(args: Bundle = new Bundle()) extends BackStackKey(args) {
@@ -149,13 +152,15 @@ class AccountViewController(view: AccountView)(implicit inj: Injector, ec: Event
     account <- zms.account.accountData
   } yield account
 
+  val team = zms.flatMap(_.teams.selfTeam)
+
   val selfPicture: Signal[ImageSource] = self.map(_.picture).collect{case Some(pic) => WireImage(pic)}
 
   view.setPictureDrawable(new ImageAssetDrawable(selfPicture, scaleType = ScaleType.CenterInside, request = RequestBuilder.Round))
 
   self.onUi { self =>
     self.handle.foreach(handle => view.setHandle(StringUtils.formatHandle(handle.string)))
-    view.setName(self.getDisplayName)
+    view.setName(self.name)
     view.setAccentDrawable(new Drawable {
 
       val paint = new Paint()
@@ -174,9 +179,11 @@ class AccountViewController(view: AccountView)(implicit inj: Injector, ec: Event
   }
 
   account.onUi { account =>
-    view.setEmail(account.email.fold("-")(_.str))
-    view.setPhone(account.phone.fold("-")(_.str))
+    view.setEmail(account.email.map(_.str))
+    view.setPhone(account.phone.map(_.str))
   }
+
+  team.onUi { team => view.setDeleteAccountEnabled(team.isEmpty) }
 
   view.onNameClick.onUi { _ =>
     self.head.map { self =>
@@ -240,6 +247,7 @@ class AccountViewController(view: AccountView)(implicit inj: Injector, ec: Event
                 f.dismiss()
               }
               showPrefDialog(f, TAG)
+            case _ =>
           }
         },
         ChangePhoneDialog.FragmentTag)

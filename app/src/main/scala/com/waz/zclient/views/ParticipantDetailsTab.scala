@@ -64,7 +64,7 @@ class ParticipantDetailsTab(val context: Context, val attrs: AttributeSet, val d
       guestIndicationText.setText("")
   }
 
-  def setUser(user: User) {
+  def setUser(user: User): Unit = {
     Option(user).fold{
       imageAssetImageView.resetBackground()
     }{ user =>
@@ -73,7 +73,7 @@ class ParticipantDetailsTab(val context: Context, val attrs: AttributeSet, val d
     userId ! UserId(user.getId)
   }
 
-  def updateFooterMenu(@StringRes leftAction: Int, @StringRes leftActionLabel: Int, @StringRes rightAction: Int, @StringRes rightActionLabel: Int, callback: FooterMenuCallback) {
+  def updateFooterMenu(@StringRes leftAction: Int, @StringRes leftActionLabel: Int, @StringRes rightAction: Int, @StringRes rightActionLabel: Int, callback: FooterMenuCallback): Unit = {
     if (footerMenu == null) {
       return
     }

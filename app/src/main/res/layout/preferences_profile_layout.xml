@@ -82,7 +82,7 @@
         android:layout_width="match_parent"
         android:layout_height="@dimen/preference_button_height"
         app:title="Create a Team"
-        app:iconStart="@drawable/ic_action_about"
+        app:iconStart="@string/glyph__add_team"
         />
 
     <com.waz.zclient.pages.main.profile.preferences.views.TextButton
@@ -90,7 +90,7 @@
         android:layout_width="match_parent"
         android:layout_height="@dimen/preference_button_height"
         app:title="Add an account"
-        app:iconStart="@drawable/ic_action_about"
+        app:iconStart="@string/glyph__add_people"
         />
 
     <com.waz.zclient.pages.main.profile.preferences.views.TextButton
@@ -98,7 +98,7 @@
         android:layout_width="match_parent"
         android:layout_height="@dimen/preference_button_height"
         app:title="@string/settings_title"
-        app:iconStart="@drawable/ic_action_advanced"
+        app:iconStart="@string/glyph__settings"
         />
 
 </LinearLayout>
