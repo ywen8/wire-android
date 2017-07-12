@@ -25,6 +25,7 @@ import android.support.v4.app.FragmentManager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+
 import com.waz.api.ConversationsList;
 import com.waz.api.IConversation;
 import com.waz.api.ImageAsset;
@@ -33,7 +34,6 @@ import com.waz.api.MessageContent;
 import com.waz.api.OtrClient;
 import com.waz.api.SyncState;
 import com.waz.api.User;
-import com.waz.api.UsersList;
 import com.waz.model.MessageData;
 import com.waz.zclient.BaseActivity;
 import com.waz.zclient.OnBackPressedListener;
@@ -53,7 +53,7 @@ import com.waz.zclient.core.controllers.tracking.events.media.SentPictureEvent;
 import com.waz.zclient.core.stores.connect.IConnectStore;
 import com.waz.zclient.core.stores.conversation.ConversationChangeRequester;
 import com.waz.zclient.core.stores.conversation.ConversationStoreObserver;
-import com.waz.zclient.core.stores.participants.ParticipantsStoreObserver;
+import com.waz.zclient.fragments.PickUserFragment;
 import com.waz.zclient.pages.BaseFragment;
 import com.waz.zclient.pages.main.conversation.controller.ConversationScreenControllerObserver;
 import com.waz.zclient.pages.main.conversation.controller.IConversationScreenController;
@@ -61,7 +61,6 @@ import com.waz.zclient.pages.main.drawing.DrawingFragment;
 import com.waz.zclient.pages.main.participants.ParticipantFragment;
 import com.waz.zclient.pages.main.participants.SingleParticipantFragment;
 import com.waz.zclient.pages.main.participants.TabbedParticipantBodyFragment;
-import com.waz.zclient.fragments.PickUserFragment;
 import com.waz.zclient.pages.main.pickuser.controller.IPickUserController;
 import com.waz.zclient.pages.main.pickuser.controller.PickUserControllerScreenObserver;
 import com.waz.zclient.pages.main.profile.camera.CameraContext;
@@ -73,7 +72,6 @@ import com.waz.zclient.utils.TrackingUtils;
 import com.waz.zclient.utils.ViewUtils;
 import com.waz.zclient.views.LoadingIndicatorView;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class ConversationManagerFragment extends BaseFragment<ConversationManagerFragment.Container> implements ParticipantFragment.Container,
@@ -86,17 +84,14 @@ public class ConversationManagerFragment extends BaseFragment<ConversationManage
                                                                                                                 CameraFragment.Container,
                                                                                                                 PickUserFragment.Container,
                                                                                                                 PickUserControllerScreenObserver,
-                                                                                                                ParticipantsStoreObserver,
                                                                                                                 LocationObserver,
                                                                                                                 SingleParticipantFragment.Container,
                                                                                                                 CollectionsObserver {
     public static final String TAG = ConversationManagerFragment.class.getName();
-    public static final float PARALLAX_FACTOR = .4f;
 
     private LoadingIndicatorView loadingIndicatorView;
 
     // doesn't need to be restored
-    private int headerHeight;
     private boolean groupConversation;
     private User otherUser;
     private IPickUserController.Destination pickUserDestination;
@@ -133,7 +128,6 @@ public class ConversationManagerFragment extends BaseFragment<ConversationManage
     public void onStart() {
         super.onStart();
         getStoreFactory().getConversationStore().addConversationStoreObserver(this);
-        getStoreFactory().getParticipantsStore().addParticipantsStoreObserver(this);
         getControllerFactory().getConversationScreenController().addConversationControllerObservers(this);
         getControllerFactory().getDrawingController().addDrawingObserver(this);
         getControllerFactory().getCameraController().addCameraActionObserver(this);
@@ -153,7 +147,6 @@ public class ConversationManagerFragment extends BaseFragment<ConversationManage
         getControllerFactory().getCameraController().removeCameraActionObserver(this);
         getControllerFactory().getDrawingController().removeDrawingObserver(this);
         getControllerFactory().getConversationScreenController().removeConversationControllerObservers(this);
-        getStoreFactory().getParticipantsStore().removeParticipantsStoreObserver(this);
         getStoreFactory().getConversationStore().removeConversationStoreObserver(this);
         getCollectionController().removeObserver(this);
         super.onStop();
@@ -253,7 +246,6 @@ public class ConversationManagerFragment extends BaseFragment<ConversationManage
 
     @Override
     public void onHeaderViewMeasured(int participantHeaderHeight) {
-        headerHeight = participantHeaderHeight;
     }
 
     @Override
@@ -621,29 +613,6 @@ public class ConversationManagerFragment extends BaseFragment<ConversationManage
     @Override
     public void onHideUserProfile() {
         // noop
-    }
-
-    // ParticipantStoreObserver
-
-    @Override
-    public void conversationUpdated(IConversation conversation) {
-
-    }
-
-    @Override
-    public void participantsUpdated(UsersList participants) {
-        ArrayList<String> participantIds = new ArrayList<>();
-        for (int i = 0; i < participants.size(); i++) {
-            participantIds.add(participants.get(i).getId());
-        }
-
-        // Exclude existing participants of conversation when adding people
-        getStoreFactory().getPickUserStore().setExcludedUsers(participantIds.toArray(new String[participantIds.size()]));
-    }
-
-    @Override
-    public void otherUserUpdated(User otherUser) {
-        getStoreFactory().getPickUserStore().setExcludedUsers(new String[] {});
     }
 
     private int getParticipantsCount() {

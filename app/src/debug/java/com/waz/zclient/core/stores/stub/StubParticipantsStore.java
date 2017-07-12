@@ -18,10 +18,8 @@
 package com.waz.zclient.core.stores.stub;
 
 import com.waz.api.IConversation;
-import com.waz.api.UsersList;
 import com.waz.zclient.core.stores.participants.IParticipantsStore;
 import com.waz.zclient.core.stores.participants.ParticipantsStoreObserver;
-import java.lang.Override;
 
 public class StubParticipantsStore implements IParticipantsStore {
   @Override
@@ -37,11 +35,6 @@ public class StubParticipantsStore implements IParticipantsStore {
   @Override
   public void tearDown() {
 
-  }
-
-  @Override
-  public UsersList getParticipants() {
-    return null;
   }
 
   @Override

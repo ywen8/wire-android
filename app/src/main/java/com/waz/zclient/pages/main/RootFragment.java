@@ -33,6 +33,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.Interpolator;
+
 import com.waz.api.ConversationsList;
 import com.waz.api.IConversation;
 import com.waz.api.ImageAsset;
@@ -41,7 +42,6 @@ import com.waz.api.MessageContent;
 import com.waz.api.OtrClient;
 import com.waz.api.SyncState;
 import com.waz.api.User;
-import com.waz.api.UsersList;
 import com.waz.model.MessageData;
 import com.waz.zclient.BaseActivity;
 import com.waz.zclient.OnBackPressedListener;
@@ -63,7 +63,6 @@ import com.waz.zclient.core.controllers.tracking.events.media.SentPictureEvent;
 import com.waz.zclient.core.stores.connect.IConnectStore;
 import com.waz.zclient.core.stores.conversation.ConversationChangeRequester;
 import com.waz.zclient.core.stores.conversation.ConversationStoreObserver;
-import com.waz.zclient.core.stores.participants.ParticipantsStoreObserver;
 import com.waz.zclient.pages.BaseFragment;
 import com.waz.zclient.pages.main.connect.ConnectRequestLoadMode;
 import com.waz.zclient.pages.main.connect.PendingConnectRequestManagerFragment;
@@ -90,9 +89,8 @@ import com.waz.zclient.ui.utils.MathUtils;
 import com.waz.zclient.utils.LayoutSpec;
 import com.waz.zclient.utils.TrackingUtils;
 import com.waz.zclient.utils.ViewUtils;
-import timber.log.Timber;
 
-import java.util.ArrayList;
+import timber.log.Timber;
 
 
 public class RootFragment extends BaseFragment<RootFragment.Container> implements
@@ -110,7 +108,6 @@ public class RootFragment extends BaseFragment<RootFragment.Container> implement
                                                                        GiphyObserver,
                                                                        DrawingObserver,
                                                                        LocationObserver,
-                                                                       ParticipantsStoreObserver,
                                                                        UsernamesControllerObserver,
                                                                        ConversationFragment.Container,
                                                                        ConversationListManagerFragment.Container,
@@ -236,7 +233,6 @@ public class RootFragment extends BaseFragment<RootFragment.Container> implement
         getControllerFactory().getGiphyController().addObserver(this);
         getControllerFactory().getUsernameController().addUsernamesObserverAndUpdate(this);
         getControllerFactory().getDrawingController().addDrawingObserver(this);
-        getStoreFactory().getParticipantsStore().addParticipantsStoreObserver(this);
         getControllerFactory().getLocationController().addObserver(this);
         onPagerEnabledStateHasChanged(getControllerFactory().getNavigationController().isPagerEnabled());
         getCollectionController().addObserver(this);
@@ -246,7 +242,6 @@ public class RootFragment extends BaseFragment<RootFragment.Container> implement
     public void onStop() {
         slidingPaneLayout.setPanelSlideController(null);
         getControllerFactory().getLocationController().removeObserver(this);
-        getStoreFactory().getParticipantsStore().removeParticipantsStoreObserver(this);
         getControllerFactory().getConversationScreenController().removeConversationControllerObservers(this);
         getControllerFactory().getSlidingPaneController().removeObserver(this);
         getControllerFactory().getCameraController().removeCameraActionObserver(this);
@@ -892,29 +887,6 @@ public class RootFragment extends BaseFragment<RootFragment.Container> implement
     @Override
     public void showRemoveConfirmation(User user) {
 
-    }
-
-    // ParticipantsStoreObserver
-
-    @Override
-    public void conversationUpdated(IConversation conversation) {
-
-    }
-
-    @Override
-    public void participantsUpdated(UsersList participants) {
-        ArrayList<String> participantIds = new ArrayList<>();
-        for (int i = 0; i < participants.size(); i++) {
-            participantIds.add(participants.get(i).getId());
-        }
-
-        // Exclude existing participants of conversation when adding people
-        getStoreFactory().getPickUserStore().setExcludedUsers(participantIds.toArray(new String[participantIds.size()]));
-    }
-
-    @Override
-    public void otherUserUpdated(User otherUser) {
-        getStoreFactory().getPickUserStore().setExcludedUsers(new String[] {});
     }
 
     @Override

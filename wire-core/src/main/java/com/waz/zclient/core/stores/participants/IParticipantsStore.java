@@ -18,7 +18,6 @@
 package com.waz.zclient.core.stores.participants;
 
 import com.waz.api.IConversation;
-import com.waz.api.UsersList;
 import com.waz.zclient.core.stores.IStore;
 
 public interface IParticipantsStore extends IStore {
@@ -28,8 +27,6 @@ public interface IParticipantsStore extends IStore {
 
     // removes an observer on this store
     void removeParticipantsStoreObserver(ParticipantsStoreObserver participantsStoreObserver);
-
-    UsersList getParticipants();
 
     void setCurrentConversation(IConversation conversation);
 }

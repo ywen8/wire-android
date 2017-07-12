@@ -19,16 +19,10 @@ package com.waz.zclient.core.api.scala;
 
 import com.waz.api.IConversation;
 import com.waz.api.UpdateListener;
-import com.waz.api.UsersList;
 import com.waz.zclient.core.stores.participants.ParticipantsStore;
 
 public class ScalaParticipantsStore extends ParticipantsStore {
     public static final String TAG = ScalaParticipantsStore.class.getName();
-
-    @Override
-    public UsersList getParticipants() {
-        return participants;
-    }
 
     @Override
     public void setCurrentConversation(IConversation conversation) {
