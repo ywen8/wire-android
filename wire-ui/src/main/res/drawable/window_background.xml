@@ -25,7 +25,7 @@
 <item>
     <bitmap
         android:gravity="center"
-        android:src="@drawable/watermark"/>
+        android:src="@drawable/wire_logo_shield"/>
 </item>
 
 </layer-list>
