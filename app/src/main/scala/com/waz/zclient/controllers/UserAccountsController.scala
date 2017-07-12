@@ -36,7 +36,7 @@ class UserAccountsController(implicit injector: Injector, context: Context, ec: 
 
   val zms = inject[Signal[ZMessaging]]
 
-  val accounts = Option(ZMessaging.currentAccounts).fold(Signal.const[Seq[AccountData]](Seq()))( _.loggedInAccounts.map(_.sortBy(acc => (acc.isTeamAccount, acc.id.str))))
+  val accounts = Option(ZMessaging.currentAccounts).fold(Signal.const[Seq[AccountData]](Seq()))(_.loggedInAccounts.map(_.sortBy(acc => (acc.isTeamAccount, acc.id.str))))
 
   val currentUser = for {
     zms     <- zms
@@ -88,7 +88,7 @@ class UserAccountsController(implicit injector: Injector, context: Context, ec: 
           z.convsUi.createGroupConversation(ConvId(), users, teamId)
     } yield conv
 
-    createConv.map{ convData =>
+    createConv.map { convData =>
       val iConv = activity.getStoreFactory.getConversationStore.getConversation(convData.id.str)
       activity.getStoreFactory.getConversationStore.setCurrentConversation(iConv, requester)
     }(Threading.Ui)
@@ -99,8 +99,22 @@ class UserAccountsController(implicit injector: Injector, context: Context, ec: 
   def teamId = _teamId
   def isTeamAccount = _teamId.isDefined
 
+  //TODO should perhaps clean this up a tad
+  private def getTeamId(convId: ConvId): Option[TeamId] = zms.currentValue.flatMap(_.convsStorage.conversations.find(_.id == convId).flatMap(_.team))
+
+  private def isPartOfTeam(tId: TeamId): Boolean = teamId match {
+    case Some(id) => id == tId
+    case _ => false
+  }
+
   def hasCreateConversationPermission: Boolean = !isTeamAccount || _permissions(AccountData.Permission.CreateConversation)
-  def hasRemoveConversationMemberPermission(convId: ConvId): Boolean = !isTeamAccount || _permissions(AccountData.Permission.RemoveConversationMember)
-  def hasAddConversationMemberPermission(convId: ConvId): Boolean = !isTeamAccount || _permissions(AccountData.Permission.AddConversationMember)
+  def hasRemoveConversationMemberPermission(convId: ConvId): Boolean = getTeamId(convId) match {
+    case Some(id) => isPartOfTeam(id) && _permissions(AccountData.Permission.RemoveConversationMember)
+    case _ => true
+  }
+  def hasAddConversationMemberPermission(convId: ConvId): Boolean = getTeamId(convId) match {
+    case Some(id) => isPartOfTeam(id) && _permissions(AccountData.Permission.AddConversationMember)
+    case _ => true
+  }
 
 }
