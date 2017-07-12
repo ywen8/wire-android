@@ -57,25 +57,28 @@
 
     </LinearLayout>
 
+    <LinearLayout
+        android:id="@+id/close_add_account"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top"
+        android:paddingStart="@dimen/first_time__create_account__padding_left"
+        android:paddingEnd="@dimen/first_time__create_account__padding_right"
+        android:paddingTop="@dimen/first_time__logo__padding_top"
+        android:paddingBottom="@dimen/first_time__logo__padding_top"
+        >
 
-    <com.waz.zclient.ui.views.ZetaButton
-        android:id="@+id/zb__welcome__sign_in"
-        android:layout_width="wrap_content"
-        android:layout_height="@dimen/first_time__sign_in__button_height"
-        android:layout_gravity="top|right"
-        android:layout_marginBottom="@dimen/first_time__create_account__padding_bottom"
-        android:layout_marginLeft="@dimen/first_time__create_account__padding_left"
-        android:layout_marginRight="@dimen/first_time__create_account__padding_right"
-        android:layout_marginTop="@dimen/first_time__logo__padding_top"
-        android:gravity="center"
-        android:paddingEnd="@dimen/first_time__sign_in__padding_end"
-        android:paddingStart="@dimen/first_time__sign_in__padding_start"
-        android:text="@string/i_have_an_account"
-        android:textAllCaps="true"
-        android:textColor="@color/text__primary_dark"
-        android:textSize="@dimen/wire__text_size__small"
-        custom:font="@string/wire__typeface__light"
-        />
+        <com.waz.zclient.ui.text.GlyphTextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/glyph__close"
+            android:gravity="end"
+            android:textColor="@color/text__primary_dark"
+            android:textSize="@dimen/wire__text_size__regular"
+            custom:font="@string/wire__typeface__light"
+            />
+
+    </LinearLayout>
 
     <!-- Body -->
     <FrameLayout
