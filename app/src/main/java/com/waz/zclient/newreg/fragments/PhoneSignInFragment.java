@@ -30,6 +30,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
 import android.widget.TextView;
+import com.waz.service.ZMessaging;
 import com.waz.zclient.BaseActivity;
 import com.waz.zclient.R;
 import com.waz.zclient.controllers.navigation.Page;
@@ -57,7 +58,6 @@ public class PhoneSignInFragment extends BaseFragment<PhoneSignInFragment.Contai
 
     private static final String[] GET_PHONE_NUMBER_PERMISSIONS = new String[] {Manifest.permission.READ_PHONE_STATE};
 
-    private View buttonBack;
     private TextView textViewCountryName;
     private TextView textViewCountryCode;
     private TypefaceEditText editTextPhone;
@@ -66,6 +66,7 @@ public class PhoneSignInFragment extends BaseFragment<PhoneSignInFragment.Contai
     private CountryController countryController;
     private TextView zetaButtonGotToEmailSignIn;
     private TabIndicatorLayout tabIndicatorLayout;
+    private View closeAddAccountButton;
 
     private IAppEntryStore.ErrorCallback errorCallback = new IAppEntryStore.ErrorCallback() {
         @Override
@@ -98,19 +99,14 @@ public class PhoneSignInFragment extends BaseFragment<PhoneSignInFragment.Contai
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup viewGroup, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_signin__with_phone, viewGroup, false);
+        closeAddAccountButton = ViewUtils.getView(view, R.id.close_add_account);
         zetaButtonGotToEmailSignIn = ViewUtils.getView(view, R.id.ttv__new_reg__sign_in__go_to__email);
         phoneConfirmationButton = ViewUtils.getView(view, R.id.pcb__signin__phone);
-        buttonBack = ViewUtils.getView(view, R.id.ll__activation_button__back);
         textViewCountryName = ViewUtils.getView(view, R.id.ttv_new_reg__signup__phone__country_name);
         textViewCountryCode = ViewUtils.getView(view, R.id.tv__country_code);
         editTextPhone = ViewUtils.getView(view, R.id.et__reg__phone);
         buttonCountryChooser = ViewUtils.getView(view, R.id.ll__signup__country_code__button);
         tabIndicatorLayout = ViewUtils.getView(view, R.id.til__app_entry);
-
-        // as there is supposed to be another version of the signup screen in 12.2015
-        // I am keeping the basic structure of the layouts and I am switching the elements
-        // that are not visible so far
-        buttonBack.setVisibility(View.GONE);
 
         return view;
     }
@@ -176,7 +172,8 @@ public class PhoneSignInFragment extends BaseFragment<PhoneSignInFragment.Contai
         editTextPhone.addTextChangedListener(this);
         phoneConfirmationButton.setOnClickListener(this);
         textViewCountryCode.setOnClickListener(this);
-        buttonBack.setOnClickListener(this);
+        closeAddAccountButton.setOnClickListener(this);
+        closeAddAccountButton.setVisibility(ZMessaging.currentAccounts().hasLoggedInAccount() ? View.VISIBLE : View.GONE);
 
         editTextPhone.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
@@ -195,13 +192,13 @@ public class PhoneSignInFragment extends BaseFragment<PhoneSignInFragment.Contai
 
     @Override
     public void onPause() {
-        buttonBack.setOnClickListener(null);
         zetaButtonGotToEmailSignIn.setOnClickListener(null);
         buttonCountryChooser.setOnClickListener(null);
         editTextPhone.removeTextChangedListener(this);
         phoneConfirmationButton.setOnClickListener(null);
         textViewCountryCode.setOnClickListener(null);
         tabIndicatorLayout.setCallback(null);
+        closeAddAccountButton.setOnClickListener(null);
 
         super.onPause();
     }
@@ -216,6 +213,7 @@ public class PhoneSignInFragment extends BaseFragment<PhoneSignInFragment.Contai
     public void onDestroyView() {
         textViewCountryName = null;
         textViewCountryCode = null;
+        closeAddAccountButton = null;
         editTextPhone = null;
         phoneConfirmationButton = null;
         zetaButtonGotToEmailSignIn = null;
@@ -258,6 +256,11 @@ public class PhoneSignInFragment extends BaseFragment<PhoneSignInFragment.Contai
     @Override
     public void onClick(View view) {
         switch (view.getId()) {
+            case R.id.close_add_account:
+                if (getContainer() != null) {
+                    getContainer().abortAddAccount();
+                }
+                break;
             case R.id.tv__country_code:
             case R.id.ll__signup__country_code__button:
                 getContainer().openCountryBox();
@@ -267,9 +270,6 @@ public class PhoneSignInFragment extends BaseFragment<PhoneSignInFragment.Contai
                 break;
             case R.id.ttv__new_reg__sign_in__go_to__email:
                 openEmailSignIn();
-                break;
-            case R.id.ll__activation_button__back:
-                goBack();
                 break;
         }
     }
@@ -316,6 +316,8 @@ public class PhoneSignInFragment extends BaseFragment<PhoneSignInFragment.Contai
     }
 
     public interface Container {
+
+        void abortAddAccount();
 
         int getAccentColor();
 

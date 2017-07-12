@@ -32,6 +32,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
 import android.widget.TextView;
+import com.waz.service.ZMessaging;
 import com.waz.zclient.BaseActivity;
 import com.waz.zclient.R;
 import com.waz.zclient.controllers.navigation.Page;
@@ -49,7 +50,6 @@ import com.waz.zclient.tracking.GlobalTrackingController;
 import com.waz.zclient.ui.text.TypefaceEditText;
 import com.waz.zclient.ui.utils.KeyboardUtils;
 import com.waz.zclient.ui.utils.TextViewUtils;
-import com.waz.zclient.ui.views.ZetaButton;
 import com.waz.zclient.ui.views.tab.TabIndicatorLayout;
 import com.waz.zclient.utils.PermissionUtils;
 import com.waz.zclient.utils.ViewUtils;
@@ -67,7 +67,7 @@ public class PhoneRegisterFragment extends BaseFragment<PhoneRegisterFragment.Co
     private TextView textViewCountryCode;
     private TextView textViewTermsOfService;
     private TypefaceEditText editTextPhone;
-    private ZetaButton buttonSignIn;
+    private View closeAddAccountButton;
     private PhoneConfirmationButton phoneConfirmationButton;
     private TextView changeCountryView;
     private CountryController countryController;
@@ -108,17 +108,13 @@ public class PhoneRegisterFragment extends BaseFragment<PhoneRegisterFragment.Co
         textViewCountryCode = ViewUtils.getView(view, R.id.tv__country_code);
         editTextPhone = ViewUtils.getView(view, R.id.et__reg__phone);
         textViewTermsOfService = ViewUtils.getView(view, R.id.tv__welcome__terms_of_service);
-        buttonSignIn = ViewUtils.getView(view, R.id.zb__welcome__sign_in);
+        closeAddAccountButton = ViewUtils.getView(view, R.id.close_add_account);
         phoneConfirmationButton = ViewUtils.getView(view, R.id.pcb__signup);
         changeCountryView = ViewUtils.getView(view, R.id.ttv_new_reg__signup__phone__change_country);
         tabIndicatorLayout = ViewUtils.getView(view, R.id.til__app_entry);
         titleView = ViewUtils.getView(view, R.id.tv__reg__title);
         logoView = ViewUtils.getView(view, R.id.iv__reg__logo);
 
-        // as there is supposed to be another version of the signup screen in 12.2015
-        // I am keeping the basic structure of the layouts and I am switching the elements
-        // that are not visible so far
-        buttonSignIn.setVisibility(View.GONE);
         textViewTermsOfService.setVisibility(View.GONE);
 
 
@@ -165,8 +161,6 @@ public class PhoneRegisterFragment extends BaseFragment<PhoneRegisterFragment.Co
         if (PermissionUtils.hasSelfPermissions(getActivity(), GET_PHONE_NUMBER_PERMISSIONS)) {
             setSimPhoneNumber();
         }
-        buttonSignIn.setIsFilled(false);
-
         editTextPhone.requestFocus();
         onAccentColorHasChanged(getContainer().getAccentColor());
 
@@ -202,7 +196,8 @@ public class PhoneRegisterFragment extends BaseFragment<PhoneRegisterFragment.Co
 
         changeCountryView.setOnClickListener(this);
         editTextPhone.addTextChangedListener(this);
-        buttonSignIn.setOnClickListener(this);
+        closeAddAccountButton.setOnClickListener(this);
+        closeAddAccountButton.setVisibility(ZMessaging.currentAccounts().hasLoggedInAccount() ? View.VISIBLE : View.GONE);
         phoneConfirmationButton.setOnClickListener(this);
         textViewCountryCode.setOnClickListener(this);
         textViewTermsOfService.setOnClickListener(this);
@@ -226,7 +221,7 @@ public class PhoneRegisterFragment extends BaseFragment<PhoneRegisterFragment.Co
         textViewTermsOfService.setOnClickListener(null);
         changeCountryView.setOnClickListener(null);
         editTextPhone.removeTextChangedListener(this);
-        buttonSignIn.setOnClickListener(null);
+        closeAddAccountButton.setOnClickListener(null);
         phoneConfirmationButton.setOnClickListener(null);
         textViewCountryCode.setOnClickListener(null);
         editTextPhone.setOnEditorActionListener(null);
@@ -247,7 +242,7 @@ public class PhoneRegisterFragment extends BaseFragment<PhoneRegisterFragment.Co
         textViewCountryCode = null;
         editTextPhone = null;
         textViewTermsOfService = null;
-        buttonSignIn = null;
+        closeAddAccountButton = null;
         phoneConfirmationButton = null;
         super.onDestroyView();
     }
@@ -273,8 +268,10 @@ public class PhoneRegisterFragment extends BaseFragment<PhoneRegisterFragment.Co
             case R.id.pcb__signup:
                 confirmPhoneNumber();
                 break;
-            case R.id.zb__welcome__sign_in:
-                getStoreFactory().getAppEntryStore().setState(AppEntryState.EMAIL_SIGN_IN);
+            case R.id.close_add_account:
+                if (getContainer() != null) {
+                    getContainer().abortAddAccount();
+                }
                 break;
             case R.id.tv__welcome__terms_of_service:
                 getContainer().onOpenUrlInApp(getString(R.string.url_terms_of_service), true);
@@ -332,7 +329,6 @@ public class PhoneRegisterFragment extends BaseFragment<PhoneRegisterFragment.Co
     public void onAccentColorHasChanged(int color) {
         editTextPhone.setAccentColor(color);
         phoneConfirmationButton.setAccentColor(color);
-        buttonSignIn.setAccentColor(ContextCompat.getColor(getActivity(), R.color.text__secondary_dark__40));
     }
 
     @Override
@@ -379,6 +375,9 @@ public class PhoneRegisterFragment extends BaseFragment<PhoneRegisterFragment.Co
     }
 
     public interface Container {
+
+        void abortAddAccount();
+
         void onOpenUrlInApp(String url, boolean withCloseButton);
 
         void enableProgress(boolean enabled);
