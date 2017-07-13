@@ -21,29 +21,22 @@ import android.support.v7.widget.RecyclerView
 import android.view.View
 import android.widget.TextView
 import com.waz.zclient.R
-import com.waz.zclient.adapters.PickUsersAdapter
+import com.waz.zclient.adapters.PickUsersAdapter._
 import com.waz.zclient.utils.ViewUtils
+import com.waz.zclient.utils.ContextUtils._
 
 class SectionHeaderViewHolder(val view: View) extends RecyclerView.ViewHolder(view) {
   private val sectionHeaderView: TextView = ViewUtils.getView(view, R.id.ttv_startui_section_header)
+  private implicit val context = sectionHeaderView.getContext
 
   def bind(section: Int, teamName: String): Unit = {
-    val title: String =
-      section match {
-        case PickUsersAdapter.TopUsersSection =>
-          sectionHeaderView.getContext.getResources.getString(R.string.people_picker__top_users_header_title)
-        case PickUsersAdapter.GroupConversationsSection =>
-          if (teamName.isEmpty)
-            sectionHeaderView.getContext.getResources.getString(R.string.people_picker__search_result_conversations_header_title)
-          else
-            sectionHeaderView.getContext.getResources.getString(R.string.people_picker__search_result_team_conversations_header_title, teamName)
-        case PickUsersAdapter.ContactsSection =>
-          sectionHeaderView.getContext.getResources.getString(R.string.people_picker__search_result_connections_header_title)
-        case PickUsersAdapter.DirectorySection =>
-          sectionHeaderView.getContext.getResources.getString(R.string.people_picker__search_result_others_header_title)
-        case PickUsersAdapter.TeamMembersSection =>
-          teamName
-      }
+    val title: String = section match {
+      case TopUsersSection                                => getString(R.string.people_picker__top_users_header_title)
+      case GroupConversationsSection if teamName.isEmpty  => getString(R.string.people_picker__search_result_conversations_header_title)
+      case GroupConversationsSection                      => getString(R.string.people_picker__search_result_team_conversations_header_title, teamName)
+      case ContactsSection                                => getString(R.string.people_picker__search_result_connections_header_title)
+      case DirectorySection                               => getString(R.string.people_picker__search_result_others_header_title)
+    }
     sectionHeaderView.setText(title)
   }
 }

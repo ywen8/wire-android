@@ -20,6 +20,7 @@ package com.waz.zclient.adapters
 import android.support.v7.widget.RecyclerView
 import android.view.{LayoutInflater, View, ViewGroup}
 import com.waz.ZLog
+import com.waz.ZLog.ImplicitTag._
 import com.waz.api.{Contact, ContactDetails, User}
 import com.waz.model._
 import com.waz.threading.Threading
@@ -39,7 +40,6 @@ class PickUsersAdapter(topUsersOnItemTouchListener: SearchResultOnItemTouchListe
                       (implicit injector: Injector) extends RecyclerView.Adapter[RecyclerView.ViewHolder] with Injectable {
 
   implicit private val ec = EventContext.Implicits.global
-  implicit private val logTag = ZLog.logTagFor[PickUsersAdapter]
 
   setHasStableIds(true)
 
@@ -57,19 +57,17 @@ class PickUsersAdapter(topUsersOnItemTouchListener: SearchResultOnItemTouchListe
   }
 
   private var topUsers = Seq[UserData]()
-  private var teamMembers = Seq[UserData]()
+  private var localResults = Seq[UserData]()
   private var conversations = Seq[ConversationData]()
-  private var connectedUsers = Seq[UserData]()
   private var contacts = Seq[Contact]()
   private var directoryResults = Seq[UserData]()
   private var currentUser = Option.empty[UserData]
 
   searchUserController.allDataSignal.throttle(500.millis).on(Threading.Ui) {
-    case (newTopUsers, newTeamMembers, newConversations, newConnectedUsers, newContacts, newDirectoryResults) =>
+    case (newTopUsers, newLocalResults, newConversations, newContacts, newDirectoryResults) =>
       topUsers = newTopUsers
-      teamMembers = newTeamMembers
+      localResults = newLocalResults
       conversations = newConversations
-      connectedUsers = newConnectedUsers
       contacts = newContacts
       directoryResults = newDirectoryResults
       updateMergedResults()
@@ -92,18 +90,9 @@ class PickUsersAdapter(topUsersOnItemTouchListener: SearchResultOnItemTouchListe
       }
     }
 
-    def addTeamMembers(): Unit = {
-      if (teamMembers.nonEmpty) {
-        mergedResult = mergedResult ++ Seq(SearchResult(SectionHeader, TeamMembersSection, 0, teamName))
-        mergedResult = mergedResult ++ teamMembers.indices.map { i =>
-          SearchResult(ConnectedUser, TeamMembersSection, i, teamMembers(i).id.str.hashCode)
-        }
-      }
-    }
-
     def addContacts(): Unit = {
-      if (contacts.nonEmpty || connectedUsers.nonEmpty) {
-        mergedResult = mergedResult ++ Seq(SearchResult(SectionHeader, ContactsSection, 0))
+      if (contacts.nonEmpty || localResults.nonEmpty) {
+        mergedResult = mergedResult ++ Seq(SearchResult(SectionHeader, ContactsSection, 0, teamName))
         var contactsSection = Seq[SearchResult]()
 
         contactsSection = contactsSection ++ contacts.indices.map { i =>
@@ -111,8 +100,8 @@ class PickUsersAdapter(topUsersOnItemTouchListener: SearchResultOnItemTouchListe
           SearchResult(AddressBookContact, ContactsSection, i, name)
         }
 
-        contactsSection = contactsSection ++ connectedUsers.indices.map { i =>
-          SearchResult(ConnectedUser, ContactsSection, i, connectedUsers(i).id.str.hashCode, connectedUsers(i).getDisplayName)
+        contactsSection = contactsSection ++ localResults.indices.map { i =>
+          SearchResult(ConnectedUser, ContactsSection, i, localResults(i).id.str.hashCode, localResults(i).getDisplayName)
         }
 
         val shouldCollapse = searchUserController.searchState.currentValue.exists(_.filter.nonEmpty) && collapsedContacts && contactsSection.size > CollapsedContacts
@@ -151,9 +140,8 @@ class PickUsersAdapter(topUsersOnItemTouchListener: SearchResultOnItemTouchListe
     }
 
     if (userAccountsController.isTeamAccount) {
-      addTeamMembers()
-      addGroupConversations()
       addContacts()
+      addGroupConversations()
     } else {
       addTopPeople()
       addContacts()
@@ -177,7 +165,7 @@ class PickUsersAdapter(topUsersOnItemTouchListener: SearchResultOnItemTouchListe
         val conversation = conversations(item.index)
         holder.asInstanceOf[ConversationViewHolder].bind(conversation)
       case ConnectedUser =>
-        val connectedUser = if (item.section == TeamMembersSection) teamMembers(item.index) else connectedUsers(item.index)
+        val connectedUser = localResults(item.index)
         val contactIsSelected = searchUserController.selectedUsers.contains(connectedUser.id)
         holder.asInstanceOf[UserViewHolder].bind(connectedUser, contactIsSelected)
       case UnconnectedUser =>
@@ -192,7 +180,7 @@ class PickUsersAdapter(topUsersOnItemTouchListener: SearchResultOnItemTouchListe
         val contact  = contacts(item.index)
         holder.asInstanceOf[AddressBookContactViewHolder].bind(contact, contactsCallback)
       case Expand =>
-        val itemCount = if (item.section == ContactsSection) contacts.size + connectedUsers.size else conversations.size
+        val itemCount = if (item.section == ContactsSection) contacts.size + localResults.size else conversations.size
         holder.asInstanceOf[SectionExpanderViewHolder].bind(itemCount, new View.OnClickListener() {
           def onClick(v: View): Unit = {
             if (item.section == ContactsSection) expandContacts() else expandGroups()
@@ -260,10 +248,9 @@ object PickUsersAdapter {
 
   //Sections
   val TopUsersSection = 0
-  val TeamMembersSection = 1
-  val GroupConversationsSection = 2
-  val ContactsSection = 3
-  val DirectorySection = 4
+  val GroupConversationsSection = 1
+  val ContactsSection = 2
+  val DirectorySection = 3
 
   //Constants
   val CollapsedContacts = 5
