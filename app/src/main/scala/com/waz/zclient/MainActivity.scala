@@ -431,7 +431,6 @@ class MainActivity extends BaseActivity
         info("onLogout")
         getStoreFactory.reset()
         getControllerFactory.getPickUserController.hideUserProfile()
-        getControllerFactory.getUserPreferencesController.reset()
         getStoreFactory.getConversationStore.onLogout()
         getControllerFactory.getNavigationController.resetPagerPositionToDefault()
         val intent: Intent = new Intent(this, classOf[MainActivity])
@@ -439,7 +438,7 @@ class MainActivity extends BaseActivity
         finish()
         startActivity(intent)
       }
-    }
+    } (Threading.Ui)
   }
 
   def onForceClientUpdate() = openForceUpdatePage()

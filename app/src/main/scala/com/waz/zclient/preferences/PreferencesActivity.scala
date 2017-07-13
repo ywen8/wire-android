@@ -30,6 +30,8 @@ import android.support.v4.widget.TextViewCompat
 import android.support.v7.widget.{AppCompatTextView, Toolbar}
 import android.view.{MenuItem, View, ViewGroup}
 import android.widget.{TextSwitcher, TextView, Toast, ViewSwitcher}
+import com.waz.ZLog
+import com.waz.ZLog.ImplicitTag._
 import com.waz.api.ImageAsset
 import com.waz.content.GlobalPreferences.CurrentAccountPref
 import com.waz.content.{GlobalPreferences, UserPreferences}
@@ -103,8 +105,14 @@ class PreferencesActivity extends BaseActivity
     } else {
       backStackNavigator.onRestore(findViewById(R.id.content).asInstanceOf[ViewGroup], savedInstanceState)
     }
-    currentAccountPref.signal.onChanged { _ =>
-      startActivity(returning(new Intent(this, classOf[MainActivity]))(_.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK)))
+
+    //TODO: Investigate why the onChanged doesn't work
+    val currentAccount = currentAccountPref.signal.currentValue.flatten
+    currentAccountPref.signal.onUi { acc =>
+      if (acc != currentAccount) {
+        startActivity(returning(new Intent(this, classOf[MainActivity]))(_.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK)))
+        finish()
+      }
     }
 
     accentColor.on(Threading.Ui) { color =>
