@@ -77,7 +77,6 @@ class ProfileViewImpl(context: Context, attrs: AttributeSet, style: Int) extends
   addAccountButton.onClickEvent.on(Threading.Ui) { _ =>
     addAccountButton.setEnabled(false)
     ZMessaging.currentAccounts.logout(false)
-      .map( _ => Option(context.asInstanceOf[Activity]).foreach(_.finish())) (Threading.Ui)
   }
 
   settingsButton.onClickEvent.on(Threading.Ui) { _ =>
