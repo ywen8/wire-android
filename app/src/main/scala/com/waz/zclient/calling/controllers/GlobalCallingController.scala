@@ -17,17 +17,18 @@
  */
 package com.waz.zclient.calling.controllers
 
-import com.waz.service.ZMessaging
-import com.waz.utils.events.{EventContext, Signal}
 import android.os.PowerManager
 import com.waz.ZLog.ImplicitTag._
+import com.waz.ZLog._
 import com.waz.api.{IConversation, Verification}
 import com.waz.model.ConversationData.ConversationType
 import com.waz.model.UserId
+import com.waz.service.ZMessaging
 import com.waz.service.call.CallInfo
 import com.waz.service.call.CallInfo.CallState
 import com.waz.service.call.CallInfo.CallState._
 import com.waz.threading.Threading
+import com.waz.utils.events.{EventContext, Signal}
 import com.waz.zclient.calling.CallingActivity
 import com.waz.zclient.media.SoundController
 import com.waz.zclient.utils.ContextUtils._
@@ -270,11 +271,16 @@ private class ScreenManager(implicit injector: Injector) extends Injectable {
     else PowerManager.PROXIMITY_SCREEN_OFF_WAKE_LOCK
     releaseWakeLock()
     wakeLock = powerManager.map(_.newWakeLock(flags, TAG))
+    verbose(s"Creating wakelock")
     wakeLock.foreach(_.acquire())
+    verbose(s"Aquiring wakelock")
   }
 
   def releaseWakeLock() = {
-    for (wl <- wakeLock if wl.isHeld) wl.release()
+    for (wl <- wakeLock if wl.isHeld) {
+      wl.release()
+      verbose(s"Releasing wakelock")
+    }
     wakeLock = None
   }
 }
