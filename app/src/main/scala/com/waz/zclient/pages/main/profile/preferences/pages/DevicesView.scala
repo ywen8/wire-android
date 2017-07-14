@@ -21,9 +21,11 @@ import android.content.Context
 import android.os.Bundle
 import android.util.AttributeSet
 import android.view.View
+import android.view.ViewGroup.MarginLayoutParams
 import android.widget.{LinearLayout, ScrollView}
 import com.waz.model.otr.Client
 import com.waz.service.ZMessaging
+import com.waz.threading.Threading
 import com.waz.utils.events.{EventContext, Signal}
 import com.waz.zclient.pages.main.profile.preferences.views.DeviceButton
 import com.waz.zclient.ui.text.TypefaceTextView
@@ -67,6 +69,8 @@ class DevicesViewImpl(context: Context, attrs: AttributeSet, style: Int) extends
       deviceButton.setDevice(device, self = false)
       deviceButton.onClickEvent { _ => navigator.goTo(DeviceDetailsBackStackKey(device.id.str)) }
       deviceList.addView(deviceButton)
+      val margin = context.getResources.getDimensionPixelSize(R.dimen.wire__padding__8)
+      Option(deviceButton.getLayoutParams.asInstanceOf[MarginLayoutParams]).foreach(_.setMargins(0, 0, 0, margin))
     }
   }
 }
@@ -82,7 +86,10 @@ case class DevicesBackStackKey(args: Bundle = new Bundle()) extends BackStackKey
     controller = Option(v.asInstanceOf[DevicesViewImpl]).map(view => DevicesViewController(view)(view.injector, view))
   }
 
-  override def onViewDetached() = controller = None
+  override def onViewDetached() = {
+    controller.foreach(_.onViewClose())
+    controller = None
+  }
 }
 
 case class DevicesViewController(view: DevicesView)(implicit inj: Injector, ec: EventContext) extends Injectable {
@@ -95,6 +102,13 @@ case class DevicesViewController(view: DevicesView)(implicit inj: Injector, ec: 
     clients       <- Signal.future(manager.storage.otrClientsStorage.get(userId))
   } yield clients.fold(Seq[Client]())(_.clients.values.filter(client => !selfClientId.contains(client.id)).toSeq.sortBy(_.regTime))
 
+  val incomingClients = for {
+    Some(manager)      <- ZMessaging.currentAccounts.activeAccountManager
+    Some(userId)       <- manager.accountData.map(_.userId)
+    Some(selfClientId) <- manager.accountData.map(_.clientId)
+    clients            <- manager.storage.otrClientsStorage.incomingClientsSignal(userId, selfClientId)
+  } yield clients
+
   val selfClient = for {
     zms <- zms
     selfClient <- zms.fold(Signal.const(Option.empty[Client]))(_.otrClientsService.selfClient.map(Option(_)))
@@ -103,4 +117,11 @@ case class DevicesViewController(view: DevicesView)(implicit inj: Injector, ec: 
   selfClient.onUi{ view.setSelfDevice }
   otherClients.onUi{ view.setOtherDevices }
 
+  def onViewClose(): Unit = {
+    implicit val ec = Threading.Background
+    for {
+      Some(zms) <- zms.head
+      _         <- zms.otrClientsService.updateUnknownToUnverified(zms.selfUserId)
+    } ()
+  }
 }

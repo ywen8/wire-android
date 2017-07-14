@@ -17,11 +17,12 @@
  */
 package com.waz.zclient.pages.main.profile.preferences.pages
 
-import android.app.Activity
-import android.content.{Context, Intent}
+import android.app.{Activity, AlertDialog}
+import android.content.{Context, DialogInterface, Intent}
 import android.graphics.drawable.Drawable
 import android.net.Uri
 import android.os.Bundle
+import android.text.format.DateFormat
 import android.util.AttributeSet
 import android.view.View
 import android.view.View.OnClickListener
@@ -29,26 +30,31 @@ import android.widget.{ImageView, LinearLayout}
 import com.waz.ZLog
 import com.waz.api.impl.AccentColor
 import com.waz.model.{TeamData, TeamId, UserId}
+import com.waz.model.otr.Client
 import com.waz.service.ZMessaging
 import com.waz.threading.Threading
 import com.waz.utils.NameParts
-import com.waz.utils.events.{EventContext, Signal}
+import com.waz.utils.events.{EventContext, EventStream, Signal}
 import com.waz.zclient._
 import com.waz.zclient.drawables.TeamIconDrawable
 import com.waz.zclient.pages.main.profile.preferences.views.TextButton
 import com.waz.zclient.ui.text.TypefaceTextView
-import com.waz.zclient.utils.{BackStackKey, BackStackNavigator, StringUtils, UiStorage, UserSignal}
+import com.waz.zclient.utils.{BackStackKey, BackStackNavigator, StringUtils, UiStorage, UserSignal, ZTimeFormatter}
 import com.waz.zclient.views.ImageAssetDrawable
 import com.waz.zclient.views.ImageAssetDrawable.{RequestBuilder, ScaleType}
 import com.waz.zclient.views.ImageController.{ImageSource, WireImage}
+import org.threeten.bp.{LocalDateTime, ZoneId}
 
 trait ProfileView {
+  val onDevicesDialogAccept: EventStream[Unit]
+
   def setUserName(name: String): Unit
   def setHandle(handle: String): Unit
   def setProfilePictureDrawable(drawable: Drawable): Unit
   def setAccentColor(color: Int): Unit
   def setTeamName(name: Option[String]): Unit
   def setAddAccountEnabled(enabled: Boolean): Unit
+  def showNewDevicesDialog(devices: Seq[Client]): Unit
 }
 
 class ProfileViewImpl(context: Context, attrs: AttributeSet, style: Int) extends LinearLayout(context, attrs, style) with ProfileView with ViewHelper {
@@ -69,7 +75,10 @@ class ProfileViewImpl(context: Context, attrs: AttributeSet, style: Int) extends
   val addAccountButton = findById[TextButton](R.id.profile_add_account)
   val settingsButton = findById[TextButton](R.id.profile_settings)
 
+  override val onDevicesDialogAccept = EventStream[Unit]()
   private lazy val teamDrawable = new TeamIconDrawable
+
+  private var deviceDialog = Option.empty[AlertDialog]
 
   createTeamButton.onClickEvent.onUi{ _ =>
     context.startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(context.getString(R.string.create_team_url))))
@@ -113,6 +122,49 @@ class ProfileViewImpl(context: Context, attrs: AttributeSet, style: Int) extends
     addAccountButton.setAlpha(if (enabled) 1.0f else 0.5f)
   }
 
+  override def showNewDevicesDialog(devices: Seq[Client]) = {
+    deviceDialog.foreach(_.dismiss())
+    deviceDialog = None
+    if (devices.nonEmpty) {
+      val builder = new AlertDialog.Builder(context)
+      deviceDialog = Option(builder.setTitle(R.string.new_devices_dialog_title)
+        .setMessage(getNewDevicesMessage(devices))
+        .setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener {
+          override def onClick(dialog: DialogInterface, which: Int) = {
+            dialog.dismiss()
+            onDevicesDialogAccept ! (())
+          }
+        })
+        .setNegativeButton(R.string.new_devices_dialog_manage_devices, new DialogInterface.OnClickListener {
+          override def onClick(dialog: DialogInterface, which: Int) = {
+            dialog.dismiss()
+            navigator.goTo(DevicesBackStackKey())
+          }
+        })
+        .show())
+    }
+  }
+
+  private def getNewDevicesMessage(devices: Seq[Client]): String = {
+    val now = LocalDateTime.now(ZoneId.systemDefault)
+
+    val deviceNames = devices.map { device =>
+      val time =
+        device.regTime match {
+          case Some(regTime) =>
+            ZTimeFormatter.getSeparatorTime(context, now, LocalDateTime.ofInstant(regTime, ZoneId.systemDefault),
+              DateFormat.is24HourFormat(context), ZoneId.systemDefault, false)
+          case _ =>
+            ""
+        }
+      s"${device.model} (${device.label})\n$time"
+    }.mkString("\n\n")
+
+    val infoMessage = context.getString(R.string.new_devices_dialog_info)
+
+    Seq(deviceNames, infoMessage).mkString("\n\n")
+  }
+
 }
 object ProfileView {
   val Tag = ZLog.logTagFor[ProfileView]
@@ -149,6 +201,12 @@ class ProfileViewController(view: ProfileView)(implicit inj: Injector, ec: Event
 
   val selfPicture: Signal[ImageSource] = self.map(_.picture).collect{case Some(pic) => WireImage(pic)}
 
+  val incomingClients = for{
+    z       <- zms
+    acc     <- z.account.accountData
+    clients <- acc.clientId.fold(Signal.empty[Seq[Client]])(aid => z.otrClientsStorage.incomingClientsSignal(z.selfUserId, aid))
+  } yield clients
+
   view.setProfilePictureDrawable(new ImageAssetDrawable(selfPicture, scaleType = ScaleType.CenterInside, request = RequestBuilder.Round))
 
   self.on(Threading.Ui) { self =>
@@ -161,6 +219,12 @@ class ProfileViewController(view: ProfileView)(implicit inj: Injector, ec: Event
 
   ZMessaging.currentAccounts.loggedInAccounts.map(_.size).on(Threading.Ui) { count =>
     view.setAddAccountEnabled(count < MaxAccountsCount)
+  }
+
+  incomingClients.onUi { clients => view.showNewDevicesDialog(clients) }
+
+  view.onDevicesDialogAccept.on(Threading.Background) { _ =>
+    zms.head.flatMap(z => z.otrClientsService.updateUnknownToUnverified(z.selfUserId))(Threading.Background)
   }
 }
 
