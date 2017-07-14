@@ -66,7 +66,6 @@ import com.waz.zclient.newreg.fragments.VerifyPhoneFragment;
 import com.waz.zclient.newreg.fragments.WelcomeEmailFragment;
 import com.waz.zclient.newreg.fragments.country.CountryController;
 import com.waz.zclient.newreg.fragments.country.CountryDialogFragment;
-import com.waz.zclient.preferences.PreferencesActivity;
 import com.waz.zclient.preferences.ScalaPreferencesController;
 import com.waz.zclient.tracking.GlobalTrackingController;
 import com.waz.zclient.ui.utils.KeyboardUtils;
