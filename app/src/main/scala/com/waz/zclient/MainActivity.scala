@@ -30,7 +30,6 @@ import com.localytics.android.Localytics
 import com.waz.ZLog.ImplicitTag._
 import com.waz.ZLog.{error, info, warn}
 import com.waz.api.{NetworkMode, _}
-import com.waz.content.UserPreferences
 import com.waz.model.ConvId
 import com.waz.service.ZMessaging
 import com.waz.threading.Threading
@@ -38,7 +37,6 @@ import com.waz.utils.events.Signal
 import com.waz.utils.returning
 import com.waz.zclient.calling.CallingActivity
 import com.waz.zclient.calling.controllers.CallPermissionsController
-import com.waz.zclient.controllers.{SharingController, ThemeObservingActivity, UserAccountsController}
 import com.waz.zclient.controllers.accentcolor.AccentColorChangeRequester
 import com.waz.zclient.controllers.calling.CallingObserver
 import com.waz.zclient.controllers.global.{AccentColorController, SelectionController}
@@ -83,8 +81,7 @@ class MainActivity extends BaseActivity
   with CallingObserver
   with OtrDeviceLimitFragment.Container
   with ZMessagingApiStoreObserver
-  with ConversationStoreObserver
-  with ThemeObservingActivity {
+  with ConversationStoreObserver {
 
   import Threading.Implicits.Background
 
@@ -136,6 +133,15 @@ class MainActivity extends BaseActivity
         startActivity(PreferencesActivity.getDefaultIntent(this))
       case _ =>
     }
+
+    val currentlyDarkTheme = themeController.darkThemeSet.currentValue.contains(true)
+    val currentAccount = ZMessaging.currentAccounts.activeAccountPref.signal.currentValue.flatten
+
+    Signal(themeController.darkThemeSet, ZMessaging.currentAccounts.activeAccountPref.signal).onUi {
+      case (theme, acc) if acc != currentAccount || theme != currentlyDarkTheme => restartActivity()
+      case _ =>
+    }
+
   }
 
   override protected def onResumeFragments() = {
@@ -252,6 +258,13 @@ class MainActivity extends BaseActivity
         case LOCALYTICS_DEEPLINK_SETTINGS => startActivity(PreferencesActivity.getDefaultIntent(this))
       }
     }
+  }
+
+  private def restartActivity() = {
+    info("restartActivity")
+    finish()
+    startActivity(IntentUtils.getAppLaunchIntent(this))
+    overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
   }
 
   private def onLaunch() = {

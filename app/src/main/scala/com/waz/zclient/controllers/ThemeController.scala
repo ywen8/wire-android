@@ -17,17 +17,14 @@
  */
 package com.waz.zclient.controllers
 
-import android.app.Activity
 import android.content.Context
-import android.os.Bundle
 import com.waz.ZLog.ImplicitTag._
 import com.waz.content.UserPreferences.DarkTheme
 import com.waz.service.ZMessaging
-import com.waz.threading.{SerialDispatchQueue, Threading}
+import com.waz.threading.Threading
 import com.waz.utils.events.{EventContext, Signal}
 import com.waz.zclient.ui.theme.{OptionsDarkTheme, OptionsLightTheme, OptionsTheme}
-import com.waz.zclient.utils.IntentUtils
-import com.waz.zclient.{ActivityHelper, Injectable, Injector, R}
+import com.waz.zclient.{Injectable, Injector, R}
 
 class ThemeController(implicit injector: Injector, context: Context, ec: EventContext) extends Injectable {
   private val zms = inject[Signal[ZMessaging]]
@@ -52,33 +49,4 @@ class ThemeController(implicit injector: Injector, context: Context, ec: EventCo
   def getTheme: Int = if (isDarkTheme) R.style.Theme_Dark else R.style.Theme_Light
 
   def getThemeDependentOptionsTheme: OptionsTheme = if (isDarkTheme) optionsDarkTheme else optionsLightTheme
-}
-
-/**
-  * Trait for activities that need to restart if the theme changes - so far, this should only be used by the
-  * main activity
-  */
-trait ThemeObservingActivity extends Activity with ActivityHelper {
-
-  private implicit val dispatcher = new SerialDispatchQueue()
-
-  private lazy val themeController = inject[ThemeController]
-  import themeController._
-
-  override def onCreate(savedInstanceState: Bundle): Unit = {
-    super.onCreate(savedInstanceState)
-
-    val currentlyDarkTheme = darkThemeSet.currentValue.contains(true)
-    darkThemeSet.onUi { set =>
-      if (set != currentlyDarkTheme) restartActivity()
-    }
-
-  }
-
-  private def restartActivity() = {
-    finish()
-    startActivity(IntentUtils.getAppLaunchIntent(this))
-    overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
-  }
-
 }
