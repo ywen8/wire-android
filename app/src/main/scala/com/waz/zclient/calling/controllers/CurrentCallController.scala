@@ -26,7 +26,7 @@ import com.waz.api.VideoSendState.{DONT_SEND, SEND}
 import com.waz.api._
 import com.waz.avs.{VideoPreview, VideoRenderer}
 import com.waz.model._
-import com.waz.service.call.AvsV3.VideoReceiveState
+import com.waz.service.call.Avs.VideoReceiveState
 import com.waz.service.call.CallInfo.CallState._
 import com.waz.service.call.FlowManagerService.{StateAndReason, UnknownState}
 import com.waz.threading.Threading
