@@ -128,6 +128,12 @@ class MainActivity extends BaseActivity
     getControllerFactory.getLoadTimeLoggerController.appStart()
 
     accentColorController.accentColor.map(_.getColor)(getControllerFactory.getUserPreferencesController.setLastAccentColor)
+
+    Option(getIntent).flatMap(i => Option(i.getExtras)).map(_.getBoolean(MainActivity.OpenSettingsArg, false)) match {
+      case Some(true) =>
+        startActivity(PreferencesActivity.getDefaultIntent(this))
+      case _ =>
+    }
   }
 
   override protected def onResumeFragments() = {
@@ -639,4 +645,5 @@ class MainActivity extends BaseActivity
 
 object MainActivity {
   private val LAUNCH_CONVERSATION_CHANGE_DELAY: Int = 123
+  val OpenSettingsArg = "OpenSettingsArg"
 }

@@ -28,6 +28,7 @@ import android.view.View.OnClickListener
 import android.widget.{ImageView, LinearLayout}
 import com.waz.ZLog
 import com.waz.api.impl.AccentColor
+import com.waz.model.{TeamData, TeamId, UserId}
 import com.waz.service.ZMessaging
 import com.waz.threading.Threading
 import com.waz.utils.NameParts
@@ -100,7 +101,7 @@ class ProfileViewImpl(context: Context, attrs: AttributeSet, style: Int) extends
       case Some(teamName) =>
         teamDrawable.setInfo(NameParts.maybeInitial(teamName).getOrElse(""), TeamIconDrawable.TeamCorners, selected = false)
         teamPicture.setImageDrawable(teamDrawable)
-        teamNameText.setText(teamName)
+        teamNameText.setText(context.getString(R.string.preferences_profile_in_team, teamName))
       case None =>
         teamPicture.setImageDrawable(null)
         teamNameText.setText("")
@@ -144,7 +145,7 @@ class ProfileViewController(view: ProfileView)(implicit inj: Injector, ec: Event
     self <- UserSignal(zms.selfUserId)
   } yield self
 
-  val team = zms.flatMap(_.teams.selfTeam)
+  val team = Signal.const(Option(TeamData(TeamId(), "Wire", UserId())))//zms.flatMap(_.teams.selfTeam)
 
   val selfPicture: Signal[ImageSource] = self.map(_.picture).collect{case Some(pic) => WireImage(pic)}
 

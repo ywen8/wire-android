@@ -109,7 +109,7 @@ public class AppEntryTestActivity extends TestActivity implements VerifyPhoneFra
     }
 
     @Override
-    public void onEnterApplication() {
+    public void onEnterApplication(boolean openSettings) {
 
     }
 

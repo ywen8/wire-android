@@ -66,6 +66,7 @@ import com.waz.zclient.newreg.fragments.VerifyPhoneFragment;
 import com.waz.zclient.newreg.fragments.WelcomeEmailFragment;
 import com.waz.zclient.newreg.fragments.country.CountryController;
 import com.waz.zclient.newreg.fragments.country.CountryDialogFragment;
+import com.waz.zclient.preferences.PreferencesActivity;
 import com.waz.zclient.preferences.ScalaPreferencesController;
 import com.waz.zclient.tracking.GlobalTrackingController;
 import com.waz.zclient.ui.utils.KeyboardUtils;
@@ -261,7 +262,7 @@ public class AppEntryActivity extends BaseActivity implements VerifyPhoneFragmen
             @Override
             public void onSwapComplete() {
                 enableProgress(false);
-                onEnterApplication();
+                onEnterApplication(true);
             }
 
             @Override
@@ -539,10 +540,14 @@ public class AppEntryActivity extends BaseActivity implements VerifyPhoneFragmen
     }
 
     @Override
-    public void onEnterApplication() {
+    public void onEnterApplication(boolean openSettings) {
         getControllerFactory().getNavigationController().removeNavigationControllerObserver(this);
         getControllerFactory().getVerificationController().finishVerification();
-        startActivity(new Intent(this, MainActivity.class));
+        Intent intent = new Intent(this, MainActivity.class);
+        Bundle bundle = new Bundle();
+        bundle.putBoolean(MainActivity.OpenSettingsArg(), openSettings);
+        intent.putExtras(bundle);
+        startActivity(intent);
         finish();
     }
 

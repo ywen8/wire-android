@@ -1187,4 +1187,7 @@
     <string name="conversation_list__header__archive_title">ARCHIVE</string>
     <string name="guest_indicator">GUEST</string>
     <string name="participant_tab_guest_indicator_label">Guest</string>
+    <string name="preferences_profile_add_account">Add an account</string>
+    <string name="preferences_profile_create_team">Create a team</string>
+    <string name="preferences_profile_in_team">in %1$s</string>
 </resources>
