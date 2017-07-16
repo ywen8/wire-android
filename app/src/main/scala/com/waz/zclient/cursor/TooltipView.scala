@@ -19,7 +19,7 @@ package com.waz.zclient.cursor
 
 import android.content.Context
 import android.util.AttributeSet
-import com.nineoldandroids.animation.{Animator, AnimatorListenerAdapter, ValueAnimator}
+import android.animation.{Animator, AnimatorListenerAdapter, ValueAnimator}
 import com.waz.utils.returning
 import com.waz.zclient.ViewHelper
 import com.waz.zclient.ui.text.TypefaceTextView

@@ -18,7 +18,6 @@
 package com.waz.zclient.pages.main.conversation;
 
 import android.Manifest;
-import android.annotation.SuppressLint;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
@@ -47,8 +46,6 @@ import android.widget.FrameLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.GoogleApiAvailability;
 import com.waz.api.AssetFactory;
 import com.waz.api.AssetForUpload;
 import com.waz.api.AudioAssetForUpload;
@@ -77,7 +74,6 @@ import com.waz.utils.wrappers.URI;
 import com.waz.zclient.BaseActivity;
 import com.waz.zclient.OnBackPressedListener;
 import com.waz.zclient.R;
-import com.waz.zclient.WireContext;
 import com.waz.zclient.camera.controllers.GlobalCameraController;
 import com.waz.zclient.controllers.IControllerFactory;
 import com.waz.zclient.controllers.ThemeController;
@@ -98,15 +94,11 @@ import com.waz.zclient.controllers.navigation.PagerControllerObserver;
 import com.waz.zclient.controllers.orientation.OrientationControllerObserver;
 import com.waz.zclient.controllers.permission.RequestPermissionsObserver;
 import com.waz.zclient.controllers.singleimage.SingleImageObserver;
-import com.waz.zclient.controllers.tracking.events.conversation.EditedMessageEvent;
-import com.waz.zclient.controllers.tracking.events.navigation.OpenedMoreActionsEvent;
 import com.waz.zclient.conversation.CollectionController;
 import com.waz.zclient.core.api.scala.ModelObserver;
 import com.waz.zclient.core.controllers.tracking.attributes.OpenedMediaAction;
 import com.waz.zclient.core.controllers.tracking.events.filetransfer.SelectedTooLargeFileEvent;
 import com.waz.zclient.core.controllers.tracking.events.media.CancelledRecordingAudioMessageEvent;
-import com.waz.zclient.core.controllers.tracking.events.media.OpenedActionHintEvent;
-import com.waz.zclient.core.controllers.tracking.events.media.OpenedEmojiKeyboardEvent;
 import com.waz.zclient.core.controllers.tracking.events.media.OpenedMediaActionEvent;
 import com.waz.zclient.core.controllers.tracking.events.media.PreviewedAudioMessageEvent;
 import com.waz.zclient.core.controllers.tracking.events.media.SentPictureEvent;
@@ -116,7 +108,6 @@ import com.waz.zclient.core.stores.IStoreFactory;
 import com.waz.zclient.core.stores.conversation.ConversationChangeRequester;
 import com.waz.zclient.core.stores.conversation.ConversationStoreObserver;
 import com.waz.zclient.core.stores.inappnotification.SyncErrorObserver;
-import com.waz.zclient.core.stores.network.DefaultNetworkAction;
 import com.waz.zclient.core.stores.participants.ParticipantsStoreObserver;
 import com.waz.zclient.cursor.CursorCallback;
 import com.waz.zclient.media.SoundController;
@@ -135,7 +126,6 @@ import com.waz.zclient.pages.main.conversationpager.controller.SlidingPaneObserv
 import com.waz.zclient.pages.main.pickuser.controller.IPickUserController;
 import com.waz.zclient.pages.main.profile.camera.CameraContext;
 import com.waz.zclient.preferences.PreferencesActivity;
-import com.waz.zclient.preferences.PreferencesController;
 import com.waz.zclient.tracking.GlobalTrackingController;
 import com.waz.zclient.ui.animation.interpolators.penner.Expo;
 import com.waz.zclient.ui.audiomessage.AudioMessageRecordingView;
@@ -570,7 +560,6 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
     @Override
     public void onResume() {
         super.onResume();
-        cursorLayout.showSendButtonAsEnterKey(!getPreferencesController().isSendButtonEnabled());
         if (LayoutSpec.isTablet(getContext())) {
             conversationModelObserver.setAndUpdate(getStoreFactory().getConversationStore().getCurrentConversation());
         }
@@ -1042,10 +1031,6 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
 
     private GlobalCameraController getCameraController() {
         return ((BaseActivity) getActivity()).injectJava(GlobalCameraController.class);
-    }
-
-    private ScalaPreferencesController getPreferencesController() {
-        return ((BaseActivity) getActivity()).injectJava(ScalaPreferencesController.class);
     }
 
     @Override

@@ -38,7 +38,7 @@ import android.content.Context
 import android.util.AttributeSet
 import android.view.View
 import android.widget.FrameLayout
-import com.nineoldandroids.animation.{Animator, AnimatorListenerAdapter, ValueAnimator}
+import android.animation.{Animator, AnimatorListenerAdapter, ValueAnimator}
 import com.waz.ZLog.ImplicitTag._
 import com.waz.threading.Threading
 import com.waz.utils.returning
