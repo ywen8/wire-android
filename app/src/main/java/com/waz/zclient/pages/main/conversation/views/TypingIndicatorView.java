@@ -42,17 +42,12 @@ public class TypingIndicatorView extends FrameLayout {
     private boolean animationRunning;
     private Handler handler;
 
-    private Callback callback;
-
     private ModelObserver<UsersList> typingUsersObserver = new ModelObserver<UsersList>() {
         @Override
         public void updated(UsersList usersList) {
             if (usersList == null || usersList.size() == 0) {
                 nameTextView.setText("");
                 setVisibility(GONE);
-                if (callback != null) {
-                    callback.onTypingIndicatorVisibilityChanged(false);
-                }
                 endAnimation();
             } else {
                 LinkedList<String> userNames = new LinkedList<>();
@@ -61,9 +56,6 @@ public class TypingIndicatorView extends FrameLayout {
                 }
                 nameTextView.setText(TextUtils.join(", ", userNames));
                 setVisibility(VISIBLE);
-                if (callback != null) {
-                    callback.onTypingIndicatorVisibilityChanged(true);
-                }
                 startAnimation();
             }
         }
@@ -139,10 +131,6 @@ public class TypingIndicatorView extends FrameLayout {
 
     }
 
-    public void setCallback(Callback callback) {
-        this.callback = callback;
-    }
-
     public void setInputStateIndicator(InputStateIndicator inputStateIndicator) {
         if (inputStateIndicator == null) {
             typingUsersObserver.clear();
@@ -155,9 +143,5 @@ public class TypingIndicatorView extends FrameLayout {
         typingUsersObserver.clear();
         nameTextView.setText("");
         endAnimation();
-    }
-
-    public interface Callback {
-        void onTypingIndicatorVisibilityChanged(boolean visible);
     }
 }
