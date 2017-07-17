@@ -31,7 +31,7 @@ class RenamePartView(context: Context, attrs: AttributeSet, style: Int) extends 
   def this(context: Context, attrs: AttributeSet) = this(context, attrs, 0)
   def this(context: Context) = this(context, null, 0)
 
-  override val tpe = MsgPart.MemberChange
+  override val tpe = MsgPart.Rename
 
   setOrientation(LinearLayout.VERTICAL)
 
