@@ -22,7 +22,7 @@ import com.waz.ZLog.ImplicitTag._
 import com.waz.ZLog._
 import com.waz.api.NetworkMode
 import com.waz.model.ConvId
-import com.waz.service.call.AvsV3.ClosedReason.{Interrupted, Normal}
+import com.waz.service.call.Avs.ClosedReason.{Interrupted, Normal}
 import com.waz.service.call.CallInfo.CallState
 import com.waz.service.call.CallInfo.CallState._
 import com.waz.threading.Threading
