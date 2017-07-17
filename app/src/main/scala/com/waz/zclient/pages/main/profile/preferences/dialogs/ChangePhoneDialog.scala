@@ -172,27 +172,25 @@ class ChangePhoneDialog extends DialogFragment with FragmentHelper with CountryC
 
   private def handleInput(): Unit = {
     import Threading.Implicits.Background
+
     val newCountryCode = Option(countryEditText.getText.toString.trim).filter { cc =>
       cc.nonEmpty && cc.matches("\\+([0-9])+")
     }
     val rawNumber = Option(phoneEditText.getText.toString.trim).filter(_.nonEmpty)
 
-    if (newCountryCode.isEmpty) showError(getString(R.string.pref__account_action__dialog__add_phone__error__country))
-    if (rawNumber.isEmpty) showError(getString(R.string.pref__account_action__dialog__add_phone__error__number))
-
-    (for {
-      cc <- newCountryCode
-      rn <- rawNumber
-    } yield PhoneNumber(s"$cc$rn".toLowerCase)).foreach { n =>
-
-      ViewUtils.showAlertDialog(
-        getActivity,
-        getString(R.string.pref__account_action__dialog__add_phone__confirm__title),
-        getString(R.string.pref__account_action__dialog__add_phone__confirm__message, number),
-        getString(android.R.string.ok),
-        getString(android.R.string.cancel), new DialogInterface.OnClickListener() {
-          def onClick(dialog: DialogInterface, which: Int) = {
-            for {
+    (newCountryCode, rawNumber) match {
+      case (None, _) => showError(getString(R.string.pref__account_action__dialog__add_phone__error__country))
+      case (_, None) => showError(getString(R.string.pref__account_action__dialog__add_phone__error__number))
+      case (Some(cc), Some(rn)) =>
+        val n = PhoneNumber(s"$cc$rn".toLowerCase)
+        ViewUtils.showAlertDialog(
+          getActivity,
+          getString(R.string.pref__account_action__dialog__add_phone__confirm__title),
+          getString(R.string.pref__account_action__dialog__add_phone__confirm__message, n.str),
+          getString(android.R.string.ok),
+          getString(android.R.string.cancel),
+          new DialogInterface.OnClickListener() {
+            def onClick(dialog: DialogInterface, which: Int) = for {
               z <- zms.head
               p <- z.account.accountData.head.map(_.phone)
               _ <- if (p.contains(n)) Future(dismiss())(Threading.Ui)
@@ -205,8 +203,9 @@ class ChangePhoneDialog extends DialogFragment with FragmentHelper with CountryC
                   else showError(getString(AppEntryError.PHONE_REGISTER_GENERIC_ERROR.headerResource))
               } (Threading.Ui)
             } yield {}
-          }
-        }, null)
+          },
+          null
+        )
     }
   }
 
