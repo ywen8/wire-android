@@ -72,7 +72,7 @@ class SettingsViewImpl(context: Context, attrs: AttributeSet, style: Int) extend
   avsButton.onClickEvent.on(Threading.Ui) { _ => navigator.goTo(AvsBackStackKey()) }
 
   override val onInviteClick: EventStream[Unit] = inviteButton.onClickEvent.map(_ => ())
-  inviteButton.setText(R.string.people_picker__generic_invite_button_text)
+  inviteButton.setText(R.string.pref_invite_title)
   inviteButton.setGlyph(R.string.glyph__invite)
 
   override def startInviteIntent(name: String, handle: String) = {

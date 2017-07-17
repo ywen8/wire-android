@@ -261,7 +261,7 @@ public class AppEntryActivity extends BaseActivity implements VerifyPhoneFragmen
             @Override
             public void onSwapComplete() {
                 enableProgress(false);
-                onEnterApplication();
+                onEnterApplication(true);
             }
 
             @Override
@@ -539,10 +539,14 @@ public class AppEntryActivity extends BaseActivity implements VerifyPhoneFragmen
     }
 
     @Override
-    public void onEnterApplication() {
+    public void onEnterApplication(boolean openSettings) {
         getControllerFactory().getNavigationController().removeNavigationControllerObserver(this);
         getControllerFactory().getVerificationController().finishVerification();
-        startActivity(new Intent(this, MainActivity.class));
+        Intent intent = new Intent(this, MainActivity.class);
+        Bundle bundle = new Bundle();
+        bundle.putBoolean(MainActivity.OpenSettingsArg(), openSettings);
+        intent.putExtras(bundle);
+        startActivity(intent);
         finish();
     }
 

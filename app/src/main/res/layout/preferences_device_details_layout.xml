@@ -114,17 +114,19 @@
                 <com.waz.zclient.pages.main.profile.preferences.views.TextButton
                     android:id="@+id/device_detail_reset"
                     android:layout_width="match_parent"
-                    android:layout_height="@dimen/preference_button_height"
+                    android:layout_height="wrap_content"
                     app:title="@string/pref_devices_device_reset_session_title"
                     app:subtitle="@string/pref_devices_device_reset_session_summary"
+                    android:layout_marginBottom="@dimen/wire__padding__8"
                     />
 
                 <com.waz.zclient.pages.main.profile.preferences.views.TextButton
                     android:id="@+id/device_detail_remove"
                     android:layout_width="match_parent"
-                    android:layout_height="@dimen/preference_button_height"
+                    android:layout_height="wrap_content"
                     app:title="@string/pref_devices_device_remove_title"
                     app:subtitle="@string/pref_devices_device_remove_summary"
+                    android:layout_marginBottom="@dimen/wire__padding__8"
                     />
             </LinearLayout>
 

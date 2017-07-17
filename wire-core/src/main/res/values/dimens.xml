@@ -129,7 +129,7 @@
     <dimen name="options_menu_item__padding__big">30dp</dimen>
     <dimen name="options_menu_item__height">56dp</dimen>
     <dimen name="options_menu_item__width">56dp</dimen>
-    <dimen name="options_menu_item_glyph_text_size">20dp</dimen>
+    <dimen name="options_menu_item_glyph_text_size">16dp</dimen>
     <dimen name="options_menu_item_title_height">16dp</dimen>
     <dimen name="options_menu_item_title_margin_top">8dp</dimen>
     <dimen name="options_menu_cancel_height">16dp</dimen>
@@ -466,7 +466,7 @@
     <dimen name="first_time__logo__width">64dp</dimen>
     <dimen name="first_time__logo__height">24dp</dimen>
     <dimen name="first_time__logo__padding_top">24dp</dimen>
-    <dimen name="first_time__logo__padding_left">24dp</dimen>
+    <dimen name="first_time__logo__padding_left">16dp</dimen>
     <dimen name="first_time__sign_in__padding_top">26dp</dimen>
     <dimen name="first_time__sign_in__padding_start">18dp</dimen>
     <dimen name="first_time__sign_in__padding_end">18dp</dimen>
@@ -739,7 +739,7 @@
     <dimen name="reg__content_bottom_margin">40dp</dimen>
     <dimen name="reg__signin_option__height">24dp</dimen>
     <dimen name="reg__signin_option__height_margin">20dp</dimen>
-    <dimen name="wire_logo_margin_top">@dimen/wire__padding__26</dimen>
+    <dimen name="wire_logo_margin_top">@dimen/wire__padding__16</dimen>
     <dimen name="extend_container_height">280dp</dimen>
     <dimen name="extended_container__camera__gallery_grid__divider__spacing">1dp</dimen>
     <dimen name="wire__icon_button__diameter__big">40dp</dimen>
@@ -870,11 +870,12 @@
     <dimen name="team_tab_drawable_border">1.5dp</dimen>
 
     <dimen name="flat_wire_button_height">56dp</dimen>
+    <dimen name="flat_wire_icon_size">16dp</dimen>
     <dimen name="preference_button_height">56dp</dimen>
     <dimen name="preference_button_image_size">16dp</dimen>
     <dimen name="preference_button_padding">16dp</dimen>
     <dimen name="preference_devices_count_width">28dp</dimen>
-    <dimen name="settings_profile_picture_size">300dp</dimen>
-    <dimen name="settings_profile_team_icon_size">64dp</dimen>
+    <dimen name="settings_profile_picture_size">220dp</dimen>
+    <dimen name="settings_profile_team_icon_size">76dp</dimen>
     <dimen name="settings_profile_team_icon_margin">24dp</dimen>
 </resources>

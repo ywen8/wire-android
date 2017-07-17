@@ -94,7 +94,7 @@ class DeviceDetailsViewImpl(context: Context, attrs: AttributeSet, style: Int) e
   }
 
   override def setId(id: String) = {
-    idView.setText(id)
+    idView.setText(DevicesPreferencesUtil.getFormattedId(id))
     TextViewUtils.boldText(idView)
   }
 

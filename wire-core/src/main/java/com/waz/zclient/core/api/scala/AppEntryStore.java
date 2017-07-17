@@ -504,7 +504,7 @@ public class AppEntryStore implements IAppEntryStore, ErrorsList.ErrorListener {
                 if (otherOtrClients != null) {
                     otherOtrClients.removeUpdateListener(otrClientsUpdateListender);
                 }
-                appEntryStateCallback.onEnterApplication();
+                appEntryStateCallback.onEnterApplication(false);
                 break;
             case EMAIL_INVITATION:
                 appEntryStateCallback.onShowEmailInvitationPage();
