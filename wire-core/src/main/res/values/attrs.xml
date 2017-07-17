@@ -231,12 +231,6 @@
         <attr name="badgeCount" format="integer" />
     </declare-styleable>
 
-    <declare-styleable name="EphemeralDotAnimationView">
-        <attr name="primaryColor" format="color" />
-        <attr name="secondaryColor" format="color" />
-        <attr name="dotPadding" format="dimension" />
-    </declare-styleable>
-
     <declare-styleable name="AssetActionButton">
         <attr name="isFileType" format="boolean"/>
     </declare-styleable>
