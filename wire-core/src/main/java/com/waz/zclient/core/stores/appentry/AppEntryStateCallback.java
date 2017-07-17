@@ -30,7 +30,7 @@ public interface AppEntryStateCallback {
     void onShowPhoneAddEmailPage();
     void onShowPhoneVerifyEmailPage();
     void onShowPhoneNamePage();
-    void onEnterApplication();
+    void onEnterApplication(boolean openSettings);
     void onShowPhoneSetPicturePage();
     void onShowEmailWelcomePage();
     void onShowEmailRegistrationPage();

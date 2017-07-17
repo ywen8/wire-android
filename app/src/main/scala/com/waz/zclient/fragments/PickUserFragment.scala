@@ -244,7 +244,7 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
     userSelectionConfirmationButton.setGlyph(R.string.glyph__add_people)
     userSelectionConfirmationButton.setVisibility(View.GONE)
     inviteButton = ViewUtils.getView(rootView, R.id.invite_button)
-    inviteButton.setText(R.string.people_picker__generic_invite_button_text)
+    inviteButton.setText(R.string.pref_invite_title)
     inviteButton.setGlyph(R.string.glyph__invite)
     // Error message
     errorMessageViewContainer = ViewUtils.getView(rootView, R.id.fl_pickuser__error_message_container)

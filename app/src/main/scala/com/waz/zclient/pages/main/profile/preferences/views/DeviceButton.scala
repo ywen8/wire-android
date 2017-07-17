@@ -20,19 +20,19 @@ package com.waz.zclient.pages.main.profile.preferences.views
 import java.util.Locale
 
 import android.content.Context
-import android.graphics.Color
 import android.graphics.drawable.Drawable
 import android.support.v4.content.ContextCompat
+import android.text.format.DateFormat
 import android.util.AttributeSet
 import com.waz.model.otr.Client
 import com.waz.zclient.R
 import com.waz.zclient.ui.utils.TextViewUtils
+import com.waz.zclient.utils.ZTimeFormatter
+import org.threeten.bp.{LocalDateTime, ZoneId}
 
 class DeviceButton(context: Context, attrs: AttributeSet, style: Int) extends PictureTextButton(context, attrs, style) {
   def this(context: Context, attrs: AttributeSet) = this(context, attrs, 0)
   def this(context: Context) = this(context, null, 0)
-
-  subtitle.foreach(_.setTextColor(Color.WHITE))
 
   def setDevice(client: Client, self: Boolean): Unit = {
     title.foreach(_.setText(client.model))
@@ -51,9 +51,19 @@ class DeviceButton(context: Context, attrs: AttributeSet, style: Int) extends Pi
   }
 
   private def displayId(client: Client): String = {
-    f"${client.id.str.toUpperCase(Locale.ENGLISH)}%16s" replace (' ', '0') grouped 4 map { group =>
+    val id = f"${client.id.str.toUpperCase(Locale.ENGLISH)}%16s" replace (' ', '0') grouped 4 map { group =>
       val (bold, normal) = group.splitAt(2)
       s"[[$bold]] $normal"
     } mkString " "
+
+    val date = client.regTime match {
+      case Some(regTime) =>
+        val now = LocalDateTime.now(ZoneId.systemDefault)
+        val time = ZTimeFormatter.getSeparatorTime(context, now, LocalDateTime.ofInstant(regTime, ZoneId.systemDefault), DateFormat.is24HourFormat(context), ZoneId.systemDefault, false)
+        context.getString(R.string.pref_devices_device_activation_subtitle, time, client.regLocation.fold("?")(_.getName))
+      case _ =>
+        ""
+    }
+    s"ID: $id\n$date"
   }
 }

@@ -24,7 +24,7 @@
 
     <com.waz.zclient.ui.text.GlyphTextView
         android:id="@+id/glyph"
-        android:layout_width="@dimen/people_picker__chathead__width"
+        android:layout_width="@dimen/flat_wire_icon_size"
         android:layout_height="wrap_content"
         android:layout_marginStart="@dimen/people_picker__search_result__row__padding_horizontal"
         android:layout_marginEnd="@dimen/people_picker__search_result__chathead__padding_right"
