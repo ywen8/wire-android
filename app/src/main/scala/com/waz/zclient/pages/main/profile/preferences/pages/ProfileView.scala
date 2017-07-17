@@ -197,7 +197,7 @@ class ProfileViewController(view: ProfileView)(implicit inj: Injector, ec: Event
     self <- UserSignal(zms.selfUserId)
   } yield self
 
-  val team = Signal.const(Option(TeamData(TeamId(), "Wire", UserId())))//zms.flatMap(_.teams.selfTeam)
+  val team = zms.flatMap(_.teams.selfTeam)
 
   val selfPicture: Signal[ImageSource] = self.map(_.picture).collect{case Some(pic) => WireImage(pic)}
 

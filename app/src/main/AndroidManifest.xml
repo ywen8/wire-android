@@ -132,7 +132,7 @@
             android:name="com.waz.zclient.preferences.PreferencesActivity"
             android:hardwareAccelerated="true"
             android:theme="@style/Theme.Dark.Preferences"
-            android:label="@string/settings_title"
+            android:label="@string/empty_string"
             />
         <activity
             android:name=".PopupActivity"

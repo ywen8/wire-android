@@ -30,7 +30,6 @@ import android.support.v4.widget.TextViewCompat
 import android.support.v7.widget.{AppCompatTextView, Toolbar}
 import android.view.{MenuItem, View, ViewGroup}
 import android.widget.{TextSwitcher, TextView, Toast, ViewSwitcher}
-import com.waz.ZLog
 import com.waz.ZLog.ImplicitTag._
 import com.waz.api.ImageAsset
 import com.waz.content.GlobalPreferences.CurrentAccountPref

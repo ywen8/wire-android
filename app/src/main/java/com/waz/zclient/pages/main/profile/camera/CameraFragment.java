@@ -409,6 +409,7 @@ public class CameraFragment extends BaseFragment<CameraFragment.Container> imple
         imagePreviewLayout.setAccentColor(getControllerFactory().getAccentColorController().getAccentColor().getColor());
         imagePreviewLayout.setTitle(previewTitle);
 
+        imagePreviewContainer.removeAllViews();
         imagePreviewContainer.addView(imagePreviewLayout);
         imagePreviewContainer.setVisibility(View.VISIBLE);
         ObjectAnimator.ofFloat(imagePreviewContainer,
