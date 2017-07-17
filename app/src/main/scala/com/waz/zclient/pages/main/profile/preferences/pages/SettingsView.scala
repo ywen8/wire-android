@@ -23,17 +23,17 @@ import android.util.AttributeSet
 import android.view.View
 import android.widget.LinearLayout
 import com.waz.ZLog
+import com.waz.api.ZmsVersion
 import com.waz.service.ZMessaging
 import com.waz.threading.Threading
 import com.waz.utils.events.{EventContext, EventStream, Signal}
+import com.waz.zclient._
 import com.waz.zclient.controllers.tracking.events.connect.OpenedGenericInviteMenuEvent
 import com.waz.zclient.controllers.tracking.screens.ApplicationScreen
 import com.waz.zclient.pages.main.profile.preferences.views.TextButton
 import com.waz.zclient.tracking.GlobalTrackingController
-import com.waz.zclient.utils.{BackStackKey, BackStackNavigator, IntentUtils, StringUtils, UiStorage, UserSignal}
+import com.waz.zclient.utils.{BackStackKey, BackStackNavigator, IntentUtils, RichView, StringUtils, UiStorage, UserSignal}
 import com.waz.zclient.views.FlatWireButton
-import com.waz.zclient._
-import com.waz.zclient.utils.RichView
 
 trait SettingsView {
 
@@ -135,6 +135,6 @@ class SettingsViewController(view: SettingsView)(implicit inj: Injector, ec: Eve
     view.setInviteButtonEnabled(team.isEmpty)
   }
 
-  view.setDevSettingsEnabled(BuildConfig.DEBUG)
+  view.setDevSettingsEnabled(ZmsVersion.DEBUG)
 }
 
