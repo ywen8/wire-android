@@ -544,7 +544,6 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
         getControllerFactory().getRequestPermissionsController().addObserver(this);
         getControllerFactory().getOrientationController().addOrientationControllerObserver(this);
         cursorLayout.setCursorCallback(this);
-        cursorLayout.showSendButtonAsEnterKey(!getPreferencesController().isSendButtonEnabled());
         hideSendButtonIfNeeded();
         final String draftText = getStoreFactory().getDraftStore().getDraft(getStoreFactory().getConversationStore().getCurrentConversation());
         if (!TextUtils.isEmpty(draftText)) {
@@ -577,6 +576,7 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
     @Override
     public void onResume() {
         super.onResume();
+        cursorLayout.showSendButtonAsEnterKey(!getPreferencesController().isSendButtonEnabled());
         if (LayoutSpec.isTablet(getContext())) {
             conversationModelObserver.setAndUpdate(getStoreFactory().getConversationStore().getCurrentConversation());
         }
