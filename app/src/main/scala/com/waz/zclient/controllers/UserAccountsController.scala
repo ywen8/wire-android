@@ -70,7 +70,7 @@ class UserAccountsController(implicit injector: Injector, context: Context, ec: 
 
   val teamMembersSignal = for {
     zms <- zms
-    teamMembers <- Signal.future(zms.teams.searchTeamMembers())
+    teamMembers <- zms.teams.searchTeamMembers()
   } yield teamMembers.map(_.id)
 
   teamMembersSignal { members => _teamMembers = members }
@@ -107,7 +107,7 @@ class UserAccountsController(implicit injector: Injector, context: Context, ec: 
   def teamId = _teamId
   def isTeamAccount = _teamId.isDefined
   def isTeamMember(userId: UserId) = _teamMembers.contains(userId)
-  
+
   //TODO should perhaps clean this up a tad
   private def getTeamId(convId: ConvId): Option[TeamId] = zms.currentValue.flatMap(_.convsStorage.conversations.find(_.id == convId).flatMap(_.team))
 
