@@ -130,7 +130,6 @@ public class AppEntryStore implements IAppEntryStore, ErrorsList.ErrorListener {
     }
 
     public void resumeAppEntry(Self self, String personalInvitationToken) {
-
         if (!bindSelf(self)) {
             return;
         }
@@ -156,11 +155,7 @@ public class AppEntryStore implements IAppEntryStore, ErrorsList.ErrorListener {
 
                     @Override
                     public void onRetrievalFailed(ErrorResponse errorResponse) {
-                        if (LayoutSpec.isPhone(context)) {
-                            setState(AppEntryState.PHONE_REGISTER);
-                        } else {
-                            setState(AppEntryState.EMAIL_WELCOME);
-                        }
+                        setStateToRegistration();
                     }
                 });
             return;
@@ -215,14 +210,10 @@ public class AppEntryStore implements IAppEntryStore, ErrorsList.ErrorListener {
         }
 
         // Start registration
-        if (LayoutSpec.isPhone(context)) {
-            if (ZMessaging.currentAccounts().hasLoggedInAccount()) {
-                setState(AppEntryState.EMAIL_SIGN_IN);
-            } else {
-                setState(AppEntryState.PHONE_REGISTER);
-            }
+        if (ZMessaging.currentAccounts().hasLoggedInAccount()) {
+            setState(AppEntryState.EMAIL_SIGN_IN);
         } else {
-            setState(AppEntryState.EMAIL_WELCOME);
+            setStateToRegistration();
         }
     }
 
@@ -333,11 +324,7 @@ public class AppEntryStore implements IAppEntryStore, ErrorsList.ErrorListener {
             case PHONE_SIGN_IN:
             case PHONE_INVITATION:
             case EMAIL_INVITATION:
-                if (LayoutSpec.isPhone(context)) {
-                    setState(AppEntryState.PHONE_REGISTER);
-                } else {
-                    setState(AppEntryState.EMAIL_WELCOME);
-                }
+                setStateToRegistration();
                 return true;
             case PHONE_SET_CODE:
                 if (entryPoint == AppEntryState.EMAIL_SIGN_IN) {
@@ -356,11 +343,7 @@ public class AppEntryStore implements IAppEntryStore, ErrorsList.ErrorListener {
                 setState(AppEntryState.EMAIL_WELCOME);
                 return true;
             case EMAIL_SIGN_IN:
-                if (LayoutSpec.isPhone(context)) {
-                    setState(AppEntryState.PHONE_REGISTER);
-                } else {
-                    setState(AppEntryState.EMAIL_WELCOME);
-                }
+                setStateToRegistration();
                 return true;
             case EMAIL_SET_CODE:
                 setState(AppEntryState.EMAIL_SET_PHONE);
@@ -1014,13 +997,8 @@ public class AppEntryStore implements IAppEntryStore, ErrorsList.ErrorListener {
 
             @Override
             public void onRegistrationFailed(int code, String message, String label) {
-                Timber.e("Email invitation registration failed");
                 appEntryStateCallback.onInvitationFailed();
-                if (LayoutSpec.isPhone(context)) {
-                    setState(AppEntryState.PHONE_REGISTER);
-                } else {
-                    setState(AppEntryState.EMAIL_WELCOME);
-                }
+                setStateToRegistration();
             }
         });
     }
@@ -1039,13 +1017,8 @@ public class AppEntryStore implements IAppEntryStore, ErrorsList.ErrorListener {
 
             @Override
             public void onRegistrationFailed(int i, String s, String s1) {
-                Timber.e("Email invitation registration failed");
                 appEntryStateCallback.onInvitationFailed();
-                if (LayoutSpec.isPhone(context)) {
-                    setState(AppEntryState.PHONE_REGISTER);
-                } else {
-                    setState(AppEntryState.EMAIL_WELCOME);
-                }
+                setStateToRegistration();
             }
         });
     }
@@ -1119,6 +1092,14 @@ public class AppEntryStore implements IAppEntryStore, ErrorsList.ErrorListener {
                 break;
         }
         zMessagingApi.getSelf().resendVerificationEmail(email);
+    }
+
+    private void setStateToRegistration() {
+        if (LayoutSpec.isPhone(context)) {
+            setState(AppEntryState.PHONE_REGISTER);
+        } else {
+            setState(AppEntryState.EMAIL_WELCOME);
+        }
     }
 
     private void setAndStorePhone(String phone) {
