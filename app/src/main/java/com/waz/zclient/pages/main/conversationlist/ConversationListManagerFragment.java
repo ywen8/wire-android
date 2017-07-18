@@ -1189,7 +1189,7 @@ public class ConversationListManagerFragment extends BaseFragment<ConversationLi
         ((BaseActivity) getActivity()).injectJava(GlobalTrackingController.class).tagEvent(new OpenedUsernameSettingsEvent());
         getChildFragmentManager().beginTransaction()
                                  .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
-                                 .add(ChangeHandleFragment.newInstance(getStoreFactory().getProfileStore().getSelfUser().getUsername(), true),
+                                 .add(ChangeHandleFragment.newInstance(getStoreFactory().getProfileStore().getSelfUser().getUsername(), false),
                                       ChangeHandleFragment.FragmentTag())
                                  .addToBackStack(ChangeHandleFragment.FragmentTag())
                                  .commit();
