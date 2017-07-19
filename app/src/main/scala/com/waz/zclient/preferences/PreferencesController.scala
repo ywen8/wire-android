@@ -19,22 +19,19 @@ package com.waz.zclient.preferences
 
 import com.waz.content.UserPreferences
 import com.waz.service.ZMessaging
+import com.waz.ZLog.ImplicitTag._
 import com.waz.utils.events.{EventContext, Signal}
 import com.waz.zclient.{Injectable, Injector}
 
 //So that java can access the new preferences from the SE
-class ScalaPreferencesController(implicit inj: Injector, ec: EventContext) extends Injectable {
+class PreferencesController(implicit inj: Injector, ec: EventContext) extends Injectable {
 
   private val zms = inject[Signal[ZMessaging]]
   private val userPrefs = zms.map(_.userPrefs)
 
-  private var _sendButtonEnabled = false
-  userPrefs.flatMap(_.preference(UserPreferences.SendButtonEnabled).signal){ _sendButtonEnabled = _ }
+  val sendButtonEnabled = userPrefs.flatMap(_.preference(UserPreferences.SendButtonEnabled).signal).disableAutowiring()
+  val analyticsEnabled  = userPrefs.flatMap(_.preference(UserPreferences.AnalyticsEnabled).signal).disableAutowiring()
 
-  private var _analyticsEnabled = false
-  userPrefs.flatMap(_.preference(UserPreferences.AnalyticsEnabled).signal){ _analyticsEnabled = _ }
-
-  def isSendButtonEnabled: Boolean = _sendButtonEnabled
-
-  def isAnalyticsEnabled: Boolean = _analyticsEnabled
+  def isSendButtonEnabled: Boolean = sendButtonEnabled.currentValue.getOrElse(true)
+  def isAnalyticsEnabled: Boolean = analyticsEnabled.currentValue.getOrElse(true)
 }
