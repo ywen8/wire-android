@@ -65,11 +65,11 @@ class PickUsersAdapter(topUsersOnItemTouchListener: SearchResultOnItemTouchListe
 
   searchUserController.allDataSignal.throttle(500.millis).on(Threading.Ui) {
     case (newTopUsers, newLocalResults, newConversations, newContacts, newDirectoryResults) =>
-      topUsers = newTopUsers
-      localResults = newLocalResults
-      conversations = newConversations
+      newTopUsers.foreach(topUsers = _)
+      newLocalResults.foreach(localResults = _)
+      newConversations.foreach(conversations = _)
       contacts = newContacts
-      directoryResults = newDirectoryResults
+      newDirectoryResults.foreach(directoryResults = _)
       updateMergedResults()
   }
 
