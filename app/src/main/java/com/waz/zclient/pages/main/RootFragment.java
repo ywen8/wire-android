@@ -726,7 +726,6 @@ public class RootFragment extends BaseFragment<RootFragment.Container> implement
 
     @Override
     public boolean onBackPressed() {
-
         Fragment fragment = getChildFragmentManager().findFragmentByTag(ParticipantsDialogFragment.TAG);
         if (fragment instanceof OnBackPressedListener &&
             ((OnBackPressedListener) fragment).onBackPressed()) {

@@ -455,55 +455,55 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
         typingIndicatorView = ViewUtils.getView(view, R.id.tiv_typing_indicator_view);
         typingIndicatorView.setCallback(this);
         listView = ViewUtils.getView(view, R.id.messages_list_view);
-            toolbar.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    getControllerFactory().getConversationScreenController().showParticipants(toolbar, false);
-                }
-            });
-            toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
-                @Override
-                public boolean onMenuItemClick(MenuItem item) {
-                    switch (item.getItemId()) {
-                        case R.id.action_audio_call:
-                            getControllerFactory().getCallingController().startCall(false);
-                            cursorLayout.closeEditMessage(false);
-                            return true;
-                        case R.id.action_video_call:
-                            getControllerFactory().getCallingController().startCall(true);
-                            cursorLayout.closeEditMessage(false);
-                            return true;
-                    }
-                    return false;
-                }
-            });
-            toolbar.setNavigationOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    if (cursorLayout == null) {
-                        return;
-                    }
-
+        toolbar.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                getControllerFactory().getConversationScreenController().showParticipants(toolbar, false);
+            }
+        });
+        toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(MenuItem item) {
+            switch (item.getItemId()) {
+                case R.id.action_audio_call:
+                    getControllerFactory().getCallingController().startCall(false);
                     cursorLayout.closeEditMessage(false);
-                    getActivity().onBackPressed();
-                    KeyboardUtils.closeKeyboardIfShown(getActivity());
-                }
-            });
+                    return true;
+                case R.id.action_video_call:
+                    getControllerFactory().getCallingController().startCall(true);
+                    cursorLayout.closeEditMessage(false);
+                    return true;
+            }
+            return false;
+            }
+        });
+        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+            if (cursorLayout == null) {
+                return;
+            }
 
-            leftMenu.setOnMenuItemClickListener(new ActionMenuView.OnMenuItemClickListener() {
-                @Override
-                public boolean onMenuItemClick(MenuItem item) {
-                    switch (item.getItemId()) {
-                        case R.id.action_collection:
-                            getCollectionController().openCollection();
-                            return true;
-                    }
-                    return false;
-                }
-            });
+            cursorLayout.closeEditMessage(false);
+            getActivity().onBackPressed();
+            KeyboardUtils.closeKeyboardIfShown(getActivity());
+            }
+        });
 
-            if (LayoutSpec.isTablet(getContext()) && ViewUtils.isInLandscape(getContext())) {
-                toolbar.setNavigationIcon(null);
+        leftMenu.setOnMenuItemClickListener(new ActionMenuView.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(MenuItem item) {
+            switch (item.getItemId()) {
+                case R.id.action_collection:
+                    getCollectionController().openCollection();
+                    return true;
+            }
+            return false;
+            }
+        });
+
+        if (LayoutSpec.isTablet(getContext()) && ViewUtils.isInLandscape(getContext())) {
+            toolbar.setNavigationIcon(null);
         }
 
         conversationLoadingIndicatorViewView = ViewUtils.getView(view, R.id.lbv__conversation__loading_indicator);

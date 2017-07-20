@@ -160,6 +160,7 @@ public class ScalaConversationStore implements IConversationStore {
 
         if (conversationsList != null) {
             conversationsList.removeUpdateListener(conversationListUpdateListener);
+            conversationsList.setSelectedConversation(null);
             conversationsList = null;
         }
 
@@ -240,18 +241,18 @@ public class ScalaConversationStore implements IConversationStore {
 
     @Override
     public void setCurrentConversationToNext(ConversationChangeRequester requester) {
-        if (getNextConversation() == null) {
-            return;
+        IConversation nextConv = getNextConversation();
+        if (nextConv != null) {
+            setCurrentConversation(nextConv, requester);
         }
-        setCurrentConversation(getNextConversation(), requester);
     }
 
     @Override
     public IConversation getNextConversation() {
-        if (conversationsList == null ||
-            conversationsList.size() == 0) {
+        if (conversationsList == null || conversationsList.size() == 0) {
             return null;
         }
+
         for (int i = 0; i < conversationsList.size(); i++) {
             IConversation previousConversation = i >= 1 ? conversationsList.get(i - 1) : null;
             IConversation conversation = conversationsList.get(i);
@@ -493,7 +494,6 @@ public class ScalaConversationStore implements IConversationStore {
     protected void notifyCurrentConversationHasChanged(IConversation fromConversation,
                                                        IConversation toConversation,
                                                        ConversationChangeRequester conversationChangerSender) {
-
         for (ConversationStoreObserver conversationStoreObserver : conversationStoreObservers) {
             conversationStoreObserver.onCurrentConversationHasChanged(fromConversation,
                                                                       toConversation,
@@ -521,15 +521,9 @@ public class ScalaConversationStore implements IConversationStore {
                     }
                 }
             }
-
-            // TODO: AN-2974
-            if (conversationsList.size() > 0) {
-                setCurrentConversation(conversationsList.get(0), ConversationChangeRequester.FIRST_LOAD);
-                return;
-            }
+        } else {
+            setCurrentConversation(selectedConversation, ConversationChangeRequester.FIRST_LOAD);
         }
-
-        setCurrentConversation(selectedConversation, ConversationChangeRequester.FIRST_LOAD);
     }
 
     private boolean isPendingIncomingConnectRequest(IConversation conversation) {

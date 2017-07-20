@@ -117,6 +117,7 @@ public class OptionsMenuFragment extends BaseFragment<OptionsMenuFragment.Contai
         getStoreFactory().getConversationStore().addConversationStoreObserver(this);
 
         String conversationId = getArguments().getString(ARGUMENT_CONVERSATION_ID);
+
         if (!TextUtils.isEmpty(conversationId)) {
             getStoreFactory()
                 .getZMessagingApiStore()
