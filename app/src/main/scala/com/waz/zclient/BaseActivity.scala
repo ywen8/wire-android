@@ -58,7 +58,7 @@ class BaseActivity extends AppCompatActivity
     onBaseActivityStart()
   }
 
-  def getBaseTheme: Int = themeController.getTheme
+  def getBaseTheme: Int = themeController.forceLoadDarkTheme
 
   def onBaseActivityStart() = {
     getApplication.asInstanceOf[ZApplication].ensureInitialized()

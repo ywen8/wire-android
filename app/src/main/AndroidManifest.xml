@@ -152,7 +152,7 @@
             android:launchMode="singleTask"
             android:taskAffinity=""
             android:screenOrientation="portrait"
-            android:theme="@style/Theme.Light"
+            android:theme="@style/Theme.Share"
             android:windowSoftInputMode="adjustPan"
             >
             <intent-filter android:label="@string/app_name">

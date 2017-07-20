@@ -26,6 +26,9 @@ import com.waz.utils.events.{EventContext, Signal}
 import com.waz.zclient.ui.theme.{OptionsDarkTheme, OptionsLightTheme, OptionsTheme}
 import com.waz.zclient.{Injectable, Injector, R}
 
+import scala.concurrent.Await
+import scala.concurrent.duration._
+
 class ThemeController(implicit injector: Injector, context: Context, ec: EventContext) extends Injectable {
   private val zms = inject[Signal[ZMessaging]]
 
@@ -45,6 +48,15 @@ class ThemeController(implicit injector: Injector, context: Context, ec: EventCo
     darkThemePref.head.flatMap(_.mutate(!_))
 
   def isDarkTheme: Boolean = darkThemeSet.currentValue.contains(true)
+
+  def forceLoadDarkTheme: Int = {
+    val set = try {
+      Await.result(darkThemeSet.head, 1.seconds)
+    } catch {
+      case _: Exception => false
+    }
+    if (set) R.style.Theme_Dark else R.style.Theme_Light
+  }
 
   def getTheme: Int = if (isDarkTheme) R.style.Theme_Dark else R.style.Theme_Light
 

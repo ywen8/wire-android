@@ -181,6 +181,8 @@ class WireApplication extends MultiDexApplication with WireContext with Injectab
     //TODO [AN-4942] - is this early enough for app launch events?
     inject[GlobalTrackingController]
     inject[CallingTrackingController]
+    inject[ThemeController]
+    inject[PreferencesController]
   }
 
   override def onTerminate(): Unit = {
