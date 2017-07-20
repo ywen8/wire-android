@@ -30,7 +30,6 @@ import com.localytics.android.Localytics
 import com.waz.ZLog.ImplicitTag._
 import com.waz.ZLog.{error, info, warn}
 import com.waz.api.{NetworkMode, _}
-import com.waz.content.UserPreferences
 import com.waz.model.ConvId
 import com.waz.service.ZMessaging
 import com.waz.threading.Threading
@@ -134,6 +133,15 @@ class MainActivity extends BaseActivity
         startActivity(PreferencesActivity.getDefaultIntent(this))
       case _ =>
     }
+
+    val currentlyDarkTheme = themeController.darkThemeSet.currentValue.contains(true)
+    val currentAccount = ZMessaging.currentAccounts.activeAccountPref.signal.currentValue.flatten
+
+    Signal(themeController.darkThemeSet, ZMessaging.currentAccounts.activeAccountPref.signal).onUi {
+      case (theme, acc) if acc != currentAccount || theme != currentlyDarkTheme => restartActivity()
+      case _ =>
+    }
+
   }
 
   override protected def onResumeFragments() = {
@@ -188,16 +196,6 @@ class MainActivity extends BaseActivity
 
     Localytics.setInAppMessageDisplayActivity(this)
     Localytics.handleTestMode(getIntent)
-    if (themeController.shouldActivityRestart) {
-      themeController.activityRestarted()
-      restartActivity()
-    }
-  }
-
-  private def restartActivity() = {
-    finish()
-    startActivity(IntentUtils.getAppLaunchIntent(this))
-    overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
   }
 
   override protected def onPause() = {
@@ -260,6 +258,13 @@ class MainActivity extends BaseActivity
         case LOCALYTICS_DEEPLINK_SETTINGS => startActivity(PreferencesActivity.getDefaultIntent(this))
       }
     }
+  }
+
+  private def restartActivity() = {
+    info("restartActivity")
+    finish()
+    startActivity(IntentUtils.getAppLaunchIntent(this))
+    overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
   }
 
   private def onLaunch() = {

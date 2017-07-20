@@ -18,50 +18,33 @@
 package com.waz.zclient.controllers
 
 import android.content.Context
-import com.waz.ZLog
-import com.waz.content.UserPreferences
+import com.waz.ZLog.ImplicitTag._
+import com.waz.content.UserPreferences.DarkTheme
 import com.waz.service.ZMessaging
 import com.waz.threading.Threading
 import com.waz.utils.events.{EventContext, Signal}
 import com.waz.zclient.ui.theme.{OptionsDarkTheme, OptionsLightTheme, OptionsTheme}
 import com.waz.zclient.{Injectable, Injector, R}
 
-object ThemeController {
-  val Tag: String = ZLog.logTagFor[ThemeController]
-}
-
 class ThemeController(implicit injector: Injector, context: Context, ec: EventContext) extends Injectable {
-
   private val zms = inject[Signal[ZMessaging]]
 
-  val optionsDarkTheme: OptionsTheme = new OptionsDarkTheme(context)
+  import Threading.Implicits.Background
+
+  val optionsDarkTheme:  OptionsTheme = new OptionsDarkTheme(context)
   val optionsLightTheme: OptionsTheme = new OptionsLightTheme(context)
 
-  val darkTheme = zms.flatMap(_.userPrefs.preference(UserPreferences.DarkTheme).signal)
+  val darkThemePref = zms.map(_.userPrefs.preference(DarkTheme))
 
-  private var _darkTheme = false
-  darkTheme{ _darkTheme = _ }
+  val darkThemeSet = darkThemePref.flatMap(_.signal).disableAutowiring()
 
-  private var _previousTheme = false
-  darkTheme.head.map{ _previousTheme = _ }(Threading.Ui)
+  def setDarkTheme(active: Boolean) =
+    darkThemePref.head.flatMap(_ := active)
 
-  def setDarkTheme(active: Boolean): Unit = {
-    zms.head.flatMap(_.userPrefs.preference(UserPreferences.DarkTheme).update(active))(Threading.Background)
-  }
+  def toggleDarkTheme() =
+    darkThemePref.head.flatMap(_.mutate(!_))
 
-  def toggleDarkTheme(): Unit ={
-    setDarkTheme(!_darkTheme)
-  }
-
-  def isDarkTheme: Boolean = _darkTheme
-
-  def shouldActivityRestart: Boolean = {
-    _darkTheme != _previousTheme
-  }
-
-  def activityRestarted(): Unit = {
-    _previousTheme = _darkTheme
-  }
+  def isDarkTheme: Boolean = darkThemeSet.currentValue.contains(true)
 
   def getTheme: Int = if (isDarkTheme) R.style.Theme_Dark else R.style.Theme_Light
 
