@@ -24,6 +24,7 @@ import android.util.AttributeSet
 import android.view.View
 import android.view.View.MeasureSpec
 import android.view.View.MeasureSpec.{EXACTLY, makeMeasureSpec}
+import com.waz.ZLog.ImplicitTag._
 import com.waz.api.User.ConnectionStatus
 import com.waz.api.User.ConnectionStatus._
 import com.waz.api.impl.AccentColor
@@ -35,13 +36,12 @@ import com.waz.service.assets.AssetService.BitmapResult.BitmapLoaded
 import com.waz.service.images.BitmapSignal
 import com.waz.threading.Threading
 import com.waz.ui.MemoryImageCache.BitmapRequest.{Round, Single}
-import com.waz.utils.{NameParts, returning}
 import com.waz.utils.events.{EventContext, Signal}
+import com.waz.utils.{NameParts, returning}
+import com.waz.zclient.controllers.UserAccountsController
 import com.waz.zclient.ui.utils.TypefaceUtils
 import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.{Injectable, Injector, R, ViewHelper}
-import com.waz.ZLog.ImplicitTag._
-import com.waz.zclient.controllers.UserAccountsController
 
 
 class ChatheadView(val context: Context, val attrs: AttributeSet, val defStyleAttr: Int) extends View(context, attrs, defStyleAttr) with ViewHelper {
@@ -284,7 +284,7 @@ protected class ChatheadController(val setSelectable:            Boolean        
       case Some(Left(userId)) => Some(userId)
       case _ => None
     }
-    isTeam <- uId.map(id => zms.teams.isGuest(id).map(_ == false)).getOrElse(Signal.const(false))
+    isTeam <- uId.map(id => Signal(teamsAndUserController.isTeamMember(id))).getOrElse(Signal.const(false))
   } yield isTeam
 
   val hasBeenInvited = chatheadInfo.map {
