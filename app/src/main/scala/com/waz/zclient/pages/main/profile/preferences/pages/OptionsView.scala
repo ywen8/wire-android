@@ -27,7 +27,7 @@ import android.text.TextUtils
 import android.util.AttributeSet
 import android.view.View
 import android.widget.LinearLayout
-import com.waz.content.UserPreferences
+import com.waz.content.UserPreferences._
 import com.waz.media.manager.context.IntensityLevel
 import com.waz.service.ZMessaging
 import com.waz.threading.Threading
@@ -37,8 +37,7 @@ import com.waz.zclient.pages.main.profile.preferences.dialogs.SoundLevelDialog
 import com.waz.zclient.pages.main.profile.preferences.pages.OptionsView._
 import com.waz.zclient.pages.main.profile.preferences.views.{SwitchPreference, TextButton}
 import com.waz.zclient.preferences.PreferencesActivity
-import com.waz.zclient.utils.{BackStackKey, RingtoneUtils}
-import com.waz.zclient.utils.RichView
+import com.waz.zclient.utils.{BackStackKey, RichView, RingtoneUtils}
 
 trait OptionsView {
   def setSounds(level: IntensityLevel): Unit
@@ -86,12 +85,12 @@ class OptionsViewImpl(context: Context, attrs: AttributeSet, style: Int) extends
   private var pingToneUri = ""
   private var soundLevel = IntensityLevel.NONE
 
-  contactsSwitch.setPreference(UserPreferences.ShareContacts)
-  darkThemeSwitch.setPreference(UserPreferences.DarkTheme)
-  downloadImagesSwitch.setPreference(UserPreferences.DownloadImagesOnWifiOnly)
-  vbrSwitch.setPreference(UserPreferences.VBREnabled)
-  vibrationSwitch.setPreference(UserPreferences.VibrateEnabled)
-  sendButtonSwitch.setPreference(UserPreferences.SendButtonEnabled)
+  contactsSwitch.setPreference(ShareContacts)
+  darkThemeSwitch.setPreference(DarkTheme)
+  downloadImagesSwitch.setPreference(DownloadImagesOnWifiOnly)
+  vbrSwitch.setPreference(VBREnabled)
+  vibrationSwitch.setPreference(VibrateEnabled)
+  sendButtonSwitch.setPreference(SendButtonEnabled)
 
   ringToneButton.onClickEvent{ _ => showRingtonePicker(RingtoneManager.TYPE_RINGTONE, defaultRingToneUri, RingToneResultId, ringToneUri)}
   textToneButton.onClickEvent{ _ => showRingtonePicker(RingtoneManager.TYPE_NOTIFICATION, defaultTextToneUri, TextToneResultId, textToneUri) }
@@ -189,11 +188,11 @@ class OptionsViewController(view: OptionsView)(implicit inj: Injector, ec: Event
   val userPrefs = zms.map(_.userPrefs)
   val team = zms.flatMap(_.teams.selfTeam)
 
-  userPrefs.flatMap(_.preference(UserPreferences.DownloadImagesOnWifiOnly).signal).on(Threading.Ui){ view.setDownloadPictures }
-  userPrefs.flatMap(_.preference(UserPreferences.Sounds).signal).on(Threading.Ui){ view.setSounds }
-  userPrefs.flatMap(_.preference(UserPreferences.RingTone).signal).on(Threading.Ui){ view.setRingtone }
-  userPrefs.flatMap(_.preference(UserPreferences.TextTone).signal).on(Threading.Ui){ view.setTextTone }
-  userPrefs.flatMap(_.preference(UserPreferences.PingTone).signal).on(Threading.Ui){ view.setPingTone }
+  userPrefs.flatMap(_.preference(DownloadImagesOnWifiOnly).signal).onUi{ view.setDownloadPictures }
+  userPrefs.flatMap(_.preference(Sounds).signal).onUi{ view.setSounds }
+  userPrefs.flatMap(_.preference(RingTone).signal).onUi{ view.setRingtone }
+  userPrefs.flatMap(_.preference(TextTone).signal).onUi{ view.setTextTone }
+  userPrefs.flatMap(_.preference(PingTone).signal).onUi{ view.setPingTone }
 
   team.onUi{ team => view.setShareEnabled(team.isEmpty) }
 }
