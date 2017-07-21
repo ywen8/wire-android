@@ -193,9 +193,13 @@ public class ScalaConversationStore implements IConversationStore {
     }
 
     @Override
-    public void loadConversation(String conversationId, OnConversationLoadedListener onConversationLoadedListener) {
-        IConversation conversation = conversationsList.getConversation(conversationId);
-        onConversationLoadedListener.onConversationLoaded(conversation);
+    public void loadConversation(String conversationId, final OnConversationLoadedListener onConversationLoadedListener) {
+        conversationsList.getConversation(conversationId, new ConversationsList.ConversationCallback() {
+            @Override
+            public void onConversationsFound(Iterable<IConversation> conversations) {
+                onConversationLoadedListener.onConversationLoaded(conversations.iterator().next());
+            }
+        });
     }
 
     @Override
