@@ -19,12 +19,13 @@ package com.waz.zclient.controllers
 
 import android.content.Context
 import com.waz.ZLog._
+import com.waz.api.IConversation
 import com.waz.model.ConversationData.ConversationType
 import com.waz.model._
 import com.waz.service.ZMessaging
 import com.waz.threading.Threading
 import com.waz.utils.events.{EventContext, Signal}
-import com.waz.zclient.core.stores.conversation.ConversationChangeRequester
+import com.waz.zclient.core.stores.conversation.{ConversationChangeRequester, OnConversationLoadedListener}
 import com.waz.zclient.utils.Callback
 import com.waz.zclient.{BaseActivity, Injectable, Injector}
 
@@ -97,8 +98,10 @@ class UserAccountsController(implicit injector: Injector, context: Context, ec: 
     } yield conv
 
     createConv.map { convData =>
-      val iConv = activity.getStoreFactory.getConversationStore.getConversation(convData.id.str)
-      activity.getStoreFactory.getConversationStore.setCurrentConversation(iConv, requester)
+      activity.getStoreFactory.getConversationStore.loadConversation(convData.id.str, new OnConversationLoadedListener {
+        override def onConversationLoaded(conversation: IConversation) =
+          activity.getStoreFactory.getConversationStore.setCurrentConversation(conversation, requester)
+      })
     }(Threading.Ui)
   }
 
