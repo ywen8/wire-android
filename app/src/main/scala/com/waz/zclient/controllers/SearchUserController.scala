@@ -176,12 +176,12 @@ class SearchUserController(initialState: SearchState)(implicit injector: Injecto
   }
 
   val allDataSignal = for {
-    topUsers              <- topUsersSignal.orElse(Signal.const(IndexedSeq.empty[UserData]))
-    localResults          <- localSearchSignal.orElse(Signal.const(Vector.empty[UserData]))
-    conversations         <- conversationsSignal.orElse(Signal.const(Seq.empty[ConversationData]))
+    topUsers              <- topUsersSignal.map(Option(_)).orElse(Signal.const(Option.empty[IndexedSeq[UserData]]))
+    localResults          <- localSearchSignal.map(Option(_)).orElse(Signal.const(Option.empty[Vector[UserData]]))
+    conversations         <- conversationsSignal.map(Option(_)).orElse(Signal.const(Option.empty[Seq[ConversationData]]))
     searchState           <- searchState
     contacts              <- if (searchState.shouldShowAbContacts) contactsSignal.orElse(Signal.const(Seq.empty[Contact])) else Signal(Seq.empty[Contact])
-    directoryResults      <- searchSignal.orElse(Signal.const(IndexedSeq.empty[UserData]))
+    directoryResults      <- searchSignal.map(Option(_)).orElse(Signal.const(Option.empty[IndexedSeq[UserData]]))
   } yield (topUsers, localResults, conversations, contacts, directoryResults)
 
   private def getSearchQuery(str: String): SearchQuery = if (Handle.containsSymbol(str)) RecommendedHandle(str) else Recommended(str)
