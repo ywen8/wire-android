@@ -187,7 +187,6 @@ class NormalConversationListRow(context: Context, attrs: AttributeSet, style: In
       else
         convType
       avatar.setMembers(members.map(_.id), convId, cType)
-      avatar.setAlpha(alpha)
     case _ =>
       ZLog.debug("Outdated avatar info")
   }
@@ -196,6 +195,7 @@ class NormalConversationListRow(context: Context, attrs: AttributeSet, style: In
       if (convType == ConversationType.Group && members.size == 1 && conversationData.exists(_.team.nonEmpty)) {
         avatar.setConversationType(ConversationType.OneToOne)
       }
+      avatar.setAlpha(alpha)
     case _ =>
       ZLog.debug("Outdated avatar info")
   }
