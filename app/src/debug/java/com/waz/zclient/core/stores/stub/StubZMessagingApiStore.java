@@ -18,7 +18,6 @@
 package com.waz.zclient.core.stores.stub;
 
 import android.content.Context;
-
 import com.waz.api.AccentColor;
 import com.waz.api.ConnectionIndicator;
 import com.waz.api.Contacts;
@@ -141,17 +140,17 @@ public class StubZMessagingApiStore implements IZMessagingApiStore {
             }
 
             @Override
-            public Search search() {
-                return null;
-            }
-
-            @Override
             public Self getSelf() {
                 return null;
             }
 
             @Override
             public ConversationsList getConversations() {
+                return null;
+            }
+
+            @Override
+            public Search search() {
                 return null;
             }
 
