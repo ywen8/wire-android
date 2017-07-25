@@ -27,10 +27,5 @@ public class ChangedAccentColorEvent extends Event {
     public String getName() {
         return "settings.changed_accent_color";
     }
-
-    @Override
-    public boolean mustWaitForTrackingData() {
-        return false;
-    }
 }
 

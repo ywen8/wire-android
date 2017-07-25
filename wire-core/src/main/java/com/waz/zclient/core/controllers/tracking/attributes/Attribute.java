@@ -115,7 +115,9 @@ public enum Attribute {
     PING_INTERVAL("ping_interval"),
 
     IS_EMPTY("is_empty"),
-    WITH_SEARCH_RESULT("with_search_result")
+    WITH_SEARCH_RESULT("with_search_result"),
+
+    AVS_METRICS_FULL("avs_metrics_full")
     ;
 
 

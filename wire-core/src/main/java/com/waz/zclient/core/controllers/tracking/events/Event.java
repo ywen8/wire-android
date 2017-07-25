@@ -40,12 +40,4 @@ public abstract class Event {
     public Map<Attribute, String> getAttributes() {
         return attributes;
     }
-
-    public boolean mustWaitForTrackingData() {
-        return true;
-    }
-
-    public boolean onlySendOnce() {
-        return false;
-    }
 }

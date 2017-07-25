@@ -25,8 +25,10 @@ import android.view.View
 import android.widget.LinearLayout
 import com.waz.content.UserPreferences
 import com.waz.zclient.pages.main.profile.preferences.views.{SwitchPreference, TextButton}
+import com.waz.zclient.tracking.{GlobalTrackingController, OptAnalyticsEvent}
 import com.waz.zclient.utils.{BackStackKey, DebugUtils}
 import com.waz.zclient.{R, ViewHelper}
+import GlobalTrackingController.toJava
 
 trait AdvancedView
 
@@ -43,6 +45,10 @@ class AdvancedViewImpl(context: Context, attrs: AttributeSet, style: Int) extend
 
   submitReport.onClickEvent{ _ =>
     DebugUtils.sendDebugReport(context.asInstanceOf[Activity])
+  }
+
+  analyticsSwitch.onCheckedChange { enabled =>
+    inject[GlobalTrackingController].tagEvent(OptAnalyticsEvent(enabled))
   }
 }
 

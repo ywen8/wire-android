@@ -43,9 +43,4 @@ public class ViewTOS extends Event {
             this.sourceName = sourceName;
         }
     }
-
-    @Override
-    public boolean mustWaitForTrackingData() {
-        return false;
-    }
 }
