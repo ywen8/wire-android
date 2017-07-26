@@ -24,11 +24,13 @@ import android.net.ConnectivityManager
 import android.os.Bundle
 import android.telephony.TelephonyManager
 import com.localytics.android.Localytics
+import com.waz.HockeyApp
 import com.waz.ZLog.ImplicitTag._
 import com.waz.ZLog._
 import com.waz.api.Message.Type._
 import com.waz.api.impl.ErrorResponse
 import com.waz.api.{EphemeralExpiration, NetworkMode, Verification}
+import com.waz.content.UserPreferences.AnalyticsEnabled
 import com.waz.content.UsersStorage
 import com.waz.model.ConversationData.ConversationType
 import com.waz.model.UserData.ConnectionStatus.Blocked
@@ -45,33 +47,48 @@ import com.waz.zclient.controllers.tracking.screens.{ApplicationScreen, Registra
 import com.waz.zclient.controllers.userpreferences.UserPreferencesController
 import com.waz.zclient.core.controllers.tracking
 import com.waz.zclient.core.controllers.tracking.attributes.{Attribute, RangedAttribute}
-import com.waz.zclient.core.controllers.tracking.events.AVSMetricEvent
 import com.waz.zclient.core.controllers.tracking.events.media.CompletedMediaActionEvent
 import com.waz.zclient.core.controllers.tracking.events.onboarding.GeneratedUsernameEvent
 import com.waz.zclient.preferences.PreferencesController
+import org.json.JSONObject
 import org.threeten.bp.{Duration, Instant}
+import com.waz.utils.RichJSON
 
 import scala.collection.JavaConverters._
 import scala.concurrent.Future
 import scala.concurrent.Future._
 import scala.language.{implicitConversions, postfixOps}
+import scala.util.control.NonFatal
 
 class GlobalTrackingController(implicit inj: Injector, cxt: WireContext, eventContext: EventContext) extends Injectable {
   import GlobalTrackingController._
   import Threading.Implicits.Background
 
+  val zmsOpt     = inject[Signal[Option[ZMessaging]]]
   val zMessaging = inject[Signal[ZMessaging]]
-  val zmsOpt = inject[Signal[Option[ZMessaging]]]
 
-  private var currentZms = Option.empty[ZMessaging]
+  private var registeredZmsInstances = Set.empty[ZMessaging]
   private var appLaunchedTracked = false
   private var sentEvents = Set.empty[String]
 
+  /**
+    * WARNING: since we have to first listen to the zms signal in order to find the event streams that we care about for tracking,
+    * whenever this signal changes, we will define a new signal subscription, in the closure of which we will generate new subscriptions
+    * for all the event streams in that signal. This means that if zms changes and then changes back (switching accounts) or the signal fires
+    * twice, we'll have two listeners to each event stream, and we'll end up tagging each event twice.
+    *
+    * Therefore, we keep a set of registered zms instances, and only register the listeners once.
+    */
   zmsOpt {
-    case zms if currentZms != zms =>
-      currentZms = zms
-      zms.foreach(trackingEventListeners)
+    case Some(zms) if !registeredZmsInstances(zms) =>
+      registeredZmsInstances += zms
+      registerTrackingEventListeners(zms)
     case _ => //already registered to this zms, do nothing.
+  }
+
+  zMessaging.flatMap(_.userPrefs.preference(AnalyticsEnabled).signal) { enabled =>
+    verbose(s"Analytics enabled?: $enabled")
+    Localytics.setOptedOut(!enabled)
   }
 
   def tagEvent(event: tracking.events.Event) = {
@@ -87,21 +104,22 @@ class GlobalTrackingController(implicit inj: Injector, cxt: WireContext, eventCo
 
       for (attribute <- event.getAttributes.keySet) {
         eventAttributes.put(attribute.name, event.getAttributes.get(attribute))
+        //TODO eventually remove - this is a hack since we can't dynamically generate event attributes due to type constraints
+        if (attribute == Attribute.AVS_METRICS_FULL) {
+          try {
+            val metrics = new JSONObject(event.getAttributes.get(attribute)).topLevelStringMap
+            metrics.foreach { case (key, value) =>
+              eventAttributes.put(key, value)
+            }
+          } catch {
+            case NonFatal(e) =>
+              e.printStackTrace()
+              HockeyApp.saveException(e, "Failed to extract values from AVS metrics string")
+          }
+        }
       }
 
       if (isTrackingEnabled) Localytics.tagEvent(event.getName, eventAttributes)
-    }
-  }
-
-  def setTrackingEnabled(enabled: Boolean) = {
-    Localytics.tagEvent(if (enabled) "Opt-in" else "Opt-out")
-    Localytics.setOptedOut(!enabled)
-  }
-
-  def tagAVSMetricEvent(event: AVSMetricEvent) = {
-    verbose(s"tagAVSMetricEvent: ${event.getName}, \n ${event.getAttributes}")
-    setCustomDims() map { _ =>
-      if (isTrackingEnabled) Localytics.tagEvent(event.getName, event.getAttributes)
     }
   }
 
@@ -143,7 +161,7 @@ class GlobalTrackingController(implicit inj: Injector, cxt: WireContext, eventCo
     * zms fires, we want to discard the previous reference to the subscriber. Not doing so will cause this class to keep
     * reference to old instances of the services under zms (?)
     */
-  def trackingEventListeners(zms: ZMessaging) = {
+  def registerTrackingEventListeners(zms: ZMessaging) = {
     zms.handlesSync.responseSignal.onChanged { data =>
       tagEvent(new GeneratedUsernameEvent(data.exists(_.nonEmpty)))
     }
@@ -232,6 +250,8 @@ class GlobalTrackingController(implicit inj: Injector, cxt: WireContext, eventCo
     }.filter(_.nonEmpty) { _ =>
       tagEvent(new VerifiedConversationEvent())
     }
+
+    zms.calling.onMetricsAvailable(metrics => tagEvent(AvsMetricsEvent(metrics)))
   }
 
   //-1 is the default value for non-logged in users (when zms is not defined)

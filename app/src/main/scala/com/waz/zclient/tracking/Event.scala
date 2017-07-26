@@ -25,6 +25,7 @@ import com.waz.zclient.core.controllers.tracking.attributes.RangedAttribute._
 import com.waz.zclient.core.controllers.tracking.attributes.{Attribute, RangedAttribute}
 import com.waz.zclient.messages.MessageBottomSheetDialog.MessageAction
 import com.waz.zclient.utils.AssetUtils
+import org.json.JSONObject
 import org.threeten.bp.Duration
 
 sealed abstract class Event(val name: String) {
@@ -284,6 +285,14 @@ object WebSocketConnectionEvent {
   }
   def lostOnPingEvent(duration: concurrent.duration.FiniteDuration) = apply("notification.web_socket_lost_on_ping", duration)
   def closedEvent(duration: concurrent.duration.FiniteDuration) = apply("notification.web_socket_closed", duration)
+}
+
+object OptAnalyticsEvent {
+  def apply(optedIn: Boolean) = new Event(if (optedIn) "Opt-in" else "Opt-out") {}
+}
+
+case class AvsMetricsEvent(metricsJson: String) extends Event("calling.avs_metrics_ended_call") {
+  override val attributes = Map(AVS_METRICS_FULL -> metricsJson)
 }
 
 

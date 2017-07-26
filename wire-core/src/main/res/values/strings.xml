@@ -24,7 +24,7 @@
 
     <string name="camera_not_available">CAMERA NOT AVAILABLE</string>
     <string name="camera_permissions_denied_title">Camera not available</string>
-    <string name="camera_permissions_denied_message">To take and send photos, grant permission to acces the camera</string>
+    <string name="camera_permissions_denied_message">To take and send photos, grant permission to access the camera</string>
 
     <!-- Registration and Sign in -->
     <string name="welcome__slogan">Modern, private communication.</string>
