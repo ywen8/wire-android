@@ -37,7 +37,7 @@ import com.waz.api._
 import com.waz.content.UserPreferences
 import com.waz.model.UserData.ConnectionStatus
 import com.waz.model._
-import com.waz.service.ZMessaging
+import com.waz.service.{SearchState, ZMessaging}
 import com.waz.threading.Threading
 import com.waz.utils.events.Signal
 import com.waz.zclient.adapters.{PickUsersAdapter, SearchResultOnItemTouchListener}
@@ -49,7 +49,7 @@ import com.waz.zclient.controllers.permission.RequestPermissionsObserver
 import com.waz.zclient.controllers.tracking.events.connect.{EnteredSearchEvent, OpenedConversationEvent, OpenedGenericInviteMenuEvent, SentConnectRequestEvent}
 import com.waz.zclient.controllers.tracking.screens.ApplicationScreen
 import com.waz.zclient.controllers.userpreferences.IUserPreferencesController
-import com.waz.zclient.controllers.{SearchState, SearchUserController, ThemeController, UserAccountsController}
+import com.waz.zclient.controllers.{SearchUserController, ThemeController, UserAccountsController}
 import com.waz.zclient.core.controllers.tracking.attributes.ConversationType
 import com.waz.zclient.core.stores.conversation.{ConversationChangeRequester, InboxLoadRequester, OnInboxLoadedListener}
 import com.waz.zclient.core.stores.network.DefaultNetworkAction
@@ -188,6 +188,7 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
       if (filter.nonEmpty)
         trackingController.tagEvent(new EnteredSearchEvent(isAddingToConversation, searchBoxView.getSearchFilter))
     }
+
   }
 
   override def onCreateAnimation(transit: Int, enter: Boolean, nextAnim: Int): Animation = {
@@ -219,7 +220,7 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
       }
     })
 
-    searchUserController = new SearchUserController(SearchState("", hasSelectedUsers = false, addingToConversation = addingToConversation, teamId = userAccountsController.teamId))
+    searchUserController = new SearchUserController(SearchState("", hasSelectedUsers = false, addingToConversation = addingToConversation))
     searchUserController.setContacts(getStoreFactory.getZMessagingApiStore.getApi.getContacts)
     searchResultAdapter = new PickUsersAdapter(new SearchResultOnItemTouchListener(getActivity, this), this, searchUserController, themeController.isDarkTheme || !isAddingToConversation)
     searchResultRecyclerView = ViewUtils.getView(rootView, R.id.rv__pickuser__header_list_view)
@@ -533,7 +534,7 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
 
   private def changeUserSelectedState(user: User, selected: Boolean): Unit = {
     changeUserSelectedState(searchResultRecyclerView, user, selected)
-    if (searchUserController.topUsersSignal.currentValue.exists(_.isEmpty))
+    if (searchUserController.allDataSignal.currentValue.exists(_._1.isEmpty)) // TODO: maybe change to checking searchResultAdapter for top users
       return
     (0 until searchResultRecyclerView.getChildCount).map(searchResultRecyclerView.getChildAt).foreach{
       case view: RecyclerView =>

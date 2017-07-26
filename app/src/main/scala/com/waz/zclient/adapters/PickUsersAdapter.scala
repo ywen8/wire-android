@@ -56,11 +56,11 @@ class PickUsersAdapter(topUsersOnItemTouchListener: SearchResultOnItemTouchListe
     override def onContactListUserClicked(user: User) = adapterCallback.onContactListUserClicked(UserId(user.getId))
   }
 
-  private var topUsers = Seq[UserData]()
-  private var localResults = Seq[UserData]()
-  private var conversations = Seq[ConversationData]()
-  private var contacts = Seq[Contact]()
-  private var directoryResults = Seq[UserData]()
+  private var topUsers = IndexedSeq.empty[UserData]
+  private var localResults = IndexedSeq.empty[UserData]
+  private var conversations = IndexedSeq.empty[ConversationData]
+  private var contacts = Seq.empty[Contact]
+  private var directoryResults = IndexedSeq.empty[UserData]
   private var currentUser = Option.empty[UserData]
 
   searchUserController.allDataSignal.throttle(500.millis).on(Threading.Ui) {
