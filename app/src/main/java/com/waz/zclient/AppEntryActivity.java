@@ -48,7 +48,6 @@ import com.waz.zclient.core.controllers.tracking.events.registration.SucceededWi
 import com.waz.zclient.core.stores.api.ZMessagingApiStoreObserver;
 import com.waz.zclient.core.stores.appentry.AppEntryState;
 import com.waz.zclient.core.stores.appentry.AppEntryStateCallback;
-import com.waz.zclient.newreg.fragments.EmailAddPhoneFragment;
 import com.waz.zclient.newreg.fragments.EmailInvitationFragment;
 import com.waz.zclient.newreg.fragments.EmailRegisterFragment;
 import com.waz.zclient.newreg.fragments.EmailSignInFragment;
@@ -86,7 +85,6 @@ public class AppEntryActivity extends BaseActivity implements VerifyPhoneFragmen
                                                               OTRPhoneAddEmailFragment.Container,
                                                               PhoneVerifyEmailFragment.Container,
                                                               SignUpPhotoFragment.Container,
-                                                              EmailAddPhoneFragment.Container,
                                                               EmailRegisterFragment.Container,
                                                               EmailSignInFragment.Container,
                                                               EmailVerifyEmailFragment.Container,
@@ -474,27 +472,6 @@ public class AppEntryActivity extends BaseActivity implements VerifyPhoneFragmen
             .replace(R.id.fl_main_content,
                      SignUpPhotoFragment.newInstance(SignUpPhotoFragment.RegistrationType.Email),
                      SignUpPhotoFragment.TAG)
-            .commit();
-        enableProgress(false);
-    }
-
-    @Override
-    public void onShowEmailAddPhonePage() {
-        if (isPaused) {
-            return;
-        }
-        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-        setDefaultAnimation(transaction)
-            .replace(R.id.fl_main_content, EmailAddPhoneFragment.newInstance(), EmailAddPhoneFragment.TAG)
-            .commit();
-        enableProgress(false);
-    }
-
-    @Override
-    public void onShowEmailPhoneCodePage() {
-        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-        setDefaultAnimation(transaction)
-            .replace(R.id.fl_main_content, VerifyPhoneFragment.newInstance(true), VerifyPhoneFragment.TAG)
             .commit();
         enableProgress(false);
     }

@@ -53,8 +53,6 @@
 
     <!-- New Reg-->
     <string name="new_reg__phone_signup__info">Create an account</string>
-    <string name="new_reg__helps_to_find_people">This helps us find people you may know.</string>
-    <string name="new_reg__add_phone_number">Add phone number</string>
     <string name="new_reg_phone__change_country">_CHANGE COUNTRY_</string>
     <string name="new_reg__add_email">Add email address and password</string>
     <string name="new_reg__add_email_info">It helps you log in if you are locked out or lose your phone.</string>
@@ -861,7 +859,6 @@
     <string name="registration_back">Back</string>
 
     <!-- Strings -->
-    <string name="your_phone_number">Your Phone Number</string>
     <string name="edit_phone_number">EDIT PHONE NUMBER</string>
     <string name="i_have_an_account">LOG IN</string>
     <plurals name="welcome__resend__timer_label">
@@ -877,7 +874,6 @@
     <string name="new_reg__password__forgot">Forgot Password?</string>
     <string name="phone_sign_in">Phone</string>
     <string name="go_to_register">Create Account</string>
-    <string name="not_now">Not Now</string>
     <string name="email_sign_in">Email</string>
     <string name="edit_email">Edit Email</string>
     <string name="hello">Hello, &lt;b&gt;%s&lt;/b&gt;</string>

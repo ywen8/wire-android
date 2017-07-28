@@ -26,8 +26,6 @@ import com.waz.zclient.core.controllers.tracking.attributes.RegistrationEventCon
 import com.waz.zclient.core.stores.appentry.AppEntryState;
 import com.waz.zclient.core.stores.appentry.AppEntryStateCallback;
 import com.waz.zclient.core.stores.appentry.IAppEntryStore;
-import java.lang.Override;
-import java.lang.String;
 
 public class StubAppEntryStore implements IAppEntryStore {
   @Override
@@ -193,11 +191,6 @@ public class StubAppEntryStore implements IAppEntryStore {
   @Override
   public String getEmail() {
     return null;
-  }
-
-  @Override
-  public void addPhoneToEmail(String countryCode, String phone, IAppEntryStore.ErrorCallback errorCallback) {
-
   }
 
   @Override

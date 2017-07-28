@@ -69,7 +69,6 @@ public interface IAppEntryStore {
     void acceptPhoneInvitation(AccentColor accentColor);
 
     void signInWithEmail(String email, String password, ErrorCallback errorCallback);
-    void addPhoneToEmail(String countryCode, String phone, ErrorCallback errorCallback);
     void resendEmail();
     void resendPhone(SuccessCallback successCallback, ErrorCallback errorCallback);
     void triggerVerificationCodeCallToUser(SuccessCallback successCallback, ErrorCallback errorCallback);
