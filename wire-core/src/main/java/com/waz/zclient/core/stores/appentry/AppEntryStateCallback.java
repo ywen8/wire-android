@@ -37,8 +37,6 @@ public interface AppEntryStateCallback {
     void onShowEmailVerifyEmailPage();
     void onShowEmailSignInPage();
     void onShowEmailSetPicturePage();
-    void onShowEmailAddPhonePage();
-    void onShowEmailPhoneCodePage();
     void onShowFirstLaunchPage();
     void tagAppEntryEvent(Event event);
 }

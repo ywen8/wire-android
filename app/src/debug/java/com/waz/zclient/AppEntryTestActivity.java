@@ -22,7 +22,6 @@ import com.waz.api.Self;
 import com.waz.zclient.core.controllers.tracking.events.Event;
 import com.waz.zclient.core.stores.api.ZMessagingApiStoreObserver;
 import com.waz.zclient.core.stores.appentry.AppEntryStateCallback;
-import com.waz.zclient.newreg.fragments.EmailAddPhoneFragment;
 import com.waz.zclient.newreg.fragments.EmailInvitationFragment;
 import com.waz.zclient.newreg.fragments.EmailRegisterFragment;
 import com.waz.zclient.newreg.fragments.EmailSignInFragment;
@@ -46,7 +45,6 @@ public class AppEntryTestActivity extends TestActivity implements VerifyPhoneFra
                                                                        PhoneAddEmailFragment.Container,
                                                                        PhoneVerifyEmailFragment.Container,
                                                                        SignUpPhotoFragment.Container,
-                                                                       EmailAddPhoneFragment.Container,
                                                                        EmailRegisterFragment.Container,
                                                                        EmailSignInFragment.Container,
                                                                        EmailVerifyEmailFragment.Container,
@@ -140,16 +138,6 @@ public class AppEntryTestActivity extends TestActivity implements VerifyPhoneFra
 
     @Override
     public void onShowEmailSetPicturePage() {
-
-    }
-
-    @Override
-    public void onShowEmailAddPhonePage() {
-
-    }
-
-    @Override
-    public void onShowEmailPhoneCodePage() {
 
     }
 

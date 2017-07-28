@@ -327,11 +327,7 @@ public class AppEntryStore implements IAppEntryStore, ErrorsList.ErrorListener {
                 setStateToRegistration();
                 return true;
             case PHONE_SET_CODE:
-                if (entryPoint == AppEntryState.EMAIL_SIGN_IN) {
-                    setState(AppEntryState.EMAIL_SET_PHONE);
-                } else {
-                    setState(entryPoint);
-                }
+                setState(entryPoint);
                 return true;
             case PHONE_VERIFY_EMAIL:
                 setState(AppEntryState.PHONE_EMAIL_PASSWORD);
@@ -344,9 +340,6 @@ public class AppEntryStore implements IAppEntryStore, ErrorsList.ErrorListener {
                 return true;
             case EMAIL_SIGN_IN:
                 setStateToRegistration();
-                return true;
-            case EMAIL_SET_CODE:
-                setState(AppEntryState.EMAIL_SET_PHONE);
                 return true;
             case PHONE_SET_PICTURE:
                 setState(AppEntryState.PHONE_SET_NAME);
@@ -458,12 +451,6 @@ public class AppEntryStore implements IAppEntryStore, ErrorsList.ErrorListener {
             case EMAIL_SET_PICTURE:
                 appEntryStateCallback.onShowEmailSetPicturePage();
                 break;
-            case EMAIL_SET_PHONE:
-                appEntryStateCallback.onShowEmailAddPhonePage();
-                break;
-            case EMAIL_SET_CODE:
-                appEntryStateCallback.onShowEmailPhoneCodePage();
-                break;
             case EMAIL_SIGNED_IN:
                 if (!self.accountActivated()) {
                     setState(AppEntryState.EMAIL_VERIFY_EMAIL);
@@ -471,10 +458,6 @@ public class AppEntryStore implements IAppEntryStore, ErrorsList.ErrorListener {
                 }
                 if (self.getPicture().isEmpty()) {
                     setState(AppEntryState.EMAIL_SET_PICTURE);
-                    break;
-                }
-                if (self.getPhone().isEmpty() && !self.isTeamAccount()) {
-                    setState(AppEntryState.EMAIL_SET_PHONE);
                     break;
                 }
                 setState(AppEntryState.FIRST_LOGIN);
@@ -1056,29 +1039,6 @@ public class AppEntryStore implements IAppEntryStore, ErrorsList.ErrorListener {
                                     ignoreSelfUpdates = false;
                                 }
                             });
-    }
-
-    @Override
-    public void addPhoneToEmail(String countryCode, String phone, final ErrorCallback errorCallback) {
-        setAndStoreCountryCode(countryCode);
-        setAndStorePhone(phone);
-        self.setPhone(countryCode + phone,
-                      new CredentialsUpdateListener() {
-                          @Override
-                          public void onUpdated() {
-                              appEntryStateCallback.tagAppEntryEvent(EditSelfUser.phoneAddedSignIn());
-                              setState(AppEntryState.EMAIL_SET_CODE);
-                          }
-
-                          @Override
-                          public void onUpdateFailed(int errorCode, String message, String label) {
-                              if (AppEntryError.PHONE_EXISTS.correspondsTo(errorCode, label)) {
-                                  errorCallback.onError(AppEntryError.PHONE_EXISTS);
-                              } else {
-                                  errorCallback.onError(AppEntryError.PHONE_REGISTER_GENERIC_ERROR);
-                              }
-                          }
-                      });
     }
 
     @Override
