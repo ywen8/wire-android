@@ -340,23 +340,26 @@ public class ScalaConversationStore implements IConversationStore {
     @Override
     public void createGroupConversation(Iterable<User> users,
                                         final ConversationChangeRequester conversationChangerSender) {
-        conversationsList.createGroupConversation(users, new ConversationsList.ConversationCallback() {
-            @Override
-            public void onConversationsFound(Iterable<IConversation> iterable) {
-                Iterator<IConversation> iterator = iterable.iterator();
-                if (!iterator.hasNext()) {
-                    return;
+        conversationsList.createGroupConversation(
+            scala.collection.JavaConversions.iterableAsScalaIterable(users).toSeq(),
+            new ConversationsList.ConversationCallback() {
+                @Override
+                public void onConversationsFound(Iterable<IConversation> iterable) {
+                    Iterator<IConversation> iterator = iterable.iterator();
+                    if (!iterator.hasNext()) {
+                        return;
+                    }
+                    ConversationChangeRequester conversationChangeRequester = conversationChangerSender;
+                    if (conversationChangeRequester != ConversationChangeRequester.START_CONVERSATION_FOR_CALL &&
+                        conversationChangeRequester != ConversationChangeRequester.START_CONVERSATION_FOR_VIDEO_CALL &&
+                        conversationChangeRequester != ConversationChangeRequester.START_CONVERSATION_FOR_CAMERA) {
+                        conversationChangeRequester = ConversationChangeRequester.START_CONVERSATION;
+                    }
+                    setCurrentConversation(iterator.next(),
+                                           conversationChangeRequester);
                 }
-                ConversationChangeRequester conversationChangeRequester = conversationChangerSender;
-                if (conversationChangeRequester != ConversationChangeRequester.START_CONVERSATION_FOR_CALL &&
-                    conversationChangeRequester != ConversationChangeRequester.START_CONVERSATION_FOR_VIDEO_CALL &&
-                    conversationChangeRequester != ConversationChangeRequester.START_CONVERSATION_FOR_CAMERA) {
-                    conversationChangeRequester = ConversationChangeRequester.START_CONVERSATION;
-                }
-                setCurrentConversation(iterator.next(),
-                                       conversationChangeRequester);
             }
-        });
+        );
     }
 
     @Override
