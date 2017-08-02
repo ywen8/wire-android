@@ -323,6 +323,7 @@ dependencies {
     compile deps.audioNotifications
     compile deps.localytics
     compile deps.rebound
+    compile deps.nineoldandroids
 
     //noinspection GradleDynamicVersion
     compile deps.psBase
