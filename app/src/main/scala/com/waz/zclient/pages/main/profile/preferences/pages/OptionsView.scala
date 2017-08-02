@@ -87,7 +87,7 @@ class OptionsViewImpl(context: Context, attrs: AttributeSet, style: Int) extends
 
   contactsSwitch.setPreference(ShareContacts)
   darkThemeSwitch.setPreference(DarkTheme)
-  downloadImagesSwitch.setPreference(DownloadImagesOnWifiOnly)
+  downloadImagesSwitch.setPreference(DownloadImagesAlways)
   vbrSwitch.setPreference(VBREnabled)
   vibrationSwitch.setPreference(VibrateEnabled)
   sendButtonSwitch.setPreference(SendButtonEnabled)
@@ -188,7 +188,7 @@ class OptionsViewController(view: OptionsView)(implicit inj: Injector, ec: Event
   val userPrefs = zms.map(_.userPrefs)
   val team = zms.flatMap(_.teams.selfTeam)
 
-  userPrefs.flatMap(_.preference(DownloadImagesOnWifiOnly).signal).onUi{ view.setDownloadPictures }
+  userPrefs.flatMap(_.preference(DownloadImagesAlways).signal).onUi{ view.setDownloadPictures }
   userPrefs.flatMap(_.preference(Sounds).signal).onUi{ view.setSounds }
   userPrefs.flatMap(_.preference(RingTone).signal).onUi{ view.setRingtone }
   userPrefs.flatMap(_.preference(TextTone).signal).onUi{ view.setTextTone }

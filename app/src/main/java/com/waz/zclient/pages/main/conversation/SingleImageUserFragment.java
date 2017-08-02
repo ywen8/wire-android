@@ -232,7 +232,7 @@ public class SingleImageUserFragment extends BaseFragment<SingleImageUserFragmen
                                                         }
 
                                                         @Override
-                                                        public void onBitmapLoadingFailed(BitmapLoadingFailed reason) {
+                                                        public void onBitmapLoadingFailed() {
                                                             // show error?
                                                             if (messageTouchImageView == null ||
                                                                 // means we display nothing

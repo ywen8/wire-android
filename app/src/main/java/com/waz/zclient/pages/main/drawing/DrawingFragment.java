@@ -383,7 +383,7 @@ public class DrawingFragment extends BaseFragment<DrawingFragment.Container> imp
             }
 
             @Override
-            public void onBitmapLoadingFailed(BitmapLoadingFailed reason) {
+            public void onBitmapLoadingFailed() {
                 cancelLoadHandle();
             }
         });

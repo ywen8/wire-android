@@ -27,7 +27,7 @@ import android.widget.{TextView, Toast}
 import com.waz.ZLog.ImplicitTag._
 import com.waz.ZLog._
 import com.waz.api.{ImageAsset, Message}
-import com.waz.content.UserPreferences
+import com.waz.content.UserPreferences.DownloadImagesAlways
 import com.waz.model.{AssetData, AssetId, MessageData, Mime}
 import com.waz.service.ZMessaging
 import com.waz.service.assets.GlobalRecordAndPlayService
@@ -66,12 +66,8 @@ class AssetsController(implicit context: Context, inj: Injector, ec: EventContex
   lazy val drawingController        = inject[IDrawingController]
 
   //TODO make a preference controller for handling UI preferences in conjunction with SE preferences
-  val downloadOnWifiEnabled = for {
-    z <- zms
-    pref <- z.userPrefs.preference(UserPreferences.DownloadImagesOnWifiOnly).signal
-  } yield pref
-  downloadOnWifiEnabled.disableAutowiring()
-
+  val downloadsAlwaysEnabled =
+    zms.flatMap(_.userPrefs.preference(DownloadImagesAlways).signal).disableAutowiring()
 
   val onFileOpened = EventStream[AssetData]()
   val onFileSaved = EventStream[AssetData]()

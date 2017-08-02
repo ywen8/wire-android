@@ -187,7 +187,7 @@ public class SignUpPhotoFragment extends BaseFragment<SignUpPhotoFragment.Contai
             }
 
             @Override
-            public void onBitmapLoadingFailed(BitmapLoadingFailed reason) {
+            public void onBitmapLoadingFailed() {
                 if (progressContainer == null) {
                     return;
                 }

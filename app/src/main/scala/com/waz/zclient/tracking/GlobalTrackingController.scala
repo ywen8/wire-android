@@ -35,11 +35,10 @@ import com.waz.content.UsersStorage
 import com.waz.model.ConversationData.ConversationType
 import com.waz.model.UserData.ConnectionStatus.Blocked
 import com.waz.model.{UserId, _}
-import com.waz.service.downloads.DownloadRequest.WireAssetRequest
 import com.waz.service.{NetworkModeService, ZMessaging}
 import com.waz.threading.Threading
 import com.waz.utils.events.{EventContext, Signal}
-import com.waz.utils.{returning, _}
+import com.waz.utils.{RichJSON, returning, _}
 import com.waz.zclient._
 import com.waz.zclient.controllers.tracking.events.launch.AppLaunch
 import com.waz.zclient.controllers.tracking.events.otr.VerifiedConversationEvent
@@ -52,7 +51,6 @@ import com.waz.zclient.core.controllers.tracking.events.onboarding.GeneratedUser
 import com.waz.zclient.preferences.PreferencesController
 import org.json.JSONObject
 import org.threeten.bp.{Duration, Instant}
-import com.waz.utils.RichJSON
 
 import scala.collection.JavaConverters._
 import scala.concurrent.Future
@@ -177,7 +175,7 @@ class GlobalTrackingController(implicit inj: Injector, cxt: WireContext, eventCo
       }
     }
 
-    val downloader  = zms.assetDownloader
+    val loader      = zms.assetLoader
     val messages    = zms.messagesStorage
     val assets      = zms.assetsStorage
     val convsUI     = zms.convsUi
@@ -203,29 +201,22 @@ class GlobalTrackingController(implicit inj: Injector, cxt: WireContext, eventCo
 
     assets.onUploadFailed.filter(_.status == AssetStatus.UploadCancelled).map(_.mime)(m => tagEvent(cancelledFileUploadEvent(m)))
 
-    downloader.onDownloadStarting {
-      case WireAssetRequest(_, id, _, _, _, _) => assetTrackingData(id).map {
-        case AssetTrackingData(convType, withOtto, isEphemeral, exp, assetSize, mime) =>
-          tagEvent(initiatedFileDownloadEvent(mime, assetSize))
+    loader.onDownloadStarting { id => assetTrackingData(id).map {
+      case AssetTrackingData(convType, withOtto, isEphemeral, exp, assetSize, mime) =>
+        tagEvent(initiatedFileDownloadEvent(mime, assetSize))
       }
-      case _ => // ignore
     }
 
-    downloader.onDownloadDone {
-      case WireAssetRequest(_, id, _, _, _, _) => assetTrackingData(id).map {
+    loader.onDownloadDone { id => assetTrackingData(id).map {
         case AssetTrackingData(convType, withOtto, isEphemeral, exp, assetSize, mime) =>
           tagEvent(successfullyDownloadedFileEvent(mime, assetSize))
       }
-      case _ => // ignore
     }
 
-    downloader.onDownloadFailed {
-      case (WireAssetRequest(_, id, _, _, _, _), err) if err.code != ErrorResponse.CancelledCode => assetTrackingData(id).map {
-        case AssetTrackingData(convType, withOtto, isEphemeral, exp, assetSize, mime) =>
-          tagEvent(failedFileDownloadEvent(mime))
-      }
-      case _ => // ignore
-    }
+    loader.onDownloadFailed { case (id, err) if err.code != ErrorResponse.CancelledCode => assetTrackingData(id).map {
+      case AssetTrackingData(convType, withOtto, isEphemeral, exp, assetSize, mime) =>
+        tagEvent(failedFileDownloadEvent(mime))
+    }}
 
     convsUI.assetUploadFailed { error =>
       tagEvent(FailedFileUploadEvent(error))

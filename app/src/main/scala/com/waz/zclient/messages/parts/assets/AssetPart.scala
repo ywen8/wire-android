@@ -107,7 +107,12 @@ trait ImageLayoutAssetPart extends AssetPart {
   private lazy val contentPaddingStart = getDimenPx(R.dimen.content__padding_left)
   private lazy val contentPaddingEnd = getDimenPx(R.dimen.content__padding_right)
 
-  val imageDrawable = new ImageAssetDrawable(message map { m => WireImage(m.assetId) })
+  val forceDownload = this match {
+    case _: ImagePartView => false
+    case _ => true
+  }
+
+  val imageDrawable = new ImageAssetDrawable(message map { m => WireImage(m.assetId) }, forceDownload = forceDownload)
 
   hideContent.flatMap {
     case true => Signal.const[Drawable](assetBackground)

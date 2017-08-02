@@ -112,7 +112,7 @@ class MessageView(context: Context, attrs: AttributeSet, style: Int)
           builder += PartDesc(MsgPart.EphemeralDots)
         }
 
-        if (msg.msgType == Message.Type.ASSET && !isDownloadOnWifiEnabled)
+        if (msg.msgType == Message.Type.ASSET && !areDownloadsAlwaysEnabled)
           builder += PartDesc(MsgPart.WifiWarning)
 
         if (hasFooter || animateFooter)
@@ -132,7 +132,7 @@ class MessageView(context: Context, attrs: AttributeSet, style: Int)
       }
   }
 
-  def isDownloadOnWifiEnabled = assetsController.downloadOnWifiEnabled.currentValue.contains(true)
+  def areDownloadsAlwaysEnabled = assetsController.downloadsAlwaysEnabled.currentValue.contains(true)
 
   def isFooterHiding = !hasFooter && getFooter.isDefined
 
