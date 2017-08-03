@@ -23,7 +23,7 @@ import android.view.{View, ViewGroup}
 import android.widget.{FrameLayout, LinearLayout}
 import com.waz.ZLog.ImplicitTag._
 import com.waz.model.MessageContent
-import com.waz.service.downloads.DownloaderService.DownloadOnWifiOnlyException
+import com.waz.service.downloads.AssetLoader.DownloadOnWifiOnlyException
 import com.waz.service.messages.MessageAndLikes
 import com.waz.threading.Threading
 import com.waz.zclient.controllers.AssetsController
@@ -56,7 +56,7 @@ class ImagePartView(context: Context, attrs: AttributeSet, style: Int) extends F
   }
 
   (for {
-    noW <- noWifi
+    noW  <- noWifi
     hide <- hideContent
   } yield !hide && noW).on(Threading.Ui)(imageIcon.setVisible)
 

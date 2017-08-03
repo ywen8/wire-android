@@ -46,7 +46,8 @@ class ImageAssetDrawable(
                           scaleType: ScaleType = ScaleType.FitXY,
                           request: RequestBuilder = RequestBuilder.Regular,
                           background: Option[Drawable] = None,
-                          animate: Boolean = true
+                          animate: Boolean = true,
+                          forceDownload: Boolean = true
                         )(implicit inj: Injector, eventContext: EventContext) extends Drawable with Injectable {
 
   val images = inject[ImageController]
@@ -91,7 +92,7 @@ class ImageAssetDrawable(
   }
 
   private def bitmapState(im: ImageSource, w: Int) =
-    images.imageSignal(im, request(w))
+    images.imageSignal(im, request(w), forceDownload)
       .map[State] {
         case BitmapLoaded(bmp, etag) => State.Loaded(im, Some(bmp), etag)
         case LoadingFailed(ex) => State.Failed(im, Some(ex))
@@ -309,26 +310,26 @@ class ImageController(implicit inj: Injector) extends Injectable {
     }
   }
 
-  def imageSignal(id: AssetId, width: Int): Signal[BitmapResult] =
-    imageSignal(id, Regular(width))
+  def imageSignal(id: AssetId, width: Int, forceDownload: Boolean): Signal[BitmapResult] =
+    imageSignal(id, Regular(width), forceDownload)
 
-  def imageSignal(id: AssetId, req: BitmapRequest): Signal[BitmapResult] =
+  def imageSignal(id: AssetId, req: BitmapRequest, forceDownload: Boolean): Signal[BitmapResult] =
     for {
       zms <- zMessaging
       data <- imageData(id)
-      res <- BitmapSignal(data, req, zms.imageLoader, zms.assetsStorage.get)
+      res <- BitmapSignal(data, req, zms.imageLoader, zms.assetsStorage.get, forceDownload)
     } yield res
 
-  def imageSignal(uri: URI, req: BitmapRequest): Signal[BitmapResult] =
-    BitmapSignal(AssetData(source = Some(uri)), req, ZMessaging.currentGlobal.imageLoader)
+  def imageSignal(uri: URI, req: BitmapRequest, forceDownload: Boolean): Signal[BitmapResult] =
+    BitmapSignal(AssetData(source = Some(uri)), req, ZMessaging.currentGlobal.imageLoader, forceDownload = forceDownload)
 
-  def imageSignal(data: AssetData, req: BitmapRequest): Signal[BitmapResult] =
-    zMessaging flatMap { zms => BitmapSignal(data, req, zms.imageLoader, zms.assetsStorage.get) }
+  def imageSignal(data: AssetData, req: BitmapRequest, forceDownload: Boolean): Signal[BitmapResult] =
+    zMessaging flatMap { zms => BitmapSignal(data, req, zms.imageLoader, zms.assetsStorage.get, forceDownload = forceDownload) }
 
-  def imageSignal(src: ImageSource, req: BitmapRequest): Signal[BitmapResult] = src match {
-    case WireImage(id) => imageSignal(id, req)
-    case ImageUri(uri) => imageSignal(uri, req)
-    case DataImage(data) => imageSignal(data, req)
+  def imageSignal(src: ImageSource, req: BitmapRequest, forceDownload: Boolean): Signal[BitmapResult] = src match {
+    case WireImage(id) => imageSignal(id, req, forceDownload)
+    case ImageUri(uri) => imageSignal(uri, req, forceDownload)
+    case DataImage(data) => imageSignal(data, req, forceDownload)
     case NoImage() => Signal.empty[BitmapResult]
   }
 }
