@@ -167,7 +167,7 @@ class CallingNotificationsController(implicit cxt: WireContext, eventContext: Ev
   private def joinIntent(account: AccountId, convId: ConvId) = pendingIntent(JoinRequestCode, CallWakeService.joinIntent(Context.wrap(cxt), account, convId))
   private def joinGroupIntent(account: AccountId, convId: ConvId) = pendingIntent(JoinRequestCode, CallWakeService.joinGroupIntent(Context.wrap(cxt), account, convId))
 
-  private def pendingIntent(reqCode: Int, intent: Intent) = PendingIntent.getService(cxt, reqCode, AndroidIntentUtil.unwrap(intent), PendingIntent.FLAG_UPDATE_CURRENT)
+  private def pendingIntent(reqCode: Int, intent: Intent) = PendingIntent.getService(cxt, reqCode, Intent.unwrap(intent), PendingIntent.FLAG_UPDATE_CURRENT)
 }
 
 object CallingNotificationsController {
