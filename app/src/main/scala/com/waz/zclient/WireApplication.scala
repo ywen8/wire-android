@@ -91,7 +91,7 @@ object WireApplication {
     bind [IGiphyController]              toProvider controllerFactory.getGiphyController
 
     bind [IStoreFactory]                 toProvider storeFactory
-    bind [INetworkStore]                 toProvider storeFactory.getNetworkStore
+    bind [INetworkStore]                 toProvider storeFactory.networkStore
 
     // global controllers
     bind [AccentColorController]   to new AccentColorController()
