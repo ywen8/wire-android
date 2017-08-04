@@ -2,7 +2,7 @@
 <!--
 
     Wire
-    Copyright (C) 2016 Wire Swiss GmbH
+    Copyright (C) 2017 Wire Swiss GmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -18,8 +18,8 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 -->
-<com.waz.zclient.ui.views.CursorIconButton xmlns:android="http://schemas.android.com/apk/res/android"
-                                           android:layout_width="wrap_content"
-                                           android:layout_height="wrap_content"
-                                           style="?cursorIconButton"
-    />
+<com.waz.zclient.cursor.CursorIconButton xmlns:android="http://schemas.android.com/apk/res/android"
+                                         android:layout_width="@dimen/new_cursor_menu_button_width"
+                                         android:layout_height="match_parent"
+                                         style="?cursorIconButton"
+/>

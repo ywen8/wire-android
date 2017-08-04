@@ -18,7 +18,7 @@
 package com.waz.zclient.controllers.tracking.events.conversation;
 
 import android.support.annotation.NonNull;
-import com.waz.api.Message;
+import com.waz.model.MessageData;
 import com.waz.zclient.core.controllers.tracking.attributes.Attribute;
 import com.waz.zclient.core.controllers.tracking.attributes.RangedAttribute;
 import com.waz.zclient.core.controllers.tracking.events.Event;
@@ -26,11 +26,11 @@ import org.threeten.bp.Instant;
 
 public class EditedMessageEvent extends Event {
 
-    public EditedMessageEvent(Message message) {
-        attributes.put(Attribute.TYPE, message.getMessageType().name());
+    public EditedMessageEvent(MessageData message) {
+        attributes.put(Attribute.TYPE, message.msgType().name());
 
         // message.getEditTime() is not immediately available for tracking purpose
-        int timeElapsed = (int) (Instant.now().getEpochSecond() - message.getLocalTime().getEpochSecond());
+        int timeElapsed = (int) (Instant.now().getEpochSecond() - message.localTime().getEpochSecond());
         rangedAttributes.put(RangedAttribute.MESSAGE_ACTION_TIME_ELAPSED, timeElapsed);
     }
 

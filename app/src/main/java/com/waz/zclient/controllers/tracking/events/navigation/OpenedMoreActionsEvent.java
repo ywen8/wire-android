@@ -18,13 +18,19 @@
 package com.waz.zclient.controllers.tracking.events.navigation;
 
 import android.support.annotation.NonNull;
+import com.waz.model.ConversationData;
 import com.waz.zclient.core.controllers.tracking.attributes.Attribute;
+import com.waz.zclient.core.controllers.tracking.attributes.ConversationType;
 import com.waz.zclient.core.controllers.tracking.events.Event;
 
 public class OpenedMoreActionsEvent extends Event {
 
-    public OpenedMoreActionsEvent(String conversationType) {
-        attributes.put(Attribute.CONVERSATION_TYPE, conversationType);
+    public OpenedMoreActionsEvent(ConversationData conversation) {
+        attributes.put(Attribute.CONVERSATION_TYPE, ConversationType.getValue(conversation.convType()).name);
+    }
+
+    public OpenedMoreActionsEvent(ConversationType conversationType) {
+        attributes.put(Attribute.CONVERSATION_TYPE, conversationType.name);
     }
 
     @NonNull

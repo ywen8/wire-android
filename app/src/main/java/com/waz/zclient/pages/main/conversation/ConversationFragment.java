@@ -18,7 +18,6 @@
 package com.waz.zclient.pages.main.conversation;
 
 import android.Manifest;
-import android.annotation.SuppressLint;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
@@ -47,8 +46,6 @@ import android.widget.FrameLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.GoogleApiAvailability;
 import com.waz.api.AssetFactory;
 import com.waz.api.AssetForUpload;
 import com.waz.api.AudioAssetForUpload;
@@ -72,11 +69,11 @@ import com.waz.api.User;
 import com.waz.api.UsersList;
 import com.waz.api.Verification;
 import com.waz.model.ConvId;
+import com.waz.model.MessageData;
 import com.waz.utils.wrappers.URI;
 import com.waz.zclient.BaseActivity;
 import com.waz.zclient.OnBackPressedListener;
 import com.waz.zclient.R;
-import com.waz.zclient.WireContext;
 import com.waz.zclient.camera.controllers.GlobalCameraController;
 import com.waz.zclient.controllers.IControllerFactory;
 import com.waz.zclient.controllers.ThemeController;
@@ -97,15 +94,11 @@ import com.waz.zclient.controllers.navigation.PagerControllerObserver;
 import com.waz.zclient.controllers.orientation.OrientationControllerObserver;
 import com.waz.zclient.controllers.permission.RequestPermissionsObserver;
 import com.waz.zclient.controllers.singleimage.SingleImageObserver;
-import com.waz.zclient.controllers.tracking.events.conversation.EditedMessageEvent;
-import com.waz.zclient.controllers.tracking.events.navigation.OpenedMoreActionsEvent;
 import com.waz.zclient.conversation.CollectionController;
 import com.waz.zclient.core.api.scala.ModelObserver;
 import com.waz.zclient.core.controllers.tracking.attributes.OpenedMediaAction;
 import com.waz.zclient.core.controllers.tracking.events.filetransfer.SelectedTooLargeFileEvent;
 import com.waz.zclient.core.controllers.tracking.events.media.CancelledRecordingAudioMessageEvent;
-import com.waz.zclient.core.controllers.tracking.events.media.OpenedActionHintEvent;
-import com.waz.zclient.core.controllers.tracking.events.media.OpenedEmojiKeyboardEvent;
 import com.waz.zclient.core.controllers.tracking.events.media.OpenedMediaActionEvent;
 import com.waz.zclient.core.controllers.tracking.events.media.PreviewedAudioMessageEvent;
 import com.waz.zclient.core.controllers.tracking.events.media.SentPictureEvent;
@@ -115,11 +108,11 @@ import com.waz.zclient.core.stores.IStoreFactory;
 import com.waz.zclient.core.stores.conversation.ConversationChangeRequester;
 import com.waz.zclient.core.stores.conversation.ConversationStoreObserver;
 import com.waz.zclient.core.stores.inappnotification.SyncErrorObserver;
-import com.waz.zclient.core.stores.network.DefaultNetworkAction;
 import com.waz.zclient.core.stores.participants.ParticipantsStoreObserver;
+import com.waz.zclient.cursor.CursorCallback;
 import com.waz.zclient.media.SoundController;
 import com.waz.zclient.messages.MessagesListView;
-import com.waz.zclient.messages.controllers.EditActionSupport;
+import com.waz.zclient.cursor.CursorView;
 import com.waz.zclient.pages.BaseFragment;
 import com.waz.zclient.pages.extendedcursor.ExtendedCursorContainer;
 import com.waz.zclient.pages.extendedcursor.emoji.EmojiKeyboardLayout;
@@ -133,12 +126,9 @@ import com.waz.zclient.pages.main.conversationpager.controller.SlidingPaneObserv
 import com.waz.zclient.pages.main.pickuser.controller.IPickUserController;
 import com.waz.zclient.pages.main.profile.camera.CameraContext;
 import com.waz.zclient.preferences.PreferencesActivity;
-import com.waz.zclient.preferences.PreferencesController;
 import com.waz.zclient.tracking.GlobalTrackingController;
 import com.waz.zclient.ui.animation.interpolators.penner.Expo;
 import com.waz.zclient.ui.audiomessage.AudioMessageRecordingView;
-import com.waz.zclient.ui.cursor.CursorCallback;
-import com.waz.zclient.ui.cursor.CursorLayout;
 import com.waz.zclient.ui.cursor.CursorMenuItem;
 import com.waz.zclient.ui.utils.KeyboardUtils;
 import com.waz.zclient.ui.views.e2ee.ShieldView;
@@ -178,7 +168,6 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
                                                                                                   EmojiKeyboardLayout.Callback,
                                                                                                   ExtendedCursorContainer.Callback,
                                                                                                   EphemeralLayout.Callback,
-                                                                                                  TypingIndicatorView.Callback,
                                                                                                   OrientationControllerObserver {
     public static final String TAG = ConversationFragment.class.getName();
     private static final String SAVED_STATE_PREVIEW = "SAVED_STATE_PREVIEW";
@@ -208,7 +197,7 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
     private ActionMenuView leftMenu;
     private TextView toolbarTitle;
     private ShieldView shieldView;
-    private CursorLayout cursorLayout;
+    private CursorView cursorView;
     private AudioMessageRecordingView audioMessageRecordingView;
     private ExtendedCursorContainer extendedCursorContainer;
     private List<URI> sharingUris = new ArrayList<>();
@@ -444,8 +433,7 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
 
         extendedCursorContainer = ViewUtils.getView(view, R.id.ecc__conversation);
         containerPreview = ViewUtils.getView(view, R.id.fl__conversation_overlay);
-        cursorLayout = ViewUtils.getView(view, R.id.cl__cursor);
-        new EditActionSupport((WireContext) getActivity(), cursorLayout); // TODO: remove that once cursorLayout is reimplemented in scala
+        cursorView = ViewUtils.getView(view, R.id.cv__cursor);
         audioMessageRecordingView = ViewUtils.getView(view, R.id.amrv_audio_message_recording);
         toolbar = ViewUtils.getView(view, R.id.t_conversation_toolbar);
         leftMenu = ViewUtils.getView(view, R.id.conversation_left_menu);
@@ -453,42 +441,41 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
         shieldView = ViewUtils.getView(view, R.id.sv__conversation_toolbar__verified_shield);
         shieldView.setVisibility(View.GONE);
         typingIndicatorView = ViewUtils.getView(view, R.id.tiv_typing_indicator_view);
-        typingIndicatorView.setCallback(this);
         listView = ViewUtils.getView(view, R.id.messages_list_view);
-        toolbar.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                getControllerFactory().getConversationScreenController().showParticipants(toolbar, false);
-            }
-        });
-        toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
-            @Override
-            public boolean onMenuItemClick(MenuItem item) {
-            switch (item.getItemId()) {
-                case R.id.action_audio_call:
-                    getControllerFactory().getCallingController().startCall(false);
-                    cursorLayout.closeEditMessage(false);
-                    return true;
-                case R.id.action_video_call:
-                    getControllerFactory().getCallingController().startCall(true);
-                    cursorLayout.closeEditMessage(false);
-                    return true;
-            }
-            return false;
-            }
-        });
-        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-            if (cursorLayout == null) {
-                return;
-            }
+            toolbar.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    getControllerFactory().getConversationScreenController().showParticipants(toolbar, false);
+                }
+            });
+            toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
+                @Override
+                public boolean onMenuItemClick(MenuItem item) {
+                    switch (item.getItemId()) {
+                        case R.id.action_audio_call:
+                            getControllerFactory().getCallingController().startCall(false);
+                            cursorView.closeEditMessage(false);
+                            return true;
+                        case R.id.action_video_call:
+                            getControllerFactory().getCallingController().startCall(true);
+                            cursorView.closeEditMessage(false);
+                            return true;
+                    }
+                    return false;
+                }
+            });
+            toolbar.setNavigationOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if (cursorView == null) {
+                        return;
+                    }
 
-            cursorLayout.closeEditMessage(false);
-            getActivity().onBackPressed();
-            KeyboardUtils.closeKeyboardIfShown(getActivity());
-            }
-        });
+                    cursorView.closeEditMessage(false);
+                    getActivity().onBackPressed();
+                    KeyboardUtils.closeKeyboardIfShown(getActivity());
+                }
+            });
 
         leftMenu.setOnMenuItemClickListener(new ActionMenuView.OnMenuItemClickListener() {
             @Override
@@ -513,8 +500,6 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
         AbsListView.LayoutParams params = new AbsListView.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
                                                                        getResources().getDimensionPixelSize(R.dimen.cursor__list_view_footer__height));
         invisibleFooter.setLayoutParams(params);
-
-        cursorLayout.showSendButton(false);
 
         // Recording audio messages
         audioMessageRecordingView.setCallback(this);
@@ -543,11 +528,10 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
         getControllerFactory().getGlobalLayoutController().addKeyboardVisibilityObserver(extendedCursorContainer);
         getControllerFactory().getRequestPermissionsController().addObserver(this);
         getControllerFactory().getOrientationController().addOrientationControllerObserver(this);
-        cursorLayout.setCursorCallback(this);
-        hideSendButtonIfNeeded();
+        cursorView.setCallback(this);
         final String draftText = getStoreFactory().getDraftStore().getDraft(getStoreFactory().getConversationStore().getCurrentConversation());
         if (!TextUtils.isEmpty(draftText)) {
-            cursorLayout.setText(draftText);
+            cursorView.setText(draftText);
         }
 
         syncIndicatorModelObserver.resumeListening();
@@ -576,7 +560,6 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
     @Override
     public void onResume() {
         super.onResume();
-        cursorLayout.showSendButtonAsEnterKey(!getPreferencesController().isSendButtonEnabled());
         if (LayoutSpec.isTablet(getContext())) {
             conversationModelObserver.setAndUpdate(getStoreFactory().getConversationStore().getCurrentConversation());
         }
@@ -600,16 +583,16 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
     public void onStop() {
         extendedCursorContainer.close(true);
         extendedCursorContainer.setCallback(null);
-        cursorLayout.setCursorCallback(null);
+        cursorView.setCallback(null);
         getControllerFactory().getGlobalLayoutController().removeKeyboardHeightObserver(extendedCursorContainer);
         getControllerFactory().getGlobalLayoutController().removeKeyboardVisibilityObserver(extendedCursorContainer);
         getControllerFactory().getOrientationController().removeOrientationControllerObserver(this);
         getControllerFactory().getGiphyController().removeObserver(this);
         getControllerFactory().getSingleImageController().removeSingleImageObserver(this);
 
-        if (!cursorLayout.isEditingMessage()) {
+        if (!cursorView.isEditingMessage()) {
             getStoreFactory().getDraftStore().setDraft(getStoreFactory().getConversationStore().getCurrentConversation(),
-                                                       cursorLayout.getText().trim());
+                                                       cursorView.getText().trim());
         }
         getStoreFactory().getInAppNotificationStore().removeInAppNotificationObserver(this);
         getStoreFactory().getParticipantsStore().removeParticipantsStoreObserver(this);
@@ -633,7 +616,7 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
     @Override
     public void onDestroyView() {
         containerPreview = null;
-        cursorLayout = null;
+        cursorView = null;
         conversationLoadingIndicatorViewView = null;
         if (inputStateIndicator != null) {
             inputStateIndicator.removeUpdateListener(typingListener);
@@ -711,7 +694,7 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
         new Handler().postDelayed(new Runnable() {
             @Override
             public void run() {
-                if (cursorLayout == null) {
+                if (cursorView == null) {
                     return;
                 }
 
@@ -721,8 +704,8 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
 
                 // handle draft
                 if (fromConversation != null && changeToDifferentConversation &&
-                    !cursorLayout.isEditingMessage()) {
-                    getStoreFactory().getDraftStore().setDraft(fromConversation, cursorLayout.getText().trim());
+                    !cursorView.isEditingMessage()) {
+                    getStoreFactory().getDraftStore().setDraft(fromConversation, cursorView.getText().trim());
                 }
 
                 if (toConversation.getType() == IConversation.Type.WAIT_FOR_CONNECTION) {
@@ -731,7 +714,7 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
 
                 KeyboardUtils.hideKeyboard(getActivity());
                 conversationLoadingIndicatorViewView.hide();
-                cursorLayout.enableMessageWriting();
+                cursorView.enableMessageWriting();
 
                 if (changeToDifferentConversation) {
                     getControllerFactory().getConversationScreenController().setConversationStreamUiReady(false);
@@ -741,7 +724,7 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
                     getControllerFactory().getSharingController().maybeResetSharedUris(fromConversation);
 
 
-                    cursorLayout.setVisibility(toConversation.isActive() ? View.VISIBLE : View.GONE);
+                    cursorView.setVisibility(toConversation.isActive() ? View.VISIBLE : View.GONE);
                     if (!inSplitPortraitMode()) {
                         resetCursor();
                     }
@@ -750,9 +733,9 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
                     if (TextUtils.isEmpty(draftText)) {
                         resetCursor();
                     } else {
-                        cursorLayout.setText(draftText);
+                        cursorView.setText(draftText);
                     }
-                    cursorLayout.setConversation(toConversation);
+                    cursorView.setConversation(toConversation);
 
                     hideAudioMessageRecording();
                 }
@@ -768,9 +751,9 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
                         if (TextUtils.isEmpty(draftText)) {
                             resetCursor();
                         } else {
-                            cursorLayout.setText(draftText);
+                            cursorView.setText(draftText);
                         }
-                        cursorLayout.enableMessageWriting();
+                        cursorView.enableMessageWriting();
                         KeyboardUtils.showKeyboard(getActivity());
                         getControllerFactory().getSharingController().maybeResetSharedText(toConversation);
                     } else if (isSharingFiles) {
@@ -844,7 +827,7 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
 
     @Override
     public void onKeyboardVisibilityChanged(boolean keyboardIsVisible, int keyboardHeight, View currentFocus) {
-        cursorLayout.notifyKeyboardVisibilityChanged(keyboardIsVisible, currentFocus);
+        cursorView.notifyKeyboardVisibilityChanged(keyboardIsVisible, currentFocus);
     }
 
     private void inflateCollectionIcon() {
@@ -856,27 +839,6 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
             inflater.inflate(R.menu.conversation_header_menu_collection_searching, leftMenu.getMenu());
         } else {
             inflater.inflate(R.menu.conversation_header_menu_collection, leftMenu.getMenu());
-        }
-    }
-
-    //////////////////////////////////////////////////////////////////////////////////////////
-    //
-    //  Cursor callback
-    //
-    //////////////////////////////////////////////////////////////////////////////////////////
-
-    @Override
-    public void onEditTextHasChanged(int cursorPosition, String text) {
-        if (inputStateIndicator != null) {
-            if (text.isEmpty()) {
-                inputStateIndicator.textCleared();
-            } else {
-                inputStateIndicator.textChanged();
-            }
-        }
-
-        if (getPreferencesController().isSendButtonEnabled()) {
-            cursorLayout.showSendButton(!TextUtils.isEmpty(text));
         }
     }
 
@@ -892,7 +854,6 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
     //////////////////////////////////////////////////////////////////////////////////////////
     @Override
     public void onAccentColorHasChanged(Object sender, int color) {
-        cursorLayout.setAccentColor(color);
         conversationLoadingIndicatorViewView.setColor(color);
         audioMessageRecordingView.setAccentColor(color);
         extendedCursorContainer.setAccentColor(color);
@@ -906,16 +867,16 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
         if (!LayoutSpec.isTablet(getActivity())) {
             toolbarTitle.setText(conversation.getName());
         }
-        if (cursorLayout == null) {
+        if (cursorView == null) {
             return;
         }
 
         final IConversation currentConversation = getStoreFactory().getConversationStore().getCurrentConversation();
 
         if (currentConversation == null || !currentConversation.isMemberOfConversation()) {
-            cursorLayout.setVisibility(View.GONE);
+            cursorView.setVisibility(View.GONE);
         } else {
-            cursorLayout.setVisibility(View.VISIBLE);
+            cursorView.setVisibility(View.VISIBLE);
         }
     }
 
@@ -939,7 +900,7 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
     public void onPageVisible(Page page) {
         if (page == Page.MESSAGE_STREAM) {
             inflateCollectionIcon();
-            cursorLayout.enableMessageWriting();
+            cursorView.enableMessageWriting();
         }
     }
 
@@ -1017,7 +978,7 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
     }
 
     private void resetCursor() {
-        cursorLayout.setText("");
+        cursorView.setText("");
     }
 
     @Override
@@ -1064,95 +1025,6 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
         }
     }
 
-    @SuppressLint("NewApi")
-    @Override
-    public void onCursorButtonClicked(CursorMenuItem cursorMenuItem) {
-        final IConversation conversation = getStoreFactory().getConversationStore().getCurrentConversation();
-        switch (cursorMenuItem) {
-            case AUDIO_MESSAGE:
-                if (PermissionUtils.hasSelfPermissions(getActivity(), AUDIO_PERMISSION)) {
-                    openExtendedCursor(ExtendedCursorContainer.Type.VOICE_FILTER_RECORDING);
-                } else {
-                    ActivityCompat.requestPermissions(getActivity(),
-                                                      AUDIO_PERMISSION,
-                                                      AUDIO_FILTER_PERMISSION_REQUEST_ID);
-                }
-                break;
-            case CAMERA:
-                if (LayoutSpec.isTablet(getContext())) {
-                    KeyboardUtils.closeKeyboardIfShown(getActivity());
-                    getControllerFactory().getCameraController().openCamera(CameraContext.MESSAGE);
-                    ((BaseActivity) getActivity()).injectJava(GlobalTrackingController.class).tagEvent(OpenedMediaActionEvent.cursorAction(OpenedMediaAction.PHOTO, conversation));
-                } else {
-
-                    if (PermissionUtils.hasSelfPermissions(getContext(), EXTENDED_CURSOR_PERMISSIONS)) {
-                        openExtendedCursor(ExtendedCursorContainer.Type.IMAGES);
-                    } else {
-                        ActivityCompat.requestPermissions(getActivity(),
-                                                          EXTENDED_CURSOR_PERMISSIONS,
-                                                          OPEN_EXTENDED_CURSOR_IMAGES);
-                    }
-                }
-                break;
-            case PING:
-                getStoreFactory().getNetworkStore().doIfHasInternetOrNotifyUser(new DefaultNetworkAction() {
-                    @Override
-                    public void execute(NetworkMode networkMode) {
-                        getStoreFactory().getConversationStore().knockCurrentConversation();
-                        SoundController ctrl = inject(SoundController.class);
-                        if (ctrl != null) {
-                            ctrl.playPingFromMe();
-                        }
-                    }
-                });
-                TrackingUtils.onSentPingMessage(((BaseActivity) getActivity()).injectJava(GlobalTrackingController.class),
-                                                getStoreFactory().getConversationStore().getCurrentConversation());
-                break;
-            case SKETCH:
-                getControllerFactory().getDrawingController().showDrawing(null,
-                                                                          IDrawingController.DrawingDestination.SKETCH_BUTTON);
-                ((BaseActivity) getActivity()).injectJava(GlobalTrackingController.class).tagEvent(OpenedMediaActionEvent.cursorAction(OpenedMediaAction.SKETCH, conversation));
-                break;
-            case FILE:
-                assetIntentsManager.openFileSharing();
-                ((BaseActivity) getActivity()).injectJava(GlobalTrackingController.class).tagEvent(OpenedMediaActionEvent.cursorAction(OpenedMediaAction.FILE, conversation));
-                break;
-            case VIDEO_MESSAGE:
-                ((BaseActivity) getActivity()).injectJava(GlobalTrackingController.class).tagEvent(OpenedMediaActionEvent.cursorAction(OpenedMediaAction.VIDEO_MESSAGE, conversation));
-                isVideoMessageButtonClicked = true;
-                getCameraController().releaseCamera(new Callback<Void>() {
-                    @Override
-                    public void callback(Void v) {
-                        if (!isVideoMessageButtonClicked || assetIntentsManager == null) {
-                            return;
-                        }
-                        isVideoMessageButtonClicked = false;
-                        assetIntentsManager.maybeCaptureVideo(getActivity(), AssetIntentsManager.IntentType.VIDEO_CURSOR_BUTTON);
-                    }
-                });
-                break;
-            case LOCATION:
-                GoogleApiAvailability googleAPI = GoogleApiAvailability.getInstance();
-                if (ConnectionResult.SUCCESS == googleAPI.isGooglePlayServicesAvailable(getContext())) {
-                    KeyboardUtils.hideKeyboard(getActivity());
-                    getControllerFactory().getLocationController().showShareLocation();
-                    ((BaseActivity) getActivity()).injectJava(GlobalTrackingController.class).tagEvent(OpenedMediaActionEvent.cursorAction(OpenedMediaAction.LOCATION, conversation));
-                } else {
-                    Toast.makeText(getContext(), R.string.location_sharing__missing_play_services, Toast.LENGTH_LONG).show();
-                }
-                break;
-            case MORE:
-            case LESS:
-                ((BaseActivity) getActivity()).injectJava(GlobalTrackingController.class).tagEvent(new OpenedMoreActionsEvent(
-                    getConversationTypeString()));
-                break;
-            case GIF:
-                getControllerFactory().getGiphyController().handleInput(cursorLayout.getText());
-                ((BaseActivity) getActivity()).injectJava(GlobalTrackingController.class).tagEvent(OpenedMediaActionEvent.cursorAction(OpenedMediaAction.GIPHY, conversation));
-                break;
-        }
-    }
-
     private CollectionController getCollectionController() {
         return ((BaseActivity) getActivity()).injectJava(CollectionController.class);
     }
@@ -1161,24 +1033,46 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
         return ((BaseActivity) getActivity()).injectJava(GlobalCameraController.class);
     }
 
-    private PreferencesController getPreferencesController() {
-        return ((BaseActivity) getActivity()).injectJava(PreferencesController.class);
+    @Override
+    public void openFileSharing() {
+        assetIntentsManager.openFileSharing();
     }
 
-    private void openExtendedCursor(ExtendedCursorContainer.Type type) {
+    @Override
+    public void captureVideo() {
+        isVideoMessageButtonClicked = true;
+        getCameraController().releaseCamera(new Callback<Void>() {
+            @Override
+            public void callback(Void v) {
+                if (!isVideoMessageButtonClicked || assetIntentsManager == null) {
+                    return;
+                }
+                isVideoMessageButtonClicked = false;
+                assetIntentsManager.maybeCaptureVideo(getActivity(), AssetIntentsManager.IntentType.VIDEO_CURSOR_BUTTON);
+            }
+        });
+    }
+
+    @Override
+    public void openExtendedCursor(ExtendedCursorContainer.Type type) {
         final IConversation conversation = getStoreFactory().getConversationStore().getCurrentConversation();
         switch (type) {
             case NONE:
                 break;
+            case EMOJIS:
+                extendedCursorContainer.openEmojis(getControllerFactory().getUserPreferencesController().getRecentEmojis(),
+                    getControllerFactory().getUserPreferencesController().getUnsupportedEmojis(), this);
+                break;
+            case EPHEMERAL:
+                extendedCursorContainer.openEphemeral(this, conversation.getEphemeralExpiration());
+                break;
             case VOICE_FILTER_RECORDING:
                 extendedCursorContainer.openVoiceFilter(this);
-                hideSendButtonIfNeeded();
                 ((BaseActivity) getActivity()).injectJava(GlobalTrackingController.class).tagEvent(OpenedMediaActionEvent.cursorAction(OpenedMediaAction.AUDIO_MESSAGE,
                                                                                                             conversation));
                 break;
             case IMAGES:
                 extendedCursorContainer.openCursorImages(this);
-                hideSendButtonIfNeeded();
                 ((BaseActivity) getActivity()).injectJava(GlobalTrackingController.class).tagEvent(OpenedMediaActionEvent.cursorAction(OpenedMediaAction.PHOTO,
                                                                                                             conversation));
                 break;
@@ -1224,23 +1118,8 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
         audioMessageRecordingView.onMotionEventFromAudioMessageButton(motionEvent);
     }
 
-
-    @Override
-    public void onMessageSubmitted(String message) {
-        if (TextUtils.isEmpty(message.trim())) {
-            return;
-        }
-        resetCursor();
-        getStoreFactory().getConversationStore().sendMessage(message);
-        TrackingUtils.onSentTextMessage(((BaseActivity) getActivity()).injectJava(GlobalTrackingController.class),
-                                        getStoreFactory().getConversationStore().getCurrentConversation());
-
-        getStoreFactory().getNetworkStore().doIfHasInternetOrNotifyUser(null);
-        getControllerFactory().getSharingController().maybeResetSharedText(getStoreFactory().getConversationStore().getCurrentConversation());
-    }
-
     public void onFocusChange(boolean hasFocus) {
-        if (cursorLayout == null) {
+        if (cursorView == null) {
             return;
         }
 
@@ -1262,62 +1141,22 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
     }
 
     @Override
+    public void onMessageSent(MessageData msg) {
+      getStoreFactory().getNetworkStore().doIfHasInternetOrNotifyUser(null);
+      getControllerFactory().getSharingController().maybeResetSharedText(getStoreFactory().getConversationStore().getCurrentConversation());
+    }
+
+    @Override
     public void onCursorClicked() {
-        if (!cursorLayout.isEditingMessage()) {
+        if (!cursorView.isEditingMessage()) {
             listView.scrollToBottom();
         }
     }
 
     @Override
-    public void onShowedActionHint(CursorMenuItem item) {
-        ((BaseActivity) getActivity()).injectJava(GlobalTrackingController.class).tagEvent(new OpenedActionHintEvent(item.name(),
-                                                                                          getConversationTypeString()));
-    }
-
-    @Override
-    public void onApprovedMessageEditing(Message message) {
-        KeyboardUtils.hideKeyboard(getActivity());
-        ((BaseActivity) getActivity()).injectJava(GlobalTrackingController.class).tagEvent(new EditedMessageEvent(message));
-    }
-
-    @Override
-    public void onEmojiButtonClicked(boolean showEmojiKeyboard) {
-        if (showEmojiKeyboard) {
-            KeyboardUtils.hideKeyboard(getActivity());
-            extendedCursorContainer.openEmojis(getControllerFactory().getUserPreferencesController().getRecentEmojis(),
-                                               getControllerFactory().getUserPreferencesController().getUnsupportedEmojis(),
-                                               this);
-            boolean withBot = getStoreFactory().getConversationStore().getCurrentConversation().isOtto();
-            ((BaseActivity) getActivity()).injectJava(GlobalTrackingController.class).tagEvent(new OpenedEmojiKeyboardEvent(withBot));
-            cursorLayout.showSendButton(true);
-        } else {
+    public void hideExtendedCursor() {
+        if (extendedCursorContainer.isExpanded()) {
             extendedCursorContainer.close(false);
-            KeyboardUtils.showKeyboard(getActivity());
-        }
-    }
-
-    @Override
-    public void onEphemeralButtonClicked(EphemeralExpiration currentEphemeralExpiration) {
-        extendedCursorContainer.openEphemeral(this, currentEphemeralExpiration);
-        if (currentEphemeralExpiration == EphemeralExpiration.NONE) {
-            IConversation conversation = getStoreFactory().getConversationStore().getCurrentConversation();
-            ((BaseActivity) getActivity()).injectJava(GlobalTrackingController.class).tagEvent(OpenedMediaActionEvent.ephemeral(conversation,
-                                                                                                     false));
-        }
-    }
-
-    @Override
-    public void onEphemeralButtonDoubleClicked(EphemeralExpiration currentEphemeralExpiration) {
-        EphemeralExpiration lastExpiraton = EphemeralExpiration.getForMillis(getControllerFactory().getUserPreferencesController().getLastEphemeralValue());
-        if (lastExpiraton.equals(EphemeralExpiration.NONE)) {
-            return;
-        }
-        if (currentEphemeralExpiration.equals(EphemeralExpiration.NONE)) {
-            onEphemeralExpirationSelected(lastExpiraton, true);
-            IConversation conversation = getStoreFactory().getConversationStore().getCurrentConversation();
-            ((BaseActivity) getActivity()).injectJava(GlobalTrackingController.class).tagEvent(OpenedMediaActionEvent.ephemeral(conversation, true));
-        } else {
-            onEphemeralExpirationSelected(EphemeralExpiration.NONE, true);
         }
     }
 
@@ -1338,8 +1177,8 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
             return true;
         }
 
-        if (cursorLayout.isEditingMessage()) {
-            cursorLayout.closeEditMessage(true);
+        if (cursorView.isEditingMessage()) {
+            cursorView.closeEditMessage(true);
             return true;
         }
 
@@ -1803,8 +1642,7 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
 
     @Override
     public void onExtendedCursorClosed(ExtendedCursorContainer.Type lastType) {
-        cursorLayout.onExtendedCursorClosed();
-        hideSendButtonIfNeeded();
+        cursorView.onExtendedCursorClosed();
         if (lastType == ExtendedCursorContainer.Type.EPHEMERAL) {
             EphemeralExpiration expiration = getStoreFactory().getConversationStore().getCurrentConversation().getEphemeralExpiration();
             if (!expiration.equals(EphemeralExpiration.NONE)) {
@@ -1814,25 +1652,10 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
         getControllerFactory().getGlobalLayoutController().resetScreenAwakeState();
     }
 
-    private void hideSendButtonIfNeeded() {
-        if (!getPreferencesController().isSendButtonEnabled() || TextUtils.isEmpty(cursorLayout.getText())) {
-            cursorLayout.showSendButton(false);
-        }
-    }
-
     @Override
     public void onEmojiSelected(String emoji) {
-        cursorLayout.insertText(emoji);
+        cursorView.insertText(emoji);
         getControllerFactory().getUserPreferencesController().addRecentEmoji(emoji);
-    }
-
-    @Override
-    public void onTypingIndicatorVisibilityChanged(boolean visible) {
-        if (visible) {
-            cursorLayout.showTopbar(false);
-        } else {
-            cursorLayout.showTopbar(!listView.scrollController().shouldScrollToBottom());
-        }
     }
 
     @Override

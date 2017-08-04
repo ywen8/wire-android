@@ -18,11 +18,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 -->
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
              android:layout_width="match_parent"
-             android:layout_height="match_parent"
-             android:layout_marginLeft="@dimen/wire__padding__regular"
-             android:layout_marginRight="@dimen/wire__padding__regular">
+             android:layout_height="match_parent">
 
     <com.waz.zclient.ui.text.GlyphTextView
         android:id="@+id/gtv__edit_message__reset"
@@ -63,4 +61,4 @@
         style="?attr/iconButton"
         />
 
-</FrameLayout>
+</merge>

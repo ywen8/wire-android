@@ -54,6 +54,7 @@ class MessagesListView(context: Context, attrs: AttributeSet, style: Int) extend
   val adapter = new MessagesListAdapter(viewDim)
   val scrollController = new ScrollController(adapter, viewDim.map(_.height))
 
+  val messagesController = inject[MessagesController]
   val messageActionsController = inject[MessageActionsController]
 
   viewDim.on(Threading.Ui){_ => adapter.notifyDataSetChanged()}
@@ -114,8 +115,10 @@ class MessagesListView(context: Context, attrs: AttributeSet, style: Int) extend
     override def onScrollStateChanged(recyclerView: RecyclerView, newState: Int): Unit = newState match {
       case RecyclerView.SCROLL_STATE_IDLE =>
         scrollController.onScrolled(layoutManager.findLastVisibleItemPosition())
+        messagesController.scrolledToBottom ! (layoutManager.findLastCompletelyVisibleItemPosition() ==  adapter.getItemCount - 1)
       case RecyclerView.SCROLL_STATE_DRAGGING => {
         scrollController.onDragging()
+        messagesController.scrolledToBottom ! false
         Option(getContext).map(_.asInstanceOf[Activity]).foreach(a => KeyboardUtils.hideKeyboard(a))
       }
       case _ =>
