@@ -166,8 +166,8 @@ public class PhoneRegisterFragment extends BaseFragment<PhoneRegisterFragment.Co
 
         countryController.addObserver(this);
 
-        Country country = countryController.getCountryFromCode(getStoreFactory().appEntryStore().getCountryCode());
-        String phone = getStoreFactory().appEntryStore().getPhone();
+        Country country = countryController.getCountryFromCode(getStoreFactory().getAppEntryStore().getCountryCode());
+        String phone = getStoreFactory().getAppEntryStore().getPhone();
 
         if (phone != null) {
             editTextPhone.setText(phone);
@@ -252,7 +252,7 @@ public class PhoneRegisterFragment extends BaseFragment<PhoneRegisterFragment.Co
         getContainer().enableProgress(true);
         KeyboardUtils.hideKeyboard(getActivity());
 
-        getStoreFactory().appEntryStore()
+        getStoreFactory().getAppEntryStore()
                          .setRegistrationPhone(textViewCountryCode.getText().toString(),
                                                editTextPhone.getText().toString(),
                                                errorCallback);
@@ -334,7 +334,7 @@ public class PhoneRegisterFragment extends BaseFragment<PhoneRegisterFragment.Co
     @Override
     public void onItemSelected(int pos) {
         if (pos == TabPages.SIGN_IN) {
-            getStoreFactory().appEntryStore().setState(AppEntryState.EMAIL_SIGN_IN);
+            getStoreFactory().getAppEntryStore().setState(AppEntryState.EMAIL_SIGN_IN);
             ViewUtils.fadeOutView(titleView);
         } else {
             ViewUtils.fadeInView(titleView);

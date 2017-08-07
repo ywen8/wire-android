@@ -19,16 +19,14 @@ package com.waz.zclient.core.controllers.tracking.events.media;
 
 
 import android.support.annotation.NonNull;
-import com.waz.model.ConversationData;
 import com.waz.zclient.core.controllers.tracking.attributes.Attribute;
-import com.waz.zclient.core.controllers.tracking.attributes.ConversationType;
 import com.waz.zclient.core.controllers.tracking.events.Event;
 
 public class OpenedActionHintEvent extends Event {
 
-    public OpenedActionHintEvent(String action, ConversationData conv) {
+    public OpenedActionHintEvent(String action, String conversationType) {
         attributes.put(Attribute.ACTION, action);
-        attributes.put(Attribute.CONVERSATION_TYPE, ConversationType.getValue(conv.convType()).name);
+        attributes.put(Attribute.CONVERSATION_TYPE, conversationType);
     }
 
     @NonNull

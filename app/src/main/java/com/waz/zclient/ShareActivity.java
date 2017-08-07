@@ -95,7 +95,7 @@ public class ShareActivity extends BaseActivity implements AccentColorObserver,
 
     @Override
     public void onStart() {
-        getStoreFactory().zMessagingApiStore().addApiObserver(this);
+        getStoreFactory().getZMessagingApiStore().addApiObserver(this);
         getControllerFactory().getAccentColorController().addAccentColorObserver(this);
         super.onStart();
     }
@@ -108,7 +108,7 @@ public class ShareActivity extends BaseActivity implements AccentColorObserver,
 
     @Override
     public void onStop() {
-        getStoreFactory().zMessagingApiStore().removeApiObserver(this);
+        getStoreFactory().getZMessagingApiStore().removeApiObserver(this);
         getControllerFactory().getAccentColorController().removeAccentColorObserver(this);
         super.onStop();
     }

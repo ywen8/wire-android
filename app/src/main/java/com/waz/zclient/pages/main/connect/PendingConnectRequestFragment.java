@@ -218,14 +218,14 @@ public class PendingConnectRequestFragment extends BaseFragment<PendingConnectRe
         super.onStart();
 
         getControllerFactory().getAccentColorController().addAccentColorObserver(this);
-        getStoreFactory().connectStore().addConnectRequestObserver(this);
+        getStoreFactory().getConnectStore().addConnectRequestObserver(this);
 
         switch (loadMode) {
             case LOAD_BY_CONVERSATION_ID:
-                getStoreFactory().conversationStore().loadConversation(conversationId, this);
+                getStoreFactory().getConversationStore().loadConversation(conversationId, this);
                 break;
             case LOAD_BY_USER_ID:
-                getStoreFactory().connectStore().loadUser(userId, userRequester);
+                getStoreFactory().getConnectStore().loadUser(userId, userRequester);
                 break;
         }
     }
@@ -249,7 +249,7 @@ public class PendingConnectRequestFragment extends BaseFragment<PendingConnectRe
     @Override
     public void onStop() {
 
-        getStoreFactory().connectStore().removeConnectRequestObserver(this);
+        getStoreFactory().getConnectStore().removeConnectRequestObserver(this);
         getControllerFactory().getAccentColorController().removeAccentColorObserver(this);
 
         super.onStop();
@@ -370,7 +370,7 @@ public class PendingConnectRequestFragment extends BaseFragment<PendingConnectRe
                     conversation.addUpdateListener(this);
                 }
 
-                getStoreFactory().connectStore().loadUser(conversation.getOtherParticipant().getId(),
+                getStoreFactory().getConnectStore().loadUser(conversation.getOtherParticipant().getId(),
                                                              userRequester);
                 break;
         }
@@ -391,7 +391,7 @@ public class PendingConnectRequestFragment extends BaseFragment<PendingConnectRe
 
         switch (loadMode) {
             case LOAD_BY_USER_ID:
-                getStoreFactory().conversationStore().loadConversation(user.getConversation().getId(),
+                getStoreFactory().getConversationStore().loadConversation(user.getConversation().getId(),
                                                                           this);
                 break;
         }

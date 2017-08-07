@@ -95,7 +95,7 @@ public class WelcomeEmailFragment extends BaseFragment<WelcomeEmailFragment.Cont
         signInZetaButton.setOnClickListener(this);
         createAccountZetaButton.setOnClickListener(this);
 
-        getStoreFactory().networkStore(); // pre-initialize network store, to ensure that internet connection check works on button press
+        getStoreFactory().getNetworkStore(); // pre-initialize network store, to ensure that internet connection check works on button press
     }
 
     @Override
@@ -120,16 +120,16 @@ public class WelcomeEmailFragment extends BaseFragment<WelcomeEmailFragment.Cont
     }
 
     private void signIn() {
-        getStoreFactory().appEntryStore().setState(AppEntryState.EMAIL_SIGN_IN);
+        getStoreFactory().getAppEntryStore().setState(AppEntryState.EMAIL_SIGN_IN);
     }
 
     private void signUp() {
-        getStoreFactory().appEntryStore().clearSavedUserInput();
-        getStoreFactory().appEntryStore().setState(AppEntryState.EMAIL_REGISTER);
+        getStoreFactory().getAppEntryStore().clearSavedUserInput();
+        getStoreFactory().getAppEntryStore().setState(AppEntryState.EMAIL_REGISTER);
     }
 
     private void signUpOrSignIn(final boolean signIn) {
-        getStoreFactory().networkStore().doIfHasInternetOrNotifyUser(new NetworkAction() {
+        getStoreFactory().getNetworkStore().doIfHasInternetOrNotifyUser(new NetworkAction() {
             @Override
             public void execute(NetworkMode networkMode) {
                 if (signIn) {

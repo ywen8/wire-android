@@ -50,7 +50,7 @@ public class LaunchActivity extends BaseActivity implements InitListener {
             @Override
             public void callback(Void aVoid) {
                 LaunchActivity.super.onBaseActivityStart();
-                getStoreFactory().zMessagingApiStore().getApi().onInit(LaunchActivity.this);
+                getStoreFactory().getZMessagingApiStore().getApi().onInit(LaunchActivity.this);
                 injectJava(GlobalTrackingController.class).appLaunched(getIntent());
             }
         });
@@ -75,10 +75,10 @@ public class LaunchActivity extends BaseActivity implements InitListener {
     @Override
     public void onInitialized(Self self) {
         if (IntentUtils.isEmailVerificationIntent(getIntent())) {
-            getStoreFactory().appEntryStore().clearCurrentState();
+            getStoreFactory().getAppEntryStore().clearCurrentState();
         }
 
-        if (getStoreFactory().appEntryStore().getEntryPoint() == null && self.isLoggedIn()) {
+        if (getStoreFactory().getAppEntryStore().getEntryPoint() == null && self.isLoggedIn()) {
             switch (self.getClientRegistrationState()) {
                 case PASSWORD_MISSING:
                     startOTRSignIn();

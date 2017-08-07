@@ -65,7 +65,7 @@ public class MockHelper {
     }
 
     public static void setupParticipantsMocks(final IConversation mockConversation, final TestActivity activity) {
-        IParticipantsStore mockParticipantsStore = activity.getStoreFactory().participantsStore();
+        IParticipantsStore mockParticipantsStore = activity.getStoreFactory().getParticipantsStore();
 
         doAnswer(new Answer<Void>() {
             @Override
@@ -88,7 +88,7 @@ public class MockHelper {
         }).when(mockParticipantsStore).addParticipantsStoreObserver(any(ParticipantsStoreObserver.class));
 
 
-        INetworkStore mockNetworkStore = activity.getStoreFactory().networkStore();
+        INetworkStore mockNetworkStore = activity.getStoreFactory().getNetworkStore();
         when(mockNetworkStore.hasInternetConnection()).thenReturn(true);
 
         doAnswer(new Answer<Void>() {
@@ -103,7 +103,7 @@ public class MockHelper {
     }
 
     public static void setupConversationMocks(final IConversation mockConversation, final TestActivity activity) {
-        IConversationStore mockConversationStore = activity.getStoreFactory().conversationStore();
+        IConversationStore mockConversationStore = activity.getStoreFactory().getConversationStore();
         when(mockConversationStore.getCurrentConversation()).thenReturn(mockConversation);
 
         doAnswer(new Answer<Void>() {

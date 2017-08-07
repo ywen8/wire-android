@@ -88,7 +88,7 @@ public class VerifyEmailPreferenceFragment extends BaseDialogFragment<VerifyEmai
                     getStoreFactory().isTornDown()) {
                     return;
                 }
-                getStoreFactory().profileStore()
+                getStoreFactory().getProfileStore()
                                  .resendVerificationEmail(email);
             }
         });

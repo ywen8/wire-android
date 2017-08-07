@@ -31,6 +31,7 @@ import com.waz.zclient.core.stores.profile.IProfileStore;
 import com.waz.zclient.core.stores.singleparticipants.ISingleParticipantStore;
 import com.waz.zclient.core.stores.stub.StubAppEntryStore;
 import com.waz.zclient.core.stores.stub.StubConnectStore;
+import com.waz.zclient.core.stores.stub.StubConversationStore;
 import com.waz.zclient.core.stores.stub.StubDraftStore;
 import com.waz.zclient.core.stores.stub.StubInAppNotificationStore;
 import com.waz.zclient.core.stores.stub.StubNetworkStore;
@@ -49,6 +50,8 @@ public class MockStoreFactory implements IStoreFactory {
 
   protected IConnectStore connectStore = spy(StubConnectStore.class);
 
+  protected IConversationStore conversationStore = spy(StubConversationStore.class);
+
   protected IDraftStore draftStore = spy(StubDraftStore.class);
 
   protected IInAppNotificationStore inAppNotificationStore = spy(StubInAppNotificationStore.class);
@@ -64,7 +67,7 @@ public class MockStoreFactory implements IStoreFactory {
   protected ISingleParticipantStore singleParticipantStore = spy(StubSingleParticipantStore.class);
 
   @Override
-  public IProfileStore profileStore() {
+  public IProfileStore getProfileStore() {
     return profileStore;
   }
 
@@ -74,37 +77,37 @@ public class MockStoreFactory implements IStoreFactory {
   }
 
   @Override
-  public IDraftStore draftStore() {
+  public IDraftStore getDraftStore() {
     return draftStore;
   }
 
   @Override
-  public IZMessagingApiStore zMessagingApiStore() {
+  public IZMessagingApiStore getZMessagingApiStore() {
     return zMessagingApiStore;
   }
 
   @Override
-  public ISingleParticipantStore singleParticipantStore() {
+  public ISingleParticipantStore getSingleParticipantStore() {
     return singleParticipantStore;
   }
 
   @Override
-  public IAppEntryStore appEntryStore() {
+  public IAppEntryStore getAppEntryStore() {
     return appEntryStore;
   }
 
   @Override
-  public INetworkStore networkStore() {
+  public INetworkStore getNetworkStore() {
     return networkStore;
   }
 
   @Override
-  public IInAppNotificationStore inAppNotificationStore() {
+  public IInAppNotificationStore getInAppNotificationStore() {
     return inAppNotificationStore;
   }
 
   @Override
-  public IParticipantsStore participantsStore() {
+  public IParticipantsStore getParticipantsStore() {
     return participantsStore;
   }
 
@@ -113,13 +116,13 @@ public class MockStoreFactory implements IStoreFactory {
   }
 
   @Override
-  public IPickUserStore pickUserStore() {
+  public IPickUserStore getPickUserStore() {
     return pickUserStore;
   }
 
   @Override
-  public IConversationStore conversationStore() {
-    return null;
+  public IConversationStore getConversationStore() {
+    return conversationStore;
   }
 
   @Override
@@ -127,7 +130,7 @@ public class MockStoreFactory implements IStoreFactory {
   }
 
   @Override
-  public IConnectStore connectStore() {
+  public IConnectStore getConnectStore() {
     return connectStore;
   }
 }

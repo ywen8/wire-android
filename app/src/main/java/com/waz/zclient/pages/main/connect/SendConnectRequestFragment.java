@@ -185,8 +185,8 @@ public class SendConnectRequestFragment extends BaseFragment<SendConnectRequestF
 
         getControllerFactory().getAccentColorController().addAccentColorObserver(this);
 
-        getStoreFactory().connectStore().addConnectRequestObserver(this);
-        getStoreFactory().connectStore().loadUser(userId, userRequester);
+        getStoreFactory().getConnectStore().addConnectRequestObserver(this);
+        getStoreFactory().getConnectStore().loadUser(userId, userRequester);
 
     }
 
@@ -204,7 +204,7 @@ public class SendConnectRequestFragment extends BaseFragment<SendConnectRequestF
     public void onStop() {
         KeyboardUtils.hideKeyboard(getActivity());
 
-        getStoreFactory().connectStore().removeConnectRequestObserver(this);
+        getStoreFactory().getConnectStore().removeConnectRequestObserver(this);
         getControllerFactory().getAccentColorController().removeAccentColorObserver(this);
 
         super.onStop();
@@ -257,11 +257,11 @@ public class SendConnectRequestFragment extends BaseFragment<SendConnectRequestF
                     getStoreFactory().isTornDown()) {
                     return;
                 }
-                User me = getStoreFactory().profileStore().getSelfUser();
+                User me = getStoreFactory().getProfileStore().getSelfUser();
                 String myName = me != null ? me.getName() : "";
                 String otherName = user.getName();
                 String message = getString(R.string.connect__message, otherName, myName);
-                IConversation conversation = getStoreFactory().connectStore().connectToNewUser(user, message);
+                IConversation conversation = getStoreFactory().getConnectStore().connectToNewUser(user, message);
                 trackSendConnectRequest();
                 if (conversation != null) {
                     KeyboardUtils.hideKeyboard(getActivity());
@@ -271,8 +271,8 @@ public class SendConnectRequestFragment extends BaseFragment<SendConnectRequestF
         });
 
         String convId = getStoreFactory() != null &&
-                        getStoreFactory().conversationStore().getCurrentConversation() != null ?
-                        getStoreFactory().conversationStore().getCurrentConversation().getId() :
+                        getStoreFactory().getConversationStore().getCurrentConversation() != null ?
+                        getStoreFactory().getConversationStore().getCurrentConversation().getId() :
                         "";
         final Boolean permissionToRemove = ((BaseActivity) getActivity()).injectJava(UserAccountsController.class).hasRemoveConversationMemberPermission(new ConvId(convId));
         if (userRequester == IConnectStore.UserRequester.PARTICIPANTS && permissionToRemove) {

@@ -22,10 +22,9 @@ import android.renderscript.RenderScript
 import android.support.multidex.MultiDexApplication
 import com.waz.ZLog.ImplicitTag._
 import com.waz.ZLog.verbose
-import com.waz.api._
+import com.waz.api.{NetworkMode, ZMessagingApi, ZMessagingApiFactory, ZmsVersion}
 import com.waz.content.GlobalPreferences
 import com.waz.log.InternalLog
-import com.waz.model.ConversationData
 import com.waz.service.{NetworkModeService, ZMessaging}
 import com.waz.utils.events.{EventContext, Signal, Subscription}
 import com.waz.zclient.api.scala.ScalaStoreFactory
@@ -35,17 +34,12 @@ import com.waz.zclient.common.controllers.{PermissionActivity, PermissionsContro
 import com.waz.zclient.controllers._
 import com.waz.zclient.controllers.deviceuser.IDeviceUserController
 import com.waz.zclient.controllers.drawing.IDrawingController
-import com.waz.zclient.controllers.giphy.IGiphyController
 import com.waz.zclient.controllers.global.{AccentColorController, KeyboardController, PasswordController, SelectionController}
-import com.waz.zclient.controllers.globallayout.IGlobalLayoutController
-import com.waz.zclient.controllers.location.ILocationController
 import com.waz.zclient.controllers.navigation.INavigationController
 import com.waz.zclient.controllers.singleimage.ISingleImageController
 import com.waz.zclient.controllers.userpreferences.IUserPreferencesController
 import com.waz.zclient.conversation.CollectionController
 import com.waz.zclient.core.stores.IStoreFactory
-import com.waz.zclient.core.stores.network.INetworkStore
-import com.waz.zclient.cursor.CursorController
 import com.waz.zclient.media.SoundController
 import com.waz.zclient.messages.controllers.{MessageActionsController, NavigationController}
 import com.waz.zclient.messages.{LikesController, MessageViewFactory, MessagesController, UsersController}
@@ -66,7 +60,6 @@ object WireApplication {
     implicit lazy val eventContext = inject[EventContext]
 
     def controllerFactory = APP_INSTANCE.asInstanceOf[ZApplication].getControllerFactory
-    def storeFactory = APP_INSTANCE.asInstanceOf[ZApplication].getStoreFactory
 
     // SE services
     bind [Signal[Option[ZMessaging]]]  to ZMessaging.currentUi.currentZms
@@ -86,12 +79,6 @@ object WireApplication {
     bind [ISlidingPaneController]        toProvider controllerFactory.getSlidingPaneController
     bind [IDrawingController]            toProvider controllerFactory.getDrawingController
     bind [IDeviceUserController]         toProvider controllerFactory.getDeviceUserController
-    bind [IGlobalLayoutController]       toProvider controllerFactory.getGlobalLayoutController
-    bind [ILocationController]           toProvider controllerFactory.getLocationController
-    bind [IGiphyController]              toProvider controllerFactory.getGiphyController
-
-    bind [IStoreFactory]                 toProvider storeFactory
-    bind [INetworkStore]                 toProvider storeFactory.networkStore
 
     // global controllers
     bind [AccentColorController]   to new AccentColorController()
@@ -110,21 +97,6 @@ object WireApplication {
     bind [GlobalTrackingController]        to new GlobalTrackingController()
     bind [CallingTrackingController]       to new CallingTrackingController()
     bind [PreferencesController]           to new PreferencesController()
-
-
-    // common values
-
-    // current conversation data
-    bind [Signal[ConversationData]] to {
-      for {
-        zs <- inject[Signal[ZMessaging]]
-        convId <- inject[SelectionController].selectedConv
-        conv <- zs.convsStorage.signal(convId)
-      } yield conv
-    }
-
-    // accent color
-    bind [Signal[AccentColor]] to inject[AccentColorController].accentColor
   }
 
   def services(ctx: WireContext) = new Module {
@@ -156,8 +128,6 @@ object WireApplication {
     bind [UserAccountsController]    to new UserAccountsController()
     bind [UiStorage]                 to new UiStorage()
     bind [BackStackNavigator]        to new BackStackNavigator()
-
-    bind [CursorController]          to new CursorController()
 
     /**
       * Since tracking controllers will immediately instantiate other necessary controllers, we keep them separated
@@ -199,9 +169,9 @@ class WireApplication extends MultiDexApplication with WireContext with Injectab
 
   def ensureInitialized() = {
     if (storeFactory == null) {
+      storeFactory = new ScalaStoreFactory(getApplicationContext)
       //TODO initialization of ZMessaging happens here - make this more explicit?
-      storeFactory = new ScalaStoreFactory(getApplicationContext, inject[SelectionController])
-      storeFactory.zMessagingApiStore.getApi
+      storeFactory.getZMessagingApiStore.getApi
     }
 
     inject[MessageNotificationsController]

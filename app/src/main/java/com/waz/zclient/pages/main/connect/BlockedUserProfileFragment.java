@@ -208,8 +208,8 @@ public class BlockedUserProfileFragment extends BaseFragment<BlockedUserProfileF
         super.onStart();
 
         getControllerFactory().getAccentColorController().addAccentColorObserver(this);
-        getStoreFactory().connectStore().addConnectRequestObserver(this);
-        getStoreFactory().connectStore().loadUser(userId, userRequester);
+        getStoreFactory().getConnectStore().addConnectRequestObserver(this);
+        getStoreFactory().getConnectStore().loadUser(userId, userRequester);
     }
 
     @Override
@@ -227,7 +227,7 @@ public class BlockedUserProfileFragment extends BaseFragment<BlockedUserProfileF
 
     @Override
     public void onStop() {
-        getStoreFactory().connectStore().removeConnectRequestObserver(this);
+        getStoreFactory().getConnectStore().removeConnectRequestObserver(this);
         getControllerFactory().getAccentColorController().removeAccentColorObserver(this);
 
         super.onStop();
@@ -384,7 +384,7 @@ public class BlockedUserProfileFragment extends BaseFragment<BlockedUserProfileF
     private void unblockUser(User user) {
         goToConversationWithUser = true;
         ((BaseActivity) getActivity()).injectJava(GlobalTrackingController.class).tagEvent(new UnblockingEvent());
-        IConversation conversation = getStoreFactory().connectStore().unblockUser(user);
+        IConversation conversation = getStoreFactory().getConnectStore().unblockUser(user);
         if (conversation != null) {
             // Note! important to pass conversation returned by unblockUser() instead of user.getConversation()
             getContainer().onUnblockedUser(conversation);

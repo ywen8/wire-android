@@ -100,7 +100,7 @@ public class MainTabletFragment extends BaseFragment<MainTabletFragment.Containe
     @Override
     public void onStart() {
         super.onStart();
-        getStoreFactory().inAppNotificationStore().addInAppNotificationObserver(this);
+        getStoreFactory().getInAppNotificationStore().addInAppNotificationObserver(this);
         getControllerFactory().getSingleImageController().addSingleImageObserver(this);
         getControllerFactory().getConfirmationController().addConfirmationObserver(this);
         getControllerFactory().getAccentColorController().addAccentColorObserver(this);
@@ -111,7 +111,7 @@ public class MainTabletFragment extends BaseFragment<MainTabletFragment.Containe
         getControllerFactory().getAccentColorController().removeAccentColorObserver(this);
         getControllerFactory().getConfirmationController().removeConfirmationObserver(this);
         getControllerFactory().getSingleImageController().removeSingleImageObserver(this);
-        getStoreFactory().inAppNotificationStore().removeInAppNotificationObserver(this);
+        getStoreFactory().getInAppNotificationStore().removeInAppNotificationObserver(this);
         super.onStop();
     }
 
@@ -214,7 +214,7 @@ public class MainTabletFragment extends BaseFragment<MainTabletFragment.Containe
     public void onAccentColorHasChanged(Object sender, int color) {
         confirmationMenu.setButtonColor(color);
     }
-
+    
     @Override
     public void onSyncError(ErrorsList.ErrorDescription error) {
         if (getActivity() == null) {
@@ -275,7 +275,7 @@ public class MainTabletFragment extends BaseFragment<MainTabletFragment.Containe
             getStoreFactory().isTornDown()) {
             return;
         }
-        getStoreFactory().inAppNotificationStore().dismissError(errorId);
+        getStoreFactory().getInAppNotificationStore().dismissError(errorId);
     }
 
     public interface Container {

@@ -112,10 +112,7 @@
 
         </FrameLayout>
 
-        <com.waz.zclient.cursor.CursorView
-            android:id="@+id/cv__cursor"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+        <include layout="@layout/cursor" />
 
         <com.waz.zclient.pages.extendedcursor.ExtendedCursorContainer
             android:id="@+id/ecc__conversation"
@@ -123,8 +120,7 @@
             android:layout_height="@dimen/extend_container_height"
             android:layout_gravity="bottom"
             android:visibility="gone"
-        />
-
+            />
     </LinearLayout>
 
     <com.waz.zclient.ui.audiomessage.AudioMessageRecordingView

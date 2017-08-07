@@ -17,6 +17,8 @@
  */
 package com.waz.zclient.controllers
 
+import com.waz.ZLog
+import com.waz.ZLog.ImplicitTag._
 import com.waz.api.{Contact, Contacts, UpdateListener}
 import com.waz.model._
 import com.waz.service.{SearchResults, SearchState, ZMessaging}
