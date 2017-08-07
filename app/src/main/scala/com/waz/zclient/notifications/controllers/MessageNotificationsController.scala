@@ -75,17 +75,24 @@ class MessageNotificationsController(implicit inj: Injector, cxt: Context, event
 
   val zms = inject[Signal[ZMessaging]]
 
-  val notsService = zms.map(_.notifications)
+  val notServices = (Option(ZMessaging.currentAccounts) match {
+    case Some(ac) => ac.zmsInstances
+    case None => Signal.empty[Seq[ZMessaging]]
+  }).map(_.map(_.notifications))
+
+  val notifications = notServices.flatMap(ss => Signal.sequence(ss.map(_.notifications).toSeq:_*).map(_.flatten))
+
+  val shouldBeSilent = notServices.flatMap { ss =>
+    Signal.sequence(ss.map { s =>
+      s.otherDeviceActiveTime.map { t =>
+        val timeDiff = Instant.now.toEpochMilli - t.toEpochMilli
+        verbose(s"otherDeviceActiveTime: $t, current time: ${Instant.now}, timeDiff: ${timeDiff.millis.toSeconds}")
+        timeDiff < NotificationsAndroidService.checkNotificationsTimeout.toMillis
+      }
+    }.toSeq: _*).map(_.forall(_ == true))
+  }
 
   val notManager = inject[NotificationManager]
-
-  val notifications = notsService.flatMap(_.notifications)
-
-  val shouldBeSilent = notsService.flatMap(_.otherDeviceActiveTime).map { t =>
-    val timeDiff = Instant.now.toEpochMilli - t.toEpochMilli
-    verbose(s"otherDeviceActiveTime: $t, current time: ${Instant.now}, timeDiff: ${timeDiff.millis.toSeconds}")
-    timeDiff < NotificationsAndroidService.checkNotificationsTimeout.toMillis
-  }
 
   val sharedPreferences = cxt.getSharedPreferences(UserPreferencesController.USER_PREFS_TAG, Context.MODE_PRIVATE)
 
@@ -106,8 +113,8 @@ class MessageNotificationsController(implicit inj: Injector, cxt: Context, event
   private var _soundPref = IntensityLevel.NONE
   soundPref{ _soundPref = _ }
 
-  notsService.zip(displayedNots) {
-    case (service, displayed) => service.markAsDisplayed(displayed)
+  notServices.zip(displayedNots) {
+    case (ss, displayed) => ss.foreach(_.markAsDisplayed(displayed))
   }
 
   notifications.zip(shouldBeSilent).on(Threading.Ui) {
