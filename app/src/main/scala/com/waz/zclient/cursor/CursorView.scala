@@ -136,13 +136,21 @@ class CursorView(val context: Context, val attrs: AttributeSet, val defStyleAttr
   secondaryToolbar.cursorItems ! SecondaryCursorItems
 
   cursorEditText.addTextChangedListener(new TextWatcher() {
+    private var text = ""
+
     override def onTextChanged(charSequence: CharSequence, start: Int, before: Int, count: Int): Unit = {
-      controller.enteredText ! charSequence.toString
-      lineCount ! cursorEditText.getLineCount
+      text = charSequence.toString
     }
-    override def afterTextChanged(editable: Editable): Unit = ()
+
+    override def afterTextChanged(editable: Editable): Unit = if (text.nonEmpty) {
+      controller.enteredText ! text
+      lineCount ! cursorEditText.getLineCount
+      text = ""
+    }
+
     override def beforeTextChanged(charSequence: CharSequence, start: Int, count: Int, after: Int): Unit = ()
   })
+  
   cursorEditText.setOnEditorActionListener(new OnEditorActionListener {
     override def onEditorAction(textView: TextView, actionId: Int, event: KeyEvent): Boolean = {
       if (actionId == EditorInfo.IME_ACTION_SEND ||
@@ -150,7 +158,6 @@ class CursorView(val context: Context, val attrs: AttributeSet, val defStyleAttr
           event != null &&
           event.getKeyCode == KeyEvent.KEYCODE_ENTER &&
           event.getAction == KeyEvent.ACTION_DOWN)) {
-
         controller.submit(textView.getText.toString)
       } else
         false
@@ -224,18 +231,13 @@ class CursorView(val context: Context, val attrs: AttributeSet, val defStyleAttr
       }
   }
 
-  controller.enteredText.on(Threading.Ui) { str =>
-    if (cursorEditText.getText.toString != str) {
-      setText(str)
-    }
-  }
-
   def enableMessageWriting(): Unit = cursorEditText.requestFocus
 
   def setCallback(callback: CursorCallback) = controller.cursorCallback = Option(callback)
 
   def setText(text: String): Unit = {
-    cursorEditText.setText(text)
+    if (text.nonEmpty) cursorEditText.setText(text)
+    else cursorEditText.getText.clear()
     cursorEditText.setSelection(text.length)
   }
 

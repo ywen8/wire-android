@@ -45,7 +45,6 @@ import com.waz.zclient.pages.main.profile.camera.CameraContext
 import com.waz.zclient.ui.utils.KeyboardUtils
 import com.waz.zclient.utils.LayoutSpec
 import com.waz.zclient.ui.cursor.{CursorMenuItem => JCursorMenuItem}
-
 import com.waz.ZLog.ImplicitTag._
 
 import concurrent.duration._
