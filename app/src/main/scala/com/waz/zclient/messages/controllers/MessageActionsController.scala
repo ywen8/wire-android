@@ -28,7 +28,6 @@ import com.waz.api.Message
 import com.waz.model._
 import com.waz.service.ZMessaging
 import com.waz.service.messages.MessageAndLikes
-import com.waz.threading.{CancellableFuture, Threading}
 import com.waz.utils._
 import com.waz.utils.events.{EventContext, EventStream, Signal}
 import com.waz.utils.wrappers.{AndroidURIUtil, URI}
@@ -38,14 +37,11 @@ import com.waz.zclient.controllers.userpreferences.IUserPreferencesController
 import com.waz.zclient.messages.MessageBottomSheetDialog
 import com.waz.zclient.messages.MessageBottomSheetDialog.{MessageAction, Params}
 import com.waz.zclient.notifications.controllers.ImageNotificationsController
-import com.waz.zclient.ui.cursor.CursorLayout
-import com.waz.zclient.ui.utils.KeyboardUtils
 import com.waz.zclient.utils.ContextUtils._
-import com.waz.zclient.{Injectable, Injector, R, WireContext}
+import com.waz.zclient.{Injectable, Injector, R}
 
 import scala.util.Success
 
-// TODO: rewrite to not use java message and asset api
 class MessageActionsController(implicit injector: Injector, ctx: Context, ec: EventContext) extends Injectable {
   import com.waz.threading.Threading.Implicits.Ui
 
@@ -227,35 +223,5 @@ class MessageActionsController(implicit injector: Injector, ctx: Context, ec: Ev
       case Success(msg) =>  messageToReveal ! msg
       case _ =>
     }
-  }
-}
-
-/**
-  * Temporary class to easily integrate java view with scala controllers.
-  * FIXME: remove this class, this logic should be moved to some edit controller and cursor view
-  */
-class EditActionSupport(ctx: WireContext, cursor: CursorLayout) extends Injectable {
-  import scala.concurrent.duration._
-  import Threading.Implicits.Ui
-  private implicit val injector: Injector = ctx.injector
-
-  private implicit val eventContext = inject[EventContext]
-  private val zms = inject[Signal[ZMessaging]]
-  private val actionsController = inject[MessageActionsController]
-
-  actionsController.onMessageAction {
-    case (MessageAction.Edit, message) =>
-      zms.head.flatMap(_.msgAndLikes.getMessageAndLikes(message.id)) foreach {
-        case Some(msg) =>
-          cursor.editMessage(ZMessaging.currentUi.messages.cachedOrUpdated(msg, userAction = false))
-          // TODO: don't show keyboard directly, KeyboardController should handle that in more general way
-          // Add small delay so triggering keyboard works
-          CancellableFuture.delayed(200.millis) {
-            KeyboardUtils.showKeyboard(inject[Activity])
-          } (Threading.Ui)
-        case None =>
-          // should not happen, ignoring
-      }
-    case _ => // ignore
   }
 }

@@ -40,6 +40,7 @@ class MessagesController()(implicit injector: Injector, ev: EventContext) extend
   val navigationController = inject[INavigationController]
   val slidingPaneController = inject[ISlidingPaneController]
 
+  val scrolledToBottom = Signal(true)
   val onScrollToBottomRequested = EventStream[Int]
 
   val currentConvIndex = for {

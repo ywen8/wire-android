@@ -21,16 +21,22 @@ import android.content.Context
 import com.waz.ZLog.ImplicitTag._
 import com.waz.api.{EphemeralExpiration, Message}
 import com.waz.model.ConversationData.ConversationType
-import com.waz.model.{AssetData, ConvId, MessageContentIndex, MessageId}
+import com.waz.model._
+import com.waz.service.ZMessaging
 import com.waz.threading.Threading
-import com.waz.utils.events.EventContext
+import com.waz.utils.events.{EventContext, EventStream, FutureEventStream, Signal}
+import com.waz.zclient.controllers.tracking.events.conversation.EditedMessageEvent
+import com.waz.zclient.controllers.tracking.events.navigation.OpenedMoreActionsEvent
 import com.waz.zclient.controllers.{AssetsController, BrowserController, SharingController}
 import com.waz.zclient.conversation.CollectionController
-import com.waz.zclient.core.controllers.tracking.events.media.SentPictureEvent
+import com.waz.zclient.core.controllers.tracking.attributes.OpenedMediaAction
+import com.waz.zclient.core.controllers.tracking.events.media.{OpenedActionHintEvent, OpenedEmojiKeyboardEvent, OpenedMediaActionEvent, SentPictureEvent}
+import com.waz.zclient.cursor.{CursorController, CursorMenuItem}
 import com.waz.zclient.messages.LikesController
 import com.waz.zclient.messages.MessageBottomSheetDialog.MessageAction
 import com.waz.zclient.messages.MessageBottomSheetDialog.MessageAction.{Copy, Forward, Like, Unlike}
 import com.waz.zclient.messages.controllers.MessageActionsController
+import com.waz.zclient.utils.{LayoutSpec, TrackingUtils}
 import com.waz.zclient.{Injectable, Injector}
 import org.threeten.bp.Duration
 
@@ -51,6 +57,22 @@ class UiTrackingController(implicit injector: Injector, ctx: Context, ec: EventC
   val likesController       = inject[LikesController]
   val collectionsController = inject[CollectionController]
   val sharingController     = inject[SharingController]
+  val cursorController      = inject[CursorController]
+
+  val zms                   = inject[Signal[ZMessaging]]
+  val conversation          = inject[Signal[ConversationData]]
+  val convInfo = for {
+    z <- zms
+    c <- conversation
+    user <- z.usersStorage.signal(c.creator)
+  } yield {
+    (c, c.convType == ConversationType.OneToOne && user.isWireBot)
+  }
+
+  def withConv[T](stream: EventStream[T]): EventStream[(T, ConversationData, Boolean)] =
+    new FutureEventStream[T, (T, ConversationData, Boolean)](stream, { ev =>
+      convInfo.head map { case (tpe, otto) => (ev, tpe, otto) }
+    })
 
   msgActionController.onMessageAction {
     case (MessageAction.Reveal, message) if MessageContentIndex.TextMessageTypes.contains(message.msgType) =>
@@ -149,6 +171,65 @@ class UiTrackingController(implicit injector: Injector, ctx: Context, ec: EventC
         }
         }
       }
+  }
+
+  import CursorMenuItem._
+  withConv(cursorController.onCursorItemClick).on(Threading.Ui) {
+    case (Camera, conv, otto) =>
+      if (LayoutSpec.isTablet(ctx)) {
+        tagEvent(OpenedMediaActionEvent.cursorAction(OpenedMediaAction.PHOTO, conv, otto))
+      }
+    case (Ping, conv, otto) =>
+      TrackingUtils.onSentPingMessage(global, conv, otto)
+    case (Sketch, conv, otto) =>
+      tagEvent(OpenedMediaActionEvent.cursorAction(OpenedMediaAction.SKETCH, conv, otto))
+    case (File, conv, otto) =>
+      tagEvent(OpenedMediaActionEvent.cursorAction(OpenedMediaAction.FILE, conv, otto))
+    case (VideoMessage, conv, otto) =>
+      tagEvent(OpenedMediaActionEvent.cursorAction(OpenedMediaAction.VIDEO_MESSAGE, conv, otto))
+    case (Location, conv, otto) =>
+      tagEvent(OpenedMediaActionEvent.cursorAction(OpenedMediaAction.LOCATION, conv, otto))
+    case (More, conv, otto) =>
+      tagEvent(new OpenedMoreActionsEvent(conv))
+    case (Gif, conv, otto) =>
+      tagEvent(OpenedMediaActionEvent.cursorAction(OpenedMediaAction.GIPHY, conv, otto))
+    case _ => // ignore
+  }
+
+  import com.waz.zclient.pages.extendedcursor.ExtendedCursorContainer.Type._
+  withConv(cursorController.extendedCursor.onChanged).on(Threading.Ui) {
+    case (NONE, _, _) =>
+    case (VOICE_FILTER_RECORDING, conv, otto) =>
+      tagEvent(OpenedMediaActionEvent.cursorAction(OpenedMediaAction.AUDIO_MESSAGE, conv, otto))
+    case (IMAGES, conv, otto) =>
+      tagEvent(OpenedMediaActionEvent.cursorAction(OpenedMediaAction.PHOTO, conv, otto))
+    case _ => // ignore
+  }
+
+  withConv(cursorController.onShowTooltip).on(Threading.Ui) { case ((item, _), conv, _) =>
+      tagEvent(new OpenedActionHintEvent(item.name, conv))
+  }
+
+  withConv(cursorController.extendedCursor.onChanged).on(Threading.Ui) {
+    case (EMOJIS, conv, otto) =>
+        tagEvent(new OpenedEmojiKeyboardEvent(otto))
+    case (EPHEMERAL, conv, otto) =>
+        if (conv.ephemeral == EphemeralExpiration.NONE) {
+          tagEvent(OpenedMediaActionEvent.ephemeral(conv, otto, false))
+        }
+    case _ => //ignore
+  }
+
+  withConv(cursorController.onMessageSent).on(Threading.Ui) { case (_, conv, otto) =>
+    TrackingUtils.onSentTextMessage(global, conv, otto)
+  }
+
+  cursorController.onMessageEdited.on(Threading.Ui) { msg =>
+    tagEvent(new EditedMessageEvent(msg))
+  }
+
+  withConv(cursorController.onEphemeralExpirationSelected) { case (_, conv, otto) =>
+    tagEvent(OpenedMediaActionEvent.ephemeral(conv, otto, true))
   }
 
   private def durationInSeconds(a: AssetData): Int = (a match {
