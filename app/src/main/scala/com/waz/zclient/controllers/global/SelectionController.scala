@@ -19,7 +19,8 @@ package com.waz.zclient.controllers.global
 
 import com.waz.ZLog.ImplicitTag._
 import com.waz.ZLog._
-import com.waz.model.MessageId
+import com.waz.api.IConversation
+import com.waz.model.{ConversationData, MessageId}
 import com.waz.service.ZMessaging
 import com.waz.threading.Threading
 import com.waz.utils._
@@ -30,10 +31,46 @@ import org.threeten.bp.Instant
 import scala.concurrent.duration._
 
 class SelectionController(implicit injector: Injector, ev: EventContext) extends Injectable { ctrl =>
+  import SelectionController._
 
   val zms = inject[Signal[ZMessaging]]
 
   val selectedConv = zms.flatMap(_.convsStats.selectedConversationId).collect { case Some(convId) => convId }
+
+  private var previousConv = Option.empty[IConversation]
+  private var currentConv  = Option.empty[IConversation]
+
+  //TODO get rid of this as soon as possible
+  private val selectedConvData = for {
+    z          <- zms
+    cId        <- selectedConv
+    Some(data) <- z.convsStorage.convsSignal.map(_.conversations.find(_.id == cId))
+  } yield data
+
+  private var convListeners = Set.empty[ConversationChangedListener]
+
+  private def withConv(data: ConversationData)(f: IConversation => Unit) = Threading.Ui {
+    f(ZMessaging.currentUi.convs.getConversation(data))
+  }
+
+  //use sparingly!
+  def setOnConversationChangeCallback(callback: ConversationChangedListener) = {
+    convListeners += callback
+    selectedConvData.currentValue.foreach { current => withConv(current) { conv =>
+      callback.onConversationChanged(previousConv, Some(conv))
+    }}
+  }
+
+  selectedConvData.onUi { data => withConv(data) { conv =>
+    verbose(s"select Ui conv changed: prev: ${previousConv.map(_.getId).orNull}, current: ${conv.getId()}")
+    if (!previousConv.contains(conv)) {
+      previousConv = currentConv
+      currentConv = Some(conv)
+      convListeners.foreach(_.onConversationChanged(previousConv, currentConv))
+    }
+  }}
+
+  def selectedConversation = currentConv
 
   object messages {
 
@@ -52,7 +89,10 @@ class SelectionController(implicit injector: Injector, ev: EventContext) extends
       */
     val lastActive = Signal((MessageId.Empty, Instant.EPOCH)) // message showing status info
 
-    selectedConv.onChanged { _ => clear() }
+    selectedConv.onChanged { c =>
+      verbose(s"selected conv changed: $c")
+      clear()
+    }
 
     def clear() = {
       focused ! None
@@ -75,5 +115,11 @@ class SelectionController(implicit injector: Injector, ev: EventContext) extends
         case _ => (id, Instant.now)
       }
     }
+  }
+}
+
+object SelectionController {
+  trait ConversationChangedListener {
+    def onConversationChanged(prev: Option[IConversation], current: Option[IConversation]): Unit
   }
 }
