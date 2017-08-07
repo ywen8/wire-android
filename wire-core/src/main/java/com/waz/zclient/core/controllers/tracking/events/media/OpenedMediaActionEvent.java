@@ -19,7 +19,6 @@ package com.waz.zclient.core.controllers.tracking.events.media;
 
 import android.support.annotation.NonNull;
 import com.waz.api.IConversation;
-import com.waz.model.ConversationData;
 import com.waz.zclient.core.controllers.tracking.attributes.Attribute;
 import com.waz.zclient.core.controllers.tracking.attributes.ConversationType;
 import com.waz.zclient.core.controllers.tracking.attributes.OpenedMediaAction;
@@ -27,33 +26,27 @@ import com.waz.zclient.core.controllers.tracking.events.Event;
 
 public class OpenedMediaActionEvent extends Event {
 
-    public static OpenedMediaActionEvent cursorAction(OpenedMediaAction action,
-                                                      IConversation conversation) {
-        return new OpenedMediaActionEvent(action, ConversationType.getValue(conversation.getType()), conversation.isOtto(), "");
+    public static OpenedMediaActionEvent cursorAction(OpenedMediaAction action, IConversation conversation) {
+        return new OpenedMediaActionEvent(action,
+                                          conversation,
+                                          "");
     }
 
-    public static OpenedMediaActionEvent cursorAction(OpenedMediaAction action,
-                                                      ConversationData conversation,
-                                                      boolean isOtto) {
-        return new OpenedMediaActionEvent(action, ConversationType.getValue(conversation.convType()), isOtto, "");
-    }
-
-    public static OpenedMediaActionEvent ephemeral(ConversationData conv,
-                                                   boolean isOtto,
-                                                   boolean fromDoubleTap) {
+    public static OpenedMediaActionEvent ephemeral(IConversation conversation, boolean fromDoubleTap) {
         return new OpenedMediaActionEvent(OpenedMediaAction.EPHEMERAL,
-                                          ConversationType.getValue(conv.convType()),
-                                          isOtto,
+                                          conversation,
                                           fromDoubleTap ? "double_tap" : "single_tap");
     }
 
     private OpenedMediaActionEvent(OpenedMediaAction action,
-                                   ConversationType conversationType,
-                                   boolean isOtto,
+                                   IConversation conversation,
                                    String method) {
+        ConversationType conversationType = conversation.getType() == IConversation.Type.GROUP ?
+                                            ConversationType.GROUP_CONVERSATION :
+                                            ConversationType.ONE_TO_ONE_CONVERSATION;
         attributes.put(Attribute.TARGET, action.nameString);
         attributes.put(Attribute.TYPE, conversationType.name);
-        attributes.put(Attribute.WITH_OTTO, String.valueOf(isOtto));
+        attributes.put(Attribute.WITH_OTTO, String.valueOf(conversation.isOtto()));
         attributes.put(Attribute.METHOD, method);
     }
 

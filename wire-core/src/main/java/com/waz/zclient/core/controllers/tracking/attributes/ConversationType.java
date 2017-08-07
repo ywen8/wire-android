@@ -32,10 +32,7 @@ public enum ConversationType {
     }
 
     public static ConversationType getValue(IConversation conversation) {
-        return getValue(conversation.getType());
-    }
-
-    public static ConversationType getValue(IConversation.Type type) {
-        return type == IConversation.Type.GROUP ? GROUP_CONVERSATION : ONE_TO_ONE_CONVERSATION;
+        return conversation.getType() == IConversation.Type.GROUP ? GROUP_CONVERSATION
+                                                                  : ONE_TO_ONE_CONVERSATION;
     }
 }
