@@ -44,7 +44,7 @@ class AccentColorController(implicit inj: Injector) extends Injectable {
     case _ => None
   }
 
-  val accentColor: Signal[com.waz.api.AccentColor] = userColor.flatMap {
+  val accentColor = userColor.flatMap {
     case Some(c) => Signal.const(c)
     case None => randomColorPref.signal.map {
       AccentColors.colors(_)

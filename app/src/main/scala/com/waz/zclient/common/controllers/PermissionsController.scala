@@ -137,10 +137,6 @@ case object WriteExternalStoragePermission extends Permission {
   override val name: String = permission.WRITE_EXTERNAL_STORAGE
 }
 
-case object ReadExternalStoragePermission extends Permission {
-  override val name: String = permission.READ_EXTERNAL_STORAGE
-}
-
 case class UnknownPermission(override val name: String) extends Permission
 
 trait PermissionActivity extends ActivityHelper with ActivityCompat.OnRequestPermissionsResultCallback {

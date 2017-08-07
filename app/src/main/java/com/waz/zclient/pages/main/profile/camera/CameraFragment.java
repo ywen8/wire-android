@@ -401,7 +401,7 @@ public class CameraFragment extends BaseFragment<CameraFragment.Container> imple
             false);
         imagePreviewLayout.showSketch(cameraContext == CameraContext.MESSAGE);
         String previewTitle = cameraContext == CameraContext.MESSAGE ?
-                                  getStoreFactory().conversationStore().getCurrentConversation().getName() :
+                                  getStoreFactory().getConversationStore().getCurrentConversation().getName() :
                                   "";
         imagePreviewLayout.setImageAsset(imageAsset,
                                          ImagePreviewLayout.Source.CAMERA,

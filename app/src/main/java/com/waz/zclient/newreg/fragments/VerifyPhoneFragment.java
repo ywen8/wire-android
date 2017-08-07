@@ -221,8 +221,8 @@ public class VerifyPhoneFragment extends BaseFragment<VerifyPhoneFragment.Contai
         textViewNotNow.setOnClickListener(this);
         resendCodeCallButton.setOnClickListener(this);
         onPhoneNumberLoaded(String.format("%s %s",
-                                          getStoreFactory().appEntryStore().getCountryCode(),
-                                          getStoreFactory().appEntryStore().getPhone()));
+                                          getStoreFactory().getAppEntryStore().getCountryCode(),
+                                          getStoreFactory().getAppEntryStore().getPhone()));
     }
 
     @Override
@@ -263,13 +263,13 @@ public class VerifyPhoneFragment extends BaseFragment<VerifyPhoneFragment.Contai
 
     private void resendPhoneNumber() {
         editTextCode.setText("");
-        getStoreFactory().appEntryStore()
+        getStoreFactory().getAppEntryStore()
                          .resendPhone(resendSuccessCallback,
                                       resendFailedCallback);
     }
 
     private void goBack() {
-        getStoreFactory().appEntryStore().onBackPressed();
+        getStoreFactory().getAppEntryStore().onBackPressed();
     }
 
     private void confirmCode() {
@@ -279,13 +279,13 @@ public class VerifyPhoneFragment extends BaseFragment<VerifyPhoneFragment.Contai
         KeyboardUtils.hideKeyboard(getActivity());
 
         String code = editTextCode.getText().toString();
-        getStoreFactory().appEntryStore()
+        getStoreFactory().getAppEntryStore()
                          .submitCode(code,
                                      errorCallback);
     }
 
     private void onNotNow() {
-        getStoreFactory().appEntryStore().setState(AppEntryState.LOGGED_IN);
+        getStoreFactory().getAppEntryStore().setState(AppEntryState.LOGGED_IN);
     }
 
     @Override
@@ -305,7 +305,7 @@ public class VerifyPhoneFragment extends BaseFragment<VerifyPhoneFragment.Contai
                 onNotNow();
                 break;
             case R.id.ttv__call_me_button:
-                getStoreFactory().appEntryStore().triggerVerificationCodeCallToUser(resendCallSuccessCallback, resendCallFailedCallback);
+                getStoreFactory().getAppEntryStore().triggerVerificationCodeCallToUser(resendCallSuccessCallback, resendCallFailedCallback);
                 startResendCodeTimer();
                 break;
         }

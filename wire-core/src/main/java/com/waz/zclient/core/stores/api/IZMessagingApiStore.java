@@ -18,9 +18,8 @@
 package com.waz.zclient.core.stores.api;
 
 import com.waz.api.ZMessagingApi;
-import com.waz.zclient.core.stores.IStore;
 
-public interface IZMessagingApiStore extends IStore {
+public interface IZMessagingApiStore {
 
     void addApiObserver(ZMessagingApiStoreObserver observer);
 
