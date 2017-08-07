@@ -47,47 +47,47 @@ public class StubStoreFactory implements IStoreFactory {
     }
 
     @Override
-    public IAppEntryStore appEntryStore() {
+    public IAppEntryStore getAppEntryStore() {
         return null;
     }
 
     @Override
-    public IConversationStore conversationStore() {
+    public IConversationStore getConversationStore() {
         return null;
     }
 
     @Override
-    public IProfileStore profileStore() {
+    public IProfileStore getProfileStore() {
         return null;
     }
 
     @Override
-    public IPickUserStore pickUserStore() {
+    public IPickUserStore getPickUserStore() {
         return null;
     }
 
     @Override
-    public IConnectStore connectStore() {
+    public IConnectStore getConnectStore() {
         return null;
     }
 
     @Override
-    public IParticipantsStore participantsStore() {
+    public IParticipantsStore getParticipantsStore() {
         return null;
     }
 
     @Override
-    public ISingleParticipantStore singleParticipantStore() {
+    public ISingleParticipantStore getSingleParticipantStore() {
         return null;
     }
 
     @Override
-    public IInAppNotificationStore inAppNotificationStore() {
+    public IInAppNotificationStore getInAppNotificationStore() {
         return null;
     }
 
     @Override
-    public IDraftStore draftStore() {
+    public IDraftStore getDraftStore() {
         return null;
     }
 
@@ -96,12 +96,12 @@ public class StubStoreFactory implements IStoreFactory {
      * crashing the tests.
      */
     @Override
-    public IZMessagingApiStore zMessagingApiStore() {
+    public IZMessagingApiStore getZMessagingApiStore() {
         return new StubZMessagingApiStore();
     }
 
     @Override
-    public INetworkStore networkStore() {
+    public INetworkStore getNetworkStore() {
         return null;
     }
 

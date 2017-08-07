@@ -369,14 +369,14 @@ public class ParticipantsDialogFragment extends BaseFragment<ParticipantsDialogF
             if (bundle != null) {
                 String userId = bundle.getString(ARG_USER_ID);
                 if (userId != null) {
-                    user = getStoreFactory().pickUserStore().getUser(userId);
+                    user = getStoreFactory().getPickUserStore().getUser(userId);
                 }
             }
             if (getArguments().getBoolean(ARG__ADD_TO_CONVERSATION)) {
 
                 IConversation currentConversation = getStoreFactory() != null &&
                     !getStoreFactory().isTornDown() ?
-                    getStoreFactory().conversationStore().getCurrentConversation() : null;
+                    getStoreFactory().getConversationStore().getCurrentConversation() : null;
                 String conversationId = currentConversation == null ? null : currentConversation.getId();
 
                 transaction.replace(R.id.fl__participant_dialog__main__container,
@@ -401,7 +401,7 @@ public class ParticipantsDialogFragment extends BaseFragment<ParticipantsDialogF
                 switch (user.getConnectionStatus()) {
                     case ACCEPTED:
                     case SELF:
-                        getStoreFactory().singleParticipantStore().setUser(user);
+                        getStoreFactory().getSingleParticipantStore().setUser(user);
                         if (getControllerFactory().getConversationScreenController().getPopoverLaunchMode() == DialogLaunchMode.COMMON_USER) {
                             transaction.add(R.id.fl__participant_dialog__main__container,
                                             SingleParticipantFragment.newInstance(true,
@@ -546,7 +546,7 @@ public class ParticipantsDialogFragment extends BaseFragment<ParticipantsDialogF
     @Override
     public void onStart() {
         super.onStart();
-        getStoreFactory().participantsStore().addParticipantsStoreObserver(this);
+        getStoreFactory().getParticipantsStore().addParticipantsStoreObserver(this);
         final IConversationScreenController conversationScreenController = getControllerFactory().getConversationScreenController();
         conversationScreenController.addConversationControllerObservers(this);
         getControllerFactory().getGlobalLayoutController().addKeyboardHeightObserver(this);
@@ -578,7 +578,7 @@ public class ParticipantsDialogFragment extends BaseFragment<ParticipantsDialogF
     public void onStop() {
         getControllerFactory().getConversationScreenController().removeConversationControllerObservers(this);
         getControllerFactory().getConversationScreenController().resetToMessageStream();
-        getStoreFactory().participantsStore().removeParticipantsStoreObserver(this);
+        getStoreFactory().getParticipantsStore().removeParticipantsStoreObserver(this);
         getControllerFactory().getGlobalLayoutController().removeKeyboardHeightObserver(this);
         getControllerFactory().getPickUserController().removePickUserScreenControllerObserver(this);
         getControllerFactory().getConfirmationController().removeConfirmationObserver(this);
@@ -725,7 +725,7 @@ public class ParticipantsDialogFragment extends BaseFragment<ParticipantsDialogF
             if (fragment instanceof ConversationScreenControllerObserver) {
                 ((ConversationScreenControllerObserver) fragment).onHideUser();
             }
-            updateGroupDialogBackground(getStoreFactory().conversationStore().getCurrentConversation());
+            updateGroupDialogBackground(getStoreFactory().getConversationStore().getCurrentConversation());
         } else {
             setVisible(false);
         }
@@ -1037,10 +1037,10 @@ public class ParticipantsDialogFragment extends BaseFragment<ParticipantsDialogF
         // TODO https://wearezeta.atlassian.net/browse/AN-3730
         getControllerFactory().getPickUserController().hidePickUser(getCurrentPickerDestination(), false);
 
-        IConversation currentConversation = getStoreFactory().conversationStore().getCurrentConversation();
+        IConversation currentConversation = getStoreFactory().getConversationStore().getCurrentConversation();
         if (currentConversation.getType() == IConversation.Type.ONE_TO_ONE) {
-            getStoreFactory().conversationStore().createGroupConversation(users, requester);
-            if (!getStoreFactory().networkStore().hasInternetConnection()) {
+            getStoreFactory().getConversationStore().createGroupConversation(users, requester);
+            if (!getStoreFactory().getNetworkStore().hasInternetConnection()) {
                 ViewUtils.showAlertDialog(getActivity(),
                                           R.string.conversation__create_group_conversation__no_network__title,
                                           R.string.conversation__create_group_conversation__no_network__message,
@@ -1050,7 +1050,7 @@ public class ParticipantsDialogFragment extends BaseFragment<ParticipantsDialogF
             ((BaseActivity) getActivity()).injectJava(GlobalTrackingController.class).tagEvent(new CreatedGroupConversationEvent(true, (users.size() + 1)));
         } else if (currentConversation.getType() == IConversation.Type.GROUP) {
             currentConversation.addMembers(users);
-            if (!getStoreFactory().networkStore().hasInternetConnection()) {
+            if (!getStoreFactory().getNetworkStore().hasInternetConnection()) {
                 ViewUtils.showAlertDialog(getActivity(),
                                           R.string.conversation__add_user__no_network__title,
                                           R.string.conversation__add_user__no_network__message,
@@ -1073,7 +1073,7 @@ public class ParticipantsDialogFragment extends BaseFragment<ParticipantsDialogF
     }
 
     private int getParticipantsCount() {
-        return getStoreFactory().conversationStore().getCurrentConversation().getUsers().size();
+        return getStoreFactory().getConversationStore().getCurrentConversation().getUsers().size();
     }
 
     public interface Container {
