@@ -136,21 +136,21 @@ class CursorView(val context: Context, val attrs: AttributeSet, val defStyleAttr
   secondaryToolbar.cursorItems ! SecondaryCursorItems
 
   cursorEditText.addTextChangedListener(new TextWatcher() {
-    private var text = ""
+    private var text = Option.empty[String]
 
     override def onTextChanged(charSequence: CharSequence, start: Int, before: Int, count: Int): Unit = {
-      text = charSequence.toString
+      text = Option(charSequence.toString)
     }
 
-    override def afterTextChanged(editable: Editable): Unit = if (text.nonEmpty) {
-      controller.enteredText ! text
+    override def afterTextChanged(editable: Editable): Unit = text.foreach { txt =>
+      controller.enteredText ! txt
       lineCount ! cursorEditText.getLineCount
-      text = ""
+      text = None
     }
 
     override def beforeTextChanged(charSequence: CharSequence, start: Int, count: Int, after: Int): Unit = ()
   })
-  
+
   cursorEditText.setOnEditorActionListener(new OnEditorActionListener {
     override def onEditorAction(textView: TextView, actionId: Int, event: KeyEvent): Boolean = {
       if (actionId == EditorInfo.IME_ACTION_SEND ||
@@ -264,6 +264,7 @@ class CursorView(val context: Context, val attrs: AttributeSet, val defStyleAttr
     enableMessageWriting()
     controller.editingMsg ! None
     controller.secondaryToolbarVisible ! false
+    setText("")
   }
 
   def isEditingMessage: Boolean = controller.isEditingMessage.currentValue.contains(true)

@@ -40,6 +40,7 @@ import android.graphics._
 import android.graphics.drawable.{Drawable, StateListDrawable}
 import android.util.AttributeSet
 import android.view.{HapticFeedbackConstants, MotionEvent, View}
+import com.waz.ZLog.ImplicitTag._
 import com.waz.api.AccentColor
 import com.waz.threading.Threading
 import com.waz.utils.events.Signal
@@ -61,17 +62,13 @@ class CursorIconButton(context: Context, attrs: AttributeSet, defStyleAttr: Int)
   import com.waz.zclient.utils.ContextUtils._
 
   val accentColor = inject[Signal[AccentColor]]
+
   val controller = inject[CursorController]
   val menuItem = Signal(Option.empty[CursorMenuItem])
 
   val defaultTextColor = getCurrentTextColor
 
   val diameter = getResources.getDimensionPixelSize(R.dimen.cursor__menu_button__diameter)
-
-  val textColor = controller.isEphemeralMode flatMap {
-    case true => accentColor.map(_.getColor)
-    case false => Signal const defaultTextColor
-  }
 
   val glyph = for {
     item <- menuItem
@@ -130,11 +127,9 @@ class CursorIconButton(context: Context, attrs: AttributeSet, defStyleAttr: Int)
 
   override def onFinishInflate(): Unit = {
     super.onFinishInflate()
-
-    accentColor.on(Threading.Ui) { a => initTextColor(a.getColor) }
+    initTextColor(accentColor.currentValue.map(_.getColor).getOrElse(R.color.text__primary_light))
     background.on(Threading.Ui) { setBackground }
 
-    textColor.on(Threading.Ui) { setTextColor }
     glyph.on(Threading.Ui) { setText }
     selected.on(Threading.Ui) { setSelected }
   }

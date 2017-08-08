@@ -442,40 +442,40 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
         shieldView.setVisibility(View.GONE);
         typingIndicatorView = ViewUtils.getView(view, R.id.tiv_typing_indicator_view);
         listView = ViewUtils.getView(view, R.id.messages_list_view);
-            toolbar.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    getControllerFactory().getConversationScreenController().showParticipants(toolbar, false);
+        toolbar.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                getControllerFactory().getConversationScreenController().showParticipants(toolbar, false);
+            }
+        });
+        toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(MenuItem item) {
+                switch (item.getItemId()) {
+                    case R.id.action_audio_call:
+                        getControllerFactory().getCallingController().startCall(false);
+                        cursorView.closeEditMessage(false);
+                        return true;
+                    case R.id.action_video_call:
+                        getControllerFactory().getCallingController().startCall(true);
+                        cursorView.closeEditMessage(false);
+                        return true;
                 }
-            });
-            toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
-                @Override
-                public boolean onMenuItemClick(MenuItem item) {
-                    switch (item.getItemId()) {
-                        case R.id.action_audio_call:
-                            getControllerFactory().getCallingController().startCall(false);
-                            cursorView.closeEditMessage(false);
-                            return true;
-                        case R.id.action_video_call:
-                            getControllerFactory().getCallingController().startCall(true);
-                            cursorView.closeEditMessage(false);
-                            return true;
-                    }
-                    return false;
+                return false;
+            }
+        });
+        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (cursorView == null) {
+                    return;
                 }
-            });
-            toolbar.setNavigationOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    if (cursorView == null) {
-                        return;
-                    }
 
-                    cursorView.closeEditMessage(false);
-                    getActivity().onBackPressed();
-                    KeyboardUtils.closeKeyboardIfShown(getActivity());
-                }
-            });
+                cursorView.closeEditMessage(false);
+                getActivity().onBackPressed();
+                KeyboardUtils.closeKeyboardIfShown(getActivity());
+            }
+        });
 
         leftMenu.setOnMenuItemClickListener(new ActionMenuView.OnMenuItemClickListener() {
             @Override
