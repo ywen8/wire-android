@@ -264,7 +264,6 @@ class CursorView(val context: Context, val attrs: AttributeSet, val defStyleAttr
     enableMessageWriting()
     controller.editingMsg ! None
     controller.secondaryToolbarVisible ! false
-    setText("")
   }
 
   def isEditingMessage: Boolean = controller.isEditingMessage.currentValue.contains(true)
