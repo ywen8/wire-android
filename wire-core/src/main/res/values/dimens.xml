@@ -878,4 +878,10 @@
     <dimen name="settings_profile_picture_size">220dp</dimen>
     <dimen name="settings_profile_team_icon_size">76dp</dimen>
     <dimen name="settings_profile_team_icon_margin">24dp</dimen>
+
+    <dimen name="cursor_toolbar_padding_horizontal_edge">4dp</dimen>
+    <dimen name="cursor_toolbar_padding_item">16dp</dimen>
+    <dimen name="new_cursor_menu_button_width">56dp</dimen>
+    <dimen name="new_cursor_button_horizontal_margin">16dp</dimen>
+    <dimen name="new_cursor_button_left_margin">4dp</dimen>
 </resources>

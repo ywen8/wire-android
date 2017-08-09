@@ -218,7 +218,7 @@ public class TrackingUtils {
                                                                   String.valueOf(conversation.getEphemeralExpiration().duration().toSeconds())));
     }
 
-    public static void onSentTextMessage(GlobalTrackingController trackingController, ConversationData conversation, Boolean isOtto) {
+    public static void onSentTextMessage(GlobalTrackingController trackingController, ConversationData conversation, boolean isOtto) {
         trackingController.tagEvent(new CompletedMediaActionEvent(CompletedMediaType.TEXT,
                                                                   conversation.convType().name(),
                                                                   isOtto,
@@ -325,14 +325,13 @@ public class TrackingUtils {
     }
 
 
-    public static void onSentPingMessage(GlobalTrackingController trackingController, IConversation conversation) {
-        boolean isGroupConversation = conversation.getType() == IConversation.Type.GROUP;
-        trackingController.tagEvent(OpenedMediaActionEvent.cursorAction(OpenedMediaAction.PING, conversation));
+    public static void onSentPingMessage(GlobalTrackingController trackingController, ConversationData conv, boolean isOtto) {
+        trackingController.tagEvent(OpenedMediaActionEvent.cursorAction(OpenedMediaAction.PING, conv, isOtto));
         trackingController.tagEvent(new CompletedMediaActionEvent(CompletedMediaType.PING,
-                                                                  isGroupConversation ? "GROUP" : "ONE_TO_ONE",
-                                                                  conversation.isOtto(),
-                                                                  conversation.isEphemeral(),
-                                                                  String.valueOf(conversation.getEphemeralExpiration().duration().toSeconds())));
+                                                                  ConversationType.getValue(conv.convType()).name,
+                                                                  isOtto,
+                                                                  conv.ephemeral() != EphemeralExpiration.NONE,
+                                                                  String.valueOf(conv.ephemeral().duration().toSeconds())));
     }
 
     public static void onUserSelectedInStartUI(GlobalTrackingController trackingController,
