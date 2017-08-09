@@ -158,17 +158,20 @@ class SoundController(implicit inj: Injector, cxt: Context) extends Injectable {
     *
     * Then for the other ids related to that group, they are all set to either the default, or whatever new uri is specified
     */
-  def setCustomSoundUrisFromPreferences(ringTonePref: String, textTonePref: String, pingTonePref: String) = {
-    Seq(
-      (ringTonePref, R.raw.ringing_from_them, Seq(R.raw.ringing_from_me, R.raw.ringing_from_me_video, R.raw.ringing_from_them_incall)),
-      (pingTonePref, R.raw.ping_from_them,    Seq(R.raw.ping_from_me)),
-      (textTonePref, R.raw.new_message,       Seq(R.raw.first_message, R.raw.new_message_gcm))
-    ).foreach { case (uri, mainId, otherIds) =>
-        val isDefault = TextUtils.isEmpty(uri) || isDefaultValue(cxt, uri, R.raw.ringing_from_them)
-        val finalUri =  if(RingtoneUtils.isSilent(uri)) "" else uri
-        setCustomSoundUri(mainId, finalUri)
-        otherIds.foreach(id => setCustomSoundUri(id, if (isDefault) getUriForRawId(cxt, id).toString else finalUri))
-    }
+  def setCustomSoundUrisFromPreferences(ringTonePref: String, textTonePref: String, pingTonePref: String): Unit = {
+    setCustomSoundUrisFromPreferences(ringTonePref, R.raw.ringing_from_them, Seq(R.raw.ringing_from_me, R.raw.ringing_from_me_video, R.raw.ringing_from_them_incall))
+    setCustomSoundUrisFromPreferences(pingTonePref, R.raw.ping_from_them,    Seq(R.raw.ping_from_me))
+    setCustomSoundUrisFromPreferences(textTonePref, R.raw.new_message,       Seq(R.raw.first_message, R.raw.new_message_gcm))
+  }
+
+  private def setCustomSoundUrisFromPreferences(uri: String, mainId: Int, otherIds: Seq[Int]): Unit = {
+    val isDefault = TextUtils.isEmpty(uri) || isDefaultValue(cxt, uri, R.raw.ringing_from_them)
+    val finalUri  = if (isDefault) getUriForRawId(cxt, R.raw.ringing_from_them).toString
+                    else if(RingtoneUtils.isSilent(uri)) ""
+                    else uri
+
+    setCustomSoundUri(mainId, finalUri)
+    otherIds.foreach(id => setCustomSoundUri(id, if (isDefault) getUriForRawId(cxt, id).toString else finalUri))
   }
 
   private def setCustomSoundUri(resourceId: Int, uri: String) = {
