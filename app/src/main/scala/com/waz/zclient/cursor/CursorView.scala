@@ -142,10 +142,13 @@ class CursorView(val context: Context, val attrs: AttributeSet, val defStyleAttr
       text = Option(charSequence.toString)
     }
 
-    override def afterTextChanged(editable: Editable): Unit = text.foreach { txt =>
-      controller.enteredText ! txt
-      lineCount ! cursorEditText.getLineCount
-      text = None
+    override def afterTextChanged(editable: Editable): Unit = text match {
+      case Some(txt) =>
+        controller.enteredText ! txt
+        lineCount ! cursorEditText.getLineCount
+        text = None
+      case None =>
+        controller.enteredText ! ""
     }
 
     override def beforeTextChanged(charSequence: CharSequence, start: Int, count: Int, after: Int): Unit = ()
