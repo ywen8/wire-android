@@ -51,7 +51,14 @@ class GlobalCallingController(implicit inj: Injector, cxt: WireContext, eventCon
     * signal becomes empty, and so prevents the group of signals - of which it is a part of - from firing...
     */
 
-  val zmsOpt = inject[Signal[Option[ZMessaging]]]
+  val currentZms = inject[Signal[Option[ZMessaging]]]
+  val zmsOpt = for {
+    zSet <- ZMessaging.currentAccounts.zmsInstances
+    zCalls <- Signal.sequence(zSet.map(z => z.calling.currentCall.map(z -> _)).toSeq:_*)
+    currentZms <- currentZms
+  } yield {
+    zCalls.collect{ case (z, Some(calling)) => (z, calling) }.sortBy(_._2.estabTime).headOption.map(_._1).orElse(currentZms)
+  }
 
   val currentCall: Signal[Option[CallInfo]] = zmsOpt.flatMap {
     case Some(z) => z.calling.currentCall
@@ -109,7 +116,7 @@ class GlobalCallingController(implicit inj: Injector, cxt: WireContext, eventCon
   def wasUiActiveOnCallStart = _wasUiActiveOnCallStart
 
   val onCallStarted = activeCall.onChanged.filter(_ == true).map { _ =>
-    val active = zmsOpt.flatMap(_.fold(Signal.const(false))(_.lifecycle.uiActive)).currentValue.getOrElse(false)
+    val active = zmsOpt.flatMap(_.fold(Signal.const(false))(_.lifecycle.uiActive)).disableAutowiring().currentValue.getOrElse(false)
     _wasUiActiveOnCallStart = active
     active
   }
