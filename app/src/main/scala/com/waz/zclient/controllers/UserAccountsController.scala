@@ -76,6 +76,17 @@ class UserAccountsController(implicit injector: Injector, context: Context, ec: 
 
   teamMembersSignal { members => _teamMembers = members }
 
+  private def unreadCountForConv(conversationData: ConversationData): Int = {
+    conversationData.unreadCount +
+      (if (conversationData.missedCallMessage.isDefined) 1 else 0) +
+      (if (conversationData.incomingKnockMessage.isDefined) 1 else 0)
+  }
+
+  val unreadCount = for {
+    zmsSet   <- ZMessaging.currentAccounts.zmsInstances
+    countMap <- Signal.sequence(zmsSet.map(z => z.convsStorage.convsSignal.map(c => z.accountId -> c.conversations.map(unreadCountForConv).sum)).toSeq:_*)
+  } yield countMap.toMap
+
   //Things for java
   //TODO hacky mchackerson - needed for the conversation fragment, remove ASAP
   def setIsGroupListener(id: ConvId, callback: Callback[java.lang.Boolean]): Unit =

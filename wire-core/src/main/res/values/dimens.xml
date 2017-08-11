@@ -861,7 +861,7 @@
     <dimen name="teams_tab_text_bottom_margin">4dp</dimen>
     <dimen name="conversation_list_toolbar_height">64dp</dimen>
     <dimen name="unread_indicator_top_size">10dp</dimen>
-    <dimen name="unread_indicator_top_margin">5dp</dimen>
+    <dimen name="unread_indicator_top_margin">0dp</dimen>
     <dimen name="unread_indicator_name_size">6dp</dimen>
     <dimen name="unread_indicator_name_margin">-10dp</dimen>
 
