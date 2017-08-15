@@ -118,7 +118,7 @@ class CursorController(implicit inj: Injector, ctx: Context, evc: EventContext) 
       convId <- conv.map(_.id).head
       typing <- zms.map(_.typing)
     } {
-      if (text.isEmpty) typing.selfChangedInput(convId)
+      if (text.isEmpty) typing.selfClearedInput(convId)
       else typing.selfChangedInput(convId)
     }
   }
