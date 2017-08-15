@@ -31,6 +31,7 @@ import com.waz.threading.Threading
 import com.waz.utils.NameParts
 import com.waz.ZLog.ImplicitTag._
 import com.waz.utils.events.Signal
+import com.waz.zclient.controllers.UserAccountsController
 import com.waz.zclient.controllers.global.AccentColorController
 import com.waz.zclient.drawables.TeamIconDrawable
 import com.waz.zclient.ui.text.TypefaceTextView
@@ -46,6 +47,7 @@ class AccountTabButton(val context: Context, val attrs: AttributeSet, val defSty
   setLayoutParams(new LayoutParams(context.getResources.getDimensionPixelSize(R.dimen.teams_tab_width), ViewGroup.LayoutParams.MATCH_PARENT))
 
   implicit val uiStorage = inject[UiStorage]
+  val userAccountsController = inject[UserAccountsController]
 
   val icon                = findById[ImageView](R.id.team_icon)
   val name                = findById[TypefaceTextView](R.id.team_name)
@@ -88,6 +90,11 @@ class AccountTabButton(val context: Context, val attrs: AttributeSet, val defSty
     }
   }
 
+  private val unreadCount = for {
+    accountId <- accountId
+    count  <- userAccountsController.unreadCount.map(_.get(accountId))
+  } yield count.getOrElse(0)
+
   (for {
     s   <- selected
     tOu <- teamOrUser
@@ -103,6 +110,15 @@ class AccountTabButton(val context: Context, val attrs: AttributeSet, val defSty
       drawable.assetId ! None
   }
 
+  Signal(unreadCount, selected).onUi {
+    case (c, false) if c > 0 =>
+      unreadIndicatorIcon.setVisible(true)
+      unreadIndicatorName.setVisible(true)
+    case _ =>
+      unreadIndicatorIcon.setVisible(false)
+      unreadIndicatorName.setVisible(false)
+  }
+
   icon.setImageDrawable(drawable)
   setLayerType(View.LAYER_TYPE_SOFTWARE, null)
   params.topMargin = height / 2 - getResources.getDimensionPixelSize(R.dimen.teams_tab_text_bottom_margin)
@@ -115,12 +131,7 @@ class AccountTabButton(val context: Context, val attrs: AttributeSet, val defSty
     unreadIndicatorName.setAccentColor(accentColor.getColor())
   }
 
-  def setAccount(id: AccountId) = {
-    accountId ! id
-    //TODO - re-introduce unread badge
-    unreadIndicatorName.setVisible(false) //unreadCount > 0 && !selected)
-    unreadIndicatorIcon.setVisible(false) //unreadCount > 0 && !selected)
-  }
+  def setAccount(id: AccountId) = accountId ! id
 
   def animateExpand(): Unit = {
     nameContainer.animate().translationY(0f).setDuration(animationDuration).start()
