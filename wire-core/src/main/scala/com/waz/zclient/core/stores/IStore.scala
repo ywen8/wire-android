@@ -15,12 +15,8 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package com.waz.zclient.core.stores.conversation;
+package com.waz.zclient.core.stores
 
-import com.waz.api.IConversation;
-
-import java.util.List;
-
-public interface OnInboxLoadedListener {
-    void onConnectRequestInboxConversationsLoaded(List<IConversation> conversations, InboxLoadRequester inboxLoadRequester);
+trait IStore {
+    def tearDown(): Unit
 }
