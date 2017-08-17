@@ -91,7 +91,6 @@
     <string translatable="false" name="pref_dev_avs_screen_key">pref_dev_avs_screen_key</string>
     <string translatable="false" name="pref_device_details_reset_session_key">pref_device_details_reset_session_key</string>
     <string translatable="false" name="pref_device_details_remove_key">pref_device_details_remove_key</string>
-    <string translatable="false" name="pref_options_vibration_key">pref_vibration_key</string>
     <string translatable="false" name="pref_account_appearance_category_key">pref_account_appearance_category_key</string>
     <string translatable="false" name="pref_account_picture_key">pref_account_picture_key</string>
     <string translatable="false" name="pref_account_color_key">pref_account_color_key</string>
