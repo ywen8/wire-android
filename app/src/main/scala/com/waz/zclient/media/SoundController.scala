@@ -50,24 +50,26 @@ class SoundController(implicit inj: Injector, cxt: Context) extends Injectable {
   private var _mediaManager = Option.empty[MediaManager]
   mediaManager(_mediaManager = _)
 
-  val tonePrefs = for {
+  val tonePrefs = (for {
     zms <- zms
     ringTone <- zms.userPrefs.preference(UserPreferences.RingTone).signal
     textTone <- zms.userPrefs.preference(UserPreferences.TextTone).signal
     pingTone <- zms.userPrefs.preference(UserPreferences.PingTone).signal
-  } yield (ringTone, textTone, pingTone)
+  } yield (ringTone, textTone, pingTone)).disableAutowiring()
 
   tonePrefs {
     case (ring, text, ping) => setCustomSoundUrisFromPreferences(ring, text, ping)
     case _ =>
   }
 
-  val vibrationEnabled = zms.flatMap(_.userPrefs.preference(UserPreferences.VibrateEnabled).signal)
-  var _vibrationEnabled = false
-  vibrationEnabled { _vibrationEnabled = _ }
+  def currentTonePrefs = tonePrefs.currentValue.getOrElse((null, null, null))
 
-  private def soundIntensityNone = soundIntensity.currentValue.contains(IntensityLevel.NONE)
-  private def soundIntensityFull = soundIntensity.currentValue.isEmpty || soundIntensity.currentValue.contains(IntensityLevel.FULL)
+  val vibrationEnabled = zms.flatMap(_.userPrefs.preference(UserPreferences.VibrateEnabled).signal).disableAutowiring()
+
+  def isVibrationEnabled = vibrationEnabled.currentValue.getOrElse(false)
+
+  def soundIntensityNone = soundIntensity.currentValue.contains(IntensityLevel.NONE)
+  def soundIntensityFull = soundIntensity.currentValue.isEmpty || soundIntensity.currentValue.contains(IntensityLevel.FULL)
 
   def setIncomingRingTonePlaying(play: Boolean) = {
     if (!soundIntensityNone) setMediaPlaying(R.raw.ringing_from_them, play)
@@ -134,7 +136,7 @@ class SoundController(implicit inj: Injector, cxt: Context) extends Injectable {
     */
   private def setVibrating(patternId: Int, play: Boolean = true, loop: Boolean = false): Unit = {
     (audioManager, vibrator) match {
-      case (Some(am), Some(vib)) if play && am.getRingerMode != AudioManager.RINGER_MODE_SILENT && _vibrationEnabled =>
+      case (Some(am), Some(vib)) if play && am.getRingerMode != AudioManager.RINGER_MODE_SILENT && isVibrationEnabled =>
         vib.cancel() // cancel any current vibrations
         vib.vibrate(getIntArray(patternId).map(_.toLong), if (loop) 0 else -1)
       case (_, Some(vib)) => vib.cancel()
