@@ -24,6 +24,7 @@ import android.graphics._
 import android.graphics.drawable.Drawable
 import android.renderscript.{Allocation, Element, RenderScript, ScriptIntrinsicBlur}
 import com.waz.ZLog.ImplicitTag._
+import com.waz.content.UserPreferences
 import com.waz.model.AssetData.{IsImage, IsVideo}
 import com.waz.model._
 import com.waz.service.ZMessaging
@@ -317,14 +318,14 @@ class ImageController(implicit inj: Injector) extends Injectable {
     for {
       zms <- zMessaging
       data <- imageData(id)
-      res <- BitmapSignal(data, req, zms.imageLoader, zms.assetsStorage.get, forceDownload)
+      res <- BitmapSignal(data, req, zms.imageLoader, zms.network, zms.assetsStorage.get, zms.userPrefs.preference(UserPreferences.DownloadImagesAlways).signal, forceDownload)
     } yield res
 
   def imageSignal(uri: URI, req: BitmapRequest, forceDownload: Boolean): Signal[BitmapResult] =
-    BitmapSignal(AssetData(source = Some(uri)), req, ZMessaging.currentGlobal.imageLoader, forceDownload = forceDownload)
+    BitmapSignal(AssetData(source = Some(uri)), req, ZMessaging.currentGlobal.imageLoader, ZMessaging.currentGlobal.network, forceDownload = forceDownload)
 
   def imageSignal(data: AssetData, req: BitmapRequest, forceDownload: Boolean): Signal[BitmapResult] =
-    zMessaging flatMap { zms => BitmapSignal(data, req, zms.imageLoader, zms.assetsStorage.get, forceDownload = forceDownload) }
+    zMessaging flatMap { zms => BitmapSignal(data, req, zms.imageLoader, zms.network, zms.assetsStorage.get, forceDownload = forceDownload) }
 
   def imageSignal(src: ImageSource, req: BitmapRequest, forceDownload: Boolean): Signal[BitmapResult] = src match {
     case WireImage(id) => imageSignal(id, req, forceDownload)
