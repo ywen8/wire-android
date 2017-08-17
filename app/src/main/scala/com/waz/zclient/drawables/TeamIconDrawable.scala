@@ -90,7 +90,7 @@ class TeamIconDrawable(implicit inj: Injector, eventContext: EventContext, ctx: 
     Some(assetId) <- assetId
     asset <- z.assetsStorage.signal(assetId)
     b <- bounds
-    bmp <- BitmapSignal(asset, Single(b.width), z.imageLoader, z.assetsStorage.get)
+    bmp <- BitmapSignal(z, asset, Single(b.width))
   } yield bmp
 
   bmp.on(Threading.Ui){ _ =>
