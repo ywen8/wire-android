@@ -1,21 +1,4 @@
 /**
- * Wire
- * Copyright (C) 2016 Wire Swiss GmbH
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
-/**
   * Wire
   * Copyright (C) 2017 Wire Swiss GmbH
   *
@@ -51,8 +34,6 @@ import com.waz.ZLog.verbose
 import com.waz.api.NotificationsHandler.NotificationType
 import com.waz.api.NotificationsHandler.NotificationType._
 import com.waz.bitmap
-import com.waz.content.UserPreferences
-import com.waz.media.manager.context.IntensityLevel
 import com.waz.model.NotId
 import com.waz.service.ZMessaging
 import com.waz.service.push.NotificationService.NotificationInfo
@@ -60,6 +41,7 @@ import com.waz.threading.Threading
 import com.waz.utils.events.{EventContext, Signal}
 import com.waz.zclient._
 import com.waz.zclient.controllers.userpreferences.UserPreferencesController
+import com.waz.zclient.media.SoundController
 import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.utils.IntentUtils._
 import com.waz.zclient.utils.RingtoneUtils
@@ -74,6 +56,7 @@ class MessageNotificationsController(implicit inj: Injector, cxt: Context, event
   def context = cxt
 
   val zms = inject[Signal[ZMessaging]]
+  lazy val soundController = inject[SoundController]
 
   val notServices = (Option(ZMessaging.currentAccounts) match {
     case Some(ac) => ac.zmsInstances
@@ -99,19 +82,6 @@ class MessageNotificationsController(implicit inj: Injector, cxt: Context, event
   lazy val clearIntent = NotificationsAndroidService.clearNotificationsIntent(context)
 
   val displayedNots = Signal(Seq.empty[NotId])
-
-  val tonePrefs = for {
-    zms <- zms
-    ringTone <- zms.userPrefs.preference(UserPreferences.RingTone).signal
-    textTone <- zms.userPrefs.preference(UserPreferences.TextTone).signal
-    pingTone <- zms.userPrefs.preference(UserPreferences.PingTone).signal
-  } yield (ringTone, textTone, pingTone)
-  private var _tonePrefs: (String, String, String) = (null, null, null)
-  tonePrefs{ _tonePrefs = _ }
-
-  val soundPref = zms.flatMap(_.userPrefs.preference(UserPreferences.Sounds).signal)
-  private var _soundPref = IntensityLevel.NONE
-  soundPref{ _soundPref = _ }
 
   notServices.zip(displayedNots) {
     case (ss, displayed) => ss.foreach(_.markAsDisplayed(displayed))
@@ -158,8 +128,8 @@ class MessageNotificationsController(implicit inj: Injector, cxt: Context, event
 
   private def attachNotificationSound(notification: Notification, ns: Seq[NotificationInfo], silent: Boolean) = {
     notification.sound =
-      if (IntensityLevel.NONE == _soundPref || silent) null
-      else if ((IntensityLevel.SOME == _soundPref) && ns.size > 1) null
+      if (soundController.soundIntensityNone || silent) null
+      else if (!soundController.soundIntensityFull && ns.size > 1) null
       else ns.lastOption.fold(null.asInstanceOf[Uri])(getMessageSoundUri)
   }
 
@@ -175,14 +145,14 @@ class MessageNotificationsController(implicit inj: Injector, cxt: Context, event
            CONNECT_REQUEST |
            RENAME |
            LIKE =>
-        val value = _tonePrefs._2
+        val value = soundController.currentTonePrefs._2
         if (value != null && value.isEmpty) {
           null
         } else {
           getSelectedSoundUri(value, R.raw.new_message_gcm)
         }
       case KNOCK =>
-        val value = _tonePrefs._3
+        val value = soundController.currentTonePrefs._3
         if (value != null && value.isEmpty) {
           null
         } else {
@@ -199,60 +169,53 @@ class MessageNotificationsController(implicit inj: Injector, cxt: Context, event
     else RingtoneUtils.getUriForRawId(context, returnDefault)
   }
 
+  private def commonBuilder(title: String, displayTime: Instant, style: NotificationCompat.Style, silent: Boolean) = {
+    val builder = new NotificationCompat.Builder(cxt)
+      .setShowWhen(true)
+      .setCategory(NotificationCompat.CATEGORY_MESSAGE)
+      .setPriority(NotificationCompat.PRIORITY_HIGH)
+      .setSmallIcon(R.drawable.ic_menu_logo)
+      .setLargeIcon(getAppIcon)
+      .setContentTitle(title)
+      .setWhen(displayTime.toEpochMilli)
+      .setStyle(style)
+
+    if (!silent && soundController.isVibrationEnabled)
+      builder.setVibrate(getIntArray(R.array.new_message_gcm).map(_.toLong))
+    else
+      builder.setVibrate(Array(0,0))
+
+    builder
+  }
+
   private def getEphemeralNotification(size: Int, silent: Boolean, displayTime: Instant): Notification = {
     val details = getString(R.string.notification__message__ephemeral_details)
     val title = getQuantityString(R.plurals.notification__message__ephemeral, size, Integer.valueOf(size))
-
-    val builder = new NotificationCompat.Builder(cxt)
 
     val bigTextStyle = new NotificationCompat.BigTextStyle
     bigTextStyle.setBigContentTitle(title)
     bigTextStyle.bigText(details)
 
-    builder
-      .setShowWhen(true)
-      .setWhen(displayTime.toEpochMilli)
-      .setSmallIcon(R.drawable.ic_menu_logo)
-      .setLargeIcon(getAppIcon)
-      .setContentTitle(title)
+    val builder = commonBuilder(title, displayTime, bigTextStyle, silent)
       .setContentText(details)
       .setContentIntent(getNotificationAppLaunchIntent(cxt))
-      .setStyle(bigTextStyle)
-      .setCategory(NotificationCompat.CATEGORY_MESSAGE)
-      .setPriority(NotificationCompat.PRIORITY_HIGH)
 
-
-    if (context.getSharedPreferences(UserPreferencesController.USER_PREFS_TAG, Context.MODE_PRIVATE)
-      .getBoolean(context.getString(R.string.pref_options_vibration_key), true) && !silent) {
-      builder.setVibrate(getIntArray(R.array.new_message_gcm).map(_.toLong))
-    }
     builder.build
   }
 
   private def getSingleMessageNotification(n: NotificationInfo, silent: Boolean): Notification = {
-
     val spannableString = getMessage(n, multiple = false, singleConversationInBatch = true, singleUserInBatch = true)
     val title = getMessageTitle(n)
 
-    val builder = new NotificationCompat.Builder(cxt)
     val requestBase = System.currentTimeMillis.toInt
 
     val bigTextStyle = new NotificationCompat.BigTextStyle
     bigTextStyle.setBigContentTitle(title)
     bigTextStyle.bigText(spannableString)
 
-    builder
-      .setSmallIcon(R.drawable.ic_menu_logo)
-      .setLargeIcon(getAppIcon)
-      .setShowWhen(true)
-      .setWhen(n.time.toEpochMilli)
-      .setContentTitle(title)
+    val builder = commonBuilder(title, n.time, bigTextStyle, silent)
       .setContentText(spannableString)
       .setContentIntent(getNotificationAppLaunchIntent(cxt, n.convId.str, requestBase))
-      .setStyle(bigTextStyle)
-      .setCategory(NotificationCompat.CATEGORY_MESSAGE)
-      .setPriority(NotificationCompat.PRIORITY_HIGH)
-
 
     if (n.tpe != NotificationType.CONNECT_REQUEST) {
       builder
@@ -260,10 +223,6 @@ class MessageNotificationsController(implicit inj: Injector, cxt: Context, event
         .addAction(R.drawable.ic_action_reply, getString(R.string.notification__action__reply), getNotificationReplyIntent(cxt, n.convId.str, requestBase + 2))
     }
 
-    if (context.getSharedPreferences(UserPreferencesController.USER_PREFS_TAG, Context.MODE_PRIVATE)
-      .getBoolean(context.getString(R.string.pref_options_vibration_key), true) && !silent) {
-      builder.setVibrate(getIntArray(R.array.new_message_gcm).map(_.toLong))
-    }
     builder.build
   }
 
@@ -286,20 +245,9 @@ class MessageNotificationsController(implicit inj: Injector, cxt: Context, event
     val inboxStyle = new NotificationCompat.InboxStyle()
       .setBigContentTitle(title)
 
-    val builder = new NotificationCompat.Builder(cxt)
-      .setShowWhen(true)
-      .setWhen(ns.maxBy(_.time).time.toEpochMilli)
-      .setSmallIcon(R.drawable.ic_menu_logo)
-      .setLargeIcon(getAppIcon).setNumber(ns.size)
-      .setContentTitle(title)
-      .setStyle(inboxStyle)
-      .setCategory(NotificationCompat.CATEGORY_MESSAGE)
-      .setPriority(NotificationCompat.PRIORITY_HIGH)
+    val builder = commonBuilder(title, ns.maxBy(_.time).time, inboxStyle, silent)
+      .setNumber(ns.size)
 
-    if (context.getSharedPreferences(UserPreferencesController.USER_PREFS_TAG, Context.MODE_PRIVATE)
-      .getBoolean(context.getString(R.string.pref_options_vibration_key), true) && !silent) {
-      builder.setVibrate(getIntArray(R.array.new_message_gcm).map(_.toLong))
-    }
     if (isSingleConv) {
       val requestBase = System.currentTimeMillis.toInt
       val conversationId = convIds.head.str
