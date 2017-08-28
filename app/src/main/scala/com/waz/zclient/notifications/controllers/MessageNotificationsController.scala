@@ -34,8 +34,6 @@ import com.waz.ZLog.verbose
 import com.waz.api.NotificationsHandler.NotificationType
 import com.waz.api.NotificationsHandler.NotificationType._
 import com.waz.bitmap
-import com.waz.content.UserPreferences
-import com.waz.media.manager.context.IntensityLevel
 import com.waz.model.NotId
 import com.waz.service.ZMessaging
 import com.waz.service.push.NotificationService.NotificationInfo
@@ -77,19 +75,6 @@ class MessageNotificationsController(implicit inj: Injector, cxt: Context, event
   lazy val clearIntent = NotificationsAndroidService.clearNotificationsIntent(context)
 
   val displayedNots = Signal(Seq.empty[NotId])
-
-  val tonePrefs = for {
-    zms <- zms
-    ringTone <- zms.userPrefs.preference(UserPreferences.RingTone).signal
-    textTone <- zms.userPrefs.preference(UserPreferences.TextTone).signal
-    pingTone <- zms.userPrefs.preference(UserPreferences.PingTone).signal
-  } yield (ringTone, textTone, pingTone)
-  private var _tonePrefs: (String, String, String) = (null, null, null)
-  tonePrefs{ _tonePrefs = _ }
-
-  val soundPref = zms.flatMap(_.userPrefs.preference(UserPreferences.Sounds).signal)
-  private var _soundPref = IntensityLevel.NONE
-  soundPref{ _soundPref = _ }
 
   notsService.zip(displayedNots) {
     case (service, displayed) => service.markAsDisplayed(displayed)
@@ -134,40 +119,25 @@ class MessageNotificationsController(implicit inj: Injector, cxt: Context, event
     notification.flags |= Notification.FLAG_SHOW_LIGHTS
   }
 
-  private def attachNotificationSound(notification: Notification, ns: Seq[NotificationInfo], silent: Boolean) = {
+  private def attachNotificationSound(notification: Notification, ns: Seq[NotificationInfo], silent: Boolean) =
     notification.sound =
       if (soundController.soundIntensityNone || silent) null
       else if (!soundController.soundIntensityFull && ns.size > 1) null
       else ns.lastOption.fold(null.asInstanceOf[Uri])(getMessageSoundUri)
-  }
 
-  private def getMessageSoundUri(n: NotificationInfo): Uri = {
-    n.tpe match {
-      case ASSET |
-           ANY_ASSET |
-           VIDEO_ASSET |
-           AUDIO_ASSET |
-           LOCATION |
-           TEXT |
-           CONNECT_ACCEPTED |
-           CONNECT_REQUEST |
-           RENAME |
-           LIKE =>
-        val value = soundController.currentTonePrefs._2
-        if (value != null && value.isEmpty) {
-          null
-        } else {
-          getSelectedSoundUri(value, R.raw.new_message_gcm)
-        }
-      case KNOCK =>
-        val value = soundController.currentTonePrefs._3
-        if (value != null && value.isEmpty) {
-          null
-        } else {
-          getSelectedSoundUri(value, R.raw.ping_from_them)
-        }
-      case _ => null
-    }
+  private def getMessageSoundUri(n: NotificationInfo): Uri = n.tpe match {
+    case ASSET |
+         ANY_ASSET |
+         VIDEO_ASSET |
+         AUDIO_ASSET |
+         LOCATION |
+         TEXT |
+         CONNECT_ACCEPTED |
+         CONNECT_REQUEST |
+         RENAME |
+         LIKE  => getSelectedSoundUri(soundController.currentTonePrefs._2, R.raw.new_message_gcm)
+    case KNOCK => getSelectedSoundUri(soundController.currentTonePrefs._3, R.raw.ping_from_them)
+    case _     => null
   }
 
   private def getSelectedSoundUri(value: String, @RawRes defaultResId: Int): Uri = getSelectedSoundUri(value, defaultResId, defaultResId)
