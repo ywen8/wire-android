@@ -23,24 +23,24 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 
-public class GetDocumentActivity extends AppCompatActivity {
+public class CaptureDocumentActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setResult(Activity.RESULT_OK, new Intent().setData(getResultPath()));
+        setResult(Activity.RESULT_OK, new Intent().setData(getResultUri()));
         finish();
     }
 
-    private Uri getResultPath() {
+    private Uri getResultUri() {
         DocumentResolver resolver = new DocumentResolver(getContentResolver());
         String mime = getIntent().getType();
         if (mime.startsWith("image")) {
-            return resolver.getImagePath();
+            return resolver.getImageUri();
         } else if (mime.startsWith("video")) {
-            return resolver.getVideoPath();
+            return resolver.getVideoUri();
         } else {
-            return resolver.getDocumentPath();
+            return resolver.getDocumentUri();
         }
     }
 }

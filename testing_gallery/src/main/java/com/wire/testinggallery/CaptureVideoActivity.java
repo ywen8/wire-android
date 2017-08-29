@@ -27,7 +27,7 @@ public class CaptureVideoActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setResult(Activity.RESULT_OK, new Intent().setData(new DocumentResolver(getContentResolver()).getVideoPath()));
+        setResult(Activity.RESULT_OK, new Intent().setData(new DocumentResolver(getContentResolver()).getVideoUri()));
         finish();
     }
 }
