@@ -33,8 +33,6 @@ class DocumentResolver {
         Environment.getExternalStoragePublicDirectory(WIRE_DIRECTORY + "/files");
     private static final File WIRE_TESTING_IMAGES_DIRECTORY =
         Environment.getExternalStoragePublicDirectory(WIRE_DIRECTORY + "/images");
-    private static final File WIRE_TESTING_AUDIOS_DIRECTORY =
-        Environment.getExternalStoragePublicDirectory(WIRE_DIRECTORY + "/audio");
     private static final File WIRE_TESTING_VIDEOS_DIRECTORY =
         Environment.getExternalStoragePublicDirectory(WIRE_DIRECTORY + "/video");
 
@@ -53,7 +51,7 @@ class DocumentResolver {
     }
 
     Uri getAudioUri() {
-        return fileQuery(WIRE_TESTING_AUDIOS_DIRECTORY);
+        return fileQuery(WIRE_TESTING_FILES_DIRECTORY);
     }
 
     Uri getImageUri() {
