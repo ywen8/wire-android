@@ -94,13 +94,13 @@ public class MainActivity extends AppCompatActivity {
         DocumentResolver resolver = new DocumentResolver(getContentResolver());
         switch (command) {
             case COMMAND_SHARE_FILE:
-                return resolver.getDocumentPath();
+                return resolver.getDocumentUri();
             case COMMAND_SHARE_IMAGE:
-                return resolver.getImagePath();
+                return resolver.getImageUri();
             case COMMAND_SHARE_VIDEO:
-                return resolver.getVideoPath();
+                return resolver.getVideoUri();
             case COMMAND_SHARE_AUDIO:
-                return resolver.getAudioPath();
+                return resolver.getAudioUri();
             default:
                 throw new RuntimeException(String.format("Cannot identify the command : %s", command));
         }

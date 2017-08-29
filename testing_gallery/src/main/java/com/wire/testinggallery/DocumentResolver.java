@@ -25,33 +25,37 @@ import android.provider.MediaStore;
 
 import java.io.File;
 
-public class DocumentResolver {
+class DocumentResolver {
 
     private static final String WIRE_DIRECTORY = "wire";
 
-    public static final File WIRE_TESTING_FILES_DIRECTORY =
-        Environment.getExternalStoragePublicDirectory(WIRE_DIRECTORY);
+    static final File WIRE_TESTING_FILES_DIRECTORY =
+        Environment.getExternalStoragePublicDirectory(WIRE_DIRECTORY + "/files");
+    private static final File WIRE_TESTING_IMAGES_DIRECTORY =
+        Environment.getExternalStoragePublicDirectory(WIRE_DIRECTORY + "/images");
+    private static final File WIRE_TESTING_VIDEOS_DIRECTORY =
+        Environment.getExternalStoragePublicDirectory(WIRE_DIRECTORY + "/video");
 
     private final ContentResolver contentResolver;
 
-    public DocumentResolver(ContentResolver contentResolver) {
+    DocumentResolver(ContentResolver contentResolver) {
         this.contentResolver = contentResolver;
     }
 
-    public Uri getDocumentPath() {
+    Uri getDocumentUri() {
         return fileQuery(WIRE_TESTING_FILES_DIRECTORY);
     }
 
-    public Uri getVideoPath() {
+    Uri getVideoUri() {
+        return fileQuery(WIRE_TESTING_VIDEOS_DIRECTORY);
+    }
+
+    Uri getAudioUri() {
         return fileQuery(WIRE_TESTING_FILES_DIRECTORY);
     }
 
-    public Uri getAudioPath() {
-        return fileQuery(WIRE_TESTING_FILES_DIRECTORY);
-    }
-
-    public Uri getImagePath() {
-        return fileQuery(WIRE_TESTING_FILES_DIRECTORY);
+    Uri getImageUri() {
+        return fileQuery(WIRE_TESTING_IMAGES_DIRECTORY);
     }
 
     private Uri mediaQuery(Uri baseUri, String[] projection) {
@@ -77,8 +81,17 @@ public class DocumentResolver {
 
     private Uri fileQuery(File baseDir) {
         File[] files = baseDir.listFiles();
+        File lastUpdatedFile = null;
+        long theLastModifiedTime = 0;
         if (files != null && files.length > 0) {
-            return Uri.fromFile(files[0]);
+            for (File file : files) {
+                long modifiedTime = file.lastModified();
+                if (modifiedTime > theLastModifiedTime) {
+                    theLastModifiedTime = modifiedTime;
+                    lastUpdatedFile = file;
+                }
+            }
+            return Uri.fromFile(lastUpdatedFile);
         }
         return null;
     }

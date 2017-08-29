@@ -27,7 +27,7 @@ public class CaptureImageActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setResult(Activity.RESULT_OK, new Intent().setData(new DocumentResolver(getContentResolver()).getImagePath()));
+        setResult(Activity.RESULT_OK, new Intent().setData(new DocumentResolver(getContentResolver()).getImageUri()));
         finish();
     }
 }

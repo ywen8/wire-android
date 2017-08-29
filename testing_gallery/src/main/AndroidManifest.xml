@@ -64,7 +64,7 @@
         </activity>
 
         <activity
-            android:name=".GetDocumentActivity"
+            android:name=".CaptureDocumentActivity"
             android:label="@string/app_name"
             android:exported="true"
             >
