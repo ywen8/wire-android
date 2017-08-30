@@ -56,24 +56,24 @@ class FirstLaunchAfterLoginFragment extends BaseFragment[FirstLaunchAfterLoginFr
   override def onCreateView(inflater: LayoutInflater, viewGroup: ViewGroup, savedInstanceState: Bundle): View =
     inflater.inflate(R.layout.fragment_login_first_launch, viewGroup, false)
 
-  override def onResume() {
+  override def onResume(): Unit = {
     super.onResume()
     registerButton.setOnClickListener(this)
   }
 
-  override def onPause() {
+  override def onPause(): Unit = {
     registerButton.setOnClickListener(null)
     super.onPause()
   }
 
-  def onClick(view: View) {
+  def onClick(view: View): Unit = {
     view.getId match {
       case R.id.zb__first_launch__confirm =>
         onConfirmClicked()
     }
   }
 
-  private def onConfirmClicked() {
+  private def onConfirmClicked(): Unit = {
     appEntryController.currentAccount.head.map {
       case (Some(acc), _) => ZMessaging.currentAccounts.setLoggedIn(acc.id)
       case _ =>

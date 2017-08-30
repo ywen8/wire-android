@@ -29,7 +29,7 @@ import com.localytics.android.Localytics
 import com.waz.ZLog
 import com.waz.ZLog.ImplicitTag._
 import com.waz.api.{BitmapCallback, ImageAsset, ImageAssetFactory, LoadHandle}
-import com.waz.service.{AccountsService, ZMessaging}
+import com.waz.service.ZMessaging
 import com.waz.threading.Threading
 import com.waz.utils.wrappers.AndroidURIUtil
 import com.waz.zclient.AppEntryController._

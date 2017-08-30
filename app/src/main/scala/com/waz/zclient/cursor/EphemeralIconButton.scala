@@ -36,7 +36,6 @@ class EphemeralIconButton(context: Context, attrs: AttributeSet, defStyleAttr: I
   def this(context: Context) { this(context, null) }
 
   import EphemeralExpiration._
-  import Threading.Implicits.Ui
 
   val timeString = controller.conv.map(_.ephemeral) map { expiration =>
     val duration = expiration.duration()

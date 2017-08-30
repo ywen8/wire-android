@@ -25,7 +25,6 @@ import com.waz.zclient.core.controllers.tracking.attributes.RangedAttribute._
 import com.waz.zclient.core.controllers.tracking.attributes.{Attribute, RangedAttribute}
 import com.waz.zclient.messages.MessageBottomSheetDialog.MessageAction
 import com.waz.zclient.utils.AssetUtils
-import org.json.JSONObject
 import org.threeten.bp.Duration
 
 sealed abstract class Event(val name: String) {
