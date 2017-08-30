@@ -34,7 +34,7 @@ class SignInController(implicit inj: Injector, eventContext: EventContext, conte
   private lazy val appEntryController = inject[AppEntryController]
 
   lazy val isAddingAccount = ZMessaging.currentAccounts.loggedInAccounts.map(_.nonEmpty)
-  val uiSignInState = Signal[SignInMethod](SignInMethod(Login, Email))
+  val uiSignInState = Signal[SignInMethod](SignInMethod(Register, Phone))
 
   val email = Signal("")
   val password = Signal("")

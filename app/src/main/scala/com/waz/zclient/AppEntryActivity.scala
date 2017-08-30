@@ -23,27 +23,29 @@ import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Bundle
 import android.support.v4.app.FragmentTransaction
-import android.support.v4.content.ContextCompat
 import android.widget.Toast
 import com.localytics.android.Localytics
 import com.waz.ZLog
 import com.waz.ZLog.ImplicitTag._
-import com.waz.api.{BitmapCallback, ImageAsset, ImageAssetFactory, LoadHandle}
+import com.waz.api._
+import com.waz.model.Handle
 import com.waz.service.ZMessaging
 import com.waz.threading.Threading
 import com.waz.utils.wrappers.AndroidURIUtil
 import com.waz.zclient.AppEntryController._
-import com.waz.zclient.appentry.{EmailVerifyEmailFragment, FirstLaunchAfterLoginFragment, PhoneSetNameFragment, VerifyPhoneFragment}
+import com.waz.zclient.appentry._
 import com.waz.zclient.controllers.navigation.{NavigationControllerObserver, Page}
 import com.waz.zclient.controllers.tracking.screens.ApplicationScreen
 import com.waz.zclient.core.controllers.tracking.attributes.Attribute
 import com.waz.zclient.core.controllers.tracking.events.Event
+import com.waz.zclient.core.controllers.tracking.events.onboarding.{KeptGeneratedUsernameEvent, OpenedUsernameSettingsEvent}
 import com.waz.zclient.core.controllers.tracking.events.registration.{OpenedPhoneRegistrationFromInviteEvent, SucceededWithRegistrationEvent}
 import com.waz.zclient.fragments.{CountryDialogFragment, SignInFragment}
+import com.waz.zclient.newreg.fragments.SignUpPhotoFragment
 import com.waz.zclient.newreg.fragments.SignUpPhotoFragment.UNSPLASH_API_URL
-import com.waz.zclient.newreg.fragments._
 import com.waz.zclient.newreg.fragments.country.CountryController
 import com.waz.zclient.preferences.PreferencesController
+import com.waz.zclient.preferences.dialogs.ChangeHandleFragment
 import com.waz.zclient.tracking.GlobalTrackingController
 import com.waz.zclient.ui.utils.KeyboardUtils
 import com.waz.zclient.utils.{HockeyCrashReporting, ViewUtils, ZTimeFormatter}
@@ -66,7 +68,8 @@ class AppEntryActivity extends BaseActivity
   with CountryDialogFragment.Container
   with FirstLaunchAfterLoginFragment.Container
   with NavigationControllerObserver
-  with SignInFragment.Container {
+  with SignInFragment.Container
+  with FirstTimeAssignUsernameFragment.Container {
 
   private lazy val unsplashInitImageAsset = ImageAssetFactory.getImageAsset(AndroidURIUtil.parse(UNSPLASH_API_URL))
   private var unsplashInitLoadHandle: LoadHandle = null
@@ -122,6 +125,8 @@ class AppEntryActivity extends BaseActivity
         onShowEmailVerifyEmailPage()
       case VerifyPhoneStage =>
         onShowPhoneCodePage()
+      case AddHandleStage =>
+        onShowSetUsername()
       case _ =>
     }
   }
@@ -206,8 +211,6 @@ class AppEntryActivity extends BaseActivity
       }
     }
   }
-
-  def getAccentColor: Int = ContextCompat.getColor(this, R.color.text__primary_dark)
 
   def onInvitationFailed(): Unit = {
     Toast.makeText(this, getString(R.string.invitation__email__failed), Toast.LENGTH_SHORT).show()
@@ -385,4 +388,31 @@ class AppEntryActivity extends BaseActivity
         }
       },
       false)
+
+  def onShowSetUsername(): Unit = {
+    val transaction: FragmentTransaction = getSupportFragmentManager.beginTransaction
+    setDefaultAnimation(transaction).replace(R.id.fl_main_content, FirstTimeAssignUsernameFragment.newInstance("", ""), FirstTimeAssignUsernameFragment.TAG).commit
+    enableProgress(false)
+  }
+
+  override def onChooseUsernameChosen() = {
+    globalTrackingController.tagEvent(new OpenedUsernameSettingsEvent)
+    getSupportFragmentManager.beginTransaction
+      .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
+      .add(ChangeHandleFragment.newInstance(getStoreFactory.profileStore.getSelfUser.getUsername, cancellable = false), ChangeHandleFragment.FragmentTag)
+      .addToBackStack(ChangeHandleFragment.FragmentTag)
+      .commit
+  }
+
+  override def onKeepUsernameChosen(username: String) = {
+    ZMessaging.currentUi.users.setSelfHandle(Handle(username), None).map {
+      case Left(_) =>
+        Toast.makeText(AppEntryActivity.this, getString(R.string.username__set__toast_error), Toast.LENGTH_SHORT).show()
+        getControllerFactory.getUsernameController.logout()
+        getControllerFactory.getUsernameController.setUser(getStoreFactory.zMessagingApiStore.getApi.getSelf)
+        globalTrackingController.tagEvent(new KeptGeneratedUsernameEvent(false))
+      case Right(_) =>
+        globalTrackingController.tagEvent(new KeptGeneratedUsernameEvent(true))
+    } (Threading.Ui)
+  }
 }

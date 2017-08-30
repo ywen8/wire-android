@@ -88,7 +88,7 @@ public class FirstTimeAssignUsernameFragment extends BaseFragment<FirstTimeAssig
         View view = inflater.inflate(R.layout.fragment_username_first_launch, container, false);
         nameTextView = ViewUtils.getView(view, R.id.ttv__name);
         usernameTextView = ViewUtils.getView(view, R.id.ttv__username);
-        backgroundImageView = ViewUtils.getView(view, R.id.iaiv__user_photo);
+        backgroundImageView = ViewUtils.getView(view, R.id.user_photo);
         final ImageView vignetteOverlay = ViewUtils.getView(view, R.id.iv_background_vignette_overlay);
         ZetaButton chooseYourOwnButton = ViewUtils.getView(view, R.id.zb__username_first_assign__choose);
         ZetaButton keepButton = ViewUtils.getView(view, R.id.zb__username_first_assign__keep);

@@ -69,19 +69,6 @@
 
             </LinearLayout>
 
-            <com.waz.zclient.ui.text.TypefaceTextView
-                android:id="@+id/ttv__not_now"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:gravity="center"
-                android:layout_gravity="center_vertical|right"
-                android:text="@string/not_now"
-                android:textAllCaps="true"
-                custom:font="@string/wire__typeface__light"
-                android:textSize="@dimen/wire__text_size__small"
-                android:textColor="@color/text__primary_dark"
-                />
-
         </FrameLayout>
 
         <!-- body -->

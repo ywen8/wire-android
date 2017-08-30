@@ -18,6 +18,7 @@
 package com.waz.zclient.appentry
 
 import android.os.Bundle
+import android.support.v4.content.ContextCompat
 import android.text.{Editable, TextWatcher}
 import android.view.{KeyEvent, LayoutInflater, View, ViewGroup}
 import android.view.inputmethod.EditorInfo
@@ -38,7 +39,6 @@ object PhoneSetNameFragment {
 
   trait Container {
     def enableProgress(enable: Boolean): Unit
-    def getAccentColor: Int
     def showError(entryError: EntryError, okCallback: => Unit = {}): Unit
   }
 
@@ -60,7 +60,7 @@ class PhoneSetNameFragment extends BaseFragment[PhoneSetNameFragment.Container] 
   override def onStart(): Unit = {
     super.onStart()
     editTextName.requestFocus
-    nameConfirmationButton.setAccentColor(getContainer.getAccentColor)
+    nameConfirmationButton.setAccentColor(ContextCompat.getColor(getActivity, R.color.text__primary_dark))
   }
 
   override def onResume(): Unit = {

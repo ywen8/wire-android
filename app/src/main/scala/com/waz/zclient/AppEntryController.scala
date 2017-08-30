@@ -37,13 +37,8 @@ class AppEntryController(implicit inj: Injector, eventContext: EventContext) ext
   implicit val ec = Threading.Background
 
   lazy val optZms = inject[Signal[Option[ZMessaging]]]
-
-  val currentAccount = for {
-    accountData <- ZMessaging.currentAccounts.activeAccount
-    optZms <- optZms
-    userData <- optZms.fold(Signal.const(Option.empty[UserData]))(z => z.usersStorage.optSignal(z.selfUserId))
-  } yield (accountData, userData)
-
+  val currentAccount = ZMessaging.currentAccounts.activeAccount
+  val currentUser = optZms.flatMap{ _.fold(Signal.const(Option.empty[UserData]))(z => z.usersStorage.optSignal(z.selfUserId)) }
   val invitationToken = Signal(Option.empty[String])
 
   val invitationDetails = for {
@@ -63,7 +58,8 @@ class AppEntryController(implicit inj: Injector, eventContext: EventContext) ext
   }
 
   val entryStage = for {
-    (account, user) <- currentAccount
+    account <- currentAccount
+    user <- currentUser
     state <- Signal.const(stateForAccountAndUser(account, user)).collect{ case s if s != Waiting => s }
   } yield state
 
@@ -77,7 +73,6 @@ class AppEntryController(implicit inj: Injector, eventContext: EventContext) ext
   }
 
   def stateForAccountAndUser(account: Option[AccountData], user: Option[UserData]): AppEntryStage = {
-    ZLog.verbose(s"Current data: $user, $account")
     (account, user) match {
       case (None, _) =>
         LoginStage
@@ -101,6 +96,8 @@ class AppEntryController(implicit inj: Injector, eventContext: EventContext) ext
           LoginStage
       case (Some(accountData), Some(userData)) if userData.picture.isEmpty =>
         AddPictureStage
+      case (Some(accountData), Some(userData)) if userData.handle.isEmpty =>
+        AddHandleStage
       case (Some(accountData), Some(userData)) if accountData.firstLogin =>
         FirstEnterAppStage
       case (Some(accountData), Some(userData)) =>
@@ -224,4 +221,5 @@ object AppEntryController {
   object VerifyEmailStage   extends AppEntryStage
   object VerifyPhoneStage   extends AppEntryStage
   object LoginStage         extends AppEntryStage
+  object AddHandleStage     extends AppEntryStage
 }

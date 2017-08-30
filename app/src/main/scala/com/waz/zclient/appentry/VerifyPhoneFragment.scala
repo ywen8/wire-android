@@ -18,6 +18,7 @@
 package com.waz.zclient.appentry
 
 import android.os.{Build, Bundle, Handler}
+import android.support.v4.content.ContextCompat
 import android.text.{Editable, Html, TextWatcher}
 import android.view.{LayoutInflater, View, ViewGroup}
 import android.widget.{TextView, Toast}
@@ -28,7 +29,6 @@ import com.waz.zclient.newreg.views.PhoneConfirmationButton
 import com.waz.zclient.pages.BaseFragment
 import com.waz.zclient.ui.text.TypefaceEditText
 import com.waz.zclient.ui.utils.KeyboardUtils
-import com.waz.zclient.utils.RichView
 
 object VerifyPhoneFragment {
   val TAG: String = classOf[VerifyPhoneFragment].getName
@@ -45,7 +45,6 @@ object VerifyPhoneFragment {
   }
 
   trait Container {
-    def getAccentColor: Int
     def enableProgress(enabled: Boolean): Unit
     def showError(entryError: EntryError, okCallback: => Unit = {}): Unit
   }
@@ -65,7 +64,6 @@ class VerifyPhoneFragment extends BaseFragment[VerifyPhoneFragment.Container] wi
   private lazy val phoneConfirmationButton = findById[PhoneConfirmationButton](getView, R.id.pcb__activate)
   private lazy val buttonBack = findById[View](getView, R.id.ll__activation_button__back)
   private lazy val textViewInfo = findById[TextView](getView, R.id.ttv__info_text)
-  private lazy val textViewNotNow: TextView = findById[TextView](getView, R.id.ttv__not_now)
   private lazy val phoneVerificationCodeMinLength = getResources.getInteger(R.integer.new_reg__phone_verification_code__min_length)
 
   private var milliSecondsToShowResendButton = 0
@@ -95,8 +93,7 @@ class VerifyPhoneFragment extends BaseFragment[VerifyPhoneFragment.Container] wi
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
       editTextCode.setLetterSpacing(1)
     }
-    textViewNotNow.setVisible(getArguments.getBoolean(VerifyPhoneFragment.ARG_SHOW_NOT_NOW))
-    appEntryController.currentAccount.map(_._1.flatMap(_.pendingPhone)).onUi{
+    appEntryController.currentAccount.map(_.flatMap(_.pendingPhone)).onUi{
       case Some(phone) =>
         onPhoneNumberLoaded(phone.str)
       case _ =>
@@ -110,7 +107,7 @@ class VerifyPhoneFragment extends BaseFragment[VerifyPhoneFragment.Container] wi
   override def onStart(): Unit = {
     super.onStart()
     editTextCode.requestFocus
-    val color = getContainer.getAccentColor
+    val color = ContextCompat.getColor(getActivity, R.color.text__primary_dark)
     editTextCode.setAccentColor(color)
     phoneConfirmationButton.setAccentColor(color)
     resendCodeButton.setTextColor(color)
@@ -126,7 +123,6 @@ class VerifyPhoneFragment extends BaseFragment[VerifyPhoneFragment.Container] wi
     resendCodeButton.setOnClickListener(this)
     buttonBack.setOnClickListener(this)
     editTextCode.addTextChangedListener(this)
-    textViewNotNow.setOnClickListener(this)
     resendCodeCallButton.setOnClickListener(this)
   }
 
@@ -135,7 +131,6 @@ class VerifyPhoneFragment extends BaseFragment[VerifyPhoneFragment.Container] wi
     resendCodeButton.setOnClickListener(null)
     buttonBack.setOnClickListener(null)
     editTextCode.removeTextChangedListener(this)
-    textViewNotNow.setOnClickListener(null)
     resendCodeCallButton.setOnClickListener(null)
     super.onPause()
   }
@@ -198,10 +193,6 @@ class VerifyPhoneFragment extends BaseFragment[VerifyPhoneFragment.Container] wi
     }
   }
 
-  private def onNotNow(): Unit = {
-    //TODO: What to do here??
-  }
-
   def onClick(view: View): Unit = {
     view.getId match {
       case R.id.ll__activation_button__back =>
@@ -211,8 +202,6 @@ class VerifyPhoneFragment extends BaseFragment[VerifyPhoneFragment.Container] wi
         startResendCodeTimer()
       case R.id.pcb__activate =>
         confirmCode()
-      case R.id.ttv__not_now =>
-        onNotNow()
       case R.id.ttv__call_me_button =>
         requestCallCode()
         startResendCodeTimer()

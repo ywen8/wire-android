@@ -146,6 +146,11 @@ class SignInFragment extends BaseFragment[Container] with FragmentHelper with Vi
       }
     })
 
+    signInController.uiSignInState.head.map {
+      case SignInMethod(Login, _) => tabSelector.setSelected(TabPages.SIGN_IN)
+      case SignInMethod(Register, _) => tabSelector.setSelected(TabPages.CREATE_ACCOUNT)
+    } (Threading.Ui)
+
     signInController.uiSignInState.onUi { state =>
       state match {
         case SignInMethod(Login, Email) =>
