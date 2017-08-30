@@ -33,8 +33,8 @@ case class EntryError(code: Int, label: String, signInMethod: SignInMethod) {
       case (400, _, _, Phone) =>                        (R.string.new_reg_phone_invalid_format_header, R.string.new_reg_phone_invalid_format_message)
       case (403, "pending-login", _, Phone) =>          (R.string.new_reg_phone_pending_login_header, R.string.new_reg_phone_pending_login_message)
       case (403, "phone-budget-exhausted", _, Phone) => (R.string.new_reg_phone_budget_exhausted_title, R.string.new_reg_phone_budget_exhausted_message)
-      case (403, _, _, Phone) =>                        (R.string.new_reg_phone_invalid_login_code_header, R.string.new_reg_phone_invalid_login_code_message)
-      case (404, _ , _, Phone) =>                       (R.string.new_reg_phone_invalid_registration_code_header, R.string.new_reg_phone_invalid_registration_code_message)
+      case (403, _, Login, Phone) =>                    (R.string.new_reg_phone_invalid_login_code_header, R.string.new_reg_phone_invalid_login_code_message)
+      case (404, _ , Register, Phone) =>                (R.string.new_reg_phone_invalid_registration_code_header, R.string.new_reg_phone_invalid_registration_code_message)
       case (409, _, Register, Phone) =>                 (R.string.new_reg_phone_exists_header, R.string.new_reg_phone_exists_message)
       case (_, _, Register, Phone) =>                   (R.string.new_reg_phone_generic_error_header, R.string.new_reg_phone_generic_error_message)
 

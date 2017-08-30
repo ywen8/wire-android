@@ -123,7 +123,7 @@ class SignInFragment extends BaseFragment[Container] with FragmentHelper with Vi
     emailButton.setOnClickListener(this)
     closeButton.setOnClickListener(this)
     tabSelector.setLabels(Array[Int](R.string.new_reg__phone_signup__create_account, R.string.i_have_an_account))
-    tabSelector.setTextColor(ContextCompat.getColorStateList(getContext, R.color.white))
+    tabSelector.setTextColor(ContextCompat.getColorStateList(getContext, R.color.wire__text_color_dark_selector))
     tabSelector.setSelected(TabPages.SIGN_IN)
 
     tabSelector.setCallback(new Callback {

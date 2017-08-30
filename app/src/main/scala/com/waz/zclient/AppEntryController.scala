@@ -17,6 +17,8 @@
  */
 package com.waz.zclient
 
+import com.waz.ZLog
+import com.waz.ZLog.ImplicitTag._
 import com.waz.api.impl.ErrorResponse
 import com.waz.api.{ClientRegistrationState, ImageAsset, KindOfAccess}
 import com.waz.client.RegistrationClientImpl.ActivateResult
@@ -62,14 +64,20 @@ class AppEntryController(implicit inj: Injector, eventContext: EventContext) ext
 
   val entryStage = for {
     (account, user) <- currentAccount
-  } yield stateForAccountAndUser(account, user)
+    state <- Signal.const(stateForAccountAndUser(account, user)).collect{ case s if s != Waiting => s }
+  } yield state
 
   val autoConnectInvite = for {
     Some(token)   <- invitationToken
     EnterAppStage <- entryStage
   } yield token
 
+  entryStage.onUi { stage =>
+    ZLog.verbose(s"Current stage: $stage")
+  }
+
   def stateForAccountAndUser(account: Option[AccountData], user: Option[UserData]): AppEntryStage = {
+    ZLog.verbose(s"Current data: $user, $account")
     (account, user) match {
       case (None, _) =>
         LoginStage
@@ -87,6 +95,8 @@ class AppEntryController(implicit inj: Injector, eventContext: EventContext) ext
             LoginStage
         } else if (accountData.regWaiting) {
           AddNameStage
+        } else if (accountData.userId.isDefined) {
+          Waiting
         } else
           LoginStage
       case (Some(accountData), Some(userData)) if userData.picture.isEmpty =>
@@ -205,6 +215,7 @@ object AppEntryController {
 
   trait AppEntryStage
   object Unknown            extends AppEntryStage
+  object Waiting            extends AppEntryStage
   object EnterAppStage      extends AppEntryStage
   object FirstEnterAppStage extends AppEntryStage
   object DeviceLimitStage   extends AppEntryStage
