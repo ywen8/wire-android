@@ -126,40 +126,25 @@ class MessageNotificationsController(implicit inj: Injector, cxt: Context, event
     notification.flags |= Notification.FLAG_SHOW_LIGHTS
   }
 
-  private def attachNotificationSound(notification: Notification, ns: Seq[NotificationInfo], silent: Boolean) = {
+  private def attachNotificationSound(notification: Notification, ns: Seq[NotificationInfo], silent: Boolean) =
     notification.sound =
       if (soundController.soundIntensityNone || silent) null
       else if (!soundController.soundIntensityFull && ns.size > 1) null
       else ns.lastOption.fold(null.asInstanceOf[Uri])(getMessageSoundUri)
-  }
 
-  private def getMessageSoundUri(n: NotificationInfo): Uri = {
-    n.tpe match {
-      case ASSET |
-           ANY_ASSET |
-           VIDEO_ASSET |
-           AUDIO_ASSET |
-           LOCATION |
-           TEXT |
-           CONNECT_ACCEPTED |
-           CONNECT_REQUEST |
-           RENAME |
-           LIKE =>
-        val value = soundController.currentTonePrefs._2
-        if (value != null && value.isEmpty) {
-          null
-        } else {
-          getSelectedSoundUri(value, R.raw.new_message_gcm)
-        }
-      case KNOCK =>
-        val value = soundController.currentTonePrefs._3
-        if (value != null && value.isEmpty) {
-          null
-        } else {
-          getSelectedSoundUri(value, R.raw.ping_from_them)
-        }
-      case _ => null
-    }
+  private def getMessageSoundUri(n: NotificationInfo): Uri = n.tpe match {
+    case ASSET |
+         ANY_ASSET |
+         VIDEO_ASSET |
+         AUDIO_ASSET |
+         LOCATION |
+         TEXT |
+         CONNECT_ACCEPTED |
+         CONNECT_REQUEST |
+         RENAME |
+         LIKE  => getSelectedSoundUri(soundController.currentTonePrefs._2, R.raw.new_message_gcm)
+    case KNOCK => getSelectedSoundUri(soundController.currentTonePrefs._3, R.raw.ping_from_them)
+    case _     => null
   }
 
   private def getSelectedSoundUri(value: String, @RawRes defaultResId: Int): Uri = getSelectedSoundUri(value, defaultResId, defaultResId)
