@@ -41,8 +41,7 @@ import com.waz.zclient.ui.text.{GlyphTextView, TypefaceEditText, TypefaceTextVie
 import com.waz.zclient.ui.utils.KeyboardUtils
 import com.waz.zclient.ui.views.tab.TabIndicatorLayout
 import com.waz.zclient.ui.views.tab.TabIndicatorLayout.Callback
-import com.waz.zclient.utils.ViewUtils
-import com.waz.zclient.utils.RichView
+import com.waz.zclient.utils.{LayoutSpec, RichView, ViewUtils}
 
 class SignInFragment extends BaseFragment[Container] with FragmentHelper with View.OnClickListener {
 
@@ -150,6 +149,20 @@ class SignInFragment extends BaseFragment[Container] with FragmentHelper with Vi
       case SignInMethod(Login, _) => tabSelector.setSelected(TabPages.SIGN_IN)
       case SignInMethod(Register, _) => tabSelector.setSelected(TabPages.CREATE_ACCOUNT)
     } (Threading.Ui)
+
+    //TODO: remove when login by email available on phones
+    if (LayoutSpec.isPhone(getActivity)) {
+      signInController.uiSignInState.onUi {
+        case SignInMethod(Register, Email) =>
+          signInController.uiSignInState ! SignInMethod(Register, Phone)
+        case SignInMethod(Register, _) =>
+          phoneButton.setVisible(false)
+          emailButton.setVisible(false)
+        case _ =>
+          phoneButton.setVisible(true)
+          emailButton.setVisible(true)
+      }
+    }
 
     signInController.uiSignInState.onUi { state =>
       state match {
