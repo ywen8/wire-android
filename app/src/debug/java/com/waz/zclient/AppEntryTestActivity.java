@@ -17,7 +17,6 @@
  */
 package com.waz.zclient;
 
-import com.waz.api.ImageAsset;
 import com.waz.api.Self;
 import com.waz.zclient.appentry.PhoneSetNameFragment;
 import com.waz.zclient.appentry.VerifyPhoneFragment;
@@ -79,7 +78,7 @@ public class AppEntryTestActivity extends TestActivity implements VerifyPhoneFra
     }
 
     @Override
-    public ImageAsset getUnsplashImageAsset() {
+    public Drawable getUnsplashImageDrawable() {
         return null;
     }
 

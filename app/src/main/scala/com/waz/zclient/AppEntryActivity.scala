@@ -30,7 +30,9 @@ import com.waz.ZLog.ImplicitTag._
 import com.waz.api._
 import com.waz.model.Handle
 import com.waz.service.ZMessaging
+import com.waz.service.images.BitmapSignal
 import com.waz.threading.Threading
+import com.waz.utils.events.Signal
 import com.waz.utils.wrappers.AndroidURIUtil
 import com.waz.zclient.AppEntryController._
 import com.waz.zclient.appentry._
@@ -49,7 +51,10 @@ import com.waz.zclient.preferences.dialogs.ChangeHandleFragment
 import com.waz.zclient.tracking.GlobalTrackingController
 import com.waz.zclient.ui.utils.KeyboardUtils
 import com.waz.zclient.utils.{HockeyCrashReporting, ViewUtils, ZTimeFormatter}
-import com.waz.zclient.views.LoadingIndicatorView
+import com.waz.zclient.views.ImageAssetDrawable.RequestBuilder
+import com.waz.zclient.views.ImageAssetDrawable.ScaleType.CenterCrop
+import com.waz.zclient.views.ImageController.ImageUri
+import com.waz.zclient.views.{ImageAssetDrawable, LoadingIndicatorView}
 import net.hockeyapp.android.NativeCrashManager
 
 object AppEntryActivity {
@@ -107,6 +112,9 @@ class AppEntryActivity extends BaseActivity
     unsplashInitLoadHandle = unsplashInitImageAsset.getSingleBitmap(AppEntryActivity.PREFETCH_IMAGE_WIDTH, new BitmapCallback() {
       def onBitmapLoaded(b: Bitmap): Unit = {}
     })
+
+    val unsplashSrc = Signal.const(ImageUri(AndroidURIUtil.parse(UNSPLASH_API_URL)))
+    val unsplashDrawable = new ImageAssetDrawable(unsplashDrawable, scaleType = CenterCrop, request = RequestBuilder.Single)
 
     appEntryController.entryStage.onUi {
       case EnterAppStage =>
@@ -360,7 +368,7 @@ class AppEntryActivity extends BaseActivity
     token != null || GenericInviteToken == referralToken
   }
 
-  def getUnsplashImageAsset: ImageAsset = unsplashInitImageAsset
+  def getUnsplashImageDrawable: Nothing = unsplashInitImageAsset
 
   def onPageVisible(page: Page): Unit = {
     page match {
