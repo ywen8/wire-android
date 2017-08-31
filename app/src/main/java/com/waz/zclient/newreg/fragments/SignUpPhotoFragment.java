@@ -23,7 +23,6 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
-import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -123,7 +122,7 @@ public class SignUpPhotoFragment extends BaseFragment<SignUpPhotoFragment.Contai
         keepButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                handleSelectedBitmap(getContainer().getUnsplashImageDrawable(), AddedPhotoEvent.PhotoSource.UNSPLASH);
+                handleSelectedBitmap(getContainer().getUnsplashImageAsset(), AddedPhotoEvent.PhotoSource.UNSPLASH);
             }
         });
 
@@ -157,7 +156,7 @@ public class SignUpPhotoFragment extends BaseFragment<SignUpPhotoFragment.Contai
             unsplashImageLoadHandle.cancel();
             unsplashImageLoadHandle = null;
         }
-        unsplashImageLoadHandle = getContainer().getUnsplashImageDrawable().getSingleBitmap(displayWidth, new BitmapCallback() {
+        unsplashImageLoadHandle = getContainer().getUnsplashImageAsset().getSingleBitmap(displayWidth, new BitmapCallback() {
             @Override
             public void onBitmapLoaded(final Bitmap bitmap) {
                 if (keepButton == null ||
@@ -401,6 +400,6 @@ public class SignUpPhotoFragment extends BaseFragment<SignUpPhotoFragment.Contai
     }
 
     public interface Container {
-        Drawable getUnsplashImageDrawable();
+        ImageAsset getUnsplashImageAsset();
     }
 }
