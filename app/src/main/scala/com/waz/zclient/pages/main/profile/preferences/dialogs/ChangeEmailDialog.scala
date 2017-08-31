@@ -53,7 +53,6 @@ class ChangeEmailDialog extends DialogFragment with FragmentHelper {
   lazy val passwordController = inject[PasswordController]
 
   private var addingNewEmail = false
-  private var needsPassword  = true
 
   private lazy val root = LayoutInflater.from(getActivity).inflate(R.layout.preference_dialog_add_email_password, null)
 
@@ -87,7 +86,6 @@ class ChangeEmailDialog extends DialogFragment with FragmentHelper {
   override def onCreateDialog(savedInstanceState: Bundle): Dialog = {
 
     addingNewEmail = getArguments.getBoolean(AddingNewEmailArg, false)
-    needsPassword = getArguments.getBoolean(NeedPasswordArg, true)
 
     //lazy init
     emailInputLayout
@@ -95,7 +93,7 @@ class ChangeEmailDialog extends DialogFragment with FragmentHelper {
     passwordInputLayout
     passwordEditText
 
-    passwordInputLayout.setVisible(addingNewEmail || needsPassword)
+    passwordInputLayout.setVisible(addingNewEmail)
 
     //TODO tidy this up - we could split up the error types and set them on the appropriate layout a little better
     onError.onUi {
@@ -152,7 +150,7 @@ class ChangeEmailDialog extends DialogFragment with FragmentHelper {
           onEmailChanged ! e
           dismiss()
         }
-      case (Some(e), _) if !needsPassword =>
+      case (Some(e), _) if !addingNewEmail =>
         for {
           z <- zms.head
           res <- z.account.updateEmail(EmailAddress(e))
@@ -166,7 +164,7 @@ class ChangeEmailDialog extends DialogFragment with FragmentHelper {
     }
 
     if (email.isEmpty) emailInputLayout.setError(getString(R.string.pref__account_action__dialog__add_email_password__error__invalid_email))
-    if (password.isEmpty && needsPassword) passwordEditText.setError(getString(R.string.pref__account_action__dialog__add_email_password__error__invalid_password))
+    if (password.isEmpty && addingNewEmail) passwordEditText.setError(getString(R.string.pref__account_action__dialog__add_email_password__error__invalid_password))
   }
 
 }
@@ -174,15 +172,13 @@ class ChangeEmailDialog extends DialogFragment with FragmentHelper {
 object ChangeEmailDialog {
 
   val AddingNewEmailArg = "ARG_ADDING_NEW_EMAIL"
-  val NeedPasswordArg   = "ARG_NEEDS_PASSWORD"
 
   val FragmentTag = ChangeEmailDialog.getClass.getSimpleName
 
-  def apply(addingEmail: Boolean, needsPassword: Boolean) =
+  def apply(addingEmail: Boolean) =
     returning(new ChangeEmailDialog()) {
       _.setArguments(returning(new Bundle()) { b =>
         b.putBoolean(AddingNewEmailArg, addingEmail)
-        b.putBoolean(NeedPasswordArg, needsPassword)
       })
     }
 }

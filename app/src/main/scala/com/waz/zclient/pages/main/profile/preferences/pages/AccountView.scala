@@ -214,7 +214,7 @@ class AccountViewController(view: AccountView)(implicit inj: Injector, ec: Event
       pw    <- password.head
     } {
       showPrefDialog(
-        returning(ChangeEmailDialog(addingEmail = email.isEmpty, needsPassword = pw.isEmpty)) {
+        returning(ChangeEmailDialog(addingEmail = email.isEmpty)) {
           _.onEmailChanged { e =>
             val f = VerifyEmailPreferenceFragment.newInstance(e)
             //hide the verification screen when complete
