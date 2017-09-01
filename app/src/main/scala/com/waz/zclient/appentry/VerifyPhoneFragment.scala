@@ -51,7 +51,7 @@ object VerifyPhoneFragment {
 
 }
 
-class VerifyPhoneFragment extends BaseFragment[VerifyPhoneFragment.Container] with FragmentHelper with View.OnClickListener with TextWatcher {
+class VerifyPhoneFragment extends BaseFragment[VerifyPhoneFragment.Container] with FragmentHelper with View.OnClickListener with TextWatcher with OnBackPressedListener {
 
   implicit val executionContext = Threading.Ui
 
@@ -231,5 +231,10 @@ class VerifyPhoneFragment extends BaseFragment[VerifyPhoneFragment.Container] wi
     val sec = milliSecondsToShowResendButton / 1000
     resendCodeTimer.setText(getResources.getQuantityString(R.plurals.welcome__resend__timer_label, sec, Integer.valueOf(sec)))
     resendCodeTimerHandler.postDelayed(resendCodeTimerRunnable, VerifyPhoneFragment.RESEND_CODE_TIMER_INTERVAL)
+  }
+
+  override def onBackPressed() = {
+    goBack()
+    true
   }
 }

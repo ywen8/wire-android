@@ -90,7 +90,7 @@ class AppEntryController(implicit inj: Injector, eventContext: EventContext) ext
             LoginStage
         } else if (accountData.regWaiting) {
           AddNameStage
-        } else if (accountData.userId.isDefined) {
+        } else if (accountData.cookie.isDefined || accountData.accessToken.isDefined) {
           Waiting
         } else
           LoginStage
@@ -196,7 +196,7 @@ class AppEntryController(implicit inj: Injector, eventContext: EventContext) ext
     }
   }
 
-  def cancelVerification(): Unit = ZMessaging.currentAccounts.logout(true)
+  def cancelVerification(): Unit = ZMessaging.currentAccounts.logout(false)
 
   def setPicture(imageAsset: ImageAsset): Unit = {
     optZms.head.map {

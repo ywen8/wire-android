@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package com.waz.zclient.fragments
+package com.waz.zclient.appentry
 
 import android.content.DialogInterface
 import android.graphics.Color
@@ -31,7 +31,6 @@ import com.waz.threading.Threading
 import com.waz.zclient._
 import com.waz.zclient.controllers.SignInController
 import com.waz.zclient.controllers.SignInController._
-import com.waz.zclient.fragments.SignInFragment._
 import com.waz.zclient.newreg.fragments.TabPages
 import com.waz.zclient.newreg.fragments.country.Country
 import com.waz.zclient.newreg.views.PhoneConfirmationButton
@@ -42,6 +41,7 @@ import com.waz.zclient.ui.utils.KeyboardUtils
 import com.waz.zclient.ui.views.tab.TabIndicatorLayout
 import com.waz.zclient.ui.views.tab.TabIndicatorLayout.Callback
 import com.waz.zclient.utils.{LayoutSpec, RichView, ViewUtils}
+import SignInFragment._
 
 class SignInFragment extends BaseFragment[Container] with FragmentHelper with View.OnClickListener {
 
@@ -168,22 +168,25 @@ class SignInFragment extends BaseFragment[Container] with FragmentHelper with Vi
       state match {
         case SignInMethod(Login, Email) =>
           TransitionManager.go(scenes(0), transition)
+          setupViews()
           setEmailButtonSelected()
-          emailField.foreach(_.requestFocus())
+          emailField.foreach(_.getEditText.requestFocus())
         case SignInMethod(Login, Phone) =>
           TransitionManager.go(scenes(1), transition)
+          setupViews()
           setPhoneButtonSelected()
           phoneField.foreach(_.requestFocus())
         case SignInMethod(Register, Email) =>
           TransitionManager.go(scenes(2), transition)
+          setupViews()
           setEmailButtonSelected()
-          nameField.foreach(_.requestFocus())
+          nameField.foreach(_.getEditText.requestFocus())
         case SignInMethod(Register, Phone) =>
           TransitionManager.go(scenes(3), transition)
+          setupViews()
           setPhoneButtonSelected()
           phoneField.foreach(_.requestFocus())
       }
-      setupViews()
       signInController.phoneCountry.currentValue.foreach{ onCountryHasChanged }
     }
 

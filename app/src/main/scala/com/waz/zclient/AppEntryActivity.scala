@@ -40,7 +40,7 @@ import com.waz.zclient.core.controllers.tracking.attributes.Attribute
 import com.waz.zclient.core.controllers.tracking.events.Event
 import com.waz.zclient.core.controllers.tracking.events.onboarding.{KeptGeneratedUsernameEvent, OpenedUsernameSettingsEvent}
 import com.waz.zclient.core.controllers.tracking.events.registration.{OpenedPhoneRegistrationFromInviteEvent, SucceededWithRegistrationEvent}
-import com.waz.zclient.fragments.{CountryDialogFragment, SignInFragment}
+import com.waz.zclient.fragments.CountryDialogFragment
 import com.waz.zclient.newreg.fragments.SignUpPhotoFragment
 import com.waz.zclient.newreg.fragments.SignUpPhotoFragment.UNSPLASH_API_URL
 import com.waz.zclient.newreg.fragments.country.CountryController
@@ -51,6 +51,7 @@ import com.waz.zclient.ui.utils.KeyboardUtils
 import com.waz.zclient.utils.{HockeyCrashReporting, ViewUtils, ZTimeFormatter}
 import com.waz.zclient.views.LoadingIndicatorView
 import net.hockeyapp.android.NativeCrashManager
+import scala.collection.JavaConverters._
 
 object AppEntryActivity {
   val TAG: String = classOf[AppEntryActivity].getName
@@ -89,11 +90,12 @@ class AppEntryActivity extends BaseActivity
   }
 
   override def onBackPressed(): Unit = {
-    val fragment = getSupportFragmentManager.findFragmentByTag(SignUpPhotoFragment.TAG).asInstanceOf[SignUpPhotoFragment]
-    if (fragment != null && fragment.onBackPressed) {
-      return
+    getSupportFragmentManager.getFragments.asScala.foreach {
+      case fragment: OnBackPressedListener if fragment.onBackPressed() =>
+        return
+      case _ =>
     }
-    super.onBackPressed()
+    abortAddAccount()
   }
 
   override def onCreate(savedInstanceState: Bundle): Unit = {
@@ -185,7 +187,7 @@ class AppEntryActivity extends BaseActivity
     enableProgress(true)
     ZMessaging.currentAccounts.loggedInAccounts.head.map { accounts =>
       accounts.headOption.fold {
-        enableProgress(false)
+        finishAfterTransition()
       } { acc =>
         ZMessaging.currentAccounts.switchAccount(acc.id).map { _ =>
           onEnterApplication(true)

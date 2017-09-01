@@ -132,6 +132,7 @@
             android:name="com.waz.zclient.preferences.PreferencesActivity"
             android:hardwareAccelerated="true"
             android:theme="@style/Theme.Dark.Preferences"
+            android:launchMode="singleTask"
             android:label="@string/empty_string"
             />
         <activity
