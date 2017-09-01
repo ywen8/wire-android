@@ -74,7 +74,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
-        android:visibility="invisible"
+        android:visibility="gone"
         >
 
         <include  layout="@layout/conv_list_item_loading_small" />
@@ -84,6 +84,9 @@
         <include  layout="@layout/conv_list_item_loading_large" />
         <include  layout="@layout/conv_list_item_loading_regular" />
         <include  layout="@layout/conv_list_item_loading_small" />
+        <include  layout="@layout/conv_list_item_loading_large" />
+        <include  layout="@layout/conv_list_item_loading_small" />
+        <include  layout="@layout/conv_list_item_loading_regular" />
 
     </LinearLayout>
 

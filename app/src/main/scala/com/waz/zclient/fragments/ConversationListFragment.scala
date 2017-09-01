@@ -25,9 +25,9 @@ import android.view.animation.Animation
 import android.view.{LayoutInflater, View, ViewGroup}
 import com.waz.ZLog
 import com.waz.ZLog.ImplicitTag._
-import com.waz.model.{AccountId, ConversationData, UserId}
 import com.waz.model.ConversationData.ConversationType
 import com.waz.model.otr.Client
+import com.waz.model.{AccountId, ConversationData}
 import com.waz.service.ZMessaging
 import com.waz.threading.Threading
 import com.waz.utils.events.Signal
@@ -188,10 +188,10 @@ class NormalConversationFragment extends ConversationListFragment {
     clients <- acc.clientId.fold(Signal.empty[Seq[Client]])(aid => z.otrClientsStorage.incomingClientsSignal(z.selfUserId, aid))
   } yield (color.getColor(), clients)
 
-  private lazy val unreadCount = for {
+  private lazy val unreadCount = (for {
     Some(accountId) <- ZMessaging.currentAccounts.activeAccountPref.signal
     count  <- userAccountsController.unreadCount.map(_.filterNot(_._1 == accountId).values.sum)
-  } yield count
+  } yield count).orElse(Signal.const(0))
 
   lazy val hasConversationsAndArchive = for {
     z <- zms
@@ -201,9 +201,10 @@ class NormalConversationFragment extends ConversationListFragment {
     convs.conversations.exists(c => c.archived && !c.hidden))
   }
 
-  lazy val listActionsView = ViewUtils.getView(getView, R.id.lav__conversation_list_actions).asInstanceOf[ListActionsView]
-  lazy val conversationListView = ViewUtils.getView(getView, R.id.conversation_list_view).asInstanceOf[SwipeListView]
-  lazy val loadingListView = ViewUtils.getView(getView, R.id.conversation_list_loading_indicator).asInstanceOf[View]
+  def topToolbar = ViewUtils.getView(getView, R.id.conversation_list_top_toolbar).asInstanceOf[NormalTopToolbar]
+  def listActionsView = ViewUtils.getView(getView, R.id.lav__conversation_list_actions).asInstanceOf[ListActionsView]
+  def conversationListView = ViewUtils.getView(getView, R.id.conversation_list_view).asInstanceOf[SwipeListView]
+  def loadingListView = ViewUtils.getView(getView, R.id.conversation_list_loading_indicator).asInstanceOf[View]
 
   private var adapter = Option.empty[ConversationListAdapter]
   private val waitingAccount = Signal[Option[AccountId]](None)
@@ -223,19 +224,12 @@ class NormalConversationFragment extends ConversationListFragment {
   override def init(view: View, adapter: ConversationListAdapter): Unit = {
     this.adapter = Some(adapter)
 
-    val topToolbar = ViewUtils.getView(view, R.id.conversation_list_top_toolbar).asInstanceOf[NormalTopToolbar]
     val noConvsTitle = ViewUtils.getView(view, R.id.conversation_list_empty_title).asInstanceOf[TypefaceTextView]
     val noConvsSubtitle = ViewUtils.getView(view, R.id.conversation_list_empty_subtitle).asInstanceOf[TypefaceTextView]
 
     conversationListView.addOnScrollListener(new RecyclerView.OnScrollListener {
       override def onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) = {
         listActionsView.setScrolledToBottom(!recyclerView.canScrollVertically(1))
-      }
-    })
-
-    adapter.registerAdapterDataObserver(new AdapterDataObserver {
-      override def onChanged() = {
-        ZLog.verbose(s"Conversation list changed")
       }
     })
 
@@ -259,7 +253,7 @@ class NormalConversationFragment extends ConversationListFragment {
 
     topToolbar.onRightButtonClick { _ => getActivity.startActivityForResult(PreferencesActivity.getDefaultIntent(getContext), PreferencesActivity.SwitchAccountCode) }
 
-    Signal(unreadCount.orElse(Signal.const(0)), incomingClients).on(Threading.Ui) {
+    Signal(unreadCount, incomingClients).on(Threading.Ui) {
       case (count, (color, clients)) =>
         topToolbar.setIndicatorVisible(clients.nonEmpty || count > 0)
         topToolbar.setIndicatorColor(color)
@@ -282,6 +276,7 @@ class NormalConversationFragment extends ConversationListFragment {
     loadingListView.setVisibility(View.VISIBLE)
     loadingListView.setAlpha(1f)
     listActionsView.setAlpha(0.5f)
+    topToolbar.setLoading(true)
   }
 
   private def hideLoading(): Unit = {
@@ -291,13 +286,10 @@ class NormalConversationFragment extends ConversationListFragment {
       conversationListView.animate().alpha(1f).setDuration(500)
       listActionsView.animate().alpha(1f).setDuration(500)
       loadingListView.animate().alpha(0f).setDuration(500).withEndAction(new Runnable {
-        override def run() = loadingListView.setVisibility(View.INVISIBLE)
+        override def run() = loadingListView.setVisibility(View.GONE)
       })
     }
-  }
-
-  override def onStart() = {
-    super.onStart()
+    topToolbar.setLoading(false)
   }
 
   override def onActivityResult(requestCode: Int, resultCode: Int, data: Intent) = {

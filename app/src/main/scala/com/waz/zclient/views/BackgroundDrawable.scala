@@ -50,6 +50,9 @@ class BackgroundDrawable(src: Signal[ImageSource],
   private val animator = ValueAnimator.ofFloat(0, 1).setDuration(750)
   private var animationFraction = 1.0f
 
+  private val matrix = new Matrix
+  private val prevMatrix = new Matrix
+
   private val bmp = for {
     src <- src
     bmp <- images.imageSignal(src, RequestBuilder.Single(Math.min(screenSize.width, 300)), forceDownload = true).collect { case BitmapLoaded(bm, _) => bm }
@@ -106,15 +109,15 @@ class BackgroundDrawable(src: Signal[ImageSource],
 
   override def draw(canvas: Canvas) = {
 
-    currentBmp.foreach { bm =>
-      val matrix = new Matrix
+    currentBmp.foreach   { bm =>
+      matrix.reset()
       ScaleType.CenterXCrop(matrix, bm.getWidth, bm.getHeight, screenSize)
 
       prevBmp.fold {
         canvas.drawBitmap(bm, matrix, bitmapPaint)
       } { prevBm =>
         val alpha = (animationFraction * 255).toInt
-        val prevMatrix = new Matrix
+        prevMatrix.reset()
         ScaleType.CenterXCrop(prevMatrix, prevBm.getWidth, prevBm.getHeight, screenSize)
 
         bitmapPaint.setAlpha(255 - alpha)

@@ -259,20 +259,20 @@ class AccountViewController(view: AccountView)(implicit inj: Injector, ec: Event
   }
 
   view.onLogoutClick.onUi { _ =>
-    self.head.map { self =>
-      showAlertDialog(context, null,
-        getString(R.string.pref_account_sign_out_warning_message),
-        getString(R.string.pref_account_sign_out_warning_verify),
-        getString(R.string.pref_account_sign_out_warning_cancel),
-        new DialogInterface.OnClickListener() {
-          def onClick(dialog: DialogInterface, which: Int) = {
-            context.asInstanceOf[PreferencesActivity].getControllerFactory.getUsernameController.tearDown()
-            // TODO: Remove old SignOut event https://wearezeta.atlassian.net/browse/AN-4232
-            Future.sequence(Seq(tracking.tagEvent(new SignOut), tracking.tagEvent(new LoggedOutEvent)))(Seq.canBuildFrom, Threading.Background)
-            zms.map(_.account).head.flatMap(_.logout(true))(Threading.Background)
-          }
-        }, null)
-    }(Threading.Ui)
+    showAlertDialog(context, null,
+      getString(R.string.pref_account_sign_out_warning_message),
+      getString(R.string.pref_account_sign_out_warning_verify),
+      getString(R.string.pref_account_sign_out_warning_cancel),
+      new DialogInterface.OnClickListener() {
+        def onClick(dialog: DialogInterface, which: Int) = {
+          context.asInstanceOf[PreferencesActivity].getControllerFactory.getUsernameController.tearDown()
+          // TODO: Remove old SignOut event https://wearezeta.atlassian.net/browse/AN-4232
+          Future.sequence(Seq(tracking.tagEvent(new SignOut), tracking.tagEvent(new LoggedOutEvent)))(Seq.canBuildFrom, Threading.Background)
+          zms.map(_.account).head.flatMap(_.logout(true))(Threading.Ui)
+          navigator.back()
+          navigator.back()
+        }
+      }, null)
   }
 
   view.onDeleteClick.onUi { _ =>
