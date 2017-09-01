@@ -150,6 +150,7 @@ object QuickReplyContentAdapter {
           context.getString(R.string.notification__message__single__accept_request, userName)
         case ANY_ASSET =>
           context.getString(R.string.notification__message__one_to_one__shared_file)
+        case _ => ""
       }
     }
   }

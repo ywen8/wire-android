@@ -20,8 +20,8 @@
 -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
              xmlns:custom="http://schemas.android.com/apk/res-auto"
-             android:layout_width="match_parent"
-             android:layout_height="match_parent">
+              android:layout_width="match_parent"
+              android:layout_height="match_parent">
 
     <ImageView
         android:id="@+id/iv__reg__logo"
@@ -60,19 +60,15 @@
         android:layout_marginRight="@dimen/new_reg__body_right_margin"
         >
 
-        <com.waz.zclient.ui.text.TypefaceTextView
+        <com.waz.zclient.ui.views.tab.TabIndicatorLayout
+            android:id="@+id/til__app_entry"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:paddingBottom="@dimen/wire__padding__small"
-            android:text="@string/invitation_phone__welcome_message"
-            android:textSize="@dimen/wire__text_size__medium"
-            custom:font="@string/wire__typeface__light"
-            android:textColor="@color/text__primary_dark"
             />
 
         <LinearLayout
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_height="@dimen/wire__padding__20"
             android:layout_gravity="center_horizontal"
             android:layout_marginBottom="@dimen/reg__signin_option__height_margin"
             android:layout_marginTop="@dimen/reg__signin_option__height_margin"
@@ -115,20 +111,5 @@
             android:id="@+id/sign_in_container"
             android:layout_width="match_parent"
             android:layout_height="@dimen/phone_sign_in_container_height"/>
-
-        <!-- Term Of Service -->
-        <com.waz.zclient.ui.text.TypefaceTextView
-            android:id="@+id/tv__phone_invite__terms_of_service"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_vertical|left"
-            android:layout_marginLeft="@dimen/new_reg__sign_up__indention"
-            android:layout_marginTop="@dimen/wire__padding__regular"
-            android:maxLines="1"
-            android:text="@string/welcome__terms_of_service"
-            android:textColor="@color/first_time__welcome__tos_color"
-            android:textSize="@dimen/first_time__welcome__subtitle_font_size"
-            custom:font="@string/wire__typeface__light"
-            />
     </LinearLayout>
 </FrameLayout>

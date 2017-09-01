@@ -35,6 +35,7 @@ import com.waz.service.ZMessaging
 import com.waz.threading.Threading
 import com.waz.utils.events.Signal
 import com.waz.utils.returning
+import com.waz.zclient.AppEntryController.{DeviceLimitStage, EnterAppStage, Unknown}
 import com.waz.zclient.calling.CallingActivity
 import com.waz.zclient.calling.controllers.CallPermissionsController
 import com.waz.zclient.controllers.accentcolor.AccentColorChangeRequester
@@ -47,7 +48,6 @@ import com.waz.zclient.controllers.tracking.events.exception.ExceptionEvent
 import com.waz.zclient.controllers.tracking.events.profile.SignOut
 import com.waz.zclient.controllers.tracking.screens.ApplicationScreen
 import com.waz.zclient.controllers.{SharingController, UserAccountsController}
-import com.waz.zclient.core.api.scala.AppEntryStore
 import com.waz.zclient.core.controllers.tracking.attributes.OpenedMediaAction
 import com.waz.zclient.core.controllers.tracking.events.media.OpenedMediaActionEvent
 import com.waz.zclient.core.controllers.tracking.events.session.LoggedOutEvent
@@ -91,6 +91,7 @@ class MainActivity extends BaseActivity
   lazy val callPermissionController = inject[CallPermissionsController]
   lazy val selectionController      = inject[SelectionController]
   lazy val userAccountsController   = inject[UserAccountsController]
+  lazy val appEntryController       = inject[AppEntryController]
 
   override def onAttachedToWindow() = {
     super.onAttachedToWindow()
@@ -142,6 +143,25 @@ class MainActivity extends BaseActivity
       case _ =>
     }
 
+    appEntryController.entryStage.onUi {
+      case EnterAppStage => onUserLoggedInAndVerified(getStoreFactory.zMessagingApiStore.getApi.getSelf)
+      case DeviceLimitStage => showUnableToRegisterOtrClientDialog()
+      case Unknown =>
+        error("Unknown state")
+      case _ => openSignUpPage()
+    }
+
+    appEntryController.autoConnectInvite.onUi { token =>
+      getControllerFactory.getUserPreferencesController.setGenericInvitationToken(null)
+      getControllerFactory.getUserPreferencesController.setReferralToken(null)
+
+      if (!TextUtils.isEmpty(token) && TextUtils.equals(token, AppEntryController.GenericInviteToken)){
+        getStoreFactory.connectStore.requestConnection(token)
+        globalTracking.tagEvent(new AcceptedGenericInviteEvent)
+      }
+
+      appEntryController.invitationToken ! None
+    }
   }
 
   override protected def onResumeFragments() = {
@@ -159,8 +179,6 @@ class MainActivity extends BaseActivity
     getControllerFactory.getNavigationController.addNavigationControllerObserver(this)
     getControllerFactory.getCallingController.addCallingObserver(this)
     getStoreFactory.conversationStore.addConversationStoreObserver(this)
-    handleInvite()
-    handleReferral()
 
     super.onStart()
     //This is needed to drag the user back to the calling activity if they open the app again during a call
@@ -220,7 +238,6 @@ class MainActivity extends BaseActivity
     getStoreFactory.connectStore.removeConnectRequestObserver(this)
     getStoreFactory.profileStore.removeProfileStoreObserver(this)
     getControllerFactory.getNavigationController.removeNavigationControllerObserver(this)
-    getControllerFactory.getUserPreferencesController.setLastAccentColor(getStoreFactory.profileStore.getAccentColor)
   }
 
   override def onBackPressed(): Unit = {
@@ -301,30 +318,6 @@ class MainActivity extends BaseActivity
       onPasswordWasReset()
       return
     }
-    // step 2 - no one is logged in
-    ZMessaging.currentAccounts.activeAccountPref().map {
-      case Some(account) =>
-      case None => {
-        // finally - no one is logged in
-        error("No user is logged in")
-        openSignUpPage()
-      }
-    }(Threading.Ui)
-
-    import com.waz.api.ClientRegistrationState._
-    self.getClientRegistrationState match {
-      case PASSWORD_MISSING =>
-        if (!TextUtils.isEmpty(self.getEmail)) {
-          startActivity(new Intent(this, classOf[OTRSignInActivity]))
-          finish()
-          return
-        }
-        else getStoreFactory.zMessagingApiStore.getApi.logout()
-      case LIMIT_REACHED =>
-        showUnableToRegisterOtrClientDialog()
-      case _ =>
-    }
-    onUserLoggedInAndVerified(self)
   }
 
   private def onPasswordWasReset() = {
@@ -419,22 +412,6 @@ class MainActivity extends BaseActivity
 
   private def replaceMainFragment(fragment: Fragment, TAG: String) = {
     getSupportFragmentManager.beginTransaction.replace(R.id.fl_main_content, fragment, TAG).commit
-  }
-
-  private def handleInvite(): Unit = {
-    val token = getControllerFactory.getUserPreferencesController.getGenericInvitationToken
-    getControllerFactory.getUserPreferencesController.setGenericInvitationToken(null)
-    if (TextUtils.isEmpty(token) || TextUtils.equals(token, AppEntryStore.GENERAL_GENERIC_INVITE_TOKEN)) return
-    getStoreFactory.connectStore.requestConnection(token)
-    globalTracking.tagEvent(new AcceptedGenericInviteEvent)
-  }
-
-  private def handleReferral(): Unit = {
-    val referralToken = getControllerFactory.getUserPreferencesController.getReferralToken
-    getControllerFactory.getUserPreferencesController.setReferralToken(null)
-    if (TextUtils.isEmpty(referralToken) || TextUtils.equals(referralToken, AppEntryStore.GENERAL_GENERIC_INVITE_TOKEN)) return
-    getStoreFactory.connectStore.requestConnection(referralToken)
-    globalTracking.tagEvent(new AcceptedGenericInviteEvent)
   }
 
   def onLogout() = {

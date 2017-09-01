@@ -19,145 +19,26 @@ package com.waz.zclient;
 
 import com.waz.api.ImageAsset;
 import com.waz.api.Self;
-import com.waz.zclient.core.controllers.tracking.events.Event;
+import com.waz.zclient.appentry.PhoneSetNameFragment;
+import com.waz.zclient.appentry.VerifyPhoneFragment;
 import com.waz.zclient.core.stores.api.ZMessagingApiStoreObserver;
-import com.waz.zclient.core.stores.appentry.AppEntryStateCallback;
-import com.waz.zclient.newreg.fragments.EmailInvitationFragment;
-import com.waz.zclient.newreg.fragments.EmailRegisterFragment;
-import com.waz.zclient.newreg.fragments.EmailSignInFragment;
-import com.waz.zclient.newreg.fragments.EmailVerifyEmailFragment;
+import com.waz.zclient.fragments.CountryDialogFragment;
 import com.waz.zclient.newreg.fragments.PhoneAddEmailFragment;
-import com.waz.zclient.newreg.fragments.PhoneInvitationFragment;
-import com.waz.zclient.newreg.fragments.PhoneRegisterFragment;
-import com.waz.zclient.newreg.fragments.PhoneSetNameFragment;
-import com.waz.zclient.newreg.fragments.PhoneSignInFragment;
-import com.waz.zclient.newreg.fragments.PhoneVerifyEmailFragment;
 import com.waz.zclient.newreg.fragments.SignUpPhotoFragment;
-import com.waz.zclient.newreg.fragments.VerifyPhoneFragment;
-import com.waz.zclient.newreg.fragments.WelcomeEmailFragment;
 import com.waz.zclient.newreg.fragments.country.CountryController;
-import com.waz.zclient.newreg.fragments.country.CountryDialogFragment;
+
+import scala.Function0;
+import scala.runtime.BoxedUnit;
 
 public class AppEntryTestActivity extends TestActivity implements VerifyPhoneFragment.Container,
-                                                                       PhoneRegisterFragment.Container,
-                                                                       PhoneSignInFragment.Container,
                                                                        PhoneSetNameFragment.Container,
                                                                        PhoneAddEmailFragment.Container,
-                                                                       PhoneVerifyEmailFragment.Container,
                                                                        SignUpPhotoFragment.Container,
-                                                                       EmailRegisterFragment.Container,
-                                                                       EmailSignInFragment.Container,
-                                                                       EmailVerifyEmailFragment.Container,
-                                                                       WelcomeEmailFragment.Container,
-                                                                       EmailInvitationFragment.Container,
-                                                                       PhoneInvitationFragment.Container,
                                                                        InAppWebViewFragment.Container,
                                                                        CountryDialogFragment.Container,
-                                                                       AppEntryStateCallback,
                                                                        ZMessagingApiStoreObserver {
-
-    @Override
-    public void onShowPhoneInvitationPage() {
-
-    }
-
-    @Override
-    public void onShowEmailInvitationPage() {
-
-    }
-
-    @Override
-    public void onInvitationFailed() {
-
-    }
-
-    @Override
-    public void onInvitationSuccess() {
-
-    }
-
-    @Override
-    public void onShowPhoneRegistrationPage() {
-
-    }
-
-    @Override
-    public void onShowPhoneSignInPage() {
-
-    }
-
-    @Override
-    public void onShowPhoneCodePage() {
-
-    }
-
-    @Override
-    public void onShowPhoneAddEmailPage() {
-
-    }
-
-    @Override
-    public void onShowPhoneVerifyEmailPage() {
-
-    }
-
-    @Override
-    public void onShowPhoneNamePage() {
-
-    }
-
-    @Override
-    public void onEnterApplication(boolean openSettings) {
-
-    }
-
-    @Override
-    public void onShowPhoneSetPicturePage() {
-
-    }
-
-    @Override
-    public void onShowEmailWelcomePage() {
-
-    }
-
-    @Override
-    public void onShowEmailRegistrationPage() {
-
-    }
-
-    @Override
-    public void onShowEmailVerifyEmailPage() {
-
-    }
-
-    @Override
-    public void onShowEmailSignInPage() {
-
-    }
-
-    @Override
-    public void onShowEmailSetPicturePage() {
-
-    }
-
-    @Override
-    public void onShowFirstLaunchPage() {
-
-    }
-
-    @Override
-    public void tagAppEntryEvent(Event event) {
-
-    }
-
     @Override
     public void onOpenUrl(String url) {
-
-    }
-
-    @Override
-    public void onOpenUrlInApp(String url, boolean withCloseButton) {
 
     }
 
@@ -172,24 +53,10 @@ public class AppEntryTestActivity extends TestActivity implements VerifyPhoneFra
     }
 
     @Override
-    public void abortAddAccount() {
-
-    }
-
-    @Override
-    public void openCountryBox() {
-
-    }
-
-    @Override
     public CountryController getCountryController() {
         return null;
     }
 
-    @Override
-    public void dismissCountryBox() {
-
-    }
 
     @Override
     public void onInitialized(Self self) {
@@ -214,6 +81,16 @@ public class AppEntryTestActivity extends TestActivity implements VerifyPhoneFra
     @Override
     public ImageAsset getUnsplashImageAsset() {
         return null;
+    }
+
+    @Override
+    public void showError(EntryError entryError, Function0<BoxedUnit> okCallback) {
+
+    }
+
+    @Override
+    public void showError$default$2() {
+
     }
 }
 

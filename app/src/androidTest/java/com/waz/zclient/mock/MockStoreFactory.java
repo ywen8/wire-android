@@ -19,7 +19,6 @@ package com.waz.zclient.mock;
 
 import com.waz.zclient.core.stores.IStoreFactory;
 import com.waz.zclient.core.stores.api.IZMessagingApiStore;
-import com.waz.zclient.core.stores.appentry.IAppEntryStore;
 import com.waz.zclient.core.stores.connect.IConnectStore;
 import com.waz.zclient.core.stores.conversation.IConversationStore;
 import com.waz.zclient.core.stores.draft.IDraftStore;
@@ -29,7 +28,6 @@ import com.waz.zclient.core.stores.participants.IParticipantsStore;
 import com.waz.zclient.core.stores.pickuser.IPickUserStore;
 import com.waz.zclient.core.stores.profile.IProfileStore;
 import com.waz.zclient.core.stores.singleparticipants.ISingleParticipantStore;
-import com.waz.zclient.core.stores.stub.StubAppEntryStore;
 import com.waz.zclient.core.stores.stub.StubConnectStore;
 import com.waz.zclient.core.stores.stub.StubDraftStore;
 import com.waz.zclient.core.stores.stub.StubInAppNotificationStore;
@@ -44,8 +42,6 @@ import static org.mockito.Mockito.spy;
 
 public class MockStoreFactory implements IStoreFactory {
   protected IZMessagingApiStore zMessagingApiStore = spy(StubZMessagingApiStore.class);
-
-  protected IAppEntryStore appEntryStore = spy(StubAppEntryStore.class);
 
   protected IConnectStore connectStore = spy(StubConnectStore.class);
 
@@ -86,11 +82,6 @@ public class MockStoreFactory implements IStoreFactory {
   @Override
   public ISingleParticipantStore singleParticipantStore() {
     return singleParticipantStore;
-  }
-
-  @Override
-  public IAppEntryStore appEntryStore() {
-    return appEntryStore;
   }
 
   @Override

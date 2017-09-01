@@ -24,8 +24,8 @@
              android:layout_height="match_parent" android:background="@color/black"
     >
 
-    <com.waz.zclient.views.images.ImageAssetImageView
-        android:id="@+id/iaiv__user_photo"
+    <ImageView
+        android:id="@+id/user_photo"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:scaleType="centerCrop"

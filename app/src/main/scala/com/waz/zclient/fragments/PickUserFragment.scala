@@ -51,7 +51,7 @@ import com.waz.zclient.controllers.tracking.screens.ApplicationScreen
 import com.waz.zclient.controllers.userpreferences.IUserPreferencesController
 import com.waz.zclient.controllers.{SearchUserController, ThemeController, UserAccountsController}
 import com.waz.zclient.core.controllers.tracking.attributes.ConversationType
-import com.waz.zclient.core.stores.conversation.{ConversationChangeRequester, InboxLoadRequester}
+import com.waz.zclient.core.stores.conversation.ConversationChangeRequester
 import com.waz.zclient.core.stores.network.DefaultNetworkAction
 import com.waz.zclient.pages.BaseFragment
 import com.waz.zclient.pages.main.participants.dialog.DialogLaunchMode
