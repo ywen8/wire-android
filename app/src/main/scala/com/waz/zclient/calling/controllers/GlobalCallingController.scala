@@ -115,7 +115,7 @@ class GlobalCallingController(implicit inj: Injector, cxt: WireContext, eventCon
   def wasUiActiveOnCallStart = _wasUiActiveOnCallStart
 
   val onCallStarted = activeCall.onChanged.filter(_ == true).map { _ =>
-    val active = zmsOpt.flatMap(_.fold(Signal.const(false))(_.lifecycle.uiActive)).disableAutowiring().currentValue.getOrElse(false)
+    val active = ZMessaging.currentGlobal.lifecycle.uiActive.currentValue.getOrElse(false)
     _wasUiActiveOnCallStart = active
     active
   }

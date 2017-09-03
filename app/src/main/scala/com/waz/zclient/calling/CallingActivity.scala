@@ -25,7 +25,7 @@ import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.view.WindowManager
 import android.widget.TextView
 import com.waz.ZLog.ImplicitTag._
-import com.waz.ZLog.verbose
+import com.waz.ZLog._
 import com.waz.threading.Threading
 import com.waz.zclient._
 import com.waz.zclient.calling.controllers.GlobalCallingController
@@ -34,6 +34,7 @@ import com.waz.zclient.common.controllers.PermissionActivity
 import com.waz.zclient.utils.RichView
 
 class CallingActivity extends AppCompatActivity with ActivityHelper with PermissionActivity {
+  import CallingActivity._
 
   private lazy val controller = inject[GlobalCallingController]
   import controller._
@@ -52,6 +53,8 @@ class CallingActivity extends AppCompatActivity with ActivityHelper with Permiss
         finish()
       case _ =>
     }
+
+    convId.onChanged.on(Threading.Ui)(_ => restartActivity())
 
     //ensure activity gets killed to allow content to change if the conv degrades (no need to kill activity on audio call)
     (for {
@@ -87,6 +90,13 @@ class CallingActivity extends AppCompatActivity with ActivityHelper with Permiss
         WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED |
         WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD
     )
+  }
+
+  private def restartActivity() = {
+    info("restartActivity")
+    finish()
+    start(this)
+    overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
   }
 }
 
