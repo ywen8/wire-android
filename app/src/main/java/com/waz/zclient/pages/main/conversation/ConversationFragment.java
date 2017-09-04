@@ -20,7 +20,6 @@ package com.waz.zclient.pages.main.conversation;
 import android.Manifest;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -484,10 +483,6 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
 
         // Recording audio messages
         audioMessageRecordingView.setCallback(this);
-
-        if (LayoutSpec.isTablet(getActivity())) {
-            view.setBackgroundColor(Color.WHITE);
-        }
 
         if (savedInstanceState != null) {
             isPreviewShown = savedInstanceState.getBoolean(SAVED_STATE_PREVIEW, false);
