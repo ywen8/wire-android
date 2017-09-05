@@ -24,7 +24,7 @@
              android:layout_height="match_parent"
     >
 
-    <com.waz.zclient.views.BackgroundFrameLayout
+    <com.waz.zclient.views.BackgroundImageView
         android:id="@+id/settings_background"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -44,7 +44,26 @@
             android:theme="?actionBarTheme"
             app:popupTheme="?actionBarPopupTheme"
             app:titleMarginStart="@dimen/wire__padding__regular"
-            />
+            >
+
+            <FrameLayout
+                android:id="@+id/account_tabs_container"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_gravity="center"
+                >
+                <com.waz.zclient.views.AccountTabsView
+                    android:id="@+id/account_tabs"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:orientation="horizontal"
+                    android:layout_gravity="center"
+                    android:paddingStart="@dimen/wire__padding__12"
+                    android:paddingEnd="@dimen/wire__padding__12"
+                    />
+            </FrameLayout>
+
+            </android.support.v7.widget.Toolbar>
 
         <FrameLayout
             android:id="@+id/content"

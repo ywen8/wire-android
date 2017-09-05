@@ -17,13 +17,17 @@
  */
 package com.waz.zclient.fragments
 
+import android.content.Intent
 import android.os.Bundle
+import android.support.v7.widget.RecyclerView.AdapterDataObserver
 import android.support.v7.widget.{LinearLayoutManager, RecyclerView}
 import android.view.animation.Animation
 import android.view.{LayoutInflater, View, ViewGroup}
-import com.waz.model.ConversationData
+import com.waz.ZLog
+import com.waz.ZLog.ImplicitTag._
 import com.waz.model.ConversationData.ConversationType
 import com.waz.model.otr.Client
+import com.waz.model.{AccountId, ConversationData}
 import com.waz.service.ZMessaging
 import com.waz.threading.Threading
 import com.waz.utils.events.Signal
@@ -55,8 +59,10 @@ abstract class ConversationListFragment extends BaseFragment[ConversationListFra
   val layoutId: Int
   lazy val userAccountsController = inject[UserAccountsController]
 
-  override def onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState: Bundle) = {
-    val view = inflater.inflate(layoutId, container, false)
+  override def onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState: Bundle) =
+    inflater.inflate(layoutId, container, false)
+
+  override def onViewCreated(view: View, savedInstanceState: Bundle) = {
     val topToolbar = ViewUtils.getView(view, R.id.conversation_list_top_toolbar).asInstanceOf[ConversationListTopToolbar]
 
     val adapter = returning(new ConversationListAdapter(getContext)) { a =>
@@ -85,8 +91,6 @@ abstract class ConversationListFragment extends BaseFragment[ConversationListFra
     adapter.onConversationLongClick { handleItemLongClick(_, conversationListView) }
 
     init(view, adapter)
-
-    view
   }
 
   def init(view: View, adapter: ConversationListAdapter): Unit
@@ -184,6 +188,11 @@ class NormalConversationFragment extends ConversationListFragment {
     clients <- acc.clientId.fold(Signal.empty[Seq[Client]])(aid => z.otrClientsStorage.incomingClientsSignal(z.selfUserId, aid))
   } yield (color.getColor(), clients)
 
+  private lazy val unreadCount = (for {
+    Some(accountId) <- ZMessaging.currentAccounts.activeAccountPref.signal
+    count  <- userAccountsController.unreadCount.map(_.filterNot(_._1 == accountId).values.sum)
+  } yield count).orElse(Signal.const(0))
+
   lazy val hasConversationsAndArchive = for {
     z <- zms
     convs <- z.convsStorage.convsSignal
@@ -192,11 +201,29 @@ class NormalConversationFragment extends ConversationListFragment {
     convs.conversations.exists(c => c.archived && !c.hidden))
   }
 
+  def topToolbar = ViewUtils.getView(getView, R.id.conversation_list_top_toolbar).asInstanceOf[NormalTopToolbar]
+  def listActionsView = ViewUtils.getView(getView, R.id.lav__conversation_list_actions).asInstanceOf[ListActionsView]
+  def conversationListView = ViewUtils.getView(getView, R.id.conversation_list_view).asInstanceOf[SwipeListView]
+  def loadingListView = ViewUtils.getView(getView, R.id.conversation_list_loading_indicator).asInstanceOf[View]
+
+  private var adapter = Option.empty[ConversationListAdapter]
+  private val waitingAccount = Signal[Option[AccountId]](None)
+
+  val loading = for {
+    Some(waitingAcc) <- waitingAccount
+    adapterAccount <- adapter.fold(Signal.empty[AccountId])(_.conversationListData.map(_._1))
+  } yield waitingAcc != adapterAccount
+
+  loading.onUi {
+    case true => showLoading()
+    case false =>
+      hideLoading()
+      waitingAccount ! None
+  }
 
   override def init(view: View, adapter: ConversationListAdapter): Unit = {
-    val conversationListView = ViewUtils.getView(view, R.id.conversation_list_view).asInstanceOf[SwipeListView]
-    val listActionsView = ViewUtils.getView(view, R.id.lav__conversation_list_actions).asInstanceOf[ListActionsView]
-    val topToolbar = ViewUtils.getView(view, R.id.conversation_list_top_toolbar).asInstanceOf[NormalTopToolbar]
+    this.adapter = Some(adapter)
+
     val noConvsTitle = ViewUtils.getView(view, R.id.conversation_list_empty_title).asInstanceOf[TypefaceTextView]
     val noConvsSubtitle = ViewUtils.getView(view, R.id.conversation_list_empty_subtitle).asInstanceOf[TypefaceTextView]
 
@@ -224,11 +251,11 @@ class NormalConversationFragment extends ConversationListFragment {
         listActionsView.setArchiveEnabled(archive)
     }
 
-    topToolbar.onRightButtonClick{ _ => startActivity(PreferencesActivity.getDefaultIntent(getContext)) }
+    topToolbar.onRightButtonClick { _ => getActivity.startActivityForResult(PreferencesActivity.getDefaultIntent(getContext), PreferencesActivity.SwitchAccountCode) }
 
-    incomingClients.on(Threading.Ui) {
-      case (color, clients) =>
-        topToolbar.setIndicatorVisible(clients.nonEmpty)
+    Signal(unreadCount, incomingClients).on(Threading.Ui) {
+      case (count, (color, clients)) =>
+        topToolbar.setIndicatorVisible(clients.nonEmpty || count > 0)
         topToolbar.setIndicatorColor(color)
     }
 
@@ -242,6 +269,34 @@ class NormalConversationFragment extends ConversationListFragment {
         Option(getContainer).foreach(_.showArchive())
       }
     })
+  }
+
+  private def showLoading(): Unit = {
+    conversationListView.setVisibility(View.INVISIBLE)
+    loadingListView.setVisibility(View.VISIBLE)
+    loadingListView.setAlpha(1f)
+    listActionsView.setAlpha(0.5f)
+    topToolbar.setLoading(true)
+  }
+
+  private def hideLoading(): Unit = {
+    if (!conversationListView.isVisible) {
+      conversationListView.setVisibility(View.VISIBLE)
+      conversationListView.setAlpha(0f)
+      conversationListView.animate().alpha(1f).setDuration(500)
+      listActionsView.animate().alpha(1f).setDuration(500)
+      loadingListView.animate().alpha(0f).setDuration(500).withEndAction(new Runnable {
+        override def run() = loadingListView.setVisibility(View.GONE)
+      })
+    }
+    topToolbar.setLoading(false)
+  }
+
+  override def onActivityResult(requestCode: Int, resultCode: Int, data: Intent) = {
+    if (requestCode == PreferencesActivity.SwitchAccountCode && data != null) {
+      showLoading()
+      waitingAccount ! Some(AccountId(data.getStringExtra(PreferencesActivity.SwitchAccountExtra)))
+    }
   }
 }
 

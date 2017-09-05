@@ -26,11 +26,9 @@ import android.net.Uri
 import android.os.Bundle
 import android.support.annotation.Nullable
 import android.support.v4.app.{Fragment, FragmentManager, FragmentTransaction}
-import android.support.v4.widget.TextViewCompat
-import android.support.v7.widget.{AppCompatTextView, Toolbar}
+import android.support.v7.widget.Toolbar
 import android.view.{MenuItem, View, ViewGroup}
-import android.widget.{TextSwitcher, TextView, Toast, ViewSwitcher}
-import com.waz.ZLog.ImplicitTag._
+import android.widget._
 import com.waz.api.ImageAsset
 import com.waz.content.GlobalPreferences.CurrentAccountPref
 import com.waz.content.{GlobalPreferences, UserPreferences}
@@ -45,6 +43,7 @@ import com.waz.zclient.pages.main.profile.camera.{CameraContext, CameraFragment}
 import com.waz.zclient.pages.main.profile.preferences.pages.{DevicesBackStackKey, OptionsView, ProfileBackStackKey}
 import com.waz.zclient.tracking.GlobalTrackingController
 import com.waz.zclient.utils.{BackStackNavigator, LayoutSpec, RingtoneUtils, ViewUtils}
+import com.waz.zclient.views.AccountTabsView
 import com.waz.zclient.{ActivityHelper, BaseActivity, MainActivity, R}
 
 class PreferencesActivity extends BaseActivity
@@ -53,30 +52,13 @@ class PreferencesActivity extends BaseActivity
 
   import PreferencesActivity._
 
-  private lazy val toolbar: Toolbar        = findById(R.id.toolbar)
+  private lazy val toolbar     = findById[Toolbar](R.id.toolbar)
+  private lazy val accountTabs = findById[AccountTabsView](R.id.account_tabs)
+  private lazy val accountTabsContainer = findById[FrameLayout](R.id.account_tabs_container)
 
   private lazy val backStackNavigator = inject[BackStackNavigator]
   private lazy val zms = inject[Signal[ZMessaging]]
 
-  private lazy val actionBar = returning(getSupportActionBar) { ab =>
-    ab.setDisplayHomeAsUpEnabled(true)
-    ab.setDisplayShowCustomEnabled(true)
-    ab.setDisplayShowTitleEnabled(false)
-  }
-
-  private lazy val titleSwitcher = returning(new TextSwitcher(toolbar.getContext)) { ts =>
-    ts.setFactory(new ViewSwitcher.ViewFactory() {
-      def makeView: View = {
-        val tv: TextView = new AppCompatTextView(toolbar.getContext)
-        TextViewCompat.setTextAppearance(tv, R.style.TextAppearance_AppCompat_Widget_ActionBar_Title)
-        tv
-      }
-    })
-    ts.setCurrentText(getTitle)
-    actionBar.setCustomView(ts)
-    ts.setInAnimation(this, R.anim.abc_fade_in)
-    ts.setOutAnimation(this, R.anim.abc_fade_out)
-  }
 
   lazy val currentAccountPref = inject[GlobalPreferences].preference(CurrentAccountPref)
   lazy val accentColor = inject[AccentColorController].accentColor
@@ -86,7 +68,8 @@ class PreferencesActivity extends BaseActivity
     super.onCreate(savedInstanceState)
     setContentView(R.layout.activity_settings)
     setSupportActionBar(toolbar)
-    titleSwitcher //initialise title switcher
+    getSupportActionBar.setDisplayHomeAsUpEnabled(true)
+    getSupportActionBar.setDisplayShowHomeEnabled(true)
 
     if (LayoutSpec.isPhone(this)) ViewUtils.lockScreenOrientation(Configuration.ORIENTATION_PORTRAIT, this)
     if (savedInstanceState == null) {
@@ -98,25 +81,46 @@ class PreferencesActivity extends BaseActivity
         backStackNavigator.goTo(ProfileBackStackKey())
       }
 
-      backStackNavigator.currentState.on(Threading.Ui){ state =>
-        setTitle(state.nameId)
+
+      Signal(backStackNavigator.currentState, ZMessaging.currentAccounts.loggedInAccounts.map(_.length)).on(Threading.Ui){
+        case (state: ProfileBackStackKey, c) if c > 1 =>
+          setTitle(R.string.empty_string)
+          accountTabsContainer.setVisibility(View.VISIBLE)
+        case (state, _) =>
+          setTitle(state.nameId)
+          accountTabsContainer.setVisibility(View.GONE)
       }
     } else {
       backStackNavigator.onRestore(findViewById(R.id.content).asInstanceOf[ViewGroup], savedInstanceState)
     }
 
-    //TODO: Investigate why the onChanged doesn't work
-    val currentAccount = currentAccountPref.signal.currentValue.flatten
-    currentAccountPref.signal.onUi { acc =>
-      if (acc != currentAccount) {
+   ZMessaging.currentAccounts.loggedInAccounts.onUi { accs =>
+      if (accs.isEmpty) {
         startActivity(returning(new Intent(this, classOf[MainActivity]))(_.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK)))
         finish()
       }
     }
 
+    (for {
+      loggedIn <- ZMessaging.currentAccounts.loggedInAccounts
+      active <- ZMessaging.currentAccounts.activeAccount
+    } yield loggedIn.isEmpty || active.isEmpty).onUi{
+      case true =>
+        startActivity(returning(new Intent(this, classOf[MainActivity]))(_.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK)))
+        finish()
+      case _ =>
+    }
+
     accentColor.on(Threading.Ui) { color =>
       getControllerFactory.getUserPreferencesController.setLastAccentColor(color.getColor())
       getControllerFactory.getAccentColorController.setColor(AccentColorChangeRequester.REMOTE, color.getColor())
+    }
+
+    accountTabs.onTabClick.onUi { account =>
+      val intent = new Intent()
+      intent.putExtra(SwitchAccountExtra, account.id.str)
+      setResult(Activity.RESULT_OK, intent)
+      finish()
     }
   }
 
@@ -136,10 +140,6 @@ class PreferencesActivity extends BaseActivity
     getControllerFactory.getCameraController.removeCameraActionObserver(this)
   }
 
-  override protected def onTitleChanged(title: CharSequence, color: Int) = {
-    super.onTitleChanged(title, color)
-    titleSwitcher.setText(title)
-  }
 
   override def getBaseTheme: Int = R.style.Theme_Dark_Preferences
 
@@ -211,6 +211,8 @@ class PreferencesActivity extends BaseActivity
 object PreferencesActivity {
   val ShowOtrDevices   = "SHOW_OTR_DEVICES"
   val ShowAccount      = "SHOW_ACCOUNT"
+  val SwitchAccountCode = 789
+  val SwitchAccountExtra = "SWITCH_ACCOUNT_EXTRA"
 
   def getDefaultIntent(context: Context): Intent =
     new Intent(context, classOf[PreferencesActivity])

@@ -20,21 +20,22 @@ package com.waz.zclient.views
 import android.content.Context
 import android.support.v7.widget.{LinearLayoutManager, RecyclerView}
 import android.util.AttributeSet
-import android.view.View.OnClickListener
-import android.view.{View, ViewGroup}
+import android.view.View.OnTouchListener
+import android.view.{MotionEvent, View, ViewGroup}
+import com.waz.ZLog
 import com.waz.ZLog.ImplicitTag._
 import com.waz.ZLog.error
 import com.waz.model._
-import com.waz.service.ZMessaging
 import com.waz.utils.events.{EventContext, EventStream}
 import com.waz.zclient.controllers.UserAccountsController
+import com.waz.zclient.pages.main.profile.preferences.views.ProfileAccountTab
 import com.waz.zclient.{Injectable, Injector, ViewHelper}
 
 class AccountTabsView(val context: Context, val attrs: AttributeSet, val defStyleAttr: Int) extends RecyclerView(context, attrs, defStyleAttr) with ViewHelper {
   def this(context: Context, attrs: AttributeSet) = this(context, attrs, 0)
   def this(context: Context) = this(context, null)
 
-  val onTabClick = EventStream[Either[UserData, TeamData]]()
+  lazy val onTabClick = adapter.onItemClick
 
   setLayoutManager(new LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false){
     override def canScrollHorizontally = true
@@ -45,7 +46,7 @@ class AccountTabsView(val context: Context, val attrs: AttributeSet, val defStyl
   setAdapter(adapter)
 }
 
-class AccountTabViewHolder(view: AccountTabButton) extends RecyclerView.ViewHolder(view){
+class AccountTabViewHolder(view: ProfileAccountTab) extends RecyclerView.ViewHolder(view){
   def bind(accountId: AccountId): Unit = view.setAccount(accountId)
 }
 
@@ -53,10 +54,6 @@ class AccountTabsAdapter(context: Context)(implicit injector: Injector, eventCon
   val controller         = inject[UserAccountsController]
 
   val onItemClick = EventStream[AccountData]()
-
-  onItemClick{ account =>
-    ZMessaging.currentAccounts.switchAccount(account.id)
-  }
 
   private var accounts = Seq.empty[AccountId]
   controller.accounts.map(_.map(_.id)).onUi { accs =>
@@ -74,10 +71,30 @@ class AccountTabsAdapter(context: Context)(implicit injector: Injector, eventCon
   }
 
   override def onCreateViewHolder(parent: ViewGroup, viewType: Int) = {
-    val view = new AccountTabButton(context)
-    view.setOnClickListener(new OnClickListener {
-      override def onClick(v: View) = {
-        Option(v.asInstanceOf[AccountTabButton]).flatMap(_.account.currentValue).foreach(onItemClick ! _)
+    val view = new ProfileAccountTab(context)
+    view.setOnTouchListener(new OnTouchListener {
+
+      override def onTouch(v: View, event: MotionEvent) = {
+        ZLog.verbose(s"onTouch ${event.getAction}")
+        event.getAction match {
+          case MotionEvent.ACTION_DOWN =>
+            (0 until parent.getChildCount).map(i => parent.getChildAt(i).asInstanceOf[ProfileAccountTab]).foreach { v =>
+              v.selected ! false
+            }
+            v.asInstanceOf[ProfileAccountTab].selected ! true
+            true
+          case MotionEvent.ACTION_CANCEL | MotionEvent.ACTION_OUTSIDE =>
+            (0 until parent.getChildCount).map(i => parent.getChildAt(i).asInstanceOf[ProfileAccountTab]).foreach { v =>
+              v.selected ! v.zmsSelected.currentValue.getOrElse(false)
+            }
+            true
+          case MotionEvent.ACTION_UP =>
+            Option(v.asInstanceOf[ProfileAccountTab]).flatMap(_.account.currentValue).foreach(onItemClick ! _)
+            true
+          case _ =>
+            false
+        }
+
       }
     })
     new AccountTabViewHolder(view)
