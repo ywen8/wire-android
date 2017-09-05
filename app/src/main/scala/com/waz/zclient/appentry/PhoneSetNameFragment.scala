@@ -30,7 +30,6 @@ import com.waz.zclient.newreg.views.PhoneConfirmationButton
 import com.waz.zclient.pages.BaseFragment
 import com.waz.zclient.ui.text.TypefaceEditText
 import com.waz.zclient.ui.utils.KeyboardUtils
-import com.waz.zclient.utils.StringUtils
 
 object PhoneSetNameFragment {
   val TAG = classOf[PhoneSetNameFragment].getName
@@ -131,6 +130,6 @@ class PhoneSetNameFragment extends BaseFragment[PhoneSetNameFragment.Container] 
       PhoneConfirmationButton.State.NONE
   }
 
-  private def isNameValid(name: String): Boolean = !StringUtils.isBlank(name)
+  private def isNameValid(name: String): Boolean = name != null && name.trim.length > 1
 
 }
