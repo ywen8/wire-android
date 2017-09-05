@@ -173,7 +173,7 @@ android {
             applicationId "com.wire.internal"
             versionName majorVersion + android.defaultConfig.versionCode + "-internal"
             manifestPlaceholders = [applicationLabel : "Wire Internal",
-                                    allowBackup      : "true",
+                                    allowBackup      : "false",
                                     applicationIcon  : "@drawable/ic_launcher_wire_internal",
                                     sharedUserId     : "",
                                     use_audio_link   : "false",
