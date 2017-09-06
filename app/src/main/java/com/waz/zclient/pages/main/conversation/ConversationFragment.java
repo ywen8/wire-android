@@ -77,7 +77,6 @@ import com.waz.zclient.controllers.IControllerFactory;
 import com.waz.zclient.controllers.ThemeController;
 import com.waz.zclient.controllers.UserAccountsController;
 import com.waz.zclient.controllers.accentcolor.AccentColorObserver;
-import com.waz.zclient.controllers.calling.CallingObserver;
 import com.waz.zclient.controllers.confirmation.ConfirmationCallback;
 import com.waz.zclient.controllers.confirmation.ConfirmationRequest;
 import com.waz.zclient.controllers.confirmation.IConfirmationController;
@@ -145,7 +144,6 @@ import java.util.List;
 import java.util.Map;
 
 public class ConversationFragment extends BaseFragment<ConversationFragment.Container> implements ConversationStoreObserver,
-                                                                                                  CallingObserver,
                                                                                                   KeyboardVisibilityObserver,
                                                                                                   AccentColorObserver,
                                                                                                   ParticipantsStoreObserver,
@@ -868,17 +866,6 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
             inflateCollectionIcon();
             cursorView.enableMessageWriting();
         }
-    }
-
-    //////////////////////////////////////////////////////////////////////////////
-    //
-    //  GroupCallingStoreObserver
-    //
-    //////////////////////////////////////////////////////////////////////////////
-
-    @Override
-    public void onStartCall(boolean withVideo) {
-
     }
 
     public IConversation.Type getConversationType() {
