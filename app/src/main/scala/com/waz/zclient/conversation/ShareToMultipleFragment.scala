@@ -74,10 +74,8 @@ class ShareToMultipleFragment extends BaseFragment[ShareToMultipleFragment.Conta
     val sendButton = ViewUtils.getView(view, R.id.cib__send_button).asInstanceOf[CursorIconButton]
     val searchBox = ViewUtils.getView(view, R.id.multi_share_search_box).asInstanceOf[SearchEditText]
     val contentLayout = ViewUtils.getView(view, R.id.content_container).asInstanceOf[RelativeLayout]
-    val profileImageView = ViewUtils.getView(view, R.id.user_photo).asInstanceOf[ImageView]
     val bottomContainer = ViewUtils.getView(view, R.id.ephemeral_container).asInstanceOf[AnimatedBottomContainer]
     val ephemeralToggle = ViewUtils.getView(view, R.id.ephemeral_toggle).asInstanceOf[EphemeralCursorButton]
-    val vignetteOverlay = ViewUtils.getView(view, R.id.iv_background_vignette_overlay).asInstanceOf[ImageView]
 
     val onClickEvent = EventStream[Unit]()
     val filterText = Signal[String]("")
@@ -112,11 +110,6 @@ class ShareToMultipleFragment extends BaseFragment[ShareToMultipleFragment.Conta
         searchBox.removeElement(PickableConversation(convData))
       case _ =>
     }
-
-    profileImageView.setImageDrawable(new BlurredImageAssetDrawable(userImage, scaleType = ScaleType.CenterCrop, request = RequestBuilder.Single, blurRadius = 25, blurPasses = 4, context = getContext))
-
-    vignetteOverlay.setImageBitmap(BitmapUtils.getVignetteBitmap(getResources))
-    vignetteOverlay.setColorFilter(darkenColor, PorterDuff.Mode.DARKEN)
 
     searchBox.setCallback(new PickerSpannableEditText.Callback {
       override def onRemovedTokenSpan(element: PickableElement) = {

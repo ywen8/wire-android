@@ -122,8 +122,8 @@ class BackStackNavigator(implicit context: Context) extends Injectable {
 
   def detachView(backStackKey: BackStackKey, transitionAnimation: TransitionAnimation, forward: Boolean): Unit ={
     root.foreach{ root =>
-        backStackKey.onViewDetached()
-        val removedView = Option(root.getChildAt(root.getChildCount - 1))
+      backStackKey.onViewDetached()
+      val removedView = Option(root.getChildAt(root.getChildCount - 1))
       removedView.foreach{ view =>
         disableView(view)
         transitionAnimation.outAnimation(view, root, forward).withEndAction(new Runnable {
