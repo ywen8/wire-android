@@ -37,7 +37,7 @@ import com.waz.bitmap
 import com.waz.model.{AccountId, ConvId}
 import com.waz.service.ZMessaging
 import com.waz.service.push.NotificationService.NotificationInfo
-import com.waz.utils.events.{EventContext, Signal}
+import com.waz.utils.events.{EventContext, Signal, Subscription}
 import com.waz.zclient._
 import com.waz.zclient.controllers.userpreferences.UserPreferencesController
 import com.waz.zclient.media.SoundController
@@ -55,7 +55,7 @@ class MessageNotificationsController(implicit inj: Injector, cxt: Context, event
   val sharedPreferences = cxt.getSharedPreferences(UserPreferencesController.USER_PREFS_TAG, Context.MODE_PRIVATE)
   lazy val soundController = inject[SoundController]
 
-  val notifications = Option(ZMessaging.currentGlobal) match {
+  val accounts = Option(ZMessaging.currentGlobal) match {
     case Some(gl) => gl.notifications.groupedNotifications
     case _ =>
       //TODO Hockey exception? Or some better way of passing current global around...
@@ -63,10 +63,16 @@ class MessageNotificationsController(implicit inj: Injector, cxt: Context, event
       Signal.empty
   }
 
-  notifications.onUi { _.foreach {
-    case (account, shouldBeSilent, nots) =>
-      handleNotifications(account, shouldBeSilent, nots)
-  }}
+  private var subs = Set.empty[Subscription]
+  accounts { accs =>
+    subs.foreach(_.destroy())
+    accs.foreach {
+      case (account, notifications) =>
+        subs += notifications.onUi { case (shouldBeSilent, nots) =>
+          handleNotifications(account, shouldBeSilent, nots)
+        }
+    }
+  }
 
   private def handleNotifications(account: AccountId, silent: Boolean, nots: Seq[NotificationInfo]): Unit = {
     verbose(s"Notifications updated for account: $account: shouldBeSilent: $silent, $nots")
@@ -74,7 +80,7 @@ class MessageNotificationsController(implicit inj: Injector, cxt: Context, event
 
     val (normNotId, ephNotId) = {
       val id = toNotificationGroupId(account)
-      (id, id + 1) //TODO - how likely will we get collisions here - does it matter?
+      (id, id + 1)
     }
 
     val ephNotification = {
