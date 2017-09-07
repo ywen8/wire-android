@@ -220,6 +220,7 @@ object ImageAssetDrawable {
     val Regular: RequestBuilder = BitmapRequest.Regular(_)
     val Single: RequestBuilder = BitmapRequest.Single(_)
     val Round: RequestBuilder = BitmapRequest.Round(_)
+    val Blurred: RequestBuilder = BitmapRequest.Blurred(_)
   }
 
   sealed trait State {
@@ -248,56 +249,6 @@ class RoundedImageAssetDrawable (
     val rect = new RectF(0.0f, 0.0f, getBounds.width, getBounds.height)
     bitmapPaint.setShader(shader)
     canvas.drawRoundRect(rect, cornerRadius, cornerRadius, bitmapPaint)
-  }
-}
-
-class BlurredImageAssetDrawable(
-                                 src: Signal[ImageSource],
-                                 scaleType: ScaleType = ScaleType.FitXY,
-                                 request: RequestBuilder = RequestBuilder.Single,
-                                 background: Option[Drawable] = None,
-                                 animate: Boolean = false,
-                                 blurRadius: Float = 1,
-                                 blurPasses: Int = 1,
-                                 context: Context
-                               )(implicit inj: Injector, eventContext: EventContext) extends ImageAssetDrawable(src, scaleType, request, background, animate) {
-
-  private val renderScript = inject[RenderScript]
-  private val blur = ScriptIntrinsicBlur.create(renderScript, Element.U8_4(renderScript))
-  blur.setRadius(blurRadius)
-
-  var lastBm = (0L, 0, Option.empty[Bitmap])
-
-  override protected def drawBitmap(canvas: Canvas, bm: Bitmap, matrix: Matrix, bitmapPaint: Paint): Unit = {
-    lastBm match {
-      case (hc, gid, Some(bitmap)) if hc == bm.hashCode() && gid == bm.getGenerationId =>
-        canvas.drawBitmap(bitmap, matrix, bitmapPaint)
-        return
-      case (_, _, Some(bitmap)) =>
-        bitmap.recycle()
-      case _ =>
-    }
-    val copiedBm =
-      try bm.copy(bm.getConfig, true)
-      catch {
-        case _: Throwable => null
-      }
-
-    if (copiedBm == null) {
-      canvas.drawBitmap(bm, matrix, bitmapPaint)
-      return
-    }
-
-    val blurAlloc = Allocation.createFromBitmap(renderScript, copiedBm)
-    blur.setInput(blurAlloc)
-    (0 until blurPasses).foreach{ _ =>
-      blur.forEach(blurAlloc)
-    }
-    blurAlloc.copyTo(copiedBm)
-    blurAlloc.destroy()
-
-    canvas.drawBitmap(copiedBm, matrix, bitmapPaint)
-    lastBm = (bm.hashCode(), bm.getGenerationId, Some(copiedBm))
   }
 }
 

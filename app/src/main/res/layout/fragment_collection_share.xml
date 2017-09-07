@@ -17,105 +17,84 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 -->
-<FrameLayout
+<LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context="com.waz.zclient.conversation.ShareToMultipleFragment"
+    android:background="@null"
+    android:clickable="true"
     >
 
-    <ImageView
-        android:id="@+id/user_photo"
+    <RelativeLayout
+        android:id="@+id/content_container"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:scaleType="centerCrop"
+        android:layout_height="@dimen/collections__multi_share__image_preview__height">
+    </RelativeLayout>
+
+    <com.waz.zclient.views.SearchEditText
+        android:id="@+id/multi_share_search_box"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/collections__multi_share_search_height"
+        android:layout_margin="@dimen/wire__padding__8"
+        app:hintText="@string/multi_share_search_hint"
         />
 
-    <ImageView
-        android:id="@+id/iv_background_vignette_overlay"
+    <View
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:scaleType="fitXY"
+        android:layout_height="@dimen/wire__divider__height"
+        android:background="@color/light_graphite_16"/>
+
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/lv__conversation_list"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"/>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/wire__divider__height"
+        android:background="@color/light_graphite_16"/>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/collections__multi_share_footer_height"
+        android:background="@null">
+
+        <com.waz.zclient.ui.views.CursorIconButton
+            android:id="@+id/cib__send_button"
+            android:layout_width="@dimen/share_extension__send_button__size"
+            android:layout_height="@dimen/share_extension__send_button__size"
+            android:layout_centerInParent="true"
+            android:gravity="center"
+            android:padding="@dimen/cursor__menu_button__padding"
+            android:text="@string/glyph__send"
+            android:textColor="@color/drawing__icon__text_color"
+            />
+
+        <com.waz.zclient.views.EphemeralCursorButton
+            android:id="@+id/ephemeral_toggle"
+            android:layout_width="@dimen/cursor__menu_button__diameter"
+            android:layout_height="@dimen/cursor__menu_button__diameter"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentBottom="true"
+            android:layout_marginEnd="@dimen/wire__padding__16"
+            android:layout_marginBottom="@dimen/wire__padding__16"
+            android:gravity="center"
+            android:text="@string/glyph__hourglass"
+            android:textColor="@color/white"
+            />
+
+    </RelativeLayout>
+
+    <com.waz.zclient.views.AnimatedBottomContainer
+        android:id="@+id/ephemeral_container"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/extend_container_height"
+        android:visibility="gone"
         />
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical"
-        tools:context="com.waz.zclient.conversation.ShareToMultipleFragment"
-        android:background="@null"
-        android:clickable="true"
-        >
-
-        <RelativeLayout
-            android:id="@+id/content_container"
-            android:layout_width="match_parent"
-            android:layout_height="@dimen/collections__multi_share__image_preview__height">
-        </RelativeLayout>
-
-        <com.waz.zclient.views.SearchEditText
-            android:id="@+id/multi_share_search_box"
-            android:layout_width="match_parent"
-            android:layout_height="@dimen/collections__multi_share_search_height"
-            android:layout_margin="@dimen/wire__padding__8"
-            app:hintText="@string/multi_share_search_hint"
-            />
-
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="@dimen/wire__divider__height"
-            android:background="@color/light_graphite_16"/>
-
-        <android.support.v7.widget.RecyclerView
-            android:id="@+id/lv__conversation_list"
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"/>
-
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="@dimen/wire__divider__height"
-            android:background="@color/light_graphite_16"/>
-
-        <RelativeLayout
-            android:layout_width="match_parent"
-            android:layout_height="@dimen/collections__multi_share_footer_height"
-            android:background="@null">
-
-            <com.waz.zclient.ui.views.CursorIconButton
-                android:id="@+id/cib__send_button"
-                android:layout_width="@dimen/share_extension__send_button__size"
-                android:layout_height="@dimen/share_extension__send_button__size"
-                android:layout_centerInParent="true"
-                android:gravity="center"
-                android:padding="@dimen/cursor__menu_button__padding"
-                android:text="@string/glyph__send"
-                android:textColor="@color/drawing__icon__text_color"
-                />
-
-            <com.waz.zclient.views.EphemeralCursorButton
-                android:id="@+id/ephemeral_toggle"
-                android:layout_width="@dimen/cursor__menu_button__diameter"
-                android:layout_height="@dimen/cursor__menu_button__diameter"
-                android:layout_alignParentEnd="true"
-                android:layout_alignParentBottom="true"
-                android:layout_marginEnd="@dimen/wire__padding__16"
-                android:layout_marginBottom="@dimen/wire__padding__16"
-                android:gravity="center"
-                android:text="@string/glyph__hourglass"
-                android:textColor="@color/white"
-                />
-
-        </RelativeLayout>
-
-        <com.waz.zclient.views.AnimatedBottomContainer
-            android:id="@+id/ephemeral_container"
-            android:layout_width="match_parent"
-            android:layout_height="@dimen/extend_container_height"
-            android:visibility="gone"
-            />
-
-    </LinearLayout>
-
-</FrameLayout>
+</LinearLayout>

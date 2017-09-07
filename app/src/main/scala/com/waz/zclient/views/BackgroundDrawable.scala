@@ -23,13 +23,12 @@ import android.animation.{Animator, ValueAnimator}
 import android.content.Context
 import android.graphics._
 import android.graphics.drawable.Drawable
-import android.renderscript.{Allocation, Element, RenderScript, ScriptIntrinsicBlur}
 import com.waz.model.Dim2
 import com.waz.service.assets.AssetService.BitmapResult.BitmapLoaded
+import com.waz.ui.MemoryImageCache.BitmapRequest
 import com.waz.utils.events.{EventContext, Signal}
-import com.waz.utils.returning
 import com.waz.zclient.utils.ViewUtils
-import com.waz.zclient.views.ImageAssetDrawable.{RequestBuilder, ScaleType}
+import com.waz.zclient.views.ImageAssetDrawable.ScaleType
 import com.waz.zclient.views.ImageController.ImageSource
 import com.waz.zclient.{Injectable, Injector}
 
@@ -38,9 +37,7 @@ class BackgroundDrawable(src: Signal[ImageSource],
   import BackgroundDrawable._
 
   private val images = inject[ImageController]
-  private val renderScript = inject[RenderScript]
 
-  private val blur = returning(ScriptIntrinsicBlur.create(renderScript, Element.U8_4(renderScript))){ _.setRadius(BlurRadius) }
   private val bitmapPaint = new Paint(Paint.ANTI_ALIAS_FLAG)
   private val configuration = context.getResources.getConfiguration
   private val screenSize = Dim2(ViewUtils.toPx(context, configuration.screenWidthDp), ViewUtils.toPx(context, configuration.screenHeightDp))
@@ -55,7 +52,7 @@ class BackgroundDrawable(src: Signal[ImageSource],
 
   private val bmp = for {
     src <- src
-    bmp <- images.imageSignal(src, RequestBuilder.Single(Math.min(screenSize.width, 300)), forceDownload = true).collect { case BitmapLoaded(bm, _) => bm }
+    bmp <- images.imageSignal(src, BitmapRequest.Blurred(Math.min(screenSize.width, 300), BlurRadius, BlurPasses), forceDownload = true).collect { case BitmapLoaded(bm, _) => bm }
   } yield bmp
 
   private val colorMatrix = new ColorMatrix
@@ -78,29 +75,11 @@ class BackgroundDrawable(src: Signal[ImageSource],
 
   bmp.onUi { bmp =>
     prevBmp = currentBmp
-
-    currentBmp =
-      try {
-        val copiedBmp = bmp.copy(bmp.getConfig, true)
-
-        val blurAlloc = Allocation.createFromBitmap(renderScript, copiedBmp)
-        blur.setInput(blurAlloc)
-        (0 until BlurPasses).foreach{ _ =>
-          blur.forEach(blurAlloc)
-        }
-        blurAlloc.copyTo(copiedBmp)
-        blurAlloc.destroy()
-
-        Some(copiedBmp)
-      } catch {
-        case _: Throwable => None // Out of memory
-      }
-
+    currentBmp = Option(bmp)
     animator.start()
   }
 
   private def animationEnd(): Unit = {
-    prevBmp.foreach(_.recycle())
     prevBmp = None
     animationFraction = 0
     bitmapPaint.setAlpha(255)
@@ -136,7 +115,7 @@ class BackgroundDrawable(src: Signal[ImageSource],
 }
 
 object BackgroundDrawable {
-  val BlurRadius = 25f
+  val BlurRadius = 25
   val BlurPasses = 6
   val ScaleValue = 1.4f
   val SaturationValue = 2f
