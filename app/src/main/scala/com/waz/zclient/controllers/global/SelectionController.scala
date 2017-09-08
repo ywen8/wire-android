@@ -62,8 +62,8 @@ class SelectionController(implicit injector: Injector, ev: EventContext) extends
   }
 
   selectedConvData.onUi { data => withConv(data) { conv =>
-    verbose(s"select Ui conv changed: prev: ${previousConv.map(_.getId).orNull}, current: ${conv.getId()}")
-    if (!previousConv.contains(conv)) {
+    verbose(s"select Ui conv changed: prev: ${previousConv.map(_.getId)}, current: ${currentConv.map(_.getId)}, switching to: ${conv.getId}")
+    if (!currentConv.contains(conv)) {
       previousConv = currentConv
       currentConv = Some(conv)
       convListeners.foreach(_.onConversationChanged(previousConv, currentConv))
