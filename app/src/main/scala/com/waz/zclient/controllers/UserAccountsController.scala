@@ -19,6 +19,7 @@ package com.waz.zclient.controllers
 
 import android.content.Context
 import com.waz.ZLog._
+import com.waz.ZLog.ImplicitTag._
 import com.waz.api.IConversation
 import com.waz.model.ConversationData.ConversationType
 import com.waz.model._
@@ -33,11 +34,10 @@ import scala.concurrent.Future
 
 class UserAccountsController(implicit injector: Injector, context: Context, ec: EventContext) extends Injectable {
   import Threading.Implicits.Ui
-  private implicit val tag: LogTag = logTagFor[UserAccountsController]
 
   val zms = inject[Signal[ZMessaging]]
 
-  val accounts = Option(ZMessaging.currentAccounts).fold(Signal.const[Seq[AccountData]](Seq()))(_.loggedInAccounts.map(_.sortBy(acc => (acc.isTeamAccount, acc.id.str))))
+  val accounts = Option(ZMessaging.currentAccounts).fold(Signal.const(Seq.empty[AccountData]))(_.loggedInAccounts.map(_.sortBy(acc => (acc.isTeamAccount, acc.id.str))))
 
   val currentUser = for {
     zms     <- zms
