@@ -46,14 +46,10 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle bundle) {
         super.onCreate(bundle);
-        if (checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE)
-            != PackageManager.PERMISSION_GRANTED) {
-
-            if (shouldShowRequestPermissionRationale(
-                Manifest.permission.READ_EXTERNAL_STORAGE)) {
-                // Explain to the user why we need to read the contacts
-            }
-
+        if (checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) !=
+            PackageManager.PERMISSION_GRANTED) {
+            shouldShowRequestPermissionRationale(
+                Manifest.permission.READ_EXTERNAL_STORAGE);
             requestPermissions(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
                 TESTING_GALLERY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE);
             return;
