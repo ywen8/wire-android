@@ -29,6 +29,7 @@ import com.waz.ZLog.ImplicitTag._
 import com.waz.ZLog._
 import com.waz.threading.Threading
 import com.waz.zclient._
+import com.waz.zclient.appentry.SignInFragment._
 import com.waz.zclient.controllers.SignInController
 import com.waz.zclient.controllers.SignInController._
 import com.waz.zclient.newreg.fragments.TabPages
@@ -37,11 +38,10 @@ import com.waz.zclient.newreg.views.PhoneConfirmationButton
 import com.waz.zclient.pages.BaseFragment
 import com.waz.zclient.pages.main.profile.views.GuidedEditText
 import com.waz.zclient.ui.text.{GlyphTextView, TypefaceEditText, TypefaceTextView}
-import com.waz.zclient.ui.utils.KeyboardUtils
+import com.waz.zclient.ui.utils.{KeyboardUtils, TextViewUtils}
 import com.waz.zclient.ui.views.tab.TabIndicatorLayout
 import com.waz.zclient.ui.views.tab.TabIndicatorLayout.Callback
 import com.waz.zclient.utils.{LayoutSpec, RichView, ViewUtils}
-import SignInFragment._
 
 class SignInFragment extends BaseFragment[Container] with FragmentHelper with View.OnClickListener {
 
@@ -76,6 +76,8 @@ class SignInFragment extends BaseFragment[Container] with FragmentHelper with Vi
 
   def confirmationButton = Option(findById[PhoneConfirmationButton](R.id.pcb__signin__email))
 
+  def termsOfService = Option(findById[TypefaceTextView](R.id.terms_of_service_text))
+
   def setupViews(): Unit = {
 
     emailField.foreach { field =>
@@ -104,6 +106,11 @@ class SignInFragment extends BaseFragment[Container] with FragmentHelper with Vi
       field.addTextChangedListener(phoneTextWatch)
     }
 
+    termsOfService.foreach{ text =>
+      TextViewUtils.linkifyText(text, ContextCompat.getColor(getContext, R.color.white), true, new Runnable {
+        override def run() = getContainer.onOpenUrlInApp(getString(R.string.url_terms_of_service), withCloseButton = true)
+      })
+    }
     countryButton.foreach(_.setOnClickListener(this))
     countryCodeText.foreach(_.setOnClickListener(this))
     confirmationButton.foreach(_.setOnClickListener(this))
@@ -272,6 +279,7 @@ object SignInFragment {
   val Tag = logTagFor[SignInFragment]
   trait Container {
     def abortAddAccount(): Unit
+    def onOpenUrlInApp(url: String, withCloseButton: Boolean): Unit
   }
 }
 
