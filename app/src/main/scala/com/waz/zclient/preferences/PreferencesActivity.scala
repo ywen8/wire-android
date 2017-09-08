@@ -94,13 +94,6 @@ class PreferencesActivity extends BaseActivity
       backStackNavigator.onRestore(findViewById(R.id.content).asInstanceOf[ViewGroup], savedInstanceState)
     }
 
-   ZMessaging.currentAccounts.loggedInAccounts.onUi { accs =>
-      if (accs.isEmpty) {
-        startActivity(returning(new Intent(this, classOf[MainActivity]))(_.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK)))
-        finish()
-      }
-    }
-
     (for {
       loggedIn <- ZMessaging.currentAccounts.loggedInAccounts
       active <- ZMessaging.currentAccounts.activeAccount
