@@ -88,6 +88,7 @@ class MessageNotificationsController(implicit inj: Injector, cxt: Context, event
         notManager.cancel(ephNotId)
         Option.empty[Notification]
       }
+      else if (ephemeral.forall(_.hasBeenDisplayed)) None
       else Some(getEphemeralNotification(account, ephemeral.size, silent, ephemeral.maxBy(_.time).time))
     }.map(n => (normNotId, n))
 
@@ -96,6 +97,7 @@ class MessageNotificationsController(implicit inj: Injector, cxt: Context, event
         notManager.cancel(normNotId)
         Option.empty[Notification]
       }
+      else if (normal.forall(_.hasBeenDisplayed)) None
       else if (normal.size == 1) Some(getSingleMessageNotification(account, nots.head, silent))
       else Some(getMultipleMessagesNotification(account, nots, silent))
     }.map(n => (normNotId, n))
