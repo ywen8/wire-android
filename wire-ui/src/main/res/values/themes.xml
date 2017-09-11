@@ -350,7 +350,7 @@
         <item name="windowActionModeOverlay">true</item>
     </style>
 
-    <style name="Theme.Share" parent="Theme.Light">
+    <style name="Theme.Share" parent="Theme.Dark">
         <item name="android:windowBackground">@color/background_graphite</item>
     </style>
 
