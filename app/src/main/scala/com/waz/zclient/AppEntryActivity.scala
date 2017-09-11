@@ -259,6 +259,8 @@ class AppEntryActivity extends BaseActivity
       return
     }
 
+    enableProgress(false)
+
     if (fromGenericInvite) {
       val referralToken = getControllerFactory.getUserPreferencesController.getReferralToken
       val token = getControllerFactory.getUserPreferencesController.getGenericInvitationToken

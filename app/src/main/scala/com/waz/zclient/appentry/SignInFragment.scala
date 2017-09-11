@@ -139,6 +139,7 @@ class SignInFragment extends BaseFragment[Container] with FragmentHelper with Vi
             tabSelector.setSelected(TabPages.CREATE_ACCOUNT)
             signInController.uiSignInState.mutate {
               case SignInMethod(Login, x) => SignInMethod(Register, x)
+              case SignInMethod(Login, x) => SignInMethod(Register, x)
               case other => other
             }
           case TabPages.SIGN_IN =>
@@ -169,6 +170,8 @@ class SignInFragment extends BaseFragment[Container] with FragmentHelper with Vi
           phoneButton.setVisible(true)
           emailButton.setVisible(true)
       }
+    } else {
+      signInController.uiSignInState ! SignInMethod(Register, Email)
     }
 
     signInController.uiSignInState.onUi { state =>
