@@ -37,6 +37,7 @@ import com.waz.threading.{CancellableFuture, Threading}
 import com.waz.utils.events.Signal
 import com.waz.utils.{RichInstant, returning}
 import com.waz.zclient.AppEntryController.{DeviceLimitStage, EnterAppStage, Unknown}
+import com.waz.zclient.Intents._
 import com.waz.zclient.calling.CallingActivity
 import com.waz.zclient.calling.controllers.CallPermissionsController
 import com.waz.zclient.controllers.accentcolor.AccentColorChangeRequester
@@ -57,8 +58,6 @@ import com.waz.zclient.core.stores.connect.{ConnectStoreObserver, IConnectStore}
 import com.waz.zclient.core.stores.conversation.ConversationChangeRequester
 import com.waz.zclient.core.stores.profile.ProfileStoreObserver
 import com.waz.zclient.fragments.ConnectivityFragment
-import com.waz.zclient.notifications.controllers.MessageNotificationsController
-import com.waz.zclient.notifications.controllers.MessageNotificationsController.NotificationIntent
 import com.waz.zclient.pages.main.grid.GridFragment
 import com.waz.zclient.pages.main.{MainPhoneFragment, MainTabletFragment}
 import com.waz.zclient.pages.startup.UpdateFragment
@@ -384,7 +383,6 @@ class MainActivity extends BaseActivity
   }
 
   def handleNotificationIntent(intent: Intent) = {
-    import MessageNotificationsController.NotificationIntent
     verbose(s"handleNotificationIntent: ${intent.log}")
     if (intent.fromNotification && intent.accountId.isDefined) {
       val switchAccount = {

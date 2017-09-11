@@ -18,9 +18,9 @@
 package com.waz.zclient.notifications.controllers
 
 import android.annotation.TargetApi
-import android.app.{Notification, NotificationManager, PendingIntent}
+import android.app.{Notification, NotificationManager}
+import android.content.Context
 import android.content.pm.PackageManager
-import android.content.{Context, Intent}
 import android.graphics.drawable.{BitmapDrawable, Drawable}
 import android.graphics.{Bitmap, BitmapFactory, Canvas}
 import android.net.Uri
@@ -34,10 +34,11 @@ import com.waz.ZLog.{error, verbose}
 import com.waz.api.NotificationsHandler.NotificationType
 import com.waz.api.NotificationsHandler.NotificationType._
 import com.waz.bitmap
-import com.waz.model.{AccountId, ConvId}
+import com.waz.model.AccountId
 import com.waz.service.ZMessaging
 import com.waz.service.push.NotificationService.NotificationInfo
 import com.waz.utils.events.{EventContext, Signal, Subscription}
+import com.waz.zclient.Intents._
 import com.waz.zclient._
 import com.waz.zclient.controllers.userpreferences.UserPreferencesController
 import com.waz.zclient.media.SoundController
@@ -184,7 +185,7 @@ class MessageNotificationsController(implicit inj: Injector, cxt: Context, event
 
     val builder = commonBuilder(title, displayTime, bigTextStyle, silent)
       .setContentText(details)
-      .setContentIntent(OpenAccountIntent(cxt, accountId))
+      .setContentIntent(OpenAccountIntent(accountId))
 
     builder.build
   }
@@ -201,12 +202,12 @@ class MessageNotificationsController(implicit inj: Injector, cxt: Context, event
 
     val builder = commonBuilder(title, n.time, bigTextStyle, silent)
       .setContentText(spannableString)
-      .setContentIntent(OpenConvIntent(cxt, accountId, n.convId, requestBase))
+      .setContentIntent(OpenConvIntent(accountId, n.convId, requestBase))
 
     if (n.tpe != NotificationType.CONNECT_REQUEST) {
       builder
-        .addAction(R.drawable.ic_action_call, getString(R.string.notification__action__call), CallIntent(cxt, accountId, n.convId, requestBase + 1))
-        .addAction(R.drawable.ic_action_reply, getString(R.string.notification__action__reply), ReplyIntent(cxt, accountId, n.convId, requestBase + 2))
+        .addAction(R.drawable.ic_action_call, getString(R.string.notification__action__call), CallIntent(accountId, n.convId, requestBase + 1))
+        .addAction(R.drawable.ic_action_reply, getString(R.string.notification__action__reply), QuickReplyIntent(accountId, n.convId, requestBase + 2))
     }
 
     builder.build
@@ -238,11 +239,11 @@ class MessageNotificationsController(implicit inj: Injector, cxt: Context, event
       val requestBase = System.currentTimeMillis.toInt
       val conversationId = convIds.head.str
       builder
-        .setContentIntent(OpenConvIntent(cxt, accountId, convIds.head, requestBase))
-        .addAction(R.drawable.ic_action_call, getString(R.string.notification__action__call), CallIntent(cxt, accountId, convIds.head, requestBase + 1))
-        .addAction(R.drawable.ic_action_reply, getString(R.string.notification__action__reply), ReplyIntent(cxt, accountId, convIds.head, requestBase + 2))
+        .setContentIntent(OpenConvIntent(accountId, convIds.head, requestBase))
+        .addAction(R.drawable.ic_action_call, getString(R.string.notification__action__call), CallIntent(accountId, convIds.head, requestBase + 1))
+        .addAction(R.drawable.ic_action_reply, getString(R.string.notification__action__reply), QuickReplyIntent(accountId, convIds.head, requestBase + 2))
     }
-    else builder.setContentIntent(OpenAccountIntent(cxt, accountId))
+    else builder.setContentIntent(OpenAccountIntent(accountId))
 
     val messages = ns.map(n => getMessage(n, multiple = true, singleConversationInBatch = isSingleConv, singleUserInBatch = users.size == 1 && isSingleConv)).takeRight(5)
     builder.setContentText(messages.last) //the collapsed notification should have the last message
@@ -332,55 +333,6 @@ class MessageNotificationsController(implicit inj: Injector, cxt: Context, event
 }
 
 object MessageNotificationsController {
-
-  val FromNotificationExtra = "from_notification"
-  val StartCallExtra        = "start_call"
-  val AccountIdExtra        = "account_id"
-  val ConvIdExtra           = "conv_id"
-
-  def CallIntent(context: Context, accountId: AccountId, convId: ConvId, requestCode: Int) =
-    Intent(context, accountId, Some(convId), requestCode, startCall = true)
-
-  def ReplyIntent(context: Context, accountId: AccountId, convId: ConvId, requestCode: Int) =
-    Intent(context, accountId, Some(convId), requestCode, classOf[PopupActivity])
-
-  def OpenConvIntent(context: Context, accountId: AccountId, convId: ConvId, requestCode: Int) =
-    Intent(context, accountId, Some(convId), requestCode)
-
-  def OpenAccountIntent(context: Context, accountId: AccountId, requestCode: Int = System.currentTimeMillis().toInt) =
-    Intent(context, accountId)
-
-  private def Intent(context: Context, accountId: AccountId, convId: Option[ConvId] = None, requestCode: Int = System.currentTimeMillis().toInt, clazz: Class[_] = classOf[MainActivity], startCall: Boolean = false) = {
-    val intent = new Intent(context, clazz)
-      .putExtra(FromNotificationExtra,  true)
-      .putExtra(StartCallExtra,         startCall)
-      .putExtra(AccountIdExtra,         accountId.str)
-    convId.foreach(c => intent.putExtra(ConvIdExtra, c.str))
-    PendingIntent.getActivity(context, requestCode, intent, 0)
-  }
-
-  implicit class NotificationIntent(val intent: Intent) extends AnyVal {
-    def fromNotification = Option(intent).exists(_.getBooleanExtra(FromNotificationExtra, false))
-    def startCall = Option(intent).exists(_.getBooleanExtra(StartCallExtra, false))
-
-    def accountId = Option(intent).map(_.getStringExtra(AccountIdExtra)).filter(_ != null).map(AccountId)
-    def convId = Option(intent).map(_.getStringExtra(ConvIdExtra)).filter(_ != null).map(ConvId)
-
-    def clearExtras() = Option(intent).foreach { i =>
-      i.removeExtra(FromNotificationExtra)
-      i.removeExtra(StartCallExtra)
-      i.removeExtra(AccountIdExtra)
-      i.removeExtra(ConvIdExtra)
-    }
-
-    def log =
-      s"""NofiticationIntent:
-        |From notification: $fromNotification
-        |Start call:        $startCall
-        |Account id:        $accountId
-        |Conv id:           $convId
-      """.stripMargin
-  }
 
   def toNotificationGroupId(accountId: AccountId): Int = accountId.str.hashCode()
 
