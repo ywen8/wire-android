@@ -35,6 +35,7 @@ import com.waz.utils._
 import com.waz.utils.events.Signal
 import com.waz.zclient.calling.controllers.CallPermissionsController
 import com.waz.zclient.controllers.global.AccentColorController
+import com.waz.zclient.conversationlist.ConversationListController
 import com.waz.zclient.pages.main.conversationlist.views.ConversationCallback
 import com.waz.zclient.pages.main.conversationlist.views.listview.SwipeListView
 import com.waz.zclient.pages.main.conversationlist.views.row.MenuIndicatorView
@@ -43,7 +44,7 @@ import com.waz.zclient.ui.text.TypefaceTextView
 import com.waz.zclient.ui.utils.TextViewUtils
 import com.waz.zclient.ui.views.properties.MoveToAnimateable
 import com.waz.zclient.utils.ContextUtils._
-import com.waz.zclient.utils.{ConversationMembersSignal, ConversationSignal, StringUtils, UiStorage, UserSetSignal, UserSignal, ViewUtils}
+import com.waz.zclient.utils.{ConversationSignal, StringUtils, UiStorage, UserSetSignal, UserSignal, ViewUtils}
 import com.waz.zclient.views.ConversationBadge
 import com.waz.zclient.views.conversationlist.ConversationListRow._
 import com.waz.zclient.{R, ViewHelper}
@@ -64,6 +65,8 @@ class NormalConversationListRow(context: Context, attrs: AttributeSet, style: In
   implicit val uiStorage = inject[UiStorage]
 
   inflate(R.layout.conv_list_item)
+
+  val controller = inject[ConversationListController]
 
   val zms = inject[Signal[ZMessaging]]
   val accentColor = inject[AccentColorController].accentColor
@@ -86,22 +89,15 @@ class NormalConversationListRow(context: Context, attrs: AttributeSet, style: In
     conv <- ConversationSignal(convId)
   } yield conv
 
-  val conversationName = for {
-    z <- zms
-    self <- selfId
-    conv <- conversation
-    memberCount <- ConversationMembersSignal(conv.id).map(_.count(_ != self))
-  } yield {
-    if (conv.convType == ConversationType.Incoming) {
-      (conv.id, getInboxName(memberCount))
-    } else {
-      if (conv.displayName == "") {
-        // This hack was in the UiModule Conversation implementation
-        // XXX: this is a hack for some random errors, sometimes conv has empty name which is never updated
-        zms.head.map {_.conversations.forceNameUpdate(conv.id)}
-      }
-      (conv.id, conv.displayName)
+  val members = conversationId.collect { case Some(convId) => convId } flatMap controller.members
+
+  val conversationName = conversation map { conv =>
+    if (conv.displayName == "") {
+      // This hack was in the UiModule Conversation implementation
+      // XXX: this is a hack for some random errors, sometimes conv has empty name which is never updated
+      zms.head foreach {_.conversations.forceNameUpdate(conv.id) }
     }
+    conv.displayName
   }
 
   val userTyping = for {
@@ -116,28 +112,25 @@ class NormalConversationListRow(context: Context, attrs: AttributeSet, style: In
     conv <- conversation
     typing <- userTyping.map(_.nonEmpty)
     availableCalls <- z.calling.availableCalls
-  } yield (conv.id, badgeStatusForConversation(conv, conv.unreadCount, typing, availableCalls))
+  } yield (conv.id, badgeStatusForConversation(conv, conv.unreadCount.messages, typing, availableCalls))
 
   val subtitleText = for {
     z <- zms
-    self <- selfId
     conv <- conversation
-    _ <- if (conv.convType == ConversationType.Incoming) Signal.empty else Signal.const(())
-    lastReadInstant <- z.messagesStorage.lastRead(conv.id)
-    lastUnreadMessages <- Signal.future(z.messagesStorage.findMessagesFrom(conv.id, lastReadInstant.plusMillis(1)).map(_.filter(_.userId != self)))
-    lastUnreadMessageUser <- lastUnreadMessages.lastOption.fold2(Signal.const(Option.empty[UserData]), message => UserSignal(message.userId).map(Some(_)))
-    lastUnreadMessageMembers <- lastUnreadMessages.lastOption.fold2(Signal.const(Vector[UserData]()), message => UserSetSignal(message.members).map(_.toVector))
+    lastMessage <- controller.lastMessage(conv.id)
+    lastUnreadMessage = lastMessage.filter(_ => conv.unreadCount.total > 0)
+    lastUnreadMessageUser <- lastUnreadMessage.fold2(Signal.const(Option.empty[UserData]), message => UserSignal(message.userId).map(Some(_)))
+    lastUnreadMessageMembers <- lastUnreadMessage.fold2(Signal.const(Vector[UserData]()), message => UserSetSignal(message.members).map(_.toVector))
     typingUser <- userTyping
-    members <- ConversationMembersSignal(conv.id)
-    otherUser <- members.find(_ != self).fold2(Signal.const(Option.empty[UserData]), uid => UserSignal(uid).map(Some(_)))
-    lastMessage <- z.messagesStorage.lastMessage(conv.id)
-  } yield (conv.id, subtitleStringForLastMessages(conv, otherUser, members, lastUnreadMessages, lastMessage, lastUnreadMessageUser, lastUnreadMessageMembers, typingUser, self))
+    ms <- members
+    otherUser <- ms.headOption.fold2(Signal.const(Option.empty[UserData]), uid => UserSignal(uid).map(Some(_)))
+  } yield (conv.id, subtitleStringForLastMessages(conv, otherUser, ms.toSet, lastMessage, lastUnreadMessage, lastUnreadMessageUser, lastUnreadMessageMembers, typingUser, z.selfUserId))
 
   val avatarInfo = for {
     z <- zms
     conv <- conversation
-    memberIds <- ConversationMembersSignal(conv.id)
-    memberSeq <- Signal.sequence(memberIds.map(uid => UserSignal(uid)).toSeq:_*)
+    memberIds <- members
+    memberSeq <- Signal.sequence(memberIds.map(uid => UserSignal(uid)):_*)
   } yield {
     val opacity =
       if ((memberIds.isEmpty && conv.convType == ConversationType.Group) || conv.convType == ConversationType.WaitForConnection || !conv.isActive)
@@ -158,12 +151,7 @@ class NormalConversationListRow(context: Context, attrs: AttributeSet, style: In
     }
   }
 
-  conversationName.on(Threading.Ui) {
-    case (convId, text) if conversationData.forall(_.id == convId) =>
-      title.setText(text)
-    case _ =>
-      ZLog.debug("Outdated conversation name")
-  }
+  conversationName.on(Threading.Ui) { title.setText }
 
   subtitleText.on(Threading.Ui) {
     case (convId, text) if conversationData.forall(_.id == convId) =>
@@ -233,8 +221,6 @@ class NormalConversationListRow(context: Context, attrs: AttributeSet, style: In
       closeImmediate()
     }
   }
-
-  private def getInboxName(convSize: Int): String = getResources.getQuantityString(R.plurals.connect_inbox__link__name, convSize, convSize.toString)
 
   menuIndicatorView.setClickable(false)
   menuIndicatorView.setMaxOffset(menuOpenOffset)
@@ -417,8 +403,8 @@ object ConversationListRow {
   def subtitleStringForLastMessages(conv:                     ConversationData,
                                     otherMember:              Option[UserData],
                                     memberIds:                Set[UserId],
-                                    unreadMessages:           Iterable[MessageData],
                                     lastMessage:              Option[MessageData],
+                                    lastUnreadMessage:        Option[MessageData],
                                     lastUnreadMessageUser:    Option[UserData],
                                     lastUnreadMessageMembers: Vector[UserData],
                                     typingUser:               Option[UserData],
@@ -429,14 +415,14 @@ object ConversationListRow {
       otherMember.flatMap(_.handle.map(_.string)).fold("")(StringUtils.formatHandle)
     } else if (memberIds.count(_ != selfId) == 0 && conv.convType == ConversationType.Group) {
       getString(R.string.conversation_list__empty_conv__subtitle)
-    } else if (unreadMessages.isEmpty &&  !conv.isActive) {
+    } else if (conv.unreadCount.total == 0 && !conv.isActive) {
       getString(R.string.conversation_list__left_you)
     } else if ((conv.muted || conv.incomingKnockMessage.nonEmpty || conv.missedCallMessage.nonEmpty) && typingUser.isEmpty) {
-      val normalMessageCount = unreadMessages.count(m => !m.isSystemMessage && m.msgType != Message.Type.KNOCK)
-      val missedCallCount = unreadMessages.count(_.msgType == Message.Type.MISSED_CALL)
-      val pingCount = unreadMessages.count(_.msgType == Message.Type.KNOCK)
+      val normalMessageCount = conv.unreadCount.normal
+      val missedCallCount = conv.unreadCount.call
+      val pingCount = conv.unreadCount.ping
       val likesCount = 0//TODO: There is no good way to get this so far
-      val unsentCount = unreadMessages.count(_.state == Message.Status.FAILED)
+      val unsentCount = conv.failedCount
 
       val unsentString =
         if (unsentCount > 0)
@@ -459,7 +445,7 @@ object ConversationListRow {
       Seq(unsentString, strings.mkString(", ")).filter(_.nonEmpty).mkString(" | ")
     } else {
       typingUser.fold {
-        unreadMessages.lastOption.fold {
+        lastUnreadMessage.fold {
           ""
         } { msg =>
           subtitleStringForLastMessage(msg, lastUnreadMessageUser, lastUnreadMessageMembers, conv.convType == ConversationType.Group, selfId)
