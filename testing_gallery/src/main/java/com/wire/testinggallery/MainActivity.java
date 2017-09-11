@@ -18,10 +18,12 @@
 package com.wire.testinggallery;
 
 
+import android.Manifest;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.Settings;
@@ -39,10 +41,19 @@ public class MainActivity extends AppCompatActivity {
     private static final String COMMAND_CHECK_NOTIFICATION_ACCESS = "check_notification_access";
     private static final String DEFAULT_TEST_TEXT = "QA AUTOMATION TEST";
     private static final String DEFAULT_PACKAGE_NAME = "com.wire.candidate";
+    private static final int TESTING_GALLERY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE = 23456789;
 
     @Override
     protected void onCreate(Bundle bundle) {
         super.onCreate(bundle);
+        if (checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) !=
+            PackageManager.PERMISSION_GRANTED) {
+            shouldShowRequestPermissionRationale(
+                Manifest.permission.READ_EXTERNAL_STORAGE);
+            requestPermissions(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
+                TESTING_GALLERY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE);
+            return;
+        }
         registerReceiver(broadcastReceiver, new IntentFilter("com.wire.testinggallery.main.receiver"));
     }
 
