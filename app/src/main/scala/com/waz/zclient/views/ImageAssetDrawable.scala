@@ -72,13 +72,13 @@ class ImageAssetDrawable(
     }
   })
 
-  val state = (for {
+  val state = for {
     im <- src
     d <- dims if d.width > 0
     _ <- fixedBounds
     p <- padding
     state <- bitmapState(im, d.width - p.l - p.r)
-  } yield state).disableAutowiring()
+  } yield state
 
   private var _state = Option.empty[State]
 
