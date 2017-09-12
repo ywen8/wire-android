@@ -33,6 +33,7 @@ import com.waz.zclient.calling.controllers.{CallPermissionsController, CurrentCa
 import com.waz.zclient.camera.controllers.{AndroidCameraFactory, GlobalCameraController}
 import com.waz.zclient.common.controllers.{PermissionActivity, PermissionsController, PermissionsWrapper}
 import com.waz.zclient.controllers._
+import com.waz.zclient.controllers.camera.ICameraController
 import com.waz.zclient.controllers.deviceuser.IDeviceUserController
 import com.waz.zclient.controllers.drawing.IDrawingController
 import com.waz.zclient.controllers.giphy.IGiphyController
@@ -90,6 +91,7 @@ object WireApplication {
     bind [IGlobalLayoutController]       toProvider controllerFactory.getGlobalLayoutController
     bind [ILocationController]           toProvider controllerFactory.getLocationController
     bind [IGiphyController]              toProvider controllerFactory.getGiphyController
+    bind [ICameraController]             toProvider controllerFactory.getCameraController
 
     bind [IStoreFactory]                 toProvider storeFactory
     bind [INetworkStore]                 toProvider storeFactory.networkStore

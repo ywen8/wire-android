@@ -142,6 +142,7 @@ class CursorController(implicit inj: Injector, ctx: Context, evc: EventContext) 
 
       if (LayoutSpec.isTablet(ctx) && tpe == ExtendedCursorContainer.Type.IMAGES) {
         cameraController.openCamera(CameraContext.MESSAGE)
+        keyboard ! KeyboardState.Hidden
       } else {
         permissions.withPermissions(keyboardPermissions(tpe): _*) {
           cursorCallback.foreach(_.openExtendedCursor(tpe))
