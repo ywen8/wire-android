@@ -23,7 +23,7 @@ import android.content.{DialogInterface, Intent}
 import android.graphics.drawable.ColorDrawable
 import android.graphics.{Color, Paint, PixelFormat}
 import android.net.Uri
-import android.os.{Build, Bundle, Handler}
+import android.os.{Build, Bundle}
 import android.support.v4.app.Fragment
 import android.text.TextUtils
 import com.localytics.android.Localytics
@@ -44,7 +44,6 @@ import com.waz.zclient.controllers.accentcolor.AccentColorChangeRequester
 import com.waz.zclient.controllers.calling.CallingObserver
 import com.waz.zclient.controllers.global.{AccentColorController, SelectionController}
 import com.waz.zclient.controllers.navigation.{NavigationControllerObserver, Page}
-import com.waz.zclient.controllers.sharing.SharedContentType
 import com.waz.zclient.controllers.tracking.events.connect.AcceptedGenericInviteEvent
 import com.waz.zclient.controllers.tracking.events.exception.ExceptionEvent
 import com.waz.zclient.controllers.tracking.events.profile.SignOut
@@ -273,7 +272,7 @@ class MainActivity extends BaseActivity
     onLaunch()
 
     setIntent(intent)
-    handleNotificationIntent(intent)
+    handleIntent(intent)
 
     Option(intent.getStringExtra(LaunchActivity.APP_PAGE)).filter(_.nonEmpty).foreach { page =>
       setIntent(IntentUtils.resetAppPage(intent))
@@ -340,88 +339,66 @@ class MainActivity extends BaseActivity
     getControllerFactory.getAccentColorController.setColor(AccentColorChangeRequester.LOGIN, self.getAccent.getColor)
     getControllerFactory.getUsernameController.setUser(self)
 
-    getIntent match {
-      case intent if intent.fromNotification  =>
-        handleNotificationIntent(intent)
-
-      case intent if IntentUtils.isLaunchFromSharingIntent(intent) =>
-        val sharedText = IntentUtils.getLaunchConversationSharedText(intent)
-        val sharedFileUris = IntentUtils.getLaunchConversationSharedFiles(intent)
-        val expiration = IntentUtils.getEphemeralExpiration(intent)
-
-        Option(IntentUtils.getLaunchConversationIds(intent)).map(_.asScala.filter(_ != null).toSeq).foreach {
-          case convId +: Nil =>
-            val conv = getStoreFactory.conversationStore.getConversation(convId)
-
-            if (!TextUtils.isEmpty(sharedText)) getControllerFactory.getSharingController.setSharedContentType(SharedContentType.TEXT)
-            else getControllerFactory.getSharingController.setSharedContentType(SharedContentType.FILE)
-
-            getControllerFactory.getSharingController.setSharedText(sharedText)
-            getControllerFactory.getSharingController.setSharedUris(sharedFileUris)
-            getControllerFactory.getSharingController.setSharingConversationId(convId)
-
-            Option(conv).foreach(_.setEphemeralExpiration(expiration))
-
-            sharingController.sendContent(sharedText, sharedFileUris, Seq(convId).asJava, expiration, this)
-
-            // Only want to swipe over when app has loaded
-            new Handler().postDelayed(new Runnable() {
-              def run() = {
-                getStoreFactory.conversationStore.setCurrentConversation(Option(conv), ConversationChangeRequester.SHARING)
-              }
-            }, MainActivity.LaunchChangeConversationDelay.toMillis.toInt)
-
-          case convs => sharingController.sendContent(sharedText, sharedFileUris, convs.asJava, expiration, this)
-        }
-
-        IntentUtils.clearLaunchIntentExtra(intent)
-        setIntent(intent)
-
-      case intent => setIntent(intent)
-    }
+    handleIntent(getIntent)
     openMainPage()
   }
 
-  def handleNotificationIntent(intent: Intent) = {
-    verbose(s"handleNotificationIntent: ${intent.log}")
-    if (intent.fromNotification && intent.accountId.isDefined) {
-      val switchAccount = {
-        val accounts = ZMessaging.currentAccounts
-        accounts.activeAccount.head.flatMap {
-          case Some(acc) if intent.accountId.contains(acc.id) => Future.successful(false)
-          case _ => accounts.switchAccount(intent.accountId.get).map(_ => true)
+  def handleIntent(intent: Intent) = {
+    verbose(s"handleIntent: ${intent.log}")
+
+    def switchConversation(convId: ConvId, call: Boolean = false, exp: EphemeralExpiration = EphemeralExpiration.NONE) =
+      CancellableFuture.delay(MainActivity.LaunchChangeConversationDelay).map { _ =>
+        verbose(s"setting conversation: $convId")
+        val conv = getStoreFactory.conversationStore.getConversation(convId.str)
+        conv.setEphemeralExpiration(exp)
+        getStoreFactory.conversationStore.setCurrentConversation(conv, ConversationChangeRequester.INTENT)
+        if (call) startCall(false)
+    } (Threading.Ui).future
+
+    def clearIntent() = {
+      intent.clearExtras()
+      setIntent(intent)
+    }
+
+    intent match {
+      case NotificationIntent(accountId, convId, startCall) =>
+        val switchAccount = {
+          val accounts = ZMessaging.currentAccounts
+          accounts.activeAccount.head.flatMap {
+            case Some(acc) if intent.accountId.contains(acc.id) => Future.successful(false)
+            case _ => accounts.switchAccount(intent.accountId.get).map(_ => true)
+          }
         }
-      }
 
-      switchAccount.flatMap {
-        case false =>
+        switchAccount.flatMap {
+          case false =>
+            (intent.convId match {
+              case Some(id) => switchConversation(id, startCall)
+              case _ =>        Future.successful({})
+            }).map(_ => clearIntent())(Threading.Ui)
+          case true =>
+            //do nothing - intent will be handled again for conversation switching after account switch
+            Future.successful({})
+        }
 
-          (intent.convId match {
-            case Some(id) =>
-              CancellableFuture.delay(MainActivity.LaunchChangeConversationDelay).map { _ =>
-                verbose(s"setting conversation: $id")
-                val conv = getStoreFactory.conversationStore.getConversation(id.str)
-                getStoreFactory.conversationStore.setCurrentConversation(conv, ConversationChangeRequester.NOTIFICATION)
-                if (intent.startCall) startCall(false)
-              }(Threading.Ui).future
-            case _ =>
-              Future.successful({})
-          }).map { _ =>
-            //no longer need this intent - remove it to prevent it from being reused
-            intent.clearExtras()
-            setIntent(intent)
-          } (Threading.Ui)
-        case true =>
-          //do nothing - intent will be handled again for conversation switching after account switch
-          Future.successful({})
-      }
+        try {
+          val t = clock.instant()
+          if (Await.result(switchAccount, 2.seconds)) verbose(s"Account switched before resuming activity lifecycle. Took ${t.until(clock.instant()).toMillis} ms")
+        } catch {
+          case NonFatal(e) => error("Failed to switch accounts", e)
+        }
 
-      try {
-        val t = clock.instant()
-        if (Await.result(switchAccount, 2.seconds)) verbose(s"Account switched before resuming activity lifecycle. Took ${t.until(clock.instant()).toMillis} ms")
-      } catch {
-        case NonFatal(e) => error("Failed to switch accounts", e)
-      }
+      case SharingIntent() =>
+        for {
+          _     <- sharingController.sendContent(this)
+          convs <- sharingController.targetConvs.head
+          exp   <- sharingController.ephemeralExpiration.head
+          _     <- if (convs.size == 1) switchConversation(convs.head, exp = exp) else Future.successful({})
+        } yield clearIntent()
+
+      case _ =>
+        //TODO handle all intent types here
+        setIntent(intent)
     }
   }
 

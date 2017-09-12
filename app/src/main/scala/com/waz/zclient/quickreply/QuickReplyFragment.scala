@@ -32,6 +32,7 @@ import com.waz.model.{AccountId, ConvId}
 import com.waz.service.ZMessaging
 import com.waz.utils.events.Signal
 import com.waz.utils.returning
+import com.waz.zclient.controllers.SharingController
 import com.waz.zclient.controllers.global.AccentColorController
 import com.waz.zclient.core.controllers.tracking.events.notifications.{OpenedAppFromQuickReplyEvent, SwitchedMessageInQuickReplyEvent}
 import com.waz.zclient.pages.main.popup.ViewPagerLikeLayoutManager
@@ -66,6 +67,7 @@ class QuickReplyFragment extends Fragment with FragmentHelper {
   lazy val zms = ZMessaging.currentAccounts.zmsInstances.map(_.find(_.accountId == accountId)).collect { case Some(z) => z }
 
   lazy val tracking = inject[GlobalTrackingController]
+  lazy val sharing  = inject[SharingController]
 
   lazy val accentColor = for {
     z      <- zms
@@ -112,6 +114,7 @@ class QuickReplyFragment extends Fragment with FragmentHelper {
       tracking.tagEvent(new SwitchedMessageInQuickReplyEvent)
       contentContainer.smoothScrollToPosition((layoutManager.findFirstVisibleItemPosition + 1) % adapter.getItemCount)
     }
+
     contentContainer.addOnScrollListener(new RecyclerView.OnScrollListener() {
       override def onScrollStateChanged(recyclerView: RecyclerView, newState: Int): Unit = {
         if (newState == RecyclerView.SCROLL_STATE_IDLE) {
@@ -120,6 +123,7 @@ class QuickReplyFragment extends Fragment with FragmentHelper {
         }
       }
     })
+
     message.setOnEditorActionListener(new TextView.OnEditorActionListener {
       override def onEditorAction(textView: TextView, actionId: Int, event: KeyEvent): Boolean = {
         if (actionId == EditorInfo.IME_ACTION_SEND || (event != null && event.getKeyCode == KeyEvent.KEYCODE_ENTER && event.getAction == KeyEvent.ACTION_DOWN)) {
@@ -145,11 +149,13 @@ class QuickReplyFragment extends Fragment with FragmentHelper {
         false
       }
     })
+
     openWire onClick {
       ZMessaging.currentAccounts.switchAccount(accountId).onComplete { _ =>
         Option(getActivity) foreach { activity =>
           tracking.tagEvent(new OpenedAppFromQuickReplyEvent)
-          startActivity(IntentUtils.getAppLaunchIntent(getContext, convId.str, message.getText.toString))
+          sharing.publishTextContent(message.getText.toString)
+          sharing.onContentShared(activity, Set(convId))
           activity.finish()
         }
       }

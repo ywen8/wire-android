@@ -24,6 +24,7 @@ import com.waz.model.{AccountId, ConvId}
 object Intents {
 
   private lazy val FromNotificationExtra = "from_notification"
+  private lazy val FromSharingExtra      = "from_sharing"
   private lazy val StartCallExtra        = "start_call"
   private lazy val AccountIdExtra        = "account_id"
   private lazy val ConvIdExtra           = "conv_id"
@@ -40,6 +41,9 @@ object Intents {
   def OpenAccountIntent(accountId: AccountId, requestCode: Int = System.currentTimeMillis().toInt)(implicit context: Context) =
     Intent(context, accountId)
 
+  def SharingIntent(implicit context: Context) =
+    new Intent(context, classOf[MainActivity]).putExtra(FromSharingExtra, true)
+
   private def Intent(context:     Context,
                      accountId:   AccountId,
                      convId:      Option[ConvId] = None,
@@ -54,14 +58,16 @@ object Intents {
     PendingIntent.getActivity(context, requestCode, intent, 0)
   }
 
-  implicit class NotificationIntent(val intent: Intent) extends AnyVal {
+  implicit class RichIntent(val intent: Intent) extends AnyVal {
     def fromNotification = Option(intent).exists(_.getBooleanExtra(FromNotificationExtra, false))
-    def startCall  = Option(intent).exists(_.getBooleanExtra(StartCallExtra, false))
-    def accountId  = Option(intent).map(_.getStringExtra(AccountIdExtra)).filter(_ != null).map(AccountId)
-    def convId     = Option(intent).map(_.getStringExtra(ConvIdExtra)).filter(_ != null).map(ConvId)
+    def fromSharing      = Option(intent).exists(_.getBooleanExtra(FromSharingExtra, false))
+    def startCall        = Option(intent).exists(_.getBooleanExtra(StartCallExtra, false))
+    def accountId        = Option(intent).map(_.getStringExtra(AccountIdExtra)).filter(_ != null).map(AccountId)
+    def convId           = Option(intent).map(_.getStringExtra(ConvIdExtra)).filter(_ != null).map(ConvId)
 
     def clearExtras() = Option(intent).foreach { i =>
       i.removeExtra(FromNotificationExtra)
+      i.removeExtra(FromSharingExtra)
       i.removeExtra(StartCallExtra)
       i.removeExtra(AccountIdExtra)
       i.removeExtra(ConvIdExtra)
@@ -69,14 +75,23 @@ object Intents {
 
     def log =
       s"""NofiticationIntent:
-          |Wire intent:    $startCall
-          |Start call:     $startCall
-          |Account id:     $accountId
-          |Conv id:        $convId
-      """.stripMargin
+          |FromNotification: $fromNotification
+          |FromSharing:      $fromSharing
+          |Start call:       $startCall
+          |Account id:       $accountId
+          |Conv id:          $convId
+        """.stripMargin
   }
 
+  object NotificationIntent {
+    def unapply(i: Intent): Option[(AccountId, Option[ConvId], Boolean)] =
+      if (i.fromNotification && i.accountId.isDefined) Some(i.accountId.get, i.convId, i.startCall)
+      else None
+  }
 
+  object SharingIntent {
+    def unapply(i: Intent): Boolean = i.fromSharing
+  }
 
 
 }

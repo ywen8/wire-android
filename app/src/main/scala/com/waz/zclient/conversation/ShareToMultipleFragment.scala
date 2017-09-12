@@ -180,12 +180,11 @@ class ShareToMultipleFragment extends BaseFragment[ShareToMultipleFragment.Conta
     }
 
     onClickEvent { _ =>
-      val selectedConvs = adapter.selectedConversations.currentValue.getOrElse(Set())
-      if (selectedConvs.nonEmpty) {
-        sharingController.onContentShared(getActivity, adapter.selectedConversations.currentValue.getOrElse(Set()))
+      adapter.selectedConversations.head.map { convs =>
+        sharingController.onContentShared(getActivity, convs)
         Toast.makeText(getContext, R.string.multi_share_toast_sending, Toast.LENGTH_SHORT).show()
         getActivity.finish()
-      }
+      } (Threading.Ui)
     }
 
     searchBox.setOnEditorActionListener(new OnEditorActionListener {

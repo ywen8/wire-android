@@ -293,8 +293,7 @@ public class ConversationListManagerFragment extends BaseFragment<ConversationLi
             case START_CONVERSATION_FOR_CALL:
             case START_CONVERSATION_FOR_VIDEO_CALL:
             case START_CONVERSATION_FOR_CAMERA:
-            case NOTIFICATION:
-            case SHARING:
+            case INTENT:
                 stripToConversationList();
                 break;
             case INCOMING_CALL:

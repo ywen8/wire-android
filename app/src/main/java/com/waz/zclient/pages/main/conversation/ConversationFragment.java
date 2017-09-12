@@ -74,6 +74,7 @@ import com.waz.zclient.OnBackPressedListener;
 import com.waz.zclient.R;
 import com.waz.zclient.camera.controllers.GlobalCameraController;
 import com.waz.zclient.controllers.IControllerFactory;
+import com.waz.zclient.controllers.SharingController;
 import com.waz.zclient.controllers.ThemeController;
 import com.waz.zclient.controllers.UserAccountsController;
 import com.waz.zclient.controllers.accentcolor.AccentColorObserver;
@@ -681,12 +682,12 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
                 conversationLoadingIndicatorViewView.hide();
                 cursorView.enableMessageWriting();
 
+                final SharingController sharingController = inject(SharingController.class);
+
                 if (changeToDifferentConversation) {
                     getControllerFactory().getConversationScreenController().setConversationStreamUiReady(false);
                     toConversationType = toConversation.getType();
-                    getControllerFactory().getSharingController().maybeResetSharedText(fromConversation);
-                    getControllerFactory().getSharingController().maybeResetSharedUris(fromConversation);
-
+                    sharingController.clearSharingFor(fromConversation);
 
                     cursorView.setVisibility(toConversation.isActive() ? View.VISIBLE : View.GONE);
                     if (!inSplitPortraitMode()) {
@@ -704,36 +705,30 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
                     hideAudioMessageRecording();
                 }
 
-                final boolean isSharing = getControllerFactory().getSharingController().isSharedConversation(
-                    toConversation);
-                final boolean isSharingText = !TextUtils.isEmpty(getControllerFactory().getSharingController().getSharedText()) && isSharing;
-                final List<URI> sharedFileUris = getControllerFactory().getSharingController().getSharedFileUris();
-                final boolean isSharingFiles = !(sharedFileUris == null || sharedFileUris.isEmpty()) && isSharing;
-                if (isSharing) {
-                    if (isSharingText) {
-                        final String draftText = getControllerFactory().getSharingController().getSharedText();
-                        if (TextUtils.isEmpty(draftText)) {
-                            resetCursor();
-                        } else {
-                            cursorView.setText(draftText);
+                final String sharedText = sharingController.getSharedText(toConversation.getId());
+                final boolean isSharingText = !TextUtils.isEmpty(sharedText);
+
+                final List<URI> sharedFileUris = sharingController.getSharedFiles(toConversation.getId());
+                final boolean isSharingFiles = !(sharedFileUris == null || sharedFileUris.isEmpty());
+
+                if (isSharingText) {
+                    cursorView.setText(sharedText);
+                    cursorView.enableMessageWriting();
+                    KeyboardUtils.showKeyboard(getActivity());
+                    sharingController.clearSharingFor(toConversation);
+                } else if (isSharingFiles) {
+                    if (PermissionUtils.hasSelfPermissions(getActivity(), FILE_SHARING_PERMISSION)) {
+                        for (URI uri : sharedFileUris) {
+                            getStoreFactory().conversationStore().sendMessage(AssetFactory.fromContentUri(uri),
+                                                                                 assetErrorHandler);
                         }
-                        cursorView.enableMessageWriting();
-                        KeyboardUtils.showKeyboard(getActivity());
-                        getControllerFactory().getSharingController().maybeResetSharedText(toConversation);
-                    } else if (isSharingFiles) {
-                        if (PermissionUtils.hasSelfPermissions(getActivity(), FILE_SHARING_PERMISSION)) {
-                            for (URI uri : sharedFileUris) {
-                                getStoreFactory().conversationStore().sendMessage(AssetFactory.fromContentUri(uri),
-                                                                                     assetErrorHandler);
-                            }
-                        } else {
-                            sharingUris.addAll(sharedFileUris);
-                            ActivityCompat.requestPermissions(getActivity(),
-                                                              FILE_SHARING_PERMISSION,
-                                                              FILE_SHARING_PERMISSION_REQUEST_ID);
-                        }
-                        getControllerFactory().getSharingController().maybeResetSharedUris(toConversation);
+                    } else {
+                        sharingUris.addAll(sharedFileUris);
+                        ActivityCompat.requestPermissions(getActivity(),
+                                                          FILE_SHARING_PERMISSION,
+                                                          FILE_SHARING_PERMISSION_REQUEST_ID);
                     }
+                    sharingController.clearSharingFor(toConversation);
                 }
 
 
@@ -1095,8 +1090,8 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
 
     @Override
     public void onMessageSent(MessageData msg) {
-      getStoreFactory().networkStore().doIfHasInternetOrNotifyUser(null);
-      getControllerFactory().getSharingController().maybeResetSharedText(getStoreFactory().conversationStore().getCurrentConversation());
+        getStoreFactory().networkStore().doIfHasInternetOrNotifyUser(null);
+        inject(SharingController.class).clearSharingFor(getStoreFactory().conversationStore().getCurrentConversation());
     }
 
     @Override

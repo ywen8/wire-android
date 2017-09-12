@@ -115,6 +115,7 @@ object WireApplication {
     bind [PreferencesController]           to new PreferencesController()
     bind [ImageController]                 to new ImageController()
     bind [UserAccountsController]          to new UserAccountsController()
+    bind [SharingController]         to new SharingController()
 
 
     // current conversation data
@@ -154,7 +155,6 @@ object WireApplication {
     bind [MessagesController]        to new MessagesController()
     bind [LikesController]           to new LikesController()
     bind [CollectionController]      to new CollectionController()
-    bind [SharingController]         to new SharingController()
     bind [UiStorage]                 to new UiStorage()
     bind [BackStackNavigator]        to new BackStackNavigator()
     bind [AppEntryController]        to new AppEntryController()
