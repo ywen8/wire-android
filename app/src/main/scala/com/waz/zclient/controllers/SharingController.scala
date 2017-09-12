@@ -22,6 +22,7 @@ import android.content.DialogInterface
 import android.support.v7.app.AlertDialog
 import android.text.format.Formatter
 import com.waz.ZLog._
+import com.waz.ZLog.ImplicitTag._
 import com.waz.api._
 import com.waz.model.ConvId
 import com.waz.service.ZMessaging
@@ -36,7 +37,6 @@ import scala.collection.JavaConverters._
 
 class SharingController(implicit injector: Injector, eventContext: EventContext) extends Injectable{
   import com.waz.threading.Threading.Implicits.Ui
-  private implicit val tag: LogTag = logTagFor[SharingController]
 
   private lazy val context = inject[Activity]
   private lazy val zms = inject[Signal[ZMessaging]]

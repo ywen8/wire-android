@@ -17,14 +17,11 @@
  */
 package com.waz.zclient.controllers.stubs;
 
-import android.app.Activity;
 import com.waz.api.IConversation;
 import com.waz.utils.wrappers.URI;
 import com.waz.zclient.controllers.sharing.ISharingController;
 import com.waz.zclient.controllers.sharing.SharedContentType;
-import com.waz.zclient.controllers.sharing.SharingObserver;
-import java.lang.Override;
-import java.lang.String;
+
 import java.util.List;
 
 public class StubSharingController implements ISharingController {
@@ -39,48 +36,13 @@ public class StubSharingController implements ISharingController {
   }
 
   @Override
-  public void onContentShared(Activity activity, IConversation toConversation, List<URI> sharedUris) {
-
-  }
-
-  @Override
   public void maybeResetSharedText(IConversation currentConversation) {
-
-  }
-
-  @Override
-  public void setDestination(IConversation conversation) {
-
-  }
-
-  @Override
-  public void onContentShared(Activity activity, IConversation toConversation) {
-
-  }
-
-  @Override
-  public void onContentShared(Activity activity, IConversation toConversation, String sharedText) {
 
   }
 
   @Override
   public void maybeResetSharedUris(IConversation currentConversation) {
 
-  }
-
-  @Override
-  public void addObserver(SharingObserver observer) {
-
-  }
-
-  @Override
-  public String getSharingConversation() {
-    return null;
-  }
-
-  @Override
-  public SharedContentType getSharedContentType() {
-    return null;
   }
 
   @Override
@@ -110,16 +72,6 @@ public class StubSharingController implements ISharingController {
 
   @Override
   public void setSharedText(String text) {
-
-  }
-
-  @Override
-  public IConversation getDestination() {
-    return null;
-  }
-
-  @Override
-  public void removeObserver(SharingObserver observer) {
 
   }
 }

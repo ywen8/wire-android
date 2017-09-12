@@ -25,15 +25,9 @@ import java.util.List;
 
 public interface ISharingController {
 
-    void addObserver(SharingObserver observer);
-
-    void removeObserver(SharingObserver observer);
-
     void tearDown();
 
     void setSharedContentType(SharedContentType type);
-
-    SharedContentType getSharedContentType();
 
     void setSharedText(String text);
 
@@ -43,23 +37,11 @@ public interface ISharingController {
 
     List<URI> getSharedFileUris();
 
-    void onContentShared(Activity activity, IConversation toConversation);
-
-    void onContentShared(Activity activity, IConversation toConversation, String sharedText);
-
-    void onContentShared(Activity activity, IConversation toConversation, List<URI> sharedUris);
-
     void setSharingConversationId(String conversationId);
-
-    String getSharingConversation();
 
     void maybeResetSharedText(IConversation currentConversation);
 
     void maybeResetSharedUris(IConversation currentConversation);
 
     boolean isSharedConversation(IConversation conversation);
-
-    void setDestination(IConversation conversation);
-
-    IConversation getDestination();
 }

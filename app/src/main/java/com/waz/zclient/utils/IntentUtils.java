@@ -212,19 +212,6 @@ public class IntentUtils {
     }
 
     public static Intent getAppLaunchIntent(@NonNull Context context,
-                                                 String conversationId,
-                                                 List<URI> sharedFiles,
-                                                 EphemeralExpiration expiration) {
-        Intent intent = new Intent(context, MainActivity.class);
-        intent.putExtra(EXTRA_LAUNCH_FROM_SHARING, true);
-
-        intent.putParcelableArrayListExtra(EXTRA_LAUNCH_CONVERSATION_FILES, mapToAndroidUris(sharedFiles));
-        intent.putStringArrayListExtra(EXTRA_LAUNCH_CONVERSATION_IDS, new ArrayList<>(Collections.singletonList(conversationId)));
-        intent.putExtra(EXTRA_LAUNCH_EPHEMERAL_EXPIRATION, expiration.milliseconds);
-        return intent;
-    }
-
-    public static Intent getAppLaunchIntent(@NonNull Context context,
                                             List<String> conversationIds,
                                             List<URI> sharedFiles,
                                             EphemeralExpiration expiration) {
@@ -293,11 +280,6 @@ public class IntentUtils {
         return intent;
     }
 
-    public static String getLaunchConversationId(Intent intent) {
-        List<String> convIds = intent.getStringArrayListExtra(EXTRA_LAUNCH_CONVERSATION_IDS);
-        return convIds == null || convIds.isEmpty() ? null : convIds.get(0);
-    }
-
     public static List<String> getLaunchConversationIds(Intent intent) {
         return intent.getStringArrayListExtra(EXTRA_LAUNCH_CONVERSATION_IDS);
     }
@@ -325,10 +307,6 @@ public class IntentUtils {
 
     public static EphemeralExpiration getEphemeralExpiration(Intent intent) {
         return EphemeralExpiration.getForMillis(intent.getLongExtra(EXTRA_LAUNCH_EPHEMERAL_EXPIRATION, EphemeralExpiration.NONE.milliseconds));
-    }
-
-    public static boolean isStartCallNotificationIntent(Intent intent) {
-        return intent.getBooleanExtra(EXTRA_LAUNCH_START_CALL, false);
     }
 
     public static Intent getSavedImageShareIntent(Context context, URI uri) {

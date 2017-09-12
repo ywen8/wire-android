@@ -17,18 +17,10 @@
  */
 package com.waz.zclient.controllers.sharing;
 
-import android.app.Activity;
-import android.content.Intent;
-import android.support.annotation.Nullable;
-
-import com.waz.api.EphemeralExpiration;
 import com.waz.api.IConversation;
 import com.waz.utils.wrappers.URI;
-import com.waz.zclient.utils.IntentUtils;
 
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 public class SharingController implements ISharingController {
 
@@ -37,23 +29,9 @@ public class SharingController implements ISharingController {
     private String sharedText;
     private List<URI> sharedFileUris;
     private String conversationId;
-    private Set<SharingObserver> observerSet = new HashSet<>();
-    private IConversation destination;
 
     @Override
-    public void addObserver(SharingObserver observer) {
-        observerSet.add(observer);
-    }
-
-    @Override
-    public void removeObserver(SharingObserver observer) {
-        observerSet.remove(observer);
-    }
-
-    @Override
-    public void tearDown() {
-        observerSet.clear();
-    }
+    public void tearDown() { }
 
     @Override
     public void setSharedContentType(SharedContentType type) {
@@ -62,11 +40,6 @@ public class SharingController implements ISharingController {
 
         }
         sharedContentType = type;
-    }
-
-    @Override
-    public SharedContentType getSharedContentType() {
-        return sharedContentType;
     }
 
     @Override
@@ -90,35 +63,8 @@ public class SharingController implements ISharingController {
     }
 
     @Override
-    public void onContentShared(Activity activity, IConversation toConversation) {
-        onContentShared(activity, toConversation, (String) null);
-    }
-
-    @Override
-    public void onContentShared(Activity activity, IConversation toConversation, @Nullable String sharedText) {
-        Intent i = IntentUtils.getAppLaunchIntent(activity,
-                                                  toConversation == null ? null : toConversation.getId(),
-                                                  sharedText);
-        activity.startActivity(i);
-    }
-
-    @Override
-    public void onContentShared(Activity activity, IConversation toConversation, List<URI> sharedUris) {
-        Intent i = IntentUtils.getAppLaunchIntent(activity,
-                                                  toConversation == null ? null : toConversation.getId(),
-                                                  sharedUris,
-                                                  EphemeralExpiration.NONE);
-        activity.startActivity(i);
-    }
-
-    @Override
     public void setSharingConversationId(String conversationId) {
         this.conversationId = conversationId;
-    }
-
-    @Override
-    public String getSharingConversation() {
-        return conversationId;
     }
 
     @Override
@@ -162,16 +108,4 @@ public class SharingController implements ISharingController {
         return conversationId.equals(conversation.getId());
     }
 
-    @Override
-    public void setDestination(IConversation conversation) {
-        this.destination = conversation;
-        for (SharingObserver observer : observerSet) {
-            observer.onDestinationSelected(conversation);
-        }
-    }
-
-    @Override
-    public IConversation getDestination() {
-        return destination;
-    }
 }
