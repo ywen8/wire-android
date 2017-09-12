@@ -254,7 +254,7 @@ class MainActivity extends BaseActivity
     info(s"OnActivity requestCode: $requestCode, resultCode: $resultCode")
     super.onActivityResult(requestCode, resultCode, data)
     Option(ZMessaging.currentGlobal).foreach(_.googleApi.onActivityResult(requestCode, resultCode))
-    getSupportFragmentManager.findFragmentById(R.id.fl_main_content).onActivityResult(requestCode, resultCode, data)
+    Option(getSupportFragmentManager.findFragmentById(R.id.fl_main_content)).foreach(_.onActivityResult(requestCode, resultCode, data))
 
     if (requestCode == PreferencesActivity.SwitchAccountCode && data != null) {
       Option(data.getStringExtra(PreferencesActivity.SwitchAccountExtra)).foreach { extraStr =>

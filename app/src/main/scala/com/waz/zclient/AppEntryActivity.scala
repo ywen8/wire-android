@@ -92,6 +92,9 @@ class AppEntryActivity extends BaseActivity
 
   override def onBackPressed(): Unit = {
     getSupportFragmentManager.getFragments.asScala.foreach {
+      case fragment: InAppWebViewFragment =>
+        getSupportFragmentManager.popBackStackImmediate
+        return
       case fragment: OnBackPressedListener if fragment.onBackPressed() =>
         return
       case _ =>

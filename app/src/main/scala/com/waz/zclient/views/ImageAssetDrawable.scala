@@ -19,10 +19,8 @@ package com.waz.zclient.views
 
 import android.animation.ValueAnimator
 import android.animation.ValueAnimator.AnimatorUpdateListener
-import android.content.Context
 import android.graphics._
 import android.graphics.drawable.Drawable
-import android.renderscript.{Allocation, Element, RenderScript, ScriptIntrinsicBlur}
 import com.waz.ZLog.ImplicitTag._
 import com.waz.content.UserPreferences
 import com.waz.model.AssetData.{IsImage, IsVideo}

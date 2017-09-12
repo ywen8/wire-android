@@ -56,7 +56,7 @@ class SignInController(implicit inj: Injector, eventContext: EventContext, conte
 
   Signal(appEntryController.entryStage, appEntryController.currentAccount).onUi {
     case (InsertPasswordStage, Some(acc)) if acc.email.isDefined =>
-      acc.email.foreach(email ! _.str)
+      acc.email.orElse(acc.pendingEmail).foreach(email ! _.str)
       password ! ""
       uiSignInState ! SignInMethod(Login, Email)
     case _ =>

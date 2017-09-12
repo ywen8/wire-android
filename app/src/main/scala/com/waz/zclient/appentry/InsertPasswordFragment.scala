@@ -112,7 +112,7 @@ class InsertPasswordFragment extends BaseFragment[Container] with FragmentHelper
       false)
 
   override def onBackPressed() = {
-    ZMessaging.currentAccounts.logout(true)
+    ZMessaging.currentAccounts.logout(false)
     true
   }
 }

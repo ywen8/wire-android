@@ -77,7 +77,7 @@ class AppEntryController(implicit inj: Injector, eventContext: EventContext) ext
       case (None, _) =>
         LoginStage
       case (Some(accountData), None) =>
-        if (accountData.clientRegState == ClientRegistrationState.PASSWORD_MISSING && accountData.email.isDefined) {
+        if (accountData.clientRegState == ClientRegistrationState.PASSWORD_MISSING && (accountData.email.isDefined || accountData.pendingEmail.isDefined)) {
           InsertPasswordStage
         } else if (accountData.clientRegState == ClientRegistrationState.LIMIT_REACHED) {
           DeviceLimitStage
