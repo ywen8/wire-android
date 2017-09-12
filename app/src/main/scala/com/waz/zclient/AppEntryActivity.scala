@@ -70,7 +70,8 @@ class AppEntryActivity extends BaseActivity
   with FirstLaunchAfterLoginFragment.Container
   with NavigationControllerObserver
   with SignInFragment.Container
-  with FirstTimeAssignUsernameFragment.Container {
+  with FirstTimeAssignUsernameFragment.Container
+  with InsertPasswordFragment.Container {
 
   private lazy val unsplashInitImageAsset = ImageAssetFactory.getImageAsset(AndroidURIUtil.parse(UNSPLASH_API_URL))
   private var unsplashInitLoadHandle: LoadHandle = null
@@ -129,6 +130,8 @@ class AppEntryActivity extends BaseActivity
         onShowPhoneCodePage()
       case AddHandleStage =>
         onShowSetUsername()
+      case InsertPasswordStage =>
+        onShowInsertPassword()
       case _ =>
     }
   }
@@ -396,6 +399,12 @@ class AppEntryActivity extends BaseActivity
   def onShowSetUsername(): Unit = {
     val transaction: FragmentTransaction = getSupportFragmentManager.beginTransaction
     setDefaultAnimation(transaction).replace(R.id.fl_main_content, FirstTimeAssignUsernameFragment.newInstance("", ""), FirstTimeAssignUsernameFragment.TAG).commit
+    enableProgress(false)
+  }
+
+  def onShowInsertPassword(): Unit = {
+    val transaction: FragmentTransaction = getSupportFragmentManager.beginTransaction
+    setDefaultAnimation(transaction).replace(R.id.fl_main_content, InsertPasswordFragment.newInstance(), InsertPasswordFragment.Tag).commit
     enableProgress(false)
   }
 

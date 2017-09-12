@@ -78,7 +78,7 @@ class AppEntryController(implicit inj: Injector, eventContext: EventContext) ext
         LoginStage
       case (Some(accountData), None) =>
         if (accountData.clientRegState == ClientRegistrationState.PASSWORD_MISSING && accountData.email.isDefined) {
-          LoginStage
+          InsertPasswordStage
         } else if (accountData.clientRegState == ClientRegistrationState.LIMIT_REACHED) {
           DeviceLimitStage
         } else if (!accountData.verified) {
@@ -211,15 +211,16 @@ object AppEntryController {
   val GenericInviteToken: String = "getwire"
 
   trait AppEntryStage
-  object Unknown            extends AppEntryStage
-  object Waiting            extends AppEntryStage
-  object EnterAppStage      extends AppEntryStage
-  object FirstEnterAppStage extends AppEntryStage
-  object DeviceLimitStage   extends AppEntryStage
-  object AddNameStage       extends AppEntryStage
-  object AddPictureStage    extends AppEntryStage
-  object VerifyEmailStage   extends AppEntryStage
-  object VerifyPhoneStage   extends AppEntryStage
-  object LoginStage         extends AppEntryStage
-  object AddHandleStage     extends AppEntryStage
+  object Unknown             extends AppEntryStage
+  object Waiting             extends AppEntryStage
+  object EnterAppStage       extends AppEntryStage
+  object FirstEnterAppStage  extends AppEntryStage
+  object DeviceLimitStage    extends AppEntryStage
+  object AddNameStage        extends AppEntryStage
+  object AddPictureStage     extends AppEntryStage
+  object VerifyEmailStage    extends AppEntryStage
+  object VerifyPhoneStage    extends AppEntryStage
+  object LoginStage          extends AppEntryStage
+  object AddHandleStage      extends AppEntryStage
+  object InsertPasswordStage extends AppEntryStage
 }

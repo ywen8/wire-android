@@ -23,6 +23,7 @@ import com.waz.api.Invitations.{EmailAddressResponse, PhoneNumberResponse}
 import com.waz.service.ZMessaging
 import com.waz.threading.Threading
 import com.waz.utils.events.{EventContext, Signal}
+import com.waz.zclient.AppEntryController.InsertPasswordStage
 import com.waz.zclient.controllers.SignInController._
 import com.waz.zclient.newreg.fragments.country.{Country, CountryController}
 import com.waz.zclient.pages.main.profile.validator.{EmailValidator, NameValidator, PasswordValidator}
@@ -52,9 +53,11 @@ class SignInController(implicit inj: Injector, eventContext: EventContext, conte
     case _ =>
   }
 
-  appEntryController.currentAccount.onUi {
-    case Some(acc) if acc.email.isDefined =>
+
+  Signal(appEntryController.entryStage, appEntryController.currentAccount).onUi {
+    case (InsertPasswordStage, Some(acc)) if acc.email.isDefined =>
       acc.email.foreach(email ! _.str)
+      password ! ""
       uiSignInState ! SignInMethod(Login, Email)
     case _ =>
   }

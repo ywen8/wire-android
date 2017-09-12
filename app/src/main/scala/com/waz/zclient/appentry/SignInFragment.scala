@@ -21,7 +21,6 @@ import android.content.DialogInterface
 import android.graphics.Color
 import android.os.Bundle
 import android.support.v4.content.ContextCompat
-import android.text.{Editable, TextWatcher}
 import android.transition._
 import android.view.{LayoutInflater, View, ViewGroup}
 import android.widget.{FrameLayout, LinearLayout}
@@ -41,6 +40,7 @@ import com.waz.zclient.ui.text.{GlyphTextView, TypefaceEditText, TypefaceTextVie
 import com.waz.zclient.ui.utils.{KeyboardUtils, TextViewUtils}
 import com.waz.zclient.ui.views.tab.TabIndicatorLayout
 import com.waz.zclient.ui.views.tab.TabIndicatorLayout.Callback
+import com.waz.zclient.utils.TextViewUtils.TextListener
 import com.waz.zclient.utils.{LayoutSpec, RichView, ViewUtils}
 
 class SignInFragment extends BaseFragment[Container] with FragmentHelper with View.OnClickListener {
@@ -77,6 +77,8 @@ class SignInFragment extends BaseFragment[Container] with FragmentHelper with Vi
   def confirmationButton = Option(findById[PhoneConfirmationButton](R.id.pcb__signin__email))
 
   def termsOfService = Option(findById[TypefaceTextView](R.id.terms_of_service_text))
+
+  def forgotPasswordButton = Option(findById[View](getView, R.id.ttv_signin_forgot_password))
 
   def setupViews(): Unit = {
 
@@ -116,6 +118,7 @@ class SignInFragment extends BaseFragment[Container] with FragmentHelper with Vi
     confirmationButton.foreach(_.setOnClickListener(this))
     confirmationButton.foreach(_.setAccentColor(Color.WHITE))
     setConfirmationButtonActive(signInController.isValid.currentValue.getOrElse(false))
+    forgotPasswordButton.foreach(_.setOnClickListener(this))
   }
 
   override def onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState: Bundle) =
@@ -138,7 +141,6 @@ class SignInFragment extends BaseFragment[Container] with FragmentHelper with Vi
           case TabPages.CREATE_ACCOUNT =>
             tabSelector.setSelected(TabPages.CREATE_ACCOUNT)
             signInController.uiSignInState.mutate {
-              case SignInMethod(Login, x) => SignInMethod(Register, x)
               case SignInMethod(Login, x) => SignInMethod(Register, x)
               case other => other
             }
@@ -253,6 +255,8 @@ class SignInFragment extends BaseFragment[Container] with FragmentHelper with Vi
             showError(error)
           case _ =>
         }
+      case R.id.ttv_signin_forgot_password =>
+        getContainer.onOpenUrl(getString(R.string.url_password_reset))
       case R.id.close_button =>
         getContainer.abortAddAccount()
       case _ =>
@@ -283,16 +287,11 @@ object SignInFragment {
   trait Container {
     def abortAddAccount(): Unit
     def onOpenUrlInApp(url: String, withCloseButton: Boolean): Unit
+    def onOpenUrl(url: String): Unit
   }
 }
 
 class AutoTransition2 extends TransitionSet {
   setOrdering(TransitionSet.ORDERING_TOGETHER)
   addTransition(new Fade(Fade.OUT)).addTransition(new ChangeBounds).addTransition(new Fade(Fade.IN))
-}
-
-case class TextListener(callback: String => Unit) extends TextWatcher {
-  override def beforeTextChanged(s: CharSequence, start: Int, count: Int, after: Int) = {}
-  override def onTextChanged(s: CharSequence, start: Int, before: Int, count: Int) = callback(s.toString)
-  override def afterTextChanged(s: Editable) = {}
 }
