@@ -33,6 +33,7 @@ import com.waz.zclient.utils.{ViewUtils, _}
 import com.waz.zclient.{EntryError, FragmentHelper, OnBackPressedListener, R}
 import PhoneConfirmationButton.State._
 import com.waz.ZLog
+import com.waz.zclient.controllers.SignInController.{Login, Phone, SignInMethod}
 
 class InsertPasswordFragment extends BaseFragment[Container] with FragmentHelper with View.OnClickListener with OnBackPressedListener {
 
@@ -106,6 +107,7 @@ class InsertPasswordFragment extends BaseFragment[Container] with FragmentHelper
 
   override def onBackPressed() = {
     ZMessaging.currentAccounts.removeCurrentAccount()
+    signInController.uiSignInState ! SignInMethod(Login, Phone)
     true
   }
 }

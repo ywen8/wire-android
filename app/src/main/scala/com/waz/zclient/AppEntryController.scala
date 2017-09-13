@@ -81,27 +81,24 @@ class AppEntryController(implicit inj: Injector, eventContext: EventContext) ext
         InsertPasswordStage
       case (Some(accountData), _) if accountData.clientRegState == ClientRegistrationState.LIMIT_REACHED =>
         DeviceLimitStage
-      case (Some(accountData), None) =>
-        if (!accountData.verified) {
-          if (accountData.pendingEmail.isDefined && accountData.password.isDefined) {
-            VerifyEmailStage
-          } else if (accountData.pendingPhone.isDefined) {
-            VerifyPhoneStage
-          } else
-            LoginStage
-        } else if (accountData.regWaiting) {
-          AddNameStage
-        } else if (accountData.cookie.isDefined || accountData.accessToken.isDefined) {
-          Waiting
+      case (Some(accountData), _) if !accountData.verified =>
+        if (accountData.pendingEmail.isDefined && accountData.password.isDefined) {
+          VerifyEmailStage
+        } else if (accountData.pendingPhone.isDefined) {
+          VerifyPhoneStage
         } else
           LoginStage
+      case (Some(accountData), _) if accountData.regWaiting =>
+        AddNameStage
+      case (Some(accountData), None) if accountData.cookie.isDefined || accountData.accessToken.isDefined =>
+        Waiting
       case (Some(accountData), Some(userData)) if userData.picture.isEmpty =>
         AddPictureStage
       case (Some(accountData), Some(userData)) if userData.handle.isEmpty =>
         AddHandleStage
-      case (Some(accountData), Some(userData)) if accountData.firstLogin =>
+      case (Some(accountData), Some(userData)) if accountData.firstLogin && accountData.clientRegState == ClientRegistrationState.REGISTERED =>
         FirstEnterAppStage
-      case (Some(accountData), Some(userData)) =>
+      case (Some(accountData), Some(userData)) if accountData.clientRegState == ClientRegistrationState.REGISTERED =>
         EnterAppStage
       case _ =>
         LoginStage
