@@ -48,11 +48,11 @@ import com.waz.ui.MemoryImageCache.BitmapRequest.Regular
 import com.waz.utils.LoggedTry
 import com.waz.utils.events.{EventContext, Signal}
 import com.waz.utils.wrappers.{Context, Intent}
+import com.waz.zclient.Intents.OpenAccountIntent
 import com.waz.zclient.calling.controllers.GlobalCallingController
 import com.waz.zclient.utils.ContextUtils._
-import com.waz.zclient.utils.IntentUtils.getNotificationAppLaunchIntent
 import com.waz.zclient.views.ImageController
-import com.waz.zclient.{Injectable, Injector, R, WireContext}
+import com.waz.zclient._
 import com.waz.zms.CallWakeService
 
 class CallingNotificationsController(implicit cxt: WireContext, eventContext: EventContext, inj: Injector) extends Injectable {
@@ -103,7 +103,7 @@ class CallingNotificationsController(implicit cxt: WireContext, eventContext: Ev
         .setLargeIcon(bmp.orNull)
         .setContentTitle(title)
         .setContentText(message)
-        .setContentIntent(getNotificationAppLaunchIntent(cxt))
+        .setContentIntent(OpenAccountIntent(account))
         .setStyle(new NotificationCompat.BigTextStyle()
           .setBigContentTitle(conv.displayName)
           .bigText(message))

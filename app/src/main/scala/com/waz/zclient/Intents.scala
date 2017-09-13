@@ -40,7 +40,7 @@ object Intents {
 
   def OpenAccountIntent(accountId: AccountId, requestCode: Int = System.currentTimeMillis().toInt)(implicit context: Context) =
     Intent(context, accountId)
-
+  
   def SharingIntent(implicit context: Context) =
     new Intent(context, classOf[MainActivity]).putExtra(FromSharingExtra, true)
 

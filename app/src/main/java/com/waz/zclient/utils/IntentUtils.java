@@ -23,25 +23,18 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.net.Uri;
-import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
-import com.waz.api.EphemeralExpiration;
 import com.waz.api.ZmsVersion;
-import com.waz.utils.wrappers.AndroidURI;
 import com.waz.utils.wrappers.AndroidURIUtil;
 import com.waz.utils.wrappers.URI;
 import com.waz.zclient.LaunchActivity;
-import com.waz.zclient.MainActivity;
 import com.waz.zclient.R;
 import com.waz.zclient.controllers.notifications.ShareSavedImageActivity;
 import hugo.weaving.DebugLog;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 import java.util.Locale;
 
 public class IntentUtils {
@@ -53,13 +46,6 @@ public class IntentUtils {
     public static final String INVITE_HOST_TOKEN = "connect";
     public static final String APP_PAGE_HOST_TOKEN = "app-page";
     public static final String EXTRA_LAUNCH_FROM_SAVE_IMAGE_NOTIFICATION = "EXTRA_LAUNCH_FROM_SAVE_IMAGE_NOTIFICATION";
-    private static final String EXTRA_LAUNCH_CONVERSATION_IDS = "EXTRA_LAUNCH_CONVERSATION_IDS";
-    private static final String EXTRA_LAUNCH_FROM_NOTIFICATION = "EXTRA_LAUNCH_FROM_NOTIFICATION";
-    private static final String EXTRA_LAUNCH_FROM_SHARING = "EXTRA_LAUNCH_FROM_SHARING";
-    private static final String EXTRA_LAUNCH_CONVERSATION_MESSAGE = "EXTRA_LAUNCH_CONVERSATION_MESSAGE";
-    private static final String EXTRA_LAUNCH_CONVERSATION_FILES = "EXTRA_LAUNCH_CONVERSATION_FILES";
-    private static final String EXTRA_LAUNCH_START_CALL = "EXTRA_LAUNCH_START_CALL";
-    private static final String EXTRA_LAUNCH_EPHEMERAL_EXPIRATION = "EXTRA_LAUNCH_EPHEMERAL_EXPIRATION";
     public static final String LOCALYTICS_DEEPLINK_SETTINGS = "settings";
     public static final String LOCALYTICS_DEEPLINK_SEARCH = "search";
     public static final String LOCALYTICS_DEEPLINK_PROFILE = "profile";
@@ -162,81 +148,12 @@ public class IntentUtils {
 
     public static boolean isLaunchFromNotificationIntent(@Nullable Intent intent) {
         return intent != null &&
-               intent.getBooleanExtra(EXTRA_LAUNCH_FROM_NOTIFICATION, false);
+               intent.getBooleanExtra("from_notification", false);
     }
 
     public static boolean isLaunchFromSharingIntent(@Nullable Intent intent) {
         return intent != null &&
-               intent.getBooleanExtra(EXTRA_LAUNCH_FROM_SHARING, false);
-    }
-
-    public static void clearLaunchIntentExtra(@Nullable Intent intent) {
-        if (intent == null) {
-            return;
-        }
-        intent.removeExtra(EXTRA_LAUNCH_FROM_SHARING);
-        intent.removeExtra(EXTRA_LAUNCH_FROM_NOTIFICATION);
-        intent.removeExtra(EXTRA_LAUNCH_START_CALL);
-        intent.removeExtra(EXTRA_LAUNCH_CONVERSATION_IDS);
-        intent.removeExtra(EXTRA_LAUNCH_CONVERSATION_MESSAGE);
-    }
-
-    public static Intent getAppLaunchIntent(@NonNull Context context,
-                                            String conversationId,
-                                            @Nullable String sharedText) {
-        Intent intent = new Intent(context, MainActivity.class);
-        intent.putExtra(EXTRA_LAUNCH_FROM_SHARING, true);
-        intent.putExtra(EXTRA_LAUNCH_CONVERSATION_MESSAGE, sharedText != null ? sharedText : "");
-        intent.putStringArrayListExtra(EXTRA_LAUNCH_CONVERSATION_IDS, new ArrayList<>(Collections.singletonList(conversationId)));
-        return intent;
-    }
-
-    public static Intent getAppLaunchIntent(@NonNull Context context,
-                                            List<String> conversationIds,
-                                            @Nullable String sharedText,
-                                            EphemeralExpiration expiration) {
-        Intent intent = new Intent(context, MainActivity.class);
-        intent.putExtra(EXTRA_LAUNCH_FROM_SHARING, true);
-        intent.putExtra(EXTRA_LAUNCH_CONVERSATION_MESSAGE, sharedText != null ? sharedText : "");
-        intent.putStringArrayListExtra(EXTRA_LAUNCH_CONVERSATION_IDS, new ArrayList<>(conversationIds));
-        intent.putExtra(EXTRA_LAUNCH_EPHEMERAL_EXPIRATION, expiration.milliseconds);
-        return intent;
-    }
-
-    private static ArrayList<Uri> mapToAndroidUris(List<URI> uris) { //NOPMD
-        ArrayList<Uri> androidUris = new ArrayList<>(uris.size());
-        for (URI uri: uris) {
-            androidUris.add(AndroidURIUtil.unwrap(uri));
-        }
-        return androidUris;
-    }
-
-    public static Intent getAppLaunchIntent(@NonNull Context context,
-                                            List<String> conversationIds,
-                                            List<URI> sharedFiles,
-                                            EphemeralExpiration expiration) {
-        Intent intent = new Intent(context, MainActivity.class);
-        intent.putExtra(EXTRA_LAUNCH_FROM_SHARING, true);
-        intent.putParcelableArrayListExtra(EXTRA_LAUNCH_CONVERSATION_FILES, mapToAndroidUris(sharedFiles));
-        intent.putStringArrayListExtra(EXTRA_LAUNCH_CONVERSATION_IDS, new ArrayList<>(conversationIds));
-        intent.putExtra(EXTRA_LAUNCH_EPHEMERAL_EXPIRATION, expiration.milliseconds);
-        return intent;
-    }
-
-    public static Intent getAppLaunchIntent(@NonNull Context context) {
-        return getAppLaunchIntent(context, new ArrayList<String>(), (String) null, EphemeralExpiration.NONE);
-    }
-
-    public static PendingIntent getNotificationAppLaunchIntent(@NonNull Context context) {
-        return getNotificationAppLaunchIntent(context, null, (int) System.currentTimeMillis());
-    }
-
-    public static PendingIntent getNotificationAppLaunchIntent(@NonNull Context context, String conversationId, int requestCode) {
-        Intent intent = new Intent(context, MainActivity.class);
-        intent.putExtra(EXTRA_LAUNCH_FROM_NOTIFICATION, true);
-        intent.putExtra(EXTRA_LAUNCH_START_CALL, false);
-        intent.putStringArrayListExtra(EXTRA_LAUNCH_CONVERSATION_IDS, new ArrayList<>(Collections.singletonList(conversationId)));
-        return PendingIntent.getActivity(context, requestCode, intent, 0);
+               intent.getBooleanExtra("from_sharing", false);
     }
 
     public static PendingIntent getGalleryIntent(Context context, URI uri) {
@@ -278,35 +195,6 @@ public class IntentUtils {
         intent.putExtra(Intent.EXTRA_TEXT, context.getString(R.string.debug_report__body));
         intent.putExtra(Intent.EXTRA_SUBJECT, context.getString(R.string.debug_report__title, versionName));
         return intent;
-    }
-
-    public static List<String> getLaunchConversationIds(Intent intent) {
-        return intent.getStringArrayListExtra(EXTRA_LAUNCH_CONVERSATION_IDS);
-    }
-
-    public static String getLaunchConversationSharedText(Intent intent) {
-        return intent.getStringExtra(EXTRA_LAUNCH_CONVERSATION_MESSAGE);
-    }
-
-    private static List<Uri> getParcelableArrayListExtra(Intent intent) {
-        List<Uri> files = intent.getParcelableArrayListExtra(EXTRA_LAUNCH_CONVERSATION_FILES);
-        if (files == null) {
-            return Collections.emptyList();
-        } else {
-            return files;
-        }
-    }
-
-    public static List<URI> getLaunchConversationSharedFiles(Intent intent) {
-        List<URI> androidUris = new ArrayList<>();
-        for (Uri uri: getParcelableArrayListExtra(intent)) {
-            androidUris.add(new AndroidURI(uri));
-        }
-        return androidUris;
-    }
-
-    public static EphemeralExpiration getEphemeralExpiration(Intent intent) {
-        return EphemeralExpiration.getForMillis(intent.getLongExtra(EXTRA_LAUNCH_EPHEMERAL_EXPIRATION, EphemeralExpiration.NONE.milliseconds));
     }
 
     public static Intent getSavedImageShareIntent(Context context, URI uri) {
