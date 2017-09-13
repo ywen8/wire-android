@@ -146,10 +146,12 @@ class QuickReplyFragment extends Fragment with FragmentHelper {
       }
     })
     openWire onClick {
-      Option(getActivity) foreach { activity =>
-        tracking.tagEvent(new OpenedAppFromQuickReplyEvent)
-        startActivity(IntentUtils.getAppLaunchIntent(getContext, convId.str, message.getText.toString))
-        activity.finish()
+      ZMessaging.currentAccounts.switchAccount(accountId).onComplete { _ =>
+        Option(getActivity) foreach { activity =>
+          tracking.tagEvent(new OpenedAppFromQuickReplyEvent)
+          startActivity(IntentUtils.getAppLaunchIntent(getContext, convId.str, message.getText.toString))
+          activity.finish()
+        }
       }
     }
 
