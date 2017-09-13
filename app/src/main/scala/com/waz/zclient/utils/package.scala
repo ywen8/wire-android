@@ -26,12 +26,14 @@ import android.support.annotation.StyleableRes
 import android.support.v4.content.ContextCompat
 import android.support.v7.preference.Preference
 import android.support.v7.preference.Preference.{OnPreferenceChangeListener, OnPreferenceClickListener}
+import android.text.{Editable, TextWatcher}
 import android.util.AttributeSet
 import android.view.View._
 import android.view.ViewGroup.LayoutParams
 import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
 import android.view.{View, ViewGroup}
-import android.widget.SeekBar
+import android.widget.{SeekBar, TextView}
+import com.waz.utils.returning
 import com.waz.zclient.ui.utils.ResourceUtils
 import com.waz.zclient.ui.views.OnDoubleClickListener
 
@@ -93,6 +95,16 @@ package object utils {
     }
     def setWidth(w: Int): Unit = setWidthAndHeight(w = Some(w))
     def setHeight(h: Int): Unit = setWidthAndHeight(h = Some(h))
+  }
+
+  implicit class RichTextView(val textView: TextView) extends AnyVal {
+    def addTextListener(callback: String => Unit): TextWatcher = {
+      returning(new TextWatcher {
+        override def beforeTextChanged(s: CharSequence, start: Int, count: Int, after: Int) = { }
+        override def onTextChanged(s: CharSequence, start: Int, before: Int, count: Int) = callback(s.toString)
+        override def afterTextChanged(s: Editable) = {}
+      }){ textView.addTextChangedListener }
+    }
   }
 
   implicit class RichPreference(val pref: Preference) extends AnyVal {

@@ -40,8 +40,7 @@ import com.waz.zclient.ui.text.{GlyphTextView, TypefaceEditText, TypefaceTextVie
 import com.waz.zclient.ui.utils.{KeyboardUtils, TextViewUtils}
 import com.waz.zclient.ui.views.tab.TabIndicatorLayout
 import com.waz.zclient.ui.views.tab.TabIndicatorLayout.Callback
-import com.waz.zclient.utils.TextViewUtils.TextListener
-import com.waz.zclient.utils.{LayoutSpec, RichView, ViewUtils}
+import com.waz.zclient.utils._
 
 class SignInFragment extends BaseFragment[Container] with FragmentHelper with View.OnClickListener {
 
@@ -58,11 +57,6 @@ class SignInFragment extends BaseFragment[Container] with FragmentHelper with Vi
   lazy val emailButton = findById[TypefaceTextView](getView, R.id.ttv__new_reg__sign_in__go_to__email)
   lazy val tabSelector = findById[TabIndicatorLayout](getView, R.id.til__app_entry)
   lazy val closeButton = findById[GlyphTextView](getView, R.id.close_button)
-
-  lazy val emailTextWatch = TextListener(signInController.email ! _)
-  lazy val passwordTextWatch = TextListener(signInController.password ! _)
-  lazy val nameTextWatch = TextListener(signInController.name ! _)
-  lazy val phoneTextWatch = TextListener(signInController.phone ! _)
 
   def nameField = Option(findById[GuidedEditText](getView, R.id.get__sign_in__name))
 
@@ -86,26 +80,26 @@ class SignInFragment extends BaseFragment[Container] with FragmentHelper with Vi
       field.setValidator(signInController.emailValidator)
       field.setResource(R.layout.guided_edit_text_sign_in__email)
       field.setText(signInController.email.currentValue.getOrElse(""))
-      field.getEditText.addTextChangedListener(emailTextWatch)
+      field.getEditText.addTextListener(signInController.email ! _)
     }
 
     passwordField.foreach { field =>
       field.setValidator(signInController.passwordValidator)
       field.setResource(R.layout.guided_edit_text_sign_in__password)
       field.setText(signInController.password.currentValue.getOrElse(""))
-      field.getEditText.addTextChangedListener(passwordTextWatch)
+      field.getEditText.addTextListener(signInController.password ! _)
     }
 
     nameField.foreach { field =>
       field.setValidator(signInController.nameValidator)
       field.setResource(R.layout.guided_edit_text_sign_in__name)
       field.setText(signInController.name.currentValue.getOrElse(""))
-      field.getEditText.addTextChangedListener(nameTextWatch)
+      field.getEditText.addTextListener(signInController.name ! _)
     }
 
     phoneField.foreach { field =>
       field.setText(signInController.phone.currentValue.getOrElse(""))
-      field.addTextChangedListener(phoneTextWatch)
+      field.addTextListener(signInController.phone ! _)
     }
 
     termsOfService.foreach{ text =>

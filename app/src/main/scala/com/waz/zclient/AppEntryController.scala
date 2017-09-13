@@ -73,15 +73,16 @@ class AppEntryController(implicit inj: Injector, eventContext: EventContext) ext
   }
 
   def stateForAccountAndUser(account: Option[AccountData], user: Option[UserData]): AppEntryStage = {
+    ZLog.verbose(s"Current account and user: $account $user")
     (account, user) match {
       case (None, _) =>
         LoginStage
+      case (Some(accountData), _) if accountData.clientRegState == ClientRegistrationState.PASSWORD_MISSING && accountData.email.orElse(accountData.pendingEmail).isDefined =>
+        InsertPasswordStage
+      case (Some(accountData), _) if accountData.clientRegState == ClientRegistrationState.LIMIT_REACHED =>
+        DeviceLimitStage
       case (Some(accountData), None) =>
-        if (accountData.clientRegState == ClientRegistrationState.PASSWORD_MISSING && (accountData.email.isDefined || accountData.pendingEmail.isDefined)) {
-          InsertPasswordStage
-        } else if (accountData.clientRegState == ClientRegistrationState.LIMIT_REACHED) {
-          DeviceLimitStage
-        } else if (!accountData.verified) {
+        if (!accountData.verified) {
           if (accountData.pendingEmail.isDefined && accountData.password.isDefined) {
             VerifyEmailStage
           } else if (accountData.pendingPhone.isDefined) {

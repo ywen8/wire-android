@@ -22,7 +22,6 @@ import android.graphics.Color
 import android.os.Bundle
 import android.view.{LayoutInflater, View, ViewGroup}
 import com.waz.ZLog.ImplicitTag._
-import com.waz.ZLog._
 import com.waz.service.ZMessaging
 import com.waz.threading.Threading
 import com.waz.zclient.appentry.InsertPasswordFragment._
@@ -30,55 +29,49 @@ import com.waz.zclient.controllers.SignInController
 import com.waz.zclient.newreg.views.PhoneConfirmationButton
 import com.waz.zclient.pages.BaseFragment
 import com.waz.zclient.pages.main.profile.views.GuidedEditText
-import com.waz.zclient.utils.TextViewUtils.TextListener
-import com.waz.zclient.utils.ViewUtils
+import com.waz.zclient.utils.{ViewUtils, _}
 import com.waz.zclient.{EntryError, FragmentHelper, OnBackPressedListener, R}
+import PhoneConfirmationButton.State._
+import com.waz.ZLog
 
 class InsertPasswordFragment extends BaseFragment[Container] with FragmentHelper with View.OnClickListener with OnBackPressedListener {
 
   lazy val signInController = inject[SignInController]
 
-  lazy val passwordTextWatch = TextListener(signInController.password ! _)
-
-  lazy val emailField = Option(findById[GuidedEditText](getView, R.id.email_field))
-  lazy val passwordField = Option(findById[GuidedEditText](getView, R.id.password_field))
   lazy val confirmationButton = Option(findById[PhoneConfirmationButton](R.id.confirmation_button))
-  lazy val cancelButton = Option(findById[View](R.id.cancel_button))
-  lazy val forgotPassword = Option(findById[View](R.id.ttv_signin_forgot_password))
 
   override def onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState: Bundle) =
     inflater.inflate(R.layout.insert_password_fragment, container, false)
 
   override def onViewCreated(view: View, savedInstanceState: Bundle) = {
 
-    emailField.foreach { field =>
+    Option(findById[GuidedEditText](getView, R.id.email_field)).foreach { field =>
       field.setValidator(signInController.emailValidator)
       field.setResource(R.layout.guided_edit_text_sign_in__email)
       signInController.email { field.setText }
       field.setEditable(false)
     }
 
-    passwordField.foreach { field =>
+    Option(findById[GuidedEditText](getView, R.id.password_field)).foreach { field =>
       field.setValidator(signInController.passwordValidator)
       field.setResource(R.layout.guided_edit_text_sign_in__password)
       field.setText(signInController.password.currentValue.getOrElse(""))
-      field.getEditText.addTextChangedListener(passwordTextWatch)
+      field.getEditText.addTextListener(signInController.password ! _)
     }
 
-    confirmationButton.foreach(_.setOnClickListener(this))
-    confirmationButton.foreach(_.setAccentColor(Color.WHITE))
+    confirmationButton.foreach { button =>
+      button.setOnClickListener(this)
+      button.setAccentColor(Color.WHITE)
+    }
+
     setConfirmationButtonActive(signInController.isValid.currentValue.getOrElse(false))
     signInController.isValid.onUi { setConfirmationButtonActive }
-    cancelButton.foreach(_.setOnClickListener(this))
-    forgotPassword.foreach(_.setOnClickListener(this))
+    Option(findById[View](R.id.cancel_button)).foreach(_.setOnClickListener(this))
+    Option(findById[View](R.id.ttv_signin_forgot_password)).foreach(_.setOnClickListener(this))
   }
 
-  private def setConfirmationButtonActive(active: Boolean): Unit = {
-    if(active)
-      confirmationButton.foreach(_.setState(PhoneConfirmationButton.State.CONFIRM))
-    else
-      confirmationButton.foreach(_.setState(PhoneConfirmationButton.State.NONE))
-  }
+  private def setConfirmationButtonActive(active: Boolean): Unit =
+    confirmationButton.foreach(_.setState(if(active) CONFIRM else NONE))
 
   override def onClick(v: View) = {
     v.getId match {
@@ -118,7 +111,7 @@ class InsertPasswordFragment extends BaseFragment[Container] with FragmentHelper
 }
 
 object InsertPasswordFragment {
-  val Tag = logTagFor[InsertPasswordFragment]
+  val Tag = ZLog.ImplicitTag.implicitLogTag
 
   def newInstance() = new InsertPasswordFragment()
   trait Container {
