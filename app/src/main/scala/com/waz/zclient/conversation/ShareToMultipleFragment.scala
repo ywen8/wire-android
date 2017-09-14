@@ -236,6 +236,10 @@ class ShareToMultipleFragment extends BaseFragment[ShareToMultipleFragment.Conta
       }
     })
 
+    ZMessaging.currentAccounts.activeAccount.onChanged.onUi { _ =>
+      searchBox.getElements.foreach(searchBox.removeElement)
+    }
+
     view
   }
 
