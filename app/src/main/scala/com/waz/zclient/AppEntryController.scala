@@ -77,7 +77,7 @@ class AppEntryController(implicit inj: Injector, eventContext: EventContext) ext
     (account, user) match {
       case (None, _) =>
         LoginStage
-      case (Some(accountData), _) if accountData.clientRegState == ClientRegistrationState.PASSWORD_MISSING && accountData.email.orElse(accountData.pendingEmail).isDefined =>
+      case (Some(accountData), _) if accountData.clientRegState == ClientRegistrationState.PASSWORD_MISSING =>
         InsertPasswordStage
       case (Some(accountData), _) if accountData.clientRegState == ClientRegistrationState.LIMIT_REACHED =>
         DeviceLimitStage
@@ -180,7 +180,7 @@ class AppEntryController(implicit inj: Injector, eventContext: EventContext) ext
 
     ZMessaging.currentAccounts.getActiveAccount.flatMap {
       case Some(account) if account.pendingPhone.isDefined =>
-        val kindOfAccess = if (account.regWaiting) KindOfAccess.REGISTRATION else KindOfAccess.LOGIN_IF_NO_PASSWD
+        val kindOfAccess = if (account.regWaiting) KindOfAccess.REGISTRATION else KindOfAccess.LOGIN
         requestCode(account, kindOfAccess).map {
           case Failure(error) =>
             Left(EntryError(error.code, error.label, SignInMethod(Register, Phone)))
