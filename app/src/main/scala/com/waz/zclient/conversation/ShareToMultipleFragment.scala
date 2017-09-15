@@ -18,7 +18,6 @@
 package com.waz.zclient.conversation
 
 import android.content.Context
-import android.graphics.{Color, PorterDuff}
 import android.os.Bundle
 import android.support.v4.content.ContextCompat
 import android.support.v7.widget.RecyclerView.ViewHolder
@@ -47,11 +46,11 @@ import com.waz.zclient.messages.{MessagesController, UsersController}
 import com.waz.zclient.pages.BaseFragment
 import com.waz.zclient.pages.extendedcursor.ephemeral.EphemeralLayout
 import com.waz.zclient.ui.text.TypefaceTextView
-import com.waz.zclient.ui.utils.{BitmapUtils, ColorUtils, KeyboardUtils}
+import com.waz.zclient.ui.utils.{ColorUtils, KeyboardUtils}
 import com.waz.zclient.ui.views.CursorIconButton
 import com.waz.zclient.utils.ViewUtils
 import com.waz.zclient.views.ImageAssetDrawable.{RequestBuilder, ScaleType}
-import com.waz.zclient.views.ImageController.{DataImage, ImageSource, WireImage}
+import com.waz.zclient.views.ImageController.DataImage
 import com.waz.zclient.views._
 
 import scala.util.Success
@@ -76,24 +75,23 @@ class ShareToMultipleFragment extends BaseFragment[ShareToMultipleFragment.Conta
     val contentLayout = ViewUtils.getView(view, R.id.content_container).asInstanceOf[RelativeLayout]
     val bottomContainer = ViewUtils.getView(view, R.id.ephemeral_container).asInstanceOf[AnimatedBottomContainer]
     val ephemeralToggle = ViewUtils.getView(view, R.id.ephemeral_toggle).asInstanceOf[EphemeralCursorButton]
+    val accountTabs = findById[AccountTabsView](view, R.id.account_tabs)
 
     val onClickEvent = EventStream[Unit]()
     val filterText = Signal[String]("")
     val adapter = new ShareToMultipleAdapter(getContext, filterText)
-    val darkenColor: Int = ColorUtils.injectAlpha(0.4f, Color.BLACK)
 
-    val userImage = usersController.selfUserId.flatMap(usersController.user).flatMap(_.picture match {
-      case Some(assetId) => Signal.const[ImageSource](WireImage(assetId))
-      case _ => Signal.empty[ImageSource]
-    })
+    accountTabs.onTabClick { account =>
+      ZMessaging.currentAccounts.switchAccount(account.id)
+    }
 
-    Signal(accentColorController.accentColor, adapter.selectedConversations).on(Threading.Ui){
+    Signal(accentColorController.accentColorNoEmpty, adapter.selectedConversations).on(Threading.Ui){
       case (color, convs) if convs.nonEmpty =>
-        sendButton.setSolidBackgroundColor(color.getColor())
-        searchBox.setCursorColor(color.getColor())
+        sendButton.setSolidBackgroundColor(color.getColor)
+        searchBox.setCursorColor(color.getColor)
       case (color, _) =>
-        sendButton.setSolidBackgroundColor(ColorUtils.injectAlpha(0.4f, color.getColor()))
-        searchBox.setCursorColor(color.getColor())
+        sendButton.setSolidBackgroundColor(ColorUtils.injectAlpha(0.4f, color.getColor))
+        searchBox.setCursorColor(color.getColor)
       case _ =>
     }
 
@@ -237,6 +235,10 @@ class ShareToMultipleFragment extends BaseFragment[ShareToMultipleFragment.Conta
         }
       }
     })
+
+    ZMessaging.currentAccounts.activeAccount.onChanged.onUi { _ =>
+      searchBox.getElements.foreach(searchBox.removeElement)
+    }
 
     view
   }

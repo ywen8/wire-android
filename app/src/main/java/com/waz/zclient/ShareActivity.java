@@ -85,7 +85,7 @@ public class ShareActivity extends BaseActivity implements AccentColorObserver,
 
     @Override
     public int getBaseTheme() {
-        return R.style.Theme_Dark;
+        return R.style.Theme_Share;
     }
 
     @Override
