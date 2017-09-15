@@ -41,6 +41,11 @@ class AccentColorController(implicit inj: Injector) extends Injectable {
     }
   }
 
+  val accentColorNoEmpty: Signal[com.waz.api.AccentColor] = for {
+    Some(z) <- zms
+    color <- accentColor(z)
+  } yield color
+
   def accentColor(z: ZMessaging): Signal[com.waz.api.AccentColor] = z.usersStorage.optSignal(z.selfUserId).map {
     case Some(u) => Some(AccentColor(u.accent))
     case _ => None

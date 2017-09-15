@@ -85,7 +85,7 @@ class ShareToMultipleFragment extends BaseFragment[ShareToMultipleFragment.Conta
       ZMessaging.currentAccounts.switchAccount(account.id)
     }
 
-    Signal(accentColorController.accentColor, adapter.selectedConversations).on(Threading.Ui){
+    Signal(accentColorController.accentColorNoEmpty, adapter.selectedConversations).on(Threading.Ui){
       case (color, convs) if convs.nonEmpty =>
         sendButton.setSolidBackgroundColor(color.getColor)
         searchBox.setCursorColor(color.getColor)
