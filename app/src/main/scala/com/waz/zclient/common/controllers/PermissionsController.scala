@@ -54,10 +54,16 @@ class PermissionsController(sysPerms: PermissionsWrapper)(implicit injector: Inj
     }
   }
 
-  def withPermissions[A](permissions: Permission*)(onGranted: => A) =
+  def withPermissions[A](permissions: Permission*)(onGranted: => A): Future[Option[A]] =
     request(permissions.toSet).map {
       case ps if ps forall(_.hasPermission(sysPerms)) => Some(onGranted)
       case _ => None
+    } (Threading.Ui)
+
+  def withPermissionsAsync[A](permissions: Permission*)(onGranted: => Future[A]): Future[A] =
+    request(permissions.toSet).flatMap {
+      case ps if ps forall(_.hasPermission(sysPerms)) => onGranted
+      case _ => Future.failed(new Exception("Not all required permissions were granted"))
     } (Threading.Ui)
 
   def requiring(permissions: Set[Permission])(onGranted: => Unit)(dialogTitleId: Int = -1, dialogMessageId: Int = -1, onDenied: => Unit = ()) =

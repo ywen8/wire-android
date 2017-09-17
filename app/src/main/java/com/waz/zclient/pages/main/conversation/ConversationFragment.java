@@ -171,7 +171,6 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
     private static final int REQUEST_VIDEO_CAPTURE = 911;
     private static final int CAMERA_PERMISSION_REQUEST_ID = 21;
 
-    private static final String[] EXTENDED_CURSOR_PERMISSIONS = new String[] {Manifest.permission.CAMERA, Manifest.permission.READ_EXTERNAL_STORAGE};
     private static final int OPEN_EXTENDED_CURSOR_IMAGES = 1254;
 
     private static final String[] FILE_SHARING_PERMISSION = new String[] {android.Manifest.permission.READ_EXTERNAL_STORAGE};
@@ -706,31 +705,12 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
                 }
 
                 final String sharedText = sharingController.getSharedText(toConversation.getId());
-                final boolean isSharingText = !TextUtils.isEmpty(sharedText);
-
-                final List<URI> sharedFileUris = sharingController.getSharedFiles(toConversation.getId());
-                final boolean isSharingFiles = !(sharedFileUris == null || sharedFileUris.isEmpty());
-
-                if (isSharingText) {
+                if (!TextUtils.isEmpty(sharedText)) {
                     cursorView.setText(sharedText);
                     cursorView.enableMessageWriting();
                     KeyboardUtils.showKeyboard(getActivity());
                     sharingController.clearSharingFor(toConversation);
-                } else if (isSharingFiles) {
-                    if (PermissionUtils.hasSelfPermissions(getActivity(), FILE_SHARING_PERMISSION)) {
-                        for (URI uri : sharedFileUris) {
-                            getStoreFactory().conversationStore().sendMessage(AssetFactory.fromContentUri(uri),
-                                                                                 assetErrorHandler);
-                        }
-                    } else {
-                        sharingUris.addAll(sharedFileUris);
-                        ActivityCompat.requestPermissions(getActivity(),
-                                                          FILE_SHARING_PERMISSION,
-                                                          FILE_SHARING_PERMISSION_REQUEST_ID);
-                    }
-                    sharingController.clearSharingFor(toConversation);
                 }
-
 
                 if (inputStateIndicator != null) {
                     inputStateIndicator.getTypingUsers().removeUpdateListener(typingListener);

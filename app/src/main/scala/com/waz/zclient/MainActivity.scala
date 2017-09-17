@@ -40,6 +40,7 @@ import com.waz.zclient.AppEntryController.{DeviceLimitStage, EnterAppStage, Unkn
 import com.waz.zclient.Intents._
 import com.waz.zclient.calling.CallingActivity
 import com.waz.zclient.calling.controllers.CallPermissionsController
+import com.waz.zclient.common.controllers.PermissionsController
 import com.waz.zclient.controllers.accentcolor.AccentColorChangeRequester
 import com.waz.zclient.controllers.calling.CallingObserver
 import com.waz.zclient.controllers.global.{AccentColorController, SelectionController}
@@ -91,6 +92,7 @@ class MainActivity extends BaseActivity
   lazy val sharingController        = inject[SharingController]
   lazy val accentColorController    = inject[AccentColorController]
   lazy val callPermissionController = inject[CallPermissionsController]
+  lazy val permissions              = inject[PermissionsController]
   lazy val selectionController      = inject[SelectionController]
   lazy val userAccountsController   = inject[UserAccountsController]
   lazy val appEntryController       = inject[AppEntryController]
@@ -131,6 +133,7 @@ class MainActivity extends BaseActivity
 
     accentColorController.accentColor.map(_.getColor)(getControllerFactory.getUserPreferencesController.setLastAccentColor)
 
+    handleIntent(getIntent)
     Option(getIntent).flatMap(i => Option(i.getExtras)).map(_.getBoolean(MainActivity.OpenSettingsArg, false)) match {
       case Some(true) =>
         startActivityForResult(PreferencesActivity.getDefaultIntent(this), PreferencesActivity.SwitchAccountCode)
@@ -138,10 +141,9 @@ class MainActivity extends BaseActivity
     }
 
     val currentlyDarkTheme = themeController.darkThemeSet.currentValue.contains(true)
-    val currentAccount = ZMessaging.currentAccounts.activeAccountPref.signal.currentValue.flatten
 
-    Signal(themeController.darkThemeSet, ZMessaging.currentAccounts.activeAccountPref.signal).onUi {
-      case (theme, acc) if theme != currentlyDarkTheme => restartActivity()
+    themeController.darkThemeSet.onUi {
+      case theme if theme != currentlyDarkTheme => restartActivity()
       case _ =>
     }
 
@@ -338,8 +340,6 @@ class MainActivity extends BaseActivity
     getStoreFactory.profileStore.setUser(self)
     getControllerFactory.getAccentColorController.setColor(AccentColorChangeRequester.LOGIN, self.getAccent.getColor)
     getControllerFactory.getUsernameController.setUser(self)
-
-    handleIntent(getIntent)
     openMainPage()
   }
 
@@ -390,7 +390,7 @@ class MainActivity extends BaseActivity
 
       case SharingIntent() =>
         for {
-          _     <- sharingController.sendContent(this)
+          _     <- sharingController.sendContent(this, permissions)
           convs <- sharingController.targetConvs.head
           exp   <- sharingController.ephemeralExpiration.head
           _     <- if (convs.size == 1) switchConversation(convs.head, exp = exp) else Future.successful({})

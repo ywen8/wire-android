@@ -26,9 +26,11 @@ import com.waz.model.ConvId
 import com.waz.service.ZMessaging
 import com.waz.utils.RichFuture
 import com.waz.ZLog.ImplicitTag._
+import com.waz.threading.SerialDispatchQueue
 import com.waz.utils.events.{EventContext, EventStream, Signal}
 import com.waz.utils.wrappers.URI
 import com.waz.zclient.Intents._
+import com.waz.zclient.common.controllers.{PermissionsController, ReadExternalStoragePermission}
 import com.waz.zclient.controllers.SharingController.{FileContent, ImageContent, SharableContent, TextContent}
 import com.waz.zclient.utils.ViewUtils
 import com.waz.zclient.{Injectable, Injector, R, WireContext}
@@ -37,7 +39,8 @@ import scala.collection.JavaConverters._
 import scala.concurrent.Future
 
 class SharingController(implicit injector: Injector, wContext: WireContext, eventContext: EventContext) extends Injectable{
-  import com.waz.threading.Threading.Implicits.Ui
+
+  private implicit val dispatcher = new SerialDispatchQueue(name = "SharingController")
 
   private lazy val zms = inject[Signal[ZMessaging]]
 
@@ -53,15 +56,21 @@ class SharingController(implicit injector: Injector, wContext: WireContext, even
         answer.ok()
         return
       }
-      val dialog: AlertDialog = ViewUtils.showAlertDialog(activity, R.string.asset_upload_warning__large_file__title, R.string.asset_upload_warning__large_file__message_default, R.string.asset_upload_warning__large_file__button_accept, R.string.asset_upload_warning__large_file__button_cancel, new DialogInterface.OnClickListener() {
-        def onClick(dialog: DialogInterface, which: Int): Unit = {
-          answer.ok()
-        }
-      }, new DialogInterface.OnClickListener() {
-        def onClick(dialog: DialogInterface, which: Int): Unit = {
-          answer.cancel()
-        }
-      })
+      val dialog: AlertDialog =
+        ViewUtils.showAlertDialog(activity,
+          R.string.asset_upload_warning__large_file__title,
+          R.string.asset_upload_warning__large_file__message_default,
+          R.string.asset_upload_warning__large_file__button_accept,
+          R.string.asset_upload_warning__large_file__button_cancel,
+          new DialogInterface.OnClickListener() {
+            def onClick(dialog: DialogInterface, which: Int): Unit = {
+              answer.ok()
+            }
+          }, new DialogInterface.OnClickListener() {
+            def onClick(dialog: DialogInterface, which: Int): Unit = {
+              answer.cancel()
+            }
+          })
       dialog.setCancelable(false)
       if (sizeInBytes > 0) {
         val fileSize: String = Formatter.formatFileSize(activity, sizeInBytes)
@@ -75,18 +84,21 @@ class SharingController(implicit injector: Injector, wContext: WireContext, even
     Option(activity).foreach(_.startActivity(SharingIntent(wContext)))
   }
 
-  def sendContent(activity: Activity): Future[Unit] = {
+  def sendContent(activity: Activity, permissions: PermissionsController): Future[Unit] = {
     def send(content: SharableContent, convs: Set[ConvId], expiration: EphemeralExpiration): Future[Boolean] = {
       sendEvent ! (content, convs, expiration)
-      if (convs.size > 1) { //for a single conversation, we display the content in the text box - don't send yet
-        content match {
-          case TextContent(t) =>
+      content match {
+        case TextContent(t) =>
+          if (convs.size > 1) {
             zms.head.flatMap(z => RichFuture.traverseSequential(convs.toSeq){ convId =>
               z.convsUi.setEphemeral(convId, expiration).flatMap(_ =>
                 z.convsUi.sendMessage(convId, new MessageContent.Text(t)))
             }).map(_ => true)
+          } else Future.successful(false)
 
-          case FileContent(assetUris) =>
+        case FileContent(assetUris) =>
+          //TODO what to do if permissions fail?
+          permissions.withPermissionsAsync(ReadExternalStoragePermission) {
             RichFuture.traverseSequential(convs.toSeq) { conv =>
               RichFuture.traverseSequential(assetUris) { uri =>
                 zms.head.flatMap(z =>
@@ -94,9 +106,9 @@ class SharingController(implicit injector: Injector, wContext: WireContext, even
                     z.convsUi.sendMessage(conv, new MessageContent.Asset(AssetFactory.fromContentUri(uri), assetErrorHandler(activity)))))
               }
             }.map (_ => true)
-          case _ => Future.successful(true)
-        }
-      } else Future.successful(false)
+          }
+        case _ => Future.successful(true)
+      }
     }
 
     for {
@@ -115,15 +127,10 @@ class SharingController(implicit injector: Injector, wContext: WireContext, even
     case _ => null
   }
 
-  def getSharedFiles(convId: String): java.util.List[URI] = sharableContent.currentValue.flatten match {
-    case Some(FileContent(fs)) if isSharing(convId)  => fs.asJava
-    case _ => null
-  }
-
   private def resetContent() = {
-    sharableContent ! None
-    targetConvs ! Set.empty
-    ephemeralExpiration ! EphemeralExpiration.NONE
+    sharableContent.publish(None, dispatcher)
+    targetConvs.publish(Set.empty, dispatcher)
+    ephemeralExpiration.publish(EphemeralExpiration.NONE, dispatcher)
   }
 
   def clearSharingFor(conv: IConversation) = if (conv != null) {
