@@ -44,11 +44,7 @@ public class IntentUtils {
     public static final String PASSWORD_RESET_SUCCESSFUL_HOST_TOKEN = "password-reset-successful";
     public static final String SMS_CODE_TOKEN = "verify-phone";
     public static final String INVITE_HOST_TOKEN = "connect";
-    public static final String APP_PAGE_HOST_TOKEN = "app-page";
     public static final String EXTRA_LAUNCH_FROM_SAVE_IMAGE_NOTIFICATION = "EXTRA_LAUNCH_FROM_SAVE_IMAGE_NOTIFICATION";
-    public static final String LOCALYTICS_DEEPLINK_SETTINGS = "settings";
-    public static final String LOCALYTICS_DEEPLINK_SEARCH = "search";
-    public static final String LOCALYTICS_DEEPLINK_PROFILE = "profile";
     private static final String GOOGLE_MAPS_INTENT_URI = "geo:0,0?q=%s,%s";
     private static final String GOOGLE_MAPS_WITH_LABEL_INTENT_URI = "geo:0,0?q=%s,%s(%s)";
     private static final String GOOGLE_MAPS_INTENT_PACKAGE = "com.google.android.apps.maps";
@@ -121,30 +117,6 @@ public class IntentUtils {
         }
         return null;
     }
-
-    public static String getAppPage(@Nullable Intent intent) {
-        if (intent == null ||
-            TextUtils.isEmpty(intent.getStringExtra("deeplink"))) {
-            return null;
-        }
-
-        Uri data = Uri.parse(intent.getStringExtra("deeplink"));
-        if (data != null &&
-            WIRE_SCHEME.equals(data.getScheme()) &&
-            APP_PAGE_HOST_TOKEN.equals(data.getHost())) {
-            return data.getQueryParameter("page");
-        }
-        return null;
-    }
-
-    public static Intent resetAppPage(@Nullable Intent intent) {
-        if (intent == null) {
-            return null;
-        }
-        intent.putExtra(LaunchActivity.APP_PAGE, "");
-        return intent;
-    }
-
 
     public static boolean isLaunchFromNotificationIntent(@Nullable Intent intent) {
         return intent != null &&

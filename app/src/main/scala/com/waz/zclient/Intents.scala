@@ -39,7 +39,6 @@ object Intents {
     lazy val Devices  = "devices"
   }
 
-
   def CallIntent(accountId: AccountId, convId: ConvId, requestCode: Int)(implicit context: Context) =
     Intent(context, accountId, Some(convId), requestCode, startCall = true)
 
@@ -55,12 +54,11 @@ object Intents {
   def SharingIntent(implicit context: Context) =
     new Intent(context, classOf[MainActivity]).putExtra(FromSharingExtra, true)
 
-  def EnterAppIntent(showSettings: Boolean)(implicit context: Context) = {
+  def EnterAppIntent(showSettings: Boolean = false)(implicit context: Context) = {
     returning(new Intent(context, classOf[MainActivity])) { i =>
       if (showSettings) i.putExtra(OpenPageExtra, Page.Settings)
     }
   }
-
 
   private def Intent(context:     Context,
                      accountId:   AccountId,
@@ -102,6 +100,7 @@ object Intents {
           |Start call:       $startCall
           |Account id:       $accountId
           |Conv id:          $convId
+          |Page:             $page
         """.stripMargin
   }
 

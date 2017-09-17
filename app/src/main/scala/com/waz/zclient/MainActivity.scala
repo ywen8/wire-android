@@ -270,16 +270,6 @@ class MainActivity extends BaseActivity
 
     setIntent(intent)
     handleIntent(intent)
-
-    Option(intent.getStringExtra(LaunchActivity.APP_PAGE)).filter(_.nonEmpty).foreach { page =>
-      setIntent(IntentUtils.resetAppPage(intent))
-      import IntentUtils._
-      page match {
-        case LOCALYTICS_DEEPLINK_SEARCH |
-             LOCALYTICS_DEEPLINK_PROFILE => restartAppWithPage(page)
-        case LOCALYTICS_DEEPLINK_SETTINGS => startActivity(PreferencesActivity.getDefaultIntent(this))
-      }
-    }
   }
 
   private def restartActivity() = {
@@ -294,11 +284,6 @@ class MainActivity extends BaseActivity
     Option(getControllerFactory.getUserPreferencesController.getCrashException).foreach { crash =>
       globalTracking.tagEvent(ExceptionEvent.exception(crash, getControllerFactory.getUserPreferencesController.getCrashDetails))
     }
-  }
-
-  private def restartAppWithPage(page: String) = {
-    startActivity(returning(new Intent(this, classOf[MainActivity]))(_.putExtra(LaunchActivity.APP_PAGE, page)))
-    finish()
   }
 
   private def initializeControllers() = {

@@ -207,25 +207,6 @@ public class ConversationListManagerFragment extends BaseFragment<ConversationLi
         getControllerFactory().getConversationScreenController().addConversationControllerObservers(this);
         getControllerFactory().getNavigationController().addNavigationControllerObserver(this);
         getControllerFactory().getConfirmationController().addConfirmationObserver(this);
-
-        String page = getActivity().getIntent().getStringExtra(LaunchActivity.APP_PAGE);
-        if (page == null) {
-            return;
-        }
-        getActivity().setIntent(IntentUtils.resetAppPage(getActivity().getIntent()));
-        switch (page) {
-            case IntentUtils.LOCALYTICS_DEEPLINK_SEARCH:
-                getControllerFactory().getPickUserController().showPickUser(IPickUserController.Destination.CONVERSATION_LIST, null);
-                break;
-            case IntentUtils.LOCALYTICS_DEEPLINK_SETTINGS:
-                startActivity(PreferencesActivity.getDefaultIntent(getActivity()));
-                break;
-            case IntentUtils.LOCALYTICS_DEEPLINK_PROFILE:
-                 getControllerFactory().getPickUserController().showUserProfile(getStoreFactory().profileStore().getSelfUser(),
-                                                                               ViewUtils.getView(getActivity(),
-                                                                                                 R.id.gtv__list_actions__settings));
-                break;
-        }
     }
 
     @Override

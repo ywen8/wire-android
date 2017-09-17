@@ -318,7 +318,7 @@ class AppEntryActivity extends BaseActivity
   def onEnterApplication(openSettings: Boolean): Unit = {
     getControllerFactory.getNavigationController.removeNavigationControllerObserver(this)
     getControllerFactory.getVerificationController.finishVerification()
-    startActivity(Intents.EnterAppIntent(openSettings))
+    startActivity(Intents.EnterAppIntent(openSettings)(this))
     finish()
   }
 
