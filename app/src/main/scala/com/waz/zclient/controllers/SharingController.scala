@@ -21,16 +21,16 @@ import android.app.Activity
 import android.content.DialogInterface
 import android.support.v7.app.AlertDialog
 import android.text.format.Formatter
+import com.waz.ZLog.ImplicitTag._
 import com.waz.api._
 import com.waz.model.ConvId
 import com.waz.service.ZMessaging
-import com.waz.utils.RichFuture
-import com.waz.ZLog.ImplicitTag._
 import com.waz.threading.SerialDispatchQueue
+import com.waz.utils.RichFuture
 import com.waz.utils.events.{EventContext, EventStream, Signal}
 import com.waz.utils.wrappers.URI
 import com.waz.zclient.Intents._
-import com.waz.zclient.common.controllers.{PermissionsController, ReadExternalStoragePermission}
+import com.waz.zclient.common.controllers.PermissionsController
 import com.waz.zclient.controllers.SharingController.{FileContent, ImageContent, SharableContent, TextContent}
 import com.waz.zclient.utils.ViewUtils
 import com.waz.zclient.{Injectable, Injector, R, WireContext}
@@ -97,16 +97,13 @@ class SharingController(implicit injector: Injector, wContext: WireContext, even
           } else Future.successful(false)
 
         case uriContent =>
-          //TODO what to do if permissions fail?
-          permissions.withPermissionsAsync(ReadExternalStoragePermission) {
-            RichFuture.traverseSequential(convs.toSeq) { conv =>
-              RichFuture.traverseSequential(uriContent.uris) { uri =>
-                zms.head.flatMap(z =>
-                  z.convsUi.setEphemeral(conv, expiration).flatMap(_ =>
-                    z.convsUi.sendMessage(conv, new MessageContent.Asset(AssetFactory.fromContentUri(uri), assetErrorHandler(activity)))))
-              }
-            }.map (_ => true)
-          }
+          RichFuture.traverseSequential(convs.toSeq) { conv =>
+            RichFuture.traverseSequential(uriContent.uris) { uri =>
+              zms.head.flatMap(z =>
+                z.convsUi.setEphemeral(conv, expiration).flatMap(_ =>
+                  z.convsUi.sendMessage(conv, new MessageContent.Asset(AssetFactory.fromContentUri(uri), assetErrorHandler(activity)))))
+            }
+          }.map (_ => true)
       }
     }
 
