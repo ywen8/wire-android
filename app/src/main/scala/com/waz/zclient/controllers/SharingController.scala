@@ -96,18 +96,17 @@ class SharingController(implicit injector: Injector, wContext: WireContext, even
             }).map(_ => true)
           } else Future.successful(false)
 
-        case FileContent(assetUris) =>
+        case uriContent =>
           //TODO what to do if permissions fail?
           permissions.withPermissionsAsync(ReadExternalStoragePermission) {
             RichFuture.traverseSequential(convs.toSeq) { conv =>
-              RichFuture.traverseSequential(assetUris) { uri =>
+              RichFuture.traverseSequential(uriContent.uris) { uri =>
                 zms.head.flatMap(z =>
                   z.convsUi.setEphemeral(conv, expiration).flatMap(_ =>
                     z.convsUi.sendMessage(conv, new MessageContent.Asset(AssetFactory.fromContentUri(uri), assetErrorHandler(activity)))))
               }
             }.map (_ => true)
           }
-        case _ => Future.successful(true)
       }
     }
 
@@ -150,9 +149,11 @@ class SharingController(implicit injector: Injector, wContext: WireContext, even
 }
 
 object SharingController {
-  trait SharableContent
+  trait SharableContent {
+    val uris: Seq[URI]
+  }
 
-  case class TextContent(text: String) extends SharableContent
+  case class TextContent(text: String) extends SharableContent { override val uris = Seq.empty }
 
   case class FileContent(uris: Seq[URI]) extends SharableContent
 
