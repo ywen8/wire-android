@@ -169,15 +169,15 @@ public class ShareActivity extends BaseActivity implements AccentColorObserver,
             finish();
             return;
         }
-        if (intentReader.getType().equals("text/plain")) {
+        if (intentReader.getStreamCount() == 0 && intentReader.getType().equals("text/plain")) {
             getSharingController().publishTextContent(String.valueOf(intentReader.getText()));
         } else {
             final Set<URI> sharedFileUris = new HashSet<>();
             if (intentReader.isMultipleShare()) {
                 for (int i = 0; i < intentReader.getStreamCount(); i++) {
-                    URI uri = new AndroidURI(intentReader.getStream(i));
+                    Uri uri = intentReader.getStream(i);
                     if (uri != null) {
-                        sharedFileUris.add(uri);
+                        sharedFileUris.add(new AndroidURI(uri));
                     }
                 }
             } else {
