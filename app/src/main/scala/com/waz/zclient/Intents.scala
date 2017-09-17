@@ -19,7 +19,9 @@ package com.waz.zclient
 
 import android.app.PendingIntent
 import android.content.{Context, Intent}
+import android.os.Bundle
 import com.waz.model.{AccountId, ConvId}
+import com.waz.utils.returning
 
 object Intents {
 
@@ -28,6 +30,15 @@ object Intents {
   private lazy val StartCallExtra        = "start_call"
   private lazy val AccountIdExtra        = "account_id"
   private lazy val ConvIdExtra           = "conv_id"
+
+  private lazy val OpenPageExtra         = "open_page"
+
+  type Page = String
+  object Page {
+    lazy val Settings = "settings"
+    lazy val Devices  = "devices"
+  }
+
 
   def CallIntent(accountId: AccountId, convId: ConvId, requestCode: Int)(implicit context: Context) =
     Intent(context, accountId, Some(convId), requestCode, startCall = true)
@@ -40,9 +51,16 @@ object Intents {
 
   def OpenAccountIntent(accountId: AccountId, requestCode: Int = System.currentTimeMillis().toInt)(implicit context: Context) =
     Intent(context, accountId)
-  
+
   def SharingIntent(implicit context: Context) =
     new Intent(context, classOf[MainActivity]).putExtra(FromSharingExtra, true)
+
+  def EnterAppIntent(showSettings: Boolean)(implicit context: Context) = {
+    returning(new Intent(context, classOf[MainActivity])) { i =>
+      if (showSettings) i.putExtra(OpenPageExtra, Page.Settings)
+    }
+  }
+
 
   private def Intent(context:     Context,
                      accountId:   AccountId,
@@ -61,9 +79,12 @@ object Intents {
   implicit class RichIntent(val intent: Intent) extends AnyVal {
     def fromNotification = Option(intent).exists(_.getBooleanExtra(FromNotificationExtra, false))
     def fromSharing      = Option(intent).exists(_.getBooleanExtra(FromSharingExtra, false))
+
     def startCall        = Option(intent).exists(_.getBooleanExtra(StartCallExtra, false))
     def accountId        = Option(intent).map(_.getStringExtra(AccountIdExtra)).filter(_ != null).map(AccountId)
     def convId           = Option(intent).map(_.getStringExtra(ConvIdExtra)).filter(_ != null).map(ConvId)
+
+    def page             = Option(intent).map(_.getStringExtra(OpenPageExtra)).filter(_ != null)
 
     def clearExtras() = Option(intent).foreach { i =>
       i.removeExtra(FromNotificationExtra)
@@ -71,6 +92,7 @@ object Intents {
       i.removeExtra(StartCallExtra)
       i.removeExtra(AccountIdExtra)
       i.removeExtra(ConvIdExtra)
+      i.removeExtra(OpenPageExtra)
     }
 
     def log =
@@ -91,6 +113,10 @@ object Intents {
 
   object SharingIntent {
     def unapply(i: Intent): Boolean = i.fromSharing
+  }
+
+  object OpenPageIntent {
+    def unapply(i: Intent): Option[Page] = i.page
   }
 
 

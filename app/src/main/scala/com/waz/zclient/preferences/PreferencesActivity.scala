@@ -203,7 +203,6 @@ class PreferencesActivity extends BaseActivity
 
 object PreferencesActivity {
   val ShowOtrDevices   = "SHOW_OTR_DEVICES"
-  val ShowAccount      = "SHOW_ACCOUNT"
   val SwitchAccountCode = 789
   val SwitchAccountExtra = "SWITCH_ACCOUNT_EXTRA"
 

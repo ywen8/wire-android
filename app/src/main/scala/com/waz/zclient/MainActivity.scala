@@ -134,11 +134,6 @@ class MainActivity extends BaseActivity
     accentColorController.accentColor.map(_.getColor)(getControllerFactory.getUserPreferencesController.setLastAccentColor)
 
     handleIntent(getIntent)
-    Option(getIntent).flatMap(i => Option(i.getExtras)).map(_.getBoolean(MainActivity.OpenSettingsArg, false)) match {
-      case Some(true) =>
-        startActivityForResult(PreferencesActivity.getDefaultIntent(this), PreferencesActivity.SwitchAccountCode)
-      case _ =>
-    }
 
     val currentlyDarkTheme = themeController.darkThemeSet.currentValue.contains(true)
 
@@ -347,7 +342,7 @@ class MainActivity extends BaseActivity
     verbose(s"handleIntent: ${intent.log}")
 
     def switchConversation(convId: ConvId, call: Boolean = false, exp: EphemeralExpiration = EphemeralExpiration.NONE) =
-      CancellableFuture.delay(MainActivity.LaunchChangeConversationDelay).map { _ =>
+      CancellableFuture.delay(125.millis).map { _ =>
         verbose(s"setting conversation: $convId")
         val conv = getStoreFactory.conversationStore.getConversation(convId.str)
         conv.setEphemeralExpiration(exp)
@@ -396,9 +391,12 @@ class MainActivity extends BaseActivity
           _     <- if (convs.size == 1) switchConversation(convs.head, exp = exp) else Future.successful({})
         } yield clearIntent()
 
-      case _ =>
-        //TODO handle all intent types here
-        setIntent(intent)
+      case OpenPageIntent(page) => page match {
+        case Intents.Page.Settings => startActivityForResult(PreferencesActivity.getDefaultIntent(this), PreferencesActivity.SwitchAccountCode)
+        case _ => error(s"Unknown page: $page - ignoring intent")
+      }
+
+      case _ => setIntent(intent)
     }
   }
 
@@ -620,7 +618,3 @@ class MainActivity extends BaseActivity
     }
 }
 
-object MainActivity {
-  private val LaunchChangeConversationDelay = 123.millis
-  val OpenSettingsArg = "OpenSettingsArg"
-}
