@@ -28,7 +28,6 @@ import android.text.TextUtils;
 import com.waz.api.ZmsVersion;
 import com.waz.utils.wrappers.AndroidURIUtil;
 import com.waz.utils.wrappers.URI;
-import com.waz.zclient.LaunchActivity;
 import com.waz.zclient.R;
 import com.waz.zclient.controllers.notifications.ShareSavedImageActivity;
 import hugo.weaving.DebugLog;

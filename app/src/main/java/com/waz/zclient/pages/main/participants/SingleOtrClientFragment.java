@@ -37,9 +37,8 @@ import com.waz.api.User;
 import com.waz.api.Verification;
 import com.waz.zclient.BaseActivity;
 import com.waz.zclient.OnBackPressedListener;
-import com.waz.zclient.controllers.ThemeController;
-import com.waz.zclient.preferences.PreferencesActivity;
 import com.waz.zclient.R;
+import com.waz.zclient.controllers.ThemeController;
 import com.waz.zclient.controllers.accentcolor.AccentColorObserver;
 import com.waz.zclient.controllers.tracking.events.otr.UnverifiedOtherOtrClientEvent;
 import com.waz.zclient.controllers.tracking.events.otr.VerifiedOtherOtrClientEvent;
@@ -48,12 +47,14 @@ import com.waz.zclient.tracking.GlobalTrackingController;
 import com.waz.zclient.ui.utils.TextViewUtils;
 import com.waz.zclient.ui.views.e2ee.OtrSwitch;
 import com.waz.zclient.utils.LayoutSpec;
-import com.waz.zclient.utils.ViewUtils;
 import com.waz.zclient.utils.OtrUtils;
+import com.waz.zclient.utils.ViewUtils;
 import com.waz.zclient.views.LoadingIndicatorView;
 import com.waz.zclient.views.e2ee.FingerprintView;
 
 import java.util.Locale;
+
+import static com.waz.zclient.Intents.ShowDevicesIntent;
 
 public class SingleOtrClientFragment extends BaseFragment<SingleOtrClientFragment.Container> implements View.OnClickListener,
                                                                                                         OnBackPressedListener,
@@ -264,7 +265,7 @@ public class SingleOtrClientFragment extends BaseFragment<SingleOtrClientFragmen
                 clipboard.setPrimaryClip(clip);
                 break;
             case R.id.ttv__single_otr_client__my_devices:
-                startActivity(PreferencesActivity.getOtrDevicesPreferencesIntent(getActivity()));
+                startActivity(ShowDevicesIntent(getActivity()));
                 break;
             case R.id.ttv__single_otr_client__how_to_link:
                 getContainer().onOpenUrl(getString(R.string.url_otr_learn_how));

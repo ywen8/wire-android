@@ -506,7 +506,7 @@ class MainActivity extends BaseActivity
 
   def manageDevices() = {
     getSupportFragmentManager.popBackStackImmediate
-    startActivity(PreferencesActivity.getOtrDevicesPreferencesIntent(this))
+    startActivity(ShowDevicesIntent(this))
   }
 
   def dismissOtrDeviceLimitFragment() = getSupportFragmentManager.popBackStackImmediate

@@ -19,9 +19,9 @@ package com.waz.zclient
 
 import android.app.PendingIntent
 import android.content.{Context, Intent}
-import android.os.Bundle
 import com.waz.model.{AccountId, ConvId}
 import com.waz.utils.returning
+import com.waz.zclient.preferences.PreferencesActivity
 
 object Intents {
 
@@ -35,8 +35,8 @@ object Intents {
 
   type Page = String
   object Page {
-    lazy val Settings = "settings"
-    lazy val Devices  = "devices"
+    lazy val Settings = "Settings"
+    lazy val Devices  = "Devices"
   }
 
   def CallIntent(accountId: AccountId, convId: ConvId, requestCode: Int)(implicit context: Context) =
@@ -59,6 +59,9 @@ object Intents {
       if (showSettings) i.putExtra(OpenPageExtra, Page.Settings)
     }
   }
+
+  def ShowDevicesIntent(implicit context: Context) =
+    new Intent(context, classOf[PreferencesActivity]).putExtra(OpenPageExtra, Page.Devices)
 
   private def Intent(context:     Context,
                      accountId:   AccountId,

@@ -17,7 +17,6 @@
  */
 package com.waz.zclient.pages.main.conversation;
 
-import android.Manifest;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Build;
@@ -44,7 +43,6 @@ import android.widget.AbsListView;
 import android.widget.FrameLayout;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import com.waz.api.AssetFactory;
 import com.waz.api.AssetForUpload;
 import com.waz.api.AudioAssetForUpload;
@@ -108,9 +106,9 @@ import com.waz.zclient.core.stores.conversation.ConversationStoreObserver;
 import com.waz.zclient.core.stores.inappnotification.SyncErrorObserver;
 import com.waz.zclient.core.stores.participants.ParticipantsStoreObserver;
 import com.waz.zclient.cursor.CursorCallback;
+import com.waz.zclient.cursor.CursorView;
 import com.waz.zclient.media.SoundController;
 import com.waz.zclient.messages.MessagesListView;
-import com.waz.zclient.cursor.CursorView;
 import com.waz.zclient.pages.BaseFragment;
 import com.waz.zclient.pages.extendedcursor.ExtendedCursorContainer;
 import com.waz.zclient.pages.extendedcursor.emoji.EmojiKeyboardLayout;
@@ -123,7 +121,6 @@ import com.waz.zclient.pages.main.conversationlist.ConversationListAnimation;
 import com.waz.zclient.pages.main.conversationpager.controller.SlidingPaneObserver;
 import com.waz.zclient.pages.main.pickuser.controller.IPickUserController;
 import com.waz.zclient.pages.main.profile.camera.CameraContext;
-import com.waz.zclient.preferences.PreferencesActivity;
 import com.waz.zclient.tracking.GlobalTrackingController;
 import com.waz.zclient.ui.animation.interpolators.penner.Expo;
 import com.waz.zclient.ui.audiomessage.AudioMessageRecordingView;
@@ -143,6 +140,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import static com.waz.zclient.Intents.ShowDevicesIntent;
 
 public class ConversationFragment extends BaseFragment<ConversationFragment.Container> implements ConversationStoreObserver,
                                                                                                   KeyboardVisibilityObserver,
@@ -1334,7 +1333,7 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
                     return;
                 }
                 if (onlySelfChanged) {
-                    getContext().startActivity(PreferencesActivity.getOtrDevicesPreferencesIntent(getContext()));
+                    getContext().startActivity(ShowDevicesIntent(getActivity()));
                 } else {
                     final View anchorView = ViewUtils.getView(getActivity(), R.id.cursor_menu_item_participant);
                     getControllerFactory().getConversationScreenController().showParticipants(anchorView, true);
