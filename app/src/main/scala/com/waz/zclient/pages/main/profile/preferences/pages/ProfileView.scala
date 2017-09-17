@@ -223,5 +223,5 @@ class ProfileViewController(view: ProfileView)(implicit inj: Injector, ec: Event
 }
 
 object ProfileViewController {
-  val MaxAccountsCount = 3
+  val MaxAccountsCount = 2
 }
