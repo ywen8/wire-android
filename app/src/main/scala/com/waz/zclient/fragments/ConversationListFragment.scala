@@ -19,12 +19,9 @@ package com.waz.zclient.fragments
 
 import android.content.Intent
 import android.os.Bundle
-import android.support.v7.widget.RecyclerView.AdapterDataObserver
 import android.support.v7.widget.{LinearLayoutManager, RecyclerView}
 import android.view.animation.Animation
 import android.view.{LayoutInflater, View, ViewGroup}
-import com.waz.ZLog
-import com.waz.ZLog.ImplicitTag._
 import com.waz.model.ConversationData.ConversationType
 import com.waz.model.otr.Client
 import com.waz.model.{AccountId, ConversationData}

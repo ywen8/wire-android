@@ -73,34 +73,32 @@ class AppEntryController(implicit inj: Injector, eventContext: EventContext) ext
   }
 
   def stateForAccountAndUser(account: Option[AccountData], user: Option[UserData]): AppEntryStage = {
+    ZLog.verbose(s"Current account and user: $account $user")
     (account, user) match {
       case (None, _) =>
         LoginStage
-      case (Some(accountData), None) =>
-        if (accountData.clientRegState == ClientRegistrationState.PASSWORD_MISSING) {
-          LoginStage
-        } else if (accountData.clientRegState == ClientRegistrationState.LIMIT_REACHED) {
-          DeviceLimitStage
-        } else if (!accountData.verified) {
-          if (accountData.pendingEmail.isDefined && accountData.password.isDefined) {
-            VerifyEmailStage
-          } else if (accountData.pendingPhone.isDefined) {
-            VerifyPhoneStage
-          } else
-            LoginStage
-        } else if (accountData.regWaiting) {
-          AddNameStage
-        } else if (accountData.cookie.isDefined || accountData.accessToken.isDefined) {
-          Waiting
+      case (Some(accountData), _) if accountData.clientRegState == ClientRegistrationState.PASSWORD_MISSING =>
+        InsertPasswordStage
+      case (Some(accountData), _) if accountData.clientRegState == ClientRegistrationState.LIMIT_REACHED =>
+        DeviceLimitStage
+      case (Some(accountData), _) if !accountData.verified =>
+        if (accountData.pendingEmail.isDefined && accountData.password.isDefined) {
+          VerifyEmailStage
+        } else if (accountData.pendingPhone.isDefined) {
+          VerifyPhoneStage
         } else
           LoginStage
+      case (Some(accountData), _) if accountData.regWaiting =>
+        AddNameStage
+      case (Some(accountData), None) if accountData.cookie.isDefined || accountData.accessToken.isDefined =>
+        Waiting
       case (Some(accountData), Some(userData)) if userData.picture.isEmpty =>
         AddPictureStage
       case (Some(accountData), Some(userData)) if userData.handle.isEmpty =>
         AddHandleStage
-      case (Some(accountData), Some(userData)) if accountData.firstLogin =>
+      case (Some(accountData), Some(userData)) if accountData.firstLogin && accountData.clientRegState == ClientRegistrationState.REGISTERED =>
         FirstEnterAppStage
-      case (Some(accountData), Some(userData)) =>
+      case (Some(accountData), Some(userData)) if accountData.clientRegState == ClientRegistrationState.REGISTERED =>
         EnterAppStage
       case _ =>
         LoginStage
@@ -182,7 +180,7 @@ class AppEntryController(implicit inj: Injector, eventContext: EventContext) ext
 
     ZMessaging.currentAccounts.getActiveAccount.flatMap {
       case Some(account) if account.pendingPhone.isDefined =>
-        val kindOfAccess = if (account.regWaiting) KindOfAccess.REGISTRATION else KindOfAccess.LOGIN_IF_NO_PASSWD
+        val kindOfAccess = if (account.regWaiting) KindOfAccess.REGISTRATION else KindOfAccess.LOGIN
         requestCode(account, kindOfAccess).map {
           case Failure(error) =>
             Left(EntryError(error.code, error.label, SignInMethod(Register, Phone)))
@@ -211,15 +209,16 @@ object AppEntryController {
   val GenericInviteToken: String = "getwire"
 
   trait AppEntryStage
-  object Unknown            extends AppEntryStage
-  object Waiting            extends AppEntryStage
-  object EnterAppStage      extends AppEntryStage
-  object FirstEnterAppStage extends AppEntryStage
-  object DeviceLimitStage   extends AppEntryStage
-  object AddNameStage       extends AppEntryStage
-  object AddPictureStage    extends AppEntryStage
-  object VerifyEmailStage   extends AppEntryStage
-  object VerifyPhoneStage   extends AppEntryStage
-  object LoginStage         extends AppEntryStage
-  object AddHandleStage     extends AppEntryStage
+  object Unknown             extends AppEntryStage
+  object Waiting             extends AppEntryStage
+  object EnterAppStage       extends AppEntryStage
+  object FirstEnterAppStage  extends AppEntryStage
+  object DeviceLimitStage    extends AppEntryStage
+  object AddNameStage        extends AppEntryStage
+  object AddPictureStage     extends AppEntryStage
+  object VerifyEmailStage    extends AppEntryStage
+  object VerifyPhoneStage    extends AppEntryStage
+  object LoginStage          extends AppEntryStage
+  object AddHandleStage      extends AppEntryStage
+  object InsertPasswordStage extends AppEntryStage
 }

@@ -17,7 +17,7 @@
  */
 package com.waz.zclient.pages.main.profile.preferences.pages
 
-import android.app.{AlertDialog, PendingIntent}
+import android.app.AlertDialog
 import android.content.{Context, DialogInterface, Intent}
 import android.graphics.drawable.Drawable
 import android.net.Uri

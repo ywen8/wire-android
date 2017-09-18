@@ -18,10 +18,12 @@
 package com.waz.zclient.controllers
 
 import android.content.Context
+import com.waz.api.ClientRegistrationState
 import com.waz.api.Invitations.{EmailAddressResponse, PhoneNumberResponse}
 import com.waz.service.ZMessaging
 import com.waz.threading.Threading
 import com.waz.utils.events.{EventContext, Signal}
+import com.waz.zclient.AppEntryController.InsertPasswordStage
 import com.waz.zclient.controllers.SignInController._
 import com.waz.zclient.newreg.fragments.country.{Country, CountryController}
 import com.waz.zclient.pages.main.profile.validator.{EmailValidator, NameValidator, PasswordValidator}
@@ -33,7 +35,7 @@ class SignInController(implicit inj: Injector, eventContext: EventContext, conte
 
   private lazy val appEntryController = inject[AppEntryController]
 
-  lazy val isAddingAccount = ZMessaging.currentAccounts.loggedInAccounts.map(_.nonEmpty)
+  lazy val isAddingAccount = ZMessaging.currentAccounts.loggedInAccounts.map(_.exists(_.clientRegState == ClientRegistrationState.REGISTERED))
   val uiSignInState = Signal[SignInMethod](SignInMethod(Register, Phone))
 
   val email = Signal("")
@@ -48,6 +50,15 @@ class SignInController(implicit inj: Injector, eventContext: EventContext, conte
     case EmailAddressResponse(nameOfInvitee, address) =>
       name ! nameOfInvitee
       email ! address
+    case _ =>
+  }
+
+
+  Signal(appEntryController.entryStage, appEntryController.currentAccount).onUi {
+    case (InsertPasswordStage, Some(acc)) if acc.email.isDefined =>
+      acc.email.orElse(acc.pendingEmail).foreach(email ! _.str)
+      password ! ""
+      uiSignInState ! SignInMethod(Login, Email)
     case _ =>
   }
 
