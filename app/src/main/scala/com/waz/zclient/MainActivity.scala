@@ -350,15 +350,11 @@ class MainActivity extends BaseActivity
           }
         }
 
-        switchAccount.flatMap {
-          case false =>
-            (intent.convId match {
-              case Some(id) => switchConversation(id, startCall)
-              case _ =>        Future.successful({})
-            }).map(_ => clearIntent())(Threading.Ui)
-          case true =>
-            //do nothing - intent will be handled again for conversation switching after account switch
-            Future.successful({})
+        switchAccount.flatMap { _ =>
+          (intent.convId match {
+            case Some(id) => switchConversation(id, startCall)
+            case _ =>        Future.successful({})
+          }).map(_ => clearIntent())(Threading.Ui)
         }
 
         try {
