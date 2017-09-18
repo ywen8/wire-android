@@ -23,12 +23,10 @@ import android.os.Vibrator
 import com.waz.ZLog.ImplicitTag._
 import com.waz.ZLog._
 import com.waz.api.VideoSendState.{DONT_SEND, SEND}
-import com.waz.api._
 import com.waz.avs.{VideoPreview, VideoRenderer}
 import com.waz.model._
 import com.waz.service.call.Avs.VideoReceiveState
 import com.waz.service.call.CallInfo.CallState._
-import com.waz.service.call.FlowManagerService.{StateAndReason, UnknownState}
 import com.waz.threading.Threading
 import com.waz.utils._
 import com.waz.utils.events.{ClockSignal, Signal}
@@ -118,19 +116,20 @@ class CurrentCallController(implicit inj: Injector, cxt: WireContext) extends In
     }
   }
 
-  val otherSendingVideo = currentCall.map(_.exists(_.videoReceiveState == VideoReceiveState.Started))
+  val videoReceiveState = currentCall.map(_.map(_.videoReceiveState).getOrElse(VideoReceiveState.Unknown))
 
-  val avsStateAndChangeReason = flowManager.flatMap(_.stateOfReceivedVideo)
   val cameraFailed = flowManager.flatMap(_.cameraFailedSig)
 
-  val stateMessageText = Signal(callState, cameraFailed, avsStateAndChangeReason, conversationName, otherSendingVideo).map { values =>
-      verbose(s"$values")
-      values match {
-        case (SelfCalling,   true, _, _, _)                                                                    => Option(cxt.getString(R.string.calling__self_preview_unavailable_long))
-        case (SelfJoining,   _, _, _, _)                                                                       => Option(cxt.getString(R.string.ongoing__connecting))
-        case (SelfConnected, _, StateAndReason(AvsVideoState.STOPPED, AvsVideoReason.BAD_CONNECTION), _, true) => Option(cxt.getString(R.string.ongoing__poor_connection_message))
-        case (SelfConnected, _, _, otherUserName, false)                                                       => Option(cxt.getString(R.string.ongoing__other_turned_off_video, otherUserName))
-        case (SelfConnected, _, UnknownState, otherUserName, true)                                             => Option(cxt.getString(R.string.ongoing__other_unable_to_send_video, otherUserName))
+  val stateMessageText = Signal(callState, cameraFailed, videoReceiveState, conversationName).map { vs =>
+      verbose(s"$vs")
+      import VideoReceiveState._
+      vs match {
+        case (SelfCalling,   true, _,             _)             => Option(cxt.getString(R.string.calling__self_preview_unavailable_long))
+        case (SelfJoining,   _,    _,             _)             => Option(cxt.getString(R.string.ongoing__connecting))
+        case (SelfConnected, _,    BadConnection, _)             => Option(cxt.getString(R.string.ongoing__poor_connection_message))
+        case (SelfConnected, _,    Stopped,       otherUserName) => Option(cxt.getString(R.string.ongoing__other_turned_off_video, otherUserName))
+        case (SelfConnected, _,    Unknown,       otherUserName) => Option(cxt.getString(R.string.ongoing__other_unable_to_send_video, otherUserName))
+
         case _ => None
       }
   }
