@@ -84,7 +84,7 @@ class SharingController(implicit injector: Injector, wContext: WireContext, even
     Option(activity).foreach(_.startActivity(SharingIntent(wContext)))
   }
 
-  def sendContent(activity: Activity, permissions: PermissionsController): Future[Unit] = {
+  def sendContent(activity: Activity): Future[Unit] = {
     def send(content: SharableContent, convs: Set[ConvId], expiration: EphemeralExpiration): Future[Boolean] = {
       sendEvent ! (content, convs, expiration)
       content match {
