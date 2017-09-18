@@ -327,7 +327,7 @@ class MainActivity extends BaseActivity
     verbose(s"handleIntent: ${intent.log}")
 
     def switchConversation(convId: ConvId, call: Boolean = false, exp: EphemeralExpiration = EphemeralExpiration.NONE) =
-      CancellableFuture.delay(125.millis).map { _ =>
+      CancellableFuture.delay(250.millis).map { _ =>
         verbose(s"setting conversation: $convId")
         val conv = getStoreFactory.conversationStore.getConversation(convId.str)
         conv.setEphemeralExpiration(exp)
