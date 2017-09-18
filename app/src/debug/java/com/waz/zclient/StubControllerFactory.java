@@ -36,7 +36,6 @@ import com.waz.zclient.controllers.navigation.INavigationController;
 import com.waz.zclient.controllers.orientation.IOrientationController;
 import com.waz.zclient.controllers.password.IPasswordController;
 import com.waz.zclient.controllers.permission.IRequestPermissionsController;
-import com.waz.zclient.controllers.sharing.ISharingController;
 import com.waz.zclient.controllers.singleimage.ISingleImageController;
 import com.waz.zclient.controllers.usernames.IUsernamesController;
 import com.waz.zclient.controllers.userpreferences.IUserPreferencesController;
@@ -137,11 +136,6 @@ public class StubControllerFactory implements IControllerFactory {
 
     @Override
     public IOrientationController getOrientationController() {
-        return null;
-    }
-
-    @Override
-    public ISharingController getSharingController() {
         return null;
     }
 

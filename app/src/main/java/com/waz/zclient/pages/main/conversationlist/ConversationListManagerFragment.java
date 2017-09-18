@@ -40,7 +40,6 @@ import com.waz.api.OtrClient;
 import com.waz.api.SyncState;
 import com.waz.api.User;
 import com.waz.zclient.BaseActivity;
-import com.waz.zclient.LaunchActivity;
 import com.waz.zclient.OnBackPressedListener;
 import com.waz.zclient.R;
 import com.waz.zclient.controllers.ThemeController;
@@ -88,7 +87,6 @@ import com.waz.zclient.pages.main.pickuser.controller.IPickUserController;
 import com.waz.zclient.pages.main.pickuser.controller.PickUserControllerScreenObserver;
 import com.waz.zclient.pages.main.profile.camera.CameraContext;
 import com.waz.zclient.pages.main.profile.camera.CameraFragment;
-import com.waz.zclient.preferences.PreferencesActivity;
 import com.waz.zclient.preferences.dialogs.ChangeHandleFragment;
 import com.waz.zclient.tracking.GlobalTrackingController;
 import com.waz.zclient.ui.animation.interpolators.penner.Expo;
@@ -96,7 +94,6 @@ import com.waz.zclient.ui.animation.interpolators.penner.Quart;
 import com.waz.zclient.ui.optionsmenu.OptionsMenu;
 import com.waz.zclient.ui.optionsmenu.OptionsMenuItem;
 import com.waz.zclient.ui.utils.KeyboardUtils;
-import com.waz.zclient.utils.IntentUtils;
 import com.waz.zclient.utils.LayoutSpec;
 import com.waz.zclient.utils.ViewUtils;
 import com.waz.zclient.views.LoadingIndicatorView;
@@ -207,25 +204,6 @@ public class ConversationListManagerFragment extends BaseFragment<ConversationLi
         getControllerFactory().getConversationScreenController().addConversationControllerObservers(this);
         getControllerFactory().getNavigationController().addNavigationControllerObserver(this);
         getControllerFactory().getConfirmationController().addConfirmationObserver(this);
-
-        String page = getActivity().getIntent().getStringExtra(LaunchActivity.APP_PAGE);
-        if (page == null) {
-            return;
-        }
-        getActivity().setIntent(IntentUtils.resetAppPage(getActivity().getIntent()));
-        switch (page) {
-            case IntentUtils.LOCALYTICS_DEEPLINK_SEARCH:
-                getControllerFactory().getPickUserController().showPickUser(IPickUserController.Destination.CONVERSATION_LIST, null);
-                break;
-            case IntentUtils.LOCALYTICS_DEEPLINK_SETTINGS:
-                startActivity(PreferencesActivity.getDefaultIntent(getActivity()));
-                break;
-            case IntentUtils.LOCALYTICS_DEEPLINK_PROFILE:
-                 getControllerFactory().getPickUserController().showUserProfile(getStoreFactory().profileStore().getSelfUser(),
-                                                                               ViewUtils.getView(getActivity(),
-                                                                                                 R.id.gtv__list_actions__settings));
-                break;
-        }
     }
 
     @Override
@@ -293,8 +271,7 @@ public class ConversationListManagerFragment extends BaseFragment<ConversationLi
             case START_CONVERSATION_FOR_CALL:
             case START_CONVERSATION_FOR_VIDEO_CALL:
             case START_CONVERSATION_FOR_CAMERA:
-            case NOTIFICATION:
-            case SHARING:
+            case INTENT:
                 stripToConversationList();
                 break;
             case INCOMING_CALL:

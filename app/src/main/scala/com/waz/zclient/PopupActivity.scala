@@ -25,11 +25,11 @@ import com.waz.ZLog.ImplicitTag._
 import com.waz.ZLog.{error, verbose}
 import com.waz.utils.returning
 import com.waz.zclient.core.controllers.tracking.events.notifications.OpenedQuickReplyEvent
-import com.waz.zclient.notifications.controllers.MessageNotificationsController.NotificationIntent
 import com.waz.zclient.quickreply.QuickReplyFragment
 import com.waz.zclient.tracking.GlobalTrackingController
 import com.waz.zclient.ui.utils.KeyboardUtils
 import com.waz.zclient.utils.{ContextUtils, ViewUtils}
+import com.waz.zclient.Intents._
 
 class PopupActivity extends BaseActivity with ActivityHelper { self =>
 

@@ -197,8 +197,7 @@ public class ConversationPagerFragment extends BaseFragment<ConversationPagerFra
             case ONGOING_CALL:
             case TRANSFER_CALL:
             case INCOMING_CALL:
-            case SHARING:
-            case NOTIFICATION:
+            case INTENT:
                 new Handler().postDelayed(new Runnable() {
                     @Override
                     public void run() {

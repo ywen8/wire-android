@@ -52,8 +52,6 @@ import com.waz.zclient.controllers.password.IPasswordController;
 import com.waz.zclient.controllers.password.PasswordController;
 import com.waz.zclient.controllers.permission.IRequestPermissionsController;
 import com.waz.zclient.controllers.permission.RequestPermissionsController;
-import com.waz.zclient.controllers.sharing.ISharingController;
-import com.waz.zclient.controllers.sharing.SharingController;
 import com.waz.zclient.controllers.singleimage.ISingleImageController;
 import com.waz.zclient.controllers.singleimage.SingleImageController;
 import com.waz.zclient.controllers.usernames.IUsernamesController;
@@ -102,8 +100,6 @@ public abstract class Base$$ControllerFactory implements IControllerFactory {
 
   protected IRequestPermissionsController requestPermissionsController;
 
-  protected ISharingController sharingController;
-
   protected ISingleImageController singleImageController;
 
   protected IUserPreferencesController userPreferencesController;
@@ -125,15 +121,6 @@ public abstract class Base$$ControllerFactory implements IControllerFactory {
   public Base$$ControllerFactory(Context context) {
     this.context = context;
     this.isTornDown = false;
-  }
-
-  @Override
-  public ISharingController getSharingController() {
-    verifyLifecycle();
-    if (sharingController == null) {
-      sharingController = new SharingController();
-    }
-    return sharingController;
   }
 
   @Override
@@ -219,10 +206,6 @@ public abstract class Base$$ControllerFactory implements IControllerFactory {
     if (requestPermissionsController != null) {
       requestPermissionsController.tearDown();
       requestPermissionsController = null;
-    }
-    if (sharingController != null) {
-      sharingController.tearDown();
-      sharingController = null;
     }
     if (singleImageController != null) {
       singleImageController.tearDown();

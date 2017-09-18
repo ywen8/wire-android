@@ -23,7 +23,7 @@ import android.content.{DialogInterface, Intent}
 import android.graphics.drawable.ColorDrawable
 import android.graphics.{Color, Paint, PixelFormat}
 import android.net.Uri
-import android.os.{Build, Bundle, Handler}
+import android.os.{Build, Bundle}
 import android.support.v4.app.Fragment
 import android.text.TextUtils
 import com.localytics.android.Localytics
@@ -32,17 +32,19 @@ import com.waz.ZLog.{error, info, verbose, warn}
 import com.waz.api.{NetworkMode, _}
 import com.waz.model.{AccountId, ConvId}
 import com.waz.service.ZMessaging
+import com.waz.service.ZMessaging.clock
 import com.waz.threading.{CancellableFuture, Threading}
 import com.waz.utils.events.Signal
-import com.waz.utils.returning
+import com.waz.utils.{RichInstant, returning}
 import com.waz.zclient.AppEntryController.{DeviceLimitStage, EnterAppStage, Unknown}
+import com.waz.zclient.Intents._
 import com.waz.zclient.calling.CallingActivity
 import com.waz.zclient.calling.controllers.CallPermissionsController
+import com.waz.zclient.common.controllers.PermissionsController
 import com.waz.zclient.controllers.accentcolor.AccentColorChangeRequester
 import com.waz.zclient.controllers.calling.CallingObserver
 import com.waz.zclient.controllers.global.{AccentColorController, SelectionController}
 import com.waz.zclient.controllers.navigation.{NavigationControllerObserver, Page}
-import com.waz.zclient.controllers.sharing.SharedContentType
 import com.waz.zclient.controllers.tracking.events.connect.AcceptedGenericInviteEvent
 import com.waz.zclient.controllers.tracking.events.exception.ExceptionEvent
 import com.waz.zclient.controllers.tracking.events.profile.SignOut
@@ -56,8 +58,6 @@ import com.waz.zclient.core.stores.connect.{ConnectStoreObserver, IConnectStore}
 import com.waz.zclient.core.stores.conversation.ConversationChangeRequester
 import com.waz.zclient.core.stores.profile.ProfileStoreObserver
 import com.waz.zclient.fragments.ConnectivityFragment
-import com.waz.zclient.notifications.controllers.MessageNotificationsController
-import com.waz.zclient.notifications.controllers.MessageNotificationsController.NotificationIntent
 import com.waz.zclient.pages.main.grid.GridFragment
 import com.waz.zclient.pages.main.{MainPhoneFragment, MainTabletFragment}
 import com.waz.zclient.pages.startup.UpdateFragment
@@ -69,8 +69,9 @@ import com.waz.zclient.utils.{BuildConfigUtils, Emojis, HockeyCrashReporting, In
 import net.hockeyapp.android.{ExceptionHandler, NativeCrashManager}
 
 import scala.collection.JavaConverters._
-import scala.concurrent.Future
 import scala.concurrent.duration._
+import scala.concurrent.{Await, Future}
+import scala.util.control.NonFatal
 
 class MainActivity extends BaseActivity
   with ActivityHelper
@@ -91,6 +92,7 @@ class MainActivity extends BaseActivity
   lazy val sharingController        = inject[SharingController]
   lazy val accentColorController    = inject[AccentColorController]
   lazy val callPermissionController = inject[CallPermissionsController]
+  lazy val permissions              = inject[PermissionsController]
   lazy val selectionController      = inject[SelectionController]
   lazy val userAccountsController   = inject[UserAccountsController]
   lazy val appEntryController       = inject[AppEntryController]
@@ -131,17 +133,12 @@ class MainActivity extends BaseActivity
 
     accentColorController.accentColor.map(_.getColor)(getControllerFactory.getUserPreferencesController.setLastAccentColor)
 
-    Option(getIntent).flatMap(i => Option(i.getExtras)).map(_.getBoolean(MainActivity.OpenSettingsArg, false)) match {
-      case Some(true) =>
-        startActivityForResult(PreferencesActivity.getDefaultIntent(this), PreferencesActivity.SwitchAccountCode)
-      case _ =>
-    }
+    handleIntent(getIntent)
 
     val currentlyDarkTheme = themeController.darkThemeSet.currentValue.contains(true)
-    val currentAccount = ZMessaging.currentAccounts.activeAccountPref.signal.currentValue.flatten
 
-    Signal(themeController.darkThemeSet, ZMessaging.currentAccounts.activeAccountPref.signal).onUi {
-      case (theme, acc) if theme != currentlyDarkTheme => restartActivity()
+    themeController.darkThemeSet.onUi {
+      case theme if theme != currentlyDarkTheme => restartActivity()
       case _ =>
     }
 
@@ -272,17 +269,7 @@ class MainActivity extends BaseActivity
     onLaunch()
 
     setIntent(intent)
-    handleNotificationIntent(intent)
-
-    Option(intent.getStringExtra(LaunchActivity.APP_PAGE)).filter(_.nonEmpty).foreach { page =>
-      setIntent(IntentUtils.resetAppPage(intent))
-      import IntentUtils._
-      page match {
-        case LOCALYTICS_DEEPLINK_SEARCH |
-             LOCALYTICS_DEEPLINK_PROFILE => restartAppWithPage(page)
-        case LOCALYTICS_DEEPLINK_SETTINGS => startActivity(PreferencesActivity.getDefaultIntent(this))
-      }
-    }
+    handleIntent(intent)
   }
 
   private def restartActivity() = {
@@ -297,11 +284,6 @@ class MainActivity extends BaseActivity
     Option(getControllerFactory.getUserPreferencesController.getCrashException).foreach { crash =>
       globalTracking.tagEvent(ExceptionEvent.exception(crash, getControllerFactory.getUserPreferencesController.getCrashDetails))
     }
-  }
-
-  private def restartAppWithPage(page: String) = {
-    startActivity(returning(new Intent(this, classOf[MainActivity]))(_.putExtra(LaunchActivity.APP_PAGE, page)))
-    finish()
   }
 
   private def initializeControllers() = {
@@ -338,68 +320,64 @@ class MainActivity extends BaseActivity
     getStoreFactory.profileStore.setUser(self)
     getControllerFactory.getAccentColorController.setColor(AccentColorChangeRequester.LOGIN, self.getAccent.getColor)
     getControllerFactory.getUsernameController.setUser(self)
-
-    getIntent match {
-      case intent if intent.fromNotification  =>
-        handleNotificationIntent(intent)
-
-      case intent if IntentUtils.isLaunchFromSharingIntent(intent) =>
-        val sharedText = IntentUtils.getLaunchConversationSharedText(intent)
-        val sharedFileUris = IntentUtils.getLaunchConversationSharedFiles(intent)
-        val expiration = IntentUtils.getEphemeralExpiration(intent)
-
-        Option(IntentUtils.getLaunchConversationIds(intent)).map(_.asScala.filter(_ != null).toSeq).foreach {
-          case convId +: Nil =>
-            val conv = getStoreFactory.conversationStore.getConversation(convId)
-
-            if (!TextUtils.isEmpty(sharedText)) getControllerFactory.getSharingController.setSharedContentType(SharedContentType.TEXT)
-            else getControllerFactory.getSharingController.setSharedContentType(SharedContentType.FILE)
-
-            getControllerFactory.getSharingController.setSharedText(sharedText)
-            getControllerFactory.getSharingController.setSharedUris(sharedFileUris)
-            getControllerFactory.getSharingController.setSharingConversationId(convId)
-
-            Option(conv).foreach(_.setEphemeralExpiration(expiration))
-
-            sharingController.sendContent(sharedText, sharedFileUris, Seq(convId).asJava, expiration, this)
-
-            // Only want to swipe over when app has loaded
-            new Handler().postDelayed(new Runnable() {
-              def run() = {
-                getStoreFactory.conversationStore.setCurrentConversation(Option(conv), ConversationChangeRequester.SHARING)
-              }
-            }, MainActivity.LaunchChangeConversationDelay.toMillis.toInt)
-
-          case convs => sharingController.sendContent(sharedText, sharedFileUris, convs.asJava, expiration, this)
-        }
-
-        IntentUtils.clearLaunchIntentExtra(intent)
-        setIntent(intent)
-
-      case intent => setIntent(intent)
-    }
     openMainPage()
   }
 
-  def handleNotificationIntent(intent: Intent) = {
-    import MessageNotificationsController.NotificationIntent
-    verbose(s"handleNotificationIntent: ${intent.log}")
-    if (intent.fromNotification && intent.accountId.isDefined && intent.convId.isDefined) {
-      val accounts = ZMessaging.currentAccounts
+  def handleIntent(intent: Intent) = {
+    verbose(s"handleIntent: ${intent.log}")
 
-      accounts.activeAccount.head.flatMap {
-        case Some(acc) if intent.accountId.contains(acc.id) =>
-          CancellableFuture.delay(MainActivity.LaunchChangeConversationDelay).map { _ =>
-            val conv = getStoreFactory.conversationStore.getConversation(intent.convId.get.str)
-            verbose(s"setting conversation: ${conv.getId}")
-            getStoreFactory.conversationStore.setCurrentConversation(conv, ConversationChangeRequester.NOTIFICATION)
-            if (intent.startCall) startCall(false)
-            //no longer need this intent - remove it to prevent it from being reused
-            intent.clearExtras()
-            setIntent(intent)
-          }(Threading.Ui)
-        case _ => accounts.switchAccount(intent.accountId.get)
-      }(Threading.Background)
+    def switchConversation(convId: ConvId, call: Boolean = false, exp: EphemeralExpiration = EphemeralExpiration.NONE) =
+      CancellableFuture.delay(750.millis).map { _ =>
+        verbose(s"setting conversation: $convId")
+        val conv = getStoreFactory.conversationStore.getConversation(convId.str)
+        conv.setEphemeralExpiration(exp)
+        getStoreFactory.conversationStore.setCurrentConversation(conv, ConversationChangeRequester.INTENT)
+        if (call) startCall(false)
+    } (Threading.Ui).future
+
+    def clearIntent() = {
+      intent.clearExtras()
+      setIntent(intent)
+    }
+
+    intent match {
+      case NotificationIntent(accountId, convId, startCall) =>
+        val switchAccount = {
+          val accounts = ZMessaging.currentAccounts
+          accounts.activeAccount.head.flatMap {
+            case Some(acc) if intent.accountId.contains(acc.id) => Future.successful(false)
+            case _ => accounts.switchAccount(intent.accountId.get).map(_ => true)
+          }
+        }
+
+        switchAccount.flatMap { _ =>
+          (intent.convId match {
+            case Some(id) => switchConversation(id, startCall)
+            case _ =>        Future.successful({})
+          }).map(_ => clearIntent())(Threading.Ui)
+        }
+
+        try {
+          val t = clock.instant()
+          if (Await.result(switchAccount, 2.seconds)) verbose(s"Account switched before resuming activity lifecycle. Took ${t.until(clock.instant()).toMillis} ms")
+        } catch {
+          case NonFatal(e) => error("Failed to switch accounts", e)
+        }
+
+      case SharingIntent() =>
+        for {
+          convs <- sharingController.targetConvs.head
+          exp   <- sharingController.ephemeralExpiration.head
+          _     <- sharingController.sendContent(this)
+          _     <- if (convs.size == 1) switchConversation(convs.head, exp = exp) else Future.successful({})
+        } yield clearIntent()
+
+      case OpenPageIntent(page) => page match {
+        case Intents.Page.Settings => startActivityForResult(PreferencesActivity.getDefaultIntent(this), PreferencesActivity.SwitchAccountCode)
+        case _ => error(s"Unknown page: $page - ignoring intent")
+      }
+
+      case _ => setIntent(intent)
     }
   }
 
@@ -524,7 +502,7 @@ class MainActivity extends BaseActivity
 
   def manageDevices() = {
     getSupportFragmentManager.popBackStackImmediate
-    startActivity(PreferencesActivity.getOtrDevicesPreferencesIntent(this))
+    startActivity(ShowDevicesIntent(this))
   }
 
   def dismissOtrDeviceLimitFragment() = getSupportFragmentManager.popBackStackImmediate
@@ -621,7 +599,3 @@ class MainActivity extends BaseActivity
     }
 }
 
-object MainActivity {
-  private val LaunchChangeConversationDelay = 123.millis
-  val OpenSettingsArg = "OpenSettingsArg"
-}

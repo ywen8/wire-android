@@ -29,7 +29,6 @@ import com.waz.zclient.utils.IntentUtils;
 
 public class LaunchActivity extends BaseActivity implements InitListener {
     public static final String TAG = LaunchActivity.class.getName();
-    public static final String APP_PAGE = "APP_PAGE";
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -91,12 +90,7 @@ public class LaunchActivity extends BaseActivity implements InitListener {
     // Navigation //////////////////////////////////////////////////
 
     private void startMain() {
-        Intent intent = new Intent(this, MainActivity.class);
-        String page = IntentUtils.getAppPage(getIntent());
-        if (!TextUtils.isEmpty(page)) {
-            intent.putExtra(APP_PAGE, page);
-        }
-        startActivity(intent);
+        startActivity(new Intent(this, MainActivity.class));
         finish();
     }
 

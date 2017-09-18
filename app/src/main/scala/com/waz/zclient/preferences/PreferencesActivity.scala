@@ -45,6 +45,7 @@ import com.waz.zclient.tracking.GlobalTrackingController
 import com.waz.zclient.utils.{BackStackNavigator, LayoutSpec, RingtoneUtils, ViewUtils}
 import com.waz.zclient.views.AccountTabsView
 import com.waz.zclient.{ActivityHelper, BaseActivity, MainActivity, R}
+import com.waz.zclient.Intents._
 
 class PreferencesActivity extends BaseActivity
   with ActivityHelper
@@ -58,7 +59,6 @@ class PreferencesActivity extends BaseActivity
 
   private lazy val backStackNavigator = inject[BackStackNavigator]
   private lazy val zms = inject[Signal[ZMessaging]]
-
 
   lazy val currentAccountPref = inject[GlobalPreferences].preference(CurrentAccountPref)
   lazy val accentColor = inject[AccentColorController].accentColor
@@ -75,12 +75,10 @@ class PreferencesActivity extends BaseActivity
     if (savedInstanceState == null) {
       backStackNavigator.setup(findViewById(R.id.content).asInstanceOf[ViewGroup])
 
-      if(Option(getIntent.getExtras).exists(_.getBoolean(ShowOtrDevices, false))) {
-        backStackNavigator.goTo(DevicesBackStackKey())
-      } else {
-        backStackNavigator.goTo(ProfileBackStackKey())
+      getIntent.page match {
+        case Some(Page.Devices) => backStackNavigator.goTo(DevicesBackStackKey())
+        case _                  => backStackNavigator.goTo(ProfileBackStackKey())
       }
-
 
       Signal(backStackNavigator.currentState, ZMessaging.currentAccounts.loggedInAccounts.map(_.length)).on(Threading.Ui){
         case (state: ProfileBackStackKey, c) if c > 1 =>
@@ -202,15 +200,9 @@ class PreferencesActivity extends BaseActivity
 }
 
 object PreferencesActivity {
-  val ShowOtrDevices   = "SHOW_OTR_DEVICES"
-  val ShowAccount      = "SHOW_ACCOUNT"
   val SwitchAccountCode = 789
   val SwitchAccountExtra = "SWITCH_ACCOUNT_EXTRA"
 
   def getDefaultIntent(context: Context): Intent =
     new Intent(context, classOf[PreferencesActivity])
-
-  def getOtrDevicesPreferencesIntent(context: Context): Intent =
-    returning(getDefaultIntent(context))(_.putExtra(ShowOtrDevices, true))
-
 }

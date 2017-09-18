@@ -54,7 +54,7 @@ class PermissionsController(sysPerms: PermissionsWrapper)(implicit injector: Inj
     }
   }
 
-  def withPermissions[A](permissions: Permission*)(onGranted: => A) =
+  def withPermissions[A](permissions: Permission*)(onGranted: => A): Future[Option[A]] =
     request(permissions.toSet).map {
       case ps if ps forall(_.hasPermission(sysPerms)) => Some(onGranted)
       case _ => None

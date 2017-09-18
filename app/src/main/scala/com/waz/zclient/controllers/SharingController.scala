@@ -21,48 +21,34 @@ import android.app.Activity
 import android.content.DialogInterface
 import android.support.v7.app.AlertDialog
 import android.text.format.Formatter
-import com.waz.ZLog._
+import com.waz.ZLog.ImplicitTag._
 import com.waz.api._
 import com.waz.model.ConvId
 import com.waz.service.ZMessaging
+import com.waz.threading.SerialDispatchQueue
 import com.waz.utils.RichFuture
-import com.waz.utils.wrappers.URI
 import com.waz.utils.events.{EventContext, EventStream, Signal}
+import com.waz.utils.wrappers.URI
+import com.waz.zclient.Intents._
+import com.waz.zclient.common.controllers.PermissionsController
 import com.waz.zclient.controllers.SharingController.{FileContent, ImageContent, SharableContent, TextContent}
-import com.waz.zclient.utils.{IntentUtils, ViewUtils}
-import com.waz.zclient.{Injectable, Injector, R}
+import com.waz.zclient.utils.ViewUtils
+import com.waz.zclient.{Injectable, Injector, R, WireContext}
 
 import scala.collection.JavaConverters._
+import scala.concurrent.Future
 
-class SharingController(implicit injector: Injector, eventContext: EventContext) extends Injectable{
-  import com.waz.threading.Threading.Implicits.Ui
-  private implicit val tag: LogTag = logTagFor[SharingController]
+class SharingController(implicit injector: Injector, wContext: WireContext, eventContext: EventContext) extends Injectable{
 
-  private lazy val context = inject[Activity]
+  private implicit val dispatcher = new SerialDispatchQueue(name = "SharingController")
+
   private lazy val zms = inject[Signal[ZMessaging]]
 
-  val sharableContent = Signal[Option[SharableContent]](None)
-  val ephemeralExpiration = Signal[EphemeralExpiration](EphemeralExpiration.NONE)
+  val sharableContent     = Signal(Option.empty[SharableContent])
+  val targetConvs         = Signal(Set.empty[ConvId])
+  val ephemeralExpiration = Signal(EphemeralExpiration.NONE)
 
   val sendEvent = EventStream[(SharableContent, Set[ConvId], EphemeralExpiration)]()
-
-  sendEvent{
-    case (_, conversations, _) if conversations.size <= 1 =>
-      //For now we let the old sharing controller handle this one
-    case (TextContent(content), conversations, expiration) =>
-      zms.head.flatMap(z => RichFuture.traverseSequential(conversations.toSeq){ convId =>
-        z.convsUi.setEphemeral(convId, expiration).flatMap(_ =>
-          z.convsUi.sendMessage(convId, new MessageContent.Text(content))) })
-    case (FileContent(assetUris), conversations, expiration) =>
-      RichFuture.traverseSequential(conversations.toSeq){conv =>
-        RichFuture.traverseSequential(assetUris){ uri =>
-          zms.head.flatMap(z =>
-            z.convsUi.setEphemeral(conv, expiration).flatMap(_ =>
-              z.convsUi.sendMessage(conv, new MessageContent.Asset(AssetFactory.fromContentUri(uri), assetErrorHandler(context)))))
-        }
-      }
-    case _ =>
-  }
 
   private def assetErrorHandler(activity: Activity): MessageContent.Asset.ErrorHandler = new MessageContent.Asset.ErrorHandler() {
     def noWifiAndFileIsLarge(sizeInBytes: Long, net: NetworkMode, answer: MessageContent.Asset.Answer): Unit = {
@@ -70,15 +56,21 @@ class SharingController(implicit injector: Injector, eventContext: EventContext)
         answer.ok()
         return
       }
-      val dialog: AlertDialog = ViewUtils.showAlertDialog(activity, R.string.asset_upload_warning__large_file__title, R.string.asset_upload_warning__large_file__message_default, R.string.asset_upload_warning__large_file__button_accept, R.string.asset_upload_warning__large_file__button_cancel, new DialogInterface.OnClickListener() {
-        def onClick(dialog: DialogInterface, which: Int): Unit = {
-          answer.ok()
-        }
-      }, new DialogInterface.OnClickListener() {
-        def onClick(dialog: DialogInterface, which: Int): Unit = {
-          answer.cancel()
-        }
-      })
+      val dialog: AlertDialog =
+        ViewUtils.showAlertDialog(activity,
+          R.string.asset_upload_warning__large_file__title,
+          R.string.asset_upload_warning__large_file__message_default,
+          R.string.asset_upload_warning__large_file__button_accept,
+          R.string.asset_upload_warning__large_file__button_cancel,
+          new DialogInterface.OnClickListener() {
+            def onClick(dialog: DialogInterface, which: Int): Unit = {
+              answer.ok()
+            }
+          }, new DialogInterface.OnClickListener() {
+            def onClick(dialog: DialogInterface, which: Int): Unit = {
+              answer.cancel()
+            }
+          })
       dialog.setCancelable(false)
       if (sizeInBytes > 0) {
         val fileSize: String = Formatter.formatFileSize(activity, sizeInBytes)
@@ -87,58 +79,78 @@ class SharingController(implicit injector: Injector, eventContext: EventContext)
     }
   }
 
-  def onContentShared(activity: Activity, convIds: Set[ConvId]): Unit ={
-    for{
-      Some(content) <- sharableContent.currentValue
-      expiration <- ephemeralExpiration.currentValue
-    } yield {
-      val javaConvIds = convIds.toSeq.map(_.str).asJava
+  def onContentShared(activity: Activity, convs: Set[ConvId]): Unit = {
+    targetConvs ! convs
+    Option(activity).foreach(_.startActivity(SharingIntent(wContext)))
+  }
+
+  def sendContent(activity: Activity): Future[Unit] = {
+    def send(content: SharableContent, convs: Set[ConvId], expiration: EphemeralExpiration): Future[Boolean] = {
+      sendEvent ! (content, convs, expiration)
       content match {
-        case TextContent(text) =>
-          activity.startActivity(IntentUtils.getAppLaunchIntent(activity, javaConvIds, text, expiration))
-        case ImageContent(uris) =>
-          activity.startActivity(IntentUtils.getAppLaunchIntent(activity, javaConvIds, uris.asJava, expiration))
-        case FileContent(uris) =>
-          activity.startActivity(IntentUtils.getAppLaunchIntent(activity, javaConvIds, uris.asJava, expiration))
-        case _ =>
+        case TextContent(t) =>
+          if (convs.size > 1) {
+            zms.head.flatMap(z => RichFuture.traverseSequential(convs.toSeq){ convId =>
+              z.convsUi.setEphemeral(convId, expiration).flatMap(_ =>
+                z.convsUi.sendMessage(convId, new MessageContent.Text(t)))
+            }).map(_ => true)
+          } else Future.successful(false)
+
+        case uriContent =>
+          RichFuture.traverseSequential(convs.toSeq) { conv =>
+            RichFuture.traverseSequential(uriContent.uris) { uri =>
+              zms.head.flatMap(z =>
+                z.convsUi.setEphemeral(conv, expiration).flatMap(_ =>
+                  z.convsUi.sendMessage(conv, new MessageContent.Asset(AssetFactory.fromContentUri(uri), assetErrorHandler(activity)))))
+            }
+          }.map (_ => true)
       }
     }
+
+    for {
+      Some(content) <- sharableContent.head
+      convs         <- targetConvs.head
+      expiration    <- ephemeralExpiration.head
+      sent          <- send(content, convs, expiration)
+    } yield if (sent) resetContent()
   }
 
-  def clearSharableContent(): Unit ={
-    sharableContent ! None
-    ephemeralExpiration ! EphemeralExpiration.NONE
+  //For Java
+  private def isSharing(convId: String): Boolean = targetConvs.currentValue.exists(_.contains(ConvId(convId)))
+
+  def getSharedText(convId: String): String = sharableContent.currentValue.flatten match {
+    case Some(TextContent(t)) if isSharing(convId) => t
+    case _ => null
   }
 
-  //java helpers
-  def sendContent(text: String, uris: java.util.List[URI], conversations: java.util.List[String], ephemeralExpiration: EphemeralExpiration, activity: Activity): Unit ={
-    val convIds = conversations.asScala.filter(_ != null).map(ConvId(_)).toSet
-    (Option(text), Option(uris)) match {
-      case (Some(t), _) =>
-        sendEvent ! (TextContent(t), convIds, ephemeralExpiration)
-      case (_, Some(u)) if !u.isEmpty =>
-        sendEvent ! (FileContent(uris.asScala), convIds, ephemeralExpiration)
-      case _ =>
+  private def resetContent() = {
+    sharableContent.publish(None, dispatcher)
+    targetConvs.publish(Set.empty, dispatcher)
+    ephemeralExpiration.publish(EphemeralExpiration.NONE, dispatcher)
+  }
+
+  def clearSharingFor(conv: IConversation) = if (conv != null) {
+    targetConvs.currentValue.foreach { convs =>
+      if (convs.contains(ConvId(conv.getId))) resetContent()
     }
   }
 
-  def publishTextContent(text: String): Unit ={
+  def publishTextContent(text: String): Unit =
     this.sharableContent ! Some(TextContent(text))
-  }
 
-  def publishImageContent(uris: java.util.List[URI]): Unit ={
+  def publishImageContent(uris: java.util.List[URI]): Unit =
     this.sharableContent ! Some(ImageContent(uris.asScala))
-  }
 
-  def publishFileContent(uris: java.util.List[URI]): Unit ={
+  def publishFileContent(uris: java.util.List[URI]): Unit =
     this.sharableContent ! Some(FileContent(uris.asScala))
-  }
 }
 
 object SharingController {
-  trait SharableContent
+  trait SharableContent {
+    val uris: Seq[URI]
+  }
 
-  case class TextContent(text: String) extends SharableContent
+  case class TextContent(text: String) extends SharableContent { override val uris = Seq.empty }
 
   case class FileContent(uris: Seq[URI]) extends SharableContent
 

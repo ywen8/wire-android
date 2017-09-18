@@ -318,11 +318,7 @@ class AppEntryActivity extends BaseActivity
   def onEnterApplication(openSettings: Boolean): Unit = {
     getControllerFactory.getNavigationController.removeNavigationControllerObserver(this)
     getControllerFactory.getVerificationController.finishVerification()
-    val intent = new Intent(this, classOf[MainActivity])
-    val bundle = new Bundle
-    bundle.putBoolean(MainActivity.OpenSettingsArg, openSettings)
-    intent.putExtras(bundle)
-    startActivity(intent)
+    startActivity(Intents.EnterAppIntent(openSettings)(this))
     finish()
   }
 
