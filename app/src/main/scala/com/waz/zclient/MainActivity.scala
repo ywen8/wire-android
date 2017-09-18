@@ -370,9 +370,9 @@ class MainActivity extends BaseActivity
 
       case SharingIntent() =>
         for {
-          _     <- sharingController.sendContent(this, permissions)
           convs <- sharingController.targetConvs.head
           exp   <- sharingController.ephemeralExpiration.head
+          _     <- sharingController.sendContent(this, permissions)
           _     <- if (convs.size == 1) switchConversation(convs.head, exp = exp) else Future.successful({})
         } yield clearIntent()
 
