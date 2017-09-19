@@ -53,7 +53,7 @@ class CurrentCallController(implicit inj: Injector, cxt: WireContext) extends In
     }
   }.orElse(Signal(true)) //ensure that controls are ALWAYS visible in case something goes wrong...
 
-  val videoSendState = currentCall.collect { case Some(c) => c.videoSendState }
+  val videoSendState = currentCallOpt.collect { case Some(c) => c.videoSendState }
     .disableAutowiring()
 
 
@@ -84,14 +84,14 @@ class CurrentCallController(implicit inj: Injector, cxt: WireContext) extends In
     case _ => Signal.const[Option[UserData]](None) //Need a none signal to help with further signals
   }
 
-  val callEstablished = currentCall.map(_.exists(_.state == SelfConnected))
+  val callEstablished = currentCallOpt.map(_.exists(_.state == SelfConnected))
     .disableAutowiring()
 
   val onCallEstablished = callEstablished.onChanged
 
   val duration = {
     def timeSince(est: Option[Instant]) = ClockSignal(Duration.ofSeconds(1).asScala).map(_ => est.fold2(ZERO, between(_, now)))
-    currentCall.collect { case Some(c) => c.estabTime }.flatMap(timeSince)
+    currentCall.map(_.estabTime).flatMap(timeSince)
   }
 
   val subtitleText: Signal[String] = convDegraded.flatMap {
@@ -115,7 +115,7 @@ class CurrentCallController(implicit inj: Injector, cxt: WireContext) extends In
     }
   }
 
-  val videoReceiveState = currentCall.map(_.map(_.videoReceiveState).getOrElse(VideoReceiveState.Unknown))
+  val videoReceiveState = currentCall.map(_.videoReceiveState)
 
   val cameraFailed = flowManager.flatMap(_.cameraFailedSig)
 
@@ -128,12 +128,11 @@ class CurrentCallController(implicit inj: Injector, cxt: WireContext) extends In
         case (SelfConnected, _,    BadConnection, _)             => Option(cxt.getString(R.string.ongoing__poor_connection_message))
         case (SelfConnected, _,    Stopped,       otherUserName) => Option(cxt.getString(R.string.ongoing__other_turned_off_video, otherUserName))
         case (SelfConnected, _,    Unknown,       otherUserName) => Option(cxt.getString(R.string.ongoing__other_unable_to_send_video, otherUserName))
-
         case _ => None
       }
   }
 
-  val participantIdsToDisplay = currentCall.map(_.fold(Vector.empty[UserId])(_.others.toVector))
+  val participantIdsToDisplay = currentCallOpt.map(_.fold(Vector.empty[UserId])(_.others.toVector))
 
   val flowId = for {
     zms <- zms
