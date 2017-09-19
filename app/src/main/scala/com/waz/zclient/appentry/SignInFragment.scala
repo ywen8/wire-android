@@ -41,17 +41,20 @@ import com.waz.zclient.ui.utils.{KeyboardUtils, TextViewUtils}
 import com.waz.zclient.ui.views.tab.TabIndicatorLayout
 import com.waz.zclient.ui.views.tab.TabIndicatorLayout.Callback
 import com.waz.zclient.utils._
+import android.os.Build.VERSION.SDK_INT
+import android.os.Build.VERSION_CODES.KITKAT
 
 class SignInFragment extends BaseFragment[Container] with FragmentHelper with View.OnClickListener {
 
   lazy val signInController = inject[SignInController]
 
   lazy val container = getView.findViewById(R.id.sign_in_container).asInstanceOf[FrameLayout]
-  lazy val scenes = Array[Scene](
-    Scene.getSceneForLayout(container, R.layout.sign_in_email_scene, getContext),
-    Scene.getSceneForLayout(container, R.layout.sign_in_phone_scene, getContext),
-    Scene.getSceneForLayout(container, R.layout.sign_up_email_scene, getContext),
-    Scene.getSceneForLayout(container, R.layout.sign_up_phone_scene, getContext))
+  lazy val scenes = Array(
+    R.layout.sign_in_email_scene,
+    R.layout.sign_in_phone_scene,
+    R.layout.sign_up_email_scene,
+    R.layout.sign_up_phone_scene
+  )
 
   lazy val phoneButton = findById[TypefaceTextView](getView, R.id.ttv__new_reg__sign_in__go_to__phone)
   lazy val emailButton = findById[TypefaceTextView](getView, R.id.ttv__new_reg__sign_in__go_to__email)
@@ -120,7 +123,12 @@ class SignInFragment extends BaseFragment[Container] with FragmentHelper with Vi
 
   override def onViewCreated(view: View, savedInstanceState: Bundle) = {
 
-    val transition = new AutoTransition2()
+    val transition = if (SDK_INT >= KITKAT) Option(new AutoTransition2()) else None
+
+    def switchScene(sceneIndex: Int) = transition.fold[Unit]({
+      container.removeAllViews()
+      LayoutInflater.from(getContext).inflate(scenes(sceneIndex), container)
+    })( TransitionManager.go(Scene.getSceneForLayout(container, scenes(sceneIndex), getContext), _) )
 
     phoneButton.setOnClickListener(this)
     emailButton.setOnClickListener(this)
@@ -173,22 +181,22 @@ class SignInFragment extends BaseFragment[Container] with FragmentHelper with Vi
     signInController.uiSignInState.onUi { state =>
       state match {
         case SignInMethod(Login, Email) =>
-          TransitionManager.go(scenes(0), transition)
+          switchScene(0)
           setupViews()
           setEmailButtonSelected()
           emailField.foreach(_.getEditText.requestFocus())
         case SignInMethod(Login, Phone) =>
-          TransitionManager.go(scenes(1), transition)
+          switchScene(1)
           setupViews()
           setPhoneButtonSelected()
           phoneField.foreach(_.requestFocus())
         case SignInMethod(Register, Email) =>
-          TransitionManager.go(scenes(2), transition)
+          switchScene(2)
           setupViews()
           setEmailButtonSelected()
           nameField.foreach(_.getEditText.requestFocus())
         case SignInMethod(Register, Phone) =>
-          TransitionManager.go(scenes(3), transition)
+          switchScene(3)
           setupViews()
           setPhoneButtonSelected()
           phoneField.foreach(_.requestFocus())
