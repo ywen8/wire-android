@@ -51,6 +51,14 @@
                 app:title="@string/pref_advanced_debug_report_title"
                 />
 
+            <com.waz.zclient.pages.main.profile.preferences.views.TextButton
+                android:id="@+id/preferences_reset_push"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/preference_button_height"
+                app:subtitle="@string/pref_advanced_reset_push_summary"
+                app:title="@string/pref_advanced_reset_push_title"
+            />
+
         </LinearLayout>
 
     </ScrollView>
