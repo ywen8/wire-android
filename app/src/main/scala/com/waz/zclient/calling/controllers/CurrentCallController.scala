@@ -29,10 +29,9 @@ import com.waz.service.call.Avs.VideoReceiveState
 import com.waz.service.call.CallInfo.CallState._
 import com.waz.threading.Threading
 import com.waz.utils._
-import com.waz.utils.events.{ClockSignal, Signal}
+import com.waz.utils.events.{ClockSignal, Signal, ToggleSignal}
 import com.waz.zclient._
 import com.waz.zclient.calling.views.CallControlButtonView.{ButtonColor, ButtonSettings}
-import com.waz.zclient.utils.events.ButtonSignal
 import org.threeten.bp.Duration._
 import org.threeten.bp.Instant._
 import org.threeten.bp.{Duration, Instant}
@@ -110,7 +109,7 @@ class CurrentCallController(implicit inj: Injector, cxt: WireContext) extends In
       case (false, SelfCalling,  _)                    => cxt.getString(R.string.calling__header__outgoing_subtitle)
       case (true,  OtherCalling, _)                    => cxt.getString(R.string.calling__header__incoming_subtitle__video)
       case (false, OtherCalling, _)                    => cxt.getString(R.string.calling__header__incoming_subtitle)
-      case (_,     SelfJoining,  _)                   => cxt.getString(R.string.calling__header__joining)
+      case (_,     SelfJoining,  _)                    => cxt.getString(R.string.calling__header__joining)
       case (false, SelfConnected, duration)            => duration
       case _ => ""
     }
@@ -207,7 +206,7 @@ class CurrentCallController(implicit inj: Injector, cxt: WireContext) extends In
     case true => cxt.getString(R.string.audio_message__constant_bit_rate)
   }
 
-  val speakerButton = ButtonSignal(zms.flatMap(_.mediamanager.isSpeakerOn), zms.map(_.mediamanager)) {
+  val speakerButton = ToggleSignal(zms.map(_.mediamanager), zms.flatMap(_.mediamanager.isSpeakerOn)) {
     case (mm, isSpeakerSet) => mm.setSpeaker(!isSpeakerSet)
   }
 
@@ -230,7 +229,7 @@ class CurrentCallController(implicit inj: Injector, cxt: WireContext) extends In
 
   val rightButtonSettings = videoCall.map {
     case true  => ButtonSettings(R.string.glyph__video,        R.string.incoming__controls__ongoing__video,   () => toggleVideo())
-    case false => ButtonSettings(R.string.glyph__speaker_loud, R.string.incoming__controls__ongoing__speaker, () => speakerButton.press())
+    case false => ButtonSettings(R.string.glyph__speaker_loud, R.string.incoming__controls__ongoing__speaker, () => speakerButton.toggle())
   }
 
   val isTablet = Signal(LayoutSpec.isTablet(cxt))
