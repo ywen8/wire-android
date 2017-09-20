@@ -46,7 +46,7 @@ class AdvancedViewImpl(context: Context, attrs: AttributeSet, style: Int) extend
 
   val analyticsSwitch = findById[SwitchPreference](R.id.preferences_analytics)
   val submitReport    = findById[TextButton](R.id.preferences_debug_report)
-  val resetPush       = returning(findById[TextButton](R.id.preferences_reset_push))(_.setVisible(BuildConfig.DEBUG))
+  val resetPush       = returning(findById[TextButton](R.id.preferences_reset_push))(_.setVisible(BuildConfig.SHOW_BACKEND_PICKER))
 
   analyticsSwitch.setPreference(UserPreferences.AnalyticsEnabled)
 
