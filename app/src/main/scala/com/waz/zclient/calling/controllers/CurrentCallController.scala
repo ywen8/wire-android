@@ -29,7 +29,7 @@ import com.waz.service.call.Avs.VideoReceiveState
 import com.waz.service.call.CallInfo.CallState._
 import com.waz.threading.Threading
 import com.waz.utils._
-import com.waz.utils.events.{ClockSignal, Signal, ToggleSignal}
+import com.waz.utils.events.{ButtonSignal, ClockSignal, Signal}
 import com.waz.zclient._
 import com.waz.zclient.calling.views.CallControlButtonView.{ButtonColor, ButtonSettings}
 import org.threeten.bp.Duration._
@@ -205,7 +205,7 @@ class CurrentCallController(implicit inj: Injector, cxt: WireContext) extends In
     case true => cxt.getString(R.string.audio_message__constant_bit_rate)
   }
 
-  val speakerButton = ToggleSignal(zms.map(_.mediamanager), zms.flatMap(_.mediamanager.isSpeakerOn)) {
+  val speakerButton = ButtonSignal(zms.map(_.mediamanager), zms.flatMap(_.mediamanager.isSpeakerOn)) {
     case (mm, isSpeakerSet) => mm.setSpeaker(!isSpeakerSet)
   }
 
@@ -228,7 +228,7 @@ class CurrentCallController(implicit inj: Injector, cxt: WireContext) extends In
 
   val rightButtonSettings = videoCall.map {
     case true  => ButtonSettings(R.string.glyph__video,        R.string.incoming__controls__ongoing__video,   () => toggleVideo())
-    case false => ButtonSettings(R.string.glyph__speaker_loud, R.string.incoming__controls__ongoing__speaker, () => speakerButton.toggle())
+    case false => ButtonSettings(R.string.glyph__speaker_loud, R.string.incoming__controls__ongoing__speaker, () => speakerButton.press())
   }
 
   val isTablet = Signal(LayoutSpec.isTablet(cxt))
