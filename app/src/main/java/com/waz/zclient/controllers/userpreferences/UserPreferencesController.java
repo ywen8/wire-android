@@ -45,8 +45,6 @@ public class UserPreferencesController implements IUserPreferencesController {
     private static final String USER_PREF_PHONE_VERIFICATION_CODE = "PREF_PHONE_VERIFICATION_CODE";
     private static final String USER_PREF_APP_CRASH = "USER_PREF_APP_CRASH";
     private static final String USER_PREF_APP_CRASH_DETAILS = "USER_PREF_APP_CRASH_DETAILS";
-    private static final String USER_PREF_LOGGED_IN = "USER_PREF_LOGGED_IN_%s";
-    private static final String USER_PREF_AB_TESTING_UUID = "USER_PREF_AB_TESTING_UUID";
     public static final String USER_PREF_ACTION_PREFIX = "USER_PREF_ACTION_PREFIX";
     private static final String USER_PREF_RECENT_EMOJIS = "USER_PREF_RECENT_EMOJIS";
     private static final String USER_PREF_UNSUPPORTED_EMOJIS = "USER_PREF_UNSUPPORTED_EMOJIS";
@@ -54,8 +52,6 @@ public class UserPreferencesController implements IUserPreferencesController {
     private static final String USER_PREF_LAST_EPHEMERAL_VALUE = "USER_PREF_LAST_EPHEMERAL_VALUE";
 
     private static final String PREFS_DEVICE_ID = "com.waz.device.id";
-
-    private static final int AB_TESTING_GROUP_COUNT = 6;
 
     private final SharedPreferences userPreferences;
     private Context context;
@@ -107,16 +103,6 @@ public class UserPreferencesController implements IUserPreferencesController {
     @Override
     public String getGenericInvitationToken() {
         return userPreferences.getString(USER_PREFS_GENERIC_INVITATION_TOKEN, null);
-    }
-
-    @Override
-    public void setPersonalInvitationToken(String token) {
-        userPreferences.edit().putString(USER_PREFS_PERSONAL_INVITATION_TOKEN, token).apply();
-    }
-
-    @Override
-    public String getPersonalInvitationToken() {
-        return userPreferences.getString(USER_PREFS_PERSONAL_INVITATION_TOKEN, null);
     }
 
     @Override
@@ -203,16 +189,6 @@ public class UserPreferencesController implements IUserPreferencesController {
     }
 
     @Override
-    public boolean hasUserLoggedIn(String userId) {
-        return userPreferences.getBoolean(String.format(USER_PREF_LOGGED_IN, userId), false);
-    }
-
-    @Override
-    public void userLoggedIn(String userId) {
-        userPreferences.edit().putBoolean(String.format(USER_PREF_LOGGED_IN, userId), true).apply();
-    }
-
-    @Override
     public void setPerformedAction(@Action int action) {
         userPreferences.edit().putBoolean(USER_PREF_ACTION_PREFIX + action, true).apply();
     }
@@ -220,18 +196,6 @@ public class UserPreferencesController implements IUserPreferencesController {
     @Override
     public boolean hasPerformedAction(@Action int action) {
         return userPreferences.getBoolean(USER_PREF_ACTION_PREFIX + action, false);
-    }
-
-    @Override
-    public int getABTestingGroup() {
-        int group = userPreferences.getInt(USER_PERFS_AB_TESTING_GROUP, -1);
-        if (group == -1) {
-            UUID uuid = UUID.randomUUID();
-            userPreferences.edit().putString(USER_PREF_AB_TESTING_UUID, uuid.toString()).apply();
-            group = (int) Math.abs(uuid.getLeastSignificantBits() % AB_TESTING_GROUP_COUNT) + 1;
-            userPreferences.edit().putInt(USER_PERFS_AB_TESTING_GROUP, group).apply();
-        }
-        return group;
     }
 
     @Override

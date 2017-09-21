@@ -51,10 +51,6 @@ public interface IUserPreferencesController {
 
     String getGenericInvitationToken();
 
-    void setPersonalInvitationToken(String token);
-
-    String getPersonalInvitationToken();
-
     String getLastCallSessionId();
 
     void setPostSessionIdToConversation(boolean postSessionIdToConversation);
@@ -77,18 +73,9 @@ public interface IUserPreferencesController {
 
     String getCrashDetails();
 
-    boolean hasUserLoggedIn(String userId);
-
-    void userLoggedIn(String userId);
-
     void setPerformedAction(@Action int action);
 
     boolean hasPerformedAction(@Action int action);
-
-    /**
-     * We return a group number between 1 and 6. Always the same.
-     */
-    int getABTestingGroup();
 
     void addRecentEmoji(String emoji);
 

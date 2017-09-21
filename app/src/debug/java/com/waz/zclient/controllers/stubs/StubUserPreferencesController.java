@@ -55,11 +55,6 @@ public class StubUserPreferencesController implements IUserPreferencesController
   }
 
   @Override
-  public void setPersonalInvitationToken(String token) {
-
-  }
-
-  @Override
   public String getCrashDetails() {
     return null;
   }
@@ -90,11 +85,6 @@ public class StubUserPreferencesController implements IUserPreferencesController
   }
 
   @Override
-  public int getABTestingGroup() {
-    return 0;
-  }
-
-  @Override
   public void addRecentEmoji(String emoji) {
 
   }
@@ -116,11 +106,6 @@ public class StubUserPreferencesController implements IUserPreferencesController
 
   @Override
   public boolean hasCheckedForUnsupportedEmojis(int version) {
-    return false;
-  }
-
-  @Override
-  public boolean hasUserLoggedIn(String userId) {
     return false;
   }
 
@@ -153,17 +138,7 @@ public class StubUserPreferencesController implements IUserPreferencesController
   public String getDeviceId() {
     return null;
   }
-
-  @Override
-  public void userLoggedIn(String userId) {
-
-  }
-
-  @Override
-  public String getPersonalInvitationToken() {
-    return null;
-  }
-
+    
   @Override
   public boolean isPostSessionIdToConversation() {
     return false;
