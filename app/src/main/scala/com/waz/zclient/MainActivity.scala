@@ -332,7 +332,7 @@ class MainActivity extends BaseActivity
         val conv = getStoreFactory.conversationStore.getConversation(convId.str)
         conv.setEphemeralExpiration(exp)
         getStoreFactory.conversationStore.setCurrentConversation(conv, ConversationChangeRequester.INTENT)
-        if (call) startCall(false)
+        if (call) startCall(withVideo = false, Option(conv))
     } (Threading.Ui).future
 
     def clearIntent() = {
@@ -510,18 +510,19 @@ class MainActivity extends BaseActivity
   def onInitialized(self: Self) = enterApplication(self)
 
   def onStartCall(withVideo: Boolean) = {
-    handleOnStartCall(withVideo)
-    getStoreFactory.conversationStore.currentConversation.foreach { conv =>
+    val conversation = getStoreFactory.conversationStore.currentConversation
+    handleOnStartCall(withVideo, conversation)
+    conversation.foreach { conv =>
       globalTracking.tagEvent(OpenedMediaActionEvent.cursorAction(if (withVideo) OpenedMediaAction.VIDEO_CALL else OpenedMediaAction.AUDIO_CALL, conv))
     }
   }
 
-  private def handleOnStartCall(withVideo: Boolean) = {
+  private def handleOnStartCall(withVideo: Boolean, conversation: Option[IConversation]) = {
     if (PhoneUtils.getPhoneState(this) ne PhoneState.IDLE) cannotStartGSM()
-    else startCallIfInternet(withVideo)
+    else startCallIfInternet(withVideo, conversation)
   }
 
-  private def startCall(withVideo: Boolean) = getStoreFactory.conversationStore.currentConversation.foreach {
+  private def startCall(withVideo: Boolean, conversation: Option[IConversation]): Unit = conversation.foreach {
     case c if c.getType == IConversation.Type.GROUP && c.getUsers.size() >= 5 =>
       ViewUtils.showAlertDialog(
         this,
@@ -548,7 +549,7 @@ class MainActivity extends BaseActivity
       null,
       true)
 
-  private def startCallIfInternet(withVideo: Boolean) = {
+  private def startCallIfInternet(withVideo: Boolean, conversation: Option[IConversation]) = {
     zms.flatMap(_.network.networkMode).head.map {
       case NetworkMode.OFFLINE =>
         ViewUtils.showAlertDialog(
@@ -571,9 +572,9 @@ class MainActivity extends BaseActivity
           R.string.calling__video_call__slow_connection__message,
           R.string.calling__slow_connection__button,
           new DialogInterface.OnClickListener() {
-            def onClick(dialogInterface: DialogInterface, i: Int) = startCall(true)
+            def onClick(dialogInterface: DialogInterface, i: Int) = startCall(withVideo = true, conversation)
           }, true)
-      case _ => startCall(withVideo)
+      case _ => startCall(withVideo, conversation)
     }(Threading.Ui)
   }
 
