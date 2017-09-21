@@ -41,7 +41,6 @@ import com.waz.zclient.controllers.giphy.GiphyController;
 import com.waz.zclient.controllers.giphy.IGiphyController;
 import com.waz.zclient.controllers.globallayout.GlobalLayoutController;
 import com.waz.zclient.controllers.globallayout.IGlobalLayoutController;
-import com.waz.zclient.controllers.loadtimelogger.ILoadTimeLoggerController;
 import com.waz.zclient.controllers.location.ILocationController;
 import com.waz.zclient.controllers.location.LocationController;
 import com.waz.zclient.controllers.navigation.INavigationController;
@@ -67,7 +66,7 @@ import com.waz.zclient.pages.main.conversationpager.controller.SlidingPaneContro
 import com.waz.zclient.pages.main.pickuser.controller.IPickUserController;
 import com.waz.zclient.pages.main.pickuser.controller.PickUserController;
 
-public abstract class Base$$ControllerFactory implements IControllerFactory {
+public class ControllerFactory implements IControllerFactory {
   protected IAccentColorController accentColorController;
 
   protected IDialogBackgroundImageController dialogBackgroundImageController;
@@ -87,8 +86,6 @@ public abstract class Base$$ControllerFactory implements IControllerFactory {
   protected IGiphyController giphyController;
 
   protected IGlobalLayoutController globalLayoutController;
-
-  protected ILoadTimeLoggerController loadTimeLoggerController;
 
   protected ILocationController locationController;
 
@@ -118,7 +115,7 @@ public abstract class Base$$ControllerFactory implements IControllerFactory {
 
   protected Context context;
 
-  public Base$$ControllerFactory(Context context) {
+  public ControllerFactory(Context context) {
     this.context = context;
     this.isTornDown = false;
   }
@@ -182,10 +179,6 @@ public abstract class Base$$ControllerFactory implements IControllerFactory {
     if (globalLayoutController != null) {
       globalLayoutController.tearDown();
       globalLayoutController = null;
-    }
-    if (loadTimeLoggerController != null) {
-      loadTimeLoggerController.tearDown();
-      loadTimeLoggerController = null;
     }
     if (locationController != null) {
       locationController.tearDown();
@@ -395,8 +388,6 @@ public abstract class Base$$ControllerFactory implements IControllerFactory {
     getUsernameController().setActivity(activity);
   }
 
-  protected abstract void initLoadTimeLoggerController();
-
   @Override
   public IDeviceUserController getDeviceUserController() {
     verifyLifecycle();
@@ -413,13 +404,6 @@ public abstract class Base$$ControllerFactory implements IControllerFactory {
       drawingController = new DrawingController();
     }
     return drawingController;
-  }
-
-  @Override
-  public ILoadTimeLoggerController getLoadTimeLoggerController() {
-    verifyLifecycle();
-    initLoadTimeLoggerController();
-    return loadTimeLoggerController;
   }
 
   @Override

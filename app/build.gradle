@@ -108,7 +108,6 @@ android {
 
             buildConfigField 'boolean', 'USE_HOCKEY_UPDATE', 'true'
             buildConfigField 'boolean', 'SHOW_DEVELOPER_OPTIONS', 'true'
-            buildConfigField 'boolean', 'IS_LOADTIME_LOGGER_ENABLED', 'true'
             buildConfigField 'boolean', 'SHOW_TEST_COUNTRY_CODE', 'true'
             buildConfigField 'boolean', 'IS_TEST_GALLERY_ALLOWED', 'true'
             buildConfigField 'boolean', 'SHOW_BACKEND_PICKER', 'true'
@@ -132,7 +131,6 @@ android {
 
             buildConfigField 'boolean', 'USE_HOCKEY_UPDATE', 'true'
             buildConfigField 'boolean', 'SHOW_DEVELOPER_OPTIONS', 'true'
-            buildConfigField 'boolean', 'IS_LOADTIME_LOGGER_ENABLED', 'true'
             buildConfigField 'boolean', 'SHOW_TEST_COUNTRY_CODE', 'true'
             buildConfigField 'boolean', 'SHOW_ADDRESS_BOOK_INVITATIONS', 'false'
             buildConfigField 'boolean', 'IS_TEST_GALLERY_ALLOWED', 'true'
@@ -156,7 +154,6 @@ android {
 
             buildConfigField 'boolean', 'USE_HOCKEY_UPDATE', 'false'
             buildConfigField 'boolean', 'SHOW_DEVELOPER_OPTIONS', 'false'
-            buildConfigField 'boolean', 'IS_LOADTIME_LOGGER_ENABLED', 'false'
             buildConfigField 'boolean', 'SHOW_TEST_COUNTRY_CODE', 'false'
             buildConfigField 'boolean', 'IS_TEST_GALLERY_ALLOWED', 'false'
             buildConfigField 'boolean', 'SHOW_BACKEND_PICKER', 'false'
@@ -181,7 +178,6 @@ android {
 
             buildConfigField 'boolean', 'USE_HOCKEY_UPDATE', 'false'
             buildConfigField 'boolean', 'SHOW_DEVELOPER_OPTIONS', 'true'
-            buildConfigField 'boolean', 'IS_LOADTIME_LOGGER_ENABLED', 'false'
             buildConfigField 'boolean', 'SHOW_TEST_COUNTRY_CODE', 'true'
             buildConfigField 'boolean', 'SHOW_ADDRESS_BOOK_INVITATIONS', 'false'
             buildConfigField 'boolean', 'IS_TEST_GALLERY_ALLOWED', 'true'
@@ -206,7 +202,6 @@ android {
 
             buildConfigField 'boolean', 'USE_HOCKEY_UPDATE', 'true'
             buildConfigField 'boolean', 'SHOW_DEVELOPER_OPTIONS', 'true'
-            buildConfigField 'boolean', 'IS_LOADTIME_LOGGER_ENABLED', 'false'
             buildConfigField 'boolean', 'SHOW_TEST_COUNTRY_CODE', 'false'
             buildConfigField 'boolean', 'IS_TEST_GALLERY_ALLOWED', 'false'
             buildConfigField 'boolean', 'SHOW_BACKEND_PICKER', 'true'
@@ -231,7 +226,6 @@ android {
 
             buildConfigField 'boolean', 'USE_HOCKEY_UPDATE', 'true'
             buildConfigField 'boolean', 'SHOW_DEVELOPER_OPTIONS', 'true'
-            buildConfigField 'boolean', 'IS_LOADTIME_LOGGER_ENABLED', 'false'
             buildConfigField 'boolean', 'SHOW_TEST_COUNTRY_CODE', 'true'
             buildConfigField 'boolean', 'SHOW_ADDRESS_BOOK_INVITATIONS', 'false'
             buildConfigField 'boolean', 'IS_TEST_GALLERY_ALLOWED', 'true'
@@ -256,7 +250,6 @@ android {
 
             buildConfigField 'boolean', 'USE_HOCKEY_UPDATE', 'true'
             buildConfigField 'boolean', 'SHOW_DEVELOPER_OPTIONS', 'true'
-            buildConfigField 'boolean', 'IS_LOADTIME_LOGGER_ENABLED', 'true'
             buildConfigField 'boolean', 'SHOW_TEST_COUNTRY_CODE', 'true'
             buildConfigField 'boolean', 'IS_TEST_GALLERY_ALLOWED', 'true'
             buildConfigField 'boolean', 'SHOW_BACKEND_PICKER', 'true'

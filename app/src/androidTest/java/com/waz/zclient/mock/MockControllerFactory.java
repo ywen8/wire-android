@@ -30,7 +30,6 @@ import com.waz.zclient.controllers.deviceuser.IDeviceUserController;
 import com.waz.zclient.controllers.drawing.IDrawingController;
 import com.waz.zclient.controllers.giphy.IGiphyController;
 import com.waz.zclient.controllers.globallayout.IGlobalLayoutController;
-import com.waz.zclient.controllers.loadtimelogger.ILoadTimeLoggerController;
 import com.waz.zclient.controllers.location.ILocationController;
 import com.waz.zclient.controllers.navigation.INavigationController;
 import com.waz.zclient.controllers.orientation.IOrientationController;
@@ -48,7 +47,6 @@ import com.waz.zclient.controllers.stubs.StubDrawingController;
 import com.waz.zclient.controllers.stubs.StubFocusController;
 import com.waz.zclient.controllers.stubs.StubGiphyController;
 import com.waz.zclient.controllers.stubs.StubGlobalLayoutController;
-import com.waz.zclient.controllers.stubs.StubLoadTimeLoggerController;
 import com.waz.zclient.controllers.stubs.StubLocationController;
 import com.waz.zclient.controllers.stubs.StubNavigationController;
 import com.waz.zclient.controllers.stubs.StubOrientationController;
@@ -89,8 +87,6 @@ public class MockControllerFactory implements IControllerFactory {
   protected IGiphyController giphyController = spy(StubGiphyController.class);
 
   protected IGlobalLayoutController globalLayoutController = spy(StubGlobalLayoutController.class);
-
-  protected ILoadTimeLoggerController loadTimeLoggerController = spy(StubLoadTimeLoggerController.class);
 
   protected ILocationController locationController = spy(StubLocationController.class);
 
@@ -197,11 +193,6 @@ public class MockControllerFactory implements IControllerFactory {
   @Override
   public IDeviceUserController getDeviceUserController() {
     return deviceUserController;
-  }
-
-  @Override
-  public ILoadTimeLoggerController getLoadTimeLoggerController() {
-    return loadTimeLoggerController;
   }
 
   @Override

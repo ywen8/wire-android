@@ -30,7 +30,6 @@ import com.waz.zclient.controllers.deviceuser.IDeviceUserController;
 import com.waz.zclient.controllers.drawing.IDrawingController;
 import com.waz.zclient.controllers.giphy.IGiphyController;
 import com.waz.zclient.controllers.globallayout.IGlobalLayoutController;
-import com.waz.zclient.controllers.loadtimelogger.ILoadTimeLoggerController;
 import com.waz.zclient.controllers.location.ILocationController;
 import com.waz.zclient.controllers.navigation.INavigationController;
 import com.waz.zclient.controllers.orientation.IOrientationController;
@@ -64,8 +63,6 @@ public interface IControllerFactory {
   ISingleImageController getSingleImageController();
 
   IVerificationController getVerificationController();
-
-  ILoadTimeLoggerController getLoadTimeLoggerController();
 
   IRequestPermissionsController getRequestPermissionsController();
 

@@ -194,7 +194,7 @@ class WireApplication extends MultiDexApplication with WireContext with Injectab
     }
 
     verbose("onCreate")
-    controllerFactory = new DefaultControllerFactory(getApplicationContext)
+    controllerFactory = new ControllerFactory(getApplicationContext)
 
     new BackendPicker(this).withBackend(new Callback[Void]() {
       def callback(aVoid: Void) = ensureInitialized()

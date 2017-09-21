@@ -125,9 +125,7 @@ class MainActivity extends BaseActivity
       HockeyCrashReporting.checkForUpdates(this)
 
     onLaunch()
-
-    getControllerFactory.getLoadTimeLoggerController.appStart()
-
+    
     accentColorController.accentColor.map(_.getColor)(getControllerFactory.getUserPreferencesController.setLastAccentColor)
 
     handleIntent(getIntent)
