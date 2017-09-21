@@ -107,7 +107,6 @@ android {
                                     hockeyAppKey           : getApiKey("hockeyAppKey")]
 
             buildConfigField 'boolean', 'USE_HOCKEY_UPDATE', 'true'
-            buildConfigField 'boolean', 'SHOW_GRIDOVERLAY', 'true'
             buildConfigField 'boolean', 'SHOW_DEVELOPER_OPTIONS', 'true'
             buildConfigField 'boolean', 'IS_LOADTIME_LOGGER_ENABLED', 'true'
             buildConfigField 'boolean', 'SHOW_TEST_COUNTRY_CODE', 'true'
@@ -132,7 +131,6 @@ android {
                                     hockeyAppKey           : getApiKey("hockeyAppKeyCand")]
 
             buildConfigField 'boolean', 'USE_HOCKEY_UPDATE', 'true'
-            buildConfigField 'boolean', 'SHOW_GRIDOVERLAY', 'true'
             buildConfigField 'boolean', 'SHOW_DEVELOPER_OPTIONS', 'true'
             buildConfigField 'boolean', 'IS_LOADTIME_LOGGER_ENABLED', 'true'
             buildConfigField 'boolean', 'SHOW_TEST_COUNTRY_CODE', 'true'
@@ -157,7 +155,6 @@ android {
                                     hockeyAppKey           : getApiKey("hockeyAppKeyProd")]
 
             buildConfigField 'boolean', 'USE_HOCKEY_UPDATE', 'false'
-            buildConfigField 'boolean', 'SHOW_GRIDOVERLAY', 'false'
             buildConfigField 'boolean', 'SHOW_DEVELOPER_OPTIONS', 'false'
             buildConfigField 'boolean', 'IS_LOADTIME_LOGGER_ENABLED', 'false'
             buildConfigField 'boolean', 'SHOW_TEST_COUNTRY_CODE', 'false'
@@ -183,7 +180,6 @@ android {
                                     hockeyAppKey     : getApiKey("hockeyAppKeyInternal")]
 
             buildConfigField 'boolean', 'USE_HOCKEY_UPDATE', 'false'
-            buildConfigField 'boolean', 'SHOW_GRIDOVERLAY', 'false'
             buildConfigField 'boolean', 'SHOW_DEVELOPER_OPTIONS', 'true'
             buildConfigField 'boolean', 'IS_LOADTIME_LOGGER_ENABLED', 'false'
             buildConfigField 'boolean', 'SHOW_TEST_COUNTRY_CODE', 'true'
@@ -209,7 +205,6 @@ android {
                                     hockeyAppKey           : getApiKey("hockeyAppKeyAvs")]
 
             buildConfigField 'boolean', 'USE_HOCKEY_UPDATE', 'true'
-            buildConfigField 'boolean', 'SHOW_GRIDOVERLAY', 'true'
             buildConfigField 'boolean', 'SHOW_DEVELOPER_OPTIONS', 'true'
             buildConfigField 'boolean', 'IS_LOADTIME_LOGGER_ENABLED', 'false'
             buildConfigField 'boolean', 'SHOW_TEST_COUNTRY_CODE', 'false'
@@ -235,7 +230,6 @@ android {
                                     hockeyAppKey           : getApiKey("hockeyAppKeyQa")]
 
             buildConfigField 'boolean', 'USE_HOCKEY_UPDATE', 'true'
-            buildConfigField 'boolean', 'SHOW_GRIDOVERLAY', 'true'
             buildConfigField 'boolean', 'SHOW_DEVELOPER_OPTIONS', 'true'
             buildConfigField 'boolean', 'IS_LOADTIME_LOGGER_ENABLED', 'false'
             buildConfigField 'boolean', 'SHOW_TEST_COUNTRY_CODE', 'true'
@@ -261,7 +255,6 @@ android {
                                     hockeyAppKey           : getApiKey("hockeyAppKeyExperimental")]
 
             buildConfigField 'boolean', 'USE_HOCKEY_UPDATE', 'true'
-            buildConfigField 'boolean', 'SHOW_GRIDOVERLAY', 'true'
             buildConfigField 'boolean', 'SHOW_DEVELOPER_OPTIONS', 'true'
             buildConfigField 'boolean', 'IS_LOADTIME_LOGGER_ENABLED', 'true'
             buildConfigField 'boolean', 'SHOW_TEST_COUNTRY_CODE', 'true'

@@ -30,12 +30,10 @@ import com.waz.zclient.core.stores.connect.IConnectStore;
 import com.waz.zclient.core.stores.profile.ProfileStoreObserver;
 import com.waz.zclient.pages.main.MainPhoneFragment;
 import com.waz.zclient.pages.main.MainTabletFragment;
-import com.waz.zclient.pages.main.grid.GridFragment;
 import com.waz.zclient.pages.startup.UpdateFragment;
 
 public class MainTestActivity extends TestActivity implements MainPhoneFragment.Container,
                                                               MainTabletFragment.Container,
-                                                              GridFragment.Container,
                                                               UpdateFragment.Container,
                                                               ProfileStoreObserver,
                                                               AccentColorObserver,

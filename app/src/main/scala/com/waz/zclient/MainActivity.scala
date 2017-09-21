@@ -58,7 +58,6 @@ import com.waz.zclient.core.stores.connect.{ConnectStoreObserver, IConnectStore}
 import com.waz.zclient.core.stores.conversation.ConversationChangeRequester
 import com.waz.zclient.core.stores.profile.ProfileStoreObserver
 import com.waz.zclient.fragments.ConnectivityFragment
-import com.waz.zclient.pages.main.grid.GridFragment
 import com.waz.zclient.pages.main.{MainPhoneFragment, MainTabletFragment}
 import com.waz.zclient.pages.startup.UpdateFragment
 import com.waz.zclient.preferences.{PreferencesActivity, PreferencesController}
@@ -77,7 +76,6 @@ class MainActivity extends BaseActivity
   with ActivityHelper
   with MainPhoneFragment.Container
   with MainTabletFragment.Container
-  with GridFragment.Container
   with UpdateFragment.Container
   with ProfileStoreObserver
   with ConnectStoreObserver
@@ -120,7 +118,6 @@ class MainActivity extends BaseActivity
     if (savedInstanceState == null) {
       val fragmentTransaction = fragmentManager.beginTransaction
       fragmentTransaction.add(R.id.fl__offline__container, ConnectivityFragment(), ConnectivityFragment.FragmentTag)
-      if (BuildConfig.SHOW_GRIDOVERLAY) fragmentTransaction.add(R.id.fl_main_grid, GridFragment.newInstance, GridFragment.TAG)
       fragmentTransaction.commit
     } else getControllerFactory.getNavigationController.onActivityCreated(savedInstanceState)
 

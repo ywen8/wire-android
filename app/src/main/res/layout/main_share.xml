@@ -67,15 +67,6 @@
         />
 
     <!--
-        the container holding the grid
-     -->
-    <FrameLayout
-        android:id="@+id/fl_main_grid"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        />
-
-    <!--
         Dialog for when user is not logged when trying to share content to Wire
     -->
     <com.waz.zclient.views.menus.ConfirmationMenu
