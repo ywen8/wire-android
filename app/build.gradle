@@ -100,7 +100,6 @@ android {
             manifestPlaceholders = [applicationLabel       : "Wire Dev",
                                     applicationIcon        : "@drawable/ic_launcher_wire_dev",
                                     sharedUserId           : "",
-                                    use_audio_link         : "false",
                                     internal_features      : "true",
                                     localyticsAppKey       : getApiKey("localyticsAppKey"),
                                     hockeyAppKey           : getApiKey("hockeyAppKey")]
@@ -118,7 +117,6 @@ android {
             manifestPlaceholders = [applicationLabel       : "Wire Candidate",
                                     applicationIcon        : "@drawable/ic_launcher_wire_candidate",
                                     sharedUserId           : "",
-                                    use_audio_link         : "false",
                                     internal_features      : "false",
                                     localyticsAppKey       : getApiKey("localyticsAppKey"),
                                     hockeyAppKey           : getApiKey("hockeyAppKeyCand")]
@@ -136,7 +134,6 @@ android {
                                     applicationIcon        : "@drawable/ic_launcher_wire",
                                     sharedUserId           : "com.waz.userid",
                                     internal_features      : "false",
-                                    use_audio_link         : "false",
                                     localyticsAppKey       : getApiKey("localyticsAppKeyProd"),
                                     hockeyAppKey           : getApiKey("hockeyAppKeyProd")]
 
@@ -153,8 +150,6 @@ android {
             manifestPlaceholders = [applicationLabel : "Wire Internal",
                                     applicationIcon  : "@drawable/ic_launcher_wire_internal",
                                     sharedUserId     : "",
-                                    use_audio_link   : "false",
-                                    gcm_enabled      : "false",
                                     internal_features: "true",
                                     localyticsAppKey : getApiKey("localyticsAppKey"),
                                     hockeyAppKey     : getApiKey("hockeyAppKeyInternal")]
@@ -172,7 +167,6 @@ android {
             manifestPlaceholders = [applicationLabel       : "Wire AVS",
                                     applicationIcon        : "@drawable/ic_launcher_wire_playground",
                                     sharedUserId           : "",
-                                    use_audio_link         : "false",
                                     internal_features      : "true",
                                     localyticsAppKey       : getApiKey("localyticsAppKey"),
                                     hockeyAppKey           : getApiKey("hockeyAppKeyAvs")]
@@ -191,7 +185,6 @@ android {
             manifestPlaceholders = [applicationLabel       : "Wire QA",
                                     applicationIcon        : "@drawable/ic_launcher_wire_qa",
                                     sharedUserId           : "",
-                                    use_audio_link         : "false",
                                     internal_features      : "true",
                                     localyticsAppKey       : getApiKey("localyticsAppKey"),
                                     hockeyAppKey           : getApiKey("hockeyAppKeyQa")]
@@ -209,7 +202,6 @@ android {
             manifestPlaceholders = [applicationLabel       : "Wire Exp",
                                     applicationIcon        : "@drawable/ic_launcher_wire_playground",
                                     sharedUserId           : "",
-                                    use_audio_link         : "false",
                                     internal_features      : "true",
                                     localyticsAppKey       : getApiKey("localyticsAppKey"),
                                     hockeyAppKey           : getApiKey("hockeyAppKeyExperimental")]

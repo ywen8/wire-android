@@ -272,8 +272,6 @@
         <meta-data android:name="localytics.gcm" android:value="${localyticsGcmSenderId}"/>
         <!-- Localytics push icon -->
         <meta-data android:name="LOCALYTICS_NOTIFICATION_ICON" android:value="@drawable/ic_menu_logo" />
-        <!-- SoundLink toggle -->
-        <meta-data android:name="AUDIOLINK_ENABLED" android:value="${use_audio_link}" />
         <!-- Internal features from SE -->
         <meta-data android:name="INTERNAL" android:value="${internal_features}"/>
 
