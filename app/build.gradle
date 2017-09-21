@@ -114,7 +114,6 @@ android {
             buildConfigField 'boolean', 'DISABLE_TRACKING_KEEP_LOGGING', 'true'
             buildConfigField 'int', 'LOG_LEVEL_UI', logLevelWarn()
             buildConfigField 'int', 'LOG_LEVEL_SE', logLevelSupress()
-            buildConfigField 'int', 'LOG_LEVEL_AVS', logLevelVerbose()
         }
 
         candidate {
@@ -138,7 +137,6 @@ android {
             buildConfigField 'boolean', 'DISABLE_TRACKING_KEEP_LOGGING', 'true'
             buildConfigField 'int', 'LOG_LEVEL_UI', logLevelVerbose()
             buildConfigField 'int', 'LOG_LEVEL_SE', logLevelVerbose()
-            buildConfigField 'int', 'LOG_LEVEL_AVS', logLevelVerbose()
         }
 
         prod {
@@ -160,7 +158,6 @@ android {
             buildConfigField 'boolean', 'DISABLE_TRACKING_KEEP_LOGGING', 'false'
             buildConfigField 'int', 'LOG_LEVEL_UI', logLevelSupress()
             buildConfigField 'int', 'LOG_LEVEL_SE', logLevelSupress()
-            buildConfigField 'int', 'LOG_LEVEL_AVS', logLevelSupress()
         }
 
         internal {
@@ -185,7 +182,6 @@ android {
             buildConfigField 'boolean', 'DISABLE_TRACKING_KEEP_LOGGING', 'false'
             buildConfigField 'int', 'LOG_LEVEL_UI', logLevelVerbose()
             buildConfigField 'int', 'LOG_LEVEL_SE', logLevelVerbose()
-            buildConfigField 'int', 'LOG_LEVEL_AVS', logLevelVerbose()
         }
 
         avs {
@@ -208,7 +204,6 @@ android {
             buildConfigField 'boolean', 'DISABLE_TRACKING_KEEP_LOGGING', 'false'
             buildConfigField 'int', 'LOG_LEVEL_UI', logLevelSupress()
             buildConfigField 'int', 'LOG_LEVEL_SE', logLevelVerbose()
-            buildConfigField 'int', 'LOG_LEVEL_AVS', logLevelVerbose()
         }
 
         qa {
@@ -233,7 +228,6 @@ android {
             buildConfigField 'boolean', 'DISABLE_TRACKING_KEEP_LOGGING', 'true'
             buildConfigField 'int', 'LOG_LEVEL_UI', logLevelVerbose()
             buildConfigField 'int', 'LOG_LEVEL_SE', logLevelVerbose()
-            buildConfigField 'int', 'LOG_LEVEL_AVS', logLevelVerbose()
         }
 
         experimental {
@@ -256,7 +250,6 @@ android {
             buildConfigField 'boolean', 'DISABLE_TRACKING_KEEP_LOGGING', 'false'
             buildConfigField 'int', 'LOG_LEVEL_UI', logLevelVerbose()
             buildConfigField 'int', 'LOG_LEVEL_SE', logLevelVerbose()
-            buildConfigField 'int', 'LOG_LEVEL_AVS', logLevelVerbose()
         }
     }
 
