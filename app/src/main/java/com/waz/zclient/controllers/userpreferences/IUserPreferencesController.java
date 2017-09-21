@@ -105,7 +105,4 @@ public interface IUserPreferencesController {
     void setLastEphemeralValue(long value);
 
     boolean isVariableBitRateEnabled();
-
-    boolean swapForceVerboseLogging();
-
 }

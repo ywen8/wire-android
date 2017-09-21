@@ -107,8 +107,6 @@ android {
             buildConfigField 'boolean', 'USE_HOCKEY_UPDATE', 'true'
             buildConfigField 'boolean', 'DEVELOPER_FEATURES_ENABLED', 'true'
             buildConfigField 'boolean', 'DISABLE_TRACKING_KEEP_LOGGING', 'true'
-            buildConfigField 'int', 'LOG_LEVEL_UI', logLevelWarn()
-            buildConfigField 'int', 'LOG_LEVEL_SE', logLevelSupress()
         }
 
         candidate {
@@ -124,8 +122,6 @@ android {
             buildConfigField 'boolean', 'USE_HOCKEY_UPDATE', 'true'
             buildConfigField 'boolean', 'DEVELOPER_FEATURES_ENABLED', 'true'
             buildConfigField 'boolean', 'DISABLE_TRACKING_KEEP_LOGGING', 'true'
-            buildConfigField 'int', 'LOG_LEVEL_UI', logLevelVerbose()
-            buildConfigField 'int', 'LOG_LEVEL_SE', logLevelVerbose()
         }
 
         prod {
@@ -140,8 +136,6 @@ android {
             buildConfigField 'boolean', 'USE_HOCKEY_UPDATE', 'false'
             buildConfigField 'boolean', 'DEVELOPER_FEATURES_ENABLED', 'false'
             buildConfigField 'boolean', 'DISABLE_TRACKING_KEEP_LOGGING', 'false'
-            buildConfigField 'int', 'LOG_LEVEL_UI', logLevelSupress()
-            buildConfigField 'int', 'LOG_LEVEL_SE', logLevelSupress()
         }
 
         internal {
@@ -157,8 +151,6 @@ android {
             buildConfigField 'boolean', 'USE_HOCKEY_UPDATE', 'false'
             buildConfigField 'boolean', 'DEVELOPER_FEATURES_ENABLED', 'true'
             buildConfigField 'boolean', 'DISABLE_TRACKING_KEEP_LOGGING', 'false'
-            buildConfigField 'int', 'LOG_LEVEL_UI', logLevelVerbose()
-            buildConfigField 'int', 'LOG_LEVEL_SE', logLevelVerbose()
         }
 
         avs {
@@ -174,8 +166,6 @@ android {
             buildConfigField 'boolean', 'USE_HOCKEY_UPDATE', 'true'
             buildConfigField 'boolean', 'DEVELOPER_FEATURES_ENABLED', 'true'
             buildConfigField 'boolean', 'DISABLE_TRACKING_KEEP_LOGGING', 'false'
-            buildConfigField 'int', 'LOG_LEVEL_UI', logLevelSupress()
-            buildConfigField 'int', 'LOG_LEVEL_SE', logLevelVerbose()
         }
 
         qa {
@@ -192,8 +182,6 @@ android {
             buildConfigField 'boolean', 'USE_HOCKEY_UPDATE', 'true'
             buildConfigField 'boolean', 'DEVELOPER_FEATURES_ENABLED', 'true'
             buildConfigField 'boolean', 'DISABLE_TRACKING_KEEP_LOGGING', 'true'
-            buildConfigField 'int', 'LOG_LEVEL_UI', logLevelVerbose()
-            buildConfigField 'int', 'LOG_LEVEL_SE', logLevelVerbose()
         }
 
         experimental {
@@ -209,8 +197,6 @@ android {
             buildConfigField 'boolean', 'USE_HOCKEY_UPDATE', 'true'
             buildConfigField 'boolean', 'DEVELOPER_FEATURES_ENABLED', 'true'
             buildConfigField 'boolean', 'DISABLE_TRACKING_KEEP_LOGGING', 'false'
-            buildConfigField 'int', 'LOG_LEVEL_UI', logLevelVerbose()
-            buildConfigField 'int', 'LOG_LEVEL_SE', logLevelVerbose()
         }
     }
 
@@ -337,20 +323,6 @@ def getApiKey(String property) {
         return java.util.UUID.randomUUID().toString().replaceAll("-", "")
     }
 }
-
-// Same values as in log_levels.xml
-// (workaround for R not being available in BuildConfig for test flavor)
-def logLevelVerbose() { return '2' }
-
-def logLevelDebug() { return '3' }
-
-def logLevelInfo() { return '4' }
-
-def logLevelWarn() { return '5' }
-
-def logLevelError() { return '6' }
-
-def logLevelSupress() { return '99' }
 
 //add pretty naming to apk filename
 android.applicationVariants.all { variant ->

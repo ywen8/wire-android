@@ -198,8 +198,4 @@ public class StubUserPreferencesController implements IUserPreferencesController
     return false;
   }
 
-  @Override
-  public boolean swapForceVerboseLogging() {
-    return false;
-  }
 }

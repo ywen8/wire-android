@@ -59,20 +59,6 @@ class AboutView(context: Context, attrs: AttributeSet, style: Int) extends Linea
     }
   }
 
-  copyrightButton.onClickEvent{ _ =>
-    copyrightClickCounter += 1
-    if (copyrightClickCounter >= A_BUNCH_OF_CLICKS_TO_PREVENT_ACCIDENTAL_TRIGGERING) {
-      copyrightClickCounter = 0
-      //TODO: ADD NEW LOG LEVEL PREF
-      /*
-      val forceVerbose: Boolean = getControllerFactory.getUserPreferencesController.swapForceVerboseLogging
-      Toast.makeText(context, if (forceVerbose) context.getString(R.string.pref_dev_verbose_logging_enabled)
-      else context.getString(R.string.pref_dev_verbose_logging_disabled), Toast.LENGTH_LONG).show()
-      ZApplication.setLogLevels(getContext.getApplicationContext)
-      */
-    }
-  }
-
   private def openUrl(id: Int): Unit ={
     context.startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(context.getString(id))))
   }

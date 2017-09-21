@@ -294,12 +294,4 @@ public class UserPreferencesController implements IUserPreferencesController {
     public boolean isVariableBitRateEnabled() {
         return userPreferences.getBoolean(context.getString(R.string.pref_options_vbr_key), true);
     }
-
-    @Override
-    public boolean swapForceVerboseLogging() {
-        String key = context.getString(R.string.pref_force_verbose_key);
-        boolean updated = !userPreferences.getBoolean(key, false);
-        userPreferences.edit().putBoolean(key, updated).apply();
-        return updated;
-    }
 }
