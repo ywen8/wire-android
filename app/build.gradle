@@ -107,10 +107,7 @@ android {
                                     hockeyAppKey           : getApiKey("hockeyAppKey")]
 
             buildConfigField 'boolean', 'USE_HOCKEY_UPDATE', 'true'
-            buildConfigField 'boolean', 'SHOW_DEVELOPER_OPTIONS', 'true'
-            buildConfigField 'boolean', 'SHOW_TEST_COUNTRY_CODE', 'true'
-            buildConfigField 'boolean', 'IS_TEST_GALLERY_ALLOWED', 'true'
-            buildConfigField 'boolean', 'SHOW_BACKEND_PICKER', 'true'
+            buildConfigField 'boolean', 'DEVELOPER_FEATURES_ENABLED', 'true'
             buildConfigField 'boolean', 'DISABLE_TRACKING_KEEP_LOGGING', 'true'
             buildConfigField 'int', 'LOG_LEVEL_UI', logLevelWarn()
             buildConfigField 'int', 'LOG_LEVEL_SE', logLevelSupress()
@@ -129,11 +126,7 @@ android {
                                     hockeyAppKey           : getApiKey("hockeyAppKeyCand")]
 
             buildConfigField 'boolean', 'USE_HOCKEY_UPDATE', 'true'
-            buildConfigField 'boolean', 'SHOW_DEVELOPER_OPTIONS', 'true'
-            buildConfigField 'boolean', 'SHOW_TEST_COUNTRY_CODE', 'true'
-            buildConfigField 'boolean', 'SHOW_ADDRESS_BOOK_INVITATIONS', 'false'
-            buildConfigField 'boolean', 'IS_TEST_GALLERY_ALLOWED', 'true'
-            buildConfigField 'boolean', 'SHOW_BACKEND_PICKER', 'true'
+            buildConfigField 'boolean', 'DEVELOPER_FEATURES_ENABLED', 'true'
             buildConfigField 'boolean', 'DISABLE_TRACKING_KEEP_LOGGING', 'true'
             buildConfigField 'int', 'LOG_LEVEL_UI', logLevelVerbose()
             buildConfigField 'int', 'LOG_LEVEL_SE', logLevelVerbose()
@@ -151,10 +144,7 @@ android {
                                     hockeyAppKey           : getApiKey("hockeyAppKeyProd")]
 
             buildConfigField 'boolean', 'USE_HOCKEY_UPDATE', 'false'
-            buildConfigField 'boolean', 'SHOW_DEVELOPER_OPTIONS', 'false'
-            buildConfigField 'boolean', 'SHOW_TEST_COUNTRY_CODE', 'false'
-            buildConfigField 'boolean', 'IS_TEST_GALLERY_ALLOWED', 'false'
-            buildConfigField 'boolean', 'SHOW_BACKEND_PICKER', 'false'
+            buildConfigField 'boolean', 'DEVELOPER_FEATURES_ENABLED', 'false'
             buildConfigField 'boolean', 'DISABLE_TRACKING_KEEP_LOGGING', 'false'
             buildConfigField 'int', 'LOG_LEVEL_UI', logLevelSupress()
             buildConfigField 'int', 'LOG_LEVEL_SE', logLevelSupress()
@@ -174,11 +164,7 @@ android {
                                     hockeyAppKey     : getApiKey("hockeyAppKeyInternal")]
 
             buildConfigField 'boolean', 'USE_HOCKEY_UPDATE', 'false'
-            buildConfigField 'boolean', 'SHOW_DEVELOPER_OPTIONS', 'true'
-            buildConfigField 'boolean', 'SHOW_TEST_COUNTRY_CODE', 'true'
-            buildConfigField 'boolean', 'SHOW_ADDRESS_BOOK_INVITATIONS', 'false'
-            buildConfigField 'boolean', 'IS_TEST_GALLERY_ALLOWED', 'true'
-            buildConfigField 'boolean', 'SHOW_BACKEND_PICKER', 'true'
+            buildConfigField 'boolean', 'DEVELOPER_FEATURES_ENABLED', 'true'
             buildConfigField 'boolean', 'DISABLE_TRACKING_KEEP_LOGGING', 'false'
             buildConfigField 'int', 'LOG_LEVEL_UI', logLevelVerbose()
             buildConfigField 'int', 'LOG_LEVEL_SE', logLevelVerbose()
@@ -197,10 +183,7 @@ android {
                                     hockeyAppKey           : getApiKey("hockeyAppKeyAvs")]
 
             buildConfigField 'boolean', 'USE_HOCKEY_UPDATE', 'true'
-            buildConfigField 'boolean', 'SHOW_DEVELOPER_OPTIONS', 'true'
-            buildConfigField 'boolean', 'SHOW_TEST_COUNTRY_CODE', 'false'
-            buildConfigField 'boolean', 'IS_TEST_GALLERY_ALLOWED', 'false'
-            buildConfigField 'boolean', 'SHOW_BACKEND_PICKER', 'true'
+            buildConfigField 'boolean', 'DEVELOPER_FEATURES_ENABLED', 'true'
             buildConfigField 'boolean', 'DISABLE_TRACKING_KEEP_LOGGING', 'false'
             buildConfigField 'int', 'LOG_LEVEL_UI', logLevelSupress()
             buildConfigField 'int', 'LOG_LEVEL_SE', logLevelVerbose()
@@ -220,11 +203,7 @@ android {
                                     hockeyAppKey           : getApiKey("hockeyAppKeyQa")]
 
             buildConfigField 'boolean', 'USE_HOCKEY_UPDATE', 'true'
-            buildConfigField 'boolean', 'SHOW_DEVELOPER_OPTIONS', 'true'
-            buildConfigField 'boolean', 'SHOW_TEST_COUNTRY_CODE', 'true'
-            buildConfigField 'boolean', 'SHOW_ADDRESS_BOOK_INVITATIONS', 'false'
-            buildConfigField 'boolean', 'IS_TEST_GALLERY_ALLOWED', 'true'
-            buildConfigField 'boolean', 'SHOW_BACKEND_PICKER', 'true'
+            buildConfigField 'boolean', 'DEVELOPER_FEATURES_ENABLED', 'true'
             buildConfigField 'boolean', 'DISABLE_TRACKING_KEEP_LOGGING', 'true'
             buildConfigField 'int', 'LOG_LEVEL_UI', logLevelVerbose()
             buildConfigField 'int', 'LOG_LEVEL_SE', logLevelVerbose()
@@ -243,10 +222,7 @@ android {
                                     hockeyAppKey           : getApiKey("hockeyAppKeyExperimental")]
 
             buildConfigField 'boolean', 'USE_HOCKEY_UPDATE', 'true'
-            buildConfigField 'boolean', 'SHOW_DEVELOPER_OPTIONS', 'true'
-            buildConfigField 'boolean', 'SHOW_TEST_COUNTRY_CODE', 'true'
-            buildConfigField 'boolean', 'IS_TEST_GALLERY_ALLOWED', 'true'
-            buildConfigField 'boolean', 'SHOW_BACKEND_PICKER', 'true'
+            buildConfigField 'boolean', 'DEVELOPER_FEATURES_ENABLED', 'true'
             buildConfigField 'boolean', 'DISABLE_TRACKING_KEEP_LOGGING', 'false'
             buildConfigField 'int', 'LOG_LEVEL_UI', logLevelVerbose()
             buildConfigField 'int', 'LOG_LEVEL_SE', logLevelVerbose()

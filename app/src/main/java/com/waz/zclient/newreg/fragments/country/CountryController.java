@@ -124,7 +124,7 @@ public class CountryController {
     public List<Country> getSortedCountries() {
         ArrayList<Country> countries = new ArrayList<>(abbreviationToCountryMap.values());
         Collections.sort(countries);
-        if (BuildConfig.SHOW_TEST_COUNTRY_CODE) {
+        if (BuildConfig.DEVELOPER_FEATURES_ENABLED) {
             Country qaShortcut = new Country();
             qaShortcut.setAbbreviation("QA-code");
             qaShortcut.setName("QA-Shortcut");

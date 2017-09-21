@@ -72,7 +72,7 @@ public class AssetIntentsManager {
     }
 
     private void openDocument(String mimeType, IntentType tpe) {
-        if (BuildConfig.IS_TEST_GALLERY_ALLOWED) {
+        if (BuildConfig.DEVELOPER_FEATURES_ENABLED) {
             // trying to load file from testing gallery,
             // this is needed because we are not able to override DocumentsUI on some android versions.
             Intent intent = new Intent("com.wire.testing.GET_DOCUMENT").setType(mimeType);
