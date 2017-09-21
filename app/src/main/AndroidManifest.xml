@@ -68,7 +68,7 @@
 
     <application
         android:name=".ZApplication"
-        android:allowBackup="${allowBackup}"
+        android:allowBackup="false"
         android:hardwareAccelerated="true"
         android:icon="${applicationIcon}"
         android:label="${applicationLabel}"

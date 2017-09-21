@@ -98,7 +98,6 @@ android {
             applicationId "com.waz.zclient.dev"
             versionName majorVersion + android.defaultConfig.versionCode + "-dev"
             manifestPlaceholders = [applicationLabel       : "Wire Dev",
-                                    allowBackup            : "true",
                                     applicationIcon        : "@drawable/ic_launcher_wire_dev",
                                     sharedUserId           : "",
                                     use_audio_link         : "false",
@@ -117,7 +116,6 @@ android {
             applicationId "com.wire.candidate"
             versionName majorVersion + android.defaultConfig.versionCode + "-candidate"
             manifestPlaceholders = [applicationLabel       : "Wire Candidate",
-                                    allowBackup            : "true",
                                     applicationIcon        : "@drawable/ic_launcher_wire_candidate",
                                     sharedUserId           : "",
                                     use_audio_link         : "false",
@@ -135,7 +133,6 @@ android {
         prod {
             applicationId "com.wire"
             manifestPlaceholders = [applicationLabel       : "@string/app_name",
-                                    allowBackup            : "false",
                                     applicationIcon        : "@drawable/ic_launcher_wire",
                                     sharedUserId           : "com.waz.userid",
                                     internal_features      : "false",
@@ -154,7 +151,6 @@ android {
             applicationId "com.wire.internal"
             versionName majorVersion + android.defaultConfig.versionCode + "-internal"
             manifestPlaceholders = [applicationLabel : "Wire Internal",
-                                    allowBackup      : "false",
                                     applicationIcon  : "@drawable/ic_launcher_wire_internal",
                                     sharedUserId     : "",
                                     use_audio_link   : "false",
@@ -174,7 +170,6 @@ android {
             applicationId "com.wire.avs"
             versionName majorVersion + android.defaultConfig.versionCode + "-avs"
             manifestPlaceholders = [applicationLabel       : "Wire AVS",
-                                    allowBackup            : "true",
                                     applicationIcon        : "@drawable/ic_launcher_wire_playground",
                                     sharedUserId           : "",
                                     use_audio_link         : "false",
@@ -194,7 +189,6 @@ android {
             applicationId "com.wire.qa"
             versionName majorVersion + android.defaultConfig.versionCode + "-qa"
             manifestPlaceholders = [applicationLabel       : "Wire QA",
-                                    allowBackup            : "true",
                                     applicationIcon        : "@drawable/ic_launcher_wire_qa",
                                     sharedUserId           : "",
                                     use_audio_link         : "false",
@@ -213,7 +207,6 @@ android {
             applicationId "com.wire.x"
             versionName majorVersion + android.defaultConfig.versionCode + "-exp"
             manifestPlaceholders = [applicationLabel       : "Wire Exp",
-                                    allowBackup            : "true",
                                     applicationIcon        : "@drawable/ic_launcher_wire_playground",
                                     sharedUserId           : "",
                                     use_audio_link         : "false",
