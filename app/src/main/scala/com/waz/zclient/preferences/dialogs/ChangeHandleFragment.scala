@@ -36,8 +36,6 @@ import com.waz.service.ZMessaging
 import com.waz.threading.Threading
 import com.waz.utils.events.Signal
 import com.waz.utils.returning
-import com.waz.zclient.core.controllers.tracking.events.settings.SetUsernameEvent
-import com.waz.zclient.tracking.GlobalTrackingController
 import com.waz.zclient.views.LoadingIndicatorView
 import com.waz.zclient.{FragmentHelper, R}
 import com.waz.znet.Response.{HttpStatus, Status, SuccessHttpStatus}
@@ -61,7 +59,6 @@ class ChangeHandleFragment extends DialogFragment with FragmentHelper {
   private var cancelEnabled:   Boolean = true
 
   lazy val zms = inject[Signal[ZMessaging]]
-  lazy val tracking = inject[GlobalTrackingController]
   lazy val currentHandle = zms.flatMap(_.users.selfUser.map(_.handle))
 
   private val handleTextWatcher = new TextWatcher() {
@@ -132,7 +129,6 @@ class ChangeHandleFragment extends DialogFragment with FragmentHelper {
                 updateHandle(inputHandle).map {
 
                   case Right(_) =>
-                    tracking.tagEvent(new SetUsernameEvent(inputHandle.length))
                     dismiss()
 
                   case Left(err) =>

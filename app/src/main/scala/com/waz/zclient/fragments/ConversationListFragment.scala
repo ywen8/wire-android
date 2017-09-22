@@ -32,7 +32,6 @@ import com.waz.utils.returning
 import com.waz.zclient.adapters.ConversationListAdapter
 import com.waz.zclient.controllers.UserAccountsController
 import com.waz.zclient.controllers.global.AccentColorController
-import com.waz.zclient.controllers.tracking.events.navigation.OpenedContactsEvent
 import com.waz.zclient.core.stores.conversation.ConversationChangeRequester
 import com.waz.zclient.pages.BaseFragment
 import com.waz.zclient.pages.main.conversation.controller.IConversationScreenController
@@ -42,12 +41,11 @@ import com.waz.zclient.pages.main.conversationlist.views.ListActionsView.Callbac
 import com.waz.zclient.pages.main.conversationlist.views.listview.SwipeListView
 import com.waz.zclient.pages.main.pickuser.controller.IPickUserController
 import com.waz.zclient.preferences.PreferencesActivity
-import com.waz.zclient.tracking.GlobalTrackingController
 import com.waz.zclient.ui.text.TypefaceTextView
 import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.utils.{RichView, ViewUtils}
 import com.waz.zclient.views.conversationlist.{ArchiveTopToolbar, ConversationListTopToolbar, NormalTopToolbar}
-import com.waz.zclient.{BaseActivity, FragmentHelper, OnBackPressedListener, R}
+import com.waz.zclient.{FragmentHelper, OnBackPressedListener, R}
 
 abstract class ConversationListFragment extends BaseFragment[ConversationListFragment.Container] with FragmentHelper {
 
@@ -258,7 +256,6 @@ class NormalConversationFragment extends ConversationListFragment {
     listActionsView.setCallback(new Callback {
       override def onAvatarPress() = {
         getControllerFactory.getPickUserController.showPickUser(IPickUserController.Destination.CONVERSATION_LIST, null)
-        getActivity.asInstanceOf[BaseActivity].injectJava(classOf[GlobalTrackingController]).tagEvent(new OpenedContactsEvent(false))
       }
 
       override def onArchivePress() = {

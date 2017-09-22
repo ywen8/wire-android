@@ -40,10 +40,7 @@ import com.waz.zclient.OnBackPressedListener;
 import com.waz.zclient.R;
 import com.waz.zclient.controllers.ThemeController;
 import com.waz.zclient.controllers.accentcolor.AccentColorObserver;
-import com.waz.zclient.controllers.tracking.events.otr.UnverifiedOtherOtrClientEvent;
-import com.waz.zclient.controllers.tracking.events.otr.VerifiedOtherOtrClientEvent;
 import com.waz.zclient.pages.BaseFragment;
-import com.waz.zclient.tracking.GlobalTrackingController;
 import com.waz.zclient.ui.utils.TextViewUtils;
 import com.waz.zclient.ui.views.e2ee.OtrSwitch;
 import com.waz.zclient.utils.LayoutSpec;
@@ -321,7 +318,6 @@ public class SingleOtrClientFragment extends BaseFragment<SingleOtrClientFragmen
     @Override
     public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
         otrClient.setVerified(isChecked);
-        trackVerified(isChecked);
     }
 
     // For Otr Client and User updates
@@ -371,17 +367,6 @@ public class SingleOtrClientFragment extends BaseFragment<SingleOtrClientFragmen
                                            getActivity().getString(R.string.otr__participant__single_device__how_to_link),
                                            color,
                                            false));
-    }
-
-    private void trackVerified(boolean verified) {
-        if (getControllerFactory() == null || getControllerFactory().isTornDown()) {
-            return;
-        }
-        if (verified) {
-            ((BaseActivity) getActivity()).injectJava(GlobalTrackingController.class).tagEvent(new VerifiedOtherOtrClientEvent());
-        } else {
-            ((BaseActivity) getActivity()).injectJava(GlobalTrackingController.class).tagEvent(new UnverifiedOtherOtrClientEvent());
-        }
     }
 
     public interface Container {

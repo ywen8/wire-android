@@ -34,7 +34,6 @@ import com.waz.utils.events.Signal
 import com.waz.utils.returning
 import com.waz.zclient.controllers.SharingController
 import com.waz.zclient.controllers.global.AccentColorController
-import com.waz.zclient.core.controllers.tracking.events.notifications.{OpenedAppFromQuickReplyEvent, SwitchedMessageInQuickReplyEvent}
 import com.waz.zclient.pages.main.popup.ViewPagerLikeLayoutManager
 import com.waz.zclient.tracking.GlobalTrackingController
 import com.waz.zclient.ui.text.{TypefaceEditText, TypefaceTextView}
@@ -111,7 +110,6 @@ class QuickReplyFragment extends Fragment with FragmentHelper {
     contentContainer.setAdapter(adapter)
 
     counter onClick {
-      tracking.tagEvent(new SwitchedMessageInQuickReplyEvent)
       contentContainer.smoothScrollToPosition((layoutManager.findFirstVisibleItemPosition + 1) % adapter.getItemCount)
     }
 
@@ -119,7 +117,6 @@ class QuickReplyFragment extends Fragment with FragmentHelper {
       override def onScrollStateChanged(recyclerView: RecyclerView, newState: Int): Unit = {
         if (newState == RecyclerView.SCROLL_STATE_IDLE) {
           firstVisibleItemPosition ! layoutManager.findFirstVisibleItemPosition
-          tracking.tagEvent(new SwitchedMessageInQuickReplyEvent)
         }
       }
     })
@@ -139,7 +136,6 @@ class QuickReplyFragment extends Fragment with FragmentHelper {
           } {
             textView.setEnabled(true)
             if (msg.isDefined) {
-              TrackingUtils.onSentTextMessage(tracking, c, isOtto)
               getActivity.finish()
             }
           }
@@ -153,7 +149,6 @@ class QuickReplyFragment extends Fragment with FragmentHelper {
     openWire onClick {
       ZMessaging.currentAccounts.switchAccount(accountId).onComplete { _ =>
         Option(getActivity) foreach { activity =>
-          tracking.tagEvent(new OpenedAppFromQuickReplyEvent)
           sharing.publishTextContent(message.getText.toString)
           sharing.onContentShared(activity, Set(convId))
           activity.finish()

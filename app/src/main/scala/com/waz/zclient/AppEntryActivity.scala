@@ -33,17 +33,13 @@ import com.waz.threading.Threading
 import com.waz.utils.wrappers.AndroidURIUtil
 import com.waz.zclient.AppEntryController._
 import com.waz.zclient.appentry._
-import com.waz.zclient.controllers.navigation.{NavigationControllerObserver, Page}
-import com.waz.zclient.controllers.tracking.screens.ApplicationScreen
-import com.waz.zclient.core.controllers.tracking.events.onboarding.{KeptGeneratedUsernameEvent, OpenedUsernameSettingsEvent}
-import com.waz.zclient.core.controllers.tracking.events.registration.OpenedPhoneRegistrationFromInviteEvent
+import com.waz.zclient.controllers.navigation.Page
 import com.waz.zclient.fragments.CountryDialogFragment
 import com.waz.zclient.newreg.fragments.SignUpPhotoFragment
 import com.waz.zclient.newreg.fragments.SignUpPhotoFragment.UNSPLASH_API_URL
 import com.waz.zclient.newreg.fragments.country.CountryController
 import com.waz.zclient.preferences.PreferencesController
 import com.waz.zclient.preferences.dialogs.ChangeHandleFragment
-import com.waz.zclient.tracking.GlobalTrackingController
 import com.waz.zclient.ui.utils.KeyboardUtils
 import com.waz.zclient.utils.{HockeyCrashReporting, ViewUtils}
 import com.waz.zclient.views.LoadingIndicatorView
@@ -66,7 +62,6 @@ class AppEntryActivity extends BaseActivity
   with InAppWebViewFragment.Container
   with CountryDialogFragment.Container
   with FirstLaunchAfterLoginFragment.Container
-  with NavigationControllerObserver
   with SignInFragment.Container
   with FirstTimeAssignUsernameFragment.Container
   with InsertPasswordFragment.Container {
@@ -79,7 +74,6 @@ class AppEntryActivity extends BaseActivity
   private var isPaused: Boolean = false
 
   private lazy val appEntryController = inject[AppEntryController]
-  private lazy val globalTrackingController = inject[GlobalTrackingController]
 
   ZMessaging.currentGlobal.blacklist.upToDate.onUi {
     case false =>
@@ -137,16 +131,12 @@ class AppEntryActivity extends BaseActivity
     }
   }
 
-  override def onStart(): Unit = {
-    super.onStart()
-    getControllerFactory.getNavigationController.addNavigationControllerObserver(this)
-  }
-
   override protected def onResume(): Unit = {
     super.onResume()
+    //TODO move hockey crash reporting to globaltracking controller
     val trackingEnabled: Boolean = injectJava(classOf[PreferencesController]).isAnalyticsEnabled
     if (trackingEnabled) {
-      HockeyCrashReporting.checkForCrashes(getApplicationContext, getControllerFactory.getUserPreferencesController.getDeviceId, injectJava(classOf[GlobalTrackingController]))
+      HockeyCrashReporting.checkForCrashes(getApplicationContext, getControllerFactory.getUserPreferencesController.getDeviceId)
     }
     else {
       HockeyCrashReporting.deleteCrashReports(getApplicationContext)
@@ -165,7 +155,6 @@ class AppEntryActivity extends BaseActivity
   }
 
   override def onStop(): Unit = {
-    getControllerFactory.getNavigationController.removeNavigationControllerObserver(this)
     if (unsplashInitLoadHandle != null) {
       unsplashInitLoadHandle.cancel()
       unsplashInitLoadHandle = null
@@ -260,7 +249,6 @@ class AppEntryActivity extends BaseActivity
     if (fromGenericInvite) {
       val referralToken = getControllerFactory.getUserPreferencesController.getReferralToken
       val token = getControllerFactory.getUserPreferencesController.getGenericInvitationToken
-      globalTrackingController.tagEvent(new OpenedPhoneRegistrationFromInviteEvent(referralToken, token))
       appEntryController.invitationToken ! Option(token)
     }
 
@@ -299,7 +287,6 @@ class AppEntryActivity extends BaseActivity
   }
 
   def onEnterApplication(openSettings: Boolean): Unit = {
-    getControllerFactory.getNavigationController.removeNavigationControllerObserver(this)
     getControllerFactory.getVerificationController.finishVerification()
     startActivity(Intents.EnterAppIntent(openSettings)(this))
     finish()
@@ -352,17 +339,6 @@ class AppEntryActivity extends BaseActivity
   def getUnsplashImageAsset: ImageAsset = unsplashInitImageAsset
 
   def onPageVisible(page: Page): Unit = {
-    page match {
-      case Page.LOGIN_REGISTRATION =>
-        globalTrackingController.onApplicationScreen(ApplicationScreen.LOGIN_REGISTRATION)
-      case Page.PHONE_VERIFY_CODE =>
-        globalTrackingController.onApplicationScreen(ApplicationScreen.PHONE_REGISTRATION__VERIFY_CODE)
-      case Page.PHONE_REGISTRATION_ADD_NAME =>
-        globalTrackingController.onApplicationScreen(ApplicationScreen.PHONE_REGISTRATION__ADD_NAME)
-      case Page.REGISTRATION_ADD_PHOTO =>
-        globalTrackingController.onApplicationScreen(ApplicationScreen.REGISTRATION__ADD_PHOTO)
-      case _ =>
-    }
   }
 
   def showError(entryError: EntryError, okCallback: => Unit = {}): Unit =
@@ -391,7 +367,6 @@ class AppEntryActivity extends BaseActivity
   }
 
   override def onChooseUsernameChosen() = {
-    globalTrackingController.tagEvent(new OpenedUsernameSettingsEvent)
     getSupportFragmentManager.beginTransaction
       .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
       .add(ChangeHandleFragment.newInstance(getStoreFactory.profileStore.getSelfUser.getUsername, cancellable = false), ChangeHandleFragment.FragmentTag)
@@ -405,9 +380,7 @@ class AppEntryActivity extends BaseActivity
         Toast.makeText(AppEntryActivity.this, getString(R.string.username__set__toast_error), Toast.LENGTH_SHORT).show()
         getControllerFactory.getUsernameController.logout()
         getControllerFactory.getUsernameController.setUser(getStoreFactory.zMessagingApiStore.getApi.getSelf)
-        globalTrackingController.tagEvent(new KeptGeneratedUsernameEvent(false))
       case Right(_) =>
-        globalTrackingController.tagEvent(new KeptGeneratedUsernameEvent(true))
     } (Threading.Ui)
   }
 }

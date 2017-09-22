@@ -45,7 +45,6 @@ import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -63,7 +62,6 @@ import com.waz.api.ConversationsList;
 import com.waz.api.IConversation;
 import com.waz.api.MessageContent;
 import com.waz.api.SyncState;
-import com.waz.zclient.BaseActivity;
 import com.waz.zclient.BuildConfig;
 import com.waz.zclient.OnBackPressedListener;
 import com.waz.zclient.R;
@@ -73,19 +71,16 @@ import com.waz.zclient.controllers.userpreferences.IUserPreferencesController;
 import com.waz.zclient.core.stores.conversation.ConversationChangeRequester;
 import com.waz.zclient.core.stores.conversation.ConversationStoreObserver;
 import com.waz.zclient.pages.BaseFragment;
-import com.waz.zclient.tracking.GlobalTrackingController;
 import com.waz.zclient.ui.text.GlyphTextView;
 import com.waz.zclient.ui.views.TouchRegisteringFrameLayout;
 import com.waz.zclient.utils.LayoutSpec;
 import com.waz.zclient.utils.PermissionUtils;
 import com.waz.zclient.utils.StringUtils;
-import com.waz.zclient.utils.TrackingUtils;
 import com.waz.zclient.utils.ViewUtils;
+import timber.log.Timber;
 
 import java.util.List;
 import java.util.Locale;
-
-import timber.log.Timber;
 
 @SuppressLint("All")
 public class LocationFragment extends BaseFragment<LocationFragment.Container> implements com.google.android.gms.location.LocationListener,
@@ -508,8 +503,6 @@ public class LocationFragment extends BaseFragment<LocationFragment.Container> i
                 }
 
                 getControllerFactory().getLocationController().hideShareLocation(location);
-                TrackingUtils.onSentLocationMessage(((BaseActivity) getActivity()).injectJava(GlobalTrackingController.class),
-                                                    getStoreFactory().conversationStore().getCurrentConversation());
                 break;
         }
     }

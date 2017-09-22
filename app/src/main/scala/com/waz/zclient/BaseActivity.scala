@@ -30,8 +30,7 @@ import com.waz.zclient.common.controllers.PermissionActivity
 import com.waz.zclient.controllers.{IControllerFactory, ThemeController}
 import com.waz.zclient.core.stores.IStoreFactory
 import com.waz.zclient.permissions.PermissionRequest
-import com.waz.zclient.tracking.GlobalTrackingController
-import com.waz.zclient.utils.{PermissionUtils, TrackingUtils, ViewUtils}
+import com.waz.zclient.utils.{PermissionUtils, ViewUtils}
 
 import scala.collection.JavaConverters._
 
@@ -40,7 +39,6 @@ class BaseActivity extends AppCompatActivity
   with PermissionActivity
   with PermissionProvider {
 
-  lazy val globalTracking = inject[GlobalTrackingController]
   lazy val themeController = inject[ThemeController]
 
   private var started: Boolean = false
@@ -99,8 +97,6 @@ class BaseActivity extends AppCompatActivity
 
     permissionRequest match {
       case Some(req) if requestCode == PermissionRequest.SERequestId =>
-        TrackingUtils.tagChangedContactsPermissionEvent(globalTracking, permissions, grantResults)
-
         if (grantResults.length < 0) {
           req.cancel()
           permissionRequest = None

@@ -27,7 +27,7 @@ import android.os.{Build, Bundle}
 import android.support.v4.app.Fragment
 import android.text.TextUtils
 import com.waz.ZLog.ImplicitTag._
-import com.waz.ZLog.{error, info, verbose, warn}
+import com.waz.ZLog.{error, info, verbose}
 import com.waz.api.{NetworkMode, _}
 import com.waz.model.{AccountId, ConvId}
 import com.waz.service.ZMessaging
@@ -44,14 +44,7 @@ import com.waz.zclient.controllers.accentcolor.AccentColorChangeRequester
 import com.waz.zclient.controllers.calling.CallingObserver
 import com.waz.zclient.controllers.global.{AccentColorController, SelectionController}
 import com.waz.zclient.controllers.navigation.{NavigationControllerObserver, Page}
-import com.waz.zclient.controllers.tracking.events.connect.AcceptedGenericInviteEvent
-import com.waz.zclient.controllers.tracking.events.exception.ExceptionEvent
-import com.waz.zclient.controllers.tracking.events.profile.SignOut
-import com.waz.zclient.controllers.tracking.screens.ApplicationScreen
 import com.waz.zclient.controllers.{SharingController, UserAccountsController}
-import com.waz.zclient.core.controllers.tracking.attributes.OpenedMediaAction
-import com.waz.zclient.core.controllers.tracking.events.media.OpenedMediaActionEvent
-import com.waz.zclient.core.controllers.tracking.events.session.LoggedOutEvent
 import com.waz.zclient.core.stores.api.ZMessagingApiStoreObserver
 import com.waz.zclient.core.stores.connect.{ConnectStoreObserver, IConnectStore}
 import com.waz.zclient.core.stores.conversation.ConversationChangeRequester
@@ -60,7 +53,7 @@ import com.waz.zclient.fragments.ConnectivityFragment
 import com.waz.zclient.pages.main.{MainPhoneFragment, MainTabletFragment}
 import com.waz.zclient.pages.startup.UpdateFragment
 import com.waz.zclient.preferences.{PreferencesActivity, PreferencesController}
-import com.waz.zclient.tracking.{GlobalTrackingController, UiTrackingController}
+import com.waz.zclient.tracking.UiTrackingController
 import com.waz.zclient.utils.PhoneUtils.PhoneState
 import com.waz.zclient.utils.StringUtils.TextDrawing
 import com.waz.zclient.utils.{BuildConfigUtils, Emojis, HockeyCrashReporting, IntentUtils, LayoutSpec, PhoneUtils, ViewUtils}
@@ -123,8 +116,6 @@ class MainActivity extends BaseActivity
     if (BuildConfigUtils.isHockeyUpdateEnabled && !BuildConfigUtils.isLocalBuild(this))
       HockeyCrashReporting.checkForUpdates(this)
 
-    onLaunch()
-
     accentColorController.accentColor.map(_.getColor)(getControllerFactory.getUserPreferencesController.setLastAccentColor)
 
     handleIntent(getIntent)
@@ -150,7 +141,6 @@ class MainActivity extends BaseActivity
 
       if (!TextUtils.isEmpty(token) && TextUtils.equals(token, AppEntryController.GenericInviteToken)){
         getStoreFactory.connectStore.requestConnection(token)
-        globalTracking.tagEvent(new AcceptedGenericInviteEvent)
       }
 
       appEntryController.invitationToken ! None
@@ -197,7 +187,7 @@ class MainActivity extends BaseActivity
     Option(ZMessaging.currentGlobal).foreach(_.googleApi.checkGooglePlayServicesAvailable(this))
 
     if (inject[PreferencesController].isAnalyticsEnabled)
-      HockeyCrashReporting.checkForCrashes(getApplicationContext, getControllerFactory.getUserPreferencesController.getDeviceId, globalTracking)
+      HockeyCrashReporting.checkForCrashes(getApplicationContext, getControllerFactory.getUserPreferencesController.getDeviceId)
     else {
       HockeyCrashReporting.deleteCrashReports(getApplicationContext)
       NativeCrashManager.deleteDumpFiles(getApplicationContext)
@@ -255,8 +245,6 @@ class MainActivity extends BaseActivity
 
     if (IntentUtils.isPasswordResetIntent(intent)) onPasswordWasReset()
 
-    onLaunch()
-
     setIntent(intent)
     handleIntent(intent)
   }
@@ -266,13 +254,6 @@ class MainActivity extends BaseActivity
     finish()
     startActivity(getIntent)
     overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
-  }
-
-  private def onLaunch() = {
-    globalTracking.appLaunched(getIntent)
-    Option(getControllerFactory.getUserPreferencesController.getCrashException).foreach { crash =>
-      globalTracking.tagEvent(ExceptionEvent.exception(crash, getControllerFactory.getUserPreferencesController.getCrashDetails))
-    }
   }
 
   private def initializeControllers() = {
@@ -419,39 +400,9 @@ class MainActivity extends BaseActivity
 
   def onAccentColorChangedRemotely(sender: Any, color: Int) = getControllerFactory.getAccentColorController.setColor(AccentColorChangeRequester.REMOTE, color)
 
-  //TODO this is all tracking - make a page controller and set a signal the global tracking controller can listen to
   def onPageVisible(page: Page) = {
     getControllerFactory.getGlobalLayoutController.setSoftInputModeForPage(page)
     getControllerFactory.getNavigationController.setPagerSettingForPage(page)
-    import Page._
-
-    page match {
-      case CONVERSATION_LIST =>
-        globalTracking.onApplicationScreen(ApplicationScreen.CONVERSATION_LIST)
-      case MESSAGE_STREAM =>
-        (for {
-          zms <- zms.head
-          convId <- selectionController.selectedConv.head
-          Some(conv) <- zms.convsStorage.get(convId)
-          withOtto <- GlobalTrackingController.isOtto(conv, zms.usersStorage)
-        } yield if (withOtto) ApplicationScreen.CONVERSATION__BOT else ApplicationScreen.CONVERSATION ).map(globalTracking.onApplicationScreen(_))
-
-      case CAMERA =>
-        globalTracking.onApplicationScreen(ApplicationScreen.CAMERA)
-      case DRAWING =>
-        globalTracking.onApplicationScreen(ApplicationScreen.DRAW_SKETCH)
-      case CONNECT_REQUEST_INBOX =>
-        globalTracking.onApplicationScreen(ApplicationScreen.CONVERSATION__INBOX)
-      case PENDING_CONNECT_REQUEST_AS_CONVERSATION =>
-        globalTracking.onApplicationScreen(ApplicationScreen.CONVERSATION__PENDING)
-      case PARTICIPANT =>
-        globalTracking.onApplicationScreen(ApplicationScreen.CONVERSATION__PARTICIPANTS)
-      case PICK_USER_ADD_TO_CONVERSATION =>
-        globalTracking.onApplicationScreen(ApplicationScreen.START_UI__ADD_TO_CONVERSATION)
-      case PICK_USER =>
-        globalTracking.onApplicationScreen(ApplicationScreen.START_UI)
-      case _ => warn(s"Unknown page: $page")
-    }
   }
 
   def onConnectUserUpdated(user: User, usertype: IConnectStore.UserRequester) = ()
@@ -482,9 +433,6 @@ class MainActivity extends BaseActivity
 
   def logout() = {
     getSupportFragmentManager.popBackStackImmediate
-    // TODO: Remove old SignOut event AN-4232
-    globalTracking.tagEvent(new SignOut)
-    globalTracking.tagEvent(new LoggedOutEvent)
     getStoreFactory.zMessagingApiStore.logout()
     getControllerFactory.getUsernameController.logout()
   }
@@ -501,9 +449,6 @@ class MainActivity extends BaseActivity
   def onStartCall(withVideo: Boolean) = {
     val conversation = getStoreFactory.conversationStore.currentConversation
     handleOnStartCall(withVideo, conversation)
-    conversation.foreach { conv =>
-      globalTracking.tagEvent(OpenedMediaActionEvent.cursorAction(if (withVideo) OpenedMediaAction.VIDEO_CALL else OpenedMediaAction.AUDIO_CALL, conv))
-    }
   }
 
   private def handleOnStartCall(withVideo: Boolean, conversation: Option[IConversation]) = {

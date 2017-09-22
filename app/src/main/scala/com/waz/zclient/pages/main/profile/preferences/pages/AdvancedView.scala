@@ -24,16 +24,13 @@ import android.util.AttributeSet
 import android.view.View
 import android.widget.{LinearLayout, Toast}
 import com.waz.content.UserPreferences
-import com.waz.zclient.pages.main.profile.preferences.views.{SwitchPreference, TextButton}
-import com.waz.zclient.tracking.{GlobalTrackingController, OptAnalyticsEvent}
-import com.waz.zclient.utils.{BackStackKey, DebugUtils}
-import com.waz.zclient.{BuildConfig, R, ViewHelper}
-import GlobalTrackingController.toJava
 import com.waz.service.ZMessaging
 import com.waz.threading.{CancellableFuture, Threading}
 import com.waz.utils.returning
-import com.waz.zclient.utils._
+import com.waz.zclient.pages.main.profile.preferences.views.{SwitchPreference, TextButton}
 import com.waz.zclient.utils.ContextUtils._
+import com.waz.zclient.utils.{BackStackKey, DebugUtils, _}
+import com.waz.zclient.{BuildConfig, R, ViewHelper}
 
 import scala.concurrent.duration._
 trait AdvancedView
@@ -66,9 +63,7 @@ class AdvancedViewImpl(context: Context, attrs: AttributeSet, style: Int) extend
     resetPush.setAlpha(if (enabled) 1.0f else 0.5f)
   }
 
-  analyticsSwitch.onCheckedChange { enabled =>
-    inject[GlobalTrackingController].tagEvent(OptAnalyticsEvent(enabled))
-  }
+  analyticsSwitch.onCheckedChange { enabled => }
 }
 
 case class AdvancedBackStackKey(args: Bundle = new Bundle()) extends BackStackKey(args) {

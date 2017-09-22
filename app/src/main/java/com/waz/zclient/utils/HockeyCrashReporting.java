@@ -20,8 +20,6 @@ package com.waz.zclient.utils;
 import android.app.Activity;
 import android.content.Context;
 import com.waz.threading.Threading;
-import com.waz.zclient.controllers.tracking.events.exception.ExceptionEvent;
-import com.waz.zclient.tracking.GlobalTrackingController;
 import net.hockeyapp.android.Constants;
 import net.hockeyapp.android.CrashManager;
 import net.hockeyapp.android.CrashManagerListener;
@@ -36,7 +34,7 @@ import java.lang.ref.WeakReference;
 
 public class HockeyCrashReporting {
 
-    public static void checkForCrashes(final Context context, final String deviceId, GlobalTrackingController trackingController) {
+    public static void checkForCrashes(final Context context, final String deviceId) {
         Timber.v("checkForCrashes - registering...");
 
         final CrashManagerListener listener = new CrashManagerListener() {
@@ -54,10 +52,10 @@ public class HockeyCrashReporting {
         CrashManager.initialize(context, Util.getAppIdentifier(context), listener);
 
         boolean nativeCrashFound = NativeCrashManager.loggedDumpFiles(Util.getAppIdentifier(context));
-        if (nativeCrashFound) {
-            StringBuilder details = new StringBuilder(Constants.PHONE_MANUFACTURER).append("/").append(Constants.PHONE_MODEL);
-            trackingController.tagEvent(ExceptionEvent.exception("NDK", details.toString()));
-        }
+//        if (nativeCrashFound) {
+//            StringBuilder details = new StringBuilder(Constants.PHONE_MANUFACTURER).append("/").append(Constants.PHONE_MODEL);
+//            trackingController.tagEvent(ExceptionEvent.exception("NDK", details.toString()));
+//        }
 
         // execute crash manager in background, it does IO and can take some time
         // XXX: this works because we use auto upload (and app context), so hockey doesn't try to show a dialog

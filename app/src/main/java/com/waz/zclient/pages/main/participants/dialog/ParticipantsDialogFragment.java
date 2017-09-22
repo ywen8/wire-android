@@ -42,7 +42,6 @@ import com.waz.api.Message;
 import com.waz.api.OtrClient;
 import com.waz.api.User;
 import com.waz.api.UsersList;
-import com.waz.zclient.BaseActivity;
 import com.waz.zclient.OnBackPressedListener;
 import com.waz.zclient.R;
 import com.waz.zclient.controllers.accentcolor.AccentColorObserver;
@@ -50,11 +49,10 @@ import com.waz.zclient.controllers.confirmation.ConfirmationObserver;
 import com.waz.zclient.controllers.confirmation.ConfirmationRequest;
 import com.waz.zclient.controllers.confirmation.IConfirmationController;
 import com.waz.zclient.controllers.globallayout.KeyboardHeightObserver;
-import com.waz.zclient.controllers.tracking.events.group.AddedMemberToGroupEvent;
-import com.waz.zclient.controllers.tracking.events.group.CreatedGroupConversationEvent;
 import com.waz.zclient.core.stores.connect.IConnectStore;
 import com.waz.zclient.core.stores.conversation.ConversationChangeRequester;
 import com.waz.zclient.core.stores.participants.ParticipantsStoreObserver;
+import com.waz.zclient.fragments.PickUserFragment;
 import com.waz.zclient.pages.BaseFragment;
 import com.waz.zclient.pages.main.connect.BlockedUserProfileFragment;
 import com.waz.zclient.pages.main.connect.ConnectRequestLoadMode;
@@ -65,10 +63,8 @@ import com.waz.zclient.pages.main.conversation.controller.IConversationScreenCon
 import com.waz.zclient.pages.main.participants.ParticipantFragment;
 import com.waz.zclient.pages.main.participants.SingleParticipantFragment;
 import com.waz.zclient.pages.main.participants.TabbedParticipantBodyFragment;
-import com.waz.zclient.fragments.PickUserFragment;
 import com.waz.zclient.pages.main.pickuser.controller.IPickUserController;
 import com.waz.zclient.pages.main.pickuser.controller.PickUserControllerScreenObserver;
-import com.waz.zclient.tracking.GlobalTrackingController;
 import com.waz.zclient.ui.animation.HeightEvaluator;
 import com.waz.zclient.ui.animation.interpolators.penner.Quart;
 import com.waz.zclient.ui.utils.KeyboardUtils;
@@ -1047,7 +1043,6 @@ public class ParticipantsDialogFragment extends BaseFragment<ParticipantsDialogF
                                           R.string.conversation__create_group_conversation__no_network__button,
                                           null, true);
             }
-            ((BaseActivity) getActivity()).injectJava(GlobalTrackingController.class).tagEvent(new CreatedGroupConversationEvent(true, (users.size() + 1)));
         } else if (currentConversation.getType() == IConversation.Type.GROUP) {
             currentConversation.addMembers(users);
             if (!getStoreFactory().networkStore().hasInternetConnection()) {
@@ -1057,7 +1052,6 @@ public class ParticipantsDialogFragment extends BaseFragment<ParticipantsDialogF
                                           R.string.conversation__add_user__no_network__button,
                                           null, true);
             }
-            ((BaseActivity) getActivity()).injectJava(GlobalTrackingController.class).tagEvent(new AddedMemberToGroupEvent(getParticipantsCount(), users.size()));
         }
         hide();
     }
@@ -1070,10 +1064,6 @@ public class ParticipantsDialogFragment extends BaseFragment<ParticipantsDialogF
     @Override
     public IPickUserController.Destination getCurrentPickerDestination() {
         return IPickUserController.Destination.CURSOR;
-    }
-
-    private int getParticipantsCount() {
-        return getStoreFactory().conversationStore().getCurrentConversation().getUsers().size();
     }
 
     public interface Container {

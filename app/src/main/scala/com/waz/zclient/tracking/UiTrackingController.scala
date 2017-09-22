@@ -25,18 +25,14 @@ import com.waz.model._
 import com.waz.service.ZMessaging
 import com.waz.threading.Threading
 import com.waz.utils.events.{EventContext, EventStream, FutureEventStream, Signal}
-import com.waz.zclient.controllers.tracking.events.conversation.EditedMessageEvent
-import com.waz.zclient.controllers.tracking.events.navigation.OpenedMoreActionsEvent
 import com.waz.zclient.controllers.{AssetsController, BrowserController, SharingController}
 import com.waz.zclient.conversation.CollectionController
-import com.waz.zclient.core.controllers.tracking.attributes.OpenedMediaAction
-import com.waz.zclient.core.controllers.tracking.events.media.{OpenedActionHintEvent, OpenedEmojiKeyboardEvent, OpenedMediaActionEvent, SentPictureEvent}
 import com.waz.zclient.cursor.{CursorController, CursorMenuItem}
 import com.waz.zclient.messages.LikesController
 import com.waz.zclient.messages.MessageBottomSheetDialog.MessageAction
 import com.waz.zclient.messages.MessageBottomSheetDialog.MessageAction.{Copy, Forward, Like, Unlike}
 import com.waz.zclient.messages.controllers.MessageActionsController
-import com.waz.zclient.utils.{LayoutSpec, TrackingUtils}
+import com.waz.zclient.utils.LayoutSpec
 import com.waz.zclient.{Injectable, Injector}
 import org.threeten.bp.Duration
 
@@ -76,21 +72,13 @@ class UiTrackingController(implicit injector: Injector, ctx: Context, ec: EventC
 
   msgActionController.onMessageAction {
     case (MessageAction.Reveal, message) if MessageContentIndex.TextMessageTypes.contains(message.msgType) =>
-      collectionsController.currentConv.currentValue.foreach { conv =>
-        convTrackingData(conv).map{ data =>
-          tagEvent(SelectedSearchResultCollectionsEvent(data.convType, data.withOtto))
-        }
-      }
+      collectionsController.currentConv.currentValue.foreach { conv => }
     case (action, message) if collectionsController.openedCollection.currentValue.exists(_.nonEmpty) =>
-      collectionsController.openedCollection.currentValue.foreach(_.foreach{ info=>
-        convTrackingData(info.conversation.id).map { data =>
-          tagEvent(DidItemActionCollectionsEvent(action, message.msgType, data.convType, data.withOtto))
-        }
-      })
-    case (action, message) => tagEvent(OpenedMessageActionEvent(action, message.msgType.name))
+      collectionsController.openedCollection.currentValue.foreach(_.foreach { info => })
+    case (action, message) => //tagEvent(OpenedMessageActionEvent(action, message.msgType.name))
       action match {
-        case Copy            => tagEvent(CopiedMessageEvent(message.msgType.name))
-        case Forward         => tagEvent(ForwardedMessageEvent(message.msgType.name))
+        case Copy            => //tagEvent(CopiedMessageEvent(message.msgType.name))
+        case Forward         => //tagEvent(ForwardedMessageEvent(message.msgType.name))
         case a@(Like|Unlike) => reactedToMessageEvent(message.id, a == Like, "menu")
         case _ => //other types handled after dialog and confirmation
       }
@@ -100,23 +88,24 @@ class UiTrackingController(implicit injector: Injector, ctx: Context, ec: EventC
 
   likesController.onViewDoubleClicked { mAndL => reactedToMessageEvent(mAndL.message.id, !mAndL.likedBySelf, "douple_tap")} //sic
 
-  private def reactedToMessageEvent(msgId: MessageId, liked: Boolean, method: String) = messageTrackingData(msgId).map {
+  private def reactedToMessageEvent(msgId: MessageId, liked: Boolean, method: String) = () /*messageTrackingData(msgId).map {
     case MessageTrackingData(convType, msgType, withOtto, fromSelf, isLastMsg) =>
-      tagEvent(ReactedToMessageEvent(liked, withOtto, fromSelf, msgType, convType, isLastMsg, method))
-  }
+      //tagEvent(ReactedToMessageEvent(liked, withOtto, fromSelf, msgType, convType, isLastMsg, method))
+  }*/
 
-  msgActionController.onDeleteConfirmed { case (m, forEveryone) => tagEvent(DeletedMessageEvent(m.msgType.name, forEveryone)) }
-  msgActionController.onAssetSaved(asset => tagEvent(SavedFileEvent(asset.mime.str, asset.sizeInBytes.toInt)))
+  msgActionController.onDeleteConfirmed { case (m, forEveryone) => }//tagEvent(DeletedMessageEvent(m.msgType.name, forEveryone)) }
+  msgActionController.onAssetSaved(asset => {})//tagEvent(SavedFileEvent(asset.mime.str, asset.sizeInBytes.toInt)))
 
   assetsController.onFileOpened {
-    case a@AssetData.IsVideo() => tagEvent(OpenedFileEvent(a.mime.str, a.sizeInBytes.toInt))
-    case a => tagEvent(OpenedFileEvent(a.mime.str, a.sizeInBytes.toInt))
+    case a@AssetData.IsVideo() => //tagEvent(OpenedFileEvent(a.mime.str, a.sizeInBytes.toInt))
+    case a                     => //tagEvent(OpenedFileEvent(a.mime.str, a.sizeInBytes.toInt))
   }
-  assetsController.onFileSaved(a => tagEvent(SavedFileEvent(a.mime.str, a.sizeInBytes.toInt)))
+//  assetsController.onFileSaved(a => tagEvent(SavedFileEvent(a.mime.str, a.sizeInBytes.toInt)))
 
-  assetsController.onVideoPlayed(a => messageTrackingData(MessageId(a.id.str)).map {
-    case MessageTrackingData(convType, _, isOtto, fromSelf, _) => tagEvent(PlayedVideoMessageEvent(durationInSeconds(a), !fromSelf, isOtto, convType))
-  })
+//  assetsController.onVideoPlayed(a => messageTrackingData(MessageId(a.id.str)).map {
+//    case MessageTrackingData(convType, _, isOtto, fromSelf, _) => tagEvent(PlayedVideoMessageEvent(durationInSeconds(a), !fromSelf, isOtto, convType))
+//  })
+/*
 
   assetsController.onAudioPlayed(a => messageTrackingData(MessageId(a.id.str)).map {
     case MessageTrackingData(convType, _, isOtto, fromSelf, _) => tagEvent(PlayedAudioMessageEvent(a.mime.orDefault.str, durationInSeconds(a), !fromSelf, isOtto, convType))
@@ -172,27 +161,28 @@ class UiTrackingController(implicit injector: Injector, ctx: Context, ec: EventC
         }
       }
   }
+*/
 
   import CursorMenuItem._
   withConv(cursorController.onCursorItemClick).on(Threading.Ui) {
     case (Camera, conv, otto) =>
       if (LayoutSpec.isTablet(ctx)) {
-        tagEvent(OpenedMediaActionEvent.cursorAction(OpenedMediaAction.PHOTO, conv, otto))
+//        tagEvent(OpenedMediaActionEvent.cursorAction(OpenedMediaAction.PHOTO, conv, otto))
       }
     case (Ping, conv, otto) =>
-      TrackingUtils.onSentPingMessage(global, conv, otto)
+//      TrackingUtils.onSentPingMessage(global, conv, otto)
     case (Sketch, conv, otto) =>
-      tagEvent(OpenedMediaActionEvent.cursorAction(OpenedMediaAction.SKETCH, conv, otto))
+//      tagEvent(OpenedMediaActionEvent.cursorAction(OpenedMediaAction.SKETCH, conv, otto))
     case (File, conv, otto) =>
-      tagEvent(OpenedMediaActionEvent.cursorAction(OpenedMediaAction.FILE, conv, otto))
+//      tagEvent(OpenedMediaActionEvent.cursorAction(OpenedMediaAction.FILE, conv, otto))
     case (VideoMessage, conv, otto) =>
-      tagEvent(OpenedMediaActionEvent.cursorAction(OpenedMediaAction.VIDEO_MESSAGE, conv, otto))
+//      tagEvent(OpenedMediaActionEvent.cursorAction(OpenedMediaAction.VIDEO_MESSAGE, conv, otto))
     case (Location, conv, otto) =>
-      tagEvent(OpenedMediaActionEvent.cursorAction(OpenedMediaAction.LOCATION, conv, otto))
+//      tagEvent(OpenedMediaActionEvent.cursorAction(OpenedMediaAction.LOCATION, conv, otto))
     case (More, conv, otto) =>
-      tagEvent(new OpenedMoreActionsEvent(conv))
+//      tagEvent(new OpenedMoreActionsEvent(conv))
     case (Gif, conv, otto) =>
-      tagEvent(OpenedMediaActionEvent.cursorAction(OpenedMediaAction.GIPHY, conv, otto))
+//      tagEvent(OpenedMediaActionEvent.cursorAction(OpenedMediaAction.GIPHY, conv, otto))
     case _ => // ignore
   }
 
@@ -200,36 +190,36 @@ class UiTrackingController(implicit injector: Injector, ctx: Context, ec: EventC
   withConv(cursorController.extendedCursor.onChanged).on(Threading.Ui) {
     case (NONE, _, _) =>
     case (VOICE_FILTER_RECORDING, conv, otto) =>
-      tagEvent(OpenedMediaActionEvent.cursorAction(OpenedMediaAction.AUDIO_MESSAGE, conv, otto))
+//      tagEvent(OpenedMediaActionEvent.cursorAction(OpenedMediaAction.AUDIO_MESSAGE, conv, otto))
     case (IMAGES, conv, otto) =>
-      tagEvent(OpenedMediaActionEvent.cursorAction(OpenedMediaAction.PHOTO, conv, otto))
+//      tagEvent(OpenedMediaActionEvent.cursorAction(OpenedMediaAction.PHOTO, conv, otto))
     case _ => // ignore
   }
 
   withConv(cursorController.onShowTooltip).on(Threading.Ui) { case ((item, _), conv, _) =>
-      tagEvent(new OpenedActionHintEvent(item.name, conv))
+//      tagEvent(new OpenedActionHintEvent(item.name, conv))
   }
 
   withConv(cursorController.extendedCursor.onChanged).on(Threading.Ui) {
     case (EMOJIS, conv, otto) =>
-        tagEvent(new OpenedEmojiKeyboardEvent(otto))
+//        tagEvent(new OpenedEmojiKeyboardEvent(otto))
     case (EPHEMERAL, conv, otto) =>
         if (conv.ephemeral == EphemeralExpiration.NONE) {
-          tagEvent(OpenedMediaActionEvent.ephemeral(conv, otto, false))
+//          tagEvent(OpenedMediaActionEvent.ephemeral(conv, otto, false))
         }
     case _ => //ignore
   }
 
   withConv(cursorController.onMessageSent).on(Threading.Ui) { case (_, conv, otto) =>
-    TrackingUtils.onSentTextMessage(global, conv, otto)
+
   }
 
   cursorController.onMessageEdited.on(Threading.Ui) { msg =>
-    tagEvent(new EditedMessageEvent(msg))
+
   }
 
   withConv(cursorController.onEphemeralExpirationSelected) { case (_, conv, otto) =>
-    tagEvent(OpenedMediaActionEvent.ephemeral(conv, otto, true))
+
   }
 
   private def durationInSeconds(a: AssetData): Int = (a match {

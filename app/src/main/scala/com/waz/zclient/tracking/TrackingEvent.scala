@@ -1,6 +1,6 @@
 /**
  * Wire
- * Copyright (C) 2016 Wire Swiss GmbH
+ * Copyright (C) 2017 Wire Swiss GmbH
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -15,17 +15,8 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package com.waz.zclient.core.controllers.tracking.events.settings;
+package com.waz.zclient.tracking
 
-import android.support.annotation.NonNull;
-import com.waz.zclient.core.controllers.tracking.events.Event;
+trait TrackingEvent {
 
-public class ChangedAccentColorEvent extends Event {
-
-    @NonNull
-    @Override
-    public String getName() {
-        return "settings.changed_accent_color";
-    }
 }
-

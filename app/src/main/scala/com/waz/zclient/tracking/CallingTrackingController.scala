@@ -29,8 +29,6 @@ import com.waz.threading.Threading
 import com.waz.utils.RichInstant
 import com.waz.utils.events.EventContext
 import com.waz.zclient.calling.controllers.GlobalCallingController
-import com.waz.zclient.core.controllers.tracking.attributes.CompletedMediaType
-import com.waz.zclient.core.controllers.tracking.events.media.CompletedMediaActionEvent
 import com.waz.zclient.{Injectable, Injector}
 import org.threeten.bp.Instant
 
@@ -79,19 +77,19 @@ class CallingTrackingController(implicit injector: Injector, ctx: Context, ec: E
         case info@CallingTrackingInfo(_, _, v3Call, isVideoCall, isGroupCall, wasUiActive, withOtto, incoming, convMemCount) =>
           st match {
             case OtherCalling =>
-              tagEvent(ReceivedCallEvent(v3Call, isVideoCall, isGroupCall, wasUiActive, withOtto))
+//              tagEvent(ReceivedCallEvent(v3Call, isVideoCall, isGroupCall, wasUiActive, withOtto))
 
             case SelfCalling =>
               //The extra CompletedMediaActionEvent is here to simplify contributor events on localytics
-              import CompletedMediaType._
-              tagEvent(new CompletedMediaActionEvent(if (isVideoCall) VIDEO_CALL else AUDIO_CALL, if (isGroupCall) "GROUP" else "ONE_TO_ONE", withOtto, false, ""))
-              tagEvent(StartedCallEvent(v3Call, isVideoCall, isGroupCall, withOtto))
+
+//              tagEvent(new CompletedMediaActionEvent(if (isVideoCall) VIDEO_CALL else AUDIO_CALL, if (isGroupCall) "GROUP" else "ONE_TO_ONE", withOtto, false, ""))
+//              tagEvent(StartedCallEvent(v3Call, isVideoCall, isGroupCall, withOtto))
 
             case SelfJoining => //For calling v3, this will only ever be for incoming calls
-              tagEvent(JoinedCallEvent(v3Call, isVideoCall, isGroupCall, convMemCount, incoming, wasUiActive, withOtto))
+//              tagEvent(JoinedCallEvent(v3Call, isVideoCall, isGroupCall, convMemCount, incoming, wasUiActive, withOtto))
 
             case SelfConnected =>
-              tagEvent(EstablishedCallEvent(v3Call, isVideoCall, isGroupCall, convMemCount, incoming, wasUiActive, withOtto, estDuration))
+//              tagEvent(EstablishedCallEvent(v3Call, isVideoCall, isGroupCall, convMemCount, incoming, wasUiActive, withOtto, estDuration))
               startedJoining = None
 
             case _ => //
@@ -115,7 +113,7 @@ class CallingTrackingController(implicit injector: Injector, ctx: Context, ec: E
             callParticipants = info.maxParticipants
           } yield (cause, callParticipants)).map {
             case (cause, callParticipants) =>
-              tagEvent(EndedCallEvent(p.isV3Call, p.isVideoCall, cause = cause, p.isGroupCall, p.convMemCount, callParticipants, p.isIncoming, p.wasUiActive, p.withOtto, callDuration))
+//              tagEvent(EndedCallEvent(p.isV3Call, p.isVideoCall, cause = cause, p.isGroupCall, p.convMemCount, callParticipants, p.isIncoming, p.wasUiActive, p.withOtto, callDuration))
           }
         }
       }

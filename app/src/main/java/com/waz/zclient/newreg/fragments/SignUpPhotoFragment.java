@@ -44,14 +44,10 @@ import com.waz.zclient.OnBackPressedListener;
 import com.waz.zclient.R;
 import com.waz.zclient.controllers.accentcolor.AccentColorObserver;
 import com.waz.zclient.controllers.camera.CameraActionObserver;
-import com.waz.zclient.core.controllers.tracking.attributes.OutcomeAttribute;
-import com.waz.zclient.core.controllers.tracking.attributes.RegistrationEventContext;
-import com.waz.zclient.core.controllers.tracking.events.registration.AddedPhotoEvent;
 import com.waz.zclient.pages.BaseFragment;
 import com.waz.zclient.pages.main.conversation.AssetIntentsManager;
 import com.waz.zclient.pages.main.profile.camera.CameraContext;
 import com.waz.zclient.pages.main.profile.camera.CameraFragment;
-import com.waz.zclient.tracking.GlobalTrackingController;
 import com.waz.zclient.ui.utils.BitmapUtils;
 import com.waz.zclient.ui.utils.ColorUtils;
 import com.waz.zclient.ui.utils.KeyboardUtils;
@@ -67,7 +63,6 @@ public class SignUpPhotoFragment extends BaseFragment<SignUpPhotoFragment.Contai
     public static final String TAG = SignUpPhotoFragment.class.getName();
 
     public static final String UNSPLASH_API_URL = "https://source.unsplash.com/800x800/?landscape";
-    public static final String UNSPLASH_API_URL_LOW_RES = "https://source.unsplash.com/256x256/?landscape";
 
     private static final String SAVED_INSTANCE_CAMERA_REVEALED = "SAVED_INSTANCE_CAMERA_REVEALED";
     private static final String SAVED_INSTANCE_DIALOG = "SAVED_INSTANCE_DIALOG";
@@ -122,7 +117,7 @@ public class SignUpPhotoFragment extends BaseFragment<SignUpPhotoFragment.Contai
         keepButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                handleSelectedBitmap(getContainer().getUnsplashImageAsset(), AddedPhotoEvent.PhotoSource.UNSPLASH);
+                handleSelectedBitmap(getContainer().getUnsplashImageAsset());
             }
         });
 
@@ -366,8 +361,7 @@ public class SignUpPhotoFragment extends BaseFragment<SignUpPhotoFragment.Contai
             return;
         }
         dismissCameraFragment();
-        AddedPhotoEvent.PhotoSource photoSource = imageFromCamera ? AddedPhotoEvent.PhotoSource.CAMERA : AddedPhotoEvent.PhotoSource.GALLERY;
-        handleSelectedBitmap(imageAsset, photoSource);
+        handleSelectedBitmap(imageAsset);
     }
 
     @Override
@@ -385,16 +379,11 @@ public class SignUpPhotoFragment extends BaseFragment<SignUpPhotoFragment.Contai
         getActivity().onBackPressed();
     }
 
-    private void handleSelectedBitmap(final ImageAsset imageAsset, final AddedPhotoEvent.PhotoSource photoSource)  {
+    private void handleSelectedBitmap(final ImageAsset imageAsset)  {
         new Handler().postDelayed(new Runnable() {
             @Override
             public void run() {
                 ((BaseActivity) getActivity()).injectJava(AppEntryController.class).setPicture(imageAsset);
-                RegistrationEventContext registrationEventContext = registrationType == SignUpPhotoFragment.RegistrationType.Phone ?
-                    RegistrationEventContext.PHONE :
-                    RegistrationEventContext.EMAIL;
-                ((BaseActivity) getActivity()).injectJava(GlobalTrackingController.class).tagEvent(new AddedPhotoEvent(OutcomeAttribute.SUCCESS, "", photoSource, registrationEventContext));
-
             }
         }, getResources().getInteger(R.integer.signup__photo__selected_photo_display_delay));
     }

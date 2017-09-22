@@ -33,7 +33,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.Interpolator;
-
 import com.waz.api.ConversationsList;
 import com.waz.api.IConversation;
 import com.waz.api.ImageAsset;
@@ -59,7 +58,6 @@ import com.waz.zclient.controllers.usernames.UsernamesControllerObserver;
 import com.waz.zclient.conversation.CollectionController;
 import com.waz.zclient.conversation.CollectionFragment;
 import com.waz.zclient.core.api.scala.ModelObserver;
-import com.waz.zclient.core.controllers.tracking.events.media.SentPictureEvent;
 import com.waz.zclient.core.stores.connect.IConnectStore;
 import com.waz.zclient.core.stores.conversation.ConversationChangeRequester;
 import com.waz.zclient.core.stores.conversation.ConversationStoreObserver;
@@ -82,14 +80,11 @@ import com.waz.zclient.pages.main.pickuser.controller.IPickUserController;
 import com.waz.zclient.pages.main.pickuser.controller.PickUserControllerScreenObserver;
 import com.waz.zclient.pages.main.profile.camera.CameraContext;
 import com.waz.zclient.pages.main.profile.camera.CameraFragment;
-import com.waz.zclient.tracking.GlobalTrackingController;
 import com.waz.zclient.ui.animation.interpolators.penner.Quart;
 import com.waz.zclient.ui.utils.KeyboardUtils;
 import com.waz.zclient.ui.utils.MathUtils;
 import com.waz.zclient.utils.LayoutSpec;
-import com.waz.zclient.utils.TrackingUtils;
 import com.waz.zclient.utils.ViewUtils;
-
 import timber.log.Timber;
 
 
@@ -481,13 +476,6 @@ public class RootFragment extends BaseFragment<RootFragment.Container> implement
         }
         getControllerFactory().getCameraController().closeCamera(cameraContext);
         getStoreFactory().conversationStore().sendMessage(imageAsset);
-
-        // Tablet doesn't have keyboard camera interface
-        TrackingUtils.onSentPhotoMessage(((BaseActivity) getActivity()).injectJava(GlobalTrackingController.class),
-                                         getStoreFactory().conversationStore().getCurrentConversation(),
-                                         imageFromCamera ? SentPictureEvent.Source.CAMERA
-                                                         : SentPictureEvent.Source.GALLERY,
-                                         SentPictureEvent.Method.TABLET);
     }
 
     @Override

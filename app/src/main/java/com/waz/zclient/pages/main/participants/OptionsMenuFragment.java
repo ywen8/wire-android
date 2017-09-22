@@ -23,7 +23,6 @@ import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-
 import com.waz.api.ConversationsList;
 import com.waz.api.IConversation;
 import com.waz.api.SyncState;
@@ -38,11 +37,9 @@ import com.waz.zclient.core.stores.conversation.ConversationStoreObserver;
 import com.waz.zclient.core.stores.singleparticipants.SingleParticipantStoreObserver;
 import com.waz.zclient.pages.BaseFragment;
 import com.waz.zclient.pages.main.conversation.controller.IConversationScreenController;
-import com.waz.zclient.tracking.GlobalTrackingController;
 import com.waz.zclient.ui.optionsmenu.OptionsMenu;
 import com.waz.zclient.ui.optionsmenu.OptionsMenuItem;
 import com.waz.zclient.ui.theme.OptionsTheme;
-import com.waz.zclient.utils.TrackingUtils;
 import com.waz.zclient.utils.ViewUtils;
 
 import java.util.ArrayList;
@@ -306,17 +303,6 @@ public class OptionsMenuFragment extends BaseFragment<OptionsMenuFragment.Contai
         }
 
         getContainer().onOptionsItemClicked(conversation, user, optionsMenuItem);
-
-        if (getControllerFactory() == null ||
-            getControllerFactory().isTornDown()) {
-            return;
-        }
-        TrackingUtils.tagOptionsMenuSelectedEvent(((BaseActivity) getActivity()).injectJava(GlobalTrackingController.class),
-                                                  optionsMenuItem,
-                                                  conversation.getType(),
-                                                  inConversationList,
-                                                  (requester == IConversationScreenController.CONVERSATION_LIST_SWIPE));
-
     }
 
     @Override

@@ -19,8 +19,6 @@ package com.waz.zclient;
 
 import android.content.Intent;
 import android.os.Bundle;
-import com.waz.zclient.core.controllers.tracking.events.registration.SmsLinkClicked;
-import com.waz.zclient.tracking.GlobalTrackingController;
 import com.waz.zclient.utils.IntentUtils;
 
 public class SMSCodeReceiverActivity extends BaseActivity {
@@ -50,7 +48,6 @@ public class SMSCodeReceiverActivity extends BaseActivity {
 
     private void forwardSmsCode(Intent intent) {
         getControllerFactory().getVerificationController().setVerificationCode(IntentUtils.getSmsCode(intent));
-        injectJava(GlobalTrackingController.class).tagEvent(new SmsLinkClicked());
         finish();
     }
 }

@@ -44,11 +44,9 @@ import com.waz.zclient.core.stores.network.NetworkStoreObserver;
 import com.waz.zclient.pages.BaseFragment;
 import com.waz.zclient.pages.main.profile.views.ConfirmationMenu;
 import com.waz.zclient.pages.main.profile.views.ConfirmationMenuListener;
-import com.waz.zclient.tracking.GlobalTrackingController;
 import com.waz.zclient.ui.theme.ThemeUtils;
 import com.waz.zclient.ui.utils.KeyboardUtils;
 import com.waz.zclient.ui.utils.TextViewUtils;
-import com.waz.zclient.utils.TrackingUtils;
 import com.waz.zclient.utils.ViewUtils;
 import com.waz.zclient.views.LoadingIndicatorView;
 import com.waz.zclient.views.images.ImageAssetView;
@@ -396,9 +394,6 @@ public class GiphySharingPreviewFragment extends BaseFragment<GiphySharingPrevie
     }
 
     private void sendGif() {
-        TrackingUtils.onSentGifMessage(((BaseActivity) getActivity()).injectJava(GlobalTrackingController.class),
-                                       getStoreFactory().conversationStore().getCurrentConversation());
-
         if (TextUtils.isEmpty(searchTerm) || searchTerm == null) {
             getStoreFactory().conversationStore().sendMessage(getString(R.string.giphy_preview__message_via_random_trending));
         } else {

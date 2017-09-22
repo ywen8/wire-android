@@ -36,11 +36,9 @@ import com.waz.threading.Threading
 import com.waz.utils.events.{EventContext, EventStream, Signal}
 import com.waz.utils.returning
 import com.waz.zclient.controllers.global.PasswordController
-import com.waz.zclient.controllers.tracking.events.otr.{RemovedOwnOtrClientEvent, UnverifiedOwnOtrClientEvent, VerifiedOwnOtrClientEvent}
 import com.waz.zclient.pages.main.profile.preferences.DevicesPreferencesUtil
 import com.waz.zclient.pages.main.profile.preferences.dialogs.RemoveDeviceDialog
 import com.waz.zclient.pages.main.profile.preferences.views.{SwitchPreference, TextButton}
-import com.waz.zclient.tracking.GlobalTrackingController
 import com.waz.zclient.ui.text.TypefaceTextView
 import com.waz.zclient.ui.utils.TextViewUtils
 import com.waz.zclient.utils.ContextUtils._
@@ -175,7 +173,6 @@ object DeviceDetailsBackStackKey {
 case class DeviceDetailsViewController(view: DeviceDetailsView, clientId: ClientId)(implicit inj: Injector, ec: EventContext, context: Context) extends Injectable {
   import Threading.Implicits.Background
   val zms      = inject[Signal[ZMessaging]]
-  val tracking = inject[GlobalTrackingController]
   val passwordController = inject[PasswordController]
   val backStackNavigator = inject[BackStackNavigator]
 
@@ -217,7 +214,6 @@ case class DeviceDetailsViewController(view: DeviceDetailsView, clientId: Client
       Some(userId)      <- accountManager.flatMap(_.userId)
       otrClientsStorage <- accountManager.map(_.storage.otrClientsStorage)
       _                 <- otrClientsStorage.updateVerified(userId, clientId, checked)
-      _                 <- tracking.tagEvent(if (checked) new VerifiedOwnOtrClientEvent else new UnverifiedOwnOtrClientEvent)
     } {}
   }
 
@@ -252,7 +248,6 @@ case class DeviceDetailsViewController(view: DeviceDetailsView, clientId: Client
         case Right(_) =>
           passwordController.setPassword(password)
           context.asInstanceOf[BaseActivity].onBackPressed()
-          tracking.tagEvent(new RemovedOwnOtrClientEvent)
         case Left(ErrorResponse(_, msg, _)) =>
           showRemoveDeviceDialog(Some(getString(R.string.otr__remove_device__error)))
       } (Threading.Ui)
