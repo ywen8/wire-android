@@ -23,18 +23,15 @@ import android.os.Vibrator
 import com.waz.ZLog.ImplicitTag._
 import com.waz.ZLog._
 import com.waz.api.VideoSendState.{DONT_SEND, SEND}
-import com.waz.api._
 import com.waz.avs.{VideoPreview, VideoRenderer}
 import com.waz.model._
 import com.waz.service.call.Avs.VideoReceiveState
 import com.waz.service.call.CallInfo.CallState._
-import com.waz.service.call.FlowManagerService.{StateAndReason, UnknownState}
 import com.waz.threading.Threading
 import com.waz.utils._
-import com.waz.utils.events.{ClockSignal, Signal}
+import com.waz.utils.events.{ButtonSignal, ClockSignal, Signal}
 import com.waz.zclient._
 import com.waz.zclient.calling.views.CallControlButtonView.{ButtonColor, ButtonSettings}
-import com.waz.zclient.utils.events.ButtonSignal
 import org.threeten.bp.Duration._
 import org.threeten.bp.Instant._
 import org.threeten.bp.{Duration, Instant}
@@ -56,7 +53,7 @@ class CurrentCallController(implicit inj: Injector, cxt: WireContext) extends In
     }
   }.orElse(Signal(true)) //ensure that controls are ALWAYS visible in case something goes wrong...
 
-  val videoSendState = currentCall.collect { case Some(c) => c.videoSendState }
+  val videoSendState = currentCallOpt.collect { case Some(c) => c.videoSendState }
     .disableAutowiring()
 
 
@@ -87,14 +84,14 @@ class CurrentCallController(implicit inj: Injector, cxt: WireContext) extends In
     case _ => Signal.const[Option[UserData]](None) //Need a none signal to help with further signals
   }
 
-  val callEstablished = currentCall.map(_.exists(_.state == SelfConnected))
+  val callEstablished = currentCallOpt.map(_.exists(_.state == SelfConnected))
     .disableAutowiring()
 
   val onCallEstablished = callEstablished.onChanged
 
   val duration = {
     def timeSince(est: Option[Instant]) = ClockSignal(Duration.ofSeconds(1).asScala).map(_ => est.fold2(ZERO, between(_, now)))
-    currentCall.collect { case Some(c) => c.estabTime }.flatMap(timeSince)
+    currentCall.map(_.estabTime).flatMap(timeSince)
   }
 
   val subtitleText: Signal[String] = convDegraded.flatMap {
@@ -112,30 +109,30 @@ class CurrentCallController(implicit inj: Injector, cxt: WireContext) extends In
       case (false, SelfCalling,  _)                    => cxt.getString(R.string.calling__header__outgoing_subtitle)
       case (true,  OtherCalling, _)                    => cxt.getString(R.string.calling__header__incoming_subtitle__video)
       case (false, OtherCalling, _)                    => cxt.getString(R.string.calling__header__incoming_subtitle)
-      case (_,     SelfJoining,  _)                   => cxt.getString(R.string.calling__header__joining)
+      case (_,     SelfJoining,  _)                    => cxt.getString(R.string.calling__header__joining)
       case (false, SelfConnected, duration)            => duration
       case _ => ""
     }
   }
 
-  val otherSendingVideo = currentCall.map(_.exists(_.videoReceiveState == VideoReceiveState.Started))
+  val videoReceiveState = currentCall.map(_.videoReceiveState)
 
-  val avsStateAndChangeReason = flowManager.flatMap(_.stateOfReceivedVideo)
   val cameraFailed = flowManager.flatMap(_.cameraFailedSig)
 
-  val stateMessageText = Signal(callState, cameraFailed, avsStateAndChangeReason, conversationName, otherSendingVideo).map { values =>
-      verbose(s"$values")
-      values match {
-        case (SelfCalling,   true, _, _, _)                                                                    => Option(cxt.getString(R.string.calling__self_preview_unavailable_long))
-        case (SelfJoining,   _, _, _, _)                                                                       => Option(cxt.getString(R.string.ongoing__connecting))
-        case (SelfConnected, _, StateAndReason(AvsVideoState.STOPPED, AvsVideoReason.BAD_CONNECTION), _, true) => Option(cxt.getString(R.string.ongoing__poor_connection_message))
-        case (SelfConnected, _, _, otherUserName, false)                                                       => Option(cxt.getString(R.string.ongoing__other_turned_off_video, otherUserName))
-        case (SelfConnected, _, UnknownState, otherUserName, true)                                             => Option(cxt.getString(R.string.ongoing__other_unable_to_send_video, otherUserName))
+  val stateMessageText = Signal(callState, cameraFailed, videoReceiveState, conversationName).map { vs =>
+      verbose(s"$vs")
+      import VideoReceiveState._
+      vs match {
+        case (SelfCalling,   true, _,             _)             => Option(cxt.getString(R.string.calling__self_preview_unavailable_long))
+        case (SelfJoining,   _,    _,             _)             => Option(cxt.getString(R.string.ongoing__connecting))
+        case (SelfConnected, _,    BadConnection, _)             => Option(cxt.getString(R.string.ongoing__poor_connection_message))
+        case (SelfConnected, _,    Stopped,       otherUserName) => Option(cxt.getString(R.string.ongoing__other_turned_off_video, otherUserName))
+        case (SelfConnected, _,    Unknown,       otherUserName) => Option(cxt.getString(R.string.ongoing__other_unable_to_send_video, otherUserName))
         case _ => None
       }
   }
 
-  val participantIdsToDisplay = currentCall.map(_.fold(Vector.empty[UserId])(_.others.toVector))
+  val participantIdsToDisplay = currentCallOpt.map(_.fold(Vector.empty[UserId])(_.others.toVector))
 
   val flowId = for {
     zms <- zms
@@ -208,7 +205,7 @@ class CurrentCallController(implicit inj: Injector, cxt: WireContext) extends In
     case true => cxt.getString(R.string.audio_message__constant_bit_rate)
   }
 
-  val speakerButton = ButtonSignal(zms.flatMap(_.mediamanager.isSpeakerOn), zms.map(_.mediamanager)) {
+  val speakerButton = ButtonSignal(zms.map(_.mediamanager), zms.flatMap(_.mediamanager.isSpeakerOn)) {
     case (mm, isSpeakerSet) => mm.setSpeaker(!isSpeakerSet)
   }
 

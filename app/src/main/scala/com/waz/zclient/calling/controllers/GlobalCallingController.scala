@@ -59,16 +59,16 @@ class GlobalCallingController(implicit inj: Injector, cxt: WireContext, eventCon
     } yield zms
   }
 
-  val currentCall: Signal[Option[CallInfo]] = zmsOpt.flatMap {
+  val currentCallOpt: Signal[Option[CallInfo]] = zmsOpt.flatMap {
     case Some(z) => z.calling.currentCall
     case _ => Signal.const(None)
   }
 
-  val convIdOpt = currentCall.map(_.map(_.convId))
+  val convIdOpt = currentCallOpt.map(_.map(_.convId))
 
-  val callStateOpt: Signal[Option[CallState]] = currentCall.map(_.map(_.state))
+  val callStateOpt: Signal[Option[CallState]] = currentCallOpt.map(_.map(_.state))
 
-  val activeCall = currentCall.map(_.isDefined)
+  val activeCall = currentCallOpt.map(_.isDefined)
 
   val activeCallEstablished = zmsOpt.flatMap {
     case Some(z) => callStateOpt.map {
@@ -96,12 +96,12 @@ class GlobalCallingController(implicit inj: Injector, cxt: WireContext, eventCon
     case _ => false
   }
 
-  val muted = currentCall.map {
+  val muted = currentCallOpt.map {
     case Some(c) => c.muted
     case _ => false
   }.disableAutowiring()
 
-  val videoCall = currentCall.map {
+  val videoCall = currentCallOpt.map {
     case Some(c) => c.isVideoCall
     case _ => false
   }.disableAutowiring()
@@ -161,6 +161,8 @@ class GlobalCallingController(implicit inj: Injector, cxt: WireContext, eventCon
     */
 
   val zms = zmsOpt.collect { case Some(z) => z }
+
+  val currentCall = currentCallOpt.collect { case Some(c) => c }
 
   val userStorage = zms map (_.usersStorage)
   val prefs = zms.map(_.prefs)
@@ -228,7 +230,7 @@ class GlobalCallingController(implicit inj: Injector, cxt: WireContext, eventCon
 
   val selfUser = zms flatMap (_.users.selfUser)
 
-  val callerId = currentCall flatMap {
+  val callerId = currentCallOpt flatMap {
     case Some(info) =>
       (info.others, info.state) match {
         case (_, SelfCalling) => selfUser.map(_.id)

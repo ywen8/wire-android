@@ -44,11 +44,11 @@ class SoundController(implicit inj: Injector, cxt: Context) extends Injectable {
   private val audioManager = Option(inject[AudioManager])
   private val vibrator = Option(inject[Vibrator])
 
-  private val mediaManager = zms.map(_.mediamanager.mediaManager)
+  private val mediaManager = zms.flatMap(z => Signal.future(z.mediamanager.mediaManager))
   private val soundIntensity = zms.flatMap(_.mediamanager.soundIntensity)
 
   private var _mediaManager = Option.empty[MediaManager]
-  mediaManager(_mediaManager = _)
+  mediaManager(m => _mediaManager = Some(m))
 
   val tonePrefs = (for {
     zms <- zms
