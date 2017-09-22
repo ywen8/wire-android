@@ -21,8 +21,6 @@ import android.app.Activity;
 import android.graphics.Typeface;
 import android.support.annotation.Nullable;
 import com.jakewharton.threetenabp.AndroidThreeTen;
-import com.localytics.android.Localytics;
-import com.localytics.android.LocalyticsActivityLifecycleCallbacks;
 import com.waz.api.impl.AccentColors;
 import com.waz.zclient.controllers.IControllerFactory;
 import com.waz.zclient.core.stores.IStoreFactory;
@@ -104,10 +102,6 @@ public class ZApplication extends WireApplication implements ServiceContainer {
                                                                                    Thread.getDefaultUncaughtExceptionHandler()));
         // refresh
         AccentColors.setColors(AccentColors.loadArray(getApplicationContext(), R.array.original_accents_color));
-
-        // Register LocalyticsActivityLifecycleCallbacks
-        registerActivityLifecycleCallbacks(new LocalyticsActivityLifecycleCallbacks(this));
-        Localytics.setPushDisabled(false);
     }
 
     public static void setLogLevels() {

@@ -24,7 +24,6 @@ import android.net.Uri
 import android.os.Bundle
 import android.support.v4.app.FragmentTransaction
 import android.widget.Toast
-import com.localytics.android.Localytics
 import com.waz.ZLog
 import com.waz.ZLog.ImplicitTag._
 import com.waz.api._
@@ -36,10 +35,8 @@ import com.waz.zclient.AppEntryController._
 import com.waz.zclient.appentry._
 import com.waz.zclient.controllers.navigation.{NavigationControllerObserver, Page}
 import com.waz.zclient.controllers.tracking.screens.ApplicationScreen
-import com.waz.zclient.core.controllers.tracking.attributes.Attribute
-import com.waz.zclient.core.controllers.tracking.events.Event
 import com.waz.zclient.core.controllers.tracking.events.onboarding.{KeptGeneratedUsernameEvent, OpenedUsernameSettingsEvent}
-import com.waz.zclient.core.controllers.tracking.events.registration.{OpenedPhoneRegistrationFromInviteEvent, SucceededWithRegistrationEvent}
+import com.waz.zclient.core.controllers.tracking.events.registration.OpenedPhoneRegistrationFromInviteEvent
 import com.waz.zclient.fragments.CountryDialogFragment
 import com.waz.zclient.newreg.fragments.SignUpPhotoFragment
 import com.waz.zclient.newreg.fragments.SignUpPhotoFragment.UNSPLASH_API_URL
@@ -48,9 +45,10 @@ import com.waz.zclient.preferences.PreferencesController
 import com.waz.zclient.preferences.dialogs.ChangeHandleFragment
 import com.waz.zclient.tracking.GlobalTrackingController
 import com.waz.zclient.ui.utils.KeyboardUtils
-import com.waz.zclient.utils.{HockeyCrashReporting, ViewUtils, ZTimeFormatter}
+import com.waz.zclient.utils.{HockeyCrashReporting, ViewUtils}
 import com.waz.zclient.views.LoadingIndicatorView
 import net.hockeyapp.android.NativeCrashManager
+
 import scala.collection.JavaConverters._
 
 object AppEntryActivity {
@@ -291,13 +289,6 @@ class AppEntryActivity extends BaseActivity
     val transaction: FragmentTransaction = getSupportFragmentManager.beginTransaction
     setDefaultAnimation(transaction).replace(R.id.fl_main_content, FirstLaunchAfterLoginFragment.newInstance, FirstLaunchAfterLoginFragment.TAG).commit
     enableProgress(false)
-  }
-
-  def tagAppEntryEvent(event: Event): Unit = {
-    injectJava(classOf[GlobalTrackingController]).tagEvent(event)
-    if (event.isInstanceOf[SucceededWithRegistrationEvent]) {
-      Localytics.setProfileAttribute(Attribute.REGISTRATION_WEEK.name, ZTimeFormatter.getCurrentWeek(this), Localytics.ProfileScope.APPLICATION)
-    }
   }
 
   def onShowPhoneNamePage(): Unit = {

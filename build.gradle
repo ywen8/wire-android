@@ -76,7 +76,7 @@ ext {
     playServicesVersion = '11.0.0'
 
     audioVersion = System.getenv("AUDIO_VERSION") ?: '1.209.0@aar'
-    zMessagingDevVersionBase = '107.1695'
+    zMessagingDevVersionBase = '108-SNAPSHOT'
     zMessagingDevVersion = "${zMessagingDevVersionBase}@aar"
     // Release version number must be like this X.0(.Y)
     zMessagingReleaseVersion = System.getenv("ZMESSAGING_VERSION") ?: '108.0.395@aar'
@@ -126,7 +126,7 @@ ext {
             timber               : 'com.jakewharton.timber:timber:4.1.1',
             hockey               : 'net.hockeyapp.android:HockeySDK:4.1.4',
             threetenabp          : 'com.jakewharton.threetenabp:threetenabp:1.0.3',
-            localytics           : 'com.localytics.android:library:3.8.2',
+            mixpanel             : 'com.mixpanel.android:mixpanel-android:5.+',
             rebound              : 'com.facebook.rebound:rebound:0.3.8',
             supportpreferences   : 'net.xpece.android:support-preference:0.8.1',
 
@@ -170,7 +170,6 @@ allprojects {
         maven { url "https://dl.bintray.com/wire-android/releases" }
         maven { url "https://dl.bintray.com/wire-android/snapshots" }
         maven { url "https://dl.bintray.com/wire-android/third-party" }
-        maven { url "http://maven.localytics.com/public" }
         maven { url 'https://maven.google.com' }
         mavenCentral()
     }

@@ -26,7 +26,6 @@ import android.net.Uri
 import android.os.{Build, Bundle}
 import android.support.v4.app.Fragment
 import android.text.TextUtils
-import com.localytics.android.Localytics
 import com.waz.ZLog.ImplicitTag._
 import com.waz.ZLog.{error, info, verbose, warn}
 import com.waz.api.{NetworkMode, _}
@@ -125,7 +124,7 @@ class MainActivity extends BaseActivity
       HockeyCrashReporting.checkForUpdates(this)
 
     onLaunch()
-    
+
     accentColorController.accentColor.map(_.getColor)(getControllerFactory.getUserPreferencesController.setLastAccentColor)
 
     handleIntent(getIntent)
@@ -203,15 +202,10 @@ class MainActivity extends BaseActivity
       HockeyCrashReporting.deleteCrashReports(getApplicationContext)
       NativeCrashManager.deleteDumpFiles(getApplicationContext)
     }
-
-    Localytics.setInAppMessageDisplayActivity(this)
-    Localytics.handleTestMode(getIntent)
   }
 
   override protected def onPause() = {
     info("onPause")
-    Localytics.dismissCurrentInAppMessage()
-    Localytics.clearInAppMessageDisplayActivity()
     super.onPause()
   }
 

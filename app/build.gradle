@@ -101,12 +101,12 @@ android {
                                     applicationIcon        : "@drawable/ic_launcher_wire_dev",
                                     sharedUserId           : "",
                                     internal_features      : "true",
-                                    localyticsAppKey       : getApiKey("localyticsAppKey"),
                                     hockeyAppKey           : getApiKey("hockeyAppKey")]
 
-            buildConfigField 'boolean', 'USE_HOCKEY_UPDATE', 'true'
-            buildConfigField 'boolean', 'DEVELOPER_FEATURES_ENABLED', 'true'
+            buildConfigField 'boolean', 'USE_HOCKEY_UPDATE',             'true'
+            buildConfigField 'boolean', 'DEVELOPER_FEATURES_ENABLED',    'true'
             buildConfigField 'boolean', 'DISABLE_TRACKING_KEEP_LOGGING', 'true'
+            buildConfigField 'String',  'MIXPANEL_APP_TOKEN',            "\"${getApiKey("mixpanelAppToken")}\""
         }
 
         candidate {
@@ -116,12 +116,12 @@ android {
                                     applicationIcon        : "@drawable/ic_launcher_wire_candidate",
                                     sharedUserId           : "",
                                     internal_features      : "false",
-                                    localyticsAppKey       : getApiKey("localyticsAppKey"),
                                     hockeyAppKey           : getApiKey("hockeyAppKeyCand")]
 
-            buildConfigField 'boolean', 'USE_HOCKEY_UPDATE', 'true'
-            buildConfigField 'boolean', 'DEVELOPER_FEATURES_ENABLED', 'true'
+            buildConfigField 'boolean', 'USE_HOCKEY_UPDATE',             'true'
+            buildConfigField 'boolean', 'DEVELOPER_FEATURES_ENABLED',    'true'
             buildConfigField 'boolean', 'DISABLE_TRACKING_KEEP_LOGGING', 'true'
+            buildConfigField 'String',  'MIXPANEL_APP_TOKEN',            "\"${getApiKey("mixpanelAppToken")}\""
         }
 
         prod {
@@ -130,12 +130,12 @@ android {
                                     applicationIcon        : "@drawable/ic_launcher_wire",
                                     sharedUserId           : "com.waz.userid",
                                     internal_features      : "false",
-                                    localyticsAppKey       : getApiKey("localyticsAppKeyProd"),
                                     hockeyAppKey           : getApiKey("hockeyAppKeyProd")]
 
-            buildConfigField 'boolean', 'USE_HOCKEY_UPDATE', 'false'
-            buildConfigField 'boolean', 'DEVELOPER_FEATURES_ENABLED', 'false'
+            buildConfigField 'boolean', 'USE_HOCKEY_UPDATE',             'false'
+            buildConfigField 'boolean', 'DEVELOPER_FEATURES_ENABLED',    'false'
             buildConfigField 'boolean', 'DISABLE_TRACKING_KEEP_LOGGING', 'false'
+            buildConfigField 'String',  'MIXPANEL_APP_TOKEN',            "\"${getApiKey("mixpanelAppTokenProd")}\""
         }
 
         internal {
@@ -145,12 +145,12 @@ android {
                                     applicationIcon  : "@drawable/ic_launcher_wire_internal",
                                     sharedUserId     : "",
                                     internal_features: "true",
-                                    localyticsAppKey : getApiKey("localyticsAppKey"),
                                     hockeyAppKey     : getApiKey("hockeyAppKeyInternal")]
 
-            buildConfigField 'boolean', 'USE_HOCKEY_UPDATE', 'false'
-            buildConfigField 'boolean', 'DEVELOPER_FEATURES_ENABLED', 'true'
+            buildConfigField 'boolean', 'USE_HOCKEY_UPDATE',             'false'
+            buildConfigField 'boolean', 'DEVELOPER_FEATURES_ENABLED',    'true'
             buildConfigField 'boolean', 'DISABLE_TRACKING_KEEP_LOGGING', 'false'
+            buildConfigField 'String',  'MIXPANEL_APP_TOKEN',            "\"${getApiKey("mixpanelAppTokenInternal")}\""
         }
 
         avs {
@@ -160,12 +160,12 @@ android {
                                     applicationIcon        : "@drawable/ic_launcher_wire_playground",
                                     sharedUserId           : "",
                                     internal_features      : "true",
-                                    localyticsAppKey       : getApiKey("localyticsAppKey"),
                                     hockeyAppKey           : getApiKey("hockeyAppKeyAvs")]
 
-            buildConfigField 'boolean', 'USE_HOCKEY_UPDATE', 'true'
-            buildConfigField 'boolean', 'DEVELOPER_FEATURES_ENABLED', 'true'
+            buildConfigField 'boolean', 'USE_HOCKEY_UPDATE',             'true'
+            buildConfigField 'boolean', 'DEVELOPER_FEATURES_ENABLED',    'true'
             buildConfigField 'boolean', 'DISABLE_TRACKING_KEEP_LOGGING', 'false'
+            buildConfigField 'String',  'MIXPANEL_APP_TOKEN',            "\"${getApiKey("mixpanelAppToken")}\""
         }
 
         qa {
@@ -176,12 +176,12 @@ android {
                                     applicationIcon        : "@drawable/ic_launcher_wire_qa",
                                     sharedUserId           : "",
                                     internal_features      : "true",
-                                    localyticsAppKey       : getApiKey("localyticsAppKey"),
                                     hockeyAppKey           : getApiKey("hockeyAppKeyQa")]
 
-            buildConfigField 'boolean', 'USE_HOCKEY_UPDATE', 'true'
-            buildConfigField 'boolean', 'DEVELOPER_FEATURES_ENABLED', 'true'
+            buildConfigField 'boolean', 'USE_HOCKEY_UPDATE',             'true'
+            buildConfigField 'boolean', 'DEVELOPER_FEATURES_ENABLED',    'true'
             buildConfigField 'boolean', 'DISABLE_TRACKING_KEEP_LOGGING', 'true'
+            buildConfigField 'String',  'MIXPANEL_APP_TOKEN',            "\"${getApiKey("mixpanelAppToken")}\""
         }
 
         experimental {
@@ -191,12 +191,12 @@ android {
                                     applicationIcon        : "@drawable/ic_launcher_wire_playground",
                                     sharedUserId           : "",
                                     internal_features      : "true",
-                                    localyticsAppKey       : getApiKey("localyticsAppKey"),
                                     hockeyAppKey           : getApiKey("hockeyAppKeyExperimental")]
 
-            buildConfigField 'boolean', 'USE_HOCKEY_UPDATE', 'true'
-            buildConfigField 'boolean', 'DEVELOPER_FEATURES_ENABLED', 'true'
+            buildConfigField 'boolean', 'USE_HOCKEY_UPDATE',             'true'
+            buildConfigField 'boolean', 'DEVELOPER_FEATURES_ENABLED',    'true'
             buildConfigField 'boolean', 'DISABLE_TRACKING_KEEP_LOGGING', 'false'
+            buildConfigField 'String',  'MIXPANEL_APP_TOKEN',            "\"${getApiKey("mixpanelAppToken")}\""
         }
     }
 
@@ -247,7 +247,7 @@ dependencies {
     compile deps.threetenabp
     compile deps.hockey
     compile deps.audioNotifications
-    compile deps.localytics
+    compile deps.mixpanel
     compile deps.rebound
 
     //noinspection GradleDynamicVersion
@@ -319,8 +319,8 @@ def getApiKey(String property) {
         Properties properties = new Properties()
         properties.load(new FileInputStream("$projectDir/api-keys.properties"))
         return properties.getProperty(property)
-    } else if (property.startsWith("localytics")) {
-        return "00000000000000000000000-00000000-0000-0000-0000-000000000000"
+    } else if (property.startsWith("mixpanel")) {
+        return "00000000000000000000000000000000"
     } else {
         return java.util.UUID.randomUUID().toString().replaceAll("-", "")
     }

@@ -23,7 +23,6 @@ import android.content.{Context, Intent}
 import android.net.ConnectivityManager
 import android.os.Bundle
 import android.telephony.TelephonyManager
-import com.localytics.android.Localytics
 import com.waz.HockeyApp
 import com.waz.ZLog.ImplicitTag._
 import com.waz.ZLog._
@@ -86,7 +85,6 @@ class GlobalTrackingController(implicit inj: Injector, cxt: WireContext, eventCo
 
   zMessaging.flatMap(_.userPrefs.preference(AnalyticsEnabled).signal) { enabled =>
     verbose(s"Analytics enabled?: $enabled")
-    Localytics.setOptedOut(!enabled)
   }
 
   def tagEvent(event: tracking.events.Event) = {
@@ -117,7 +115,7 @@ class GlobalTrackingController(implicit inj: Injector, cxt: WireContext, eventCo
         }
       }
 
-      if (isTrackingEnabled) Localytics.tagEvent(event.getName, eventAttributes)
+//      if (isTrackingEnabled) Localytics.tagEvent(event.getName, eventAttributes)
     }
   }
 
@@ -142,13 +140,13 @@ class GlobalTrackingController(implicit inj: Injector, cxt: WireContext, eventCo
     verbose(s"Tag registration screen=[name='${Option(screen)}']")
     Option(screen).map(_.toString).filter(!sentEvents.contains(_) && isTrackingEnabled).foreach { sc =>
       sentEvents += sc
-      Localytics.tagScreen(sc)
+//      Localytics.tagScreen(sc)
     }
   }
 
   def onApplicationScreen(screen: ApplicationScreen) = {
     verbose(s"Tag application screen=[\nname='${Option(screen)}']")
-    Option(screen).map(_.toString).filter(_ => isTrackingEnabled).foreach(Localytics.tagScreen)
+//    Option(screen).map(_.toString).filter(_ => isTrackingEnabled).foreach(Localytics.tagScreen)
   }
 
   private def isTrackingEnabled =
@@ -280,7 +278,7 @@ class GlobalTrackingController(implicit inj: Injector, cxt: WireContext, eventCo
 
       val dims = CustomDimensions(groups, archived, muted, contacts, blocked, autoConnected, voice, video, (texts + rich) max -1, images)
 
-      if (isTrackingEnabled) dims.prepareList(cxt).zipWithIndex.foreach { case (value, i) => Localytics.setCustomDimension(i, value) }
+//      if (isTrackingEnabled) dims.prepareList(cxt).zipWithIndex.foreach { case (value, i) => Localytics.setCustomDimension(i, value) }
     }
   }.logFailure(reportHockey = true)
 
