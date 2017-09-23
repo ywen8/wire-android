@@ -22,7 +22,6 @@ import com.waz.ZLog.ImplicitTag._
 import com.waz.ZLog._
 import com.waz.api.EphemeralExpiration
 import com.waz.api.Message.Type._
-import com.waz.content.UserPreferences.AnalyticsEnabled
 import com.waz.content.UsersStorage
 import com.waz.model.ConversationData.ConversationType
 import com.waz.model.UserData.ConnectionStatus.Blocked
@@ -43,7 +42,8 @@ class GlobalTrackingController(implicit inj: Injector, cxt: WireContext, eventCo
   import GlobalTrackingController._
   import Threading.Implicits.Background
 
-  private val mixpanel = MixpanelAPI.getInstance(cxt.getApplicationContext, BuildConfig.MIXPANEL_APP_TOKEN)
+  private val mixpanel = MixpanelApiToken.map(MixpanelAPI.getInstance(cxt.getApplicationContext, _))
+  verbose(s"For build: ${BuildConfig.APPLICATION_ID}, mixpanel: $mixpanel was created using token: ${BuildConfig.MIXPANEL_APP_TOKEN}")
 
   val zmsOpt      = inject[Signal[Option[ZMessaging]]]
   val zMessaging  = inject[Signal[ZMessaging]]
@@ -51,8 +51,10 @@ class GlobalTrackingController(implicit inj: Injector, cxt: WireContext, eventCo
 
   inject[ZmsLifeCycle].uiActive.onChanged {
     case false =>
-      verbose("flushing mixpanel events")
-      mixpanel.flush()
+      mixpanel.foreach { m =>
+        verbose("flushing mixpanel events")
+        m.flush()
+      }
     case _ =>
   }
 
@@ -71,10 +73,6 @@ class GlobalTrackingController(implicit inj: Injector, cxt: WireContext, eventCo
       registeredZmsInstances += zms
       registerTrackingEventListeners(zms)
     case _ => //already registered to this zms, do nothing.
-  }
-
-  zMessaging.flatMap(_.userPrefs.preference(AnalyticsEnabled).signal) { enabled =>
-    verbose(s"Analytics enabled?: $enabled")
   }
 
   /**
@@ -106,7 +104,7 @@ class GlobalTrackingController(implicit inj: Injector, cxt: WireContext, eventCo
          |${event.props.toString(2)}
       """.stripMargin
     )
-    mixpanel.track(event.name, event.props)
+    if (isTrackingEnabled) mixpanel.foreach(_.track(event.name, event.props))
   }
 
   protected[tracking] def convInfo() = for {
@@ -117,8 +115,7 @@ class GlobalTrackingController(implicit inj: Injector, cxt: WireContext, eventCo
     (c, otto)
   }
 
-  private def isTrackingEnabled =
-    inject[PreferencesController].isAnalyticsEnabled && !BuildConfig.DISABLE_TRACKING_KEEP_LOGGING
+  private def isTrackingEnabled = inject[PreferencesController].isAnalyticsEnabled
 
   //-1 is the default value for non-logged in users (when zms is not defined)
   private def setCustomDims(): Future[Unit] = {
@@ -179,6 +176,9 @@ class GlobalTrackingController(implicit inj: Injector, cxt: WireContext, eventCo
 }
 
 object GlobalTrackingController {
+
+  //For build flavours that don't have tracking enabled, this should be None
+  protected lazy val MixpanelApiToken = Option(BuildConfig.MIXPANEL_APP_TOKEN).filter(_.nonEmpty)
 
   private implicit class RichBoolean(val b: Boolean) extends AnyVal {
     def ? : Int = if (b) 1 else 0

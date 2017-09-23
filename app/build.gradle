@@ -105,8 +105,7 @@ android {
 
             buildConfigField 'boolean', 'USE_HOCKEY_UPDATE',             'true'
             buildConfigField 'boolean', 'DEVELOPER_FEATURES_ENABLED',    'true'
-            buildConfigField 'boolean', 'DISABLE_TRACKING_KEEP_LOGGING', 'true'
-            buildConfigField 'String',  'MIXPANEL_APP_TOKEN',            "\"${getApiKey("mixpanelAppToken")}\""
+            buildConfigField 'String',  'MIXPANEL_APP_TOKEN',            'null'
         }
 
         candidate {
@@ -120,8 +119,7 @@ android {
 
             buildConfigField 'boolean', 'USE_HOCKEY_UPDATE',             'true'
             buildConfigField 'boolean', 'DEVELOPER_FEATURES_ENABLED',    'true'
-            buildConfigField 'boolean', 'DISABLE_TRACKING_KEEP_LOGGING', 'true'
-            buildConfigField 'String',  'MIXPANEL_APP_TOKEN',            "\"${getApiKey("mixpanelAppToken")}\""
+            buildConfigField 'String',  'MIXPANEL_APP_TOKEN',            'null'
         }
 
         prod {
@@ -134,7 +132,6 @@ android {
 
             buildConfigField 'boolean', 'USE_HOCKEY_UPDATE',             'false'
             buildConfigField 'boolean', 'DEVELOPER_FEATURES_ENABLED',    'false'
-            buildConfigField 'boolean', 'DISABLE_TRACKING_KEEP_LOGGING', 'false'
             buildConfigField 'String',  'MIXPANEL_APP_TOKEN',            "\"${getApiKey("mixpanelAppTokenProd")}\""
         }
 
@@ -149,7 +146,6 @@ android {
 
             buildConfigField 'boolean', 'USE_HOCKEY_UPDATE',             'false'
             buildConfigField 'boolean', 'DEVELOPER_FEATURES_ENABLED',    'true'
-            buildConfigField 'boolean', 'DISABLE_TRACKING_KEEP_LOGGING', 'false'
             buildConfigField 'String',  'MIXPANEL_APP_TOKEN',            "\"${getApiKey("mixpanelAppTokenInternal")}\""
         }
 
@@ -164,8 +160,7 @@ android {
 
             buildConfigField 'boolean', 'USE_HOCKEY_UPDATE',             'true'
             buildConfigField 'boolean', 'DEVELOPER_FEATURES_ENABLED',    'true'
-            buildConfigField 'boolean', 'DISABLE_TRACKING_KEEP_LOGGING', 'false'
-            buildConfigField 'String',  'MIXPANEL_APP_TOKEN',            "\"${getApiKey("mixpanelAppToken")}\""
+            buildConfigField 'String',  'MIXPANEL_APP_TOKEN',            'null'
         }
 
         qa {
@@ -180,8 +175,7 @@ android {
 
             buildConfigField 'boolean', 'USE_HOCKEY_UPDATE',             'true'
             buildConfigField 'boolean', 'DEVELOPER_FEATURES_ENABLED',    'true'
-            buildConfigField 'boolean', 'DISABLE_TRACKING_KEEP_LOGGING', 'true'
-            buildConfigField 'String',  'MIXPANEL_APP_TOKEN',            "\"${getApiKey("mixpanelAppToken")}\""
+            buildConfigField 'String',  'MIXPANEL_APP_TOKEN',            'null'
         }
 
         experimental {
@@ -195,8 +189,7 @@ android {
 
             buildConfigField 'boolean', 'USE_HOCKEY_UPDATE',             'true'
             buildConfigField 'boolean', 'DEVELOPER_FEATURES_ENABLED',    'true'
-            buildConfigField 'boolean', 'DISABLE_TRACKING_KEEP_LOGGING', 'false'
-            buildConfigField 'String',  'MIXPANEL_APP_TOKEN',            "\"${getApiKey("mixpanelAppToken")}\""
+            buildConfigField 'String',  'MIXPANEL_APP_TOKEN',            'null'
         }
     }
 
@@ -320,7 +313,7 @@ def getApiKey(String property) {
         properties.load(new FileInputStream("$projectDir/api-keys.properties"))
         return properties.getProperty(property)
     } else if (property.startsWith("mixpanel")) {
-        return "00000000000000000000000000000000"
+        return ""
     } else {
         return java.util.UUID.randomUUID().toString().replaceAll("-", "")
     }
