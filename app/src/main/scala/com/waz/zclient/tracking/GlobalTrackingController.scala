@@ -17,6 +17,7 @@
  */
 package com.waz.zclient.tracking
 
+import com.mixpanel.android.mpmetrics.MixpanelAPI
 import com.waz.ZLog.ImplicitTag._
 import com.waz.ZLog._
 import com.waz.api.EphemeralExpiration
@@ -26,7 +27,7 @@ import com.waz.content.UsersStorage
 import com.waz.model.ConversationData.ConversationType
 import com.waz.model.UserData.ConnectionStatus.Blocked
 import com.waz.model.{UserId, _}
-import com.waz.service.ZMessaging
+import com.waz.service.{ZMessaging, ZmsLifeCycle}
 import com.waz.threading.Threading
 import com.waz.utils._
 import com.waz.utils.events.{EventContext, Signal}
@@ -41,8 +42,17 @@ class GlobalTrackingController(implicit inj: Injector, cxt: WireContext, eventCo
   import GlobalTrackingController._
   import Threading.Implicits.Background
 
+  private val mixpanel = MixpanelAPI.getInstance(cxt.getApplicationContext, BuildConfig.MIXPANEL_APP_TOKEN)
+
   val zmsOpt     = inject[Signal[Option[ZMessaging]]]
   val zMessaging = inject[Signal[ZMessaging]]
+
+  inject[ZmsLifeCycle].uiActive.onChanged {
+    case false =>
+      verbose("flushing mixpanel events")
+      mixpanel.flush()
+    case _ =>
+  }
 
   private var registeredZmsInstances = Set.empty[ZMessaging]
 

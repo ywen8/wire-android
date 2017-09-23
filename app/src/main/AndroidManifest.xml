@@ -247,6 +247,8 @@
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="AIzaSyBA1m9faI3-P4sP6S9B_JH3XTNIxHBz2Qg"/>
+
+        <meta-data android:name="com.mixpanel.android.MPConfig.MinimumSessionDuration" android:value="2000" />
     </application>
 
 </manifest>
