@@ -33,6 +33,7 @@ import com.waz.utils._
 import com.waz.utils.events.{EventContext, Signal}
 import com.waz.zclient._
 import com.waz.zclient.preferences.PreferencesController
+import com.waz.zclient.tracking.ContributionEvent.Action
 
 import scala.concurrent.Future
 import scala.concurrent.Future._
@@ -44,8 +45,9 @@ class GlobalTrackingController(implicit inj: Injector, cxt: WireContext, eventCo
 
   private val mixpanel = MixpanelAPI.getInstance(cxt.getApplicationContext, BuildConfig.MIXPANEL_APP_TOKEN)
 
-  val zmsOpt     = inject[Signal[Option[ZMessaging]]]
-  val zMessaging = inject[Signal[ZMessaging]]
+  val zmsOpt      = inject[Signal[Option[ZMessaging]]]
+  val zMessaging  = inject[Signal[ZMessaging]]
+  val currentConv = inject[Signal[ConversationData]]
 
   inject[ZmsLifeCycle].uiActive.onChanged {
     case false =>
@@ -82,10 +84,37 @@ class GlobalTrackingController(implicit inj: Injector, cxt: WireContext, eventCo
     */
   private def registerTrackingEventListeners(zms: ZMessaging) = {
 
+    val loader      = zms.assetLoader
+    val messages    = zms.messagesStorage
+    val assets      = zms.assetsStorage
+    val convsUI     = zms.convsUi
+    val handlesSync = zms.handlesSync
+    val connStats   = zms.websocket.connectionStats
+
+    convsUI.assetUploadStarted.map(_.id) { assetTrackingData(_).map {
+      case AssetTrackingData(convType, withOtto, exp, assetSize, m) =>
+        import ContributionEvent._
+        tagEvent(ContributionEvent(fromMime(m), convType, exp, withOtto))
+    }}
   }
 
   def tagEvent(event: TrackingEvent) = {
+    verbose(
+      s"""
+         |tagEvent: isTrackingEnabled?: $isTrackingEnabled
+         |${event.name}
+         |${event.props.toString(2)}
+      """.stripMargin
+    )
+    mixpanel.track(event.name, event.props)
+  }
 
+  protected[tracking] def convInfo() = for {
+    z <- zMessaging.head
+    c <- currentConv.head
+    otto <- isOtto(c, z.usersStorage)
+  } yield {
+    (c, otto)
   }
 
   private def isTrackingEnabled =
@@ -133,7 +162,18 @@ class GlobalTrackingController(implicit inj: Injector, cxt: WireContext, eventCo
       Some(conv)  <- zms.convsContent.convById(msg.convId)
       Some(asset) <- zms.assetsStorage.get(id)
       withOtto    <- isOtto(conv, zms.usersStorage)
-    } yield AssetTrackingData(conv.convType, withOtto, msg.isEphemeral, msg.ephemeral, asset.size, asset.mime)
+    } yield AssetTrackingData(conv.convType, withOtto, msg.ephemeral, asset.size, asset.mime)
+  }
+
+  /**
+    * The following methods are for java classes to keep them a little tidier - would be nice to eventually remove them
+    */
+  def onShareLocation() = convInfo().map {
+    case (conv, withOtto) => tagEvent(ContributionEvent(Action.Location, conv, withOtto))
+  }
+
+  def onShareGif() = convInfo().map {
+    case (conv, withOtto) => tagEvent(ContributionEvent(Action.Text, conv, withOtto))
   }
 
 }
@@ -148,5 +188,5 @@ object GlobalTrackingController {
     if (conv.convType == ConversationType.OneToOne) users.get(UserId(conv.id.str)).map(_.exists(_.isWireBot))(Threading.Background)
     else successful(false)
 
-  case class AssetTrackingData(conversationType: ConversationType, withOtto: Boolean, isEphemeral: Boolean, expiration: EphemeralExpiration, assetSize: Long, mime:Mime)
+  case class AssetTrackingData(conversationType: ConversationType, withOtto: Boolean, expiration: EphemeralExpiration, assetSize: Long, mime:Mime)
 }

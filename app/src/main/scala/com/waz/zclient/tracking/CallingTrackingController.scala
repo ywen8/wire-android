@@ -20,8 +20,9 @@ package com.waz.zclient.tracking
 import android.content.Context
 import com.waz.ZLog.ImplicitTag._
 import com.waz.ZLog._
-import com.waz.api.NetworkMode
+import com.waz.api.{EphemeralExpiration, NetworkMode}
 import com.waz.model.ConvId
+import com.waz.model.ConversationData.ConversationType.{Group, OneToOne}
 import com.waz.service.call.Avs.ClosedReason.{Interrupted, Normal}
 import com.waz.service.call.CallInfo.CallState
 import com.waz.service.call.CallInfo.CallState._
@@ -29,6 +30,7 @@ import com.waz.threading.Threading
 import com.waz.utils.RichInstant
 import com.waz.utils.events.EventContext
 import com.waz.zclient.calling.controllers.GlobalCallingController
+import com.waz.zclient.tracking.ContributionEvent.Action
 import com.waz.zclient.{Injectable, Injector}
 import org.threeten.bp.Instant
 
@@ -80,9 +82,7 @@ class CallingTrackingController(implicit injector: Injector, ctx: Context, ec: E
 //              tagEvent(ReceivedCallEvent(v3Call, isVideoCall, isGroupCall, wasUiActive, withOtto))
 
             case SelfCalling =>
-              //The extra CompletedMediaActionEvent is here to simplify contributor events on localytics
-
-//              tagEvent(new CompletedMediaActionEvent(if (isVideoCall) VIDEO_CALL else AUDIO_CALL, if (isGroupCall) "GROUP" else "ONE_TO_ONE", withOtto, false, ""))
+              tagEvent(ContributionEvent(if (isVideoCall) Action.VideoCall else Action.AudioCall, if (isGroupCall) Group else OneToOne, EphemeralExpiration.NONE, withOtto))
 //              tagEvent(StartedCallEvent(v3Call, isVideoCall, isGroupCall, withOtto))
 
             case SelfJoining => //For calling v3, this will only ever be for incoming calls

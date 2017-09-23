@@ -32,6 +32,7 @@ import com.waz.zclient.messages.LikesController
 import com.waz.zclient.messages.MessageBottomSheetDialog.MessageAction
 import com.waz.zclient.messages.MessageBottomSheetDialog.MessageAction.{Copy, Forward, Like, Unlike}
 import com.waz.zclient.messages.controllers.MessageActionsController
+import com.waz.zclient.tracking.ContributionEvent.Action
 import com.waz.zclient.utils.LayoutSpec
 import com.waz.zclient.{Injectable, Injector}
 import org.threeten.bp.Duration
@@ -55,19 +56,9 @@ class UiTrackingController(implicit injector: Injector, ctx: Context, ec: EventC
   val sharingController     = inject[SharingController]
   val cursorController      = inject[CursorController]
 
-  val zms                   = inject[Signal[ZMessaging]]
-  val conversation          = inject[Signal[ConversationData]]
-  val convInfo = for {
-    z <- zms
-    c <- conversation
-    user <- z.usersStorage.signal(c.creator)
-  } yield {
-    (c, c.convType == ConversationType.OneToOne && user.isWireBot)
-  }
-
   def withConv[T](stream: EventStream[T]): EventStream[(T, ConversationData, Boolean)] =
     new FutureEventStream[T, (T, ConversationData, Boolean)](stream, { ev =>
-      convInfo.head map { case (tpe, otto) => (ev, tpe, otto) }
+      convInfo().map { case (tpe, otto) => (ev, tpe, otto) }
     })
 
   msgActionController.onMessageAction {
@@ -170,7 +161,7 @@ class UiTrackingController(implicit injector: Injector, ctx: Context, ec: EventC
 //        tagEvent(OpenedMediaActionEvent.cursorAction(OpenedMediaAction.PHOTO, conv, otto))
       }
     case (Ping, conv, otto) =>
-//      TrackingUtils.onSentPingMessage(global, conv, otto)
+      tagEvent(ContributionEvent(Action.Ping, conv.convType, conv.ephemeral, otto))
     case (Sketch, conv, otto) =>
 //      tagEvent(OpenedMediaActionEvent.cursorAction(OpenedMediaAction.SKETCH, conv, otto))
     case (File, conv, otto) =>
@@ -211,7 +202,7 @@ class UiTrackingController(implicit injector: Injector, ctx: Context, ec: EventC
   }
 
   withConv(cursorController.onMessageSent).on(Threading.Ui) { case (_, conv, otto) =>
-
+    tagEvent(ContributionEvent(Action.Text, conv.convType, conv.ephemeral, otto))
   }
 
   cursorController.onMessageEdited.on(Threading.Ui) { msg =>

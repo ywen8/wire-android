@@ -71,6 +71,7 @@ import com.waz.zclient.controllers.userpreferences.IUserPreferencesController;
 import com.waz.zclient.core.stores.conversation.ConversationChangeRequester;
 import com.waz.zclient.core.stores.conversation.ConversationStoreObserver;
 import com.waz.zclient.pages.BaseFragment;
+import com.waz.zclient.tracking.GlobalTrackingController;
 import com.waz.zclient.ui.text.GlyphTextView;
 import com.waz.zclient.ui.views.TouchRegisteringFrameLayout;
 import com.waz.zclient.utils.LayoutSpec;
@@ -503,6 +504,7 @@ public class LocationFragment extends BaseFragment<LocationFragment.Container> i
                 }
 
                 getControllerFactory().getLocationController().hideShareLocation(location);
+                inject(GlobalTrackingController.class).onShareLocation();
                 break;
         }
     }

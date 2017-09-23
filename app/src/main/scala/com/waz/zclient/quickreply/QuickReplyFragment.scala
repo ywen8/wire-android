@@ -35,7 +35,8 @@ import com.waz.utils.returning
 import com.waz.zclient.controllers.SharingController
 import com.waz.zclient.controllers.global.AccentColorController
 import com.waz.zclient.pages.main.popup.ViewPagerLikeLayoutManager
-import com.waz.zclient.tracking.GlobalTrackingController
+import com.waz.zclient.tracking.ContributionEvent.Action
+import com.waz.zclient.tracking.{ContributionEvent, GlobalTrackingController}
 import com.waz.zclient.ui.text.{TypefaceEditText, TypefaceTextView}
 import com.waz.zclient.ui.utils.KeyboardUtils
 import com.waz.zclient.utils._
@@ -136,6 +137,7 @@ class QuickReplyFragment extends Fragment with FragmentHelper {
           } {
             textView.setEnabled(true)
             if (msg.isDefined) {
+              tracking.tagEvent(ContributionEvent(Action.Text, c.convType, c.ephemeral, isOtto))
               getActivity.finish()
             }
           }
