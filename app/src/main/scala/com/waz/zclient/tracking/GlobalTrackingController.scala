@@ -22,7 +22,7 @@ import com.waz.ZLog.ImplicitTag._
 import com.waz.ZLog._
 import com.waz.api.EphemeralExpiration
 import com.waz.api.Message.Type._
-import com.waz.content.UsersStorage
+import com.waz.content.{UserPreferences, UsersStorage}
 import com.waz.model.ConversationData.ConversationType
 import com.waz.model.UserData.ConnectionStatus.Blocked
 import com.waz.model.{UserId, _}
@@ -31,8 +31,8 @@ import com.waz.threading.Threading
 import com.waz.utils._
 import com.waz.utils.events.{EventContext, Signal}
 import com.waz.zclient._
-import com.waz.zclient.preferences.PreferencesController
 import com.waz.zclient.tracking.ContributionEvent.Action
+import org.json.JSONObject
 
 import scala.concurrent.Future
 import scala.concurrent.Future._
@@ -48,6 +48,8 @@ class GlobalTrackingController(implicit inj: Injector, cxt: WireContext, eventCo
   val zmsOpt      = inject[Signal[Option[ZMessaging]]]
   val zMessaging  = inject[Signal[ZMessaging]]
   val currentConv = inject[Signal[ConversationData]]
+
+  val trackingEnabled = zMessaging.flatMap(_.userPrefs.preference(UserPreferences.AnalyticsEnabled).signal).disableAutowiring()
 
   inject[ZmsLifeCycle].uiActive.onChanged {
     case false =>
@@ -92,19 +94,42 @@ class GlobalTrackingController(implicit inj: Injector, cxt: WireContext, eventCo
     convsUI.assetUploadStarted.map(_.id) { assetTrackingData(_).map {
       case AssetTrackingData(convType, withOtto, exp, assetSize, m) =>
         import ContributionEvent._
-        tagEvent(ContributionEvent(fromMime(m), convType, exp, withOtto))
+        trackEvent(ContributionEvent(fromMime(m), convType, exp, withOtto))
     }}
   }
 
-  def tagEvent(event: TrackingEvent) = {
-    verbose(
-      s"""
-         |tagEvent: isTrackingEnabled?: $isTrackingEnabled
-         |${event.name}
-         |${event.props.toString(2)}
-      """.stripMargin
-    )
-    if (isTrackingEnabled) mixpanel.foreach(_.track(event.name, event.props))
+  def trackEvent(event: TrackingEvent): Unit = {
+    def send() = {
+      verbose(
+        s"""
+           |trackEvent: ${event.name}
+           |properties: ${event.props.map(_.toString(2))}
+      """.stripMargin)
+      mixpanel.foreach(_.track(event.name, event.props.orNull))
+    }
+
+    event match {
+      case OptEvent(enabled) =>
+        send() //always send opt events (isTrackingEnabled will be false when the user opts out)
+        mixpanel.foreach { m =>
+          if (enabled) {
+            verbose("Opted in to analytics, re-registering")
+            m.unregisterSuperProperty(MixpanelIgnoreProperty)
+          }
+          else {
+            verbose("Opted out of analytics, flushing and de-registering")
+            m.flush()
+            m.registerSuperProperties(returning(new JSONObject()) { o =>
+              o.put(MixpanelIgnoreProperty, true)
+            })
+          }
+        }
+      case _ =>
+        trackingEnabled.head.map {
+          case true => send()
+          case _ => //no action
+        }
+    }
   }
 
   protected[tracking] def convInfo() = for {
@@ -114,8 +139,6 @@ class GlobalTrackingController(implicit inj: Injector, cxt: WireContext, eventCo
   } yield {
     (c, otto)
   }
-
-  private def isTrackingEnabled = inject[PreferencesController].isAnalyticsEnabled
 
   //-1 is the default value for non-logged in users (when zms is not defined)
   private def setCustomDims(): Future[Unit] = {
@@ -166,19 +189,21 @@ class GlobalTrackingController(implicit inj: Injector, cxt: WireContext, eventCo
     * The following methods are for java classes to keep them a little tidier - would be nice to eventually remove them
     */
   def onShareLocation() = convInfo().map {
-    case (conv, withOtto) => tagEvent(ContributionEvent(Action.Location, conv, withOtto))
+    case (conv, withOtto) => trackEvent(ContributionEvent(Action.Location, conv, withOtto))
   }
 
   def onShareGif() = convInfo().map {
-    case (conv, withOtto) => tagEvent(ContributionEvent(Action.Text, conv, withOtto))
+    case (conv, withOtto) => trackEvent(ContributionEvent(Action.Text, conv, withOtto))
   }
 
 }
 
 object GlobalTrackingController {
 
+  private lazy val MixpanelIgnoreProperty = "$ignore"
+
   //For build flavours that don't have tracking enabled, this should be None
-  protected lazy val MixpanelApiToken = Option(BuildConfig.MIXPANEL_APP_TOKEN).filter(_.nonEmpty)
+  private lazy val MixpanelApiToken = Option(BuildConfig.MIXPANEL_APP_TOKEN).filter(_.nonEmpty)
 
   private implicit class RichBoolean(val b: Boolean) extends AnyVal {
     def ? : Int = if (b) 1 else 0

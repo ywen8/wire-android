@@ -161,7 +161,7 @@ class UiTrackingController(implicit injector: Injector, ctx: Context, ec: EventC
 //        tagEvent(OpenedMediaActionEvent.cursorAction(OpenedMediaAction.PHOTO, conv, otto))
       }
     case (Ping, conv, otto) =>
-      tagEvent(ContributionEvent(Action.Ping, conv.convType, conv.ephemeral, otto))
+      trackEvent(ContributionEvent(Action.Ping, conv.convType, conv.ephemeral, otto))
     case (Sketch, conv, otto) =>
 //      tagEvent(OpenedMediaActionEvent.cursorAction(OpenedMediaAction.SKETCH, conv, otto))
     case (File, conv, otto) =>
@@ -202,7 +202,7 @@ class UiTrackingController(implicit injector: Injector, ctx: Context, ec: EventC
   }
 
   withConv(cursorController.onMessageSent).on(Threading.Ui) { case (_, conv, otto) =>
-    tagEvent(ContributionEvent(Action.Text, conv.convType, conv.ephemeral, otto))
+    trackEvent(ContributionEvent(Action.Text, conv.convType, conv.ephemeral, otto))
   }
 
   cursorController.onMessageEdited.on(Threading.Ui) { msg =>

@@ -82,7 +82,7 @@ class CallingTrackingController(implicit injector: Injector, ctx: Context, ec: E
 //              tagEvent(ReceivedCallEvent(v3Call, isVideoCall, isGroupCall, wasUiActive, withOtto))
 
             case SelfCalling =>
-              tagEvent(ContributionEvent(if (isVideoCall) Action.VideoCall else Action.AudioCall, if (isGroupCall) Group else OneToOne, EphemeralExpiration.NONE, withOtto))
+              trackEvent(ContributionEvent(if (isVideoCall) Action.VideoCall else Action.AudioCall, if (isGroupCall) Group else OneToOne, EphemeralExpiration.NONE, withOtto))
 //              tagEvent(StartedCallEvent(v3Call, isVideoCall, isGroupCall, withOtto))
 
             case SelfJoining => //For calling v3, this will only ever be for incoming calls

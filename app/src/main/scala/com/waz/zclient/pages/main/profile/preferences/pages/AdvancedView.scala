@@ -28,6 +28,7 @@ import com.waz.service.ZMessaging
 import com.waz.threading.{CancellableFuture, Threading}
 import com.waz.utils.returning
 import com.waz.zclient.pages.main.profile.preferences.views.{SwitchPreference, TextButton}
+import com.waz.zclient.tracking.{GlobalTrackingController, OptEvent}
 import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.utils.{BackStackKey, DebugUtils, _}
 import com.waz.zclient.{BuildConfig, R, ViewHelper}
@@ -63,7 +64,9 @@ class AdvancedViewImpl(context: Context, attrs: AttributeSet, style: Int) extend
     resetPush.setAlpha(if (enabled) 1.0f else 0.5f)
   }
 
-  analyticsSwitch.onCheckedChange { enabled => }
+  analyticsSwitch.onCheckedChange { enabled =>
+    inject[GlobalTrackingController].trackEvent(OptEvent(enabled))
+  }
 }
 
 case class AdvancedBackStackKey(args: Bundle = new Bundle()) extends BackStackKey(args) {

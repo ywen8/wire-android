@@ -26,19 +26,24 @@ import org.json.JSONObject
 
 sealed trait TrackingEvent {
   val name: String
-  val props: JSONObject
+  val props: Option[JSONObject]
+}
+
+case class OptEvent(enabled: Boolean) extends TrackingEvent {
+  override val name = s"settings.opted_${if (enabled) "in" else "out"}_tracking"
+  override val props = None
 }
 
 case class ContributionEvent(action: Action, conversationType: ConversationType, ephExp: EphemeralExpiration, withOtto: Boolean) extends TrackingEvent {
   override val name = "contributed"
 
-  override val props: JSONObject = returning(new JSONObject()) { o =>
+  override val props = Some(returning(new JSONObject()) { o =>
     o.put("action",               action.name)
     o.put("conversation_type",    if (conversationType == ConversationType.Group) "group" else "1:1")
     o.put("with_otto",            withOtto)
     o.put("is_ephemeral",         ephExp != EphemeralExpiration.NONE) //TODO is this flag necessary?
     o.put("ephemeral_expiration", ephExp.duration().toSeconds.toString)
-  }
+  })
 }
 
 object ContributionEvent {
