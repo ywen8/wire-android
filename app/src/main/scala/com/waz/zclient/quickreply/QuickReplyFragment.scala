@@ -137,7 +137,7 @@ class QuickReplyFragment extends Fragment with FragmentHelper {
           } {
             textView.setEnabled(true)
             if (msg.isDefined) {
-              tracking.trackEvent(ContributionEvent(Action.Text, c.convType, c.ephemeral, isOtto))
+              tracking.trackEvent(zs, ContributionEvent(Action.Text, c.convType, c.ephemeral, isOtto))
               getActivity.finish()
             }
           }

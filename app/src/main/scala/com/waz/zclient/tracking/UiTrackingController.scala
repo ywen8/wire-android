@@ -56,9 +56,17 @@ class UiTrackingController(implicit injector: Injector, ctx: Context, ec: EventC
   val sharingController     = inject[SharingController]
   val cursorController      = inject[CursorController]
 
-  def withConv[T](stream: EventStream[T]): EventStream[(T, ConversationData, Boolean)] =
-    new FutureEventStream[T, (T, ConversationData, Boolean)](stream, { ev =>
-      convInfo().map { case (tpe, otto) => (ev, tpe, otto) }
+  private def currentConvInfo() = for {
+    z <- zMessaging.head
+    c <- currentConv.head
+    otto <- isOtto(c, z.usersStorage)
+  } yield {
+    (z, c, otto)
+  }
+
+  private def withConv[T](stream: EventStream[T]): EventStream[(T, ZMessaging, ConversationData, Boolean)] =
+    new FutureEventStream[T, (T, ZMessaging, ConversationData, Boolean)](stream, { ev =>
+      currentConvInfo().map { case (zms, conv, otto) => (ev, zms, conv, otto) }
     })
 
   msgActionController.onMessageAction {
@@ -156,60 +164,60 @@ class UiTrackingController(implicit injector: Injector, ctx: Context, ec: EventC
 
   import CursorMenuItem._
   withConv(cursorController.onCursorItemClick).on(Threading.Ui) {
-    case (Camera, conv, otto) =>
+    case (Camera, zms, conv, otto) =>
       if (LayoutSpec.isTablet(ctx)) {
 //        tagEvent(OpenedMediaActionEvent.cursorAction(OpenedMediaAction.PHOTO, conv, otto))
       }
-    case (Ping, conv, otto) =>
-      trackEvent(ContributionEvent(Action.Ping, conv.convType, conv.ephemeral, otto))
-    case (Sketch, conv, otto) =>
+    case (Ping, zms, conv, otto) =>
+      trackEvent(zms, ContributionEvent(Action.Ping, conv.convType, conv.ephemeral, otto))
+    case (Sketch, zms, conv, otto) =>
 //      tagEvent(OpenedMediaActionEvent.cursorAction(OpenedMediaAction.SKETCH, conv, otto))
-    case (File, conv, otto) =>
+    case (File, zms, conv, otto) =>
 //      tagEvent(OpenedMediaActionEvent.cursorAction(OpenedMediaAction.FILE, conv, otto))
-    case (VideoMessage, conv, otto) =>
+    case (VideoMessage, zms, conv, otto) =>
 //      tagEvent(OpenedMediaActionEvent.cursorAction(OpenedMediaAction.VIDEO_MESSAGE, conv, otto))
-    case (Location, conv, otto) =>
+    case (Location, zms, conv, otto) =>
 //      tagEvent(OpenedMediaActionEvent.cursorAction(OpenedMediaAction.LOCATION, conv, otto))
-    case (More, conv, otto) =>
+    case (More, zms, conv, otto) =>
 //      tagEvent(new OpenedMoreActionsEvent(conv))
-    case (Gif, conv, otto) =>
+    case (Gif, zms, conv, otto) =>
 //      tagEvent(OpenedMediaActionEvent.cursorAction(OpenedMediaAction.GIPHY, conv, otto))
     case _ => // ignore
   }
 
   import com.waz.zclient.pages.extendedcursor.ExtendedCursorContainer.Type._
   withConv(cursorController.extendedCursor.onChanged).on(Threading.Ui) {
-    case (NONE, _, _) =>
-    case (VOICE_FILTER_RECORDING, conv, otto) =>
+    case (NONE, _, _, _) =>
+    case (VOICE_FILTER_RECORDING, zms, conv, otto) =>
 //      tagEvent(OpenedMediaActionEvent.cursorAction(OpenedMediaAction.AUDIO_MESSAGE, conv, otto))
-    case (IMAGES, conv, otto) =>
+    case (IMAGES, zms, conv, otto) =>
 //      tagEvent(OpenedMediaActionEvent.cursorAction(OpenedMediaAction.PHOTO, conv, otto))
     case _ => // ignore
   }
 
-  withConv(cursorController.onShowTooltip).on(Threading.Ui) { case ((item, _), conv, _) =>
+  withConv(cursorController.onShowTooltip).on(Threading.Ui) { case ((item, _), zms, conv, _) =>
 //      tagEvent(new OpenedActionHintEvent(item.name, conv))
   }
 
   withConv(cursorController.extendedCursor.onChanged).on(Threading.Ui) {
-    case (EMOJIS, conv, otto) =>
+    case (EMOJIS, zms, conv, otto) =>
 //        tagEvent(new OpenedEmojiKeyboardEvent(otto))
-    case (EPHEMERAL, conv, otto) =>
+    case (EPHEMERAL, zms, conv, otto) =>
         if (conv.ephemeral == EphemeralExpiration.NONE) {
 //          tagEvent(OpenedMediaActionEvent.ephemeral(conv, otto, false))
         }
     case _ => //ignore
   }
 
-  withConv(cursorController.onMessageSent).on(Threading.Ui) { case (_, conv, otto) =>
-    trackEvent(ContributionEvent(Action.Text, conv.convType, conv.ephemeral, otto))
+  withConv(cursorController.onMessageSent).on(Threading.Ui) { case (_, zms, conv, otto) =>
+    trackEvent(zms, ContributionEvent(Action.Text, conv.convType, conv.ephemeral, otto))
   }
 
   cursorController.onMessageEdited.on(Threading.Ui) { msg =>
 
   }
 
-  withConv(cursorController.onEphemeralExpirationSelected) { case (_, conv, otto) =>
+  withConv(cursorController.onEphemeralExpirationSelected) { case (_, zms, conv, otto) =>
 
   }
 
@@ -237,6 +245,18 @@ class UiTrackingController(implicit injector: Injector, ctx: Context, ec: EventC
       Some(conv) <- zms.convsContent.convById(convId)
       withOtto   <- isOtto(conv, zms.usersStorage)
     } yield ConversationTrackingData(conv.convType, withOtto)
+  }
+
+  /**
+    * The following methods assume that the current ZMS was the one used when performing the event (since the event was
+    * triggered by the UI)
+    */
+  def onShareLocation()          = trackOnCurrentZms((conv, withOtto) => ContributionEvent(Action.Location, conv, withOtto))
+  def onShareGif()               = trackOnCurrentZms((conv, withOtto) => ContributionEvent(Action.Text, conv, withOtto))
+  def onOptOut(enabled: Boolean) = trackOnCurrentZms((_, _)           => OptEvent(enabled))
+
+  private def trackOnCurrentZms(f: (ConversationData, Boolean) => TrackingEvent): Unit = currentConvInfo().map {
+    case (zms, conv, withOtto) => trackEvent(zms, f(conv, withOtto))
   }
 }
 
