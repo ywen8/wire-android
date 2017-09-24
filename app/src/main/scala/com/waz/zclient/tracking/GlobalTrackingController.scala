@@ -31,6 +31,7 @@ import com.waz.threading.Threading
 import com.waz.utils._
 import com.waz.utils.events.{EventContext, Signal}
 import com.waz.zclient._
+import com.waz.zclient.controllers.SignInController.SignInMethod
 import com.waz.zclient.tracking.ContributionEvent.fromMime
 import org.json.JSONObject
 
@@ -103,18 +104,25 @@ class GlobalTrackingController(implicit inj: Injector, cxt: WireContext, eventCo
     */
   def trackEvent(zms: ZMessaging, event: TrackingEvent): Unit = {
     def send() = {
-      val customSuperProperties = returning (new JSONObject()) { o =>
-        o.put("team.is_member", zms.teamId.isDefined)
-      }
-      verbose(
-        s"""
-           |trackEvent: ${event.name}
-           |properties: ${event.props.map(_.toString(2))}
-           |superProps: ${customSuperProperties.toString(2)}
-      """.stripMargin)
-      mixpanel.foreach { m =>
-        m.registerSuperProperties(customSuperProperties)
-        m.track(event.name, event.props.orNull)
+      for {
+        teamSize <- zms.teamId.fold(Future.successful(0))(_ => zms.teams.searchTeamMembers().head.map(_.size))
+      } yield {
+        val customSuperProperties = returning(new JSONObject()) { o =>
+          o.put("team.is_member", zms.teamId.isDefined)
+          o.put("team.size", teamSize) //TODO option of int for non-teams?
+        }
+
+        verbose(
+          s"""
+             |trackEvent: ${event.name}
+             |properties: ${event.props.map(_.toString(2))}
+             |superProps: ${customSuperProperties.toString(2)}
+          """.stripMargin)
+
+        mixpanel.foreach { m =>
+          m.registerSuperProperties(customSuperProperties)
+          m.track(event.name, event.props.orNull)
+        }
       }
     }
 
@@ -185,6 +193,17 @@ class GlobalTrackingController(implicit inj: Injector, cxt: WireContext, eventCo
       Some(asset) <- zms.assetsStorage.get(id)
       withOtto    <- isOtto(conv, zms.usersStorage)
     } yield AssetTrackingData(conv.convType, withOtto, msg.ephemeral, asset.size, asset.mime)
+  }
+
+  //Should wait until a ZMS instance exists before firing the event
+  def onSignInSuccessful(method: SignInMethod): Unit = {
+    for {
+      acc <- ZMessaging.currentAccounts.activeAccount.collect { case Some(acc) => acc }.head
+      zms <- ZMessaging.currentAccounts.activeZms.collect { case Some(zms) => zms }.head
+    } yield {
+      //TODO when are generic tokens still used?
+      trackEvent(zms, SignInEvent(method, acc.invitationToken))
+    }
   }
 
 }

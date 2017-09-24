@@ -27,6 +27,7 @@ import com.waz.zclient.AppEntryController.InsertPasswordStage
 import com.waz.zclient.controllers.SignInController._
 import com.waz.zclient.newreg.fragments.country.{Country, CountryController}
 import com.waz.zclient.pages.main.profile.validator.{EmailValidator, NameValidator, PasswordValidator}
+import com.waz.zclient.tracking.GlobalTrackingController
 import com.waz.zclient.{AppEntryController, EntryError, Injectable, Injector}
 
 import scala.concurrent.Future
@@ -34,6 +35,7 @@ import scala.concurrent.Future
 class SignInController(implicit inj: Injector, eventContext: EventContext, context: Context) extends Injectable with CountryController.Observer {
 
   private lazy val appEntryController = inject[AppEntryController]
+  private lazy val tracking           = inject[GlobalTrackingController]
 
   lazy val isAddingAccount = ZMessaging.currentAccounts.loggedInAccounts.map(_.exists(_.clientRegState == ClientRegistrationState.REGISTERED))
   val uiSignInState = Signal[SignInMethod](SignInMethod(Register, Phone))
@@ -52,7 +54,6 @@ class SignInController(implicit inj: Injector, eventContext: EventContext, conte
       email ! address
     case _ =>
   }
-
 
   Signal(appEntryController.entryStage, appEntryController.currentAccount).onUi {
     case (InsertPasswordStage, Some(acc)) if acc.email.isDefined =>
@@ -90,34 +91,40 @@ class SignInController(implicit inj: Injector, eventContext: EventContext, conte
 
   def attemptSignIn(): Future[Either[EntryError, Unit]] = {
     implicit val ec = Threading.Ui
-    uiSignInState.head.flatMap{
-      case SignInMethod(Login, Email) =>
-        for{
-          email <- email.head
-          password <- password.head
-          response <- appEntryController.loginEmail(email, password)
-        } yield response
-      case SignInMethod(Login, Phone) =>
-        for{
-          phone <- phone.head
-          code <- phoneCountry.head.map(_.getCountryCode)
-          response <- appEntryController.loginPhone(s"+$code$phone")
-        } yield response
-      case SignInMethod(Register, Email) =>
-        for{
-          name <- name.head
-          email <- email.head
-          password <- password.head
-          response <- appEntryController.registerEmail(name, email, password)
-        } yield response
-      case SignInMethod(Register, Phone) =>
-        for{
-          phone <- phone.head
-          code <- phoneCountry.head.map(_.getCountryCode)
-          response <- appEntryController.registerPhone(s"+$code$phone")
-        } yield response
-      case _ => Future.successful(Right(()))
-    }
+
+    for {
+      method <- uiSignInState.head
+      res    <- method match {
+        case SignInMethod(Login, Email) =>
+          for{
+            email    <- email.head
+            password <- password.head
+            response <- appEntryController.loginEmail(email, password)
+          } yield response
+        case SignInMethod(Login, Phone) =>
+          for {
+            phone    <- phone.head
+            code     <- phoneCountry.head.map(_.getCountryCode)
+            response <- appEntryController.loginPhone(s"+$code$phone")
+          } yield response
+        case m@SignInMethod(Register, Email) =>
+          for{
+            name     <- name.head
+            email    <- email.head
+            password <- password.head
+            response <- appEntryController.registerEmail(name, email, password)
+          } yield response
+
+        case SignInMethod(Register, Phone) =>
+          for{
+            phone    <- phone.head
+            code     <- phoneCountry.head.map(_.getCountryCode)
+            response <- appEntryController.registerPhone(s"+$code$phone")
+          } yield response
+        case _ => Future.successful(Right(()))
+      }
+      _ = tracking.onSignInSuccessful(method)
+    } yield res
   }
 
   override def onCountryHasChanged(country: Country): Unit = phoneCountry ! country

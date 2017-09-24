@@ -18,9 +18,11 @@
 package com.waz.zclient.tracking
 
 import com.waz.api.EphemeralExpiration
+import com.waz.api.Invitations.PersonalToken
 import com.waz.model.ConversationData.ConversationType
 import com.waz.model.{ConversationData, Mime}
 import com.waz.utils.returning
+import com.waz.zclient.controllers.SignInController.{Email, Login, Register, SignInMethod}
 import com.waz.zclient.tracking.ContributionEvent.Action
 import org.json.JSONObject
 
@@ -32,6 +34,25 @@ sealed trait TrackingEvent {
 case class OptEvent(enabled: Boolean) extends TrackingEvent {
   override val name = s"settings.opted_${if (enabled) "in" else "out"}_tracking"
   override val props = None
+}
+
+//TODO - handle generic invitation tokens
+case class SignInEvent(method: SignInMethod, invitation: Option[PersonalToken]) extends TrackingEvent {
+  override val name = method.signType match {
+    case Register => "registration.succeeded"
+    case Login    => "account.logged_in"
+  }
+  override val props = Some(returning (new JSONObject()) { o =>
+    val input = if (method.inputType == Email) "email" else "phone"
+    val context = method.signType match {
+      case Login                          => input
+      case Register if invitation.isEmpty => input
+      case _                              => s"personal_invite_$input"
+      //TODO - handle generic invitation tokens
+//      case _                              => s"generic_invite_$input"
+    }
+    o.put("context", context)
+  })
 }
 
 case class ContributionEvent(action: Action, conversationType: ConversationType, ephExp: EphemeralExpiration, withOtto: Boolean) extends TrackingEvent {
