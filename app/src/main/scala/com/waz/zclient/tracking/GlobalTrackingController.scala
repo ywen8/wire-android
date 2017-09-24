@@ -27,11 +27,11 @@ import com.waz.model.ConversationData.ConversationType
 import com.waz.model.UserData.ConnectionStatus.Blocked
 import com.waz.model.{UserId, _}
 import com.waz.service.{ZMessaging, ZmsLifeCycle}
-import com.waz.threading.Threading
+import com.waz.threading.{CancellableFuture, Threading}
 import com.waz.utils._
 import com.waz.utils.events.{EventContext, Signal}
 import com.waz.zclient._
-import com.waz.zclient.tracking.ContributionEvent.Action
+import com.waz.zclient.tracking.ContributionEvent.{Action, fromMime}
 import org.json.JSONObject
 
 import scala.concurrent.Future
@@ -77,6 +77,10 @@ class GlobalTrackingController(implicit inj: Injector, cxt: WireContext, eventCo
     case _ => //already registered to this zms, do nothing.
   }
 
+  //TODO we need a way of differentiating which events come from which account - right now, this property will be set for
+  //TODO the current in-foreground account, which means any background events from the other account will be inaccurately marked
+  zmsOpt.map(_.flatMap(_.teamId)) { id => registerSuperProperties("team.is_member" -> id.isDefined)}
+
   /**
     * Register tracking event listeners on SE services in this method. We need a method here, since whenever the signal
     * zms fires, we want to discard the previous reference to the subscriber. Not doing so will cause this class to keep
@@ -93,7 +97,6 @@ class GlobalTrackingController(implicit inj: Injector, cxt: WireContext, eventCo
 
     convsUI.assetUploadStarted.map(_.id) { assetTrackingData(_).map {
       case AssetTrackingData(convType, withOtto, exp, assetSize, m) =>
-        import ContributionEvent._
         trackEvent(ContributionEvent(fromMime(m), convType, exp, withOtto))
     }}
   }
@@ -104,6 +107,7 @@ class GlobalTrackingController(implicit inj: Injector, cxt: WireContext, eventCo
         s"""
            |trackEvent: ${event.name}
            |properties: ${event.props.map(_.toString(2))}
+           |${if (true) s"superProps: ${mixpanel.map(_.getSuperProperties.toString(2))}" else "" }
       """.stripMargin)
       mixpanel.foreach(_.track(event.name, event.props.orNull))
     }
@@ -194,6 +198,14 @@ class GlobalTrackingController(implicit inj: Injector, cxt: WireContext, eventCo
 
   def onShareGif() = convInfo().map {
     case (conv, withOtto) => trackEvent(ContributionEvent(Action.Text, conv, withOtto))
+  }
+
+  private def registerSuperProperties(props: (String, _)*) = {
+    mixpanel.foreach(_.registerSuperProperties(returning (new JSONObject()) { o =>
+      props.toMap.foreach {
+        case (key, v) => o.put(key, v)
+      }
+    }))
   }
 
 }
