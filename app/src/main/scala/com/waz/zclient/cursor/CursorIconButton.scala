@@ -44,12 +44,12 @@ import com.waz.ZLog.ImplicitTag._
 import com.waz.api.AccentColor
 import com.waz.threading.Threading
 import com.waz.utils.events.Signal
-import com.waz.utils.returning
 import com.waz.zclient.ViewHelper
 import com.waz.zclient.ui.R
 import com.waz.zclient.ui.text.GlyphTextView
 import com.waz.zclient.ui.theme.ThemeUtils
 import com.waz.zclient.ui.utils.ColorUtils
+import com.waz.zclient.ui.views.FilledCircularBackgroundDrawable
 import com.waz.zclient.utils._
 
 
@@ -152,12 +152,12 @@ class CursorIconButton(context: Context, attrs: AttributeSet, defStyleAttr: Int)
       val darken = 1.0f - CursorIconButton.DARKEN_FACTOR
       Color.rgb((Color.red(pressedColor) * darken).toInt, (Color.green(pressedColor) * darken).toInt, (Color.blue(pressedColor) * darken).toInt)
     } else pressedColor)
-    val pressedBgColor = new CircleDrawable(pressed, getDimenPx(R.dimen.cursor__menu_button__diameter))
+    val pressedBgColor = new FilledCircularBackgroundDrawable(pressed, getDimenPx(R.dimen.cursor__menu_button__diameter))
     val states = new StateListDrawable
     states.addState(Array(android.R.attr.state_pressed), pressedBgColor)
     states.addState(Array(android.R.attr.state_focused), pressedBgColor)
     states.addState(Array(-android.R.attr.state_enabled), pressedBgColor)
-    states.addState(Array[Int](), new CircleDrawable(defaultColor, getDimenPx(R.dimen.cursor__menu_button__diameter)))
+    states.addState(Array[Int](), new FilledCircularBackgroundDrawable(defaultColor, getDimenPx(R.dimen.cursor__menu_button__diameter)))
     states
   }
 }
@@ -167,17 +167,4 @@ object CursorIconButton {
   private val PRESSED_ALPHA__DARK = 0.40f
   private val THRESHOLD = 0.55f
   private val DARKEN_FACTOR = 0.1f
-
-
-  class CircleDrawable(color: Int, diameter: Float) extends Drawable {
-    val paint = returning(new Paint) { _.setColor(color) }
-
-    override def setColorFilter(colorFilter: ColorFilter): Unit = paint.setColorFilter(colorFilter)
-    override def getOpacity: Int = PixelFormat.TRANSPARENT
-    override def setAlpha(a: Int): Unit = paint.setAlpha(a)
-    override def draw(canvas: Canvas): Unit = {
-      val b = getBounds
-      canvas.drawCircle(b.exactCenterX(), b.exactCenterY(), math.min(diameter, b.width().min(b.height())) / 2, paint)
-    }
-  }
 }
