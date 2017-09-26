@@ -94,7 +94,6 @@ abstract class ConversationListFragment extends BaseFragment[ConversationListFra
 
   private def handleItemClick(conversationData: ConversationData): Unit = {
     val iConversation = getStoreFactory.conversationStore.getConversation(conversationData.id.str)
-    getControllerFactory.getLoadTimeLoggerController.clickConversationInList()
 
     val conversationChangeRequester =
       if (conversationData.archived)

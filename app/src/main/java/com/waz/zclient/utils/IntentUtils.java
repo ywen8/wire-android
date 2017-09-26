@@ -25,9 +25,9 @@ import android.content.pm.PackageInfo;
 import android.net.Uri;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
-import com.waz.api.ZmsVersion;
 import com.waz.utils.wrappers.AndroidURIUtil;
 import com.waz.utils.wrappers.URI;
+import com.waz.zclient.BuildConfig;
 import com.waz.zclient.R;
 import com.waz.zclient.controllers.notifications.ShareSavedImageActivity;
 import hugo.weaving.DebugLog;
@@ -155,7 +155,7 @@ public class IntentUtils {
         Intent intent = new Intent(Intent.ACTION_SEND);
         intent.setType("vnd.android.cursor.dir/email");
         String[] to;
-        if (ZmsVersion.DEBUG) {
+        if (BuildConfig.DEVELOPER_FEATURES_ENABLED) {
             to = new String[]{"android@wire.com"};
         } else {
             to = new String[]{"support@wire.com"};

@@ -177,7 +177,6 @@ class VerifyPhoneFragment extends BaseFragment[VerifyPhoneFragment.Container] wi
   }
 
   private def confirmCode(): Unit = {
-    getControllerFactory.getLoadTimeLoggerController.loginPressed()
     getContainer.enableProgress(true)
     KeyboardUtils.hideKeyboard(getActivity)
     appEntryController.verifyPhone(editTextCode.getText.toString).map {

@@ -18,7 +18,6 @@
 package com.waz.zclient;
 
 import android.content.Intent;
-import android.os.Bundle;
 import android.text.TextUtils;
 import com.waz.api.InitListener;
 import com.waz.api.Self;
@@ -29,12 +28,6 @@ import com.waz.zclient.utils.IntentUtils;
 
 public class LaunchActivity extends BaseActivity implements InitListener {
     public static final String TAG = LaunchActivity.class.getName();
-
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        getControllerFactory().getLoadTimeLoggerController().appStart();
-    }
 
     @Override
     public int getBaseTheme() {
@@ -84,7 +77,6 @@ public class LaunchActivity extends BaseActivity implements InitListener {
         } else {
             startSignUp();
         }
-        getControllerFactory().getLoadTimeLoggerController().hideLaunchScreen();
     }
 
     // Navigation //////////////////////////////////////////////////

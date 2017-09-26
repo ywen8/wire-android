@@ -98,127 +98,74 @@ android {
             applicationId "com.waz.zclient.dev"
             versionName majorVersion + android.defaultConfig.versionCode + "-dev"
             manifestPlaceholders = [applicationLabel       : "Wire Dev",
-                                    allowBackup            : "true",
                                     applicationIcon        : "@drawable/ic_launcher_wire_dev",
                                     sharedUserId           : "",
-                                    use_audio_link         : "false",
                                     internal_features      : "true",
                                     localyticsAppKey       : getApiKey("localyticsAppKey"),
                                     hockeyAppKey           : getApiKey("hockeyAppKey")]
 
             buildConfigField 'boolean', 'USE_HOCKEY_UPDATE', 'true'
-            buildConfigField 'boolean', 'SHOW_GRIDOVERLAY', 'true'
-            buildConfigField 'boolean', 'SHOW_DEVELOPER_OPTIONS', 'true'
-            buildConfigField 'boolean', 'IS_LOADTIME_LOGGER_ENABLED', 'true'
-            buildConfigField 'boolean', 'SHOW_TEST_COUNTRY_CODE', 'true'
-            buildConfigField 'boolean', 'IS_TEST_GALLERY_ALLOWED', 'true'
-            buildConfigField 'boolean', 'SHOW_BACKEND_PICKER', 'true'
+            buildConfigField 'boolean', 'DEVELOPER_FEATURES_ENABLED', 'true'
             buildConfigField 'boolean', 'DISABLE_TRACKING_KEEP_LOGGING', 'true'
-            buildConfigField 'int', 'LOG_LEVEL_UI', logLevelWarn()
-            buildConfigField 'int', 'LOG_LEVEL_SE', logLevelSupress()
-            buildConfigField 'int', 'LOG_LEVEL_AVS', logLevelVerbose()
         }
 
         candidate {
             applicationId "com.wire.candidate"
             versionName majorVersion + android.defaultConfig.versionCode + "-candidate"
             manifestPlaceholders = [applicationLabel       : "Wire Candidate",
-                                    allowBackup            : "true",
                                     applicationIcon        : "@drawable/ic_launcher_wire_candidate",
                                     sharedUserId           : "",
-                                    use_audio_link         : "false",
                                     internal_features      : "false",
                                     localyticsAppKey       : getApiKey("localyticsAppKey"),
                                     hockeyAppKey           : getApiKey("hockeyAppKeyCand")]
 
             buildConfigField 'boolean', 'USE_HOCKEY_UPDATE', 'true'
-            buildConfigField 'boolean', 'SHOW_GRIDOVERLAY', 'true'
-            buildConfigField 'boolean', 'SHOW_DEVELOPER_OPTIONS', 'true'
-            buildConfigField 'boolean', 'IS_LOADTIME_LOGGER_ENABLED', 'true'
-            buildConfigField 'boolean', 'SHOW_TEST_COUNTRY_CODE', 'true'
-            buildConfigField 'boolean', 'SHOW_ADDRESS_BOOK_INVITATIONS', 'false'
-            buildConfigField 'boolean', 'IS_TEST_GALLERY_ALLOWED', 'true'
-            buildConfigField 'boolean', 'SHOW_BACKEND_PICKER', 'true'
+            buildConfigField 'boolean', 'DEVELOPER_FEATURES_ENABLED', 'true'
             buildConfigField 'boolean', 'DISABLE_TRACKING_KEEP_LOGGING', 'true'
-            buildConfigField 'int', 'LOG_LEVEL_UI', logLevelVerbose()
-            buildConfigField 'int', 'LOG_LEVEL_SE', logLevelVerbose()
-            buildConfigField 'int', 'LOG_LEVEL_AVS', logLevelVerbose()
         }
 
         prod {
             applicationId "com.wire"
             manifestPlaceholders = [applicationLabel       : "@string/app_name",
-                                    allowBackup            : "false",
                                     applicationIcon        : "@drawable/ic_launcher_wire",
                                     sharedUserId           : "com.waz.userid",
                                     internal_features      : "false",
-                                    use_audio_link         : "false",
                                     localyticsAppKey       : getApiKey("localyticsAppKeyProd"),
                                     hockeyAppKey           : getApiKey("hockeyAppKeyProd")]
 
             buildConfigField 'boolean', 'USE_HOCKEY_UPDATE', 'false'
-            buildConfigField 'boolean', 'SHOW_GRIDOVERLAY', 'false'
-            buildConfigField 'boolean', 'SHOW_DEVELOPER_OPTIONS', 'false'
-            buildConfigField 'boolean', 'IS_LOADTIME_LOGGER_ENABLED', 'false'
-            buildConfigField 'boolean', 'SHOW_TEST_COUNTRY_CODE', 'false'
-            buildConfigField 'boolean', 'IS_TEST_GALLERY_ALLOWED', 'false'
-            buildConfigField 'boolean', 'SHOW_BACKEND_PICKER', 'false'
+            buildConfigField 'boolean', 'DEVELOPER_FEATURES_ENABLED', 'false'
             buildConfigField 'boolean', 'DISABLE_TRACKING_KEEP_LOGGING', 'false'
-            buildConfigField 'int', 'LOG_LEVEL_UI', logLevelSupress()
-            buildConfigField 'int', 'LOG_LEVEL_SE', logLevelSupress()
-            buildConfigField 'int', 'LOG_LEVEL_AVS', logLevelSupress()
         }
 
         internal {
             applicationId "com.wire.internal"
             versionName majorVersion + android.defaultConfig.versionCode + "-internal"
             manifestPlaceholders = [applicationLabel : "Wire Internal",
-                                    allowBackup      : "false",
                                     applicationIcon  : "@drawable/ic_launcher_wire_internal",
                                     sharedUserId     : "",
-                                    use_audio_link   : "false",
-                                    gcm_enabled      : "false",
                                     internal_features: "true",
                                     localyticsAppKey : getApiKey("localyticsAppKey"),
                                     hockeyAppKey     : getApiKey("hockeyAppKeyInternal")]
 
             buildConfigField 'boolean', 'USE_HOCKEY_UPDATE', 'false'
-            buildConfigField 'boolean', 'SHOW_GRIDOVERLAY', 'false'
-            buildConfigField 'boolean', 'SHOW_DEVELOPER_OPTIONS', 'true'
-            buildConfigField 'boolean', 'IS_LOADTIME_LOGGER_ENABLED', 'false'
-            buildConfigField 'boolean', 'SHOW_TEST_COUNTRY_CODE', 'true'
-            buildConfigField 'boolean', 'SHOW_ADDRESS_BOOK_INVITATIONS', 'false'
-            buildConfigField 'boolean', 'IS_TEST_GALLERY_ALLOWED', 'true'
-            buildConfigField 'boolean', 'SHOW_BACKEND_PICKER', 'true'
+            buildConfigField 'boolean', 'DEVELOPER_FEATURES_ENABLED', 'true'
             buildConfigField 'boolean', 'DISABLE_TRACKING_KEEP_LOGGING', 'false'
-            buildConfigField 'int', 'LOG_LEVEL_UI', logLevelVerbose()
-            buildConfigField 'int', 'LOG_LEVEL_SE', logLevelVerbose()
-            buildConfigField 'int', 'LOG_LEVEL_AVS', logLevelVerbose()
         }
 
         avs {
             applicationId "com.wire.avs"
             versionName majorVersion + android.defaultConfig.versionCode + "-avs"
             manifestPlaceholders = [applicationLabel       : "Wire AVS",
-                                    allowBackup            : "true",
                                     applicationIcon        : "@drawable/ic_launcher_wire_playground",
                                     sharedUserId           : "",
-                                    use_audio_link         : "false",
                                     internal_features      : "true",
                                     localyticsAppKey       : getApiKey("localyticsAppKey"),
                                     hockeyAppKey           : getApiKey("hockeyAppKeyAvs")]
 
             buildConfigField 'boolean', 'USE_HOCKEY_UPDATE', 'true'
-            buildConfigField 'boolean', 'SHOW_GRIDOVERLAY', 'true'
-            buildConfigField 'boolean', 'SHOW_DEVELOPER_OPTIONS', 'true'
-            buildConfigField 'boolean', 'IS_LOADTIME_LOGGER_ENABLED', 'false'
-            buildConfigField 'boolean', 'SHOW_TEST_COUNTRY_CODE', 'false'
-            buildConfigField 'boolean', 'IS_TEST_GALLERY_ALLOWED', 'false'
-            buildConfigField 'boolean', 'SHOW_BACKEND_PICKER', 'true'
+            buildConfigField 'boolean', 'DEVELOPER_FEATURES_ENABLED', 'true'
             buildConfigField 'boolean', 'DISABLE_TRACKING_KEEP_LOGGING', 'false'
-            buildConfigField 'int', 'LOG_LEVEL_UI', logLevelSupress()
-            buildConfigField 'int', 'LOG_LEVEL_SE', logLevelVerbose()
-            buildConfigField 'int', 'LOG_LEVEL_AVS', logLevelVerbose()
         }
 
         qa {
@@ -226,51 +173,30 @@ android {
             applicationId "com.wire.qa"
             versionName majorVersion + android.defaultConfig.versionCode + "-qa"
             manifestPlaceholders = [applicationLabel       : "Wire QA",
-                                    allowBackup            : "true",
                                     applicationIcon        : "@drawable/ic_launcher_wire_qa",
                                     sharedUserId           : "",
-                                    use_audio_link         : "false",
                                     internal_features      : "true",
                                     localyticsAppKey       : getApiKey("localyticsAppKey"),
                                     hockeyAppKey           : getApiKey("hockeyAppKeyQa")]
 
             buildConfigField 'boolean', 'USE_HOCKEY_UPDATE', 'true'
-            buildConfigField 'boolean', 'SHOW_GRIDOVERLAY', 'true'
-            buildConfigField 'boolean', 'SHOW_DEVELOPER_OPTIONS', 'true'
-            buildConfigField 'boolean', 'IS_LOADTIME_LOGGER_ENABLED', 'false'
-            buildConfigField 'boolean', 'SHOW_TEST_COUNTRY_CODE', 'true'
-            buildConfigField 'boolean', 'SHOW_ADDRESS_BOOK_INVITATIONS', 'false'
-            buildConfigField 'boolean', 'IS_TEST_GALLERY_ALLOWED', 'true'
-            buildConfigField 'boolean', 'SHOW_BACKEND_PICKER', 'true'
+            buildConfigField 'boolean', 'DEVELOPER_FEATURES_ENABLED', 'true'
             buildConfigField 'boolean', 'DISABLE_TRACKING_KEEP_LOGGING', 'true'
-            buildConfigField 'int', 'LOG_LEVEL_UI', logLevelVerbose()
-            buildConfigField 'int', 'LOG_LEVEL_SE', logLevelVerbose()
-            buildConfigField 'int', 'LOG_LEVEL_AVS', logLevelVerbose()
         }
 
         experimental {
             applicationId "com.wire.x"
             versionName majorVersion + android.defaultConfig.versionCode + "-exp"
             manifestPlaceholders = [applicationLabel       : "Wire Exp",
-                                    allowBackup            : "true",
                                     applicationIcon        : "@drawable/ic_launcher_wire_playground",
                                     sharedUserId           : "",
-                                    use_audio_link         : "false",
                                     internal_features      : "true",
                                     localyticsAppKey       : getApiKey("localyticsAppKey"),
                                     hockeyAppKey           : getApiKey("hockeyAppKeyExperimental")]
 
             buildConfigField 'boolean', 'USE_HOCKEY_UPDATE', 'true'
-            buildConfigField 'boolean', 'SHOW_GRIDOVERLAY', 'true'
-            buildConfigField 'boolean', 'SHOW_DEVELOPER_OPTIONS', 'true'
-            buildConfigField 'boolean', 'IS_LOADTIME_LOGGER_ENABLED', 'true'
-            buildConfigField 'boolean', 'SHOW_TEST_COUNTRY_CODE', 'true'
-            buildConfigField 'boolean', 'IS_TEST_GALLERY_ALLOWED', 'true'
-            buildConfigField 'boolean', 'SHOW_BACKEND_PICKER', 'true'
+            buildConfigField 'boolean', 'DEVELOPER_FEATURES_ENABLED', 'true'
             buildConfigField 'boolean', 'DISABLE_TRACKING_KEEP_LOGGING', 'false'
-            buildConfigField 'int', 'LOG_LEVEL_UI', logLevelVerbose()
-            buildConfigField 'int', 'LOG_LEVEL_SE', logLevelVerbose()
-            buildConfigField 'int', 'LOG_LEVEL_AVS', logLevelVerbose()
         }
     }
 
@@ -397,20 +323,6 @@ def getApiKey(String property) {
         return java.util.UUID.randomUUID().toString().replaceAll("-", "")
     }
 }
-
-// Same values as in log_levels.xml
-// (workaround for R not being available in BuildConfig for test flavor)
-def logLevelVerbose() { return '2' }
-
-def logLevelDebug() { return '3' }
-
-def logLevelInfo() { return '4' }
-
-def logLevelWarn() { return '5' }
-
-def logLevelError() { return '6' }
-
-def logLevelSupress() { return '99' }
 
 //add pretty naming to apk filename
 android.applicationVariants.all { variant ->

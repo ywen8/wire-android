@@ -252,11 +252,7 @@ public class ConversationPagerFragment extends BaseFragment<ConversationPagerFra
     }
 
     @Override
-    public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
-        if (position == 1) {
-            getControllerFactory().getLoadTimeLoggerController().conversationPageVisible();
-        }
-    }
+    public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) { }
 
     @Override
     public void onPageSelected(int position) {

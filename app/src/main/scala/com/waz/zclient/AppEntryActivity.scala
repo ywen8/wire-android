@@ -220,14 +220,6 @@ class AppEntryActivity extends BaseActivity
     }
   }
 
-  def onInvitationFailed(): Unit = {
-    Toast.makeText(this, getString(R.string.invitation__email__failed), Toast.LENGTH_SHORT).show()
-  }
-
-  def onInvitationSuccess(): Unit = {
-    getControllerFactory.getUserPreferencesController.setPersonalInvitationToken(null)
-  }
-
   def onShowPhoneCodePage(): Unit = {
     if (isPaused) {
       return

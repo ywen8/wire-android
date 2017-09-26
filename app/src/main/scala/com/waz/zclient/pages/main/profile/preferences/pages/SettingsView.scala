@@ -23,7 +23,6 @@ import android.util.AttributeSet
 import android.view.View
 import android.widget.LinearLayout
 import com.waz.ZLog
-import com.waz.api.ZmsVersion
 import com.waz.service.ZMessaging
 import com.waz.threading.Threading
 import com.waz.utils.events.{EventContext, EventStream, Signal}
@@ -135,6 +134,6 @@ class SettingsViewController(view: SettingsView)(implicit inj: Injector, ec: Eve
     view.setInviteButtonEnabled(team.isEmpty)
   }
 
-  view.setDevSettingsEnabled(ZmsVersion.DEBUG)
+  view.setDevSettingsEnabled(BuildConfig.DEVELOPER_FEATURES_ENABLED)
 }
 

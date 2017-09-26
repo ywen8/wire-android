@@ -117,7 +117,6 @@
     <string translatable="false" name="pref_support_website_key">pref_support_website_key</string>
     <string translatable="false" name="pref_support_contact_key">pref_support_contact_key</string>
     <string translatable="false" name="pref_invite_key">pref_invite_key</string>
-    <string translatable="false" name="pref_force_verbose_key">pref_force_verbose_key</string>
 
     <!-- Other-->
     <string translatable="false" name="empty_string" />
@@ -147,8 +146,6 @@
     <string translatable="false" name="pref_dev_otr_only_summary">Send only encrypted messages</string>
     <string translatable="false" name="pref_dev_version_info_id_key">USER_PREFS_DEV_VERSIONS_ID</string>
     <string translatable="false" name="pref_dev_version_info_id_title">Versions</string>
-    <string translatable="false" name="pref_dev_verbose_logging_enabled">Verbose logging enabled</string>
-    <string translatable="false" name="pref_dev_verbose_logging_disabled">Verbose logging disabled</string>
 
     <!--Notifications preferences-->
     <string translatable="false" name="pref_dev_category_notifications_key">PREF_NOTIFICATIONS_CATEGORY</string>

@@ -306,7 +306,6 @@ public class ConversationListManagerFragment extends BaseFragment<ConversationLi
                 return;
             case COMPLETED:
                 listLoadingIndicatorView.hide();
-                getControllerFactory().getLoadTimeLoggerController().loginSuccess();
                 break;
             case FAILED:
             default:

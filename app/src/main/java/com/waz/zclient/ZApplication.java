@@ -18,20 +18,16 @@
 package com.waz.zclient;
 
 import android.app.Activity;
-import android.content.Context;
 import android.graphics.Typeface;
 import android.support.annotation.Nullable;
 import com.jakewharton.threetenabp.AndroidThreeTen;
 import com.localytics.android.Localytics;
 import com.localytics.android.LocalyticsActivityLifecycleCallbacks;
-import com.waz.api.impl.LogLevel;
 import com.waz.api.impl.AccentColors;
 import com.waz.zclient.controllers.IControllerFactory;
-import com.waz.zclient.controllers.userpreferences.UserPreferencesController;
 import com.waz.zclient.core.stores.IStoreFactory;
 import com.waz.zclient.ui.text.TypefaceFactory;
 import com.waz.zclient.ui.text.TypefaceLoader;
-import com.waz.zclient.utils.BuildConfigUtils;
 import com.waz.zclient.utils.WireLoggerTree;
 import timber.log.Timber;
 
@@ -100,7 +96,7 @@ public class ZApplication extends WireApplication implements ServiceContainer {
     public void onCreate() {
         super.onCreate();
 
-        setLogLevels(this);
+        setLogLevels();
         AndroidThreeTen.init(this);
         TypefaceFactory.getInstance().init(typefaceloader);
 
@@ -114,16 +110,12 @@ public class ZApplication extends WireApplication implements ServiceContainer {
         Localytics.setPushDisabled(false);
     }
 
-    public static void setLogLevels(Context context) {
+    public static void setLogLevels() {
         Timber.uprootAll();
-        boolean forceVerbose =  context.getSharedPreferences(UserPreferencesController.USER_PREFS_TAG, Context.MODE_PRIVATE)
-                                       .getBoolean(context.getString(R.string.pref_force_verbose_key), false);
-        if (com.waz.zclient.BuildConfig.DEBUG || forceVerbose) {
+        if (BuildConfig.DEVELOPER_FEATURES_ENABLED) {
             Timber.plant(new Timber.DebugTree());
-            LogLevel.setMinimumLogLevel(android.util.Log.VERBOSE);
         } else {
             Timber.plant(new WireLoggerTree());
-            LogLevel.setMinimumLogLevel(BuildConfigUtils.getLogLevelSE(context));
         }
     }
 

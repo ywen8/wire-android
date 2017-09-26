@@ -25,7 +25,7 @@ public class WireLoggerTree extends Timber.DebugTree {
     private final int minLogLevel;
 
     public WireLoggerTree() {
-        minLogLevel = BuildConfig.LOG_LEVEL_UI;
+        minLogLevel = BuildConfig.DEVELOPER_FEATURES_ENABLED ? 2 : 99;
     }
 
     @Override
