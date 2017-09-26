@@ -202,7 +202,7 @@ class CurrentCallController(implicit inj: Injector, cxt: WireContext) extends In
 
   val vbrEnabled: Signal[String] = callingService.flatMap(_.otherSideCBR).map {
     case false => ""
-    case true => cxt.getString(R.string.audio_message__constant_bit_rate)
+    case true => "" // TODO re-enable CBR when avs is fixed cxt.getString(R.string.audio_message__constant_bit_rate)
   }
 
   val speakerButton = ButtonSignal(zms.map(_.mediamanager), zms.flatMap(_.mediamanager.isSpeakerOn)) {
