@@ -17,13 +17,20 @@
  */
 package com.waz.zclient.pages.main.profile.preferences.pages
 
+import android.app.AlertDialog
 import android.content.Context
 import android.os.Bundle
 import android.util.AttributeSet
 import android.view.View
 import android.widget.LinearLayout
+import com.waz.zclient.pages.main.profile.preferences.views.TextButton
 import com.waz.zclient.{R, ViewHelper}
 import com.waz.zclient.utils.BackStackKey
+import android.content.DialogInterface
+import com.waz.content.UserPreferences.LastStableNotification
+import com.waz.model.Uid
+import com.waz.service.ZMessaging
+import com.waz.utils.events.Signal
 
 trait DevSettingsView
 
@@ -32,6 +39,28 @@ class DevSettingsViewImpl(context: Context, attrs: AttributeSet, style: Int) ext
   def this(context: Context) = this(context, null, 0)
 
   inflate(R.layout.preferences_dev_layout)
+
+  val randomLastIdButton = findById[TextButton](R.id.preferences_dev_generate_random_lastid)
+
+  randomLastIdButton.onClickEvent { _ =>
+    val randomUid = Uid()
+
+    new AlertDialog.Builder(context)
+      .setTitle("Random new value for LastStableNotification")
+      .setMessage(s"Sets LastStableNotification to $randomUid")
+      .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+        override def onClick(dialog: DialogInterface, which: Int): Unit = {
+          val zms = inject[Signal[ZMessaging]]
+          zms.map(_.userPrefs.preference(LastStableNotification)).onUi {
+            _ := Some(randomUid)
+          }
+        }
+        })
+      .setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
+        override def onClick(dialog: DialogInterface, which: Int): Unit = {}
+      })
+      .setIcon(android.R.drawable.ic_dialog_alert).show
+  }
 }
 
 case class DevSettingsBackStackKey(args: Bundle = new Bundle()) extends BackStackKey(args) {

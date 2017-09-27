@@ -103,6 +103,14 @@
                 app:key="@string/pref_dev_ws_foreground_key"
                 />
 
+            <com.waz.zclient.pages.main.profile.preferences.views.TextButton
+                android:id="@+id/preferences_dev_generate_random_lastid"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:title="@string/pref_dev_random_last_notification_id_title"
+                app:subtitle="@string/pref_dev_random_last_notification_id_summary"
+            />
+
         </LinearLayout>
 
     </ScrollView>
