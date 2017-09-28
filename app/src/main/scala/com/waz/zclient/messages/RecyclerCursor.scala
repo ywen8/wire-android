@@ -84,11 +84,11 @@ class RecyclerCursor(val conv: ConvId, zms: ZMessaging, val adapter: RecyclerNot
     if (!closed.currentValue.getOrElse(false)) {
       self.cursor ! Some(c)
       cursorLoaded ! true
-      window.cursorChanged(c)
       notifyFromHistory(c.createTime)
       countSignal ! c.size
       onChangedSub.foreach(_.destroy())
       onChangedSub = Some(c.onUpdate.on(Threading.Ui) { case (prev, current) => onUpdated(prev, current) })
+      window.cursorChanged(c)
     }
   }
 
@@ -122,7 +122,7 @@ class RecyclerCursor(val conv: ConvId, zms: ZMessaging, val adapter: RecyclerNot
     } yield cursor).flatMap {
       case Some(c) => c.asyncIndexOf(messageData.time, binarySearch = true)
       case _ => Future.successful(-1)
-    } (Threading.Background)
+    }
   }
 }
 
