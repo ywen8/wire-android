@@ -116,6 +116,11 @@ class ProfileAccountTab(val context: Context, val attrs: AttributeSet, val defSt
   icon.setImageDrawable(drawable)
   setLayerType(View.LAYER_TYPE_SOFTWARE, null)
 
+  teamAndUser.map {
+    case (userData, None) => userData.getDisplayName
+    case (userData, Some(team)) => team.name
+  }.onUi { setContentDescription }
+
   def setAccount(id: AccountId) = accountId ! id
 
 }
