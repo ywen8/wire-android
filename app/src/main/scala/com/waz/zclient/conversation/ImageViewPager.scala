@@ -31,7 +31,7 @@ import com.waz.api.MessageFilter
 import com.waz.model.{AssetId, MessageData}
 import com.waz.service.ZMessaging
 import com.waz.service.messages.MessageAndLikes
-import com.waz.threading.{CancellableFuture, Threading}
+import com.waz.threading.Threading
 import com.waz.utils.events.{EventContext, EventStream, Signal, SourceSignal, _}
 import com.waz.zclient.collection.controllers.CollectionController
 import com.waz.zclient.collection.controllers.CollectionController.Images
@@ -45,9 +45,12 @@ import com.waz.zclient.views.images.TouchImageView
 import com.waz.zclient.{Injectable, Injector, ViewHelper}
 
 import scala.collection.mutable
+import scala.concurrent.Future
 
 class ImageViewPager(context: Context, attrs: AttributeSet) extends ViewPager(context, attrs) with ViewHelper {
   def this(context: Context) = this(context, null)
+
+  implicit val exc = Threading.Ui
 
   lazy val collectionController = inject[CollectionController]
 
@@ -90,10 +93,16 @@ class ImageViewPager(context: Context, attrs: AttributeSet) extends ViewPager(co
     messageData.flatMap(adapter.positionForMessage).on(Threading.Ui) { pos =>
       if (pos >= 0)
         setCurrentItem(pos, false)
-      else {
-        collectionController.focusedItem ! adapter.getItem(getCurrentItem)
-      }
-
+    }
+    (for {
+      storage <- collectionController.msgStorage
+      currentMessage <- messageData.map(_.id)
+      message <- storage.optSignal(currentMessage)
+      refreshed <- RefreshingSignal(Future(adapter.getItem(getCurrentItem)), adapter.cursorChanged)
+    } yield (message, refreshed)).onUi {
+      case (m, Some(r)) if m.forall(_.isDeleted) =>
+        collectionController.focusedItem ! Some(r)
+      case _ =>
     }
     adapter
   }
@@ -128,7 +137,7 @@ class ImageSwipeAdapter(context: Context)(implicit injector: Injector, ev: Event
   private val zms = inject[Signal[ZMessaging]]
 
   private val selectedConversation = inject[ConversationController].currentConv
-  private val cursorChanged = EventStream[Unit]()
+  val cursorChanged = EventStream[Unit]()
 
   val notifier = new RecyclerNotifier(){
     override def notifyDataSetChanged(): Unit = self.notifyDataSetChanged()
@@ -154,10 +163,7 @@ class ImageSwipeAdapter(context: Context)(implicit injector: Injector, ev: Event
   implicit val executionContext = Threading.Ui
 
   def positionForMessage(msg: MessageData): Signal[Int] =
-    for {
-    c <- cursor
-    pos <- new RefreshingSignal(CancellableFuture.lift(c.positionForMessage(msg)), cursorChanged)
-  } yield pos
+    RefreshingSignal(cursor.head.flatMap(_.positionForMessage(msg)), cursorChanged)
 
   cursor.on(Threading.Ui) { c =>
     if (!recyclerCursor.contains(c)) {
