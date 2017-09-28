@@ -217,11 +217,11 @@ class PickUsersAdapter(topUsersOnItemTouchListener: SearchResultOnItemTouchListe
     }
   }
 
-  override def getItemViewType(position: Int) = mergedResult(position).itemType
+  override def getItemViewType(position: Int) = mergedResult.lift(position).fold(-1)(_.itemType)
 
-  override def getItemId(position: Int) = mergedResult(position).id
+  override def getItemId(position: Int) = mergedResult.lift(position).fold(-1L)(_.id)
 
-  def getSectionIndexForPosition(position: Int) = mergedResult(position).index
+  def getSectionIndexForPosition(position: Int) = mergedResult.lift(position).fold(-1)(_.index)
 
   private def expandContacts() = {
     collapsedContacts = false
