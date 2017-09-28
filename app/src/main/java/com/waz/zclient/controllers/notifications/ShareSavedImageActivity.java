@@ -39,10 +39,13 @@ public class ShareSavedImageActivity extends BaseActivity {
             return;
         }
 
-        URI sharedImageUri = new AndroidURI((Uri) intent.getParcelableExtra(Intent.EXTRA_STREAM));
-        if (sharedImageUri == null) {
+        URI sharedImageUri;
+        Uri uri = intent.getParcelableExtra(Intent.EXTRA_STREAM);
+        if (uri == null) {
             finish();
             return;
+        } else {
+            sharedImageUri = new AndroidURI(uri);
         }
 
         injectJava(ImageNotificationsController.class).dismissImageSavedNotification();
