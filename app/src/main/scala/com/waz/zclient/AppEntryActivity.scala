@@ -21,7 +21,7 @@ import android.content.res.Configuration
 import android.content.{DialogInterface, Intent}
 import android.graphics.Bitmap
 import android.net.Uri
-import android.os.Bundle
+import android.os.{Build, Bundle}
 import android.support.v4.app.FragmentTransaction
 import android.widget.Toast
 import com.localytics.android.Localytics
@@ -51,6 +51,7 @@ import com.waz.zclient.ui.utils.KeyboardUtils
 import com.waz.zclient.utils.{HockeyCrashReporting, ViewUtils, ZTimeFormatter}
 import com.waz.zclient.views.LoadingIndicatorView
 import net.hockeyapp.android.NativeCrashManager
+
 import scala.collection.JavaConverters._
 
 object AppEntryActivity {
@@ -193,7 +194,10 @@ class AppEntryActivity extends BaseActivity
     enableProgress(true)
     ZMessaging.currentAccounts.loggedInAccounts.head.map { accounts =>
       accounts.headOption.fold {
-        finishAfterTransition()
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP)
+          finish()
+        else
+          finishAfterTransition()
       } { acc =>
         ZMessaging.currentAccounts.switchAccount(acc.id).map { _ =>
           onEnterApplication(true)
