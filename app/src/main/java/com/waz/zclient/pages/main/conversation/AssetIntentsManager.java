@@ -155,16 +155,12 @@ public class AssetIntentsManager {
                 callback.onDataReceived(type, pendingFileUri);
             pendingFileUri = null;
         } else if (data != null) {
-            URI uri;
             if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) {
-                uri = AndroidURIUtil.parse(data.getDataString());
+                callback.onDataReceived(type, AndroidURIUtil.parse(data.getDataString()));
+            } else if (data.getData() != null) {
+                callback.onDataReceived(type, new AndroidURI(data.getData()));
             } else {
-                uri = new AndroidURI(data.getData());
-            }
-            if (uri == null) {
                 callback.onFailed(type);
-            } else {
-                callback.onDataReceived(type, uri);
             }
         } else {
             callback.onFailed(type);
