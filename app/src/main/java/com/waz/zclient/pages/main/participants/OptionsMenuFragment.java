@@ -301,6 +301,10 @@ public class OptionsMenuFragment extends BaseFragment<OptionsMenuFragment.Contai
 
     @Override
     public void onOptionsMenuItemClicked(OptionsMenuItem optionsMenuItem) {
+        if (conversation == null) {
+            return;
+        }
+
         getContainer().onOptionsItemClicked(conversation, user, optionsMenuItem);
 
         if (getControllerFactory() == null ||

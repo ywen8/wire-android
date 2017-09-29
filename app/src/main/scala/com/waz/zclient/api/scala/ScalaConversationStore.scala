@@ -101,7 +101,7 @@ class ScalaConversationStore(zMessagingApi: ZMessagingApi, selectionController: 
 
   override def setCurrentConversationToNext(requester: ConversationChangeRequester): Unit = setCurrentConversation(nextConversation, requester)
 
-  override def nextConversation: Option[IConversation] = if (conversationsList.size() == 0) None else
+  override def nextConversation: Option[IConversation] = if (conversationsList.size() <= 1) None else
     (0 until conversationsList.size()).find(i => currentConversation.contains(conversationsList.get(i))).flatMap { i =>
       Some(if (i == conversationsList.size() - 1) conversationsList.get(i - 1) else conversationsList.get(i + 1))
     }
