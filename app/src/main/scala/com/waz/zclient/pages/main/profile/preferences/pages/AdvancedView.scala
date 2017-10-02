@@ -23,12 +23,13 @@ import android.os.Bundle
 import android.util.AttributeSet
 import android.view.View
 import android.widget.{LinearLayout, Toast}
+import com.waz.content.Preferences.PrefKey
 import com.waz.content.UserPreferences
 import com.waz.service.ZMessaging
 import com.waz.threading.{CancellableFuture, Threading}
 import com.waz.utils.returning
 import com.waz.zclient.pages.main.profile.preferences.views.{SwitchPreference, TextButton}
-import com.waz.zclient.tracking.{GlobalTrackingController, OptEvent, UiTrackingController}
+import com.waz.zclient.tracking.UiTrackingController
 import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.utils.{BackStackKey, DebugUtils, _}
 import com.waz.zclient.{BuildConfig, R, ViewHelper}
@@ -46,7 +47,12 @@ class AdvancedViewImpl(context: Context, attrs: AttributeSet, style: Int) extend
   val submitReport    = findById[TextButton](R.id.preferences_debug_report)
   val resetPush       = returning(findById[TextButton](R.id.preferences_reset_push))(_.setVisible(BuildConfig.DEVELOPER_FEATURES_ENABLED))
 
-  analyticsSwitch.setPreference(UserPreferences.AnalyticsEnabled)
+  analyticsSwitch.setPreference({
+    BuildConfig.APPLICATION_ID match {
+      case "com.wire" | "com.wire.internal" => UserPreferences.AnalyticsEnabled //use the true-by-default preference for internal and public
+      case _ => PrefKey[Boolean]("DEVELOPER_TRACKING_ENABLED") //use a false-by-default preference for non-internal dev builds
+    }
+  })
 
   submitReport.onClickEvent{ _ =>
     DebugUtils.sendDebugReport(context.asInstanceOf[Activity])
