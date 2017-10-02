@@ -27,7 +27,7 @@ import com.waz.model.ConversationData.ConversationType
 import com.waz.model.UserData.ConnectionStatus.Blocked
 import com.waz.model.{UserId, _}
 import com.waz.service.{ZMessaging, ZmsLifeCycle}
-import com.waz.threading.Threading
+import com.waz.threading.{SerialDispatchQueue, Threading}
 import com.waz.utils._
 import com.waz.utils.events.{EventContext, Signal}
 import com.waz.zclient._
@@ -41,13 +41,14 @@ import scala.language.{implicitConversions, postfixOps}
 
 class GlobalTrackingController(implicit inj: Injector, cxt: WireContext, eventContext: EventContext) extends Injectable {
   import GlobalTrackingController._
-  import Threading.Implicits.Background
 
-  private val mixpanel = returning(MixpanelApiToken.map(MixpanelAPI.getInstance(cxt.getApplicationContext, _))) { _.foreach { m =>
-    m.registerSuperProperties(returning(new JSONObject()) { o =>
-      o.put("app", "android")
-    })
-  }}
+  private implicit val dispatcher = new SerialDispatchQueue(name = "Tracking")
+
+  private val superProps = Signal(returning(new JSONObject()) { o =>
+    o.put("app", "android")
+  }).disableAutowiring()
+
+  private val mixpanel = MixpanelApiToken.map(MixpanelAPI.getInstance(cxt.getApplicationContext, _))
   verbose(s"For build: ${BuildConfig.APPLICATION_ID}, mixpanel: $mixpanel was created using token: ${BuildConfig.MIXPANEL_APP_TOKEN}")
 
   val zmsOpt      = inject[Signal[Option[ZMessaging]]]
@@ -69,11 +70,7 @@ class GlobalTrackingController(implicit inj: Injector, cxt: WireContext, eventCo
     service <- Signal.future(ZMessaging.accountsService)
     accs    <- service.loggedInAccounts
   } yield accs.exists(_.teamId.fold(_ => false, _.isDefined))) { isTeamUser =>
-    mixpanel.foreach { m =>
-      m.registerSuperProperties(returning(new JSONObject()) { o =>
-        o.put("team.is_member", isTeamUser)
-      })
-    }
+    superProps.mutate(_.put("team.is_member", isTeamUser))
   }
 
   private var registeredZmsInstances = Set.empty[ZMessaging]
@@ -121,23 +118,22 @@ class GlobalTrackingController(implicit inj: Injector, cxt: WireContext, eventCo
     def send() = {
       for {
         teamSize <- zms.teamId.fold(Future.successful(0))(_ => zms.teams.searchTeamMembers().head.map(_.size))
+        sProps   <- superProps.head
       } yield {
-        val customSuperProperties = returning(new JSONObject()) { o =>
-          o.put("team.in_team", zms.teamId.isDefined)
-          o.put("team.size", teamSize)
-        }
 
+        sProps.put("team.in_team", zms.teamId.isDefined)
+        sProps.put("team.size", teamSize)
+
+        mixpanel.foreach { m =>
+          m.registerSuperProperties(sProps)
+          m.track(event.name, event.props.orNull)
+        }
         verbose(
           s"""
              |trackEvent: ${event.name}
              |properties: ${event.props.map(_.toString(2))}
-             |superProps: ${customSuperProperties.toString(2)}
+             |superProps: ${mixpanel.map(_.getSuperProperties).getOrElse(sProps).toString(2)}
           """.stripMargin)
-
-        mixpanel.foreach { m =>
-          m.registerSuperProperties(customSuperProperties)
-          m.track(event.name, event.props.orNull)
-        }
       }
     }
 
