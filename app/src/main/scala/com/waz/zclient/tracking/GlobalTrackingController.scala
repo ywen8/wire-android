@@ -43,7 +43,11 @@ class GlobalTrackingController(implicit inj: Injector, cxt: WireContext, eventCo
   import GlobalTrackingController._
   import Threading.Implicits.Background
 
-  private val mixpanel = MixpanelApiToken.map(MixpanelAPI.getInstance(cxt.getApplicationContext, _))
+  private val mixpanel = returning(MixpanelApiToken.map(MixpanelAPI.getInstance(cxt.getApplicationContext, _))) { _.foreach { m =>
+    m.registerSuperProperties(returning(new JSONObject()) { o =>
+      o.put("app", "android")
+    })
+  }}
   verbose(s"For build: ${BuildConfig.APPLICATION_ID}, mixpanel: $mixpanel was created using token: ${BuildConfig.MIXPANEL_APP_TOKEN}")
 
   val zmsOpt      = inject[Signal[Option[ZMessaging]]]
@@ -59,6 +63,17 @@ class GlobalTrackingController(implicit inj: Injector, cxt: WireContext, eventCo
         m.flush()
       }
     case _ =>
+  }
+
+  (for {
+    service <- Signal.future(ZMessaging.accountsService)
+    accs    <- service.loggedInAccounts
+  } yield accs.exists(_.teamId.fold(_ => false, _.isDefined))) { isTeamUser =>
+    mixpanel.foreach { m =>
+      m.registerSuperProperties(returning(new JSONObject()) { o =>
+        o.put("team.is_member", isTeamUser)
+      })
+    }
   }
 
   private var registeredZmsInstances = Set.empty[ZMessaging]
@@ -108,8 +123,8 @@ class GlobalTrackingController(implicit inj: Injector, cxt: WireContext, eventCo
         teamSize <- zms.teamId.fold(Future.successful(0))(_ => zms.teams.searchTeamMembers().head.map(_.size))
       } yield {
         val customSuperProperties = returning(new JSONObject()) { o =>
-          o.put("team.is_member", zms.teamId.isDefined)
-          o.put("team.size", teamSize) //TODO option of int for non-teams?
+          o.put("team.in_team", zms.teamId.isDefined)
+          o.put("team.size", teamSize)
         }
 
         verbose(
