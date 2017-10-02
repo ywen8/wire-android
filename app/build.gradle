@@ -257,9 +257,11 @@ dependencies {
     compile deps.psLocation
     compile deps.cardview
 
-    devCompile deps.stetho
+    //Be careful not to include in production!!
+    devCompile          deps.stetho
     experimentalCompile deps.stetho
-    qaCompile deps.stetho
+    qaCompile           deps.stetho
+    internalCompile     deps.stetho
 
     // For using local files in app/libs
     //compile (name:'avs', ext:'aar')
