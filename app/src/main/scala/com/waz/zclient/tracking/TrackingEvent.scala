@@ -55,13 +55,13 @@ case class SignInEvent(method: SignInMethod, invitation: Option[PersonalToken]) 
   })
 }
 
-case class ContributionEvent(action: Action, conversationType: ConversationType, ephExp: EphemeralExpiration, withOtto: Boolean) extends TrackingEvent {
+case class ContributionEvent(action: Action, conversationType: ConversationType, ephExp: EphemeralExpiration, withBot: Boolean) extends TrackingEvent {
   override val name = "contributed"
 
   override val props = Some(returning(new JSONObject()) { o =>
     o.put("action",               action.name)
     o.put("conversation_type",    if (conversationType == ConversationType.Group) "group" else "1:1")
-    o.put("with_otto",            withOtto)
+    o.put("with_bot",             withBot)
     o.put("is_ephemeral",         ephExp != EphemeralExpiration.NONE) //TODO is this flag necessary?
     o.put("ephemeral_expiration", ephExp.duration().toSeconds.toString)
   })
