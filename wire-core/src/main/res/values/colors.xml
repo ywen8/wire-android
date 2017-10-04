@@ -78,6 +78,7 @@
     <color name="accent_red__40">#67FF2700</color>
     <color name="accent_red__24">#3CFF2700</color>
     <color name="accent_yellow__16">#28FFD200</color>
+    <color name="accent_yellow__8">#14FFD200</color>
 
     <!--Sketch color picker-->
     <color name="draw_white">@color/white</color>
@@ -176,6 +177,13 @@
     <color name="cursor_diimmed_mode_color">@color/light_graphite_16</color>
     <color name="cursor__top_border__color">@color/light_graphite_40</color>
     <color name="cursor_edit_text__text_color__tablet_portrait">@color/black</color>
+
+    <color name="cursor_background_color_light">@color/accent_yellow__16</color>
+    <color name="cursor_background_color_dark">@color/graphite</color>
+    <color name="cursor_edit_buttons_color">@color/graphite</color>
+    <color name="cursor_edit_buttons_color_disabled">@color/light_graphite</color>
+    <color name="cursor_edit_buttons_color_dark">@color/white</color>
+    <color name="cursor_edit_buttons_color_disabled_dark">@color/white_64</color>
 
     <!-- Other colors-->
     <color name="wire__overlay__light">@color/white_96</color>

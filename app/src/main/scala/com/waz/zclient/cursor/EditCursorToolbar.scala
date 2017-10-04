@@ -60,8 +60,8 @@ class EditCursorToolbar(val context: Context, val attrs: AttributeSet, val defSt
   val approveButton: TextView = findById(R.id.gtv__edit_message__approve)
   val resetButton: TextView   = findById(R.id.gtv__edit_message__reset)
 
-  val enabledTextColor = getColor(R.color.graphite)
-  val disabledTextColor = getColor(R.color.light_graphite)
+  val enabledTextColor = getStyledColor(R.attr.cursorEditButtons)
+  val disabledTextColor = getStyledColor(R.attr.cursorEditButtonsDisabled)
 
   val messageChanged = controller.editingMsg.zip(controller.enteredText) map {
     case (Some(msg), text) => msg.contentString != text
