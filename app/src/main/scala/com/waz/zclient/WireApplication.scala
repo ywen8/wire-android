@@ -26,7 +26,7 @@ import com.waz.api._
 import com.waz.content.GlobalPreferences
 import com.waz.log.InternalLog
 import com.waz.model.ConversationData
-import com.waz.service.{NetworkModeService, ZMessaging}
+import com.waz.service.{NetworkModeService, ZMessaging, ZmsLifeCycle}
 import com.waz.utils.events.{EventContext, Signal, Subscription}
 import com.waz.zclient.api.scala.ScalaStoreFactory
 import com.waz.zclient.calling.controllers.{CallPermissionsController, CurrentCallController, GlobalCallingController}
@@ -75,6 +75,7 @@ object WireApplication {
     bind [Signal[ZMessaging]]          to inject[Signal[Option[ZMessaging]]].collect { case Some(z) => z }
     bind [GlobalPreferences]           to ZMessaging.currentGlobal.prefs
     bind [NetworkModeService]          to ZMessaging.currentGlobal.network
+    bind [ZmsLifeCycle]                to ZMessaging.currentGlobal.lifecycle
 
     // old controllers
     // TODO: remove controller factory, reimplement those controllers

@@ -30,8 +30,6 @@ import com.waz.threading.Threading
 import com.waz.utils.events.Signal
 import com.waz.utils.returning
 import com.waz.zclient._
-import com.waz.zclient.core.controllers.tracking.events.settings.ChangedAccentColorEvent
-import com.waz.zclient.tracking.GlobalTrackingController
 import com.waz.zclient.utils.RichView
 
 class AccentColorPickerFragment extends DialogFragment with FragmentHelper {
@@ -77,8 +75,6 @@ class AccentColorPickerFragment extends DialogFragment with FragmentHelper {
     import Threading.Implicits.Background
 
     val zms      = inject[Signal[ZMessaging]]
-    val tracking = inject[GlobalTrackingController]
-
     val viewColor = Signal[AccentColor]()
 
     val selectionView = itemView.findViewById(R.id.gtv__accent_color__selected)
@@ -96,7 +92,6 @@ class AccentColorPickerFragment extends DialogFragment with FragmentHelper {
           for {
             users <- zms.map(_.users).head
             _     <- users.updateSelf(accent = Some(color))
-            _     <- tracking.tagEvent(new ChangedAccentColorEvent)
           } yield dismiss()
       })
     }

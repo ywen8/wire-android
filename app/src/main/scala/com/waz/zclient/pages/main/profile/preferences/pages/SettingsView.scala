@@ -27,10 +27,7 @@ import com.waz.service.ZMessaging
 import com.waz.threading.Threading
 import com.waz.utils.events.{EventContext, EventStream, Signal}
 import com.waz.zclient._
-import com.waz.zclient.controllers.tracking.events.connect.OpenedGenericInviteMenuEvent
-import com.waz.zclient.controllers.tracking.screens.ApplicationScreen
 import com.waz.zclient.pages.main.profile.preferences.views.TextButton
-import com.waz.zclient.tracking.GlobalTrackingController
 import com.waz.zclient.utils.{BackStackKey, BackStackNavigator, IntentUtils, RichView, StringUtils, UiStorage, UserSignal}
 import com.waz.zclient.views.FlatWireButton
 
@@ -111,7 +108,6 @@ class SettingsViewController(view: SettingsView)(implicit inj: Injector, ec: Eve
   import ZLog.ImplicitTag.implicitLogTag
   val zms = inject[Signal[ZMessaging]]
   implicit val uiStorage = inject[UiStorage]
-  val globalTrackingController = inject[GlobalTrackingController]
 
   val selfInfo = for {
     z <- zms
@@ -124,8 +120,6 @@ class SettingsViewController(view: SettingsView)(implicit inj: Injector, ec: Eve
     selfInfo.currentValue.foreach {
       case (name, handle) =>
         view.startInviteIntent(name, handle)
-        globalTrackingController.tagEvent(new OpenedGenericInviteMenuEvent(OpenedGenericInviteMenuEvent.EventContext.SETTINGS))
-        globalTrackingController.onApplicationScreen(ApplicationScreen.SEND_GENERIC_INVITE_MENU)
       case _ =>
     }
   }

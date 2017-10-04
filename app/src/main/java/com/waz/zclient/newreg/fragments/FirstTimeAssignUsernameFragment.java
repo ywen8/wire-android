@@ -31,13 +31,10 @@ import android.widget.ImageView;
 import com.waz.api.AccentColor;
 import com.waz.api.ImageAsset;
 import com.waz.api.Self;
-import com.waz.zclient.BaseActivity;
 import com.waz.zclient.OnBackPressedListener;
 import com.waz.zclient.R;
 import com.waz.zclient.core.api.scala.ModelObserver;
-import com.waz.zclient.core.controllers.tracking.events.onboarding.OpenedUsernameFAQEvent;
 import com.waz.zclient.pages.BaseFragment;
-import com.waz.zclient.tracking.GlobalTrackingController;
 import com.waz.zclient.ui.text.TypefaceTextView;
 import com.waz.zclient.ui.utils.BitmapUtils;
 import com.waz.zclient.ui.utils.ColorUtils;
@@ -141,7 +138,6 @@ public class FirstTimeAssignUsernameFragment extends BaseFragment<FirstTimeAssig
         TextViewUtils.linkifyText(summaryTextView, Color.WHITE, com.waz.zclient.ui.R.string.wire__typeface__light, false, new Runnable() {
             @Override
             public void run() {
-                ((BaseActivity) getActivity()).injectJava(GlobalTrackingController.class).tagEvent(new OpenedUsernameFAQEvent());
                 getContainer().onOpenUrl(getString(R.string.usernames__learn_more__link));
             }
         });

@@ -46,24 +46,20 @@ import com.waz.zclient.controllers.global.AccentColorController
 import com.waz.zclient.controllers.globallayout.KeyboardVisibilityObserver
 import com.waz.zclient.controllers.navigation.NavigationController
 import com.waz.zclient.controllers.permission.RequestPermissionsObserver
-import com.waz.zclient.controllers.tracking.events.connect.{EnteredSearchEvent, OpenedConversationEvent, OpenedGenericInviteMenuEvent, SentConnectRequestEvent}
-import com.waz.zclient.controllers.tracking.screens.ApplicationScreen
 import com.waz.zclient.controllers.userpreferences.IUserPreferencesController
 import com.waz.zclient.controllers.{SearchUserController, ThemeController, UserAccountsController}
-import com.waz.zclient.core.controllers.tracking.attributes.ConversationType
 import com.waz.zclient.core.stores.conversation.ConversationChangeRequester
 import com.waz.zclient.core.stores.network.DefaultNetworkAction
 import com.waz.zclient.pages.BaseFragment
 import com.waz.zclient.pages.main.participants.dialog.DialogLaunchMode
 import com.waz.zclient.pages.main.pickuser.controller.IPickUserController
-import com.waz.zclient.tracking.GlobalTrackingController
 import com.waz.zclient.ui.animation.fragment.FadeAnimation
 import com.waz.zclient.ui.startui.{ConversationQuickMenu, ConversationQuickMenuCallback}
 import com.waz.zclient.ui.text.TypefaceTextView
 import com.waz.zclient.ui.theme.ThemeUtils
 import com.waz.zclient.ui.utils.KeyboardUtils
 import com.waz.zclient.utils.device.DeviceDetector
-import com.waz.zclient.utils.{IntentUtils, LayoutSpec, PermissionUtils, StringUtils, TrackingUtils, UiStorage, UserSignal, ViewUtils}
+import com.waz.zclient.utils.{IntentUtils, LayoutSpec, PermissionUtils, StringUtils, UiStorage, UserSignal, ViewUtils}
 import com.waz.zclient.views._
 import com.waz.zclient.views.pickuser.{ContactRowView, SearchBoxView, UserRowView}
 import com.waz.zclient.{BaseActivity, FragmentHelper, OnBackPressedListener, R}
@@ -148,7 +144,6 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
   private implicit lazy val context = getContext
   private lazy val zms = inject[Signal[ZMessaging]]
   private lazy val self = zms.flatMap(z => UserSignal(z.selfUserId))
-  private lazy val trackingController = inject[GlobalTrackingController]
   private lazy val userAccountsController = inject[UserAccountsController]
   private lazy val accentColor = inject[AccentColorController].accentColor.map(_.getColor())
   private lazy val themeController = inject[ThemeController]
@@ -183,8 +178,6 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
       onSearchBoxHasNewSearchFilter(filter)
       if (filter.isEmpty && searchBoxView.getElements.isEmpty)
         onSearchBoxIsEmpty()
-      if (filter.nonEmpty)
-        trackingController.tagEvent(new EnteredSearchEvent(isAddingToConversation, searchBoxView.getSearchFilter))
     }
 
   }
@@ -548,9 +541,6 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
     if (user == null || user.isMe || getControllerFactory == null || getControllerFactory.isTornDown) {
       return
     }
-
-    TrackingUtils.onUserSelectedInStartUI(trackingController, user, anchorView.isInstanceOf[ChatheadWithTextFooter], isAddingToConversation, position, searchResultAdapter)
-
     UserSignal(userId).head.map{ userData =>
       if (userData.connection == ConnectionStatus.Accepted || (isTeamAccount && userAccountsController.isTeamMember(userData.id))) {
         if (anchorView.isSelected) searchUserController.addUser(userId) else searchUserController.removeUser(userId)
@@ -569,14 +559,12 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
     if (user == null || user.isMe || (user.getConnectionStatus ne User.ConnectionStatus.ACCEPTED) || searchUserController.selectedUsers.nonEmpty) {
       return
     }
-    trackingController.tagEvent(new OpenedConversationEvent(ConversationType.ONE_TO_ONE_CONVERSATION.name, OpenedConversationEvent.Context.TOPUSER_DOUBLETAP, position + 1))
     getStoreFactory.conversationStore.setCurrentConversation(Option(user.getConversation), ConversationChangeRequester.START_CONVERSATION)
   }
 
   override def onConversationClicked(conversationData: ConversationData, position: Int): Unit = {
     val conversation: IConversation = getStoreFactory.conversationStore.getConversation(conversationData.id.str)
     KeyboardUtils.hideKeyboard(getActivity)
-    trackingController.tagEvent(new OpenedConversationEvent(ConversationType.GROUP_CONVERSATION.name, OpenedConversationEvent.Context.SEARCH, 0))
     getStoreFactory.conversationStore.setCurrentConversation(Option(conversation), ConversationChangeRequester.START_CONVERSATION)
   }
 
@@ -596,7 +584,6 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
           val myName: String = self.getDisplayName
           val message: String = getString(R.string.connect__message, user.getName, myName)
           user.connect(message)
-          trackingController.tagEvent(new SentConnectRequestEvent(SentConnectRequestEvent.EventContext.INVITE_CONTACT_LIST))
         }(Threading.Ui)
       case _ =>
     }
@@ -611,7 +598,6 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
           // Launch SMS app directly if contact only has phone number
           val number = contactMethods(0).getStringRepresentation
           sendSMSInvite(number)
-          trackingController.tagEvent(new OpenedGenericInviteMenuEvent(OpenedGenericInviteMenuEvent.EventContext.ADDRESSBOOK))
           return
         }
         val itemNames: Array[CharSequence] = new Array[CharSequence](contactMethodsCount)
@@ -636,13 +622,10 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
             if (selectedContactMethod.getKind eq ContactMethod.Kind.SMS) {
               val number = String.valueOf(itemNames(selected))
               sendSMSInvite(number)
-              trackingController.tagEvent(new OpenedGenericInviteMenuEvent(OpenedGenericInviteMenuEvent.EventContext.ADDRESSBOOK))
             }
             else {
               selectedContactMethod.invite(" ", null)
               Toast.makeText(getActivity, getResources.getString(R.string.people_picker__invite__sent_feedback), Toast.LENGTH_LONG).show()
-              val fromSearch: Boolean = searchUserController.searchState.currentValue.exists(_.filter.nonEmpty)
-              TrackingUtils.tagSentInviteToContactEvent(trackingController, selectedContactMethod.getKind, contactDetails.hasBeenInvited, fromSearch)
             }
           }
         }).setNegativeButton(getResources.getText(R.string.confirmation_menu__cancel), new DialogInterface.OnClickListener() {
@@ -652,7 +635,6 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
         }).setSingleChoiceItems(itemNames, PickUserFragment.DEFAULT_SELECTED_INVITE_METHOD, null)
         dialog = builder.create
         dialog.show()
-        trackingController.onApplicationScreen(ApplicationScreen.SEND_PERSONAL_INVITE_MENU)
       }
     })
   }
@@ -703,13 +685,6 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
       val username: String = self.handle.map(_.string).getOrElse("")
       val sharingIntent = IntentUtils.getInviteIntent(getString(R.string.people_picker__invite__share_text__header, name), getString(R.string.people_picker__invite__share_text__body, StringUtils.formatHandle(username)))
       startActivity(Intent.createChooser(sharingIntent, getString(R.string.people_picker__invite__share_details_dialog)))
-      val eventContext =
-        if (fromSearch)
-          OpenedGenericInviteMenuEvent.EventContext.NO_RESULTS
-        else
-          OpenedGenericInviteMenuEvent.EventContext.BANNER
-      trackingController.tagEvent(new OpenedGenericInviteMenuEvent(eventContext))
-      trackingController.onApplicationScreen(ApplicationScreen.SEND_GENERIC_INVITE_MENU)
     }(Threading.Ui)
 
   }

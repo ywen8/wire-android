@@ -25,7 +25,6 @@ import android.support.v4.app.FragmentManager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-
 import com.waz.api.ConversationsList;
 import com.waz.api.IConversation;
 import com.waz.api.ImageAsset;
@@ -44,12 +43,9 @@ import com.waz.zclient.controllers.drawing.DrawingObserver;
 import com.waz.zclient.controllers.drawing.IDrawingController;
 import com.waz.zclient.controllers.location.LocationObserver;
 import com.waz.zclient.controllers.navigation.Page;
-import com.waz.zclient.controllers.tracking.events.group.AddedMemberToGroupEvent;
-import com.waz.zclient.controllers.tracking.events.group.CreatedGroupConversationEvent;
 import com.waz.zclient.conversation.CollectionController;
 import com.waz.zclient.conversation.CollectionFragment;
 import com.waz.zclient.core.api.scala.ModelObserver;
-import com.waz.zclient.core.controllers.tracking.events.media.SentPictureEvent;
 import com.waz.zclient.core.stores.connect.IConnectStore;
 import com.waz.zclient.core.stores.conversation.ConversationChangeRequester;
 import com.waz.zclient.core.stores.conversation.ConversationStoreObserver;
@@ -65,10 +61,8 @@ import com.waz.zclient.pages.main.pickuser.controller.IPickUserController;
 import com.waz.zclient.pages.main.pickuser.controller.PickUserControllerScreenObserver;
 import com.waz.zclient.pages.main.profile.camera.CameraContext;
 import com.waz.zclient.pages.main.profile.camera.CameraFragment;
-import com.waz.zclient.tracking.GlobalTrackingController;
 import com.waz.zclient.ui.utils.KeyboardUtils;
 import com.waz.zclient.utils.LayoutSpec;
-import com.waz.zclient.utils.TrackingUtils;
 import com.waz.zclient.utils.ViewUtils;
 import com.waz.zclient.views.LoadingIndicatorView;
 
@@ -460,14 +454,6 @@ public class ConversationManagerFragment extends BaseFragment<ConversationManage
         }
         getStoreFactory().conversationStore().sendMessage(imageAsset);
         getStoreFactory().networkStore().doIfHasInternetOrNotifyUser(null);
-
-        // Photo sent via contacts quick menu
-        TrackingUtils.onSentPhotoMessage(((BaseActivity) getActivity()).injectJava(GlobalTrackingController.class),
-                                         getStoreFactory().conversationStore().getCurrentConversation(),
-                                         imageFromCamera ? SentPictureEvent.Source.CAMERA
-                                                         : SentPictureEvent.Source.GALLERY,
-                                         SentPictureEvent.Method.FULL_SCREEN);
-
         getControllerFactory().getCameraController().closeCamera(CameraContext.MESSAGE);
     }
 
@@ -533,7 +519,6 @@ public class ConversationManagerFragment extends BaseFragment<ConversationManage
                                           R.string.conversation__create_group_conversation__no_network__button,
                                           null, true);
             }
-            ((BaseActivity) getActivity()).injectJava(GlobalTrackingController.class).tagEvent(new CreatedGroupConversationEvent(true, (users.size() + 1)));
         } else if (currentConversation.getType() == IConversation.Type.GROUP) {
             currentConversation.addMembers(users);
             if (!getStoreFactory().networkStore().hasInternetConnection()) {
@@ -543,7 +528,6 @@ public class ConversationManagerFragment extends BaseFragment<ConversationManage
                                           R.string.conversation__add_user__no_network__button,
                                           null, true);
             }
-            ((BaseActivity) getActivity()).injectJava(GlobalTrackingController.class).tagEvent(new AddedMemberToGroupEvent(getParticipantsCount(), users.size()));
         }
     }
 

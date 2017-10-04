@@ -37,23 +37,20 @@ import com.waz.model.ConvId;
 import com.waz.model.UserId;
 import com.waz.zclient.BaseActivity;
 import com.waz.zclient.R;
-import com.waz.zclient.controllers.UserAccountsController;
 import com.waz.zclient.controllers.ThemeController;
+import com.waz.zclient.controllers.UserAccountsController;
 import com.waz.zclient.controllers.accentcolor.AccentColorObserver;
-import com.waz.zclient.controllers.tracking.events.group.OpenedGroupActionEvent;
-import com.waz.zclient.controllers.tracking.events.otr.ViewedOtherOtrClientsEvent;
 import com.waz.zclient.core.api.scala.ModelObserver;
 import com.waz.zclient.core.stores.conversation.ConversationChangeRequester;
 import com.waz.zclient.core.stores.participants.ParticipantsStoreObserver;
 import com.waz.zclient.pages.BaseFragment;
 import com.waz.zclient.pages.main.conversation.controller.ConversationScreenControllerObserver;
 import com.waz.zclient.pages.main.conversation.controller.IConversationScreenController;
-import com.waz.zclient.views.ParticipantDetailsTab;
 import com.waz.zclient.pages.main.participants.views.ParticipantOtrDeviceAdapter;
 import com.waz.zclient.pages.main.participants.views.TabbedParticipantPagerAdapter;
-import com.waz.zclient.tracking.GlobalTrackingController;
 import com.waz.zclient.ui.views.tab.TabIndicatorLayout;
 import com.waz.zclient.utils.ViewUtils;
+import com.waz.zclient.views.ParticipantDetailsTab;
 import com.waz.zclient.views.menus.FooterMenuCallback;
 
 public class TabbedParticipantBodyFragment extends BaseFragment<TabbedParticipantBodyFragment.Container> implements
@@ -61,7 +58,6 @@ public class TabbedParticipantBodyFragment extends BaseFragment<TabbedParticipan
                                                                                                AccentColorObserver,
                                                                                                ParticipantOtrDeviceAdapter.ViewHolder.ViewHolderClicks,
                                                                                                TabbedParticipantPagerAdapter.Callback,
-                                                                                               ViewPager.OnPageChangeListener,
                                                                                                ConversationScreenControllerObserver {
 
     public static final String TAG = TabbedParticipantBodyFragment.class.getName();
@@ -156,7 +152,6 @@ public class TabbedParticipantBodyFragment extends BaseFragment<TabbedParticipan
         }
         viewPager = ViewUtils.getView(view, R.id.vp_single_participant_viewpager);
         viewPager.setAdapter(new TabbedParticipantPagerAdapter(getActivity(), participantOtrDeviceAdapter, this));
-        viewPager.addOnPageChangeListener(this);
         tabIndicatorLayout.setViewPager(viewPager);
         if (savedInstanceState == null) {
             if (getControllerFactory().getConversationScreenController().shouldShowDevicesTab()) {
@@ -190,7 +185,6 @@ public class TabbedParticipantBodyFragment extends BaseFragment<TabbedParticipan
 
     @Override
     public void onDestroyView() {
-        viewPager.removeOnPageChangeListener(this);
         viewPager = null;
         super.onDestroyView();
     }
@@ -368,24 +362,6 @@ public class TabbedParticipantBodyFragment extends BaseFragment<TabbedParticipan
 
     }
 
-    @Override
-    public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
-
-    }
-
-    @Override
-    public void onPageSelected(int position) {
-        if (position == 0 || getControllerFactory() == null || getControllerFactory().isTornDown()) {
-            return;
-        }
-        ((BaseActivity) getActivity()).injectJava(GlobalTrackingController.class).tagEvent(new ViewedOtherOtrClientsEvent());
-    }
-
-    @Override
-    public void onPageScrollStateChanged(int state) {
-
-    }
-
     public interface MenuActions {
         void showOtrDetails(OtrClient otrClient);
     }
@@ -414,7 +390,6 @@ public class TabbedParticipantBodyFragment extends BaseFragment<TabbedParticipan
                 return;
             }
             if (conversation.getType() == IConversation.Type.ONE_TO_ONE && permissionToCreate) {
-                ((BaseActivity) getActivity()).injectJava(GlobalTrackingController.class).tagEvent(new OpenedGroupActionEvent());
                 getControllerFactory().getConversationScreenController().addPeopleToConversation();
             } else {
                 getControllerFactory().getConversationScreenController().hideParticipants(true, false);

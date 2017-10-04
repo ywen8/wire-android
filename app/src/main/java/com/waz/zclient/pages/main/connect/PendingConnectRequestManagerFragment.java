@@ -32,17 +32,13 @@ import com.waz.zclient.controllers.confirmation.ConfirmationRequest;
 import com.waz.zclient.controllers.confirmation.IConfirmationController;
 import com.waz.zclient.controllers.confirmation.TwoButtonConfirmationCallback;
 import com.waz.zclient.controllers.navigation.Page;
-import com.waz.zclient.controllers.tracking.events.conversation.ArchivedConversationEvent;
-import com.waz.zclient.controllers.tracking.events.conversation.UnarchivedConversationEvent;
-import com.waz.zclient.core.stores.network.NetworkAction;
-import com.waz.zclient.controllers.tracking.events.connect.BlockingEvent;
-import com.waz.zclient.media.SoundController;
-import com.waz.zclient.pages.main.participants.OptionsMenuControl;
 import com.waz.zclient.core.stores.connect.IConnectStore;
 import com.waz.zclient.core.stores.conversation.ConversationChangeRequester;
+import com.waz.zclient.core.stores.network.NetworkAction;
+import com.waz.zclient.media.SoundController;
 import com.waz.zclient.pages.BaseFragment;
+import com.waz.zclient.pages.main.participants.OptionsMenuControl;
 import com.waz.zclient.pages.main.participants.OptionsMenuFragment;
-import com.waz.zclient.tracking.GlobalTrackingController;
 import com.waz.zclient.ui.optionsmenu.OptionsMenu;
 import com.waz.zclient.ui.optionsmenu.OptionsMenuItem;
 import com.waz.zclient.utils.LayoutSpec;
@@ -59,7 +55,6 @@ public class PendingConnectRequestManagerFragment extends BaseFragment<PendingCo
 
     private IConnectStore.UserRequester userRequester;
     private OptionsMenuControl optionsMenuControl;
-    private boolean isShowingCommonUserProfile = false;
 
     public static PendingConnectRequestManagerFragment newInstance(String userId, String conversationId, ConnectRequestLoadMode loadMode, IConnectStore.UserRequester userRequester) {
         PendingConnectRequestManagerFragment newFragment = new PendingConnectRequestManagerFragment();
@@ -121,7 +116,6 @@ public class PendingConnectRequestManagerFragment extends BaseFragment<PendingCo
     public void dismissSingleUserProfile() {
         if (LayoutSpec.isPhone(getActivity()) &&
             getChildFragmentManager().popBackStackImmediate()) {
-            isShowingCommonUserProfile = false;
 
             restoreCurrentPageAfterClosingOverlay();
         }
@@ -204,11 +198,9 @@ public class PendingConnectRequestManagerFragment extends BaseFragment<PendingCo
                 break;
             case ARCHIVE:
                 getStoreFactory().conversationStore().archive(conversation, true);
-                ((BaseActivity) getActivity()).injectJava(GlobalTrackingController.class).tagEvent(new ArchivedConversationEvent(conversation.getType().toString()));
                 break;
             case UNARCHIVE:
                 getStoreFactory().conversationStore().archive(conversation, false);
-                ((BaseActivity) getActivity()).injectJava(GlobalTrackingController.class).tagEvent(new UnarchivedConversationEvent(conversation.getType().toString()));
                 break;
             case SILENCE:
                 conversation.setMuted(true);
@@ -241,8 +233,6 @@ public class PendingConnectRequestManagerFragment extends BaseFragment<PendingCo
                         getControllerFactory().getPickUserController().hideUserProfile();
                         break;
                 }
-                ((BaseActivity) getActivity()).injectJava(GlobalTrackingController.class).tagEvent(new BlockingEvent(BlockingEvent.ConformationResponse.BLOCK));
-
             }
             @Override
             public void negativeButtonClicked() {

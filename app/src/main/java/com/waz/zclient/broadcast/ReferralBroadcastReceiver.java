@@ -21,7 +21,6 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import com.localytics.android.ReferralReceiver;
 import com.waz.zclient.controllers.userpreferences.UserPreferencesController;
 import timber.log.Timber;
 
@@ -31,9 +30,6 @@ public class ReferralBroadcastReceiver extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
-        ReferralReceiver localyticsReferralReceiver = new ReferralReceiver();
-        localyticsReferralReceiver.onReceive(context, intent);
-
         try {
             if (intent.hasExtra("referrer")) {
                 String token = intent.getStringExtra("referrer");

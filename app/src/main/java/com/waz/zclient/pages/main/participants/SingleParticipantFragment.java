@@ -38,7 +38,6 @@ import com.waz.zclient.controllers.confirmation.ConfirmationRequest;
 import com.waz.zclient.controllers.confirmation.IConfirmationController;
 import com.waz.zclient.controllers.confirmation.TwoButtonConfirmationCallback;
 import com.waz.zclient.controllers.navigation.NavigationController;
-import com.waz.zclient.controllers.tracking.events.connect.BlockingEvent;
 import com.waz.zclient.core.stores.connect.IConnectStore;
 import com.waz.zclient.core.stores.conversation.ConversationChangeRequester;
 import com.waz.zclient.core.stores.network.NetworkAction;
@@ -48,7 +47,6 @@ import com.waz.zclient.pages.BaseFragment;
 import com.waz.zclient.pages.main.connect.UserProfile;
 import com.waz.zclient.pages.main.connect.UserProfileContainer;
 import com.waz.zclient.pages.main.participants.dialog.DialogLaunchMode;
-import com.waz.zclient.tracking.GlobalTrackingController;
 import com.waz.zclient.ui.animation.fragment.FadeAnimation;
 import com.waz.zclient.ui.theme.OptionsTheme;
 import com.waz.zclient.ui.theme.ThemeUtils;
@@ -355,12 +353,10 @@ public class SingleParticipantFragment extends BaseFragment<SingleParticipantFra
                 getStoreFactory().connectStore().blockUser(user);
                 // Dismiss common user profile
                 getContainer().dismissUserProfile();
-                ((BaseActivity) getActivity()).injectJava(GlobalTrackingController.class).tagEvent(new BlockingEvent(BlockingEvent.ConformationResponse.BLOCK));
             }
 
             @Override
             public void negativeButtonClicked() {
-                ((BaseActivity) getActivity()).injectJava(GlobalTrackingController.class).tagEvent(new BlockingEvent(BlockingEvent.ConformationResponse.CANCEL));
             }
 
             @Override

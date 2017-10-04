@@ -33,7 +33,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.Animation;
-
 import com.waz.api.ConversationsList;
 import com.waz.api.IConversation;
 import com.waz.api.Message;
@@ -53,16 +52,7 @@ import com.waz.zclient.controllers.confirmation.IConfirmationController;
 import com.waz.zclient.controllers.confirmation.TwoButtonConfirmationCallback;
 import com.waz.zclient.controllers.navigation.NavigationController;
 import com.waz.zclient.controllers.navigation.Page;
-import com.waz.zclient.controllers.tracking.events.connect.BlockingEvent;
-import com.waz.zclient.controllers.tracking.events.conversation.ArchivedConversationEvent;
-import com.waz.zclient.controllers.tracking.events.conversation.DeleteConversationEvent;
-import com.waz.zclient.controllers.tracking.events.conversation.UnarchivedConversationEvent;
-import com.waz.zclient.controllers.tracking.events.group.AddedMemberToGroupEvent;
-import com.waz.zclient.controllers.tracking.events.group.CreatedGroupConversationEvent;
-import com.waz.zclient.controllers.tracking.events.group.LeaveGroupConversationEvent;
-import com.waz.zclient.controllers.tracking.events.group.RemoveContactEvent;
 import com.waz.zclient.core.api.scala.ModelObserver;
-import com.waz.zclient.core.controllers.tracking.attributes.ConversationType;
 import com.waz.zclient.core.stores.connect.IConnectStore;
 import com.waz.zclient.core.stores.conversation.ConversationChangeRequester;
 import com.waz.zclient.core.stores.conversation.ConversationStoreObserver;
@@ -80,7 +70,6 @@ import com.waz.zclient.pages.main.conversation.controller.IConversationScreenCon
 import com.waz.zclient.pages.main.participants.dialog.DialogLaunchMode;
 import com.waz.zclient.pages.main.pickuser.controller.IPickUserController;
 import com.waz.zclient.pages.main.pickuser.controller.PickUserControllerScreenObserver;
-import com.waz.zclient.tracking.GlobalTrackingController;
 import com.waz.zclient.ui.animation.interpolators.penner.Expo;
 import com.waz.zclient.ui.animation.interpolators.penner.Linear;
 import com.waz.zclient.ui.animation.interpolators.penner.Quart;
@@ -412,14 +401,10 @@ public class ParticipantFragment extends BaseFragment<ParticipantFragment.Contai
                 if (LayoutSpec.isTablet(getActivity())) {
                     getControllerFactory().getConversationScreenController().hideParticipants(false, true);
                 }
-
-                ((BaseActivity) getActivity()).injectJava(GlobalTrackingController.class).tagEvent(new BlockingEvent(BlockingEvent.ConformationResponse.BLOCK));
             }
 
             @Override
-            public void negativeButtonClicked() {
-                ((BaseActivity) getActivity()).injectJava(GlobalTrackingController.class).tagEvent(new BlockingEvent(BlockingEvent.ConformationResponse.CANCEL));
-            }
+            public void negativeButtonClicked() { }
 
             @Override
             public void onHideAnimationEnd(boolean confirmed, boolean canceled, boolean checkboxIsSelected) {
@@ -472,19 +457,12 @@ public class ParticipantFragment extends BaseFragment<ParticipantFragment.Contai
                 }
 
                 if (!confirmed) {
-                    ((BaseActivity) getActivity()).injectJava(GlobalTrackingController.class).tagEvent(new DeleteConversationEvent(ConversationType.getValue(conversation),
-                                                                                                        DeleteConversationEvent.Context.LIST,
-                                                                                                        DeleteConversationEvent.Response.CANCEL));
                     return;
                 }
                 IConversation currentConversation = getStoreFactory().conversationStore().getCurrentConversation();
                 boolean deleteCurrentConversation = conversation != null && currentConversation != null &&
                                                     conversation.getId().equals(currentConversation.getId());
                 getStoreFactory().conversationStore().deleteConversation(conversation, checkboxIsSelected);
-                ((BaseActivity) getActivity()).injectJava(GlobalTrackingController.class).tagEvent(new DeleteConversationEvent(ConversationType.getValue(
-                    conversation),
-                                                                                                    DeleteConversationEvent.Context.PARTICIPANTS,
-                                                                                                    DeleteConversationEvent.Response.DELETE));
                 if (deleteCurrentConversation) {
                     getStoreFactory().conversationStore().setCurrentConversationToNext(ConversationChangeRequester.DELETE_CONVERSATION);
                 }
@@ -533,16 +511,6 @@ public class ParticipantFragment extends BaseFragment<ParticipantFragment.Contai
                         return;
                     }
                     getStoreFactory().conversationStore().archive(conversation, archive);
-                    if (getControllerFactory() == null ||
-                        getControllerFactory().isTornDown()) {
-                        return;
-                    }
-                    if (archive) {
-                        ((BaseActivity) getActivity()).injectJava(GlobalTrackingController.class).tagEvent(new ArchivedConversationEvent(conversation.getType().toString()));
-                    } else {
-                        ((BaseActivity) getActivity()).injectJava(GlobalTrackingController.class).tagEvent(new UnarchivedConversationEvent(conversation.getType().toString()));
-                    }
-
                 }
             }, getResources().getInteger(R.integer.framework_animation_duration_medium));
         }
@@ -906,16 +874,12 @@ public class ParticipantFragment extends BaseFragment<ParticipantFragment.Contai
                     @Override
                     public void run() {
                         getStoreFactory().conversationStore().getCurrentConversation().removeMember(user);
-                        ((BaseActivity) getActivity()).injectJava(GlobalTrackingController.class).tagEvent(new RemoveContactEvent(true,
-                                                                                                       getParticipantsCount()));
                     }
                 });
             }
 
             @Override
             public void negativeButtonClicked() {
-                ((BaseActivity) getActivity()).injectJava(GlobalTrackingController.class).tagEvent(new RemoveContactEvent(false,
-                                                                                               getParticipantsCount()));
             }
 
             @Override
@@ -1024,8 +988,6 @@ public class ParticipantFragment extends BaseFragment<ParticipantFragment.Contai
                                           R.string.conversation__create_group_conversation__no_network__button,
                                           null, true);
             }
-            ((BaseActivity) getActivity()).injectJava(GlobalTrackingController.class).tagEvent(new CreatedGroupConversationEvent(true,
-                                                                                                      (users.size() + 1)));
         } else if (currentConversation.getType() == IConversation.Type.GROUP) {
             currentConversation.addMembers(users);
             getControllerFactory().getPickUserController().hidePickUser(getCurrentPickerDestination(), false);
@@ -1036,7 +998,6 @@ public class ParticipantFragment extends BaseFragment<ParticipantFragment.Contai
                                           R.string.conversation__add_user__no_network__button,
                                           null, true);
             }
-            ((BaseActivity) getActivity()).injectJava(GlobalTrackingController.class).tagEvent(new AddedMemberToGroupEvent(getParticipantsCount(), users.size()));
         }
     }
 
@@ -1197,9 +1158,6 @@ public class ParticipantFragment extends BaseFragment<ParticipantFragment.Contai
         ConfirmationCallback callback = new TwoButtonConfirmationCallback() {
             @Override
             public void positiveButtonClicked(boolean checkboxIsSelected) {
-                ((BaseActivity) getActivity()).injectJava(GlobalTrackingController.class).tagEvent(new LeaveGroupConversationEvent(true,
-                                                                                                        getStoreFactory().conversationStore().getCurrentConversation().getUsers().size()));
-
                 getStoreFactory().conversationStore().leave(conversation);
                 getStoreFactory().conversationStore().setCurrentConversationToNext(
                     ConversationChangeRequester.LEAVE_CONVERSATION);
@@ -1209,10 +1167,7 @@ public class ParticipantFragment extends BaseFragment<ParticipantFragment.Contai
             }
 
             @Override
-            public void negativeButtonClicked() {
-                ((BaseActivity) getActivity()).injectJava(GlobalTrackingController.class).tagEvent(new LeaveGroupConversationEvent(false,
-                                                                                                        getStoreFactory().conversationStore().getCurrentConversation().getUsers().size()));
-            }
+            public void negativeButtonClicked() { }
 
             @Override
             public void onHideAnimationEnd(boolean confirmed, boolean canceled, boolean checkboxIsSelected) {

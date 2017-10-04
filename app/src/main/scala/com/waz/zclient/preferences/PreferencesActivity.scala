@@ -36,16 +36,14 @@ import com.waz.service.ZMessaging
 import com.waz.threading.Threading
 import com.waz.utils.events.Signal
 import com.waz.utils.returning
+import com.waz.zclient.Intents._
 import com.waz.zclient.controllers.accentcolor.AccentColorChangeRequester
 import com.waz.zclient.controllers.global.AccentColorController
-import com.waz.zclient.core.controllers.tracking.events.settings.ChangedProfilePictureEvent
 import com.waz.zclient.pages.main.profile.camera.{CameraContext, CameraFragment}
 import com.waz.zclient.pages.main.profile.preferences.pages.{DevicesBackStackKey, OptionsView, ProfileBackStackKey}
-import com.waz.zclient.tracking.GlobalTrackingController
 import com.waz.zclient.utils.{BackStackNavigator, LayoutSpec, RingtoneUtils, ViewUtils}
 import com.waz.zclient.views.AccountTabsView
 import com.waz.zclient.{ActivityHelper, BaseActivity, MainActivity, R}
-import com.waz.zclient.Intents._
 
 class PreferencesActivity extends BaseActivity
   with ActivityHelper
@@ -178,7 +176,6 @@ class PreferencesActivity extends BaseActivity
     if (cameraContext == CameraContext.SETTINGS) {
       inject[Signal[ZMessaging]].head.map { zms =>
         zms.users.updateSelfPicture(imageAsset)
-        inject[GlobalTrackingController].tagEvent(new ChangedProfilePictureEvent)
       } (Threading.Background)
       getSupportFragmentManager.popBackStack(CameraFragment.TAG, FragmentManager.POP_BACK_STACK_INCLUSIVE)
     }

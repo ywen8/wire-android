@@ -34,9 +34,10 @@ import com.waz.utils.events.Signal
 import com.waz.utils.returning
 import com.waz.zclient.controllers.SharingController
 import com.waz.zclient.controllers.global.AccentColorController
-import com.waz.zclient.core.controllers.tracking.events.notifications.{OpenedAppFromQuickReplyEvent, SwitchedMessageInQuickReplyEvent}
 import com.waz.zclient.pages.main.popup.ViewPagerLikeLayoutManager
-import com.waz.zclient.tracking.GlobalTrackingController
+import com.waz.zclient.tracking.ContributionEvent.Action
+import com.waz.zclient.tracking.GlobalTrackingController.convType
+import com.waz.zclient.tracking.{ContributionEvent, GlobalTrackingController}
 import com.waz.zclient.ui.text.{TypefaceEditText, TypefaceTextView}
 import com.waz.zclient.ui.utils.KeyboardUtils
 import com.waz.zclient.utils._
@@ -111,7 +112,6 @@ class QuickReplyFragment extends Fragment with FragmentHelper {
     contentContainer.setAdapter(adapter)
 
     counter onClick {
-      tracking.tagEvent(new SwitchedMessageInQuickReplyEvent)
       contentContainer.smoothScrollToPosition((layoutManager.findFirstVisibleItemPosition + 1) % adapter.getItemCount)
     }
 
@@ -119,7 +119,6 @@ class QuickReplyFragment extends Fragment with FragmentHelper {
       override def onScrollStateChanged(recyclerView: RecyclerView, newState: Int): Unit = {
         if (newState == RecyclerView.SCROLL_STATE_IDLE) {
           firstVisibleItemPosition ! layoutManager.findFirstVisibleItemPosition
-          tracking.tagEvent(new SwitchedMessageInQuickReplyEvent)
         }
       }
     })
@@ -132,14 +131,15 @@ class QuickReplyFragment extends Fragment with FragmentHelper {
 
           textView.setEnabled(false)
           for {
-            zs <- zms.head
-            c <- conv.head
-            isOtto <- Conversation.isOtto(c, zs.usersStorage)
-            msg <- zs.convsUi.sendMessage(c.id, new MessageContent.Text(sendText))
+            zs       <- zms.head
+            c        <- conv.head
+            isBot    <- Conversation.isOtto(c, zs.usersStorage)
+            convType <- convType(c, zs.membersStorage)
+            msg      <- zs.convsUi.sendMessage(c.id, new MessageContent.Text(sendText))
           } {
             textView.setEnabled(true)
             if (msg.isDefined) {
-              TrackingUtils.onSentTextMessage(tracking, c, isOtto)
+              tracking.trackEvent(zs, ContributionEvent(Action.Text, convType, c.ephemeral, isBot))
               getActivity.finish()
             }
           }
@@ -153,7 +153,6 @@ class QuickReplyFragment extends Fragment with FragmentHelper {
     openWire onClick {
       ZMessaging.currentAccounts.switchAccount(accountId).onComplete { _ =>
         Option(getActivity) foreach { activity =>
-          tracking.tagEvent(new OpenedAppFromQuickReplyEvent)
           sharing.publishTextContent(message.getText.toString)
           sharing.onContentShared(activity, Set(convId))
           activity.finish()

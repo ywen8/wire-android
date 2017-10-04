@@ -34,8 +34,6 @@ import com.waz.utils.events.{EventContext, EventStream, Signal}
 import com.waz.utils.returning
 import com.waz.zclient._
 import com.waz.zclient.controllers.global.PasswordController
-import com.waz.zclient.controllers.tracking.events.profile.{ResetPassword, SignOut}
-import com.waz.zclient.core.controllers.tracking.events.session.LoggedOutEvent
 import com.waz.zclient.pages.main.profile.preferences.dialogs.{ChangeEmailDialog, ChangePhoneDialog, VerifyEmailPreferenceFragment, VerifyPhoneNumberPreferenceFragment}
 import com.waz.zclient.pages.main.profile.preferences.views.{EditNameDialog, PictureTextButton, TextButton}
 import com.waz.zclient.preferences.PreferencesActivity
@@ -139,7 +137,6 @@ class AccountViewController(view: AccountView)(implicit inj: Injector, ec: Event
 
   val zms                = inject[Signal[ZMessaging]]
   implicit val uiStorage = inject[UiStorage]
-  lazy val tracking      = inject[GlobalTrackingController]
   val navigator          = inject[BackStackNavigator]
   val password           = inject[PasswordController].password
 
@@ -254,7 +251,6 @@ class AccountViewController(view: AccountView)(implicit inj: Injector, ec: Event
   }
 
   view.onPasswordResetClick.onUi { _ =>
-    tracking.tagEvent(new ResetPassword(ResetPassword.Location.FROM_PROFILE))
     context.startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(getString(R.string.url_password_reset))))
   }
 
@@ -266,8 +262,6 @@ class AccountViewController(view: AccountView)(implicit inj: Injector, ec: Event
       new DialogInterface.OnClickListener() {
         def onClick(dialog: DialogInterface, which: Int) = {
           context.asInstanceOf[PreferencesActivity].getControllerFactory.getUsernameController.tearDown()
-          // TODO: Remove old SignOut event https://wearezeta.atlassian.net/browse/AN-4232
-          Future.sequence(Seq(tracking.tagEvent(new SignOut), tracking.tagEvent(new LoggedOutEvent)))(Seq.canBuildFrom, Threading.Background)
           zms.map(_.account).head.flatMap(_.logout(true))(Threading.Ui)
           navigator.back()
           navigator.back()

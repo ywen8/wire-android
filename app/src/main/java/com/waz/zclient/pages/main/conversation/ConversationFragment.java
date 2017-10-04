@@ -92,14 +92,6 @@ import com.waz.zclient.controllers.permission.RequestPermissionsObserver;
 import com.waz.zclient.controllers.singleimage.SingleImageObserver;
 import com.waz.zclient.conversation.CollectionController;
 import com.waz.zclient.core.api.scala.ModelObserver;
-import com.waz.zclient.core.controllers.tracking.attributes.OpenedMediaAction;
-import com.waz.zclient.core.controllers.tracking.events.filetransfer.SelectedTooLargeFileEvent;
-import com.waz.zclient.core.controllers.tracking.events.media.CancelledRecordingAudioMessageEvent;
-import com.waz.zclient.core.controllers.tracking.events.media.OpenedMediaActionEvent;
-import com.waz.zclient.core.controllers.tracking.events.media.PreviewedAudioMessageEvent;
-import com.waz.zclient.core.controllers.tracking.events.media.SentPictureEvent;
-import com.waz.zclient.core.controllers.tracking.events.media.SentVideoMessageEvent;
-import com.waz.zclient.core.controllers.tracking.events.media.StartedRecordingAudioMessageEvent;
 import com.waz.zclient.core.stores.IStoreFactory;
 import com.waz.zclient.core.stores.conversation.ConversationChangeRequester;
 import com.waz.zclient.core.stores.conversation.ConversationStoreObserver;
@@ -121,18 +113,15 @@ import com.waz.zclient.pages.main.conversationlist.ConversationListAnimation;
 import com.waz.zclient.pages.main.conversationpager.controller.SlidingPaneObserver;
 import com.waz.zclient.pages.main.pickuser.controller.IPickUserController;
 import com.waz.zclient.pages.main.profile.camera.CameraContext;
-import com.waz.zclient.tracking.GlobalTrackingController;
 import com.waz.zclient.ui.animation.interpolators.penner.Expo;
 import com.waz.zclient.ui.audiomessage.AudioMessageRecordingView;
 import com.waz.zclient.ui.cursor.CursorMenuItem;
 import com.waz.zclient.ui.utils.KeyboardUtils;
 import com.waz.zclient.ui.views.e2ee.ShieldView;
-import com.waz.zclient.utils.AssetUtils;
 import com.waz.zclient.utils.Callback;
 import com.waz.zclient.utils.LayoutSpec;
 import com.waz.zclient.utils.PermissionUtils;
 import com.waz.zclient.utils.SquareOrientation;
-import com.waz.zclient.utils.TrackingUtils;
 import com.waz.zclient.utils.ViewUtils;
 import com.waz.zclient.views.LoadingIndicatorView;
 
@@ -934,7 +923,6 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
                 }
 
                 errorDescription.dismiss();
-                ((BaseActivity) getActivity()).injectJava(GlobalTrackingController.class).tagEvent(new SelectedTooLargeFileEvent());
                 break;
             case RECORDING_FAILURE:
                 ViewUtils.showAlertDialog(getActivity(),
@@ -995,13 +983,9 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
                 break;
             case VOICE_FILTER_RECORDING:
                 extendedCursorContainer.openVoiceFilter(this);
-                ((BaseActivity) getActivity()).injectJava(GlobalTrackingController.class).tagEvent(OpenedMediaActionEvent.cursorAction(OpenedMediaAction.AUDIO_MESSAGE,
-                                                                                                            conversation));
                 break;
             case IMAGES:
                 extendedCursorContainer.openCursorImages(this);
-                ((BaseActivity) getActivity()).injectJava(GlobalTrackingController.class).tagEvent(OpenedMediaActionEvent.cursorAction(OpenedMediaAction.PHOTO,
-                                                                                                            conversation));
                 break;
         }
     }
@@ -1021,12 +1005,6 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
                     }
                     audioMessageRecordingView.prepareForRecording();
                     audioMessageRecordingView.setVisibility(View.VISIBLE);
-                    final IConversation conversation = getStoreFactory().conversationStore().getCurrentConversation();
-                    ((BaseActivity) getActivity()).injectJava(GlobalTrackingController.class).tagEvent(OpenedMediaActionEvent.cursorAction(OpenedMediaAction.AUDIO_MESSAGE,
-                                                                                                                conversation));
-                    ((BaseActivity) getActivity()).injectJava(GlobalTrackingController.class).tagEvent(new StartedRecordingAudioMessageEvent(
-                        getConversationTypeString(),
-                        true));
                 } else {
                     ActivityCompat.requestPermissions(getActivity(), AUDIO_PERMISSION, AUDIO_PERMISSION_REQUEST_ID);
                 }
@@ -1182,12 +1160,6 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
                                    boolean sentWithQuickAction) {
         getStoreFactory().conversationStore().sendMessage(audioAssetForUpload, assetErrorHandlerAudio);
         hideAudioMessageRecording();
-        TrackingUtils.tagSentAudioMessageEvent(((BaseActivity) getActivity()).injectJava(GlobalTrackingController.class),
-                                               audioAssetForUpload,
-                                               appliedAudioEffect,
-                                               true,
-                                               sentWithQuickAction,
-                                               getStoreFactory().conversationStore().getCurrentConversation());
     }
 
     @Override
@@ -1198,21 +1170,12 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
     @Override
     public void onAudioMessageRecordingStarted() {
         getControllerFactory().getGlobalLayoutController().keepScreenAwake();
-        ((BaseActivity) getActivity()).injectJava(GlobalTrackingController.class).tagEvent(new StartedRecordingAudioMessageEvent(
-            getConversationTypeString(),
-            false));
     }
 
     @Override
     public void sendRecording(AudioAssetForUpload audioAssetForUpload, AudioEffect appliedAudioEffect) {
         getStoreFactory().conversationStore().sendMessage(audioAssetForUpload, assetErrorHandlerAudio);
         hideAudioMessageRecording();
-        TrackingUtils.tagSentAudioMessageEvent(((BaseActivity) getActivity()).injectJava(GlobalTrackingController.class),
-                                               audioAssetForUpload,
-                                               appliedAudioEffect,
-                                               false,
-                                               false,
-                                               getStoreFactory().conversationStore().getCurrentConversation());
         extendedCursorContainer.close(true);
 
     }
@@ -1220,13 +1183,10 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
     @Override
     public void onCancelledAudioMessageRecording() {
         hideAudioMessageRecording();
-        ((BaseActivity) getActivity()).injectJava(GlobalTrackingController.class).tagEvent(new CancelledRecordingAudioMessageEvent(
-            getConversationTypeString()));
     }
 
     @Override
     public void onPreviewedAudioMessage() {
-        ((BaseActivity) getActivity()).injectJava(GlobalTrackingController.class).tagEvent(new PreviewedAudioMessageEvent(getConversationTypeString()));
     }
 
     @Override
@@ -1452,9 +1412,6 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
     @Override
     public void onSendPictureFromPreview(ImageAsset imageAsset, ImagePreviewLayout.Source source) {
         getStoreFactory().conversationStore().sendMessage(imageAsset);
-        TrackingUtils.onSentPhotoMessage(((BaseActivity) getActivity()).injectJava(GlobalTrackingController.class),
-                                         getStoreFactory().conversationStore().getCurrentConversation(),
-                                         source);
         extendedCursorContainer.close(true);
 
         onCancelPreview();
@@ -1481,26 +1438,12 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
                 break;
             case VIDEO_CURSOR_BUTTON:
                 sendVideo(uri);
-                ((BaseActivity) getActivity()).injectJava(GlobalTrackingController.class).tagEvent(new SentVideoMessageEvent((int) (AssetUtils.getVideoAssetDurationMilliSec(
-                    getContext(),
-                    uri) / 1000),
-                                                                                                  getStoreFactory().conversationStore().getCurrentConversation(),
-                                                                                                  SentVideoMessageEvent.Source.CURSOR_BUTTON));
                 break;
             case VIDEO:
                 sendVideo(uri);
-                ((BaseActivity) getActivity()).injectJava(GlobalTrackingController.class).tagEvent(new SentVideoMessageEvent((int) (AssetUtils.getVideoAssetDurationMilliSec(
-                    getContext(),
-                    uri) / 1000),
-                                                                                                  getStoreFactory().conversationStore().getCurrentConversation(),
-                                                                                                  SentVideoMessageEvent.Source.KEYBOARD));
                 break;
             case CAMERA:
                 sendImage(uri);
-                TrackingUtils.onSentPhotoMessage(((BaseActivity) getActivity()).injectJava(GlobalTrackingController.class),
-                                                 getStoreFactory().conversationStore().getCurrentConversation(),
-                                                 SentPictureEvent.Source.CAMERA,
-                                                 SentPictureEvent.Method.FULL_SCREEN);
                 extendedCursorContainer.close(true);
                 break;
         }

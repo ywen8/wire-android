@@ -47,7 +47,6 @@ import com.waz.api.ImageAssetFactory;
 import com.waz.api.LoadHandle;
 import com.waz.api.MemoryImageCache;
 import com.waz.utils.wrappers.URI;
-import com.waz.zclient.BaseActivity;
 import com.waz.zclient.OnBackPressedListener;
 import com.waz.zclient.R;
 import com.waz.zclient.controllers.accentcolor.AccentColorObserver;
@@ -57,7 +56,6 @@ import com.waz.zclient.controllers.globallayout.KeyboardVisibilityObserver;
 import com.waz.zclient.controllers.permission.RequestPermissionsObserver;
 import com.waz.zclient.pages.BaseFragment;
 import com.waz.zclient.pages.main.conversation.AssetIntentsManager;
-import com.waz.zclient.tracking.GlobalTrackingController;
 import com.waz.zclient.ui.colorpicker.ColorPickerLayout;
 import com.waz.zclient.ui.colorpicker.EmojiBottomSheetDialog;
 import com.waz.zclient.ui.colorpicker.EmojiSize;
@@ -71,7 +69,6 @@ import com.waz.zclient.ui.views.CursorIconButton;
 import com.waz.zclient.ui.views.SketchEditText;
 import com.waz.zclient.utils.LayoutSpec;
 import com.waz.zclient.utils.PermissionUtils;
-import com.waz.zclient.utils.TrackingUtils;
 import com.waz.zclient.utils.ViewUtils;
 import com.waz.zclient.utils.debug.ShakeEventListener;
 
@@ -540,10 +537,6 @@ public class DrawingFragment extends BaseFragment<DrawingFragment.Container> imp
                 case R.id.tv__send_button:
                     if (!drawingCanvasView.isEmpty()) {
                         getStoreFactory().conversationStore().sendMessage(getFinalSketchImage());
-                        TrackingUtils.onSentSketchMessage(((BaseActivity) getActivity()).injectJava(GlobalTrackingController.class),
-                                                          getStoreFactory().conversationStore().getCurrentConversation(),
-                                                          drawingDestination);
-
                         getControllerFactory().getDrawingController().hideDrawing(drawingDestination, true);
                     }
                     break;

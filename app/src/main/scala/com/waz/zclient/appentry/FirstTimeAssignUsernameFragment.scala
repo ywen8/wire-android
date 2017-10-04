@@ -57,11 +57,11 @@ import android.support.v4.app.Fragment
 import android.view.{LayoutInflater, View, ViewGroup}
 import android.widget.ImageView
 import com.waz.ZLog
+import com.waz.ZLog.ImplicitTag._
 import com.waz.service.ZMessaging
 import com.waz.utils.events.Signal
 import com.waz.zclient.controllers.global.AccentColorController
 import com.waz.zclient.controllers.usernames.UsernamesControllerObserver
-import com.waz.zclient.core.controllers.tracking.events.onboarding.OpenedUsernameFAQEvent
 import com.waz.zclient.pages.BaseFragment
 import com.waz.zclient.tracking.GlobalTrackingController
 import com.waz.zclient.ui.text.TypefaceTextView
@@ -72,7 +72,6 @@ import com.waz.zclient.views.ImageAssetDrawable
 import com.waz.zclient.views.ImageAssetDrawable.{RequestBuilder, ScaleType}
 import com.waz.zclient.views.ImageController.{ImageSource, WireImage}
 import com.waz.zclient.{FragmentHelper, OnBackPressedListener, R}
-import ZLog.ImplicitTag._
 
 object FirstTimeAssignUsernameFragment {
   val TAG: String = classOf[FirstTimeAssignUsernameFragment].getName
@@ -106,7 +105,6 @@ class FirstTimeAssignUsernameFragment extends BaseFragment[FirstTimeAssignUserna
   with UsernamesControllerObserver {
 
   private lazy val zms = inject[Signal[ZMessaging]]
-  private lazy val globalTrackingController = inject[GlobalTrackingController]
   private lazy val accentColor = inject[AccentColorController].accentColor
 
   private lazy val nameTextView = findById[TypefaceTextView](getView, R.id.ttv__name)
@@ -150,10 +148,7 @@ class FirstTimeAssignUsernameFragment extends BaseFragment[FirstTimeAssignUserna
     })
 
     TextViewUtils.linkifyText(summaryTextView, Color.WHITE, com.waz.zclient.ui.R.string.wire__typeface__light, false, new Runnable() {
-      def run(): Unit = {
-        globalTrackingController.tagEvent(new OpenedUsernameFAQEvent)
-        getContainer.onOpenUrl(getString(R.string.usernames__learn_more__link))
-      }
+      def run(): Unit = getContainer.onOpenUrl(getString(R.string.usernames__learn_more__link))
     })
 
     self.onUi { self =>

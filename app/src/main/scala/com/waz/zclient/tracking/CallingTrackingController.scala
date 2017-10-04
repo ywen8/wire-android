@@ -20,8 +20,10 @@ package com.waz.zclient.tracking
 import android.content.Context
 import com.waz.ZLog.ImplicitTag._
 import com.waz.ZLog._
-import com.waz.api.NetworkMode
+import com.waz.api.{EphemeralExpiration, NetworkMode}
 import com.waz.model.ConvId
+import com.waz.model.ConversationData.ConversationType.{Group, OneToOne}
+import com.waz.service.ZMessaging
 import com.waz.service.call.Avs.ClosedReason.{Interrupted, Normal}
 import com.waz.service.call.CallInfo.CallState
 import com.waz.service.call.CallInfo.CallState._
@@ -29,8 +31,7 @@ import com.waz.threading.Threading
 import com.waz.utils.RichInstant
 import com.waz.utils.events.EventContext
 import com.waz.zclient.calling.controllers.GlobalCallingController
-import com.waz.zclient.core.controllers.tracking.attributes.CompletedMediaType
-import com.waz.zclient.core.controllers.tracking.events.media.CompletedMediaActionEvent
+import com.waz.zclient.tracking.ContributionEvent.Action
 import com.waz.zclient.{Injectable, Injector}
 import org.threeten.bp.Instant
 
@@ -75,28 +76,25 @@ class CallingTrackingController(implicit injector: Injector, ctx: Context, ec: E
 
       val estDuration = startedJoining.getOrElse(Instant.now).until(Instant.now)
 
-      getCallTrackingInfo(st) map {
-        case info@CallingTrackingInfo(_, _, v3Call, isVideoCall, isGroupCall, wasUiActive, withOtto, incoming, convMemCount) =>
+      getCallTrackingInfo(st) map { i =>
           st match {
             case OtherCalling =>
-              tagEvent(ReceivedCallEvent(v3Call, isVideoCall, isGroupCall, wasUiActive, withOtto))
+//              tagEvent(ReceivedCallEvent(v3Call, isVideoCall, isGroupCall, wasUiActive, withOtto))
 
             case SelfCalling =>
-              //The extra CompletedMediaActionEvent is here to simplify contributor events on localytics
-              import CompletedMediaType._
-              tagEvent(new CompletedMediaActionEvent(if (isVideoCall) VIDEO_CALL else AUDIO_CALL, if (isGroupCall) "GROUP" else "ONE_TO_ONE", withOtto, false, ""))
-              tagEvent(StartedCallEvent(v3Call, isVideoCall, isGroupCall, withOtto))
+              trackEvent(i.zms, ContributionEvent(if (i.isVideoCall) Action.VideoCall else Action.AudioCall, if (i.isGroupCall) Group else OneToOne, EphemeralExpiration.NONE, i.withOtto))
+//              tagEvent(StartedCallEvent(v3Call, isVideoCall, isGroupCall, withOtto))
 
             case SelfJoining => //For calling v3, this will only ever be for incoming calls
-              tagEvent(JoinedCallEvent(v3Call, isVideoCall, isGroupCall, convMemCount, incoming, wasUiActive, withOtto))
+//              tagEvent(JoinedCallEvent(v3Call, isVideoCall, isGroupCall, convMemCount, incoming, wasUiActive, withOtto))
 
             case SelfConnected =>
-              tagEvent(EstablishedCallEvent(v3Call, isVideoCall, isGroupCall, convMemCount, incoming, wasUiActive, withOtto, estDuration))
+//              tagEvent(EstablishedCallEvent(v3Call, isVideoCall, isGroupCall, convMemCount, incoming, wasUiActive, withOtto, estDuration))
               startedJoining = None
 
             case _ => //
           }
-          prevInfo = Some(info)
+          prevInfo = Some(i)
       }
 
     case st =>
@@ -115,7 +113,7 @@ class CallingTrackingController(implicit injector: Injector, ctx: Context, ec: E
             callParticipants = info.maxParticipants
           } yield (cause, callParticipants)).map {
             case (cause, callParticipants) =>
-              tagEvent(EndedCallEvent(p.isV3Call, p.isVideoCall, cause = cause, p.isGroupCall, p.convMemCount, callParticipants, p.isIncoming, p.wasUiActive, p.withOtto, callDuration))
+//              tagEvent(EndedCallEvent(p.isV3Call, p.isVideoCall, cause = cause, p.isGroupCall, p.convMemCount, callParticipants, p.isIncoming, p.wasUiActive, p.withOtto, callDuration))
           }
         }
       }
@@ -130,13 +128,13 @@ class CallingTrackingController(implicit injector: Injector, ctx: Context, ec: E
   private def getCallTrackingInfo(st: CallState) = for {
     zms         <- zMessaging.head
     conv        <- conversation.head
-    withOtto    <- isOtto(conv, zms.usersStorage)
+    withOtto    <- isBot(conv, zms.usersStorage)
     video       <- videoCall.head
     isGroup     <- groupCall.head
     incoming    <- incomingCall.head
     convMembers <- zms.membersStorage.getActiveUsers(conv.id)
     wasUiActive = wasUiActiveOnCallStart
-  } yield CallingTrackingInfo(st, conv.id, isV3Call = true, isVideoCall = video, isGroupCall = isGroup, wasUiActive = wasUiActive, withOtto = withOtto, isIncoming = prevInfo.exists(_.isIncoming) || incoming, convMembers.size)
+  } yield CallingTrackingInfo(zms, st, conv.id, isV3Call = true, isVideoCall = video, isGroupCall = isGroup, wasUiActive = wasUiActive, withOtto = withOtto, isIncoming = prevInfo.exists(_.isIncoming) || incoming, convMembers.size)
 }
 
 object CallingTrackingController {
@@ -151,7 +149,8 @@ object CallingTrackingController {
     case _ => ""
   }
 
-  case class CallingTrackingInfo(state:        CallState,
+  case class CallingTrackingInfo(zms:          ZMessaging,
+                                 state:        CallState,
                                  convId:       ConvId,
                                  isV3Call:     Boolean,
                                  isVideoCall:  Boolean,
