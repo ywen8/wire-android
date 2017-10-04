@@ -103,8 +103,9 @@ class DocumentResolver {
                 }
             }
             if (lastUpdatedFile != null) {
-                Log.i(TAG, String.format("Got recent file: %s", lastUpdatedFile.getName()));
-                return Uri.fromFile(lastUpdatedFile);
+                Uri uri = Uri.fromFile(lastUpdatedFile);
+                Log.i(TAG, String.format("Returning recent file: %s", uri));
+                return uri;
             } else {
                 Log.w(TAG,
                     String.format("There was %s files, but none of them selected",

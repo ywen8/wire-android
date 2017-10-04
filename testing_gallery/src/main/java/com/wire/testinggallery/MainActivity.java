@@ -27,6 +27,7 @@ import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.Settings;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.ShareCompat;
 import android.support.v7.app.AppCompatActivity;
 
@@ -46,10 +47,8 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle bundle) {
         super.onCreate(bundle);
-        if (checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) !=
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) !=
             PackageManager.PERMISSION_GRANTED) {
-            shouldShowRequestPermissionRationale(
-                Manifest.permission.READ_EXTERNAL_STORAGE);
             requestPermissions(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
                 TESTING_GALLERY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE);
             return;
