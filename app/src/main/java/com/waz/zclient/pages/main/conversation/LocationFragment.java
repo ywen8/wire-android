@@ -71,7 +71,8 @@ import com.waz.zclient.controllers.userpreferences.IUserPreferencesController;
 import com.waz.zclient.core.stores.conversation.ConversationChangeRequester;
 import com.waz.zclient.core.stores.conversation.ConversationStoreObserver;
 import com.waz.zclient.pages.BaseFragment;
-import com.waz.zclient.tracking.UiTrackingController;
+import com.waz.zclient.tracking.ContributionEvent;
+import com.waz.zclient.tracking.GlobalTrackingController;
 import com.waz.zclient.ui.text.GlyphTextView;
 import com.waz.zclient.ui.views.TouchRegisteringFrameLayout;
 import com.waz.zclient.utils.LayoutSpec;
@@ -504,7 +505,7 @@ public class LocationFragment extends BaseFragment<LocationFragment.Container> i
                 }
 
                 getControllerFactory().getLocationController().hideShareLocation(location);
-                inject(UiTrackingController.class).onShareLocation();
+                inject(GlobalTrackingController.class).onContributionEvent(new ContributionEvent.Action("location")); //TODO use lazy val when in scala
                 break;
         }
     }

@@ -36,6 +36,7 @@ import com.waz.zclient.controllers.SharingController
 import com.waz.zclient.controllers.global.AccentColorController
 import com.waz.zclient.pages.main.popup.ViewPagerLikeLayoutManager
 import com.waz.zclient.tracking.ContributionEvent.Action
+import com.waz.zclient.tracking.GlobalTrackingController.convType
 import com.waz.zclient.tracking.{ContributionEvent, GlobalTrackingController}
 import com.waz.zclient.ui.text.{TypefaceEditText, TypefaceTextView}
 import com.waz.zclient.ui.utils.KeyboardUtils
@@ -130,14 +131,15 @@ class QuickReplyFragment extends Fragment with FragmentHelper {
 
           textView.setEnabled(false)
           for {
-            zs <- zms.head
-            c <- conv.head
-            isOtto <- Conversation.isOtto(c, zs.usersStorage)
-            msg <- zs.convsUi.sendMessage(c.id, new MessageContent.Text(sendText))
+            zs       <- zms.head
+            c        <- conv.head
+            isBot    <- Conversation.isOtto(c, zs.usersStorage)
+            convType <- convType(c, zs.membersStorage)
+            msg      <- zs.convsUi.sendMessage(c.id, new MessageContent.Text(sendText))
           } {
             textView.setEnabled(true)
             if (msg.isDefined) {
-              tracking.trackEvent(zs, ContributionEvent(Action.Text, c.convType, c.ephemeral, isOtto))
+              tracking.trackEvent(zs, ContributionEvent(Action.Text, convType, c.ephemeral, isBot))
               getActivity.finish()
             }
           }

@@ -44,7 +44,8 @@ import com.waz.zclient.core.stores.network.NetworkStoreObserver;
 import com.waz.zclient.pages.BaseFragment;
 import com.waz.zclient.pages.main.profile.views.ConfirmationMenu;
 import com.waz.zclient.pages.main.profile.views.ConfirmationMenuListener;
-import com.waz.zclient.tracking.UiTrackingController;
+import com.waz.zclient.tracking.ContributionEvent;
+import com.waz.zclient.tracking.GlobalTrackingController;
 import com.waz.zclient.ui.theme.ThemeUtils;
 import com.waz.zclient.ui.utils.KeyboardUtils;
 import com.waz.zclient.ui.utils.TextViewUtils;
@@ -395,7 +396,7 @@ public class GiphySharingPreviewFragment extends BaseFragment<GiphySharingPrevie
     }
 
     private void sendGif() {
-        inject(UiTrackingController.class).onShareGif();
+        inject(GlobalTrackingController.class).onContributionEvent(new ContributionEvent.Action("text")); //TODO use lazy val when in scala
         if (TextUtils.isEmpty(searchTerm) || searchTerm == null) {
             getStoreFactory().conversationStore().sendMessage(getString(R.string.giphy_preview__message_via_random_trending));
         } else {

@@ -128,7 +128,7 @@ class CallingTrackingController(implicit injector: Injector, ctx: Context, ec: E
   private def getCallTrackingInfo(st: CallState) = for {
     zms         <- zMessaging.head
     conv        <- conversation.head
-    withOtto    <- isOtto(conv, zms.usersStorage)
+    withOtto    <- isBot(conv, zms.usersStorage)
     video       <- videoCall.head
     isGroup     <- groupCall.head
     incoming    <- incomingCall.head

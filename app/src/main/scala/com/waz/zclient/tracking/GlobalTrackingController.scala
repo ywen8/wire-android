@@ -21,10 +21,8 @@ import com.mixpanel.android.mpmetrics.MixpanelAPI
 import com.waz.ZLog.ImplicitTag._
 import com.waz.ZLog._
 import com.waz.api.EphemeralExpiration
-import com.waz.api.Message.Type._
-import com.waz.content.{UserPreferences, UsersStorage}
+import com.waz.content.{MembersStorage, UserPreferences, UsersStorage}
 import com.waz.model.ConversationData.ConversationType
-import com.waz.model.UserData.ConnectionStatus.Blocked
 import com.waz.model.{UserId, _}
 import com.waz.service.{ZMessaging, ZmsLifeCycle}
 import com.waz.threading.{SerialDispatchQueue, Threading}
@@ -35,7 +33,7 @@ import com.waz.zclient.controllers.SignInController.SignInMethod
 import com.waz.zclient.tracking.ContributionEvent.fromMime
 import org.json.JSONObject
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.Future._
 import scala.language.{implicitConversions, postfixOps}
 
@@ -97,12 +95,7 @@ class GlobalTrackingController(implicit inj: Injector, cxt: WireContext, eventCo
     */
   private def registerTrackingEventListeners(zms: ZMessaging) = {
 
-    val loader      = zms.assetLoader
-    val messages    = zms.messagesStorage
-    val assets      = zms.assetsStorage
     val convsUI     = zms.convsUi
-    val handlesSync = zms.handlesSync
-    val connStats   = zms.websocket.connectionStats
 
     convsUI.assetUploadStarted.map(_.id) { assetTrackingData(_).map {
       case AssetTrackingData(convType, withOtto, exp, assetSize, m) =>
@@ -161,49 +154,15 @@ class GlobalTrackingController(implicit inj: Injector, cxt: WireContext, eventCo
     }
   }
 
-  //-1 is the default value for non-logged in users (when zms is not defined)
-  private def setCustomDims(): Future[Unit] = {
-    import ConversationType._
-    for {
-      zms    <- zmsOpt.head
-      self   =  zms.fold(UserId.Zero)(_.selfUserId)
-      convs  <- zms.fold(Future.successful(Seq.empty[ConversationData]))(_.convsStorage.list)
-      users  <- zms.fold(Future.successful(Seq.empty[UserData]))(_.usersStorage.list)
-      voice  <- zms.fold(Future.successful(-1))(_.callLog.numberOfEstablishedVoiceCalls)
-      video  <- zms.fold(Future.successful(-1))(_.callLog.numberOfEstablishedVideoCalls)
-      texts  <- zms.fold(Future.successful(-1))(_.messagesStorage.countSentByType(self, TEXT))
-      rich   <- zms.fold(Future.successful(-1))(_.messagesStorage.countSentByType(self, RICH_MEDIA))
-      images <- zms.fold(Future.successful(-1))(_.messagesStorage.countSentByType(self, ASSET))
-    } yield {
-
-      val (groups, archived, muted) = if (self == UserId.Zero) (-1, -1, -1)
-      else {
-        convs.iterator.map { c =>
-          ((c.convType == Group)?, c.archived?, c.muted?)
-        }.foldLeft((0, 0, 0)) { case ((accG, accA, accM), (g, a, m)) =>
-          (accG + g, accA + a, accM + m)
-        }
-      }
-
-      val (contacts, autoConnected, blocked) = if (self == UserId.Zero) (-1, -1, -1)
-      else {
-        users.filter(u => !u.isWireBot && !u.isSelf).iterator.map { u =>
-          ((u.isConnected && u.connection != Blocked)?, u.isAutoConnect?, (u.connection == Blocked)?)
-        }.foldLeft((0, 0, 0)) { case ((accC, accA, accB), (c, a, b)) =>
-          (accC + c, accA + a, accB + b)
-        }
-      }
-    }
-  }.logFailure(reportHockey = true)
-
   private def assetTrackingData(id: AssetId): Future[AssetTrackingData] = {
     for {
       zms         <- zMessaging.head
       Some(msg)   <- zms.messagesStorage.get(MessageId(id.str))
       Some(conv)  <- zms.convsContent.convById(msg.convId)
       Some(asset) <- zms.assetsStorage.get(id)
-      withOtto    <- isOtto(conv, zms.usersStorage)
-    } yield AssetTrackingData(conv.convType, withOtto, msg.ephemeral, asset.size, asset.mime)
+      convType    <- convType(conv, zms.membersStorage)
+      isBot       <- isBot(conv, zms.usersStorage)
+    } yield AssetTrackingData(convType, isBot, msg.ephemeral, asset.size, asset.mime)
   }
 
   //Should wait until a ZMS instance exists before firing the event
@@ -217,6 +176,16 @@ class GlobalTrackingController(implicit inj: Injector, cxt: WireContext, eventCo
     }
   }
 
+  def onOptOut(enabled: Boolean): Unit = zMessaging.map(zms => trackEvent(zms, OptEvent(enabled)))
+
+  //By default assigns events to the current zms (current account)
+  def onContributionEvent(action: ContributionEvent.Action): Unit =
+    for {
+      z        <- zMessaging
+      conv     <- currentConv
+      isBot    <- isBot(conv, z.usersStorage)
+      convType <- convType(conv, z.membersStorage)
+    } trackEvent(z, ContributionEvent(action, convType, conv.ephemeral, isBot))
 }
 
 object GlobalTrackingController {
@@ -226,13 +195,17 @@ object GlobalTrackingController {
   //For build flavours that don't have tracking enabled, this should be None
   private lazy val MixpanelApiToken = Option(BuildConfig.MIXPANEL_APP_TOKEN).filter(_.nonEmpty)
 
-  private implicit class RichBoolean(val b: Boolean) extends AnyVal {
-    def ? : Int = if (b) 1 else 0
-  }
-
-  def isOtto(conv: ConversationData, users: UsersStorage): Future[Boolean] =
+  def isBot(conv: ConversationData, users: UsersStorage): Future[Boolean] =
     if (conv.convType == ConversationType.OneToOne) users.get(UserId(conv.id.str)).map(_.exists(_.isWireBot))(Threading.Background)
     else successful(false)
+
+  //TODO remove workarounds for 1:1 team conversations when supported on backend
+  def convType(conv: ConversationData, membersStorage: MembersStorage)(implicit executionContext: ExecutionContext): Future[ConversationType] =
+    if (conv.team.isEmpty) Future.successful(conv.convType)
+    else membersStorage.getByConv(conv.id).map(_.map(_.userId).size > 2).map {
+      case true => ConversationType.Group
+      case _    => ConversationType.OneToOne
+    }
 
   case class AssetTrackingData(conversationType: ConversationType, withOtto: Boolean, expiration: EphemeralExpiration, assetSize: Long, mime:Mime)
 }
