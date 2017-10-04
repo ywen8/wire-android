@@ -107,7 +107,7 @@ class SignInController(implicit inj: Injector, eventContext: EventContext, conte
             code     <- phoneCountry.head.map(_.getCountryCode)
             response <- appEntryController.loginPhone(s"+$code$phone")
           } yield response
-        case m@SignInMethod(Register, Email) =>
+        case SignInMethod(Register, Email) =>
           for{
             name     <- name.head
             email    <- email.head
@@ -123,7 +123,7 @@ class SignInController(implicit inj: Injector, eventContext: EventContext, conte
           } yield response
         case _ => Future.successful(Right(()))
       }
-      _ = tracking.onSignInSuccessful(method)
+      _ = if (res.isRight) tracking.onSignInSuccessful(method)
     } yield res
   }
 
