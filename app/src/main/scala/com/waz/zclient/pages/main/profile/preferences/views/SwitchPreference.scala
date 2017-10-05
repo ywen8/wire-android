@@ -20,6 +20,7 @@ package com.waz.zclient.pages.main.profile.preferences.views
 import android.content.Context
 import android.content.res.TypedArray
 import android.util.AttributeSet
+import android.view.ViewGroup
 import android.widget.CompoundButton.OnCheckedChangeListener
 import android.widget.{CompoundButton, Switch}
 import com.waz.content.Preferences.PrefKey
@@ -72,6 +73,12 @@ class SwitchPreference(context: Context, attrs: AttributeSet, style: Int) extend
       onCheckedChange ! isChecked
     }
   })
+
+  def setDisabled(disabled: Boolean) = {
+    setEnabled(!disabled)
+    switch.setEnabled(!disabled)
+    title.foreach(_.setAlpha(if (disabled) 0.5f else 1f))
+  }
 
   override def setChecked(checked: Boolean): Unit = {
     switch.setChecked(checked)
