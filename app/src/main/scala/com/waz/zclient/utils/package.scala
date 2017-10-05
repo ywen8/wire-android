@@ -27,7 +27,7 @@ import android.support.v4.content.ContextCompat
 import android.support.v7.preference.Preference
 import android.support.v7.preference.Preference.{OnPreferenceChangeListener, OnPreferenceClickListener}
 import android.text.{Editable, TextWatcher}
-import android.util.AttributeSet
+import android.util.{AttributeSet, TypedValue}
 import android.view.View._
 import android.view.ViewGroup.LayoutParams
 import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
@@ -184,6 +184,14 @@ package object utils {
     def withStyledAttributes[A](set: AttributeSet, @StyleableRes attrs: Array[Int])(body: TypedArray => A)(implicit context: Context) = {
       val a = context.getTheme.obtainStyledAttributes(set, attrs, 0, 0)
       try body(a) finally a.recycle()
+    }
+
+    def getStyledColor(resId: Int)(implicit context: Context): Int = {
+      val typedValue  = new TypedValue
+      val a  = context.obtainStyledAttributes(typedValue.data, Array[Int](resId))
+      val color = a.getColor(0, 0)
+      a.recycle()
+      color
     }
   }
 }

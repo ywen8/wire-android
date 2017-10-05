@@ -35,6 +35,7 @@
 package com.waz.zclient.cursor
 
 import android.content.Context
+import android.content.res.ColorStateList
 import android.util.AttributeSet
 import android.view.ViewGroup
 import android.widget.LinearLayout
@@ -54,6 +55,8 @@ class CursorToolbar(val context: Context, val attrs: AttributeSet, val defStyleA
   val buttonWidth = getResources.getDimensionPixelSize(R.dimen.new_cursor_menu_button_width)
   val cursorItems = Signal[Seq[CursorMenuItem]]
 
+  private var customColor = Option.empty[ColorStateList]
+
   cursorItems.on(Threading.Ui) { items =>
     removeAllViews()
 
@@ -65,7 +68,15 @@ class CursorToolbar(val context: Context, val attrs: AttributeSet, val defStyleA
       button.menuItem ! Some(item)
       val params = new LinearLayout.LayoutParams(buttonWidth, ViewGroup.LayoutParams.MATCH_PARENT)
       if (i < items.size - 1) params.rightMargin = rightMargin
+      customColor.foreach(button.setTextColor)
       addView(button, params)
+    }
+  }
+
+  def setButtonsColor(colorStateList: ColorStateList): Unit = {
+    customColor = Some(colorStateList)
+    (0 until getChildCount).map(getChildAt).collect { case c: CursorIconButton => c }.foreach {
+      _.setTextColor(colorStateList)
     }
   }
 

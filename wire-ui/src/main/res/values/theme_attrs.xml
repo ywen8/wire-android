@@ -63,6 +63,9 @@
     <attr name="cursorIconButtonCall" format="reference" />
     <attr name="cursorIconButtonVideo" format="reference" />
     <attr name="cursorEditText" format="reference" />
+    <attr name="cursorEditBackground" format="color" />
+    <attr name="cursorEditButtons" format="color" />
+    <attr name="cursorEditButtonsDisabled" format="color" />
 
     <!-- Participant -->
     <attr name="userEditText" format="reference" />

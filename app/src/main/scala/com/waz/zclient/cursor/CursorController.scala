@@ -64,6 +64,7 @@ class CursorController(implicit inj: Injector, ctx: Context, evc: EventContext) 
   val cursorWidth = Signal[Int]()
   val editHasFocus = Signal(false)
   var cursorCallback = Option.empty[CursorCallback]
+  val onEditMessageReset = EventStream[Unit]()
 
   val extendedCursor = keyboard map {
     case KeyboardState.ExtendedCursor(tpe) => tpe

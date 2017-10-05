@@ -18,6 +18,7 @@
 package com.waz.zclient.cursor
 
 import android.content.Context
+import android.content.res.ColorStateList
 import android.graphics._
 import android.graphics.drawable.ColorDrawable
 import android.support.v4.content.res.ResourcesCompat
@@ -71,32 +72,29 @@ class CursorView(val context: Context, val attrs: AttributeSet, val defStyleAttr
   val sendButton: CursorIconButton               = findById(R.id.cib__send)
   val ephemeralButton: CursorIconButton          = findById(R.id.cib__ephemeral)
 
+  lazy val editBackgroundColor = getStyledColor(R.attr.cursorEditBackground)
   val defaultTextColor = cursorEditText.getCurrentTextColor
   val defaultDividerColor =  dividerView.getBackground.asInstanceOf[ColorDrawable].getColor
   val defaultHintTextColor = hintView.getTextColors.getDefaultColor
 
-  val dividerColor = Signal(controller.isEditingMessage, controller.isEphemeralMode, accentColor) map {
+  val dividerColor = Signal(controller.isEditingMessage, controller.convIsEphemeral, accentColor) map {
     case (true, _, _)      => getColor(R.color.separator_light)
     case (_, true, accent) => accent.getColor
     case _                 => defaultDividerColor
   }
 
   val bgColor = controller.isEditingMessage map {
-    case true => getColor(R.color.accent_yellow__16)
+    case true => editBackgroundColor
     case false => Color.TRANSPARENT
   }
 
-  val textColor = controller.isEditingMessage map {
-    case true => getColor(R.color.text__primary_light)
-    case false => defaultTextColor
-  }
-
-  val cursorBtnColor = controller.isEditingMessage map {
-    case true => ResourcesCompat.getColorStateList(getResources, R.color.wire__text_color_primary_light_selector, null)
-    case false if ThemeUtils.isDarkTheme(getContext) =>
-      ResourcesCompat.getColorStateList(getResources, R.color.wire__text_color_primary_dark_selector, null)
-    case false =>
-      ResourcesCompat.getColorStateList(getResources, R.color.wire__text_color_primary_light_selector, null)
+  val cursorBtnColor = controller.convIsEphemeral.zip(controller.isEditingMessage) flatMap {
+    case (true, false) =>
+      accentColor.map(_.getColor).map(ColorStateList.valueOf)
+    case _ if ThemeUtils.isDarkTheme(getContext) =>
+      Signal.const(ResourcesCompat.getColorStateList(getResources, R.color.wire__text_color_primary_dark_selector, null))
+    case _ =>
+      Signal.const(ResourcesCompat.getColorStateList(getResources, R.color.wire__text_color_primary_light_selector, null))
   }
 
   val lineCount = Signal(0)
@@ -109,10 +107,11 @@ class CursorView(val context: Context, val attrs: AttributeSet, val defStyleAttr
 
   dividerColor.on(Threading.Ui) { dividerView.setBackgroundColor }
   bgColor.on(Threading.Ui) { setBackgroundColor }
-  textColor.on(Threading.Ui) { cursorEditText.setTextColor }
   cursorBtnColor.on(Threading.Ui) { c =>
     emojiButton.setTextColor(c)
     keyboardButton.setTextColor(c)
+    mainToolbar.setButtonsColor(c)
+    secondaryToolbar.setButtonsColor(c)
   }
 
   emojiButton.menuItem ! Some(CursorMenuItem.Emoji)
@@ -201,12 +200,12 @@ class CursorView(val context: Context, val attrs: AttributeSet, val defStyleAttr
   }
 
 
-  val hintText = controller.isEphemeralMode map {
+  val hintText = controller.convIsEphemeral map {
     case true => R.string.cursor__ephemeral_message
     case false => R.string.cursor__type_a_message
   }
 
-  val hintColor = controller.isEphemeralMode.zip(accentColor) map {
+  val hintColor = controller.convIsEphemeral.zip(accentColor) map {
     case (true, accent) => accent.getColor
     case (false, _) => defaultHintTextColor
   }
@@ -232,6 +231,13 @@ class CursorView(val context: Context, val attrs: AttributeSet, val defStyleAttr
         case Some(msg) => setText(msg.contentString)
         case _ => // ignore
       }
+  }
+
+  controller.onEditMessageReset.onUi { _ =>
+    controller.editingMsg.head.map {
+      case Some(msg) =>  setText(msg.contentString)
+      case _ =>
+    } (Threading.Ui)
   }
 
   def enableMessageWriting(): Unit = cursorEditText.requestFocus
