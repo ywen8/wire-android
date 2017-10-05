@@ -1011,7 +1011,7 @@ public class ConversationListManagerFragment extends BaseFragment<ConversationLi
                 }
 
 
-                boolean deleteCurrentConversation = getStoreFactory().conversationStore().currentConversation() != null &&
+                boolean deleteCurrentConversation = getStoreFactory().conversationStore().getCurrentConversation() != null &&
                                                     conversation.getId().equals(getStoreFactory().conversationStore().getCurrentConversation().getId());
                 getStoreFactory().conversationStore().deleteConversation(conversation, checkboxIsSelected);
                 if (deleteCurrentConversation) {
