@@ -84,12 +84,7 @@ class EditCursorToolbar(val context: Context, val attrs: AttributeSet, val defSt
   }
 
   closeButton.onClick { controller.editingMsg ! None }
-  resetButton.onClick {
-    controller.editingMsg.head foreach {
-      case Some(msg) => controller.enteredText ! msg.contentString
-      case _ => // ignore
-    }
-  }
+  resetButton.onClick { controller.onEditMessageReset ! (()) }
   approveButton.onClick {
     controller.enteredText.head foreach { controller.submit }
   }

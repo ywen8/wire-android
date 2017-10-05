@@ -233,6 +233,13 @@ class CursorView(val context: Context, val attrs: AttributeSet, val defStyleAttr
       }
   }
 
+  controller.onEditMessageReset.onUi { _ =>
+    controller.editingMsg.head.map {
+      case Some(msg) =>  setText(msg.contentString)
+      case _ =>
+    } (Threading.Ui)
+  }
+
   def enableMessageWriting(): Unit = cursorEditText.requestFocus
 
   def setCallback(callback: CursorCallback) = controller.cursorCallback = Option(callback)
