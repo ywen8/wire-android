@@ -25,9 +25,6 @@ import android.provider.MediaStore;
 import android.util.Log;
 
 import java.io.File;
-import java.util.logging.Level;
-import java.util.logging.LogManager;
-import java.util.logging.Logger;
 
 class DocumentResolver {
 

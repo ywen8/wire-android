@@ -67,7 +67,9 @@ public class MainActivity extends AppCompatActivity {
             if (command.startsWith("share")) {
                 if (command.equals(COMMAND_SHARE_TEXT)) {
                     String text = intent.getStringExtra(CUSTOM_TEXT);
-                    text = text != null ? text : DEFAULT_TEST_TEXT;
+                    if (text == null) {
+                        text = DEFAULT_TEST_TEXT;
+                    }
                     shareIntent = ShareCompat.IntentBuilder.from(MainActivity.this)
                         .setType("text/plain")
                         .setText(text)
