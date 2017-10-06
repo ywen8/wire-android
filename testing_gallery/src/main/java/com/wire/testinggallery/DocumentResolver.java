@@ -22,10 +22,13 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.Environment;
 import android.provider.MediaStore;
+import android.util.Log;
 
 import java.io.File;
 
 class DocumentResolver {
+
+    private static final String TAG = "TestingGallery";
 
     private static final String WIRE_DIRECTORY = "wire";
 
@@ -43,18 +46,22 @@ class DocumentResolver {
     }
 
     Uri getDocumentUri() {
+        Log.i(TAG, "Received request for File");
         return fileQuery(WIRE_TESTING_FILES_DIRECTORY);
     }
 
     Uri getVideoUri() {
+        Log.i(TAG, "Received request for Video file");
         return fileQuery(WIRE_TESTING_VIDEOS_DIRECTORY);
     }
 
     Uri getAudioUri() {
+        Log.i(TAG, "Received request for Audio file");
         return fileQuery(WIRE_TESTING_FILES_DIRECTORY);
     }
 
     Uri getImageUri() {
+        Log.i(TAG, "Received request for Image");
         return fileQuery(WIRE_TESTING_IMAGES_DIRECTORY);
     }
 
@@ -81,9 +88,10 @@ class DocumentResolver {
 
     private Uri fileQuery(File baseDir) {
         File[] files = baseDir.listFiles();
+        Log.i(TAG, String.format("%s files found in %s", files.length, baseDir));
         File lastUpdatedFile = null;
         long theLastModifiedTime = 0;
-        if (files != null && files.length > 0) {
+        if (files.length > 0) {
             for (File file : files) {
                 long modifiedTime = file.lastModified();
                 if (modifiedTime > theLastModifiedTime) {
@@ -91,8 +99,17 @@ class DocumentResolver {
                     lastUpdatedFile = file;
                 }
             }
-            return Uri.fromFile(lastUpdatedFile);
+            if (lastUpdatedFile != null) {
+                Uri uri = Uri.fromFile(lastUpdatedFile);
+                Log.i(TAG, String.format("Returning recent file: %s", uri));
+                return uri;
+            } else {
+                Log.w(TAG, String.format("There was %s files, but none of them selected",
+                    files.length));
+                return null;
+            }
         }
+        Log.w(TAG, "No files! Returning null!!");
         return null;
     }
 }
