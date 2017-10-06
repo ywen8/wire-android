@@ -104,9 +104,9 @@ class DocumentResolver {
                 Log.i(TAG, String.format("Returning recent file: %s", uri));
                 return uri;
             } else {
-                Log.w(TAG,
-                    String.format("There was %s files, but none of them selected",
-                        files.length));
+                Log.w(TAG, String.format("There was %s files, but none of them selected",
+                    files.length));
+                return null;
             }
         }
         Log.w(TAG, "No files! Returning null!!");
