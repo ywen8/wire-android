@@ -63,7 +63,6 @@ import com.waz.utils.events.Signal
 import com.waz.zclient.controllers.global.AccentColorController
 import com.waz.zclient.controllers.usernames.UsernamesControllerObserver
 import com.waz.zclient.pages.BaseFragment
-import com.waz.zclient.tracking.GlobalTrackingController
 import com.waz.zclient.ui.text.TypefaceTextView
 import com.waz.zclient.ui.utils.{BitmapUtils, ColorUtils, ResourceUtils, TextViewUtils}
 import com.waz.zclient.ui.views.ZetaButton

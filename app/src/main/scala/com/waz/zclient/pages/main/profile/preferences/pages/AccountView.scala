@@ -38,7 +38,6 @@ import com.waz.zclient.pages.main.profile.preferences.dialogs.{ChangeEmailDialog
 import com.waz.zclient.pages.main.profile.preferences.views.{EditNameDialog, PictureTextButton, TextButton}
 import com.waz.zclient.preferences.PreferencesActivity
 import com.waz.zclient.preferences.dialogs.AccentColorPickerFragment
-import com.waz.zclient.tracking.GlobalTrackingController
 import com.waz.zclient.ui.utils.TextViewUtils._
 import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.utils.ViewUtils._
@@ -47,8 +46,6 @@ import com.waz.zclient.views.ImageAssetDrawable
 import com.waz.zclient.views.ImageAssetDrawable.{RequestBuilder, ScaleType}
 import com.waz.zclient.views.ImageController.{ImageSource, WireImage}
 import com.waz.zclient.utils.RichView
-
-import scala.concurrent.Future
 
 trait AccountView {
   val onNameClick:          EventStream[Unit]
