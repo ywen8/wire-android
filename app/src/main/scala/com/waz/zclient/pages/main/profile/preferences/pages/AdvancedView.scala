@@ -27,11 +27,10 @@ import com.waz.content.Preferences.PrefKey
 import com.waz.content.UserPreferences
 import com.waz.service.ZMessaging
 import com.waz.threading.{CancellableFuture, Threading}
-import com.waz.utils.returning
 import com.waz.zclient.pages.main.profile.preferences.views.{SwitchPreference, TextButton}
 import com.waz.zclient.tracking.GlobalTrackingController
 import com.waz.zclient.utils.ContextUtils._
-import com.waz.zclient.utils.{BackStackKey, DebugUtils, _}
+import com.waz.zclient.utils.{BackStackKey, DebugUtils}
 import com.waz.zclient.{BuildConfig, R, ViewHelper}
 
 import scala.concurrent.duration._
@@ -45,7 +44,7 @@ class AdvancedViewImpl(context: Context, attrs: AttributeSet, style: Int) extend
 
   val analyticsSwitch = findById[SwitchPreference](R.id.preferences_analytics)
   val submitReport    = findById[TextButton](R.id.preferences_debug_report)
-  val resetPush       = returning(findById[TextButton](R.id.preferences_reset_push))(_.setVisible(BuildConfig.DEVELOPER_FEATURES_ENABLED))
+  val resetPush       = findById[TextButton](R.id.preferences_reset_push)
 
   analyticsSwitch.setPreference({
     BuildConfig.APPLICATION_ID match {
@@ -60,7 +59,7 @@ class AdvancedViewImpl(context: Context, attrs: AttributeSet, style: Int) extend
 
   resetPush.onClickEvent { _ =>
     ZMessaging.currentGlobal.tokenService.resetGlobalToken()
-    Toast.makeText(getContext, getString(R.string.pref_advanced_reset_push_completed)(getContext), Toast.LENGTH_LONG)
+    Toast.makeText(getContext, getString(R.string.pref_advanced_reset_push_completed)(getContext), Toast.LENGTH_LONG).show()
     setResetEnabled(false)
     CancellableFuture.delay(5.seconds).map(_ => setResetEnabled(true))(Threading.Ui)
   }
