@@ -53,14 +53,12 @@ import com.waz.api.ErrorsList;
 import com.waz.api.IConversation;
 import com.waz.api.ImageAsset;
 import com.waz.api.ImageAssetFactory;
-import com.waz.api.InputStateIndicator;
 import com.waz.api.Message;
 import com.waz.api.MessageContent;
 import com.waz.api.NetworkMode;
 import com.waz.api.OtrClient;
 import com.waz.api.Self;
 import com.waz.api.SyncState;
-import com.waz.api.UpdateListener;
 import com.waz.api.User;
 import com.waz.api.UsersList;
 import com.waz.api.Verification;
@@ -90,6 +88,7 @@ import com.waz.zclient.controllers.orientation.OrientationControllerObserver;
 import com.waz.zclient.controllers.permission.RequestPermissionsObserver;
 import com.waz.zclient.controllers.singleimage.SingleImageObserver;
 import com.waz.zclient.conversation.CollectionController;
+import com.waz.zclient.conversation.TypingIndicatorView;
 import com.waz.zclient.core.api.scala.ModelObserver;
 import com.waz.zclient.core.stores.IStoreFactory;
 import com.waz.zclient.core.stores.conversation.ConversationChangeRequester;
@@ -107,7 +106,6 @@ import com.waz.zclient.pages.extendedcursor.ephemeral.EphemeralLayout;
 import com.waz.zclient.pages.extendedcursor.image.CursorImagesLayout;
 import com.waz.zclient.pages.extendedcursor.image.ImagePreviewLayout;
 import com.waz.zclient.pages.extendedcursor.voicefilter.VoiceFilterLayout;
-import com.waz.zclient.pages.main.conversation.views.TypingIndicatorView;
 import com.waz.zclient.pages.main.conversationlist.ConversationListAnimation;
 import com.waz.zclient.pages.main.conversationpager.controller.SlidingPaneObserver;
 import com.waz.zclient.pages.main.pickuser.controller.IPickUserController;
@@ -166,9 +164,6 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
     private static final String[] AUDIO_PERMISSION = new String[] {android.Manifest.permission.RECORD_AUDIO};
     private static final int AUDIO_PERMISSION_REQUEST_ID = 864;
     private static final int AUDIO_FILTER_PERMISSION_REQUEST_ID = 865;
-
-    private InputStateIndicator inputStateIndicator;
-    private UpdateListener typingListener;
 
     private TypingIndicatorView typingIndicatorView;
     private LoadingIndicatorView conversationLoadingIndicatorViewView;
@@ -575,13 +570,7 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
         containerPreview = null;
         cursorView = null;
         conversationLoadingIndicatorViewView = null;
-        if (inputStateIndicator != null) {
-            inputStateIndicator.removeUpdateListener(typingListener);
-            inputStateIndicator = null;
-        }
-        typingIndicatorView.clear();
         typingIndicatorView = null;
-        typingListener = null;
         conversationModelObserver.clear();
         toolbarTitle = null;
         toolbar = null;
@@ -688,16 +677,6 @@ public class ConversationFragment extends BaseFragment<ConversationFragment.Cont
                     hideAudioMessageRecording();
                 }
 
-                if (inputStateIndicator != null) {
-                    inputStateIndicator.getTypingUsers().removeUpdateListener(typingListener);
-                }
-
-                inputStateIndicator = toConversation.getInputStateIndicator();
-                typingIndicatorView.setInputStateIndicator(inputStateIndicator);
-
-                if (inputStateIndicator != null) {
-                    inputStateIndicator.getTypingUsers().addUpdateListener(typingListener);
-                }
             }
         }, duration);
 

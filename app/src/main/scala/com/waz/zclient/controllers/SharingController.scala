@@ -30,7 +30,6 @@ import com.waz.utils.RichFuture
 import com.waz.utils.events.{EventContext, EventStream, Signal}
 import com.waz.utils.wrappers.URI
 import com.waz.zclient.Intents._
-import com.waz.zclient.common.controllers.PermissionsController
 import com.waz.zclient.controllers.SharingController.{FileContent, ImageContent, SharableContent, TextContent}
 import com.waz.zclient.utils.ViewUtils
 import com.waz.zclient.{Injectable, Injector, R, WireContext}

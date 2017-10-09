@@ -20,7 +20,6 @@ package com.waz.zclient.pages.main.profile.preferences.views
 import android.content.Context
 import android.content.res.TypedArray
 import android.util.AttributeSet
-import android.view.ViewGroup
 import android.widget.CompoundButton.OnCheckedChangeListener
 import android.widget.{CompoundButton, Switch}
 import com.waz.content.Preferences.PrefKey
