@@ -56,7 +56,7 @@ task licenseFormatAndroid(type: nl.javadude.gradle.plugins.license.License) {
 licenseFormat.dependsOn licenseFormatAndroid
 
 ext {
-    majorVersion = "2.41."
+    majorVersion = "2.42."
 
     compileSdkVersion = 24
     // When upgrading minimum sdk you might want to search for occurrences of Build.VERSION_CODES.
@@ -79,7 +79,7 @@ ext {
     zMessagingDevVersionBase = '109.1721'
     zMessagingDevVersion = "${zMessagingDevVersionBase}@aar"
     // Release version number must be like this X.0(.Y)
-    zMessagingReleaseVersion = System.getenv("ZMESSAGING_VERSION") ?: '108.1.396@aar'
+    zMessagingReleaseVersion = System.getenv("ZMESSAGING_VERSION") ?: '109.2.400@aar'
 
     avsVersion = '3.4.100@aar'
     avsInternalVersion = avsVersion //leave this here in case we want to test specific AVS versions on internal
