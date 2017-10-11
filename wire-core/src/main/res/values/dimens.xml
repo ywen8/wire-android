@@ -493,6 +493,7 @@
     <dimen name="profile__settings_box__divider_height">1dp</dimen>
     <dimen name="profile__settings_button__font_size">18dp</dimen>
     <dimen name="profile__settings_button__padding_left">16dp</dimen>
+    <dimen name="profile__settings__menu__height">48dp</dimen>
     <dimen name="about__close__size">24dp</dimen>
     <dimen name="about__website__margin_top">12dp</dimen>
     <dimen name="about__website__margin_bottom">12dp</dimen>
