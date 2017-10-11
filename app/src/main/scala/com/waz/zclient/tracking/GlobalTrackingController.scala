@@ -68,7 +68,7 @@ class GlobalTrackingController(implicit inj: Injector, cxt: WireContext, eventCo
       }
     case _ =>
   }
-  
+
   private var registeredZmsInstances = Set.empty[ZMessaging]
 
   /**
