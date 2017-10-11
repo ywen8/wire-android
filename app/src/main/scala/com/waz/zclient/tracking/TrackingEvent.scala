@@ -77,7 +77,7 @@ case class ContributionEvent(action: Action, conversationType: ConversationType,
 
   override val props = Some(returning(new JSONObject()) { o =>
     o.put("action",               action.name)
-    o.put("conversation_type",    if (conversationType == ConversationType.Group) "group" else "1:1")
+    o.put("conversation_type",    if (conversationType == ConversationType.Group) "group" else "one_to_one")
     o.put("with_bot",             withBot)
     o.put("is_ephemeral",         ephExp != EphemeralExpiration.NONE) //TODO is this flag necessary?
     o.put("ephemeral_expiration", ephExp.duration().toSeconds.toString)

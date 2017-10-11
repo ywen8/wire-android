@@ -69,13 +69,6 @@ class GlobalTrackingController(implicit inj: Injector, cxt: WireContext, eventCo
     case _ =>
   }
 
-  (for {
-    service <- Signal.future(ZMessaging.accountsService)
-    accs    <- service.loggedInAccounts
-  } yield accs.exists(_.teamId.fold(_ => false, _.isDefined))) { isTeamUser =>
-    superProps.mutate(_.put(TeamIsMemberSuperProperty, isTeamUser))
-  }
-
   private var registeredZmsInstances = Set.empty[ZMessaging]
 
   /**
@@ -220,7 +213,6 @@ object GlobalTrackingController {
 
   private lazy val AppSuperProperty          = "app"
   private lazy val AppSuperPropertyValue     = "android"
-  private lazy val TeamIsMemberSuperProperty = "team.is_member"
   private lazy val TeamInTeamSuperProperty   = "team.in_team"
   private lazy val TeamSizeSuperProperty     = "team.size"
 
