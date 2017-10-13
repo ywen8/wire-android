@@ -75,7 +75,7 @@ class ProfileViewImpl(context: Context, attrs: AttributeSet, style: Int) extends
 
   private var deviceDialog = Option.empty[AlertDialog]
 
-  createTeamButton.onClickEvent.onUi{ _ =>
+  createTeamButton.onClickEvent.onUi { _ =>
     context.startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(context.getString(R.string.create_team_url))))
   }
 
