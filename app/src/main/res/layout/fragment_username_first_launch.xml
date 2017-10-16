@@ -75,16 +75,6 @@
         >
 
         <com.waz.zclient.ui.text.TypefaceTextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/usernames__take_over__title"
-            android:textSize="@dimen/wire__text_size__medium"
-            android:textColor="@color/text__primary_dark"
-            custom:font="@string/wire__typeface__light"
-            />
-
-
-        <com.waz.zclient.ui.text.TypefaceTextView
             android:id="@+id/ttv__username_first_assign__summary"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
