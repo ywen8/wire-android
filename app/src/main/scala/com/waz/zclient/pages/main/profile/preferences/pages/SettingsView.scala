@@ -85,6 +85,7 @@ class SettingsViewImpl(context: Context, attrs: AttributeSet, style: Int) extend
     devButton.setVisible(enabled)
     avsButton.setVisible(enabled)
   }
+
 }
 
 case class SettingsBackStackKey(args: Bundle = new Bundle()) extends BackStackKey(args) {
