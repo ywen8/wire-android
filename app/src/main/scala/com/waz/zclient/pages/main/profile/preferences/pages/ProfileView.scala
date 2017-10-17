@@ -30,6 +30,7 @@ import android.widget.{ImageView, LinearLayout}
 import com.waz.ZLog
 import com.waz.ZLog.ImplicitTag._
 import com.waz.api.impl.AccentColor
+import com.waz.model.AccountData
 import com.waz.model.otr.Client
 import com.waz.service.ZMessaging
 import com.waz.threading.Threading
@@ -37,7 +38,7 @@ import com.waz.utils.events.{EventContext, EventStream, Signal}
 import com.waz.zclient._
 import com.waz.zclient.pages.main.profile.preferences.views.TextButton
 import com.waz.zclient.ui.text.TypefaceTextView
-import com.waz.zclient.utils.{BackStackKey, BackStackNavigator, StringUtils, UiStorage, UserSignal, ZTimeFormatter}
+import com.waz.zclient.utils.{BackStackKey, BackStackNavigator, RichView, StringUtils, UiStorage, UserSignal, ZTimeFormatter}
 import com.waz.zclient.views.ImageAssetDrawable
 import com.waz.zclient.views.ImageAssetDrawable.{RequestBuilder, ScaleType}
 import com.waz.zclient.views.ImageController.{ImageSource, WireImage}
@@ -51,8 +52,8 @@ trait ProfileView {
   def setProfilePictureDrawable(drawable: Drawable): Unit
   def setAccentColor(color: Int): Unit
   def setTeamName(name: Option[String]): Unit
-  def setAddAccountEnabled(enabled: Boolean): Unit
   def showNewDevicesDialog(devices: Seq[Client]): Unit
+  def setManageTeamEnabled(enabled: Boolean): Unit
 }
 
 class ProfileViewImpl(context: Context, attrs: AttributeSet, style: Int) extends LinearLayout(context, attrs, style) with ProfileView with ViewHelper {
@@ -67,21 +68,22 @@ class ProfileViewImpl(context: Context, attrs: AttributeSet, style: Int) extends
   val userPicture = findById[ImageView](R.id.profile_user_picture)
   val userHandleText = findById[TypefaceTextView](R.id.profile_user_handle)
   val teamNameText = findById[TypefaceTextView](R.id.profile_user_team)
-  val createTeamButton = findById[TextButton](R.id.profile_create_team)
-  val addAccountButton = findById[TextButton](R.id.profile_add_account)
+  val teamDivider = findById[View](R.id.settings_team_divider)
+  val teamButtom = findById[TextButton](R.id.settings_team)
+  val newTeamButtom = findById[TextButton](R.id.profile_new)
   val settingsButton = findById[TextButton](R.id.profile_settings)
 
   override val onDevicesDialogAccept = EventStream[Unit]()
 
   private var deviceDialog = Option.empty[AlertDialog]
 
-  createTeamButton.onClickEvent.onUi { _ =>
-    context.startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(context.getString(R.string.create_team_url))))
-  }
+  teamButtom.onClickEvent.on(Threading.Ui) { _ =>
+    context.startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(context.getString(R.string.pref_manage_team_url)))) }
+  teamButtom.setVisible(false)
+  teamDivider.setVisible(false)
 
-  addAccountButton.onClickEvent.on(Threading.Ui) { _ =>
-    addAccountButton.setEnabled(false)
-    ZMessaging.currentAccounts.logout(false)
+  newTeamButtom.onClickEvent.on(Threading.Ui) { _ =>
+    new ProfileBottomSheetDialog(context, R.style.message__bottom_sheet__base).show()
   }
 
   settingsButton.onClickEvent.on(Threading.Ui) { _ =>
@@ -109,9 +111,10 @@ class ProfileViewImpl(context: Context, attrs: AttributeSet, style: Int) extends
     }
   }
 
-  override def setAddAccountEnabled(enabled: Boolean) = {
-    addAccountButton.setEnabled(enabled)
-    addAccountButton.setAlpha(if (enabled) 1.0f else 0.5f)
+  override def setManageTeamEnabled(enabled: Boolean): Unit = {
+    teamButtom.setEnabled(enabled)
+    teamButtom.setVisibility(if (enabled) View.VISIBLE else View.INVISIBLE)
+    teamDivider.setVisibility(if (enabled) View.VISIBLE else View.INVISIBLE)
   }
 
   override def showNewDevicesDialog(devices: Seq[Client]) = {
@@ -180,7 +183,6 @@ case class ProfileBackStackKey(args: Bundle = new Bundle()) extends BackStackKey
 }
 
 class ProfileViewController(view: ProfileView)(implicit inj: Injector, ec: EventContext) extends Injectable {
-  import ProfileViewController._
   val zms = inject[Signal[ZMessaging]]
   implicit val uiStorage = inject[UiStorage]
 
@@ -211,17 +213,17 @@ class ProfileViewController(view: ProfileView)(implicit inj: Injector, ec: Event
 
   team.on(Threading.Ui) { team => view.setTeamName(team.map(_.name)) }
 
-  ZMessaging.currentAccounts.loggedInAccounts.map(_.size).on(Threading.Ui) { count =>
-    view.setAddAccountEnabled(count < MaxAccountsCount)
-  }
 
   incomingClients.onUi { clients => view.showNewDevicesDialog(clients) }
 
   view.onDevicesDialogAccept.on(Threading.Background) { _ =>
     zms.head.flatMap(z => z.otrClientsService.updateUnknownToUnverified(z.selfUserId))(Threading.Background)
   }
-}
 
-object ProfileViewController {
-  val MaxAccountsCount = 2
+  val account = ZMessaging.currentAccounts.activeAccount.collect { case Some(accountData) if accountData.userId.isDefined => accountData}
+
+  account { acc =>
+    view.setManageTeamEnabled(acc.selfPermissions.contains(AccountData.Permission.AddTeamMember))
+  }
+
 }
