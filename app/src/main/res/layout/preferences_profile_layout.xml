@@ -77,16 +77,12 @@
         android:background="@color/white_8"
         />
 
-    <!-- TODO set correct glyph icon-->
-    <!-- TODO set correct glyph icon-->
     <com.waz.zclient.pages.main.profile.preferences.views.TextButton
         android:id="@+id/settings_team"
         android:layout_width="match_parent"
         android:layout_height="@dimen/preference_button_height"
-        app:iconStart="@string/glyph__add_team"
+        app:iconStart="@string/glyph__manage_team"
         app:title="@string/pref_manage_team_title"/>
-    <!-- TODO set correct glyph icon-->
-    <!-- TODO set correct glyph icon-->
 
     <View
         android:layout_marginStart="@dimen/settings_divider_margin_start"

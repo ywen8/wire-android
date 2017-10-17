@@ -123,6 +123,10 @@
     <string translatable="false" tools:ignore="UnusedResources" name="glyph__emoji_symbol">\uE255</string>
     <string translatable="false" tools:ignore="UnusedResources" name="glyph__emoji_flag">\uE256</string>
     <string translatable="false" tools:ignore="UnusedResources" name="glyph__collection">\uE260</string>
+    <string translatable="false" tools:ignore="UnusedResources" name="glyph__dismiss">\uE262</string>
+    <string translatable="false" tools:ignore="UnusedResources" name="glyph__profile">\uE265</string>
+    <string translatable="false" tools:ignore="UnusedResources" name="glyph__add_team">\uE266</string>
+    <string translatable="false" tools:ignore="UnusedResources" name="glyph__manage_team">\uE267</string>
     <string translatable="false" tools:ignore="UnusedResources" name="glyph__ping_timed">\uE637</string>
     <string translatable="false" tools:ignore="UnusedResources" name="glyph__camera_timed">\uE643</string>
     <string translatable="false" tools:ignore="UnusedResources" name="glyph__location_timed">\uE648</string>
@@ -134,7 +138,4 @@
     <string translatable="false" tools:ignore="UnusedResources" name="glyph__send_timed">\uE735</string>
     <string translatable="false" tools:ignore="UnusedResources" name="glyph__keyboard_timed">\uE736</string>
     <string translatable="false" tools:ignore="UnusedResources" name="glyph__emoji_timed">\uE737</string>
-    <string translatable="false" tools:ignore="UnusedResources" name="glyph__dismiss">\uE262</string>
-    <string translatable="false" tools:ignore="UnusedResources" name="glyph__profile">\uE265</string>
-    <string translatable="false" tools:ignore="UnusedResources" name="glyph__add_team">\uE266</string>
 </resources>
