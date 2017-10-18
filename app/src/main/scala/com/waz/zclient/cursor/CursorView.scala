@@ -138,7 +138,8 @@ class CursorView(val context: Context, val attrs: AttributeSet, val defStyleAttr
     private var text = Option.empty[String]
 
     override def onTextChanged(charSequence: CharSequence, start: Int, before: Int, count: Int): Unit = {
-      text = Option(charSequence.toString)
+      val t = charSequence.toString
+      text = if (t.trim.isEmpty) None else Some(t)
     }
 
     override def afterTextChanged(editable: Editable): Unit = text match {
@@ -245,8 +246,7 @@ class CursorView(val context: Context, val attrs: AttributeSet, val defStyleAttr
   def setCallback(callback: CursorCallback) = controller.cursorCallback = Option(callback)
 
   def setText(text: String): Unit = {
-    if (text.nonEmpty) cursorEditText.setText(text)
-    else cursorEditText.getText.clear()
+    cursorEditText.setText(text)
     cursorEditText.setSelection(text.length)
   }
 
