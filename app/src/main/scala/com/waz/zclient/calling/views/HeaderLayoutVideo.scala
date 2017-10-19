@@ -45,7 +45,7 @@ class HeaderLayoutAudio(val context: Context, val attrs: AttributeSet, val defSt
 
   controller.glob.conversationName.on(Threading.Ui)(nameView.setText)
 
-  controller.vbrEnabled.on(Threading.Ui)(bitRateModeView.setText)
+  controller.cbrEnabled.on(Threading.Ui)(bitRateModeView.setText)
 
 }
 
