@@ -185,7 +185,7 @@
     </declare-styleable>
 
     <declare-styleable name="TypefaceTextView">
-        <attr name="font" format="string" />
+        <attr name="typeface" format="string" />
         <attr name="transform" format="string" />
     </declare-styleable>
 

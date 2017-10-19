@@ -17,8 +17,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 -->
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
-    <application>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" xmlns:tools="http://schemas.android.com/tools">
+    <application tools:replace="android:allowBackup"
+                 android:allowBackup="false">
         <activity android:name="com.waz.zclient.AppEntryTestActivity"/>
         <activity android:name="com.waz.zclient.MainTestActivity"/>
         <activity android:name="com.waz.zclient.UsernamesTakeoverTestActivity"/>

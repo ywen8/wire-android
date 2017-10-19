@@ -77,7 +77,7 @@ class AccentColorPickerFragment extends DialogFragment with FragmentHelper {
     val zms      = inject[Signal[ZMessaging]]
     val viewColor = Signal[AccentColor]()
 
-    val selectionView = itemView.findViewById(R.id.gtv__accent_color__selected)
+    val selectionView = itemView.findViewById(R.id.gtv__accent_color__selected).asInstanceOf[View]
 
     (for {
       vC <- viewColor
