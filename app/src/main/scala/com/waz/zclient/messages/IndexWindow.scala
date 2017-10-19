@@ -43,15 +43,15 @@ class IndexWindow(cursor: RecyclerCursor, notifier: RecyclerNotifier, size: Int 
 
   private val ord = implicitly[Ordering[Entry]]
 
-  var data = IndexedSeq.empty[Entry]
-  var totalCount = 0
+  private var data = IndexedSeq.empty[Entry]
+  private var totalCount = 0
 
-  var offset = 0
+  private var offset = 0
 
   def shouldReload(position: Int): Boolean = offset > math.max(0, position - 25) || offset + data.length < math.min(cursor.count, position + 25)
 
   // moves window to specified position, this doesn't generate any notifications, as underlying data didn't really change
-  def reload(c: MessagesCursor, position: Int) = {
+  def reload(c: MessagesCursor, position: Int): Unit = {
     offset = math.max(0, position - 50)
     data = c.getEntries(offset, math.min(cursor.count - offset, 100)).toIndexedSeq
     val size = c.size

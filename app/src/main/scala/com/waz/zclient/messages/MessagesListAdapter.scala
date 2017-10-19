@@ -25,7 +25,6 @@ import com.waz.ZLog._
 import com.waz.model.ConversationData.ConversationType
 import com.waz.model.{ConvId, Dim2, MessageData, MessageId}
 import com.waz.service.ZMessaging
-import com.waz.threading.Threading
 import com.waz.utils.events.{EventContext, Signal}
 import com.waz.zclient.controllers.global.SelectionController
 import com.waz.zclient.messages.MessageView.MsgBindOptions
@@ -33,91 +32,86 @@ import com.waz.zclient.messages.MessagesListView.UnreadIndex
 import com.waz.zclient.messages.RecyclerCursor.RecyclerNotifier
 import com.waz.zclient.{Injectable, Injector}
 
+import scala.concurrent.Future
+
 class MessagesListAdapter(listDim: Signal[Dim2])(implicit inj: Injector, ec: EventContext)
   extends MessagesListView.Adapter() with Injectable { adapter =>
 
   verbose("MessagesListAdapter created")
 
-  val zms = inject[Signal[ZMessaging]]
-  val listController = inject[MessagesController]
-  val selectedConversation = inject[SelectionController].selectedConv
+  private val zms = inject[Signal[ZMessaging]]
+  private val selectedConversation = inject[SelectionController].selectedConv
   val ephemeralCount = Signal(Set.empty[MessageId])
 
-  var unreadIndex = UnreadIndex(0)
+  private val unreadIndex = Signal(UnreadIndex(0)).disableAutowiring()
 
-  val conv = for {
+  (for {
     zs <- zms
     convId <- selectedConversation
-    conv <- Signal future zs.convsStorage.get(convId)
-  } yield conv
-
-  val cursor = for {
-    zs <- zms
-    Some(c) <- conv
-  } yield
-    (new RecyclerCursor(c.id, zs, notifier), c.convType)
-
-  private var messages = Option.empty[RecyclerCursor]
-  private var convId = ConvId()
-  private var convType = ConversationType.Group
-
-  cursor.on(Threading.Ui) { case (c, tpe) =>
-    if (!messages.contains(c)) {
-      verbose(s"cursor changed: ${c.count}")
-      messages.foreach(_.close())
-      messages = Some(c)
-      convType = tpe
-      convId = c.conv
-      notifier.notifyDataSetChanged()
-    }
+  } yield new RecyclerCursor(convId, zs, notifier)).onUi { c =>
+    verbose(s"cursor changed: ${c.count}, conv: ${c.conv}")
+    messages.foreach(_.close())
+    messages = Some(c)
+    notifier.notifyDataSetChanged()
   }
 
-  override def getConvId: ConvId = convId
+  private val convType = for {
+    zs <- zms
+    convId <- selectedConversation
+    Some(conv) <- zs.convsStorage.optSignal(convId)
+  } yield conv.convType
 
-  override def getUnreadIndex = unreadIndex
+  private var lastSelfMessageId = Option.empty[MessageId]
+
+  inject[MessagesController].lastSelfMessage.map(_.id).onUi { id =>
+    lastSelfMessageId = Option(id)
+  }
+
+  private var messages = Option.empty[RecyclerCursor]
+
+  override def getConvId: ConvId = selectedConversation.currentValue.orNull
+
+  override def getUnreadIndex: UnreadIndex = unreadIndex.currentValue.getOrElse(UnreadIndex(0))
 
   override def getItemCount: Int = messages.fold(0)(_.count)
 
-  def message(position: Int) = messages.get.apply(position)
-
-  def lastReadIndex = messages.fold(-1)(_.lastReadIndex())
-
-  override def getItemViewType(position: Int): Int = MessageView.viewType(message(position).message.msgType)
+  override def getItemViewType(position: Int): Int = 0
 
   override def onBindViewHolder(holder: MessageViewHolder, pos: Int): Unit = {
     onBindViewHolder(holder, pos, new util.ArrayList[AnyRef])
   }
 
-  override def onBindViewHolder(holder: MessageViewHolder, pos: Int, payloads: util.List[AnyRef]): Unit = {
-    verbose(s"onBindViewHolder: position: $pos")
-    val data = message(pos)
+  override def onBindViewHolder(holder: MessageViewHolder, pos: Int, payloads: util.List[AnyRef]): Unit = messages.foreach { c =>
+    val data = c(pos)
 
-    val isLast = pos == adapter.getItemCount - 1
+    val isLast = pos == c.count - 1
     val isSelf = zms.currentValue.exists(_.selfUserId == data.message.userId)
-    val isFirstUnread = pos > 0 && !isSelf && unreadIndex.index == pos
-    val isLastSelf = listController.isLastSelf(data.message.id)
-    val opts = MsgBindOptions(pos, isSelf, isLast, isLastSelf, isFirstUnread = isFirstUnread, listDim.currentValue.getOrElse(Dim2(0, 0)), convType)
+    val opts = MsgBindOptions(
+      position = pos,
+      isSelf = isSelf,
+      isLast = isLast,
+      isLastSelf = lastSelfMessageId.contains(data.message.id),
+      pos > 0 && !isSelf && unreadIndex.currentValue.contains(pos),
+      listDimensions = listDim.currentValue.getOrElse(Dim2(0, 0)),
+      convType = convType.currentValue.getOrElse(ConversationType.Group)
+    )
 
-    val prev = if (pos == 0) None else Some(message(pos - 1).message)
-    val next = if (isLast) None else Some(message(pos + 1).message)
+    val prev = if (pos == 0) None else Some(c(pos - 1).message)
+    val next = if (isLast) None else Some(c(pos + 1).message)
+
     holder.bind(data, prev, next, opts)
-    if (data.message.isEphemeral) {
-      ephemeralCount.mutate(_ + data.message.id)
-    }
+    if (data.message.isEphemeral) ephemeralCount.mutate(_ + data.message.id)
   }
 
-  override def onViewRecycled(holder: MessageViewHolder): Unit = {
-    if (holder.view.isEphemeral) {
-      holder.id.foreach(id =>
-        ephemeralCount.mutate(_ - id))
-    }
-  }
+  override def onViewRecycled(holder: MessageViewHolder): Unit =
+    if (holder.view.isEphemeral)
+      holder.id.foreach(id => ephemeralCount.mutate(_ - id))
+
 
   override def onCreateViewHolder(parent: ViewGroup, viewType: Int): MessageViewHolder =
     MessageViewHolder(MessageView(parent, viewType), adapter)
 
-  def positionForMessage(messageData: MessageData) =
-    cursor.head.flatMap { _._1.positionForMessage(messageData) } (Threading.Background)
+  def positionForMessage(messageData: MessageData): Future[Int] = messages.get.positionForMessage(messageData)
 
   lazy val notifier = new RecyclerNotifier {
     // view depends on two message entries,
@@ -141,7 +135,7 @@ class MessagesListAdapter(listDim: Signal[Dim2])(implicit inj: Injector, ec: Eve
     }
 
     override def notifyDataSetChanged() = {
-      unreadIndex = UnreadIndex(lastReadIndex + 1)
+      unreadIndex ! UnreadIndex(messages.map(_.lastReadIndex + 1).getOrElse(0))
       adapter.notifyDataSetChanged()
     }
   }
