@@ -73,7 +73,7 @@ class MessageNotificationsController(implicit inj: Injector, cxt: Context, event
             case _ => Future.successful(Option.empty[TeamData])
           }
         } yield team.map(_.name)
-        teamName.map { teamName => handleNotifications(account, shouldBeSilent || nots.forall(_.hasBeenDisplayed), nots, teamName) } (Threading.Ui)
+        teamName.map { teamName => handleNotifications(account, shouldBeSilent, nots, teamName) } (Threading.Ui)
     }
   }
 
