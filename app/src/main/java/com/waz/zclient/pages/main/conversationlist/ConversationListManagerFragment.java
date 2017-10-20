@@ -25,14 +25,11 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentTransaction;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
-import android.widget.Toast;
 import com.waz.api.ConversationsList;
-import com.waz.api.CredentialsUpdateListener;
 import com.waz.api.IConversation;
 import com.waz.api.ImageAsset;
 import com.waz.api.Message;
@@ -52,7 +49,6 @@ import com.waz.zclient.controllers.confirmation.TwoButtonConfirmationCallback;
 import com.waz.zclient.controllers.currentfocus.IFocusController;
 import com.waz.zclient.controllers.navigation.NavigationControllerObserver;
 import com.waz.zclient.controllers.navigation.Page;
-import com.waz.zclient.controllers.usernames.UsernamesControllerObserver;
 import com.waz.zclient.core.stores.connect.IConnectStore;
 import com.waz.zclient.core.stores.conversation.ConversationChangeRequester;
 import com.waz.zclient.core.stores.conversation.ConversationStoreObserver;
@@ -61,7 +57,6 @@ import com.waz.zclient.fragments.ConversationListFragment;
 import com.waz.zclient.fragments.NormalConversationListFragment;
 import com.waz.zclient.fragments.PickUserFragment;
 import com.waz.zclient.media.SoundController;
-import com.waz.zclient.newreg.fragments.FirstTimeAssignUsernameFragment;
 import com.waz.zclient.pages.BaseFragment;
 import com.waz.zclient.pages.main.connect.BlockedUserProfileFragment;
 import com.waz.zclient.pages.main.connect.ConnectRequestLoadMode;
@@ -76,7 +71,6 @@ import com.waz.zclient.pages.main.pickuser.controller.IPickUserController;
 import com.waz.zclient.pages.main.pickuser.controller.PickUserControllerScreenObserver;
 import com.waz.zclient.pages.main.profile.camera.CameraContext;
 import com.waz.zclient.pages.main.profile.camera.CameraFragment;
-import com.waz.zclient.preferences.dialogs.ChangeHandleFragment;
 import com.waz.zclient.ui.animation.interpolators.penner.Expo;
 import com.waz.zclient.ui.animation.interpolators.penner.Quart;
 import com.waz.zclient.ui.optionsmenu.OptionsMenu;
@@ -103,10 +97,8 @@ public class ConversationListManagerFragment extends BaseFragment<ConversationLi
                                                                                                    PendingConnectRequestManagerFragment.Container,
                                                                                                    ConversationScreenControllerObserver,
                                                                                                    NavigationControllerObserver,
-                                                                                                   UsernamesControllerObserver,
                                                                                                    ConfirmationObserver,
-                                                                                                   AccentColorObserver,
-                                                                                                   FirstTimeAssignUsernameFragment.Container {
+                                                                                                   AccentColorObserver {
     public static final String TAG = ConversationListManagerFragment.class.getName();
 
     private LoadingIndicatorView startuiLoadingIndicatorView;
@@ -209,7 +201,6 @@ public class ConversationListManagerFragment extends BaseFragment<ConversationLi
         getControllerFactory().getConversationScreenController().removeConversationControllerObservers(this);
         getControllerFactory().getNavigationController().removeNavigationControllerObserver(this);
         getControllerFactory().getConfirmationController().removeConfirmationObserver(this);
-        getControllerFactory().getUsernameController().removeUsernamesObserver(this);
 
         super.onStop();
     }
@@ -345,9 +336,6 @@ public class ConversationListManagerFragment extends BaseFragment<ConversationLi
         }
         if (page == Page.CONVERSATION_LIST) {
             getControllerFactory().getNavigationController().setPagerEnabled(false);
-            getControllerFactory().getUsernameController().addUsernamesObserverAndUpdate(this);
-        } else {
-            getControllerFactory().getUsernameController().removeUsernamesObserver(this);
         }
     }
 
@@ -427,7 +415,7 @@ public class ConversationListManagerFragment extends BaseFragment<ConversationLi
             return true;
         }
 
-        return getChildFragmentManager().findFragmentByTag(FirstTimeAssignUsernameFragment.TAG) != null;
+        return false;
     }
 
     //////////////////////////////////////////////////////////////////////////////////////////
@@ -1095,81 +1083,6 @@ public class ConversationListManagerFragment extends BaseFragment<ConversationLi
         if (ctrl != null) {
             ctrl.playAlert();
         }
-    }
-
-    public void hideFirstAssignUsernameScreen() {
-        if (getChildFragmentManager().findFragmentByTag(FirstTimeAssignUsernameFragment.TAG) != null) {
-            getChildFragmentManager().popBackStackImmediate(FirstTimeAssignUsernameFragment.TAG,
-                FragmentManager.POP_BACK_STACK_INCLUSIVE);
-        }
-    }
-
-    //////////////////////////////////////////////////////////////////////////////////////////
-    //
-    //  FirstTimeAssignUsername.Container
-    //
-    //////////////////////////////////////////////////////////////////////////////////////////
-
-    @Override
-    public void onChooseUsernameChosen() {
-        getControllerFactory().getUsernameController().closeFirstAssignUsernameScreen();
-        hideFirstAssignUsernameScreen();
-        getChildFragmentManager().beginTransaction()
-                                 .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
-                                 .add(ChangeHandleFragment.newInstance(getStoreFactory().profileStore().getSelfUser().getUsername(), false),
-                                      ChangeHandleFragment.FragmentTag())
-                                 .addToBackStack(ChangeHandleFragment.FragmentTag())
-                                 .commit();
-    }
-
-    @Override
-    public void onKeepUsernameChosen(String username) {
-        getControllerFactory().getUsernameController().closeFirstAssignUsernameScreen();
-        hideFirstAssignUsernameScreen();
-        getStoreFactory().zMessagingApiStore().getApi().getSelf().setUsername(username, new CredentialsUpdateListener() {
-            @Override
-            public void onUpdated() {
-            }
-            @Override
-            public void onUpdateFailed(int code, String message, String label) {
-                Toast.makeText(getActivity(), getString(R.string.username__set__toast_error), Toast.LENGTH_SHORT).show();
-                getControllerFactory().getUsernameController().logout();
-                getControllerFactory().getUsernameController().setUser(getStoreFactory().zMessagingApiStore().getApi().getSelf());
-            }
-        });
-    }
-
-    @Override
-    public void onValidUsernameGenerated(String name, String generatedUsername) {
-        showFirstAssignUsernameScreen(name, generatedUsername);
-    }
-
-    @Override
-    public void onUsernameAttemptsExhausted(String name) {
-    }
-
-    @Override
-    public void onCloseFirstAssignUsernameScreen() {
-        hideFirstAssignUsernameScreen();
-    }
-
-    private void showFirstAssignUsernameScreen(String name, String username) {
-        // Check if username screen is already shown
-        Fragment fragment = getChildFragmentManager().findFragmentById(R.id.fl__conversation_list_main);
-        if (fragment instanceof FirstTimeAssignUsernameFragment) {
-            return;
-        }
-
-
-        getChildFragmentManager()
-            .beginTransaction()
-            .setCustomAnimations(R.anim.fade_in,
-                                 R.anim.fade_out,
-                                 R.anim.fade_in,
-                                 R.anim.fade_out)
-            .replace(R.id.fl__conversation_list_main, FirstTimeAssignUsernameFragment.newInstance(name, username), FirstTimeAssignUsernameFragment.TAG)
-            .addToBackStack(FirstTimeAssignUsernameFragment.TAG)
-            .commitAllowingStateLoss();
     }
 
     @Override

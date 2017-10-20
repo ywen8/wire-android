@@ -21,6 +21,5 @@
     <application>
         <activity android:name="com.waz.zclient.AppEntryTestActivity"/>
         <activity android:name="com.waz.zclient.MainTestActivity"/>
-        <activity android:name="com.waz.zclient.UsernamesTakeoverTestActivity"/>
     </application>
 </manifest>
