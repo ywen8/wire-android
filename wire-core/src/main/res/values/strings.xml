@@ -1198,7 +1198,7 @@
     <string name="participant_tab_guest_indicator_label">Guest</string>
 
 
-    <string name="preferences_profile_new">New</string>
+    <string name="preferences_profile_new">New Team or Account</string>
     <string name="preferences_profile_add_account">Add an account</string>
     <string name="preferences_profile_create_team">Create a team</string>
 
