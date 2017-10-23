@@ -257,7 +257,7 @@ public class SingleOtrClientFragment extends BaseFragment<SingleOtrClientFragmen
                 break;
             case R.id.ttv__single_otr_client__fingerprint:
                 ClipboardManager clipboard = (ClipboardManager) getActivity().getSystemService(Context.CLIPBOARD_SERVICE);
-                ClipData clip = ClipData.newPlainText(getString(R.string.pref_dev_avs_last_call_session_id_title),
+                ClipData clip = ClipData.newPlainText(getString(R.string.pref_devices_device_fingerprint_copy_description),
                                                       fingerprintView.getText().toString());
                 clipboard.setPrimaryClip(clip);
                 break;

@@ -49,12 +49,7 @@ public class StubUserPreferencesController implements IUserPreferencesController
     return false;
   }
 
-  @Override
-  public void setPostSessionIdToConversation(boolean postSessionIdToConversation) {
-
-  }
-
-  @Override
+    @Override
   public void reset() {
 
   }
@@ -64,12 +59,7 @@ public class StubUserPreferencesController implements IUserPreferencesController
 
   }
 
-  @Override
-  public String getLastCallSessionId() {
-    return null;
-  }
-
-  @Override
+    @Override
   public void removeVerificationCode() {
 
   }
@@ -129,12 +119,7 @@ public class StubUserPreferencesController implements IUserPreferencesController
     return null;
   }
 
-  @Override
-  public boolean isPostSessionIdToConversation() {
-    return false;
-  }
-
-  @Override
+    @Override
   public boolean hasPerformedAction(int action) {
     return false;
   }
@@ -151,11 +136,6 @@ public class StubUserPreferencesController implements IUserPreferencesController
 
   @Override
   public void setLastEphemeralValue(long value) {
-  }
-
-  @Override
-  public boolean isVariableBitRateEnabled() {
-    return false;
   }
 
 }

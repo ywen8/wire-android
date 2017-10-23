@@ -20,7 +20,7 @@ package com.waz.zclient.controllers.userpreferences;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.SharedPreferences;
-import com.waz.zclient.R;
+
 import com.waz.zclient.utils.StringUtils;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -100,22 +100,6 @@ public class UserPreferencesController implements IUserPreferencesController {
     @Override
     public String getGenericInvitationToken() {
         return userPreferences.getString(USER_PREFS_GENERIC_INVITATION_TOKEN, null);
-    }
-
-    @Override
-    public String getLastCallSessionId() {
-        return userPreferences.getString(context.getString(R.string.pref_dev_avs_last_call_session_id_key),
-                                         context.getString(R.string.pref_dev_avs_last_call_session_id_not_available));
-    }
-
-    @Override
-    public void setPostSessionIdToConversation(boolean postSessionIdToConversation) {
-        userPreferences.edit().putBoolean(context.getString(R.string.pref_dev_avs_post_session_id_key), postSessionIdToConversation).apply();
-    }
-
-    @Override
-    public boolean isPostSessionIdToConversation() {
-        return userPreferences.getBoolean(context.getString(R.string.pref_dev_avs_post_session_id_key), false);
     }
 
     @Override
@@ -224,8 +208,4 @@ public class UserPreferencesController implements IUserPreferencesController {
         userPreferences.edit().putLong(USER_PREF_LAST_EPHEMERAL_VALUE, value).apply();
     }
 
-    @Override
-    public boolean isVariableBitRateEnabled() {
-        return userPreferences.getBoolean(context.getString(R.string.pref_options_vbr_key), true);
-    }
 }
