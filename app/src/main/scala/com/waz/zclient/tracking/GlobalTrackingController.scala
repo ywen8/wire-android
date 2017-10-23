@@ -33,8 +33,10 @@ import com.waz.zclient._
 import com.waz.zclient.controllers.SignInController.SignInMethod
 import com.waz.zclient.tracking.ContributionEvent.fromMime
 import org.json.JSONObject
+import com.waz.utils.RichThreetenBPDuration
 
 import scala.concurrent.Future._
+import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
 import scala.language.{implicitConversions, postfixOps}
 
@@ -142,6 +144,10 @@ class GlobalTrackingController(implicit inj: Injector, cxt: WireContext, eventCo
     }
 
     event match {
+      case _: MissedPushEvent =>
+        //TODO - re-enable this event when we can reduce their frequency a little. Too many events for mixpanel right now
+      case e: ReceivedPushEvent if e.p.toFetch.forall(_.asScala < 10.seconds) =>
+        //don't track - there are a lot of these events! We want to keep the event count lower
       case OptEvent(true) =>
         mixpanel.foreach{ m =>
           verbose("Opted in to analytics, re-registering")
