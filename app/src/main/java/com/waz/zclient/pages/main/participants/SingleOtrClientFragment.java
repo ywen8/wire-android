@@ -28,6 +28,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CompoundButton;
 import android.widget.TextView;
+import android.widget.Toast;
+
 import com.waz.api.OtrClient;
 import com.waz.api.Subscriber;
 import com.waz.api.Subscription;
@@ -260,6 +262,7 @@ public class SingleOtrClientFragment extends BaseFragment<SingleOtrClientFragmen
                 ClipData clip = ClipData.newPlainText(getString(R.string.pref_devices_device_fingerprint_copy_description),
                                                       fingerprintView.getText().toString());
                 clipboard.setPrimaryClip(clip);
+                Toast.makeText(view.getContext(), getString(R.string.pref_devices_device_fingerprint_copy_toast), Toast.LENGTH_LONG).show();
                 break;
             case R.id.ttv__single_otr_client__my_devices:
                 startActivity(ShowDevicesIntent(getActivity()));
