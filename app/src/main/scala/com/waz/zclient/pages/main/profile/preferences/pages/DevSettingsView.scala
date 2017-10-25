@@ -18,27 +18,41 @@
 package com.waz.zclient.pages.main.profile.preferences.pages
 
 import android.app.AlertDialog
-import android.content.Context
+import android.content.{Context, DialogInterface}
 import android.os.Bundle
 import android.util.AttributeSet
 import android.view.View
 import android.widget.LinearLayout
-import com.waz.zclient.pages.main.profile.preferences.views.TextButton
-import com.waz.zclient.{R, ViewHelper}
-import com.waz.zclient.utils.BackStackKey
-import android.content.DialogInterface
+import com.waz.content.GlobalPreferences._
 import com.waz.content.UserPreferences.LastStableNotification
 import com.waz.model.Uid
 import com.waz.service.ZMessaging
 import com.waz.utils.events.Signal
+import com.waz.utils.returning
+import com.waz.zclient.pages.main.profile.preferences.views.{SwitchPreference, TextButton}
+import com.waz.zclient.utils.BackStackKey
+import com.waz.zclient.{R, ViewHelper}
 
 trait DevSettingsView
 
 class DevSettingsViewImpl(context: Context, attrs: AttributeSet, style: Int) extends LinearLayout(context, attrs, style) with DevSettingsView with ViewHelper {
   def this(context: Context, attrs: AttributeSet) = this(context, attrs, 0)
+
   def this(context: Context) = this(context, null, 0)
 
   inflate(R.layout.preferences_dev_layout)
+
+  val autoAnswerSwitch = returning(findById[SwitchPreference](R.id.preferences_dev_auto_answer)) { v =>
+    v.setPreference(AutoAnswerCallPrefKey, global = true)
+  }
+
+  val cloudMessagingSwitch = returning(findById[SwitchPreference](R.id.preferences_dev_gcm)) { v =>
+    v.setPreference(PushEnabledKey, global = true)
+  }
+
+  val webSocketForegroundServiceSwitch = returning(findById[SwitchPreference](R.id.preferences_dev_websocket_service)) { v =>
+    v.setPreference(WsForegroundKey, global = true)
+  }
 
   val randomLastIdButton = findById[TextButton](R.id.preferences_dev_generate_random_lastid)
 
@@ -55,7 +69,7 @@ class DevSettingsViewImpl(context: Context, attrs: AttributeSet, style: Int) ext
             _ := Some(randomUid)
           }
         }
-        })
+      })
       .setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
         override def onClick(dialog: DialogInterface, which: Int): Unit = {}
       })
