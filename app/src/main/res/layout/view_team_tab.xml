@@ -75,7 +75,7 @@
             android:textColor="@color/white"
             android:textSize="@dimen/wire__text_size__small"
             android:layout_marginStart="@dimen/wire__padding__20"
-            app:font="@string/wire__typeface__regular"/>
+            app:w_font="@string/wire__typeface__regular"/>
 
     </RelativeLayout>
 

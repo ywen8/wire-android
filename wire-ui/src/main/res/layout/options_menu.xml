@@ -42,7 +42,7 @@
             android:layout_height="wrap_content"
             android:textSize="@dimen/wire__text_size__small"
             android:textAllCaps="true"
-            app:font="@string/wire__typeface__light"
+            app:w_font="@string/wire__typeface__light"
             />
 
         <com.waz.zclient.common.views.UserDetailsView
@@ -76,7 +76,7 @@
             android:textAllCaps="true"
             android:textSize="@dimen/wire__text_size__small"
             android:text="@string/confirmation_menu__cancel"
-            app:font="@string/wire__typeface__medium"
+            app:w_font="@string/wire__typeface__medium"
             />
     </LinearLayout>
 

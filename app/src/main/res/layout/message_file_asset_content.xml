@@ -74,7 +74,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:ellipsize="middle"
-            app:font="@string/wire__typeface__light"
+            app:w_font="@string/wire__typeface__light"
             android:maxLines="1"
             />
 
@@ -83,7 +83,7 @@
             style="?messageStreamSubtitleNoColor"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            app:font="@string/wire__typeface__light"
+            app:w_font="@string/wire__typeface__light"
             />
 
     </LinearLayout>

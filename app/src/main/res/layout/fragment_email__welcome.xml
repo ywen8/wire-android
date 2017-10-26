@@ -19,7 +19,7 @@
 
 -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-             xmlns:custom="http://schemas.android.com/apk/res-auto"
+             xmlns:app="http://schemas.android.com/apk/res-auto"
              android:layout_width="match_parent"
              android:layout_height="match_parent"
              android:orientation="vertical"
@@ -47,7 +47,7 @@
         android:gravity="center"
         android:layout_gravity="top|right"
         android:text="@string/i_have_an_account"
-        custom:font="@string/wire__typeface__light"
+        app:w_font="@string/wire__typeface__light"
         android:textSize="@dimen/wire__text_size__small"
         android:textColor="@color/text__primary_dark"
         />
@@ -72,7 +72,7 @@
             android:text="@string/welcome__slogan"
             android:textColor="@color/first_time__welcome__title_color"
             android:textSize="@dimen/first_time__welcome__title_max_font_size"
-            custom:font="@string/wire__typeface__thin"/>
+            app:w_font="@string/wire__typeface__thin"/>
 
         <com.waz.zclient.ui.views.ZetaButton
             android:id="@+id/zb__welcome__create_account"
@@ -81,7 +81,7 @@
             android:layout_marginTop="@dimen/framework__general__top_padding"
             android:gravity="center"
             android:text="@string/register"
-            custom:font="@string/wire__typeface__light"
+            app:w_font="@string/wire__typeface__light"
             android:textSize="@dimen/framework_confirmation_menu_button_font_size"
             android:textAllCaps="true"
             android:textColor="@color/framework_confirmation_menu_button_font_color"
@@ -98,7 +98,7 @@
             android:text="@string/welcome__terms_of_service"
             android:textColor="@color/first_time__welcome__tos_color"
             android:textSize="@dimen/wire__text_size__small"
-            custom:font="@string/wire__typeface__light"
+            app:w_font="@string/wire__typeface__light"
             />
 
     </LinearLayout>

@@ -55,7 +55,7 @@
             android:textSize="@dimen/wire__text_size__small"
             android:gravity="center"
             android:text="@string/content__location__no_map_placeholder"
-            app:font="@string/wire__typeface__thin"
+            app:w_font="@string/wire__typeface__thin"
             android:visibility="gone"
             />
 
@@ -71,7 +71,7 @@
         android:textSize="@dimen/wire__text_size__regular"
         android:gravity="center|start"
         android:ellipsize="end"
-        app:font="@string/wire__typeface__thin"
+        app:w_font="@string/wire__typeface__thin"
         android:maxLines="1"
         />
 

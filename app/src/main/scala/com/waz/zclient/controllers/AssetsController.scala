@@ -181,8 +181,8 @@ class AssetsController(implicit context: Context, inj: Injector, ec: EventContex
     title.setGravity(Gravity.CENTER)
 
     val openButton = dialog.findViewById(R.id.ttv__file_action_dialog__open).asInstanceOf[TextView]
-    val noAppFoundLabel = dialog.findViewById(R.id.ttv__file_action_dialog__open__no_app_found)
-    val saveButton = dialog.findViewById(R.id.ttv__file_action_dialog__save)
+    val noAppFoundLabel = dialog.findViewById(R.id.ttv__file_action_dialog__open__no_app_found).asInstanceOf[View]
+    val saveButton = dialog.findViewById(R.id.ttv__file_action_dialog__save).asInstanceOf[View]
 
     if (fileCanBeOpened) {
       noAppFoundLabel.setVisibility(View.GONE)

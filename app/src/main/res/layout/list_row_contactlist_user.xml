@@ -55,7 +55,7 @@
         android:textSize="@dimen/wire__text_size__small"
         android:text="@string/people_picker__contact_list__contact_selection_button__label"
         android:textAllCaps="true"
-        app:font="@string/wire__typeface__light"
+        app:w_font="@string/wire__typeface__light"
         />
 
 </LinearLayout>

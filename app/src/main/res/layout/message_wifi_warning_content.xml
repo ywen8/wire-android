@@ -37,7 +37,7 @@
         android:scrollHorizontally="false"
         android:gravity="start"
         android:text="@string/advanced_image_download_wifi_info"
-        app:font="@string/wire__typeface__light"
+        app:w_font="@string/wire__typeface__light"
         />
 
 

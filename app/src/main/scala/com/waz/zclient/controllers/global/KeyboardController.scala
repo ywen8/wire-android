@@ -20,7 +20,7 @@ package com.waz.zclient.controllers.global
 import android.app.Activity
 import android.content.Context
 import android.graphics.Rect
-import android.view.ViewTreeObserver
+import android.view.{View, ViewTreeObserver}
 import com.waz.threading.CancellableFuture
 import com.waz.utils.events.Signal
 import com.waz.zclient.{Injectable, Injector}
@@ -40,7 +40,7 @@ class KeyboardController(implicit inj: Injector) extends ViewTreeObserver.OnGlob
   val keyboardHeight = Signal(0)
 
   private val rootLayout = cxt match {
-    case c: Activity => Some(c.getWindow.getDecorView.findViewById(android.R.id.content))
+    case c: Activity => Some(c.getWindow.getDecorView.findViewById(android.R.id.content).asInstanceOf[View])
     case _ => None
   }
 

@@ -92,7 +92,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/typing_indicator_name_top_margin"
             android:paddingStart="@dimen/wire__padding__tiny"
-            app:font="@string/wire__typeface__light"
+            app:w_font="@string/wire__typeface__light"
             style="?typingIndicatorText"
             />
 

@@ -42,7 +42,7 @@
         android:textColor="@color/text__primary_dark"
         android:textSize="@dimen/wire__text_size__small"
         android:visibility="gone"
-        app:font="@string/wire__typeface__light"
+        app:w_font="@string/wire__typeface__light"
         />
 
     <com.waz.zclient.calling.views.HeaderLayoutVideo
@@ -81,7 +81,7 @@
                 android:textColor="@color/text__primary_dark"
                 android:textSize="@dimen/wire__text_size__small"
                 android:background="@color/graphite"
-                app:font="@string/wire__typeface__light"
+                app:w_font="@string/wire__typeface__light"
                 android:visibility="gone"
                 />
 

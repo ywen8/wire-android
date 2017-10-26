@@ -36,7 +36,7 @@
         android:textColor="@color/text__primary_dark"
         android:textSize="@dimen/wire__text_size__small"
         android:textAllCaps="true"
-        app:font="@string/wire__typeface__light"
+        app:w_font="@string/wire__typeface__light"
         />
 
 </FrameLayout>

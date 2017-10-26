@@ -54,7 +54,7 @@
                 android:background="@null"
                 android:ellipsize="end"
                 android:maxLines="1"
-                app:font="@string/wire__typeface__regular"
+                app:w_font="@string/wire__typeface__regular"
                 />
 
             <com.waz.zclient.ui.text.TypefaceTextView

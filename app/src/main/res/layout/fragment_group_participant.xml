@@ -81,7 +81,7 @@
         android:gravity="center"
         android:layout_margin="@dimen/framework__general__top_padding"
         android:text="@string/connect_request__unblock__button__text"
-        app:font="@string/wire__typeface__bold"
+        app:w_font="@string/wire__typeface__bold"
         android:textAllCaps="true"
         android:textSize="@dimen/wire__text_size__small"
         android:textColor="@color/text__primary_light"

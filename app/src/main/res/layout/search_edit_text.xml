@@ -49,7 +49,7 @@
         android:layout_height="match_parent"
         android:gravity="center"
         android:textColor="@color/light_graphite"
-        app:font="@string/wire__typeface__regular"
+        app:w_font="@string/wire__typeface__regular"
         android:textSize="@dimen/wire__text_size__small"
         android:clickable="false"
         android:focusable="false"

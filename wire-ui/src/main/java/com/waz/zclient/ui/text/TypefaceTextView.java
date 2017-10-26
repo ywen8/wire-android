@@ -51,7 +51,7 @@ public class TypefaceTextView extends TextView {
                 R.styleable.TypefaceTextView,
                 0, 0);
 
-        String font = a.getString(R.styleable.TypefaceTextView_font);
+        String font = a.getString(R.styleable.TypefaceTextView_w_font);
         if (!TextUtils.isEmpty(font)) {
             setTypeface(font);
         }

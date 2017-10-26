@@ -49,7 +49,7 @@
             android:textSize="@dimen/wire__text_size__small"
             android:gravity="center"
             android:layout_gravity="center_horizontal"
-            app:font="@string/wire__typeface__medium"
+            app:w_font="@string/wire__typeface__medium"
             android:visibility="gone"/>
 
         <com.waz.zclient.ui.text.TypefaceTextView
@@ -63,7 +63,7 @@
             android:layout_gravity="center_horizontal"
             android:textColor="@color/text__primary_dark"
             android:textSize="@dimen/wire__text_size__small"
-            app:font="@string/wire__typeface__light"
+            app:w_font="@string/wire__typeface__light"
             android:visibility="gone"/>
     </LinearLayout>
 

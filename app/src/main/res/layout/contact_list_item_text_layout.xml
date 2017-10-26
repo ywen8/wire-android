@@ -34,7 +34,7 @@
         android:ellipsize="end"
         android:gravity="start|bottom"
         android:maxLines="1"
-        app:font="@string/wire__typeface__light"
+        app:w_font="@string/wire__typeface__light"
         style="?startUiUserRowLabel"
         />
 
@@ -46,7 +46,7 @@
         android:ellipsize="end"
         android:gravity="start|top"
         android:maxLines="1"
-        app:font="@string/wire__typeface__light"
+        app:w_font="@string/wire__typeface__light"
         android:textSize="@dimen/wire__text_size__small"
         style="?startUiUserRowSubLabel"
         />
