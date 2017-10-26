@@ -19,7 +19,7 @@
 
 -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-             xmlns:custom="http://schemas.android.com/apk/res-auto"
+             xmlns:app="http://schemas.android.com/apk/res-auto"
              android:orientation="horizontal"
              android:layout_width="match_parent"
              android:layout_height="match_parent"
@@ -31,7 +31,7 @@
         android:layout_height="wrap_content"
         android:textColor="@color/white"
         android:padding="@dimen/framework__general__left_padding"
-        custom:font="@string/wire__typeface__light"
+        app:font="@string/wire__typeface__light"
         android:textSize="@dimen/country_box__text_size"
         android:ellipsize="end"
         android:maxLines="1"
@@ -44,7 +44,7 @@
         android:layout_height="wrap_content"
         android:textColor="@color/new_reg__country_code__text_color"
         android:padding="@dimen/framework__general__left_padding"
-        custom:font="@string/wire__typeface__light"
+        app:font="@string/wire__typeface__light"
         android:textSize="@dimen/country_box__text_size"
         android:ellipsize="end"
         android:maxLines="1"

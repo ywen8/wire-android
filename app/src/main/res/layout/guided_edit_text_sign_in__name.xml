@@ -19,7 +19,7 @@
 
 -->
 <merge xmlns:android="http://schemas.android.com/apk/res/android"
-       xmlns:custom="http://schemas.android.com/apk/res-auto"
+       xmlns:app="http://schemas.android.com/apk/res-auto"
     >
 
     <FrameLayout
@@ -41,7 +41,7 @@
             android:gravity="center_vertical"
             android:hint="@string/name_placeholder"
             android:maxLength="@integer/framework__max_characters_of_input"
-            custom:font="@string/wire__typeface__light"
+            app:font="@string/wire__typeface__light"
             android:textColor="@color/text__primary_dark"
             android:textSize="@dimen/sign_in__edit_text__font_size"
             />
@@ -62,7 +62,7 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:textSize="@dimen/sign_in__guidance_font_size"
-        custom:font="@string/wire__typeface__light"
+        app:font="@string/wire__typeface__light"
         android:textColor="@color/profile_content_color"
         android:textAllCaps="true"
         android:paddingTop="@dimen/sign_in__edit_text__guidance__top_margin"

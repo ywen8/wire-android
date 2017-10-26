@@ -19,7 +19,7 @@
 
 -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-             xmlns:custom="http://schemas.android.com/apk/res-auto"
+             xmlns:app="http://schemas.android.com/apk/res-auto"
              android:layout_width="match_parent"
              android:layout_height="match_parent">
 
@@ -42,7 +42,7 @@
         android:gravity="end"
         android:textColor="@color/text__primary_dark"
         android:textSize="@dimen/wire__text_size__regular"
-        custom:font="@string/wire__typeface__light"
+        app:font="@string/wire__typeface__light"
         android:layout_marginEnd="@dimen/first_time__logo__padding_left"
         android:layout_marginTop="@dimen/wire_logo_margin_top"
         android:layout_gravity="top|end"
@@ -66,7 +66,7 @@
             android:paddingBottom="@dimen/wire__padding__small"
             android:text="@string/invitation_phone__welcome_message"
             android:textSize="@dimen/wire__text_size__medium"
-            custom:font="@string/wire__typeface__light"
+            app:font="@string/wire__typeface__light"
             android:textColor="@color/text__primary_dark"
             />
 
@@ -91,7 +91,7 @@
                 android:textAllCaps="true"
                 android:textColor="@color/text__primary_dark_40"
                 android:textSize="@dimen/wire__text_size__small"
-                custom:font="@string/wire__typeface__medium"
+                app:font="@string/wire__typeface__medium"
                 />
 
             <com.waz.zclient.ui.text.TypefaceTextView
@@ -106,7 +106,7 @@
                 android:textAllCaps="true"
                 android:textColor="@color/text__primary_dark"
                 android:textSize="@dimen/wire__text_size__small"
-                custom:font="@string/wire__typeface__medium"
+                app:font="@string/wire__typeface__medium"
                 android:background="@drawable/selector__reg__signin"
                 />
         </LinearLayout>
@@ -128,7 +128,7 @@
             android:text="@string/welcome__terms_of_service"
             android:textColor="@color/first_time__welcome__tos_color"
             android:textSize="@dimen/first_time__welcome__subtitle_font_size"
-            custom:font="@string/wire__typeface__light"
+            app:font="@string/wire__typeface__light"
             />
     </LinearLayout>
 </FrameLayout>
