@@ -81,7 +81,6 @@ class CursorController(implicit inj: Injector, ctx: Context, evc: EventContext) 
   val convIsEphemeral = conv.map(_.ephemeral != EphemeralExpiration.NONE)
 
   val convIsActive = conv.map(_.isActive)
-  val enteredTextEmpty = enteredText.map(_.isEmpty).orElse(Signal const true)
   val isEphemeralMode = convIsEphemeral.zip(ephemeralSelected) map { case (ephConv, selected) => ephConv || selected }
 
   val onCursorItemClick = EventStream[CursorMenuItem]()
@@ -92,10 +91,10 @@ class CursorController(implicit inj: Injector, ctx: Context, evc: EventContext) 
 
   val sendButtonEnabled: Signal[Boolean] = zms.map(_.userPrefs).flatMap(_.preference(UserPreferences.SendButtonEnabled).signal)
 
+  val enteredTextEmpty = enteredText.map(_.trim.isEmpty).orElse(Signal const true)
   val sendButtonVisible = Signal(emojiKeyboardVisible, enteredTextEmpty, sendButtonEnabled, isEditingMessage) map {
     case (emoji, empty, enabled, editing) => enabled && (emoji || !empty) && !editing
   }
-
   val ephemeralBtnVisible = Signal(isEditingMessage, convIsActive, enteredTextEmpty, sendButtonVisible) map {
     case (false, true, true, false) => true
     case _ => false
@@ -116,8 +115,8 @@ class CursorController(implicit inj: Injector, ctx: Context, evc: EventContext) 
   // notify SE about typing state
   enteredText { text =>
     for {
+      typing <- zms.map(_.typing).head
       convId <- conv.map(_.id).head
-      typing <- zms.map(_.typing)
     } {
       if (text.isEmpty) typing.selfClearedInput(convId)
       else typing.selfChangedInput(convId)

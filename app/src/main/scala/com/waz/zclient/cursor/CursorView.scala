@@ -135,20 +135,16 @@ class CursorView(val context: Context, val attrs: AttributeSet, val defStyleAttr
   secondaryToolbar.cursorItems ! SecondaryCursorItems
 
   cursorEditText.addTextChangedListener(new TextWatcher() {
-    private var text = Option.empty[String]
+    private var text = ""
 
     override def onTextChanged(charSequence: CharSequence, start: Int, before: Int, count: Int): Unit = {
-      val t = charSequence.toString
-      text = if (t.trim.isEmpty) None else Some(t)
+      text = charSequence.toString
     }
 
-    override def afterTextChanged(editable: Editable): Unit = text match {
-      case Some(txt) =>
-        controller.enteredText ! txt
-        lineCount ! cursorEditText.getLineCount
-        text = None
-      case None =>
-        controller.enteredText ! ""
+    override def afterTextChanged(editable: Editable): Unit = {
+      controller.enteredText ! text
+      if (text.trim.nonEmpty) lineCount ! cursorEditText.getLineCount
+      text = ""
     }
 
     override def beforeTextChanged(charSequence: CharSequence, start: Int, count: Int, after: Int): Unit = ()
@@ -211,8 +207,8 @@ class CursorView(val context: Context, val attrs: AttributeSet, val defStyleAttr
     case (false, _) => defaultHintTextColor
   }
 
-  val hintVisible = controller.isEditingMessage.zip(controller.enteredTextEmpty) map {
-    case (editing, empty) => !editing && empty
+  val hintVisible = controller.isEditingMessage.zip(controller.enteredText) map {
+    case (editing, text) => !editing && text.isEmpty
   }
 
   controller.convIsActive.on(Threading.Ui) { this.setVisible }
