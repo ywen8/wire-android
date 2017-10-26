@@ -24,6 +24,6 @@
                                           android:layout_height="match_parent"
                                           android:gravity="bottom|center_horizontal"
                                           android:layout_weight="1"
-                                          app:font="@string/wire__typeface__medium"
+                                          app:w_font="@string/wire__typeface__medium"
                                           style="?tabIndicatorLabel"
     />

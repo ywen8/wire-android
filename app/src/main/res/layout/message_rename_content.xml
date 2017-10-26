@@ -40,7 +40,7 @@
         android:layout_marginRight="@dimen/wire__padding__32"
         android:textSize="@dimen/wire__text_size__regular"
         android:textColor="?wirePrimaryTextColor"
-        app:font="@string/wire__typeface__bold"
+        app:w_font="@string/wire__typeface__bold"
     />
 
 </merge>

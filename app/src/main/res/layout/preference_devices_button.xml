@@ -51,7 +51,7 @@
             android:layout_height="wrap_content"
             android:textSize="@dimen/wire__text_size__regular"
             android:ellipsize="end"
-            app:font="@string/wire__typeface__light"
+            app:w_font="@string/wire__typeface__light"
             />
 
         <com.waz.zclient.ui.text.TypefaceTextView
@@ -61,7 +61,7 @@
             android:textSize="@dimen/wire__text_size__small"
             android:ellipsize="end"
             android:visibility="visible"
-            app:font="@string/wire__typeface__light"
+            app:w_font="@string/wire__typeface__light"
             />
 
     </LinearLayout>

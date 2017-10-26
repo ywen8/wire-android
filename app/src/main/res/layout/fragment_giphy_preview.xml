@@ -59,7 +59,7 @@
                 android:hint="@string/giphy_preview__search_hint"
                 android:imeOptions="actionSend"
                 android:inputType="textCapSentences"
-                app:font="@string/wire__typeface__light"
+                app:w_font="@string/wire__typeface__light"
                 style="?cursorEditText"
                 />
 

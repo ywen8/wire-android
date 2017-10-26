@@ -44,7 +44,7 @@
         android:text="@string/profile__email__verify__instructions"
         android:textColor="@color/text__primary_dark"
         android:textSize="@dimen/wire__text_size__regular"
-        app:font="@string/wire__typeface__light"
+        app:w_font="@string/wire__typeface__light"
         android:layout_marginLeft="@dimen/wire__padding__16"
         android:layout_centerVertical="true"
         />
@@ -67,7 +67,7 @@
             android:text="@string/profile__email__verify__didnt_get"
             android:textColor="@color/text__primary_dark"
             android:textSize="@dimen/wire__text_size__regular"
-            app:font="@string/wire__typeface__light"
+            app:w_font="@string/wire__typeface__light"
             />
 
         <com.waz.zclient.ui.text.TypefaceTextView
@@ -78,7 +78,7 @@
             android:text="@string/profile__email__verify__resend"
             android:textAllCaps="true"
             android:textSize="@dimen/wire__text_size__small"
-            app:font="@string/wire__typeface__light"
+            app:w_font="@string/wire__typeface__light"
             android:textColor="@color/text__primary_dark"
             />
     </LinearLayout>
@@ -99,7 +99,7 @@
             android:text="@string/glyph__previous"
             android:textColor="@color/text__primary_dark"
             android:textSize="@dimen/wire__text_size__regular"
-            app:font="@string/wire__typeface__light"
+            app:w_font="@string/wire__typeface__light"
             />
 
         <com.waz.zclient.ui.text.TypefaceTextView
@@ -112,7 +112,7 @@
             android:text="@string/edit_email"
             android:textAllCaps="true"
             android:textSize="@dimen/wire__text_size__small"
-            app:font="@string/wire__typeface__light"
+            app:w_font="@string/wire__typeface__light"
             />
     </LinearLayout>
 

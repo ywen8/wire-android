@@ -37,7 +37,7 @@
         android:paddingTop="@dimen/wire__padding__regular"
         android:paddingBottom="@dimen/wire__padding__regular"
         android:textColor="@color/text__primary_dark"
-        app:font="@string/wire__typeface__regular"
+        app:w_font="@string/wire__typeface__regular"
         />
 
     <!-- NumberPicker added in code -->

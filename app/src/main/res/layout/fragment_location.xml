@@ -99,7 +99,7 @@
             android:gravity="center"
             tools:ignore="UnusedAttribute"
             >
-            
+
             <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="@dimen/share_location__selected_bubble_height"
@@ -127,7 +127,7 @@
                     android:ellipsize="end"
                     android:textColor="@color/graphite"
                     android:maxLines="1"
-                    app:font="@string/wire__typeface__thin"
+                    app:w_font="@string/wire__typeface__thin"
                     android:textSize="@dimen/wire__text_size__regular"
                     />
 

@@ -28,7 +28,7 @@
         android:id="@+id/share_giphy"
         android:icon="@drawable/giphy_logo"
         android:title="@string/service_giphy_name"
-        app:font="@string/cursor__multiuse_button__font_name"
+        app:w_font="@string/cursor__multiuse_button__font_name"
         tools:ignore="UnusedIds"
         />
 

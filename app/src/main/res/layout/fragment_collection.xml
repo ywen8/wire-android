@@ -51,7 +51,7 @@
                 android:maxLines="1"
                 android:ellipsize="end"
                 android:background="@null"
-                app:font="@string/wire__typeface__regular"
+                app:w_font="@string/wire__typeface__regular"
                 style="?conversationToolbar"
                 />
 
@@ -96,7 +96,7 @@
                 android:maxLines="1"
                 android:imeOptions="actionDone"
                 android:inputType="text"
-                app:font="@string/wire__typeface__light"
+                app:w_font="@string/wire__typeface__light"
                 />
 
             <com.waz.zclient.ui.text.GlyphTextView
@@ -121,7 +121,7 @@
                 android:textAlignment="center"
                 android:textColor="?wireSecondaryTextColor"
                 android:text="@string/search__box__hint_text"
-                app:font="@string/wire__typeface__regular"
+                app:w_font="@string/wire__typeface__regular"
                 android:textSize="@dimen/wire__text_size__small"
                 android:clickable="false"
                 android:focusable="false"
@@ -161,7 +161,7 @@
             android:layout_marginTop="@dimen/search__no_results__top_margin"
             android:text="@string/search__no_results"
             android:textSize="@dimen/wire__text_size__regular"
-            app:font="@string/wire__typeface__light"
+            app:w_font="@string/wire__typeface__light"
             />
 
         <LinearLayout
@@ -187,7 +187,7 @@
                 android:textSize="@dimen/wire__text_size__small"
                 android:textColor="@color/light_graphite_40"
                 android:text="@string/collection_empty"
-                app:font="@string/wire__typeface__regular"
+                app:w_font="@string/wire__typeface__regular"
                 />
 
         </LinearLayout>

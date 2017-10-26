@@ -42,7 +42,7 @@
         android:layout_width="@dimen/content__audio_message__duration_width"
         android:layout_height="match_parent"
         android:gravity="center_vertical|start"
-        app:font="@string/wire__typeface__light"
+        app:w_font="@string/wire__typeface__light"
         />
 
     <SeekBar

@@ -35,7 +35,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:lineSpacingExtra="@dimen/content__line_spacing_extra"
-        app:font="@string/wire__typeface__light"
+        app:w_font="@string/wire__typeface__light"
         style="?userOtrHeader"
         />
 
@@ -43,7 +43,7 @@
         android:id="@+id/ttv__row__otr_details_link"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        app:font="@string/wire__typeface__light"
+        app:w_font="@string/wire__typeface__light"
         style="?userOtrHeader"
         />
 

@@ -30,7 +30,7 @@
         android:textColor="@color/text__secondary_light"
         android:textSize="@dimen/wire__text_size__small"
         android:maxLines="1"
-        app:font="@string/wire__typeface__light"
+        app:w_font="@string/wire__typeface__light"
         android:layout_weight="1"
         />
 

@@ -53,7 +53,7 @@ public class LinkTextView extends TypefaceTextView {
             R.styleable.TypefaceTextView,
             0, 0);
 
-        String font = a.getString(R.styleable.TypefaceTextView_typeface);
+        String font = a.getString(R.styleable.TypefaceTextView_w_font);
         if (!TextUtils.isEmpty(font) && !isInEditMode()) {
             setTypeface(font);
         }

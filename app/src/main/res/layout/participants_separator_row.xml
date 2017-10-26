@@ -39,7 +39,7 @@
         android:layout_gravity="center_vertical"
         android:layout_marginLeft="@dimen/wire__padding__regular"
         android:text="@string/pref_devices_device_verified"
-        app:font="@string/wire__typeface__light"
+        app:w_font="@string/wire__typeface__light"
         />
 
     <View

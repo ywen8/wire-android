@@ -62,7 +62,7 @@
         android:textSize="@dimen/wire__text_size__small"
         android:gravity="center|end"
         android:background="@drawable/rounded_corner_background_bubble"
-        app:font="@string/wire__typeface__light"
+        app:w_font="@string/wire__typeface__light"
         />
 
 </LinearLayout>

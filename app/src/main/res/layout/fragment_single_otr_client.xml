@@ -58,7 +58,7 @@
         android:layout_marginTop="@dimen/wire__padding__big"
         android:gravity="center|right"
         android:text="@string/otr__participant__single_device__my_fingerprint_link"
-        app:font="@string/wire__typeface__regular"
+        app:w_font="@string/wire__typeface__regular"
         style="?otrClientLink"
         />
 
@@ -70,13 +70,13 @@
         android:layout_marginRight="@dimen/wire__padding__big"
         android:orientation="vertical"
         >
-        
+
         <com.waz.zclient.ui.text.TypefaceTextView
             android:id="@+id/ttv__single_otr_client__description"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:lineSpacingExtra="@dimen/content__line_spacing_extra"
-            app:font="@string/wire__typeface__light"
+            app:w_font="@string/wire__typeface__light"
             style="?otrClientText"
             />
 
@@ -84,7 +84,7 @@
             android:id="@+id/ttv__single_otr_client__how_to_link"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            app:font="@string/wire__typeface__light"
+            app:w_font="@string/wire__typeface__light"
             style="?userOtrHeader"
             />
 
@@ -100,7 +100,7 @@
             android:id="@+id/ttv__single_otr_client__type"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:font="@string/wire__typeface__bold"
+            app:w_font="@string/wire__typeface__bold"
             style="?userOtrDevice"
             />
 
@@ -109,7 +109,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="@dimen/wire__padding__regular"
-            app:font="@string/wire__typeface__light"
+            app:w_font="@string/wire__typeface__light"
             style="?userOtrDevice"
             />
 
@@ -119,7 +119,7 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="@dimen/wire__padding__large"
             android:lineSpacingExtra="@dimen/wire__text_spacing__large"
-            app:font="@string/wire__typeface__light"
+            app:w_font="@string/wire__typeface__light"
             style="?otrClientText"
             />
 
@@ -143,7 +143,7 @@
                 android:layout_gravity="left|center"
                 android:gravity="center"
                 android:text="@string/otr__participant__my_device__show_all_devices_link"
-                app:font="@string/wire__typeface__regular"
+                app:w_font="@string/wire__typeface__regular"
                 style="?otrClientLink"
                 />
 
@@ -154,7 +154,7 @@
                 android:layout_gravity="right|center"
                 android:gravity="center"
                 android:text="@string/otr__participant__single_device__reset_session_link"
-                app:font="@string/wire__typeface__regular"
+                app:w_font="@string/wire__typeface__regular"
                 style="?otrClientLink"
                 />
 

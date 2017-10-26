@@ -33,7 +33,7 @@
         android:textSize="@dimen/quick_reply__text_size"
         android:textColor="@color/white_72"
         android:lineSpacingExtra="@dimen/wire__text_spacing__medium"
-        app:font="@string/wire__typeface__regular"
+        app:w_font="@string/wire__typeface__regular"
         />
 
 </android.support.v4.widget.NestedScrollView>

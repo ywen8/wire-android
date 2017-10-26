@@ -56,7 +56,7 @@
             android:id="@+id/pcb__signin__email"
             android:layout_height="@dimen/new_reg__input_height"
             android:layout_width="@dimen/new_reg__input_height"
-            app:font="@string/wire__typeface__light"
+            app:w_font="@string/wire__typeface__light"
             android:textSize="@dimen/wire__text_size__regular"
             android:layout_gravity="right"
             android:gravity="center"

@@ -73,7 +73,7 @@
             android:maxLines="@integer/cursor__max_lines"
             android:scrollHorizontally="false"
             android:lineSpacingExtra="@dimen/content__line_spacing_extra"
-            app:font="@string/wire__typeface__light"
+            app:w_font="@string/wire__typeface__light"
         >
 
             <requestFocus />
@@ -91,7 +91,7 @@
             android:text="@string/cursor__type_a_message"
             android:textColor="@color/light_graphite"
             android:textSize="@dimen/wire__text_size__small"
-            app:font="@string/wire__typeface__medium"
+            app:w_font="@string/wire__typeface__medium"
             android:paddingStart="@dimen/wire__padding__small"
         />
 
@@ -125,7 +125,7 @@
             android:background="@android:drawable/toast_frame"
             android:gravity="center"
             android:textColor="@color/text__primary_dark"
-            app:font="@string/wire__typeface__light"
+            app:w_font="@string/wire__typeface__light"
         />
 
     </FrameLayout>

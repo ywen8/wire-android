@@ -51,7 +51,7 @@
                 android:text="@string/audio_message__recording__slide_control__slide_hint"
                 android:textColor="@color/light_graphite"
                 android:textSize="@dimen/wire__text_size__small"
-                app:font="@string/wire__typeface__light"
+                app:w_font="@string/wire__typeface__light"
                 />
 
         </FrameLayout>
@@ -94,7 +94,7 @@
                 android:layout_height="wrap_content"
                 android:gravity="center"
                 android:textSize="@dimen/wire__text_size__small"
-                app:font="@string/wire__typeface__light"
+                app:w_font="@string/wire__typeface__light"
                 style="?attr/wirePrimaryTextColor"
                 />
 

@@ -41,7 +41,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/content__invite_banner__title"
-        app:font="@string/wire__typeface__light"
+        app:w_font="@string/wire__typeface__light"
         style="?messageStreamSubtitle"
         />
 
@@ -56,7 +56,7 @@
         android:textSize="@dimen/wire__text_size__small"
         android:textAllCaps="true"
         android:text="@string/content__invite_banner__button_label"
-        app:font="@string/wire__typeface__light"
+        app:w_font="@string/wire__typeface__light"
         />
 
     <View

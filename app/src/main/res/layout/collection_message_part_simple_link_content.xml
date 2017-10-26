@@ -42,7 +42,7 @@
         android:layout_gravity="start"
         android:textSize="@dimen/wire__text_size__small"
         android:textColor="@color/wire__text_color_secondary_light_selector"
-        app:font="@string/wire__typeface__bold"
+        app:w_font="@string/wire__typeface__bold"
         />
 
 </LinearLayout>

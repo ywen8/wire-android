@@ -50,7 +50,7 @@
         android:textAllCaps="true"
         android:textSize="@dimen/wire__text_size__small"
         android:textColor="@color/text__primary_dark"
-        app:font="@string/wire__typeface__light"
+        app:w_font="@string/wire__typeface__light"
         />
 
 
@@ -71,7 +71,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textSize="@dimen/wire__text_size__medium"
-            app:font="@string/wire__typeface__medium"
+            app:w_font="@string/wire__typeface__medium"
             />
 
 
@@ -82,7 +82,7 @@
             android:paddingBottom="@dimen/wire__padding__small"
             android:text="@string/invitation_email__welcome_message"
             android:textSize="@dimen/wire__text_size__medium"
-            app:font="@string/wire__typeface__light"
+            app:w_font="@string/wire__typeface__light"
             />
 
         <com.waz.zclient.ui.text.TypefaceEditText
@@ -100,7 +100,7 @@
             android:textColorHint="@color/text__secondary_dark"
             android:inputType="textEmailAddress"
             android:enabled="false"
-            app:font="@string/wire__typeface__light"
+            app:w_font="@string/wire__typeface__light"
             />
 
         <com.waz.zclient.ui.text.TypefaceEditText
@@ -117,7 +117,7 @@
             android:textColor="@color/text__primary_dark"
             android:textColorHint="@color/text__secondary_dark"
             android:inputType="textPassword"
-            app:font="@string/wire__typeface__light"
+            app:w_font="@string/wire__typeface__light"
             />
 
         <com.waz.zclient.ui.views.ZetaButton
@@ -130,7 +130,7 @@
             android:textSize="@dimen/framework_confirmation_menu_button_font_size"
             android:textAllCaps="true"
             android:textColor="@color/framework_confirmation_menu_button_font_color"
-            app:font="@string/wire__typeface__light"
+            app:w_font="@string/wire__typeface__light"
             />
 
         <!-- Term Of Service -->
@@ -145,7 +145,7 @@
             android:text="@string/welcome__terms_of_service"
             android:textColor="@color/first_time__welcome__tos_color"
             android:textSize="@dimen/first_time__welcome__subtitle_font_size"
-            app:font="@string/wire__typeface__light"
+            app:w_font="@string/wire__typeface__light"
             />
     </LinearLayout>
 </FrameLayout>

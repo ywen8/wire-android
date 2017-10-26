@@ -51,7 +51,7 @@
             android:textAllCaps="true"
             android:text="@string/conversation_quick_menu__conversation_button__single_label"
             android:textColor="@color/text__primary_dark"
-            app:font="@string/wire__typeface__light"
+            app:w_font="@string/wire__typeface__light"
             />
 
         <!-- Dummy view -->

@@ -47,7 +47,7 @@
         android:text=""
         android:textSize="@dimen/wire__text_size__medium"
         android:textColor="@color/text__primary_dark"
-        app:font="@string/wire__typeface__light"
+        app:w_font="@string/wire__typeface__light"
         android:layout_centerVertical="true"
         android:layout_alignParentStart="true"/>
 
@@ -60,7 +60,7 @@
         android:text=""
         android:textSize="@dimen/wire__text_size__medium"
         android:textColor="@color/text__primary_dark"
-        app:font="@string/wire__typeface__thin"
+        app:w_font="@string/wire__typeface__thin"
         />
 
     <LinearLayout
@@ -82,7 +82,7 @@
             android:text="@string/usernames__take_over__summary"
             android:textSize="@dimen/wire__text_size__medium"
             android:textColor="@color/text__primary_dark"
-            app:font="@string/wire__typeface__thin"
+            app:w_font="@string/wire__typeface__thin"
             />
 
         <com.waz.zclient.ui.views.ZetaButton
@@ -95,7 +95,7 @@
             android:textSize="@dimen/framework_confirmation_menu_button_font_size"
             android:textAllCaps="true"
             android:textColor="@color/white"
-            app:font="@string/wire__typeface__light"
+            app:w_font="@string/wire__typeface__light"
             />
 
         <com.waz.zclient.ui.views.ZetaButton
@@ -108,7 +108,7 @@
             android:textSize="@dimen/framework_confirmation_menu_button_font_size"
             android:textAllCaps="true"
             android:textColor="@color/white"
-            app:font="@string/wire__typeface__light"
+            app:w_font="@string/wire__typeface__light"
             />
 
     </LinearLayout>
