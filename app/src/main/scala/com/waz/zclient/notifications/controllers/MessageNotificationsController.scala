@@ -225,7 +225,7 @@ class MessageNotificationsController(implicit inj: Injector, cxt: Context, event
   private def attachNotificationSound(notification: Notification, ns: Seq[NotificationInfo], silent: Boolean) =
     notification.sound =
       if (soundController.soundIntensityNone || silent) null
-      else if (!soundController.soundIntensityFull && ns.size > 1) null
+      else if (!soundController.soundIntensityFull && (ns.size > 1 && ns.lastOption.forall(_.tpe != KNOCK))) null
       else ns.lastOption.fold(null.asInstanceOf[Uri])(getMessageSoundUri)
 
   private def getMessageSoundUri(n: NotificationInfo): Uri = n.tpe match {

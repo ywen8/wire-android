@@ -33,6 +33,7 @@ import com.waz.zclient._
 import com.waz.zclient.controllers.SignInController.SignInMethod
 import com.waz.zclient.tracking.ContributionEvent.fromMime
 import org.json.JSONObject
+import com.waz.utils.RichThreetenBPDuration
 
 import scala.concurrent.Future._
 import scala.concurrent.duration._
