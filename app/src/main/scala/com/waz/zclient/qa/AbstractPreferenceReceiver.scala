@@ -38,20 +38,25 @@ trait AbstractPreferenceReceiver extends BroadcastReceiver {
     intent.getAction match {
       case AUTO_ANSWER_CALL_INTENT =>
         globalPrefs.map(_.preference(AutoAnswerCallPrefKey) := intent.getBooleanExtra(AUTO_ANSWER_CALL_INTENT_EXTRA_KEY, false))
+        setResultCode(Activity.RESULT_OK)
       case ENABLE_GCM_INTENT =>
         globalPrefs.map(_.preference(PushEnabledKey) := true)
+        setResultCode(Activity.RESULT_OK)
       case DISABLE_GCM_INTENT =>
         globalPrefs.map(_.preference(PushEnabledKey) := false)
+        setResultCode(Activity.RESULT_OK)
       case SILENT_MODE =>
         val accounts = ZMessaging.accountsService.map(_.zmsInstances)
         accounts.map(_.head.map(_.foreach { zms =>
           Seq(RingTone, PingTone, TextTone).map(zms.userPrefs.preference(_)).foreach(_ := "silent")
         }))
+        setResultCode(Activity.RESULT_OK)
       case NO_CONTACT_SHARING =>
         val preferences = context.getSharedPreferences(UserPreferencesController.USER_PREFS_TAG, Context.MODE_PRIVATE)
         preferences.edit()
           .putBoolean(USER_PREF_ACTION_PREFIX + DO_NOT_SHOW_SHARE_CONTACTS_DIALOG, true)
           .apply()
+        setResultCode(Activity.RESULT_OK)
       case TRACKING_ID_INTENT =>
         try {
           val wireApplication = context.getApplicationContext.asInstanceOf[WireApplication]
@@ -65,6 +70,8 @@ trait AbstractPreferenceReceiver extends BroadcastReceiver {
             setResultCode(Activity.RESULT_CANCELED)
         }
       case _ =>
+        setResultData("Unknown Intent!")
+        setResultCode(Activity.RESULT_CANCELED)
     }
   }
 
