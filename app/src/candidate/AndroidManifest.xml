@@ -34,6 +34,8 @@
                 <action android:name="${applicationId}.intent.action.SILENT_MODE" />
                 <action android:name="${applicationId}.intent.action.NO_CONTACT_SHARING" />
                 <action android:name="${applicationId}.intent.action.TRACKING_ID" />
+                <action android:name="${applicationId}.intent.action.ENABLE_TRACKING" />
+                <action android:name="${applicationId}.intent.action.DISABLE_TRACKING" />
             </intent-filter>
         </receiver>
     </application>
