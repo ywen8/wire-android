@@ -20,6 +20,7 @@ package com.waz.zclient.qa
 import android.app.Activity
 import android.content.{BroadcastReceiver, Context, Intent}
 import com.waz.content.GlobalPreferences._
+import com.waz.content.Preferences.PrefKey
 import com.waz.content.UserPreferences._
 import com.waz.service.ZMessaging
 import com.waz.zclient.controllers.userpreferences.IUserPreferencesController._
@@ -64,6 +65,12 @@ trait AbstractPreferenceReceiver extends BroadcastReceiver {
             setResultData("")
             setResultCode(Activity.RESULT_CANCELED)
         }
+      case ENABLE_TRACKING_INTENT =>
+        globalPrefs.map(_.preference(DeveloperAnalyticsEnabled) := true)
+        setResultCode(Activity.RESULT_OK)
+      case DISABLE_TRACKING_INTENT =>
+        globalPrefs.map(_.preference(DeveloperAnalyticsEnabled) := false)
+        setResultCode(Activity.RESULT_OK)
       case _ =>
     }
   }
@@ -76,7 +83,11 @@ object AbstractPreferenceReceiver {
   val AUTO_ANSWER_CALL_INTENT = packageName + ".intent.action.AUTO_ANSWER_CALL"
   val ENABLE_GCM_INTENT = packageName + ".intent.action.ENABLE_GCM"
   val DISABLE_GCM_INTENT = packageName + ".intent.action.DISABLE_GCM"
+  val ENABLE_TRACKING_INTENT = packageName + ".intent.action.ENABLE_TRACKING"
+  val DISABLE_TRACKING_INTENT = packageName + ".intent.action.DISABLE_TRACKING"
   val SILENT_MODE = packageName + ".intent.action.SILENT_MODE"
   val NO_CONTACT_SHARING = packageName + ".intent.action.NO_CONTACT_SHARING"
   val TRACKING_ID_INTENT = packageName + ".intent.action.TRACKING_ID"
+
+  lazy val DeveloperAnalyticsEnabled = PrefKey[Boolean]("DEVELOPER_TRACKING_ENABLED")
 }
