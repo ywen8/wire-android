@@ -153,7 +153,7 @@ class MessageNotificationsController(implicit inj: Injector, cxt: Context, event
     val inboxStyle = new NotificationCompat.InboxStyle()
 
     val builder = new NotificationCompat.Builder(cxt)
-      .setWhen(nots.sortBy(_.time).head.time.toEpochMilli)
+      .setWhen(nots.minBy(_.time).time.toEpochMilli)
       .setShowWhen(true)
       .setCategory(NotificationCompat.CATEGORY_MESSAGE)
       .setPriority(NotificationCompat.PRIORITY_HIGH)
@@ -163,6 +163,7 @@ class MessageNotificationsController(implicit inj: Injector, cxt: Context, event
       .setStyle(inboxStyle)
       .setGroupSummary(true)
       .setGroup(account.str)
+      .setContentIntent(OpenAccountIntent(account))
       .setDeleteIntent(NotificationsAndroidService.clearNotificationsIntent(account, context))
 
     teamName.foreach(builder.setContentInfo)
