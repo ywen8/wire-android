@@ -29,6 +29,6 @@
     android:layout_marginBottom="@dimen/people_picker__header__padding_bottom"
     android:layout_gravity="center_vertical|start"
     android:text="@string/people_picker__top_users_header_title"
-    app:font="@string/wire__typeface__light"
+    app:w_font="@string/wire__typeface__light"
     style="?startUiHeaderRowLabel"
     />

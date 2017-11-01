@@ -130,7 +130,7 @@
                 android:text="@string/drawing__tip__message"
                 android:textSize="@dimen/drawing__tip__font__size"
                 android:textColor="@color/drawing__tip__font__color"
-                app:font="@string/wire__typeface__light"
+                app:w_font="@string/wire__typeface__light"
                 />
 
         </FrameLayout>

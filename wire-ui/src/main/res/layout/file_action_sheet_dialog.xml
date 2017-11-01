@@ -38,7 +38,7 @@
         android:maxLines="2"
         android:textSize="@dimen/wire__text_size__regular"
         android:text="@string/content__file__action__open__no_app_found"
-        app:font="@string/wire__typeface__light"
+        app:w_font="@string/wire__typeface__light"
         style="?attr/wirePrimaryTextColor"
         />
 
@@ -66,7 +66,7 @@
         android:maxLines="1"
         android:textSize="@dimen/wire__text_size__small"
         android:text="@string/content__file__action__open"
-        app:font="@string/wire__typeface__light"
+        app:w_font="@string/wire__typeface__light"
         style="?attr/wirePrimaryTextColor"
         />
 
@@ -80,7 +80,7 @@
         android:maxLines="1"
         android:textSize="@dimen/wire__text_size__small"
         android:text="@string/content__file__action__save"
-        app:font="@string/wire__typeface__light"
+        app:w_font="@string/wire__typeface__light"
         style="?attr/wirePrimaryTextColor"
         />
 

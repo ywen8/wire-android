@@ -47,7 +47,7 @@
         android:textColor="@color/text__secondary_light"
         android:gravity="start|center_vertical"
         android:textSize="@dimen/wire__text_size__small"
-        app:font="@string/wire__typeface__medium"
+        app:w_font="@string/wire__typeface__medium"
         android:maxLines="1"
         />
 

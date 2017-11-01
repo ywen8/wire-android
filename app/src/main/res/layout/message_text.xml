@@ -27,5 +27,5 @@
     android:layout_height="wrap_content"
     android:layout_marginStart="@dimen/content__padding_left"
     android:layout_marginEnd="@dimen/content__padding_right"
-    app:font="@string/wire__typeface__light"
+    app:w_font="@string/wire__typeface__light"
     />

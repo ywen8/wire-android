@@ -36,28 +36,11 @@
             >
 
             <com.waz.zclient.pages.main.profile.preferences.views.SwitchPreference
-                android:id="@+id/preferences_dev_post_session_id"
-                android:layout_width="match_parent"
-                android:layout_height="@dimen/preference_button_height"
-                app:title="@string/pref_dev_avs_post_session_id_title"
-                app:subtitle="@string/pref_dev_avs_post_session_id_summary"
-                app:key="@string/pref_dev_avs_post_session_id_key"
-                />
-
-            <com.waz.zclient.pages.main.profile.preferences.views.TextButton
-                android:id="@+id/preferences_dev_last_session_id"
-                android:layout_width="match_parent"
-                android:layout_height="@dimen/preference_button_height"
-                app:title="@string/pref_dev_avs_last_call_session_id_title"
-                />
-
-            <com.waz.zclient.pages.main.profile.preferences.views.SwitchPreference
                 android:id="@+id/preferences_dev_auto_answer"
                 android:layout_width="match_parent"
                 android:layout_height="@dimen/preference_button_height"
                 app:title="@string/pref_dev_auto_answer_call_title"
                 app:subtitle="@string/pref_dev_auto_answer_call_summary"
-                app:key="@string/pref_dev_auto_answer_call_key"
                 />
 
             <com.waz.zclient.pages.main.profile.preferences.views.TextButton

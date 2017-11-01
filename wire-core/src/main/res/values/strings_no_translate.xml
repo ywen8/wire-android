@@ -131,15 +131,10 @@
     <string translatable="false" name="wire_theme_dark">dark</string>
 
     <!-- Developer preferences -->
-    <string translatable="false" name="pref_dev_avs_post_session_id_key">USER_PREFS_POST_SESSION_ID</string>
-    <string translatable="false" name="pref_dev_avs_post_session_id_title">Post call session id</string>
-    <string translatable="false" name="pref_dev_avs_post_session_id_summary">Post session id into conversation</string>
     <string translatable="false" name="pref_dev_avs_post_session_id_message">Last call session id: %1$s</string>
     <string translatable="false" name="pref_dev_avs_last_call_session_id_key">USER_PREFS_LAST_CALL_SESSION_ID</string>
-    <string translatable="false" name="pref_dev_avs_last_call_session_id_title">Last call session id</string>
     <string translatable="false" name="pref_dev_avs_last_call_session_id_not_available">N/A</string>
     <string translatable="false" name="pref_dev_avs_last_call_session_id_copied_to_clipboard">Session id copied to clipboard</string>
-    <string translatable="false" name="pref_dev_auto_answer_call_key">@string/zms_auto_answer_key</string>
     <string translatable="false" name="pref_dev_auto_answer_call_title">Auto answer incoming calls</string>
     <string translatable="false" name="pref_dev_auto_answer_call_summary">App restart needed to enable AVS audio test flag</string>
     <string translatable="false" name="pref_dev_otr_only_title">E2EE only</string>

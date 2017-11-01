@@ -311,6 +311,7 @@ class ShareToMultipleAdapter(context: Context, filter: Signal[String])(implicit 
 
   private val checkBoxListener = new CompoundButton.OnCheckedChangeListener {
     override def onCheckedChanged(buttonView: CompoundButton, isChecked: Boolean): Unit = {
+      buttonView.setContentDescription(if (isChecked) "selected" else "")
       Option(buttonView.getTag.asInstanceOf[ConvId]).foreach{ convId =>
         conversationSelectEvent ! (convId, isChecked)
       }

@@ -123,8 +123,8 @@ trait FragmentHelper extends Fragment with ViewFinder with Injectable with Event
 
   @SuppressLint(Array("com.waz.ViewUtils"))
   def findById[V <: View](id: Int) = {
-    val res = getView.findViewById(id)
-    if (res != null) res.asInstanceOf[V]
+    val res = getView.findViewById[V](id)
+    if (res != null) res
     else getActivity.findViewById(id).asInstanceOf[V]
   }
 

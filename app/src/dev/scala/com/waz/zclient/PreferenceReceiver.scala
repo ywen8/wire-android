@@ -15,15 +15,8 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package com.waz.zclient;
+package com.waz.zclient
 
-import com.facebook.stetho.Stetho;
+import com.waz.zclient.qa.AbstractPreferenceReceiver
 
-public class StethoApplication extends ZApplication {
-
-    @Override
-    public void onCreate() {
-        super.onCreate();
-        Stetho.initializeWithDefaults(this);
-    }
-}
+class PreferenceReceiver extends AbstractPreferenceReceiver {}

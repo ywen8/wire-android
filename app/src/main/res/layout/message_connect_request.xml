@@ -53,7 +53,7 @@
         android:layout_marginBottom="@dimen/wire__padding__big"
         android:textColor="?wirePrimaryTextColor"
         android:textSize="@dimen/wire__text_size__small"
-        app:font="@string/wire__typeface__light"
+        app:w_font="@string/wire__typeface__light"
         />
 
 </com.waz.zclient.messages.parts.ConnectRequestPartView>

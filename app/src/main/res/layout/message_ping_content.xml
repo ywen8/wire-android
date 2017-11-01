@@ -41,7 +41,7 @@
         android:layout_gravity="center_vertical"
         android:textSize="@dimen/wire__text_size__small"
         android:textColor="?wirePrimaryTextColor"
-        app:font="@string/wire__typeface__light"
+        app:w_font="@string/wire__typeface__light"
         />
 
     <com.waz.zclient.ui.text.GlyphTextView

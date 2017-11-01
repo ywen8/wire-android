@@ -39,8 +39,8 @@ class ProfileBottomSheetDialog(val context: Context, theme: Int) extends BottomS
     val view = getLayoutInflater.inflate(R.layout.profile__bottom__menu, null).asInstanceOf[LinearLayout]
     setContentView(view)
 
-    val createTeamButton = findViewById(R.id.profile_menu_create)
-    val addAccountButton = findViewById(R.id.profile_menu_add)
+    val createTeamButton = findViewById(R.id.profile_menu_create).asInstanceOf[View]
+    val addAccountButton = findViewById(R.id.profile_menu_add).asInstanceOf[View]
 
     createTeamButton.setOnClickListener(new OnClickListener {
       override def onClick(v: View): Unit = {

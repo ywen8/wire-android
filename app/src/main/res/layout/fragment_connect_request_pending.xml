@@ -101,7 +101,7 @@
                 android:textAllCaps="true"
                 android:textSize="@dimen/wire__text_size__small"
                 android:textColor="@color/text__primary_light"
-                app:font="@string/wire__typeface__light"
+                app:w_font="@string/wire__typeface__light"
                 />
 
         </FrameLayout>

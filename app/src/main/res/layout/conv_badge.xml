@@ -33,7 +33,7 @@
         android:paddingEnd="@dimen/conversation_list__badge__text_padding"
         android:textColor="@color/white"
         android:textSize="@dimen/wire__text_size__small"
-        app:font="@string/wire__typeface__bold"
+        app:w_font="@string/wire__typeface__bold"
         android:visibility="invisible"
         />
 

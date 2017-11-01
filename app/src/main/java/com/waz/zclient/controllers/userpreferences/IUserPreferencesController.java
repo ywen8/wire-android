@@ -51,12 +51,6 @@ public interface IUserPreferencesController {
 
     String getGenericInvitationToken();
 
-    String getLastCallSessionId();
-
-    void setPostSessionIdToConversation(boolean postSessionIdToConversation);
-
-    boolean isPostSessionIdToConversation();
-
     String getDeviceId();
 
     void setVerificationCode(String code);
@@ -85,5 +79,4 @@ public interface IUserPreferencesController {
 
     void setLastEphemeralValue(long value);
 
-    boolean isVariableBitRateEnabled();
 }

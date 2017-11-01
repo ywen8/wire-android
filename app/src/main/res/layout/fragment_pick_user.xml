@@ -110,7 +110,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center"
-            app:font="@string/wire__typeface__medium"
+            app:w_font="@string/wire__typeface__medium"
             style="?startUiErrorLabel"
             />
 
@@ -120,7 +120,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center"
-            app:font="@string/wire__typeface__light"
+            app:w_font="@string/wire__typeface__light"
             style="?startUiErrorLabel"
             />
 
@@ -158,7 +158,7 @@
                 android:gravity="center"
                 android:paddingTop="@dimen/people_picker__error_icon_text__top_padding"
                 android:text="@string/people_picker__error_message__no_results__send_invite"
-                app:font="@string/wire__typeface__light"
+                app:w_font="@string/wire__typeface__light"
                 style="?startUiErrorSubLabel"
                 />
         </LinearLayout>

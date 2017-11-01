@@ -74,10 +74,12 @@ public class GlobalLayoutController implements IGlobalLayoutController {
             keyboardListener = null;
         }
         globalLayout = view;
+        globalLayout.getViewTreeObserver().addOnGlobalLayoutListener(globalLayoutListener);
+
         // Listen to layout changes to determine when keyboard becomes visible / hidden
+        // this listener should be set after the global layout listener to avoid keyboard flickering
         keyboardListener = new KeyboardVisibilityListener(view);
         keyboardListener.setCallback(keyboardCallback);
-        globalLayout.getViewTreeObserver().addOnGlobalLayoutListener(globalLayoutListener);
     }
 
     @Override

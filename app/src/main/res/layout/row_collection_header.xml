@@ -51,7 +51,7 @@
             android:layout_height="match_parent"
             android:gravity="center_vertical"
             android:textSize="@dimen/wire__text_size__small"
-            app:font="@string/wire__typeface__bold"
+            app:w_font="@string/wire__typeface__bold"
             android:textColor="?wirePrimaryTextColor"
             />
 
@@ -70,7 +70,7 @@
             android:paddingLeft="@dimen/wire__padding__4"
             android:paddingRight="@dimen/wire__padding__4"
             android:textSize="@dimen/wire__text_size__small"
-            app:font="@string/wire__typeface__bold"
+            app:w_font="@string/wire__typeface__bold"
             android:visibility="visible"
             android:textColor="@color/accent_blue"
             />

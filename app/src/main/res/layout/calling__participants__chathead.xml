@@ -57,7 +57,7 @@
         android:textAllCaps="true"
         android:textColor="@color/text__primary_dark"
         android:textSize="@dimen/wire__text_size__small"
-        app:font="@string/wire__typeface__light"
+        app:w_font="@string/wire__typeface__light"
         />
 
 </merge>
