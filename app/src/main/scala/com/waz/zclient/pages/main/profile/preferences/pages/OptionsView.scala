@@ -88,7 +88,9 @@ class OptionsViewImpl(context: Context, attrs: AttributeSet, style: Int) extends
   contactsSwitch.setPreference(ShareContacts)
   darkThemeSwitch.setPreference(DarkTheme)
   downloadImagesSwitch.setPreference(DownloadImagesAlways)
-  vbrSwitch.setPreference(VBREnabled)
+  // TODO re-enable CBR after avs fix: vbrSwitch.setPreference(VBREnabled)
+  vbrSwitch.setChecked(true) //true for vbr
+  vbrSwitch.setDisabled(true)
 
   vibrationSwitch.setPreference(VibrateEnabled)
   sendButtonSwitch.setPreference(SendButtonEnabled)
