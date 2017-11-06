@@ -24,7 +24,7 @@ import com.waz.model.MessageId
 import com.waz.service.ZMessaging
 import com.waz.threading.Threading
 import com.waz.utils.events.{ClockSignal, EventContext, Signal}
-import com.waz.zclient.controllers.global.AccentColorController
+import com.waz.zclient.common.controllers.global.AccentColorController
 import com.waz.zclient.ui.utils.ColorUtils
 import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.{Injectable, Injector, R}

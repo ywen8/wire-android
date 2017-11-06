@@ -32,16 +32,16 @@ import com.waz.service.messages.MessageAndLikes
 import com.waz.threading.Threading
 import com.waz.utils._
 import com.waz.utils.events.Signal
-import com.waz.zclient.controllers.BrowserController
+import com.waz.zclient.common.controllers.BrowserController
 import com.waz.zclient.messages.MessageView.MsgBindOptions
 import com.waz.zclient.messages.{ClickableViewPart, MsgPart}
 import com.waz.zclient.ui.text.GlyphTextView
 import com.waz.zclient.ui.utils.ColorUtils
 import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.utils._
-import com.waz.zclient.views.ImageAssetDrawable
-import com.waz.zclient.views.ImageAssetDrawable.State
-import com.waz.zclient.views.ImageController.{ImageSource, WireImage}
+import com.waz.zclient.common.views.ImageAssetDrawable
+import com.waz.zclient.common.views.ImageAssetDrawable.State
+import com.waz.zclient.common.views.ImageController.{ImageSource, WireImage}
 import com.waz.zclient.{R, ViewHelper}
 
 class YouTubePartView(context: Context, attrs: AttributeSet, style: Int) extends RelativeLayout(context, attrs, style) with ClickableViewPart with ViewHelper {

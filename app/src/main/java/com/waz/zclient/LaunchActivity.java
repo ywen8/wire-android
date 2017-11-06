@@ -21,6 +21,7 @@ import android.content.Intent;
 import android.text.TextUtils;
 import com.waz.api.InitListener;
 import com.waz.api.Self;
+import com.waz.zclient.appentry.AppEntryActivity;
 import com.waz.zclient.utils.BackendPicker;
 import com.waz.zclient.utils.Callback;
 import com.waz.zclient.utils.IntentUtils;

@@ -22,8 +22,8 @@ import android.content.Context
 import android.util.AttributeSet
 import android.widget.{LinearLayout, TextView}
 import com.waz.threading.Threading
+import com.waz.zclient.common.controllers.BrowserController
 import com.waz.zclient.common.views.{ChatheadView, UserDetailsView}
-import com.waz.zclient.controllers.BrowserController
 import com.waz.zclient.messages.{MessageViewPart, MsgPart, UsersController}
 import com.waz.zclient.ui.utils.TextViewUtils
 import com.waz.zclient.utils.ContextUtils._

@@ -23,7 +23,7 @@ import android.widget.LinearLayout
 import com.waz.model.MessageContent
 import com.waz.service.messages.MessageAndLikes
 import com.waz.utils.returning
-import com.waz.zclient.controllers.ThemeController
+import com.waz.zclient.common.controllers.ThemeController
 import com.waz.zclient.messages.MessageView.MsgBindOptions
 import com.waz.zclient.messages.{MessageViewPart, MsgPart}
 import com.waz.zclient.pages.main.pickuser.controller.IPickUserController

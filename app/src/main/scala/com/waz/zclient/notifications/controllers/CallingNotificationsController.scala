@@ -34,7 +34,7 @@ import com.waz.utils.wrappers.{Context, Intent}
 import com.waz.zclient.Intents.OpenAccountIntent
 import com.waz.zclient.calling.controllers.GlobalCallingController
 import com.waz.zclient.utils.ContextUtils._
-import com.waz.zclient.views.ImageController
+import com.waz.zclient.common.views.ImageController
 import com.waz.zclient._
 import com.waz.zms.CallWakeService
 

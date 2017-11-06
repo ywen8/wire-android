@@ -29,7 +29,7 @@ import com.waz.api.IConversation;
 import com.waz.api.User;
 import com.waz.zclient.R;
 import com.waz.zclient.common.views.UserDetailsView;
-import com.waz.zclient.controllers.UserAccountsController;
+import com.waz.zclient.common.controllers.UserAccountsController;
 import com.waz.zclient.controllers.accentcolor.AccentColorObserver;
 import com.waz.zclient.conversation.ConversationController;
 import com.waz.zclient.core.stores.connect.ConnectStoreObserver;

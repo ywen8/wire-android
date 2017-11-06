@@ -24,8 +24,9 @@ import com.waz.ZLog._
 import com.waz.threading.Threading
 import com.waz.utils.wrappers.AndroidURIUtil
 import com.waz.utils.events.Signal
-import com.waz.zclient.controllers.global.AccentColorController
-import com.waz.zclient.controllers.{BrowserController, ScreenController}
+import com.waz.zclient.common.controllers.{BrowserController, ScreenController}
+import com.waz.zclient.common.controllers.global.AccentColorController
+import com.waz.zclient.common.controllers.ScreenController
 import com.waz.zclient.messages.{MessageViewPart, MsgPart, SystemMessageView, UsersController}
 import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.{R, ViewHelper}

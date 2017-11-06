@@ -36,14 +36,14 @@
             android:orientation="vertical"
             >
 
-            <com.waz.zclient.pages.main.profile.preferences.views.TextButton
+            <com.waz.zclient.preferences.views.TextButton
                 android:id="@+id/settings_support_website"
                 android:layout_width="match_parent"
                 android:layout_height="@dimen/preference_button_height"
                 app:title="@string/pref_support_website_title"
                 />
 
-            <com.waz.zclient.pages.main.profile.preferences.views.TextButton
+            <com.waz.zclient.preferences.views.TextButton
                 android:id="@+id/settings_support_contact"
                 android:layout_width="match_parent"
                 android:layout_height="@dimen/preference_button_height"

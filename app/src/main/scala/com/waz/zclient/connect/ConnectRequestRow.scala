@@ -25,7 +25,7 @@ import com.waz.model.UserId
 import com.waz.service.ZMessaging
 import com.waz.utils.events.Signal
 import com.waz.zclient.common.views.{ChatheadView, UserDetailsView}
-import com.waz.zclient.controllers.global.AccentColorController
+import com.waz.zclient.common.controllers.global.AccentColorController
 import com.waz.zclient.messages.UsersController
 import com.waz.zclient.ui.utils.TextViewUtils
 import com.waz.zclient.ui.views.ZetaButton

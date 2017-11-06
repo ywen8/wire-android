@@ -25,7 +25,7 @@
     android:layout_height="match_parent"
     >
 
-    <com.waz.zclient.views.GlyphButton
+    <com.waz.zclient.common.views.GlyphButton
         android:id="@+id/glyph"
         android:layout_width="@dimen/cursor__send_button__width"
         android:layout_height="@dimen/cursor__send_button__width"

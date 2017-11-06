@@ -20,7 +20,7 @@ package com.waz.zclient.tracking
 import com.waz.api.Invitations.PersonalToken
 import com.waz.service.tracking.TrackingEvent
 import com.waz.utils.returning
-import com.waz.zclient.controllers.SignInController._
+import com.waz.zclient.appentry.controllers.SignInController._
 import org.json.JSONObject
 import com.waz.utils._
 import com.waz.zclient.tracking.AddPhotoOnRegistrationEvent.Source

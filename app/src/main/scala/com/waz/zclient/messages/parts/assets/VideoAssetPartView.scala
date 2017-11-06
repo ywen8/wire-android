@@ -26,7 +26,7 @@ import com.waz.zclient.R
 import com.waz.zclient.messages.MsgPart
 import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.utils.RichView
-import com.waz.zclient.views.ImageAssetDrawable.State.Loaded
+import com.waz.zclient.common.views.ImageAssetDrawable.State.Loaded
 import com.waz.ZLog.ImplicitTag._
 
 class VideoAssetPartView(context: Context, attrs: AttributeSet, style: Int) extends FrameLayout(context, attrs, style) with PlayableAsset with ImageLayoutAssetPart {

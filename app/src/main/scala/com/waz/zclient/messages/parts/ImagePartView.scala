@@ -26,14 +26,14 @@ import com.waz.model.MessageContent
 import com.waz.service.downloads.AssetLoader.DownloadOnWifiOnlyException
 import com.waz.service.messages.MessageAndLikes
 import com.waz.threading.Threading
-import com.waz.zclient.controllers.AssetsController
+import com.waz.zclient.common.controllers.AssetsController
 import com.waz.zclient.controllers.drawing.IDrawingController.DrawingMethod
 import com.waz.zclient.conversation.ConversationController
 import com.waz.zclient.messages.MessageView.MsgBindOptions
 import com.waz.zclient.messages.parts.assets.ImageLayoutAssetPart
 import com.waz.zclient.messages.{MessageViewPart, MsgPart}
 import com.waz.zclient.utils.RichView
-import com.waz.zclient.views.ImageAssetDrawable.State.Failed
+import com.waz.zclient.common.views.ImageAssetDrawable.State.Failed
 import com.waz.zclient.{R, ViewHelper}
 
 class ImagePartView(context: Context, attrs: AttributeSet, style: Int) extends FrameLayout(context, attrs, style) with ImageLayoutAssetPart {

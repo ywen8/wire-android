@@ -30,7 +30,7 @@ import com.waz.service.call.CallInfo.CallState._
 import com.waz.threading.Threading
 import com.waz.utils.events.{EventContext, Signal}
 import com.waz.zclient.calling.CallingActivity
-import com.waz.zclient.media.SoundController
+import com.waz.zclient.common.controllers.SoundController
 import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.{Injectable, Injector, R, WireContext}
 

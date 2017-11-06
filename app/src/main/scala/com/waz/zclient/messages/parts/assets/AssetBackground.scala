@@ -22,11 +22,11 @@ import android.graphics.drawable.Drawable
 import com.waz.api.AccentColor
 import com.waz.threading.Threading
 import com.waz.utils.events.{EventContext, Signal}
+import com.waz.zclient.common.views.ProgressDotsDrawable
 import com.waz.zclient.ui.theme.ThemeUtils
 import com.waz.zclient.ui.utils.ColorUtils
 import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.utils.Offset
-import com.waz.zclient.views.ProgressDotsDrawable
 import com.waz.zclient.{R, WireContext}
 
 class AssetBackground(showDots: Signal[Boolean], expired: Signal[Boolean], accent: Signal[AccentColor])(implicit context: WireContext, eventContext: EventContext) extends Drawable with Drawable.Callback {

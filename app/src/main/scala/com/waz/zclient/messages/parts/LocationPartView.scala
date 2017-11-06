@@ -31,13 +31,13 @@ import com.waz.service.media.GoogleMapsMediaService
 import com.waz.threading.Threading
 import com.waz.utils._
 import com.waz.utils.events.Signal
-import com.waz.zclient.controllers.BrowserController
+import com.waz.zclient.common.controllers.BrowserController
 import com.waz.zclient.messages.{ClickableViewPart, MsgPart}
 import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.utils._
-import com.waz.zclient.views.ImageAssetDrawable
-import com.waz.zclient.views.ImageAssetDrawable.State
-import com.waz.zclient.views.ImageController.{DataImage, ImageSource, WireImage}
+import com.waz.zclient.common.views.ImageAssetDrawable
+import com.waz.zclient.common.views.ImageAssetDrawable.State
+import com.waz.zclient.common.views.ImageController.{DataImage, ImageSource, WireImage}
 import com.waz.zclient.{R, ViewHelper}
 
 class LocationPartView(context: Context, attrs: AttributeSet, style: Int) extends CardView(context, attrs, style) with ClickableViewPart with ViewHelper with EphemeralPartView {

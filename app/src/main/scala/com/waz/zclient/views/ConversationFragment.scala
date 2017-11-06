@@ -28,23 +28,22 @@ import android.text.format.Formatter
 import android.view._
 import android.view.animation.Animation
 import android.widget.{AbsListView, FrameLayout, TextView, Toast}
-import com.waz.zclient.{FragmentHelper, R}
-import com.waz.zclient.pages.BaseFragment
-import com.waz.ZLog._
 import com.waz.ZLog.ImplicitTag._
+import com.waz.ZLog._
 import com.waz.api._
 import com.waz.api.impl.ContentUriAssetForUpload
-import com.waz.model.{AssetId, ConvId, ConversationData, MessageData}
 import com.waz.model.ConversationData.ConversationType
+import com.waz.model.{AssetId, ConvId, ConversationData, MessageData}
 import com.waz.threading.{CancellableFuture, Threading}
 import com.waz.utils.events.{EventStreamWithAuxSignal, Signal}
 import com.waz.utils.returningF
 import com.waz.utils.wrappers.URI
 import com.waz.zclient.Intents.ShowDevicesIntent
 import com.waz.zclient.camera.controllers.GlobalCameraController
+import com.waz.zclient.collection.controllers.CollectionController
+import com.waz.zclient.common.controllers.{SoundController, ThemeController, UserAccountsController}
 import com.waz.zclient.controllers.accentcolor.AccentColorObserver
 import com.waz.zclient.controllers.confirmation.{ConfirmationCallback, ConfirmationRequest, IConfirmationController}
-import com.waz.zclient.controllers.{ThemeController, UserAccountsController}
 import com.waz.zclient.controllers.currentfocus.IFocusController
 import com.waz.zclient.controllers.drawing.IDrawingController
 import com.waz.zclient.controllers.giphy.GiphyObserver
@@ -53,13 +52,13 @@ import com.waz.zclient.controllers.navigation.{NavigationControllerObserver, Pag
 import com.waz.zclient.controllers.orientation.OrientationControllerObserver
 import com.waz.zclient.controllers.permission.RequestPermissionsObserver
 import com.waz.zclient.controllers.singleimage.SingleImageObserver
+import com.waz.zclient.conversation.ConversationController
 import com.waz.zclient.conversation.ConversationController.ConversationChange
-import com.waz.zclient.conversation.{CollectionController, ConversationController}
 import com.waz.zclient.core.stores.conversation.ConversationChangeRequester
 import com.waz.zclient.core.stores.inappnotification.SyncErrorObserver
 import com.waz.zclient.cursor.{CursorCallback, CursorView}
-import com.waz.zclient.media.SoundController
 import com.waz.zclient.messages.MessagesListView
+import com.waz.zclient.pages.BaseFragment
 import com.waz.zclient.pages.extendedcursor.ExtendedCursorContainer
 import com.waz.zclient.pages.extendedcursor.emoji.EmojiKeyboardLayout
 import com.waz.zclient.pages.extendedcursor.ephemeral.EphemeralLayout
@@ -74,19 +73,19 @@ import com.waz.zclient.ui.animation.interpolators.penner.Expo
 import com.waz.zclient.ui.audiomessage.AudioMessageRecordingView
 import com.waz.zclient.ui.cursor.CursorMenuItem
 import com.waz.zclient.ui.utils.KeyboardUtils
-import com.waz.zclient.utils.{LayoutSpec, PermissionUtils, SquareOrientation, ViewUtils}
-import com.waz.zclient.views.e2ee.ShieldView
 import com.waz.zclient.utils.ContextUtils._
-import com.waz.zclient.utils.RichView
+import com.waz.zclient.utils.{LayoutSpec, PermissionUtils, RichView, SquareOrientation, ViewUtils}
+import com.waz.zclient.views.e2ee.ShieldView
+import com.waz.zclient.{FragmentHelper, R}
 
-import scala.concurrent.duration._
+import scala.collection.JavaConversions._
 import scala.collection.mutable
 import scala.concurrent.Future
-import scala.collection.JavaConversions._
+import scala.concurrent.duration._
 
 class ConversationFragment extends BaseFragment[ConversationFragment.Container] with FragmentHelper {
-  import Threading.Implicits.Ui
   import ConversationFragment._
+  import Threading.Implicits.Ui
 
   private lazy val convController = inject[ConversationController]
   private lazy val collectionController = inject[CollectionController]

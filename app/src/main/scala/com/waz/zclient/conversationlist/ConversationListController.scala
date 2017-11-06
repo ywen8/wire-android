@@ -22,7 +22,7 @@ import com.waz.service.ZMessaging
 import com.waz.threading.SerialDispatchQueue
 import com.waz.utils.events.{AggregatingSignal, EventContext, EventStream, Signal}
 import com.waz.zclient.conversationlist.ConversationListController.{LastMessageCache, MembersCache}
-import com.waz.zclient.views.conversationlist.ConversationAvatarView
+import com.waz.zclient.conversationlist.views.ConversationAvatarView
 import com.waz.zclient.{Injectable, Injector}
 
 import scala.collection.mutable

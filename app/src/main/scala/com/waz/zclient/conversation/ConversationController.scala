@@ -46,7 +46,7 @@ import com.waz.utils._
 class ConversationController(implicit injector: Injector, context: Context, ec: EventContext) extends Injectable {
   private implicit val dispatcher = new SerialDispatchQueue(name = "ConversationController")
 
-  private val zms = inject[Signal[ZMessaging]]
+  val zms = inject[Signal[ZMessaging]]
   private lazy val convStore = inject[IStoreFactory].conversationStore
 
   private var lastConvId = Option.empty[ConvId]

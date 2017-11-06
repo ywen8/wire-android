@@ -23,12 +23,12 @@ import android.widget.{LinearLayout, TextView}
 import com.waz.model.UserId
 import com.waz.threading.Threading
 import com.waz.utils.events.Signal
-import com.waz.zclient.controllers.ScreenController
 import com.waz.zclient.messages.parts.ChatheadsRecyclerView
 import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.utils._
 import com.waz.zclient.{R, ViewHelper}
 import com.waz.ZLog.ImplicitTag._
+import com.waz.zclient.common.controllers.ScreenController
 
 class LikeDetailsView(context: Context, attrs: AttributeSet, style: Int) extends LinearLayout(context, attrs, style) with ViewHelper {
   import LikeDetailsView._

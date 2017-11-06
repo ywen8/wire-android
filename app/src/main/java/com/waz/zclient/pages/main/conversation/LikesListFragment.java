@@ -27,7 +27,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import com.waz.api.Message;
 import com.waz.zclient.R;
-import com.waz.zclient.adapters.LikesAdapter;
+import com.waz.zclient.conversation.LikesAdapter;
 import com.waz.zclient.core.api.scala.ModelObserver;
 import com.waz.zclient.pages.BaseFragment;
 import com.waz.zclient.utils.ViewUtils;

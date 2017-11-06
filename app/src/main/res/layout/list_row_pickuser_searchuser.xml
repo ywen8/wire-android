@@ -37,7 +37,7 @@
         app:show_border="false"
         />
 
-    <com.waz.zclient.views.pickuser.ContactListItemTextView
+    <com.waz.zclient.usersearch.views.ContactListItemTextView
         android:id="@+id/clitv__contactlist__user__text_view"
         android:layout_width="wrap_content"
         android:layout_height="match_parent"

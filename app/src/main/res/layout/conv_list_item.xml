@@ -35,7 +35,7 @@
                   android:layout_height="match_parent">
 
 
-        <com.waz.zclient.views.conversationlist.ConversationAvatarView
+        <com.waz.zclient.conversationlist.views.ConversationAvatarView
             android:id="@+id/conversation_icon"
             android:layout_width="@dimen/conversation_list__avatar__size"
             android:layout_height="@dimen/conversation_list__avatar__size"
@@ -78,7 +78,7 @@
                 android:layout_alignParentStart="true"
                 android:layout_alignEnd="@+id/conversation_title"/>
 
-            <com.waz.zclient.views.ConversationBadge
+            <com.waz.zclient.conversationlist.views.ConversationBadge
                 android:id="@+id/conversation_badge"
                 android:layout_width="wrap_content"
                 android:layout_height="@dimen/conversation_list__badge__height"

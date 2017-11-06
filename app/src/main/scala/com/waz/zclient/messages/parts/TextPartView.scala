@@ -27,8 +27,8 @@ import com.waz.model.{MessageContent, MessageData}
 import com.waz.service.messages.MessageAndLikes
 import com.waz.threading.Threading
 import com.waz.utils.events.Signal
-import com.waz.zclient.controllers.global.AccentColorController
-import com.waz.zclient.conversation.{CollectionController, CollectionUtils}
+import com.waz.zclient.collection.controllers.{CollectionController, CollectionUtils}
+import com.waz.zclient.common.controllers.global.AccentColorController
 import com.waz.zclient.messages.MessageView.MsgBindOptions
 import com.waz.zclient.messages.{ClickableViewPart, MsgPart}
 import com.waz.zclient.ui.text.LinkTextView

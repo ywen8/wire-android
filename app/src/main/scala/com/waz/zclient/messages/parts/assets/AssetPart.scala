@@ -26,16 +26,16 @@ import com.waz.service.messages.MessageAndLikes
 import com.waz.threading.Threading
 import com.waz.utils.events.Signal
 import com.waz.utils.returning
-import com.waz.zclient.controllers.AssetsController
-import com.waz.zclient.controllers.global.AccentColorController
+import com.waz.zclient.common.controllers.AssetsController
+import com.waz.zclient.common.controllers.global.AccentColorController
 import com.waz.zclient.messages.ClickableViewPart
 import com.waz.zclient.messages.MessageView.MsgBindOptions
 import com.waz.zclient.messages.parts.ImagePartView
 import com.waz.zclient.messages.parts.assets.DeliveryState.{Downloading, OtherUploading}
 import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.utils.{StringUtils, _}
-import com.waz.zclient.views.ImageAssetDrawable
-import com.waz.zclient.views.ImageController.WireImage
+import com.waz.zclient.common.views.ImageAssetDrawable
+import com.waz.zclient.common.views.ImageController.WireImage
 import com.waz.zclient.{R, ViewHelper}
 
 trait AssetPart extends View with ClickableViewPart with ViewHelper { self =>

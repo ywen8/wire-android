@@ -37,13 +37,13 @@ import com.waz.zclient.controllers.confirmation.IConfirmationController;
 import com.waz.zclient.controllers.navigation.Page;
 import com.waz.zclient.controllers.singleimage.SingleImageObserver;
 import com.waz.zclient.core.stores.inappnotification.SyncErrorObserver;
-import com.waz.zclient.fragments.ImageFragment;
+import com.waz.zclient.conversation.ImageFragment;
 import com.waz.zclient.pages.BaseFragment;
 import com.waz.zclient.pages.main.conversation.SingleImageUserFragment;
 import com.waz.zclient.pages.main.conversationlist.ConfirmationFragment;
 import com.waz.zclient.utils.SyncErrorUtils;
 import com.waz.zclient.utils.ViewUtils;
-import com.waz.zclient.views.BackgroundImageView;
+import com.waz.zclient.common.views.BackgroundImageView;
 import com.waz.zclient.views.menus.ConfirmationMenu;
 import net.hockeyapp.android.ExceptionHandler;
 

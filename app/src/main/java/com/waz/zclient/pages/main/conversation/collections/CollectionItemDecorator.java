@@ -21,9 +21,9 @@ import android.graphics.Canvas;
 import android.graphics.Rect;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
-import com.waz.zclient.conversation.CollectionAdapter;
-import com.waz.zclient.conversation.Header;
-import com.waz.zclient.conversation.HeaderId;
+import com.waz.zclient.collection.adapters.CollectionAdapter;
+import com.waz.zclient.collection.adapters.Header;
+import com.waz.zclient.collection.adapters.HeaderId;
 
 import java.util.HashMap;
 import java.util.Map;

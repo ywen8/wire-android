@@ -23,7 +23,7 @@
              android:layout_height="match_parent"
     >
 
-    <com.waz.zclient.views.conversationlist.ArchiveTopToolbar
+    <com.waz.zclient.conversationlist.views.ArchiveTopToolbar
         android:id="@+id/conversation_list_top_toolbar"
         android:layout_gravity="top"
         android:layout_width="match_parent"

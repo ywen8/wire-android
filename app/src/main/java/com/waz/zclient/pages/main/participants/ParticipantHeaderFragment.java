@@ -44,7 +44,7 @@ import com.waz.model.ConvId;
 import com.waz.zclient.BaseActivity;
 import com.waz.zclient.R;
 import com.waz.zclient.common.views.UserDetailsView;
-import com.waz.zclient.controllers.ThemeController;
+import com.waz.zclient.common.controllers.ThemeController;
 import com.waz.zclient.controllers.accentcolor.AccentColorObserver;
 import com.waz.zclient.controllers.currentfocus.IFocusController;
 import com.waz.zclient.controllers.globallayout.KeyboardVisibilityObserver;

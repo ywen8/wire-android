@@ -77,7 +77,7 @@
         android:background="@color/white_8"
         />
 
-    <com.waz.zclient.pages.main.profile.preferences.views.TextButton
+    <com.waz.zclient.preferences.views.TextButton
         android:id="@+id/settings_team"
         android:layout_width="match_parent"
         android:layout_height="@dimen/preference_button_height"
@@ -91,7 +91,7 @@
         android:background="@color/white_8"
         />
 
-    <com.waz.zclient.pages.main.profile.preferences.views.TextButton
+    <com.waz.zclient.preferences.views.TextButton
         android:id="@+id/profile_settings"
         android:layout_width="match_parent"
         android:layout_height="@dimen/preference_button_height"
@@ -106,7 +106,7 @@
         android:background="@color/white_8"
         />
 
-    <com.waz.zclient.pages.main.profile.preferences.views.TextButton
+    <com.waz.zclient.preferences.views.TextButton
         android:id="@+id/profile_new"
         android:layout_width="match_parent"
         android:layout_height="@dimen/preference_button_height"

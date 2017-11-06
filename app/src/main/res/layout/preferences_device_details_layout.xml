@@ -72,7 +72,7 @@
                 android:textColor="@color/accent_blue"
                 />
 
-            <com.waz.zclient.pages.main.profile.preferences.views.TextButton
+            <com.waz.zclient.preferences.views.TextButton
                 android:id="@+id/device_detail_fingerprint"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -94,7 +94,7 @@
                 android:layout_height="wrap_content"
                 android:orientation="vertical">
 
-                <com.waz.zclient.pages.main.profile.preferences.views.SwitchPreference
+                <com.waz.zclient.preferences.views.SwitchPreference
                     android:id="@+id/device_detail_verified"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -111,7 +111,7 @@
                     android:textColor="@color/accent_blue"
                     />
 
-                <com.waz.zclient.pages.main.profile.preferences.views.TextButton
+                <com.waz.zclient.preferences.views.TextButton
                     android:id="@+id/device_detail_reset"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -120,7 +120,7 @@
                     android:layout_marginBottom="@dimen/wire__padding__8"
                     />
 
-                <com.waz.zclient.pages.main.profile.preferences.views.TextButton
+                <com.waz.zclient.preferences.views.TextButton
                     android:id="@+id/device_detail_remove"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"

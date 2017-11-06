@@ -32,7 +32,7 @@ import com.waz.utils._
 import com.waz.utils.events.{EventContext, EventStream, Signal}
 import com.waz.utils.wrappers.{AndroidURIUtil, URI}
 import com.waz.zclient.common.controllers.{PermissionsController, WriteExternalStoragePermission}
-import com.waz.zclient.controllers.global.KeyboardController
+import com.waz.zclient.common.controllers.global.KeyboardController
 import com.waz.zclient.controllers.userpreferences.IUserPreferencesController
 import com.waz.zclient.messages.MessageBottomSheetDialog
 import com.waz.zclient.messages.MessageBottomSheetDialog.{MessageAction, Params}

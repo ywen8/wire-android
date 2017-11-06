@@ -39,7 +39,7 @@ import com.waz.service.tracking.ContributionEvent;
 import com.waz.zclient.BaseActivity;
 import com.waz.zclient.OnBackPressedListener;
 import com.waz.zclient.R;
-import com.waz.zclient.controllers.ThemeController;
+import com.waz.zclient.common.controllers.ThemeController;
 import com.waz.zclient.controllers.accentcolor.AccentColorObserver;
 import com.waz.zclient.conversation.ConversationController;
 import com.waz.zclient.core.stores.network.NetworkStoreObserver;

@@ -24,8 +24,8 @@ import com.waz.utils.events.Signal
 import com.waz.utils.returning
 import com.waz.zclient._
 import com.waz.zclient.utils.ContextUtils._
-import com.waz.zclient.views.ImageAssetDrawable
-import com.waz.zclient.views.ImageController.{ImageSource, WireImage}
+import com.waz.zclient.common.views.ImageAssetDrawable
+import com.waz.zclient.common.views.ImageController.{ImageSource, WireImage}
 import net.xpece.android.support.preference.Preference
 
 class PicturePreference(context: Context, attrs: AttributeSet, defStyleAttr: Int, defStyleRes: Int) extends Preference(context, attrs, defStyleAttr, defStyleRes) with PreferenceHelper {

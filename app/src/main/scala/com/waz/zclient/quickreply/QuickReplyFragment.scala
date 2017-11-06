@@ -34,8 +34,8 @@ import com.waz.service.tracking.ContributionEvent
 import com.waz.service.tracking.ContributionEvent.Action
 import com.waz.utils.events.Signal
 import com.waz.utils.returning
-import com.waz.zclient.controllers.SharingController
-import com.waz.zclient.controllers.global.AccentColorController
+import com.waz.zclient.common.controllers.SharingController
+import com.waz.zclient.common.controllers.global.AccentColorController
 import com.waz.zclient.pages.main.popup.ViewPagerLikeLayoutManager
 import com.waz.zclient.tracking.GlobalTrackingController.convType
 import com.waz.zclient.ui.text.{TypefaceEditText, TypefaceTextView}

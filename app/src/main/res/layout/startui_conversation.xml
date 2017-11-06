@@ -18,7 +18,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 -->
-<com.waz.zclient.views.pickuser.SearchResultConversationRowView
+<com.waz.zclient.usersearch.views.SearchResultConversationRowView
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/srcrv_startui_conversation"
     android:layout_width="match_parent"
