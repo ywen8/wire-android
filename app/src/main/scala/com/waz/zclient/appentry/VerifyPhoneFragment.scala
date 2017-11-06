@@ -22,11 +22,14 @@ import android.support.v4.content.ContextCompat
 import android.text.{Editable, Html, TextWatcher}
 import android.view.{LayoutInflater, View, ViewGroup}
 import android.widget.{TextView, Toast}
+import com.waz.service.ZMessaging
 import com.waz.threading.Threading
 import com.waz.zclient._
+import com.waz.zclient.controllers.SignInController.{Login, Phone, Register, SignInMethod}
 import com.waz.zclient.controllers.navigation.Page
 import com.waz.zclient.newreg.views.PhoneConfirmationButton
 import com.waz.zclient.pages.BaseFragment
+import com.waz.zclient.tracking.GlobalTrackingController
 import com.waz.zclient.ui.text.TypefaceEditText
 import com.waz.zclient.ui.utils.KeyboardUtils
 
@@ -56,6 +59,7 @@ class VerifyPhoneFragment extends BaseFragment[VerifyPhoneFragment.Container] wi
   implicit val executionContext = Threading.Ui
 
   private lazy val appEntryController = inject[AppEntryController]
+  private lazy val tracking           = inject[GlobalTrackingController]
 
   private lazy val resendCodeButton = findById[TextView](getView, R.id.ttv__resend_button)
   private lazy val resendCodeTimer = findById[TextView](getView, R.id.ttv__resend_timer)
@@ -151,24 +155,19 @@ class VerifyPhoneFragment extends BaseFragment[VerifyPhoneFragment.Container] wi
 
   }
 
-  private def resendPhoneNumber(): Unit = {
+  private def requestCode(shouldCall: Boolean) = {
     editTextCode.setText("")
-    appEntryController.resendActivationPhoneCode().map {
-      case Left(entryError) =>
-        getContainer.showError(entryError)
-        editTextCode.requestFocus
-      case _ =>
-        Toast.makeText(getActivity, getResources.getString(R.string.new_reg__code_resent), Toast.LENGTH_LONG).show()
-    }
-  }
-
-  private def requestCallCode(): Unit = {
-    appEntryController.resendActivationPhoneCode(shouldCall = true).map {
-      case Left(entryError) =>
-        getContainer.showError(entryError)
-        editTextCode.requestFocus
-      case _ =>
-        Toast.makeText(getActivity, getResources.getString(R.string.new_reg__code_resent__call), Toast.LENGTH_LONG).show()
+    appEntryController.resendActivationPhoneCode(shouldCall = shouldCall).map { result =>
+      ZMessaging.currentAccounts.getActiveAccount.collect { case Some(acc) => acc.regWaiting }.map { reg =>
+        tracking.onRequestResendCode(result, SignInMethod(if (reg) Register else Login, Phone), isCall = shouldCall)
+      }
+      result match {
+        case Left(entryError) =>
+          getContainer.showError(entryError)
+          editTextCode.requestFocus
+        case _ =>
+          Toast.makeText(getActivity, getResources.getString(R.string.new_reg__code_resent), Toast.LENGTH_LONG).show()
+      }
     }
   }
 
@@ -197,12 +196,12 @@ class VerifyPhoneFragment extends BaseFragment[VerifyPhoneFragment.Container] wi
       case R.id.ll__activation_button__back =>
         goBack()
       case R.id.ttv__resend_button =>
-        resendPhoneNumber()
+        requestCode(shouldCall = false)
         startResendCodeTimer()
       case R.id.pcb__activate =>
         confirmCode()
       case R.id.ttv__call_me_button =>
-        requestCallCode()
+        requestCode(shouldCall = true)
         startResendCodeTimer()
     }
   }
