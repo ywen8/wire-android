@@ -196,13 +196,16 @@ class MessageNotificationsController(implicit inj: Injector, cxt: Context, event
     } else {
       val allBeenDisplayed = nots.forall(_.hasBeenDisplayed)
 
-      val notification = if (nots.size == 1)
-        getSingleMessageNotification(account, nots.head, silent, teamName, noTicker = allBeenDisplayed)
-      else
-        getMultipleMessagesNotification(account, nots, silent, noTicker = allBeenDisplayed, teamName)
+      if (nots.nonEmpty) {
+        val notification = if (nots.size == 1)
+          getSingleMessageNotification(account, nots.head, silent, teamName, noTicker = allBeenDisplayed)
+        else
+          getMultipleMessagesNotification(account, nots, silent, noTicker = allBeenDisplayed, teamName)
 
-      notManager.notify(toNotificationGroupId(account), notification)
-
+        notManager.notify(toNotificationGroupId(account), notification)
+      } else {
+        notManager.cancel(toNotificationGroupId(account))
+      }
     }
 
     Option(ZMessaging.currentGlobal.notifications.markAsDisplayed(account, nots.map(_.id)))
