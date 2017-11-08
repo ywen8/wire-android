@@ -176,8 +176,6 @@ class MessageNotificationsController(implicit inj: Injector, cxt: Context, event
     verbose(s"Notifications updated for account: $account: shouldBeSilent: $silent, $nots")
 
     def publishNotification(convId: ConvId, notification: Notification) = {
-      attachNotificationLed(notification)
-      attachNotificationSound(notification, nots, silent)
       verbose(s"creating not: ${toNotificationConvId(account, convId)}")
       notManager.notify(toNotificationConvId(account, convId), notification)
     }
@@ -198,36 +196,35 @@ class MessageNotificationsController(implicit inj: Injector, cxt: Context, event
     } else {
       val allBeenDisplayed = nots.forall(_.hasBeenDisplayed)
 
-      val notification = if (nots.size == 1)
-        getSingleMessageNotification(account, nots.head, silent, teamName, noTicker = allBeenDisplayed)
-      else
-        getMultipleMessagesNotification(account, nots, silent, noTicker = allBeenDisplayed, teamName)
+      if (nots.nonEmpty) {
+        val notification = if (nots.size == 1)
+          getSingleMessageNotification(account, nots.head, silent, teamName, noTicker = allBeenDisplayed)
+        else
+          getMultipleMessagesNotification(account, nots, silent, noTicker = allBeenDisplayed, teamName)
 
-      attachNotificationLed(notification)
-      attachNotificationSound(notification, nots, silent)
-      notManager.notify(toNotificationGroupId(account), notification)
-
+        notManager.notify(toNotificationGroupId(account), notification)
+      } else {
+        notManager.cancel(toNotificationGroupId(account))
+      }
     }
 
     Option(ZMessaging.currentGlobal.notifications.markAsDisplayed(account, nots.map(_.id)))
   }
 
-  private def attachNotificationLed(notification: Notification) = {
+  private def attachNotificationSoundAndLed(builder: NotificationCompat.Builder, ns: Seq[NotificationInfo], silent: Boolean) = {
+    val sound = if (soundController.soundIntensityNone || silent) null
+    else if (!soundController.soundIntensityFull && (ns.size > 1 && ns.lastOption.forall(_.tpe != KNOCK))) null
+    else ns.lastOption.fold(null.asInstanceOf[Uri])(getMessageSoundUri)
+
     var color = sharedPreferences.getInt(UserPreferencesController.USER_PREFS_LAST_ACCENT_COLOR, -1)
     if (color == -1) {
       color = getColor(R.color.accent_default)
     }
-    notification.ledARGB = color
-    notification.ledOnMS = getInt(R.integer.notifications__system__led_on)
-    notification.ledOffMS = getInt(R.integer.notifications__system__led_off)
-    notification.flags |= Notification.FLAG_SHOW_LIGHTS
-  }
 
-  private def attachNotificationSound(notification: Notification, ns: Seq[NotificationInfo], silent: Boolean) =
-    notification.sound =
-      if (soundController.soundIntensityNone || silent) null
-      else if (!soundController.soundIntensityFull && (ns.size > 1 && ns.lastOption.forall(_.tpe != KNOCK))) null
-      else ns.lastOption.fold(null.asInstanceOf[Uri])(getMessageSoundUri)
+    builder
+      .setSound(sound)
+      .setLights(color, getInt(R.integer.notifications__system__led_on), getInt(R.integer.notifications__system__led_off))
+  }
 
   private def getMessageSoundUri(n: NotificationInfo): Uri = n.tpe match {
     case ASSET |
@@ -293,6 +290,9 @@ class MessageNotificationsController(implicit inj: Injector, cxt: Context, event
       builder.addAction(R.drawable.ic_action_call, getString(R.string.notification__action__call), CallIntent(accountId, n.convId, requestBase + 1))
       addQuickReplyAction(builder, accountId, n.convId, requestBase + 2)
     }
+
+    attachNotificationSoundAndLed(builder, Seq(n), silent)
+
     builder
       .setOnlyAlertOnce(noTicker)
       .setGroup(accountId.str)
@@ -350,6 +350,8 @@ class MessageNotificationsController(implicit inj: Injector, cxt: Context, event
     val messages = ns.sortBy(_.time).map(n => getMessage(n, multiple = true, singleConversationInBatch = isSingleConv, singleUserInBatch = users.size == 1 && isSingleConv)).takeRight(5)
     builder.setContentText(messages.last)
     messages.foreach(inboxStyle.addLine)
+
+    attachNotificationSoundAndLed(builder, ns, silent)
 
     builder
       .setOnlyAlertOnce(noTicker)
@@ -447,6 +449,7 @@ object MessageNotificationsController {
 
   def toNotificationGroupId(accountId: AccountId): Int = accountId.str.hashCode()
   def toNotificationConvId(accountId: AccountId, convId: ConvId): Int = (accountId.str + convId.str).hashCode()
+  def channelId(accountId: AccountId): String = accountId.str
 
   val ZETA_MESSAGE_NOTIFICATION_ID: Int = 1339272
   val ZETA_EPHEMERAL_NOTIFICATION_ID: Int = 1339279
