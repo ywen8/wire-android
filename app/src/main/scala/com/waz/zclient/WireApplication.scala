@@ -122,16 +122,19 @@ object WireApplication {
 
 
     // current conversation data
-    bind [Signal[ConversationData]] to {
-      for {
-        zs <- inject[Signal[ZMessaging]]
-        convId <- inject[SelectionController].selectedConv
-        conv <- zs.convsStorage.signal(convId)
-      } yield conv
-    }
+    bind [Signal[ConversationData]] to inject[ConversationController].currentConv
 
     // accent color
     bind [Signal[AccentColor]] to inject[AccentColorController].accentColor
+
+    // drafts
+    bind [DraftMap] to new DraftMap()
+
+  }
+
+  def services(ctx: WireContext) = new Module {
+    bind [ZMessagingApi]      to new ZMessagingApiProvider(ctx, inject[UiLifeCycle]).api
+    bind [Signal[ZMessaging]] to inject[ZMessagingApi].asInstanceOf[com.waz.api.impl.ZMessagingApi].ui.currentZms.collect{case Some(zms)=> zms }
   }
 
   def controllers(implicit ctx: WireContext) = new Module {
