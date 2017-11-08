@@ -27,7 +27,6 @@ import android.graphics.Rect;
 import android.hardware.Sensor;
 import android.hardware.SensorManager;
 import android.media.ExifInterface;
-import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -54,6 +53,7 @@ import com.waz.zclient.controllers.drawing.DrawingController;
 import com.waz.zclient.controllers.drawing.IDrawingController;
 import com.waz.zclient.controllers.globallayout.KeyboardVisibilityObserver;
 import com.waz.zclient.controllers.permission.RequestPermissionsObserver;
+import com.waz.zclient.conversation.ConversationController;
 import com.waz.zclient.pages.BaseFragment;
 import com.waz.zclient.pages.main.conversation.AssetIntentsManager;
 import com.waz.zclient.ui.colorpicker.ColorPickerLayout;
@@ -67,10 +67,12 @@ import com.waz.zclient.ui.utils.KeyboardUtils;
 import com.waz.zclient.ui.utils.MathUtils;
 import com.waz.zclient.ui.views.CursorIconButton;
 import com.waz.zclient.ui.views.SketchEditText;
+import com.waz.zclient.utils.Callback;
 import com.waz.zclient.utils.LayoutSpec;
 import com.waz.zclient.utils.PermissionUtils;
 import com.waz.zclient.utils.ViewUtils;
 import com.waz.zclient.utils.debug.ShakeEventListener;
+import com.waz.zclient.utils.ContextUtils;
 
 import java.util.Locale;
 
@@ -247,8 +249,14 @@ public class DrawingFragment extends BaseFragment<DrawingFragment.Container> imp
 //        colorPickerScrollBar = ViewUtils.getView(rootView, R.id.cpsb__color_picker_scrollbar);
 //        colorPickerScrollBar.setScrollBarColor(getControllerFactory().getAccentColorController().getColor());
 
-        TypefaceTextView conversationTitle = ViewUtils.getView(rootView, R.id.tv__drawing_toolbar__title);
-        conversationTitle.setText(getStoreFactory().conversationStore().getCurrentConversation().getName().toUpperCase(Locale.getDefault()));
+        final TypefaceTextView conversationTitle = ViewUtils.getView(rootView, R.id.tv__drawing_toolbar__title);
+        inject(ConversationController.class).withCurrentConvName(new Callback<String>() {
+            @Override
+            public void callback(String convName) {
+                conversationTitle.setText(convName.toUpperCase(Locale.getDefault()));
+            }
+        });
+
         toolbar = ViewUtils.getView(rootView, R.id.t_drawing_toolbar);
         toolbar.inflateMenu(R.menu.toolbar_sketch);
         toolbar.setOnMenuItemClickListener(toolbarOnMenuItemClickListener);
@@ -355,14 +363,10 @@ public class DrawingFragment extends BaseFragment<DrawingFragment.Container> imp
         } else {
             hideTip();
         }
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
-            //noinspection deprecation
-            drawingViewTip.setTextColor(getResources().getColor(R.color.drawing__tip__font__color_image));
-        } else {
-            drawingViewTip.setTextColor(getResources().getColor(R.color.drawing__tip__font__color_image, getContext().getTheme()));
-        }
+        drawingViewTip.setTextColor(ContextUtils.getColorWithTheme(R.color.drawing__tip__font__color_image, getContext()));
+
         cancelLoadHandle();
-        bitmapLoadHandle = backgroundImage.getSingleBitmap(ViewUtils.getOrientationDependentDisplayWidth(getActivity()), new BitmapCallback() {
+        bitmapLoadHandle = backgroundImage.getSingleBitmap(ContextUtils.getOrientationDependentDisplayWidth(getActivity()), new BitmapCallback() {
             @Override
             public void onBitmapLoaded(Bitmap bitmap) {
                 if (getActivity() == null || drawingCanvasView == null) {
@@ -536,7 +540,7 @@ public class DrawingFragment extends BaseFragment<DrawingFragment.Container> imp
             switch (v.getId()) {
                 case R.id.tv__send_button:
                     if (!drawingCanvasView.isEmpty()) {
-                        getStoreFactory().conversationStore().sendMessage(getFinalSketchImage());
+                        inject(ConversationController.class).sendMessage(getFinalSketchImage());
                         getControllerFactory().getDrawingController().hideDrawing(drawingDestination, true);
                     }
                     break;

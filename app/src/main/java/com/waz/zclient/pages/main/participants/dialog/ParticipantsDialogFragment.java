@@ -42,6 +42,9 @@ import com.waz.api.Message;
 import com.waz.api.OtrClient;
 import com.waz.api.User;
 import com.waz.api.UsersList;
+import com.waz.model.ConvId;
+import com.waz.model.ConversationData;
+import com.waz.model.UserId;
 import com.waz.zclient.OnBackPressedListener;
 import com.waz.zclient.R;
 import com.waz.zclient.controllers.accentcolor.AccentColorObserver;
@@ -49,6 +52,7 @@ import com.waz.zclient.controllers.confirmation.ConfirmationObserver;
 import com.waz.zclient.controllers.confirmation.ConfirmationRequest;
 import com.waz.zclient.controllers.confirmation.IConfirmationController;
 import com.waz.zclient.controllers.globallayout.KeyboardHeightObserver;
+import com.waz.zclient.conversation.ConversationController;
 import com.waz.zclient.core.stores.connect.IConnectStore;
 import com.waz.zclient.core.stores.conversation.ConversationChangeRequester;
 import com.waz.zclient.core.stores.participants.ParticipantsStoreObserver;
@@ -69,10 +73,13 @@ import com.waz.zclient.ui.animation.HeightEvaluator;
 import com.waz.zclient.ui.animation.interpolators.penner.Quart;
 import com.waz.zclient.ui.utils.KeyboardUtils;
 import com.waz.zclient.ui.utils.MathUtils;
+import com.waz.zclient.utils.Callback;
+import com.waz.zclient.utils.ContextUtils;
 import com.waz.zclient.utils.ViewUtils;
 import com.waz.zclient.views.LoadingIndicatorView;
 import com.waz.zclient.views.menus.ConfirmationMenu;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class ParticipantsDialogFragment extends BaseFragment<ParticipantsDialogFragment.Container> implements
@@ -188,7 +195,7 @@ public class ParticipantsDialogFragment extends BaseFragment<ParticipantsDialogF
                                    int dialogWidth,
                                    int dialogHeight) {
         if (getControllerFactory().getConversationScreenController().getPopoverLaunchMode() == DialogLaunchMode.CONVERSATION_TOOLBAR) {
-            int screenWidth = ViewUtils.getRealDisplayWidth(getActivity());
+            int screenWidth = ContextUtils.getRealDisplayWidth(getActivity());
             dialogTranslationX = screenWidth / 2 - dialogWidth / 2;
             marker.setVisibility(View.INVISIBLE);
         } else {
@@ -207,15 +214,15 @@ public class ParticipantsDialogFragment extends BaseFragment<ParticipantsDialogF
         boolean forceRight = getControllerFactory().getConversationScreenController().getPopoverLaunchMode() == DialogLaunchMode.SEARCH ||
                              getControllerFactory().getConversationScreenController().getPopoverLaunchMode() == DialogLaunchMode.CONVERSATION_MENU;
 
-        if (ViewUtils.isInPortrait(getActivity())) {
-            displayHeight = ViewUtils.getOrientationIndependentDisplayHeight(getActivity());
-            displayWidth = ViewUtils.getOrientationIndependentDisplayWidth(getActivity());
+        if (ContextUtils.isInPortrait(getActivity())) {
+            displayHeight = ContextUtils.getOrientationIndependentDisplayHeight(getActivity());
+            displayWidth = ContextUtils.getOrientationIndependentDisplayWidth(getActivity());
         } else {
-            displayHeight = ViewUtils.getOrientationIndependentDisplayWidth(getActivity());
-            displayWidth = ViewUtils.getOrientationIndependentDisplayHeight(getActivity());
+            displayHeight = ContextUtils.getOrientationIndependentDisplayWidth(getActivity());
+            displayWidth = ContextUtils.getOrientationIndependentDisplayHeight(getActivity());
         }
 
-        final int screenBottom = displayHeight - participantDialogPadding - ViewUtils.getStatusBarHeight(getActivity());
+        final int screenBottom = displayHeight - participantDialogPadding - ContextUtils.getStatusBarHeight(getActivity());
         final int screenRight = displayWidth - participantDialogPadding;
         final int screenLeft = participantDialogPadding;
 
@@ -264,7 +271,7 @@ public class ParticipantsDialogFragment extends BaseFragment<ParticipantsDialogF
                 dialogTranslationY = participantDialogPadding;
             } else if (posY + dialogHeight > screenBottom) {
                 // too low
-                dialogTranslationY = displayHeight - participantDialogPadding - dialogHeight - ViewUtils.getStatusBarHeight(getActivity());
+                dialogTranslationY = displayHeight - participantDialogPadding - dialogHeight - ContextUtils.getStatusBarHeight(getActivity());
             }
 
             // too far right
@@ -292,7 +299,7 @@ public class ParticipantsDialogFragment extends BaseFragment<ParticipantsDialogF
                 dialogTranslationY = participantDialogPadding;
             } else if (posY + dialogHeight > screenBottom) {
                 // too low
-                dialogTranslationY = displayHeight - participantDialogPadding - dialogHeight - ViewUtils.getStatusBarHeight(getActivity());
+                dialogTranslationY = displayHeight - participantDialogPadding - dialogHeight - ContextUtils.getStatusBarHeight(getActivity());
             }
 
             // too far left
@@ -369,16 +376,10 @@ public class ParticipantsDialogFragment extends BaseFragment<ParticipantsDialogF
                 }
             }
             if (getArguments().getBoolean(ARG__ADD_TO_CONVERSATION)) {
-
-                IConversation currentConversation = getStoreFactory() != null &&
-                    !getStoreFactory().isTornDown() ?
-                    getStoreFactory().conversationStore().getCurrentConversation() : null;
-                String conversationId = currentConversation == null ? null : currentConversation.getId();
-
                 transaction.replace(R.id.fl__participant_dialog__main__container,
                                     PickUserFragment.newInstance(true,
                                                                  getArguments().getBoolean(ARG__GROUP_CONVERSATION),
-                                                                 conversationId),
+                                                                 inject(ConversationController.class).getCurrentConvId().str()),
                                     PickUserFragment.TAG());
 
             } else if (getControllerFactory().getConversationScreenController().getPopoverLaunchMode() == DialogLaunchMode.PARTICIPANT_BUTTON ||
@@ -598,7 +599,13 @@ public class ParticipantsDialogFragment extends BaseFragment<ParticipantsDialogF
             getControllerFactory().getConversationScreenController().getPopoverLaunchMode() == DialogLaunchMode.CONVERSATION_TOOLBAR)) {
             return;
         }
-        updateGroupDialogBackground(conversation);
+
+        if (conversation != null) {
+            updateGroupDialogBackground(new ConvId(conversation.getId()));
+        }
+        else {
+            updateGroupDialogBackground(null);
+        }
     }
 
     @Override
@@ -616,7 +623,6 @@ public class ParticipantsDialogFragment extends BaseFragment<ParticipantsDialogF
         getContainer().onOpenUrl(url);
     }
 
-    @Override
     public void dismissDialog() {
         hide();
     }
@@ -721,20 +727,26 @@ public class ParticipantsDialogFragment extends BaseFragment<ParticipantsDialogF
             if (fragment instanceof ConversationScreenControllerObserver) {
                 ((ConversationScreenControllerObserver) fragment).onHideUser();
             }
-            updateGroupDialogBackground(getStoreFactory().conversationStore().getCurrentConversation());
+
+            updateGroupDialogBackground(inject(ConversationController.class).getCurrentConvId());
         } else {
             setVisible(false);
         }
     }
 
-    private void updateGroupDialogBackground(IConversation conversation) {
-        if (conversation == null) {
+    private void updateGroupDialogBackground(final ConvId convId) {
+        if (convId == null) {
             getControllerFactory().getDialogBackgroundImageController().setImageAsset(null, false);
-            return;
+        } else {
+            inject(ConversationController.class).withCurrentConvType(new Callback<IConversation.Type>() {
+                @Override
+                public void callback(IConversation.Type convType) {
+                    boolean blurred = convType == IConversation.Type.GROUP &&
+                        getControllerFactory().getConversationScreenController().getPopoverLaunchMode() == DialogLaunchMode.PARTICIPANT_BUTTON;
+                    getControllerFactory().getDialogBackgroundImageController().setImageAsset(ConversationController.emptyImageAsset(), blurred);
+                }
+            });
         }
-        boolean blurred = conversation.getType() == IConversation.Type.GROUP &&
-                          getControllerFactory().getConversationScreenController().getPopoverLaunchMode() == DialogLaunchMode.PARTICIPANT_BUTTON;
-        getControllerFactory().getDialogBackgroundImageController().setImageAsset(conversation.getBackground(), blurred);
     }
 
     @Override
@@ -746,7 +758,7 @@ public class ParticipantsDialogFragment extends BaseFragment<ParticipantsDialogF
     }
 
     @Override
-    public void onShowConversationMenu(@IConversationScreenController.ConversationMenuRequester int requester, IConversation conversation, View anchorView) {
+    public void onShowConversationMenu(@IConversationScreenController.ConversationMenuRequester int requester, ConvId convId, View anchorView) {
         if (requester != IConversationScreenController.USER_PROFILE_PARTICIPANTS &&
             requester != IConversationScreenController.CONVERSATION_DETAILS) {
             return;
@@ -754,7 +766,7 @@ public class ParticipantsDialogFragment extends BaseFragment<ParticipantsDialogF
         Fragment fragment = getChildFragmentManager().findFragmentByTag(ParticipantFragment.TAG);
         if (fragment instanceof ConversationScreenControllerObserver) {
             ((ConversationScreenControllerObserver) fragment).onShowConversationMenu(requester,
-                                                                                     conversation,
+                convId,
                                                                                      anchorView);
         }
     }
@@ -777,7 +789,7 @@ public class ParticipantsDialogFragment extends BaseFragment<ParticipantsDialogF
         switch (getControllerFactory().getConversationScreenController().getPopoverLaunchMode()) {
             case CONVERSATION_MENU:
             case PARTICIPANT_BUTTON:
-                int minDialogHeight = ViewUtils.getOrientationDependentDisplayHeight(getActivity())
+                int minDialogHeight = ContextUtils.getOrientationDependentDisplayHeight(getActivity())
                                       - keyboardHeight
                                       - marker.getMeasuredHeight()
                                       - participantDialogPadding;
@@ -796,7 +808,7 @@ public class ParticipantsDialogFragment extends BaseFragment<ParticipantsDialogF
                                      isParticipantsDialogMinimized();
         final boolean shouldCollapse = keyboardIsVisible &&
                                        !isParticipantsDialogMinimized() &&
-                                       ViewUtils.isInLandscape(getActivity());
+            ContextUtils.isInLandscape(getActivity());
         final ValueAnimator sizeAnimator;
         if (shouldExpand) {
             sizeAnimator = ValueAnimator.ofObject(new HeightEvaluator(dialogFrameLayout),
@@ -817,7 +829,7 @@ public class ParticipantsDialogFragment extends BaseFragment<ParticipantsDialogF
 
         // Update vertical position
         if (keyboardIsVisible && !isParticipantsDialogShiftedUp()) {
-            final int navigationBarHeight = ViewUtils.getNavigationBarHeight(getActivity());
+            final int navigationBarHeight = ContextUtils.getNavigationBarHeight(getActivity());
             int dialogDY;
             int markerDY;
             if (selfGravity == Gravity.TOP) {
@@ -1029,30 +1041,42 @@ public class ParticipantsDialogFragment extends BaseFragment<ParticipantsDialogF
     }
 
     @Override
-    public void onSelectedUsers(List<User> users, ConversationChangeRequester requester) {
+    public void onSelectedUsers(List<User> users, final ConversationChangeRequester requester) {
         // TODO https://wearezeta.atlassian.net/browse/AN-3730
         getControllerFactory().getPickUserController().hidePickUser(getCurrentPickerDestination(), false);
 
-        IConversation currentConversation = getStoreFactory().conversationStore().getCurrentConversation();
-        if (currentConversation.getType() == IConversation.Type.ONE_TO_ONE) {
-            getStoreFactory().conversationStore().createGroupConversation(users, requester);
-            if (!getStoreFactory().networkStore().hasInternetConnection()) {
-                ViewUtils.showAlertDialog(getActivity(),
-                                          R.string.conversation__create_group_conversation__no_network__title,
-                                          R.string.conversation__create_group_conversation__no_network__message,
-                                          R.string.conversation__create_group_conversation__no_network__button,
-                                          null, true);
-            }
-        } else if (currentConversation.getType() == IConversation.Type.GROUP) {
-            currentConversation.addMembers(users);
-            if (!getStoreFactory().networkStore().hasInternetConnection()) {
-                ViewUtils.showAlertDialog(getActivity(),
-                                          R.string.conversation__add_user__no_network__title,
-                                          R.string.conversation__add_user__no_network__message,
-                                          R.string.conversation__add_user__no_network__button,
-                                          null, true);
-            }
+        final ConversationController ctrl = inject(ConversationController.class);
+
+        final List<UserId> userIds = new ArrayList<>(users.size());
+        for (User user: users) {
+            userIds.add(new UserId(user.getId()));
         }
+
+        ctrl.withCurrentConv(new Callback<ConversationData>() {
+            @Override
+            public void callback(ConversationData conv) {
+                if (conv.convType() == IConversation.Type.ONE_TO_ONE) {
+                    ctrl.createGroupConversation(userIds, requester);
+                    if (!getStoreFactory().networkStore().hasInternetConnection()) {
+                        ViewUtils.showAlertDialog(getActivity(),
+                            R.string.conversation__create_group_conversation__no_network__title,
+                            R.string.conversation__create_group_conversation__no_network__message,
+                            R.string.conversation__create_group_conversation__no_network__button,
+                            null, true);
+                    }
+                } else if (conv.convType() == IConversation.Type.GROUP) {
+                    ctrl.addMembers(conv.id(), userIds);
+                    if (!getStoreFactory().networkStore().hasInternetConnection()) {
+                        ViewUtils.showAlertDialog(getActivity(),
+                            R.string.conversation__add_user__no_network__title,
+                            R.string.conversation__add_user__no_network__message,
+                            R.string.conversation__add_user__no_network__button,
+                            null, true);
+                    }
+                }
+            }
+        });
+
         hide();
     }
 
