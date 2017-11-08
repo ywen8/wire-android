@@ -37,13 +37,13 @@ import com.waz.zclient.controllers.camera.ICameraController
 import com.waz.zclient.controllers.deviceuser.IDeviceUserController
 import com.waz.zclient.controllers.drawing.IDrawingController
 import com.waz.zclient.controllers.giphy.IGiphyController
-import com.waz.zclient.controllers.global.{AccentColorController, KeyboardController, PasswordController, SelectionController}
+import com.waz.zclient.controllers.global.{AccentColorController, KeyboardController, PasswordController}
 import com.waz.zclient.controllers.globallayout.IGlobalLayoutController
 import com.waz.zclient.controllers.location.ILocationController
 import com.waz.zclient.controllers.navigation.INavigationController
 import com.waz.zclient.controllers.singleimage.ISingleImageController
 import com.waz.zclient.controllers.userpreferences.IUserPreferencesController
-import com.waz.zclient.conversation.CollectionController
+import com.waz.zclient.conversation.{CollectionController, ConversationController}
 import com.waz.zclient.conversationlist.ConversationListController
 import com.waz.zclient.core.stores.IStoreFactory
 import com.waz.zclient.core.stores.network.INetworkStore
@@ -54,11 +54,12 @@ import com.waz.zclient.messages.{LikesController, MessageViewFactory, MessagesCo
 import com.waz.zclient.notifications.controllers.{CallingNotificationsController, ImageNotificationsController, MessageNotificationsController}
 import com.waz.zclient.pages.main.conversation.controller.IConversationScreenController
 import com.waz.zclient.pages.main.conversationpager.controller.ISlidingPaneController
+import com.waz.zclient.pages.main.participants.OptionsMenuController
 import com.waz.zclient.pages.main.pickuser.controller.IPickUserController
 import com.waz.zclient.preferences.PreferencesController
 import com.waz.zclient.tracking.{CallingTrackingController, CrashController, GlobalTrackingController, UiTrackingController}
 import com.waz.zclient.utils.{BackStackNavigator, BackendPicker, Callback, UiStorage}
-import com.waz.zclient.views.ImageController
+import com.waz.zclient.views.{DraftMap, ImageController}
 
 object WireApplication {
   var APP_INSTANCE: WireApplication = _
@@ -103,7 +104,6 @@ object WireApplication {
     bind [PasswordController]      to new PasswordController()
     bind [GlobalCallingController] to new GlobalCallingController()
     bind [GlobalCameraController]  to new GlobalCameraController(new AndroidCameraFactory)
-    bind [SelectionController]     to new SelectionController()
     bind [SoundController]         to new SoundController
     bind [ThemeController]         to new ThemeController
 
@@ -117,7 +117,9 @@ object WireApplication {
     bind [PreferencesController]           to new PreferencesController()
     bind [ImageController]                 to new ImageController()
     bind [UserAccountsController]          to new UserAccountsController()
-    bind [SharingController]         to new SharingController()
+
+    bind [SharingController]               to new SharingController()
+    bind [ConversationController]          to new ConversationController()
     bind [NavigationController]      to new NavigationController()
 
 
@@ -165,6 +167,7 @@ object WireApplication {
 
     bind [CursorController]           to new CursorController()
     bind [ConversationListController] to new ConversationListController()
+    bind [OptionsMenuController]           to new OptionsMenuController()
 
     /**
       * Since tracking controllers will immediately instantiate other necessary controllers, we keep them separated
@@ -207,7 +210,7 @@ class WireApplication extends MultiDexApplication with WireContext with Injectab
   def ensureInitialized() = {
     if (storeFactory == null) {
       //TODO initialization of ZMessaging happens here - make this more explicit?
-      storeFactory = new ScalaStoreFactory(getApplicationContext, inject[SelectionController])
+      storeFactory = new ScalaStoreFactory(getApplicationContext)
       storeFactory.zMessagingApiStore.getApi
     }
 

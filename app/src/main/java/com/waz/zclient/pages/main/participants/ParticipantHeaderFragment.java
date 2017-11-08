@@ -22,7 +22,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.Toolbar;
-import android.text.TextUtils;
 import android.util.TypedValue;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -41,6 +40,7 @@ import com.waz.api.OtrClient;
 import com.waz.api.User;
 import com.waz.api.UsersList;
 import com.waz.api.Verification;
+import com.waz.model.ConvId;
 import com.waz.zclient.BaseActivity;
 import com.waz.zclient.R;
 import com.waz.zclient.common.views.UserDetailsView;
@@ -48,6 +48,7 @@ import com.waz.zclient.controllers.ThemeController;
 import com.waz.zclient.controllers.accentcolor.AccentColorObserver;
 import com.waz.zclient.controllers.currentfocus.IFocusController;
 import com.waz.zclient.controllers.globallayout.KeyboardVisibilityObserver;
+import com.waz.zclient.conversation.ConversationController;
 import com.waz.zclient.core.stores.connect.ConnectStoreObserver;
 import com.waz.zclient.core.stores.connect.IConnectStore;
 import com.waz.zclient.core.stores.network.NetworkAction;
@@ -58,9 +59,10 @@ import com.waz.zclient.pages.main.conversation.controller.IConversationScreenCon
 import com.waz.zclient.ui.text.AccentColorEditText;
 import com.waz.zclient.ui.utils.KeyboardUtils;
 import com.waz.zclient.ui.utils.MathUtils;
-import com.waz.zclient.ui.views.e2ee.ShieldView;
+import com.waz.zclient.utils.Callback;
 import com.waz.zclient.utils.LayoutSpec;
 import com.waz.zclient.utils.ViewUtils;
+import com.waz.zclient.views.e2ee.ShieldView;
 
 public class ParticipantHeaderFragment extends BaseFragment<ParticipantHeaderFragment.Container> implements KeyboardVisibilityObserver,
                                                                                                             ParticipantsStoreObserver,
@@ -127,7 +129,7 @@ public class ParticipantHeaderFragment extends BaseFragment<ParticipantHeaderFra
         headerEditText = ViewUtils.getView(rootView, R.id.taet__participants__header__editable);
         bottomBorder = ViewUtils.getView(rootView, R.id.v_participants__header__bottom_border);
         shieldView = ViewUtils.getView(rootView, R.id.sv__otr__verified_shield);
-        shieldView.setVisibility(View.GONE);
+
         penIcon = ViewUtils.getView(rootView, R.id.gtv__participants_header__pen_icon);
         penIcon.setVisibility(View.GONE);
 
@@ -364,7 +366,12 @@ public class ParticipantHeaderFragment extends BaseFragment<ParticipantHeaderFra
     };
 
     private void resetName() {
-        headerReadOnlyTextView.setText(getStoreFactory().conversationStore().getCurrentConversation().getName());
+        inject(ConversationController.class).withCurrentConvName(new Callback<String>() {
+            @Override
+            public void callback(String convName) {
+                headerReadOnlyTextView.setText(convName);
+            }
+        });
     }
 
     private void renameConversation() {
@@ -388,14 +395,9 @@ public class ParticipantHeaderFragment extends BaseFragment<ParticipantHeaderFra
             return;
         }
 
-        String text = headerEditText.getText().toString();
-        if (text.equals(getStoreFactory().conversationStore().getCurrentConversation().getName())) {
-            return;
-        }
-        if (!TextUtils.isEmpty(text.trim())) {
-            getStoreFactory().conversationStore().getCurrentConversation().setConversationName(text);
-            headerReadOnlyTextView.setText(text);
-        }
+        String text = headerEditText.getText().toString().trim();
+        inject(ConversationController.class).setCurrentConvName(text);
+        headerReadOnlyTextView.setText(text);
     }
 
 
@@ -469,7 +471,7 @@ public class ParticipantHeaderFragment extends BaseFragment<ParticipantHeaderFra
 
     @Override
     public void onShowConversationMenu(@IConversationScreenController.ConversationMenuRequester int requester,
-                                       IConversation conversation,
+                                       ConvId convId,
                                        View anchorView) {
 
     }
