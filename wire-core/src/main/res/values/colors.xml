@@ -107,6 +107,17 @@
     <color name="collection_background_light">#fafafa</color>
     <color name="collection_background_dark">@color/background_graphite</color>
 
+
+    <!-- Teams colors palette -->
+    <color name="teams_background">#F8F8F8</color>
+    <color name="teams_textfield_arrow">@color/white</color>
+    <color name="teams_inactive_button">#2833373A</color>
+    <color name="teams_headline_text">#33373A</color>
+    <color name="teams_description_text">#90272A2C</color>
+    <color name="teams_placeholder_text">@color/light_graphite</color>
+    <color name="teams_error_red">#FB0807</color>
+    <color name="teams_active_button">#2391D3</color>
+
     <!-- +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ -->
     <!-- Component colors  -->
     <!--

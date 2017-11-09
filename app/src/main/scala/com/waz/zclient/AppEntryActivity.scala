@@ -108,6 +108,8 @@ class AppEntryActivity extends BaseActivity
     })
 
     appEntryController.entryStage.onUi {
+      case _ =>
+        onShowCreateTeamFragment()
       case EnterAppStage =>
         onEnterApplication(false)
       case FirstEnterAppStage =>
@@ -209,6 +211,12 @@ class AppEntryActivity extends BaseActivity
         ZLog.error(s"Failed to open URL: $url")
       }
     }
+  }
+
+  def onShowCreateTeamFragment(): Unit = {
+    val transaction: FragmentTransaction = getSupportFragmentManager.beginTransaction
+    setDefaultAnimation(transaction).replace(R.id.fl_main_content, CreateTeamFragment.newInstance, CreateTeamFragment.TAG).commit
+    enableProgress(false)
   }
 
   def onShowPhoneCodePage(): Unit = {
