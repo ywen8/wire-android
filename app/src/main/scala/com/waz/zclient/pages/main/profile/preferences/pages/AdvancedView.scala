@@ -23,15 +23,13 @@ import android.os.Bundle
 import android.util.AttributeSet
 import android.view.View
 import android.widget.{LinearLayout, Toast}
-import com.waz.content.Preferences.PrefKey
-import com.waz.content.GlobalPreferences
 import com.waz.service.ZMessaging
 import com.waz.threading.{CancellableFuture, Threading}
 import com.waz.zclient.pages.main.profile.preferences.views.{SwitchPreference, TextButton}
-import com.waz.zclient.tracking.GlobalTrackingController
+import com.waz.zclient.tracking.{GlobalTrackingController, MixpanelGuard}
 import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.utils.{BackStackKey, DebugUtils}
-import com.waz.zclient.{BuildConfig, R, ViewHelper}
+import com.waz.zclient.{R, ViewHelper}
 
 import scala.concurrent.duration._
 trait AdvancedView
@@ -46,12 +44,7 @@ class AdvancedViewImpl(context: Context, attrs: AttributeSet, style: Int) extend
   val submitReport    = findById[TextButton](R.id.preferences_debug_report)
   val resetPush       = findById[TextButton](R.id.preferences_reset_push)
 
-  analyticsSwitch.setPreference({
-    BuildConfig.APPLICATION_ID match {
-      case "com.wire" | "com.wire.internal" => GlobalPreferences.AnalyticsEnabled //use the true-by-default preference for internal and public
-      case _ => PrefKey[Boolean]("DEVELOPER_TRACKING_ENABLED") //use a false-by-default preference for non-internal dev builds
-    }
-  }, global = true)
+  analyticsSwitch.setPreference(GlobalTrackingController.analyticsPrefKey, global = true)
 
   submitReport.onClickEvent{ _ =>
     DebugUtils.sendDebugReport(context.asInstanceOf[Activity])
@@ -69,7 +62,16 @@ class AdvancedViewImpl(context: Context, attrs: AttributeSet, style: Int) extend
     resetPush.setAlpha(if (enabled) 1.0f else 0.5f)
   }
 
-  analyticsSwitch.pref.flatMap(_.signal).onChanged(inject[GlobalTrackingController].onOptOut)
+  analyticsSwitch.pref.flatMap(_.signal).onChanged { pref =>
+    inject[GlobalTrackingController].onOptOut(pref)
+    setAnalyticsSwitchEnabled(false)
+    CancellableFuture.delay(MixpanelGuard.MIXPANEL_CLOSE_DELAY + 1.seconds).map(_ => setAnalyticsSwitchEnabled(true))(Threading.Ui)
+  }
+
+  private def setAnalyticsSwitchEnabled(enabled: Boolean) = {
+    analyticsSwitch.setEnabled(enabled)
+    analyticsSwitch.setAlpha(if (enabled) 1.0f else 0.5f)
+  }
 }
 
 case class AdvancedBackStackKey(args: Bundle = new Bundle()) extends BackStackKey(args) {
