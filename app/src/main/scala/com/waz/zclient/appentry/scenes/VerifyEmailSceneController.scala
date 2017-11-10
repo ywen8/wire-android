@@ -17,33 +17,30 @@
  */
 package com.waz.zclient.appentry.scenes
 
-import android.app.Activity
 import android.content.Context
 import android.support.transition.Scene
 import android.view.ViewGroup
 import com.waz.threading.Threading
 import com.waz.utils.events.EventContext
-import com.waz.zclient._
-import com.waz.zclient.common.views.InputBox
-import com.waz.zclient.common.views.InputBox.NameValidator
-import com.waz.zclient.ui.utils.KeyboardUtils
+import com.waz.zclient.common.views.NumberCodeInput
+import com.waz.zclient.{CreateAccountController, Injectable, Injector, R}
 
-case class TeamNameSceneController(container: ViewGroup)(implicit val context: Context, eventContext: EventContext, injector: Injector) extends SceneController with Injectable {
+case class VerifyEmailSceneController(container: ViewGroup)(implicit val context: Context, eventContext: EventContext, injector: Injector) extends SceneController with Injectable {
 
   val createTeamController = inject[CreateAccountController]
 
-  val scene = Scene.getSceneForLayout(container, R.layout.create_team_name_scene, context)
+  val scene = Scene.getSceneForLayout(container, R.layout.verify_email_scene, context)
   val root = scene.getSceneRoot
 
-  lazy val inputField = root.findViewById[InputBox](R.id.input_field)
+  lazy val codeField = root.findViewById[NumberCodeInput](R.id.input_field)
 
   def onCreate(): Unit = {
-    inputField.setValidator(NameValidator)
-    inputField.editText.requestFocus()
-    KeyboardUtils.showKeyboard(context.asInstanceOf[Activity])
-    inputField.setOnClick( text => createTeamController.setTeamName(text).map {
-      case Right(error) => Some(error.message)
-      case _ => None
-    } (Threading.Ui))
+    codeField.codeInput.requestFocus()
+    codeField.setOnCodeSet({ code =>
+      createTeamController.setEmailVerificationCode(code).map {
+        case Right(error) => Some(error.message)
+        case _ => None
+      } (Threading.Ui)
+    })
   }
 }

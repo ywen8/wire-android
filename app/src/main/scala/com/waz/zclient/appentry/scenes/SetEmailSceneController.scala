@@ -17,6 +17,7 @@
  */
 package com.waz.zclient.appentry.scenes
 
+import android.app.Activity
 import android.content.Context
 import android.support.transition.Scene
 import android.view.ViewGroup
@@ -24,6 +25,7 @@ import com.waz.threading.Threading
 import com.waz.utils.events.EventContext
 import com.waz.zclient.common.views.InputBox
 import com.waz.zclient.common.views.InputBox.EmailValidator
+import com.waz.zclient.ui.utils.KeyboardUtils
 import com.waz.zclient.{CreateAccountController, Injectable, Injector, R}
 
 case class SetEmailSceneController(container: ViewGroup)(implicit val context: Context, eventContext: EventContext, injector: Injector) extends SceneController with Injectable {
@@ -37,6 +39,8 @@ case class SetEmailSceneController(container: ViewGroup)(implicit val context: C
 
   def onCreate(): Unit = {
     inputField.setValidator(EmailValidator)
+    inputField.editText.requestFocus()
+    KeyboardUtils.showKeyboard(context.asInstanceOf[Activity])
     inputField.setOnClick( text => createTeamController.setEmail(text).map {
       case Right(error) => Some(error.message)
       case _ => None

@@ -20,28 +20,30 @@ package com.waz.zclient.appentry.scenes
 import android.app.Activity
 import android.content.Context
 import android.support.transition.Scene
+import android.text.InputType
 import android.view.ViewGroup
 import com.waz.threading.Threading
 import com.waz.utils.events.EventContext
-import com.waz.zclient._
 import com.waz.zclient.common.views.InputBox
-import com.waz.zclient.common.views.InputBox.NameValidator
+import com.waz.zclient.common.views.InputBox.PasswordValidator
 import com.waz.zclient.ui.utils.KeyboardUtils
+import com.waz.zclient.{CreateAccountController, Injectable, Injector, R}
 
-case class TeamNameSceneController(container: ViewGroup)(implicit val context: Context, eventContext: EventContext, injector: Injector) extends SceneController with Injectable {
+case class SetPasswordSceneController(container: ViewGroup)(implicit val context: Context, eventContext: EventContext, injector: Injector) extends SceneController with Injectable {
 
-  val createTeamController = inject[CreateAccountController]
+  private val createTeamController = inject[CreateAccountController]
 
-  val scene = Scene.getSceneForLayout(container, R.layout.create_team_name_scene, context)
-  val root = scene.getSceneRoot
+  override val scene: Scene = Scene.getSceneForLayout(container, R.layout.set_password_scene, context)
+  override val root: ViewGroup = scene.getSceneRoot
 
   lazy val inputField = root.findViewById[InputBox](R.id.input_field)
 
   def onCreate(): Unit = {
-    inputField.setValidator(NameValidator)
+    inputField.setInputType(InputType.TYPE_TEXT_VARIATION_PASSWORD)
+    inputField.setValidator(PasswordValidator)
     inputField.editText.requestFocus()
     KeyboardUtils.showKeyboard(context.asInstanceOf[Activity])
-    inputField.setOnClick( text => createTeamController.setTeamName(text).map {
+    inputField.setOnClick( text => createTeamController.setPassword(text).map {
       case Right(error) => Some(error.message)
       case _ => None
     } (Threading.Ui))

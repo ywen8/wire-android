@@ -22,11 +22,12 @@ import android.support.transition._
 import android.view.{LayoutInflater, View, ViewGroup}
 import com.waz.zclient.CreateAccountController._
 import com.waz.zclient.appentry.CreateTeamFragment._
-import com.waz.zclient.appentry.scenes.{SetEmailSceneController, TeamNameSceneController}
+import com.waz.zclient.appentry.scenes._
 import com.waz.zclient.pages.BaseFragment
-import com.waz.zclient.{CreateAccountController, FragmentHelper, R}
+import com.waz.zclient.{CreateAccountController, FragmentHelper, OnBackPressedListener, R}
+import com.waz.ZLog.ImplicitTag.implicitLogTag
 
-class CreateTeamFragment extends BaseFragment[Container] with FragmentHelper {
+class CreateTeamFragment extends BaseFragment[Container] with FragmentHelper with OnBackPressedListener {
 
   lazy val createAccountController = inject[CreateAccountController]
 
@@ -37,13 +38,26 @@ class CreateTeamFragment extends BaseFragment[Container] with FragmentHelper {
 
     createAccountController.accountState.onUi { state =>
       val entryScene = state match {
-        case SetTeamName => TeamNameSceneController(getView.asInstanceOf[ViewGroup])(getContext, this, injector)
+        case NoAccountState(FirstScreen) => FirstScreenSceneController(getView.asInstanceOf[ViewGroup])(getContext, this, injector)
+        case NoAccountState(RegisterTeamScreen) => TeamNameSceneController(getView.asInstanceOf[ViewGroup])(getContext, this, injector)
         case SetEmail => SetEmailSceneController(getView.asInstanceOf[ViewGroup])(getContext, this, injector)
+        case VerifyEmail => VerifyEmailSceneController(getView.asInstanceOf[ViewGroup])(getContext, this, injector)
+        case SetName => SetNameSceneController(getView.asInstanceOf[ViewGroup])(getContext, this, injector)
+        case SetPassword => SetPasswordSceneController(getView.asInstanceOf[ViewGroup])(getContext, this, injector)
+        case SetUsername => SetUsernameSceneController(getView.asInstanceOf[ViewGroup])(getContext, this, injector)
       }
-      TransitionManager.go(entryScene.scene, new AutoTransition2())
+      TransitionManager.go(entryScene.scene, new SupportAutoTransition2())
       entryScene.onCreate()
     }
 
+  }
+
+  override def onBackPressed(): Boolean = {
+    if (createAccountController.accountState.currentValue.exists(_ != NoAccountState(FirstScreen))) {
+      createAccountController.accountState ! NoAccountState(FirstScreen)
+      true
+    } else
+      false
   }
 }
 
@@ -55,7 +69,7 @@ object CreateTeamFragment {
   trait Container
 }
 
-class AutoTransition2 extends TransitionSet {
+class SupportAutoTransition2 extends TransitionSet {
   setOrdering(TransitionSet.ORDERING_TOGETHER)
   addTransition(new Fade(Fade.OUT)).addTransition(new ChangeBounds).addTransition(new Fade(Fade.IN))
 }

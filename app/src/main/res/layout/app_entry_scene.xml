@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+
+    Wire
+    Copyright (C) 2017 Wire Swiss GmbH
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:app="http://schemas.android.com/apk/res-auto"
+              android:orientation="vertical"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent">
+
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="36dp"
+        android:src="@drawable/wire"
+        android:tint="@color/teams_headline_text"
+        android:layout_marginTop="80dp"/>
+
+    <com.waz.zclient.ui.text.TypefaceTextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:gravity="center"
+        android:textSize="@dimen/wire__text_size__regular_small"
+        android:textColor="@color/teams_description_text"
+        app:w_font="@string/wire__typeface__regular"
+        android:text="Secure messenger for everyone"
+        android:layout_marginTop="@dimen/wire__padding__regular"/>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"/>
+
+    <com.waz.zclient.ui.text.GlyphTextView
+        android:id="@+id/create_account_button"
+        android:layout_width="72dp"
+        android:layout_height="72dp"
+        android:text="@string/glyph__profile"
+        android:background="@drawable/app_entry_create_account"
+        android:layout_gravity="center"
+        android:textSize="32dp"
+        android:gravity="center"
+        android:textColor="@color/white"
+        android:layout_marginTop="@dimen/wire__padding__huge"
+        android:clickable="true"
+        android:focusable="true"/>
+
+    <com.waz.zclient.ui.text.TypefaceTextView
+        android:id="@+id/create_account_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:gravity="center"
+        android:textSize="@dimen/wire__text_size__medium"
+        android:textColor="@color/teams_headline_text"
+        app:w_font="@string/wire__typeface__bold"
+        android:layout_marginTop="@dimen/wire__padding__small"
+        android:text="Create an account"
+        android:clickable="true"
+        android:focusable="true"/>
+
+    <com.waz.zclient.ui.text.TypefaceTextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:gravity="center"
+        android:textSize="@dimen/wire__text_size__medium"
+        android:textColor="@color/teams_headline_text"
+        app:w_font="@string/wire__typeface__regular"
+        android:text="for personal use"/>
+
+    <com.waz.zclient.ui.text.GlyphTextView
+        android:id="@+id/create_team_button"
+        android:layout_width="72dp"
+        android:layout_height="72dp"
+        android:text="@string/glyph__manage_team"
+        android:background="@drawable/app_entry_create_team"
+        android:layout_gravity="center"
+        android:textSize="32dp"
+        android:gravity="center"
+        android:textColor="@color/white"
+        android:layout_marginTop="@dimen/wire__padding__huge"
+        android:clickable="true"
+        android:focusable="true"/>
+
+    <com.waz.zclient.ui.text.TypefaceTextView
+        android:id="@+id/create_team_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:gravity="center"
+        android:textSize="@dimen/wire__text_size__medium"
+        android:textColor="@color/teams_headline_text"
+        app:w_font="@string/wire__typeface__bold"
+        android:layout_marginTop="@dimen/wire__padding__small"
+        android:text="Create a team"/>
+
+    <com.waz.zclient.ui.text.TypefaceTextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:gravity="center"
+        android:textSize="@dimen/wire__text_size__medium"
+        android:textColor="@color/teams_headline_text"
+        app:w_font="@string/wire__typeface__regular"
+        android:text="for work"/>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"/>
+
+    <com.waz.zclient.ui.text.TypefaceTextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:gravity="center"
+        android:textSize="@dimen/wire__text_size__regular_small"
+        android:textColor="@color/teams_description_text"
+        app:w_font="@string/wire__typeface__regular"
+        android:text="Already have an account?"/>
+
+    <com.waz.zclient.ui.text.TypefaceTextView
+        android:id="@+id/login_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:gravity="center"
+        android:textSize="@dimen/wire__text_size__medium"
+        android:textColor="@color/teams_headline_text"
+        app:w_font="@string/wire__typeface__bold"
+        android:text="Login"
+        android:layout_marginBottom="60dp"/>
+
+</LinearLayout>

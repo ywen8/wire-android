@@ -31,6 +31,8 @@ import java.lang.reflect.Field;
 
 public class CursorEditText extends TypefaceEditText {
 
+    private SelectionChangedCallback callback = null;
+
     public CursorEditText(Context context) {
         super(context);
     }
@@ -90,5 +92,20 @@ public class CursorEditText extends TypefaceEditText {
         InputConnection conn = super.onCreateInputConnection(outAttrs);
         outAttrs.imeOptions &= ~EditorInfo.IME_FLAG_NO_ENTER_ACTION;
         return conn;
+    }
+
+    @Override
+    protected void onSelectionChanged(int selStart, int selEnd) {
+        super.onSelectionChanged(selStart, selEnd);
+        if (callback != null)
+            callback.onSelectionChanged(selStart, selEnd);
+    }
+
+    public void setSelectionChangedCallback(SelectionChangedCallback callback) {
+        this.callback = callback;
+    }
+
+    public interface SelectionChangedCallback {
+        void onSelectionChanged(int selStart, int selEnd);
     }
 }

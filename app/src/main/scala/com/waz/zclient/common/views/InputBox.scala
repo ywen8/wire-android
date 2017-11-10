@@ -18,15 +18,16 @@
 package com.waz.zclient.common.views
 
 import android.content.Context
+import android.content.res.{ColorStateList, TypedArray}
 import android.util.AttributeSet
 import android.widget.{LinearLayout, ProgressBar}
-import com.waz.zclient.ui.text.{TypefaceEditText, TypefaceTextView}
-import com.waz.zclient.{R, ViewHelper}
-import com.waz.zclient.utils._
-import InputBox._
-import android.content.res.{ColorStateList, TypedArray}
 import com.waz.threading.Threading
+import com.waz.zclient.common.views.InputBox._
+import com.waz.zclient.ui.cursor.CursorEditText
+import com.waz.zclient.ui.text.TypefaceTextView
+import com.waz.zclient.utils._
 import com.waz.zclient.views.GlyphButton
+import com.waz.zclient.{R, ViewHelper}
 
 import scala.concurrent.Future
 
@@ -41,7 +42,8 @@ class InputBox(context: Context, attrs: AttributeSet, style: Int) extends Linear
     context.getTheme.obtainStyledAttributes(attrs, R.styleable.InputBox, 0, 0)
   private val hintAttr = Option(attributesArray.getString(R.styleable.InputBox_hint))
 
-  val editText = findById[TypefaceEditText](R.id.edit_text)
+  val editText = findById[CursorEditText](R.id.edit_text)
+  val hintText = findById[TypefaceTextView](R.id.hint_text)
   val confirmationButton = findById[GlyphButton](R.id.confirmation_button)
   val errorText = findById[TypefaceTextView](R.id.error_text)
   val progressBar = findById[ProgressBar](R.id.progress_bar)
@@ -49,17 +51,19 @@ class InputBox(context: Context, attrs: AttributeSet, style: Int) extends Linear
   private var validator = Option.empty[Validator]
   private var onClick = (_: String) => Future.successful(Option.empty[String])
 
-  confirmationButton.setBackgroundColors(ContextUtils.getColor(R.color.accent_blue), ContextUtils.getColor(R.color.light_graphite))
+  confirmationButton.setBackgroundColors(ContextUtils.getColor(R.color.accent_blue), ContextUtils.getColor(R.color.teams_inactive_button))
+  hintAttr.foreach(hintText.setText)
+  editText.setAccentColor(ContextUtils.getColor(R.color.accent_blue))
   editText.addTextListener { text =>
     validate(text)
     hideErrorMessage()
+    hintText.setVisible(text.isEmpty)
   }
   validate(editText.getText.toString)
   progressBar.setIndeterminate(true)
   progressBar.setVisible(false)
   errorText.setVisible(false)
-  hintAttr.foreach(editText.setHint)
-  progressBar.setIndeterminateTintList(ColorStateList.valueOf(ContextUtils.getColor(R.color.light_graphite)))
+  progressBar.setIndeterminateTintList(ColorStateList.valueOf(ContextUtils.getColor(R.color.teams_inactive_button)))
 
   confirmationButton.onClick {
     hideErrorMessage()
@@ -74,6 +78,7 @@ class InputBox(context: Context, attrs: AttributeSet, style: Int) extends Linear
     } (Threading.Ui)
   }
 
+
   def setValidator(validator: Validator): Unit = {
     this.validator = Option(validator)
     validate(editText.getText.toString)
@@ -87,6 +92,8 @@ class InputBox(context: Context, attrs: AttributeSet, style: Int) extends Linear
   def hideErrorMessage(): Unit = {
     errorText.setVisible(false)
   }
+
+  def setInputType(inputType: Int): Unit = editText.setInputType(inputType)
 
   private def validate(text: String): Unit = {
     if (validator.forall(_.f(text))) {
@@ -103,8 +110,20 @@ object InputBox {
 
   case class Validator(f: String => Boolean)
 
-  //TODO: Improve these!
-  object PasswordValidator extends Validator(_.length >= 6)
+  object PasswordValidator extends Validator({ t =>
+    //TODO: Where are these values?
+    t.length >= 6 && t.length <= 101
+  })
+
   object NameValidator extends Validator(_.length >= 2)
-  object EmailValidator extends Validator(_.contains("@"))
+
+  //TODO: do
+  object UsernameValidator extends Validator({ t =>
+    t.length > 2
+  })
+
+  object EmailValidator extends Validator({ t =>
+    //TODO: Get a better validator for emails
+    t.contains("@") && t.contains(".") && t.length >= 3
+  })
 }

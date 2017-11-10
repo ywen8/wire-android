@@ -28,37 +28,47 @@ import scala.util.Random
 
 
 class CreateAccountController {
-
-  //TODO: to test
-  val accountState = Signal[CreateAccountState](SetTeamName)
+  val accountState = Signal[CreateAccountState](NoAccountState(FirstScreen))
 
   implicit val ec = Threading.Background
 
-  def setTeamName(name: String): Future[Either[Unit, ErrorResponse]] = {
-    if (Random.nextBoolean()) {
-      CancellableFuture.delayed(Random.nextInt(4).seconds)(accountState ! SetEmail).future.map { _ => Left(()) }
-    } else {
-      CancellableFuture.delayed(Random.nextInt(4).seconds)(Right(ErrorResponse.internalError("Shit happened. Try again."))).future
-    }
+  //TODO: to test
+  private def fakeInput(nextState: CreateAccountState): Future[Either[Unit, ErrorResponse]] = {
+    CancellableFuture.delayed(Random.nextInt(4).seconds){
+      if (Random.nextBoolean()) Left(accountState ! nextState)
+      else Right(ErrorResponse.internalError("Shit happened. Try again."))
+    }.future
   }
 
-  def setEmail(email: String): Future[Either[Unit, ErrorResponse]] = {
-    if (Random.nextBoolean()) {
-      CancellableFuture.delayed(Random.nextInt(4).seconds)(accountState ! SetTeamName)(Threading.Background).future.map { _ => Left(()) }
-    } else {
-      CancellableFuture.delayed(Random.nextInt(4).seconds)(Right(ErrorResponse.internalError("Shit happened. Try again."))).future
-    }
+  def createTeam(): Unit = {
+    accountState ! NoAccountState(RegisterTeamScreen)
   }
 
+  def setTeamName(name: String): Future[Either[Unit, ErrorResponse]] = fakeInput(SetEmail)
 
+  def setEmail(email: String): Future[Either[Unit, ErrorResponse]] = fakeInput(VerifyEmail)
+
+  def setEmailVerificationCode(code: String): Future[Either[Unit, ErrorResponse]] = fakeInput(SetName)
+
+  def setName(name: String): Future[Either[Unit, ErrorResponse]] = fakeInput(SetPassword)
+
+  def setPassword(password: String): Future[Either[Unit, ErrorResponse]] = fakeInput(SetUsername)
+
+  def setUsername(username: String): Future[Either[Unit, ErrorResponse]] = fakeInput(NoAccountState(FirstScreen))
 }
 
 object CreateAccountController {
   trait CreateAccountState
 
-  object SetTeamName extends CreateAccountState
+  trait AppEntryPage
+  object FirstScreen extends AppEntryPage
+  object RegisterTeamScreen extends AppEntryPage
+  object LoginScreen extends AppEntryPage
+  case class NoAccountState(page: AppEntryPage) extends CreateAccountState
+
   object SetEmail extends CreateAccountState
   object VerifyEmail extends CreateAccountState
   object SetName extends CreateAccountState
   object SetPassword extends CreateAccountState
+  object SetUsername extends CreateAccountState
 }

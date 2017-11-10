@@ -146,7 +146,12 @@
     <dimen name="wire__text_size__medium">24sp</dimen>
     <dimen name="wire__text_size__big">28sp</dimen>
     <dimen name="wire__text_size__huge">32sp</dimen>
+
+    <!-- TODO: Check with design if all should be 11 or all 12 or should we actually have both -->
+    <dimen name="wire__text_size__smaller">11sp</dimen>
+    <dimen name="wire__text_size__regular_small">14sp</dimen>
     <dimen name="wire__text_size__even_huger">40sp</dimen>
+
     <dimen name="wire__text_size__insane">160sp</dimen>
     <dimen name="wire__text_size__emoji">@dimen/wire__text_size__even_huger</dimen>
     <dimen name="wire__text_spacing__tiny">2dp</dimen>
