@@ -74,7 +74,7 @@ class MessagesListAdapter(listDim: Signal[Dim2])(implicit inj: Injector, ec: Eve
 
   def message(position: Int) = messages.get.apply(position)
 
-  def lastReadIndex = messages.fold(-1)(_.lastReadIndex())
+  def lastReadIndex = messages.fold(-1)(_.lastReadIndex)
 
   override def getItemViewType(position: Int): Int = MessageView.viewType(message(position).message.msgType)
 

@@ -115,14 +115,18 @@ class CursorController(implicit inj: Injector, ctx: Context, evc: EventContext) 
   }
 
   // notify SE about typing state
-  enteredText { text =>
-    for {
-      typing <- zms.map(_.typing)
-      convId <- conversationController.currentConvId
-    } {
-      if (text.isEmpty) typing.selfClearedInput(convId)
-      else typing.selfChangedInput(convId)
-    }
+  private var prevEnteredText = ""
+  enteredText {
+    case text if text != prevEnteredText =>
+      for {
+        typing <- zms.map(_.typing).head
+        convId <- conversationController.currentConvId.head
+      } {
+        if (text.nonEmpty) typing.selfChangedInput(convId)
+        else typing.selfClearedInput(convId)
+      }
+      prevEnteredText = text
+    case _ =>
   }
 
   val typingIndicatorVisible = for {
