@@ -56,7 +56,7 @@ extends RecyclerView.Adapter[QuickReplyContentAdapter.ViewHolder] with Injectabl
   cursor.on(Threading.Ui) { case (c, tpe) =>
     if (!messages.contains(c)) {
       verbose(s"cursor changed: ${c.count}")
-      unreadIndex = c.lastReadIndex() + 1
+      unreadIndex = c.lastReadIndex + 1
       messages.foreach(_.close())
       messages = Some(c)
       convType = tpe
@@ -77,7 +77,7 @@ extends RecyclerView.Adapter[QuickReplyContentAdapter.ViewHolder] with Injectabl
 
     override def notifyDataSetChanged() = {
       messages foreach { c =>
-        unreadIndex = c.lastReadIndex() + 1
+        unreadIndex = c.lastReadIndex + 1
       }
       adapter.notifyDataSetChanged()
     }
