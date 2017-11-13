@@ -184,7 +184,7 @@ case class DeviceDetailsViewController(view: DeviceDetailsView, clientId: Client
     manager      <- accountManager
     accData      <- manager.accountData
     Some(userId) <- manager.userId
-    clients      <- manager.storage.otrClientsStorage.signal(userId)
+    clients      <- manager.storage.flatMap(_.otrClientsStorage.signal(userId))
   } yield (clients.clients.get(clientId), accData.clientId.contains(clientId))
 
   val client = clientAndIsSelf.map(_._1)
@@ -212,7 +212,7 @@ case class DeviceDetailsViewController(view: DeviceDetailsView, clientId: Client
   view.onVerifiedChecked { checked =>
     for {
       Some(userId)      <- accountManager.flatMap(_.userId)
-      otrClientsStorage <- accountManager.map(_.storage.otrClientsStorage)
+      otrClientsStorage <- accountManager.flatMap(_.storage.map(_.otrClientsStorage))
       _                 <- otrClientsStorage.updateVerified(userId, clientId, checked)
     } {}
   }

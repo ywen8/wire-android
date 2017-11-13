@@ -209,7 +209,7 @@ class SignInFragment extends BaseFragment[Container] with FragmentHelper with Vi
 
     signInController.isValid.onUi { setConfirmationButtonActive }
     signInController.phoneCountry.onUi { onCountryHasChanged }
-    signInController.isAddingAccount.onUi { closeButton.setVisible }
+    signInController.hasLoggedInAccounts.onUi { closeButton.setVisible }
   }
 
   private def setConfirmationButtonActive(active: Boolean): Unit = {

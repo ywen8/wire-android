@@ -18,7 +18,6 @@
 package com.waz.zclient.controllers
 
 import android.content.Context
-import com.waz.api.ClientRegistrationState
 import com.waz.api.Invitations.{EmailAddressResponse, PhoneNumberResponse}
 import com.waz.service.ZMessaging
 import com.waz.threading.Threading
@@ -37,7 +36,8 @@ class SignInController(implicit inj: Injector, eventContext: EventContext, conte
   private lazy val appEntryController = inject[AppEntryController]
   private lazy val tracking           = inject[GlobalTrackingController]
 
-  lazy val isAddingAccount = ZMessaging.currentAccounts.loggedInAccounts.map(_.exists(_.clientRegState == ClientRegistrationState.REGISTERED))
+  lazy val hasLoggedInAccounts = ZMessaging.currentAccounts.zmsInstances.map(_.nonEmpty)
+
   val uiSignInState = Signal[SignInMethod](SignInMethod(Register, Phone))
 
   val email = Signal("")

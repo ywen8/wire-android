@@ -20,10 +20,12 @@ package com.waz.zclient
 import com.waz.ZLog
 import com.waz.ZLog.ImplicitTag._
 import com.waz.api.impl.ErrorResponse
-import com.waz.api.{ClientRegistrationState, ImageAsset, KindOfAccess}
+import com.waz.api.{ImageAsset, KindOfAccess}
 import com.waz.client.RegistrationClientImpl.ActivateResult
 import com.waz.client.RegistrationClientImpl.ActivateResult.{Failure, PasswordExists}
 import com.waz.model._
+import com.waz.service.AccountManager.ClientRegistrationState
+import com.waz.service.AccountManager.ClientRegistrationState.{LimitReached, PasswordMissing, Registered, Unregistered}
 import com.waz.service.ZMessaging
 import com.waz.threading.Threading
 import com.waz.utils.events.{EventContext, Signal}
@@ -35,6 +37,7 @@ import com.waz.zclient.newreg.fragments.SignUpPhotoFragment.RegistrationType
 import com.waz.zclient.tracking.{AddPhotoOnRegistrationEvent, GlobalTrackingController}
 
 import scala.concurrent.Future
+import com.waz.utils.RichOption
 
 class AppEntryController(implicit inj: Injector, eventContext: EventContext) extends Injectable {
 
@@ -43,6 +46,7 @@ class AppEntryController(implicit inj: Injector, eventContext: EventContext) ext
   lazy val optZms = inject[Signal[Option[ZMessaging]]]
   lazy val tracking = inject[GlobalTrackingController]
   val currentAccount = ZMessaging.currentAccounts.activeAccount
+  val currentAccountManager = ZMessaging.currentAccounts.activeAccountManager
   val currentUser = optZms.flatMap{ _.fold(Signal.const(Option.empty[UserData]))(z => z.usersStorage.optSignal(z.selfUserId)) }
   val invitationToken = Signal(Option.empty[String])
 
@@ -63,9 +67,10 @@ class AppEntryController(implicit inj: Injector, eventContext: EventContext) ext
   }
 
   val entryStage = for {
-    account <- currentAccount
-    user <- currentUser
-    state <- Signal.const(stateForAccountAndUser(account, user)).collect{ case s if s != Waiting => s }
+    account     <- currentAccount
+    user        <- currentUser
+    clientState <- currentAccountManager.flatMap(_.fold2(Signal.const[ClientRegistrationState](Unregistered), _.clientState))
+    state <- Signal.const(stateForAccountAndUser(account, user, clientState)).collect{ case s if s != Waiting => s }
   } yield state
 
   val autoConnectInvite = for {
@@ -77,30 +82,28 @@ class AppEntryController(implicit inj: Injector, eventContext: EventContext) ext
     ZLog.verbose(s"Current stage: $stage")
   }
 
-  def stateForAccountAndUser(account: Option[AccountData], user: Option[UserData]): AppEntryStage = {
+  def stateForAccountAndUser(account: Option[AccountData], user: Option[UserData], clientState: ClientRegistrationState): AppEntryStage = {
     ZLog.verbose(s"Current account and user: $account $user")
-    (account, user) match {
-      case (None, _) =>
-        LoginStage
-      case (Some(accountData), _) if accountData.clientRegState == ClientRegistrationState.PASSWORD_MISSING && accountData.email.orElse(accountData.pendingEmail).isDefined =>
+    (account, user, clientState) match {
+      case (Some(accountData), _, PasswordMissing) if accountData.email.orElse(accountData.pendingEmail).isDefined =>
         InsertPasswordStage
-      case (Some(accountData), _) if accountData.clientRegState == ClientRegistrationState.LIMIT_REACHED =>
+      case (Some(accountData), _, LimitReached) =>
         DeviceLimitStage
-      case (Some(accountData), _) if accountData.pendingPhone.isDefined && !accountData.verified =>
+      case (Some(accountData), _, _) if accountData.pendingPhone.isDefined && !accountData.verified =>
         VerifyPhoneStage
-      case (Some(accountData), _) if accountData.pendingEmail.isDefined && accountData.password.isDefined && !accountData.verified =>
+      case (Some(accountData), _, _) if accountData.pendingEmail.isDefined && accountData.password.isDefined && !accountData.verified =>
         VerifyEmailStage
-      case (Some(accountData), _) if accountData.regWaiting =>
+      case (Some(accountData), _, _) if accountData.regWaiting =>
         AddNameStage
-      case (Some(accountData), None) if accountData.cookie.isDefined || accountData.accessToken.isDefined =>
+      case (Some(accountData), None, _) if accountData.cookie.isDefined || accountData.accessToken.isDefined =>
         Waiting
-      case (Some(accountData), Some(userData)) if userData.picture.isEmpty =>
+      case (Some(_), Some(userData), _) if userData.picture.isEmpty =>
         AddPictureStage
-      case (Some(accountData), Some(userData)) if userData.handle.isEmpty =>
+      case (Some(_), Some(userData), _) if userData.handle.isEmpty =>
         AddHandleStage
-      case (Some(accountData), Some(userData)) if accountData.firstLogin && accountData.clientRegState == ClientRegistrationState.REGISTERED =>
+      case (Some(_), Some(_), Registered(_)) =>
         FirstEnterAppStage
-      case (Some(accountData), Some(userData)) if accountData.clientRegState == ClientRegistrationState.REGISTERED =>
+      case (Some(_), Some(_), Registered(_)) =>
         EnterAppStage
       case _ =>
         LoginStage

@@ -99,14 +99,16 @@ case class DevicesViewController(view: DevicesView)(implicit inj: Injector, ec: 
     Some(manager) <- ZMessaging.currentAccounts.activeAccountManager
     Some(userId)  <- manager.accountData.map(_.userId)
     selfClientId  <- manager.accountData.map(_.clientId)
-    clients       <- Signal.future(manager.storage.otrClientsStorage.get(userId))
+    storage       <- manager.storage
+    clients       <- Signal.future(storage.otrClientsStorage.get(userId))
   } yield clients.fold(Seq[Client]())(_.clients.values.filter(client => !selfClientId.contains(client.id)).toSeq.sortBy(_.regTime).reverse)
 
   val incomingClients = for {
     Some(manager)      <- ZMessaging.currentAccounts.activeAccountManager
     Some(userId)       <- manager.accountData.map(_.userId)
     Some(selfClientId) <- manager.accountData.map(_.clientId)
-    clients            <- manager.storage.otrClientsStorage.incomingClientsSignal(userId, selfClientId)
+    storage            <- manager.storage
+    clients            <- storage.otrClientsStorage.incomingClientsSignal(userId, selfClientId)
   } yield clients
 
   val selfClient = for {
