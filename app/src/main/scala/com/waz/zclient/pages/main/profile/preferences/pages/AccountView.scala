@@ -66,6 +66,7 @@ trait AccountView {
   def setPictureDrawable(drawable: Drawable): Unit
   def setAccentDrawable(drawable: Drawable): Unit
   def setDeleteAccountEnabled(enabled: Boolean): Unit
+  def setPhoneNumberEnabled(enabled: Boolean): Unit
 }
 
 class AccountViewImpl(context: Context, attrs: AttributeSet, style: Int) extends LinearLayout(context, attrs, style) with AccountView with ViewHelper {
@@ -107,6 +108,8 @@ class AccountViewImpl(context: Context, attrs: AttributeSet, style: Int) extends
   override def setAccentDrawable(drawable: Drawable) = colorButton.setDrawableStart(Some(drawable))
 
   override def setDeleteAccountEnabled(enabled: Boolean) = deleteAccountButton.setVisible(enabled)
+
+  override def setPhoneNumberEnabled(enabled: Boolean) = phoneButton.setVisible(enabled)
 }
 
 case class AccountBackStackKey(args: Bundle = new Bundle()) extends BackStackKey(args) {
@@ -149,7 +152,12 @@ class AccountViewController(view: AccountView)(implicit inj: Injector, ec: Event
     account <- zms.account.accountData
   } yield account
 
-  val team = zms.flatMap(_.teams.selfTeam)
+  val isTeam = zms.map(_.teamId.isDefined)
+
+  val isPhoneNumerEnabled = for {
+    hasPhone <- account.map(a => a.phone.isDefined || a.pendingPhone.isDefined)
+    isTeam <- isTeam
+  } yield hasPhone || !isTeam
 
   val selfPicture: Signal[ImageSource] = self.map(_.picture).collect{case Some(pic) => WireImage(pic)}
 
@@ -180,7 +188,9 @@ class AccountViewController(view: AccountView)(implicit inj: Injector, ec: Event
     view.setPhone(account.phone.map(_.str))
   }
 
-  team.onUi { team => view.setDeleteAccountEnabled(team.isEmpty) }
+  isTeam.onUi(view.setDeleteAccountEnabled)
+
+  isPhoneNumerEnabled.onUi(view.setPhoneNumberEnabled)
 
   view.onNameClick.onUi { _ =>
     self.head.map { self =>
