@@ -26,6 +26,7 @@ import com.waz.zclient.pages.BaseFragment
 import com.waz.zclient.{AppEntryController, FragmentHelper, OnBackPressedListener}
 import com.waz.zclient.AppEntryController._
 import com.waz.zclient.R
+import com.waz.ZLog.ImplicitTag.implicitLogTag
 
 class CreateTeamFragment extends BaseFragment[Container] with FragmentHelper with OnBackPressedListener {
 
@@ -40,11 +41,11 @@ class CreateTeamFragment extends BaseFragment[Container] with FragmentHelper wit
       val entryScene = state match {
         case NoAccountState(FirstScreen) => FirstScreenSceneController(getView.asInstanceOf[ViewGroup])(getContext, this, injector)
         case NoAccountState(RegisterTeamScreen) => TeamNameSceneController(getView.asInstanceOf[ViewGroup])(getContext, this, injector)
-        case SetEmail => SetEmailSceneController(getView.asInstanceOf[ViewGroup])(getContext, this, injector)
-        case VerifyEmail => VerifyEmailSceneController(getView.asInstanceOf[ViewGroup])(getContext, this, injector)
-        case SetName => SetNameSceneController(getView.asInstanceOf[ViewGroup])(getContext, this, injector)
-        case SetPassword => SetPasswordSceneController(getView.asInstanceOf[ViewGroup])(getContext, this, injector)
-        case SetUsername => SetUsernameSceneController(getView.asInstanceOf[ViewGroup])(getContext, this, injector)
+        case SetTeamEmail => SetEmailSceneController(getView.asInstanceOf[ViewGroup])(getContext, this, injector)
+        case VerifyTeamEmail => VerifyEmailSceneController(getView.asInstanceOf[ViewGroup])(getContext, this, injector)
+        case SetUsersNameTeam => SetNameSceneController(getView.asInstanceOf[ViewGroup])(getContext, this, injector)
+        case SetPasswordTeam => SetPasswordSceneController(getView.asInstanceOf[ViewGroup])(getContext, this, injector)
+        case SetUsernameTeam => SetUsernameSceneController(getView.asInstanceOf[ViewGroup])(getContext, this, injector)
       }
       TransitionManager.go(entryScene.scene, new SupportAutoTransition2())
       entryScene.onCreate()
@@ -53,7 +54,7 @@ class CreateTeamFragment extends BaseFragment[Container] with FragmentHelper wit
   }
 
   override def onBackPressed(): Boolean = {
-    if (appEntryController.isCreatingTeam()) {
+    if (appEntryController.entryStage.currentValue.exists(_ != NoAccountState(FirstScreen))) {
       appEntryController.cancelCreateTeam()
       true
     } else
