@@ -23,11 +23,14 @@ import android.view.View.OnClickListener
 import android.view.{View, ViewGroup}
 import com.waz.utils.events.EventContext
 import com.waz.zclient._
+import com.waz.zclient.controllers.SignInController
+import com.waz.zclient.controllers.SignInController.{Login, Phone, Register, SignInMethod}
 import com.waz.zclient.ui.text.{GlyphTextView, TypefaceTextView}
 
 case class FirstScreenSceneController(container: ViewGroup)(implicit val context: Context, eventContext: EventContext, injector: Injector) extends SceneController with Injectable {
 
-  val createTeamController = inject[CreateAccountController]
+  val appEntryController = inject[AppEntryController]
+  val signInController = inject[SignInController]
 
   val scene = Scene.getSceneForLayout(container, R.layout.app_entry_scene, context)
   val root = scene.getSceneRoot
@@ -44,9 +47,13 @@ case class FirstScreenSceneController(container: ViewGroup)(implicit val context
         override def onClick(v: View): Unit = {
           v.getId match {
             case R.id.create_team_button | R.id.create_team_text =>
-              createTeamController.createTeam()
+              appEntryController.createTeam()
             case R.id.create_account_button | R.id.create_account_text =>
+              appEntryController.goToLoginScreen()
+              signInController.uiSignInState ! SignInMethod(Register, Phone)
             case R.id.login_button =>
+              appEntryController.goToLoginScreen()
+              signInController.uiSignInState ! SignInMethod(Login, Phone)
             case _ =>
           }
         }

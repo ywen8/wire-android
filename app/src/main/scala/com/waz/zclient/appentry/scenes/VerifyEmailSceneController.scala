@@ -23,11 +23,11 @@ import android.view.ViewGroup
 import com.waz.threading.Threading
 import com.waz.utils.events.EventContext
 import com.waz.zclient.common.views.NumberCodeInput
-import com.waz.zclient.{CreateAccountController, Injectable, Injector, R}
+import com.waz.zclient._
 
 case class VerifyEmailSceneController(container: ViewGroup)(implicit val context: Context, eventContext: EventContext, injector: Injector) extends SceneController with Injectable {
 
-  val createTeamController = inject[CreateAccountController]
+  val appEntryController = inject[AppEntryController]
 
   val scene = Scene.getSceneForLayout(container, R.layout.verify_email_scene, context)
   val root = scene.getSceneRoot
@@ -37,7 +37,7 @@ case class VerifyEmailSceneController(container: ViewGroup)(implicit val context
   def onCreate(): Unit = {
     codeField.codeInput.requestFocus()
     codeField.setOnCodeSet({ code =>
-      createTeamController.setEmailVerificationCode(code).map {
+      appEntryController.setEmailVerificationCode(code).map {
         case Right(error) => Some(error.message)
         case _ => None
       } (Threading.Ui)

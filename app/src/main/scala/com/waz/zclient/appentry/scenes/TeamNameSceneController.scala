@@ -30,7 +30,7 @@ import com.waz.zclient.ui.utils.KeyboardUtils
 
 case class TeamNameSceneController(container: ViewGroup)(implicit val context: Context, eventContext: EventContext, injector: Injector) extends SceneController with Injectable {
 
-  val createTeamController = inject[CreateAccountController]
+  val appEntryController = inject[AppEntryController]
 
   val scene = Scene.getSceneForLayout(container, R.layout.create_team_name_scene, context)
   val root = scene.getSceneRoot
@@ -41,7 +41,7 @@ case class TeamNameSceneController(container: ViewGroup)(implicit val context: C
     inputField.setValidator(NameValidator)
     inputField.editText.requestFocus()
     KeyboardUtils.showKeyboard(context.asInstanceOf[Activity])
-    inputField.setOnClick( text => createTeamController.setTeamName(text).map {
+    inputField.setOnClick( text => appEntryController.setTeamName(text).map {
       case Right(error) => Some(error.message)
       case _ => None
     } (Threading.Ui))

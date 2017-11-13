@@ -20,23 +20,23 @@ package com.waz.zclient.appentry
 import android.os.Bundle
 import android.support.transition._
 import android.view.{LayoutInflater, View, ViewGroup}
-import com.waz.zclient.CreateAccountController._
 import com.waz.zclient.appentry.CreateTeamFragment._
 import com.waz.zclient.appentry.scenes._
 import com.waz.zclient.pages.BaseFragment
-import com.waz.zclient.{CreateAccountController, FragmentHelper, OnBackPressedListener, R}
-import com.waz.ZLog.ImplicitTag.implicitLogTag
+import com.waz.zclient.{AppEntryController, FragmentHelper, OnBackPressedListener}
+import com.waz.zclient.AppEntryController._
+import com.waz.zclient.R
 
 class CreateTeamFragment extends BaseFragment[Container] with FragmentHelper with OnBackPressedListener {
 
-  lazy val createAccountController = inject[CreateAccountController]
+  lazy val appEntryController = inject[AppEntryController]
 
   override def onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState: Bundle): View =
     inflater.inflate(R.layout.app_entry_fragment, container, false)
 
   override def onViewCreated(view: View, savedInstanceState: Bundle): Unit = {
 
-    createAccountController.accountState.onUi { state =>
+    appEntryController.entryStage.onUi { state =>
       val entryScene = state match {
         case NoAccountState(FirstScreen) => FirstScreenSceneController(getView.asInstanceOf[ViewGroup])(getContext, this, injector)
         case NoAccountState(RegisterTeamScreen) => TeamNameSceneController(getView.asInstanceOf[ViewGroup])(getContext, this, injector)
@@ -53,8 +53,8 @@ class CreateTeamFragment extends BaseFragment[Container] with FragmentHelper wit
   }
 
   override def onBackPressed(): Boolean = {
-    if (createAccountController.accountState.currentValue.exists(_ != NoAccountState(FirstScreen))) {
-      createAccountController.accountState ! NoAccountState(FirstScreen)
+    if (appEntryController.isCreatingTeam()) {
+      appEntryController.cancelCreateTeam()
       true
     } else
       false

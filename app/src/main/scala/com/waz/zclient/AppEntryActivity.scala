@@ -108,14 +108,14 @@ class AppEntryActivity extends BaseActivity
     })
 
     appEntryController.entryStage.onUi {
-      case _ =>
-        onShowCreateTeamFragment()
       case EnterAppStage =>
         onEnterApplication(false)
       case FirstEnterAppStage =>
         onShowFirstLaunchPage()
-      case LoginStage =>
+      case NoAccountState(LoginScreen) =>
         onShowSignInPage()
+      case NoAccountState(_) =>
+        onShowCreateTeamFragment()
       case DeviceLimitStage =>
         onEnterApplication(false)
       case AddNameStage =>
@@ -183,10 +183,14 @@ class AppEntryActivity extends BaseActivity
     enableProgress(true)
     ZMessaging.currentAccounts.loggedInAccounts.head.map { accounts =>
       accounts.headOption.fold {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP)
-          finish()
-        else
-          finishAfterTransition()
+        if (appEntryController.entryStage.currentValue.exists(_ != NoAccountState(FirstScreen))) {
+          appEntryController.gotToFirstPage()
+        } else {
+          if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP)
+            finish()
+          else
+            finishAfterTransition()
+        }
       } { acc =>
         ZMessaging.currentAccounts.switchAccount(acc.id).map { _ =>
           onEnterApplication(true)
@@ -214,6 +218,9 @@ class AppEntryActivity extends BaseActivity
   }
 
   def onShowCreateTeamFragment(): Unit = {
+    if (getSupportFragmentManager.findFragmentByTag(CreateTeamFragment.TAG) != null) {
+      return
+    }
     val transaction: FragmentTransaction = getSupportFragmentManager.beginTransaction
     setDefaultAnimation(transaction).replace(R.id.fl_main_content, CreateTeamFragment.newInstance, CreateTeamFragment.TAG).commit
     enableProgress(false)
