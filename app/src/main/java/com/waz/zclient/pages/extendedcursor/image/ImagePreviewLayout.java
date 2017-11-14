@@ -26,7 +26,6 @@ import android.widget.FrameLayout;
 import android.widget.TextView;
 import com.waz.api.ImageAsset;
 import com.waz.zclient.R;
-import com.waz.zclient.controllers.drawing.DrawingController;
 import com.waz.zclient.controllers.drawing.IDrawingController;
 import com.waz.zclient.pages.main.profile.views.ConfirmationMenu;
 import com.waz.zclient.pages.main.profile.views.ConfirmationMenuListener;
@@ -197,7 +196,7 @@ public class ImagePreviewLayout extends FrameLayout implements
     public interface Callback {
         void onCancelPreview();
 
-        void onSketchOnPreviewPicture(ImageAsset imageAsset, Source source, DrawingController.DrawingMethod method);
+        void onSketchOnPreviewPicture(ImageAsset imageAsset, Source source, IDrawingController.DrawingMethod method);
 
         void onSendPictureFromPreview(ImageAsset imageAsset, Source source);
     }

@@ -19,17 +19,16 @@ package com.waz.zclient.api.scala
 
 import com.waz.zclient.core.stores.StoreFactory
 import android.content.Context
-import com.waz.zclient.controllers.global.SelectionController
 import com.waz.zclient.core.api.scala._
 import com.waz.zclient.core.stores.api.ZMessagingApiStore
 
-class ScalaStoreFactory(context: Context, selectionController: => SelectionController) extends StoreFactory {
+class ScalaStoreFactory(context: Context) extends StoreFactory {
 
   override protected def createZMessagingApiStore = new ZMessagingApiStore(context)
 
   protected def createNetworkStore = new ScalaNetworkStore(zMessagingApiStore.getApi)
 
-  protected def createConversationStore = new ScalaConversationStore(zMessagingApiStore.getApi, selectionController)
+  protected def createConversationStore = new ScalaConversationStore(zMessagingApiStore.getApi)
 
   protected def createProfileStore = new ScalaProfileStore(zMessagingApiStore.getApi)
 
@@ -42,8 +41,6 @@ class ScalaStoreFactory(context: Context, selectionController: => SelectionContr
   protected def createInAppNotificationStore = new ScalaInAppNotificationStore(zMessagingApiStore.getApi)
 
   def createConnectStore = new ScalaConnectStore(context, zMessagingApiStore.getApi)
-
-  protected def createDraftStore = new ScalaDraftStore
 
   override def tearDown() = super.tearDown()
 }
