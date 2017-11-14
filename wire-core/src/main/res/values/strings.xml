@@ -855,17 +855,17 @@
 
     <!-- http://joda-time.sourceforge.net/apidocs/org/joda/time/format/DateTimeFormat.html -->
     <!-- Example: FRIDAY, MAR 9, 11:29 -->
-    <string name="timestamp_pattern__date_and_time__no_year">EEE, MMM d, %1$s</string> 
+    <string name="timestamp_pattern__date_and_time__no_year">EEE, MMM d, %1$s</string>
     <!-- Example: FRIDAY, MAR 9, 2015, 11:29 -->
     <string name="timestamp_pattern__date_and_time__with_year">EEE, MMM d, YYYY, %1$s</string>
     <!-- Example: MAR 9, 11:29 -->
     <string name="timestamp_pattern__date_and_time__no_year_no_weekday">MMM d, %1$s</string>
     <!-- Example: MAR 9, 2015, 11:29 -->
-    <string name="timestamp_pattern__date_and_time__with_year_no_weekday">MMM d, YYYY, %1$s</string> 
+    <string name="timestamp_pattern__date_and_time__with_year_no_weekday">MMM d, YYYY, %1$s</string>
     <!-- Example: MONDAY, 9 MARCH 2015 \u30FB 12:08 -->
-    <string name="timestamp_pattern__single_message">EEEE, d MMMM YYYY \u30FB %1$s</string> 
+    <string name="timestamp_pattern__single_message">EEEE, d MMMM YYYY \u30FB %1$s</string>
     <!-- MONDAY -->
-    <string name="timestamp_pattern__separator_header__this_week">EEEE</string> 
+    <string name="timestamp_pattern__separator_header__this_week">EEEE</string>
      <!-- MARCH 2 -->
     <string name="timestamp_pattern__separator_header__this_year">MMMM d</string>
      <!-- MARCH 2, 2015 -->
@@ -873,7 +873,7 @@
     <string name="timestamp_pattern__separator_header__today">Today</string>
     <string name="timestamp_pattern__separator_header__yesterday">Yesterday</string>
     <!-- 23:15 -->
-    <string name="timestamp_pattern__24h_format">HH:mm</string> 
+    <string name="timestamp_pattern__24h_format">HH:mm</string>
     <string name="timestamp_pattern__12h_format">hh:mm a</string>
     <string name="timestamp_pattern__week" translatable="false">w, YYYY</string>
     <string name="reg__phone_alert__button">OK</string>
@@ -1220,4 +1220,33 @@
     <string name="new_devices_dialog_title">You have connected a device to your Wire account</string>
     <string name="new_devices_dialog_info">If you didn\'t do this, remove the device and reset your password.</string>
     <string name="new_devices_dialog_manage_devices">Manage devices</string>
+
+    <string name="teams_set_email_title">Set email</string>
+    <string name="Teams_set_email_subtitle">You should use your company email address</string>
+    <string name="teams_set_email_hint">EMAIL ADDRESS</string>
+
+    <string name="teams_set_password_title">Set Password</string>
+    <string name="teams_set_password_hint">PASSWORD</string>
+
+    <string name="teams_set_username_title">Set Username</string>
+    <string name="teams_set_username_hint">USERNAME</string>
+
+    <string name="teams_set_team_name_title">Set team name</string>
+    <string name="teams_set_team_name_subtitle">You can always change it later</string>
+    <string name="teams_set_team_name_hint">TEAM NAME</string>
+    <string name="teams_set_team_name_about">WHAT IS WIRE FOR TEAMS?</string>
+
+    <string name="teams_verify_email_title">You\'ve got email</string>
+    <string name="teams_verify_email_resend">RESEND EMAIL</string>
+    <string name="teams_verify_email_change">CHANGE EMAIL</string>
+
+    <string name="teams_set_name_title">Set Name</string>
+    <string name="teams_set_name_hint">NAME</string>
+    <string name="app_entry_slogan">Secure messenger for everyone</string>
+    <string name="app_entry_create_account">Create an account</string>
+    <string name="app_entry_create_account_sub">for personal use</string>
+    <string name="app_entry_create_team">Create a team</string>
+    <string name="app_entry_create_team_sub">for work</string>
+    <string name="app_entry_login_sub">Already have an account?</string>
+    <string name="app_entry_login">Login</string>
 </resources>

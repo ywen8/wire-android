@@ -30,7 +30,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center_horizontal"
-        android:text="Set team name"
+        android:text="@string/teams_set_team_name_title"
         app:w_font="@string/wire__typeface__light"
         android:textSize="@dimen/wire__text_size__even_huger"
         android:textColor="@color/black"
@@ -41,7 +41,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center_horizontal"
-        android:text="You can always change it later"
+        android:text="@string/teams_set_team_name_subtitle"
         app:w_font="@string/wire__typeface__light"
         android:textSize="@dimen/wire__text_size__small"
         android:textColor="@color/graphite"
@@ -54,14 +54,14 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="56dp"
         android:layout_marginBottom="@dimen/wire__padding__16"
-        app:hint="TEAM NAME"/>
+        app:hint="@string/teams_set_team_name_hint"/>
 
     <com.waz.zclient.ui.text.TypefaceTextView
         android:id="@+id/about"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center_horizontal"
-        android:text="WHAT IS WIRE FOR TEAMS?"
+        android:text="@string/teams_set_team_name_about"
         app:w_font="@string/wire__typeface__light"
         android:textSize="@dimen/wire__text_size__tiny"
         android:textColor="@color/black"

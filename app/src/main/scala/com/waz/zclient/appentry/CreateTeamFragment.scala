@@ -19,7 +19,9 @@ package com.waz.zclient.appentry
 
 import android.os.Bundle
 import android.support.transition._
-import android.view.{LayoutInflater, View, ViewGroup}
+import android.view.View.OnClickListener
+import android.view.{Gravity, LayoutInflater, View, ViewGroup}
+import android.widget.{Button, FrameLayout}
 import com.waz.zclient.appentry.CreateTeamFragment._
 import com.waz.zclient.appentry.scenes._
 import com.waz.zclient.pages.BaseFragment
@@ -37,25 +39,37 @@ class CreateTeamFragment extends BaseFragment[Container] with FragmentHelper wit
 
   override def onViewCreated(view: View, savedInstanceState: Bundle): Unit = {
 
+    val backButton = findById[Button](R.id.back_button)
+    val container = findById[FrameLayout](R.id.container)
+
+    backButton.setOnClickListener(new OnClickListener {
+      override def onClick(v: View): Unit = appEntryController.createTeamBack()
+    })
+
     appEntryController.entryStage.onUi { state =>
       val entryScene = state match {
-        case NoAccountState(FirstScreen) => FirstScreenSceneController(getView.asInstanceOf[ViewGroup])(getContext, this, injector)
-        case NoAccountState(RegisterTeamScreen) => TeamNameSceneController(getView.asInstanceOf[ViewGroup])(getContext, this, injector)
-        case SetTeamEmail => SetEmailSceneController(getView.asInstanceOf[ViewGroup])(getContext, this, injector)
-        case VerifyTeamEmail => VerifyEmailSceneController(getView.asInstanceOf[ViewGroup])(getContext, this, injector)
-        case SetUsersNameTeam => SetNameSceneController(getView.asInstanceOf[ViewGroup])(getContext, this, injector)
-        case SetPasswordTeam => SetPasswordSceneController(getView.asInstanceOf[ViewGroup])(getContext, this, injector)
-        case SetUsernameTeam => SetUsernameSceneController(getView.asInstanceOf[ViewGroup])(getContext, this, injector)
+        case NoAccountState(FirstScreen) => FirstScreenSceneController(container)(getContext, this, injector)
+        case NoAccountState(RegisterTeamScreen) => TeamNameSceneController(container)(getContext, this, injector)
+        case SetTeamEmail => SetEmailSceneController(container)(getContext, this, injector)
+        case VerifyTeamEmail => VerifyEmailSceneController(container)(getContext, this, injector)
+        case SetUsersNameTeam => SetNameSceneController(container)(getContext, this, injector)
+        case SetPasswordTeam => SetPasswordSceneController(container)(getContext, this, injector)
+        case SetUsernameTeam => SetUsernameSceneController(container)(getContext, this, injector)
       }
-      TransitionManager.go(entryScene.scene, new SupportAutoTransition2())
+      TransitionManager.go(entryScene.scene, new AutoTransition())
       entryScene.onCreate()
+
+      if(!state.isInstanceOf[NoAccountState])
+        backButton.setVisibility(View.VISIBLE)
+      else
+        backButton.setVisibility(View.GONE)
     }
 
   }
 
   override def onBackPressed(): Boolean = {
     if (appEntryController.entryStage.currentValue.exists(_ != NoAccountState(FirstScreen))) {
-      appEntryController.cancelCreateTeam()
+      appEntryController.createTeamBack()
       true
     } else
       false
@@ -68,9 +82,4 @@ object CreateTeamFragment {
   def newInstance = new CreateTeamFragment
 
   trait Container
-}
-
-class SupportAutoTransition2 extends TransitionSet {
-  setOrdering(TransitionSet.ORDERING_TOGETHER)
-  addTransition(new Fade(Fade.OUT)).addTransition(new ChangeBounds).addTransition(new Fade(Fade.IN))
 }

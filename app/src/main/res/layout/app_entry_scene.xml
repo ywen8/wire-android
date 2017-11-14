@@ -24,12 +24,16 @@
               android:layout_width="match_parent"
               android:layout_height="match_parent">
 
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"/>
+
     <ImageView
         android:layout_width="match_parent"
         android:layout_height="36dp"
         android:src="@drawable/wire"
-        android:tint="@color/teams_headline_text"
-        android:layout_marginTop="80dp"/>
+        android:tint="@color/teams_headline_text"/>
 
     <com.waz.zclient.ui.text.TypefaceTextView
         android:layout_width="wrap_content"
@@ -39,13 +43,13 @@
         android:textSize="@dimen/wire__text_size__regular_small"
         android:textColor="@color/teams_description_text"
         app:w_font="@string/wire__typeface__regular"
-        android:text="Secure messenger for everyone"
+        android:text="@string/app_entry_slogan"
         android:layout_marginTop="@dimen/wire__padding__regular"/>
 
     <View
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1"/>
+        android:layout_weight="0.8"/>
 
     <com.waz.zclient.ui.text.GlyphTextView
         android:id="@+id/create_account_button"
@@ -71,7 +75,7 @@
         android:textColor="@color/teams_headline_text"
         app:w_font="@string/wire__typeface__bold"
         android:layout_marginTop="@dimen/wire__padding__small"
-        android:text="Create an account"
+        android:text="@string/app_entry_create_account"
         android:clickable="true"
         android:focusable="true"/>
 
@@ -83,7 +87,7 @@
         android:textSize="@dimen/wire__text_size__medium"
         android:textColor="@color/teams_headline_text"
         app:w_font="@string/wire__typeface__regular"
-        android:text="for personal use"/>
+        android:text="@string/app_entry_create_account_sub"/>
 
     <com.waz.zclient.ui.text.GlyphTextView
         android:id="@+id/create_team_button"
@@ -109,7 +113,7 @@
         android:textColor="@color/teams_headline_text"
         app:w_font="@string/wire__typeface__bold"
         android:layout_marginTop="@dimen/wire__padding__small"
-        android:text="Create a team"/>
+        android:text="@string/app_entry_create_team"/>
 
     <com.waz.zclient.ui.text.TypefaceTextView
         android:layout_width="wrap_content"
@@ -119,12 +123,12 @@
         android:textSize="@dimen/wire__text_size__medium"
         android:textColor="@color/teams_headline_text"
         app:w_font="@string/wire__typeface__regular"
-        android:text="for work"/>
+        android:text="@string/app_entry_create_team_sub"/>
 
     <View
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1"/>
+        android:layout_weight="0.8"/>
 
     <com.waz.zclient.ui.text.TypefaceTextView
         android:layout_width="wrap_content"
@@ -134,7 +138,7 @@
         android:textSize="@dimen/wire__text_size__regular_small"
         android:textColor="@color/teams_description_text"
         app:w_font="@string/wire__typeface__regular"
-        android:text="Already have an account?"/>
+        android:text="@string/app_entry_login_sub"/>
 
     <com.waz.zclient.ui.text.TypefaceTextView
         android:id="@+id/login_button"
@@ -145,7 +149,11 @@
         android:textSize="@dimen/wire__text_size__medium"
         android:textColor="@color/teams_headline_text"
         app:w_font="@string/wire__typeface__bold"
-        android:text="Login"
-        android:layout_marginBottom="60dp"/>
+        android:text="@string/app_entry_login"/>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="0.5"/>
 
 </LinearLayout>

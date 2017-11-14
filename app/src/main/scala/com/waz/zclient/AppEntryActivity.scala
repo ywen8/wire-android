@@ -114,7 +114,7 @@ class AppEntryActivity extends BaseActivity
         onShowFirstLaunchPage()
       case NoAccountState(LoginScreen) =>
         onShowSignInPage()
-      case NoAccountState(_) =>
+      case NoAccountState(_) | SetTeamEmail | VerifyTeamEmail | SetUsersNameTeam | SetPasswordTeam | SetUsernameTeam =>
         onShowCreateTeamFragment()
       case DeviceLimitStage =>
         onEnterApplication(false)

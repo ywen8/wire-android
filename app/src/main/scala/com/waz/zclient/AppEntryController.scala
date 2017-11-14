@@ -25,7 +25,7 @@ import com.waz.client.RegistrationClientImpl.ActivateResult
 import com.waz.client.RegistrationClientImpl.ActivateResult.{Failure, PasswordExists}
 import com.waz.model._
 import com.waz.service.ZMessaging
-import com.waz.threading.{CancellableFuture, Threading}
+import com.waz.threading.Threading
 import com.waz.utils.events.{EventContext, Signal}
 import com.waz.zclient.AppEntryController._
 import com.waz.zclient.controllers.SignInController
@@ -35,7 +35,6 @@ import com.waz.zclient.newreg.fragments.SignUpPhotoFragment.RegistrationType
 import com.waz.zclient.tracking.{AddPhotoOnRegistrationEvent, GlobalTrackingController}
 
 import scala.concurrent.Future
-import scala.concurrent.duration._
 import scala.util.Random
 
 class AppEntryController(implicit inj: Injector, eventContext: EventContext) extends Injectable {
@@ -47,7 +46,7 @@ class AppEntryController(implicit inj: Injector, eventContext: EventContext) ext
   val currentAccount = ZMessaging.currentAccounts.activeAccount
   val currentUser = optZms.flatMap{ _.fold(Signal.const(Option.empty[UserData]))(z => z.usersStorage.optSignal(z.selfUserId)) }
   val invitationToken = Signal(Option.empty[String])
-  val firstPage = Signal[FirstStage](FirstScreen)
+  val firstStage = Signal[FirstStage](FirstScreen)
 
   val invitationDetails = for {
     Some(token) <- invitationToken
@@ -68,7 +67,7 @@ class AppEntryController(implicit inj: Injector, eventContext: EventContext) ext
   val entryStage = for {
     account <- currentAccount
     user <- currentUser
-    firstPageState <- firstPage
+    firstPageState <- firstStage
     state <- Signal.const(stateForAccountAndUser(account, user, firstPageState)).collect{ case s if s != Waiting => s }
   } yield state
 
@@ -92,6 +91,8 @@ class AppEntryController(implicit inj: Injector, eventContext: EventContext) ext
         VerifyTeamEmail
       case (Some(accountData), None) if accountData.pendingTeamName.isDefined && accountData.name.isEmpty =>
         SetUsersNameTeam
+      case (Some(accountData), None) if accountData.pendingTeamName.isDefined && accountData.handle.isEmpty =>
+        SetUsernameTeam
       case (Some(accountData), None) if accountData.pendingTeamName.isDefined =>
         SetPasswordTeam
       case (Some(accountData), _) if accountData.clientRegState == ClientRegistrationState.PASSWORD_MISSING && accountData.email.orElse(accountData.pendingEmail).isDefined =>
@@ -116,6 +117,21 @@ class AppEntryController(implicit inj: Injector, eventContext: EventContext) ext
         EnterAppStage
       case _ =>
         NoAccountState(firstPageState)
+    }
+  }
+
+  def createTeamBack(): Unit = {
+    ZMessaging.currentAccounts.activeAccount.head.flatMap {
+      case Some(accountData) if accountData.pendingTeamName.isDefined && accountData.name.isDefined =>
+        ZMessaging.currentAccounts.updateCurrentAccount(_.copy(name = None))
+      case Some(accountData) if accountData.pendingTeamName.isDefined && accountData.code.isDefined =>
+        ZMessaging.currentAccounts.updateCurrentAccount(_.copy(code = None))
+      case Some(accountData) if accountData.pendingTeamName.isDefined && accountData.pendingEmail.isDefined =>
+        ZMessaging.currentAccounts.updateCurrentAccount(_.copy(pendingEmail = None))
+      case Some(accountData) if accountData.pendingTeamName.isDefined =>
+        ZMessaging.currentAccounts.logout(true)
+      case _ =>
+        Future.successful(firstStage ! FirstScreen)
     }
   }
 
@@ -245,18 +261,17 @@ class AppEntryController(implicit inj: Injector, eventContext: EventContext) ext
     }
   }
 
-  def gotToFirstPage(): Unit = firstPage ! FirstScreen
+  def gotToFirstPage(): Unit = firstStage ! FirstScreen
 
-  def createTeam(): Unit = firstPage ! RegisterTeamScreen
+  def createTeam(): Unit = firstStage ! RegisterTeamScreen
 
-  def cancelCreateTeam(): Unit = firstPage ! FirstScreen
+  def cancelCreateTeam(): Unit = firstStage ! FirstScreen
 
-  def goToLoginScreen(): Unit = firstPage ! LoginScreen
+  def goToLoginScreen(): Unit = firstStage ! LoginScreen
 
   def setTeamName(name: String): Future[Either[Unit, ErrorResponse]] =
     ZMessaging.currentAccounts.createTeamAccount(name) map { _ => Left(()) }
 
-  //TODO: Send verification code!
   def setEmail(email: String): Future[Either[Unit, ErrorResponse]] = {
     ZMessaging.currentAccounts.requestActivationCode(EmailAddress(email)).map {
       case Right(()) => Left(())
@@ -264,7 +279,6 @@ class AppEntryController(implicit inj: Injector, eventContext: EventContext) ext
     }
   }
 
-  //TODO: Verify code!
   def setEmailVerificationCode(code: String): Future[Either[Unit, ErrorResponse]] =
     ZMessaging.currentAccounts.verify(ConfirmationCode(code)).map {
       case Right(()) => Left(())
@@ -286,6 +300,10 @@ class AppEntryController(implicit inj: Injector, eventContext: EventContext) ext
   //TODO: set the actual username
   def setUsername(username: String): Future[Either[Unit, ErrorResponse]] =
     ZMessaging.currentAccounts.updateCurrentAccount(_.copy(handle = Some(Handle(username)))) map { _ => Left(()) }
+
+
+  private val fakeAB = Random.nextBoolean()
+  def isAB: Future[Boolean] = Future.successful(false)
 
 }
 
