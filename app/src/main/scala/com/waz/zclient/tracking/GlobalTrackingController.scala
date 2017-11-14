@@ -46,6 +46,8 @@ class GlobalTrackingController(implicit inj: Injector, cxt: WireContext, eventCo
 
   private val superProps = Signal(returning(new JSONObject()) { o =>
     o.put(AppSuperProperty, AppSuperPropertyValue)
+    o.put(CitySuperProperty, null)
+    o.put(RegionSuperProperty, null)
   }).disableAutowiring()
 
   private val mixpanel = new MixpanelGuard(cxt)
@@ -246,6 +248,8 @@ object GlobalTrackingController {
   private lazy val AppSuperPropertyValue = "android"
   private lazy val TeamInTeamSuperProperty = "team.in_team"
   private lazy val TeamSizeSuperProperty = "team.size"
+  private lazy val CitySuperProperty = "$city"
+  private lazy val RegionSuperProperty = "$region"
 
   val analyticsPrefKey = BuildConfig.APPLICATION_ID match {
     case "com.wire" | "com.wire.internal" => GlobalPreferences.AnalyticsEnabled
