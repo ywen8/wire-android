@@ -64,6 +64,14 @@ class AppEntryController(implicit inj: Injector, eventContext: EventContext) ext
     case _ =>
   }
 
+  //Vars to persist text in edit boxes
+  var teamName = ""
+  var teamEmail = ""
+  var code = ""
+  var teamUserName = ""
+  var teamUserUsername = ""
+  var password = ""
+
   val entryStage = for {
     account <- currentAccount
     user <- currentUser
@@ -272,10 +280,22 @@ class AppEntryController(implicit inj: Injector, eventContext: EventContext) ext
   def setTeamName(name: String): Future[Either[Unit, ErrorResponse]] =
     ZMessaging.currentAccounts.createTeamAccount(name) map { _ => Left(()) }
 
-  def setEmail(email: String): Future[Either[Unit, ErrorResponse]] = {
+  def requestTeamEmailVerificationCode(email: String): Future[Either[Unit, ErrorResponse]] = {
     ZMessaging.currentAccounts.requestActivationCode(EmailAddress(email)).map {
       case Right(()) => Left(())
       case Left(e) => Right(e)
+    }
+  }
+
+  def resendTeamEmailVerificationCode(): Future[Either[Unit, ErrorResponse]] = {
+    ZMessaging.currentAccounts.getActiveAccount.flatMap {
+      case Some(accountData) if accountData.pendingEmail.isDefined =>
+        ZMessaging.currentAccounts.requestActivationCode(accountData.pendingEmail.get).map {
+          case Right(()) => Left(())
+          case Left(e) => Right(e)
+        }
+      case _ =>
+        Future.successful(Right(ErrorResponse.internalError("No pending email or account")))
     }
   }
 

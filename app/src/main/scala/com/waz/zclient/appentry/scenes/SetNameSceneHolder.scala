@@ -27,8 +27,9 @@ import com.waz.zclient.common.views.InputBox
 import com.waz.zclient.common.views.InputBox.NameValidator
 import com.waz.zclient.ui.utils.KeyboardUtils
 import com.waz.zclient._
+import com.waz.zclient.utils._
 
-case class SetNameSceneController(container: ViewGroup)(implicit val context: Context, eventContext: EventContext, injector: Injector) extends SceneController with Injectable {
+case class SetNameSceneHolder(container: ViewGroup)(implicit val context: Context, eventContext: EventContext, injector: Injector) extends SceneHolder with Injectable {
 
   private val appEntryController = inject[AppEntryController]
 
@@ -40,6 +41,8 @@ case class SetNameSceneController(container: ViewGroup)(implicit val context: Co
   def onCreate(): Unit = {
     inputField.setValidator(NameValidator)
     inputField.editText.requestFocus()
+    inputField.editText.setText(appEntryController.teamUserName)
+    inputField.editText.addTextListener(appEntryController.teamUserName = _)
     KeyboardUtils.showKeyboard(context.asInstanceOf[Activity])
     inputField.setOnClick( text => appEntryController.setName(text).map {
       case Right(error) => Some(error.message)

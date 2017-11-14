@@ -27,7 +27,7 @@ import com.waz.zclient.controllers.SignInController
 import com.waz.zclient.controllers.SignInController.{Login, Phone, Register, SignInMethod}
 import com.waz.zclient.ui.text.{GlyphTextView, TypefaceTextView}
 
-case class FirstScreenSceneController(container: ViewGroup)(implicit val context: Context, eventContext: EventContext, injector: Injector) extends SceneController with Injectable {
+case class FirstScreenSceneHolder(container: ViewGroup)(implicit val context: Context, eventContext: EventContext, injector: Injector) extends SceneHolder with Injectable {
 
   val appEntryController = inject[AppEntryController]
   val signInController = inject[SignInController]

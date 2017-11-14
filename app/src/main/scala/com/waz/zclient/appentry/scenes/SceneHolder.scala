@@ -20,7 +20,7 @@ package com.waz.zclient.appentry.scenes
 import android.support.transition.Scene
 import android.view.ViewGroup
 
-trait SceneController {
+trait SceneHolder {
   val scene: Scene
   val root: ViewGroup
 

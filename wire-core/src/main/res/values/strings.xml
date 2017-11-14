@@ -1249,4 +1249,13 @@
     <string name="app_entry_create_team_sub">for work</string>
     <string name="app_entry_login_sub">Already have an account?</string>
     <string name="app_entry_login">Login</string>
+
+    <string name="app_entry_tc_dialog_title">Terms of Service</string>
+    <string name="app_entry_tc_dialog_message">You must accept to continue</string>
+    <string name="app_entry_notifications_dialog_title">Notifications</string>
+    <string name="app_entry_notifications_dialog_message">Notifications may include alerts, sounds, and icon badges. These can be configured in Settings.</string>
+
+    <string name="app_entry_dialog_accept">ACCEPT</string>
+    <string name="app_entry_dialog_cancel">CANCEL</string>
+    <string name="app_entry_dialog_view">VIEW</string>
 </resources>

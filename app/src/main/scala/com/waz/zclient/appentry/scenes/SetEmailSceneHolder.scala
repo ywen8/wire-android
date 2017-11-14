@@ -27,8 +27,9 @@ import com.waz.zclient.common.views.InputBox
 import com.waz.zclient.common.views.InputBox.EmailValidator
 import com.waz.zclient.ui.utils.KeyboardUtils
 import com.waz.zclient._
+import com.waz.zclient.utils._
 
-case class SetEmailSceneController(container: ViewGroup)(implicit val context: Context, eventContext: EventContext, injector: Injector) extends SceneController with Injectable {
+case class SetEmailSceneHolder(container: ViewGroup)(implicit val context: Context, eventContext: EventContext, injector: Injector) extends SceneHolder with Injectable {
 
   private val appEntryController = inject[AppEntryController]
 
@@ -39,9 +40,11 @@ case class SetEmailSceneController(container: ViewGroup)(implicit val context: C
 
   def onCreate(): Unit = {
     inputField.setValidator(EmailValidator)
+    inputField.editText.setText(appEntryController.teamEmail)
+    inputField.editText.addTextListener(appEntryController.teamEmail = _)
     inputField.editText.requestFocus()
     KeyboardUtils.showKeyboard(context.asInstanceOf[Activity])
-    inputField.setOnClick( text => appEntryController.setEmail(text).map {
+    inputField.setOnClick( text => appEntryController.requestTeamEmailVerificationCode(text).map {
       case Right(error) => Some(error.message)
       case _ => None
     } (Threading.Ui))

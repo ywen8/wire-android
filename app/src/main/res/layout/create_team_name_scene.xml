@@ -52,7 +52,7 @@
         android:id="@+id/input_field"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="56dp"
+        android:layout_marginTop="@dimen/teams_input_box_height"
         android:layout_marginBottom="@dimen/wire__padding__16"
         app:hint="@string/teams_set_team_name_hint"/>
 
@@ -62,8 +62,8 @@
         android:layout_height="wrap_content"
         android:gravity="center_horizontal"
         android:text="@string/teams_set_team_name_about"
-        app:w_font="@string/wire__typeface__light"
-        android:textSize="@dimen/wire__text_size__tiny"
+        app:w_font="@string/wire__typeface__bold"
+        android:textSize="@dimen/wire__text_size__smaller"
         android:textColor="@color/black"
         />
 

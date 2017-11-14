@@ -66,9 +66,10 @@
             android:layout_weight="1"
             android:gravity="center"
             android:text="@string/teams_verify_email_resend"
-            app:w_font="@string/wire__typeface__light"
-            android:textSize="@dimen/wire__text_size__tiny"
+            app:w_font="@string/wire__typeface__bold"
+            android:textSize="@dimen/wire__text_size__smaller"
             android:textColor="@color/black"
+            android:background="@drawable/selector__transparent_button"
             />
 
         <com.waz.zclient.ui.text.TypefaceTextView
@@ -78,9 +79,10 @@
             android:layout_weight="1"
             android:gravity="center"
             android:text="@string/teams_verify_email_change"
-            app:w_font="@string/wire__typeface__light"
-            android:textSize="@dimen/wire__text_size__tiny"
+            app:w_font="@string/wire__typeface__bold"
+            android:textSize="@dimen/wire__text_size__smaller"
             android:textColor="@color/black"
+            android:background="@drawable/selector__transparent_button"
             />
 
     </LinearLayout>

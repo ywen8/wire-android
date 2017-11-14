@@ -20,12 +20,15 @@ package com.waz.zclient.appentry.scenes
 import android.content.Context
 import android.support.transition.Scene
 import android.view.ViewGroup
+import android.widget.Toast
 import com.waz.threading.Threading
 import com.waz.utils.events.EventContext
 import com.waz.zclient.common.views.NumberCodeInput
 import com.waz.zclient._
+import com.waz.zclient.ui.text.TypefaceTextView
+import com.waz.zclient.utils._
 
-case class VerifyEmailSceneController(container: ViewGroup)(implicit val context: Context, eventContext: EventContext, injector: Injector) extends SceneController with Injectable {
+case class VerifyEmailSceneHolder(container: ViewGroup)(implicit val context: Context, eventContext: EventContext, injector: Injector) extends SceneHolder with Injectable {
 
   val appEntryController = inject[AppEntryController]
 
@@ -33,8 +36,12 @@ case class VerifyEmailSceneController(container: ViewGroup)(implicit val context
   val root = scene.getSceneRoot
 
   lazy val codeField = root.findViewById[NumberCodeInput](R.id.input_field)
+  lazy val resend = root.findViewById[TypefaceTextView](R.id.resend_email)
+  lazy val changeEmail = root.findViewById[TypefaceTextView](R.id.change_email)
 
   def onCreate(): Unit = {
+    codeField.codeInput.setText(appEntryController.code)
+    codeField.codeInput.addTextListener(appEntryController.code = _)
     codeField.codeInput.requestFocus()
     codeField.setOnCodeSet({ code =>
       appEntryController.setEmailVerificationCode(code).map {
@@ -42,5 +49,10 @@ case class VerifyEmailSceneController(container: ViewGroup)(implicit val context
         case _ => None
       } (Threading.Ui)
     })
+    resend.onClick(appEntryController.resendTeamEmailVerificationCode().map {
+      case Left(_) => Toast.makeText(context, "Email sent", Toast.LENGTH_SHORT).show()
+      case Right(e) =>  Toast.makeText(context, s"Email failed to send: ${e.message}", Toast.LENGTH_SHORT).show()
+    } (Threading.Ui))
+    changeEmail.onClick(appEntryController.createTeamBack())
   }
 }

@@ -18,7 +18,8 @@
 package com.waz.zclient.appentry.scenes
 
 import android.app.Activity
-import android.content.Context
+import android.content.{Context, Intent}
+import android.net.Uri
 import android.support.transition.Scene
 import android.view.ViewGroup
 import com.waz.threading.Threading
@@ -27,11 +28,13 @@ import com.waz.zclient._
 import com.waz.zclient.appentry.AppEntryDialogs
 import com.waz.zclient.common.views.InputBox
 import com.waz.zclient.common.views.InputBox.NameValidator
+import com.waz.zclient.ui.text.TypefaceTextView
 import com.waz.zclient.ui.utils.KeyboardUtils
+import com.waz.zclient.utils._
 
 import scala.concurrent.Future
 
-case class TeamNameSceneController(container: ViewGroup)(implicit val context: Context, eventContext: EventContext, injector: Injector) extends SceneController with Injectable {
+case class TeamNameSceneHolder(container: ViewGroup)(implicit val context: Context, eventContext: EventContext, injector: Injector) extends SceneHolder with Injectable {
 
   val appEntryController = inject[AppEntryController]
 
@@ -39,11 +42,13 @@ case class TeamNameSceneController(container: ViewGroup)(implicit val context: C
   val root = scene.getSceneRoot
 
   lazy val inputField = root.findViewById[InputBox](R.id.input_field)
+  lazy val about = root.findViewById[TypefaceTextView](R.id.about)
 
   def onCreate(): Unit = {
     import Threading.Implicits.Ui
-
     inputField.setValidator(NameValidator)
+    inputField.editText.setText(appEntryController.teamName)
+    inputField.editText.addTextListener(appEntryController.teamName = _)
     inputField.editText.requestFocus()
     KeyboardUtils.showKeyboard(context.asInstanceOf[Activity])
     inputField.setOnClick( text =>
@@ -65,5 +70,11 @@ case class TeamNameSceneController(container: ViewGroup)(implicit val context: C
           }
       }
     )
+    //TODO: what's the url?
+    about.onClick(openUrl(R.string.url_home))
+  }
+
+  private def openUrl(id: Int): Unit ={
+    context.startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(context.getString(id))))
   }
 }

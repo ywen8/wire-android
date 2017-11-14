@@ -899,4 +899,5 @@
     <dimen name="new_cursor_button_left_margin">4dp</dimen>
     <dimen name="phone_sign_in_container_height">160dp</dimen>
     <dimen name="settings_divider_margin_start">48dp</dimen>
+    <dimen name="teams_input_box_height">56dp</dimen>
 </resources>
