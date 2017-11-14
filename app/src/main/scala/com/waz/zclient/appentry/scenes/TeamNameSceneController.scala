@@ -24,9 +24,12 @@ import android.view.ViewGroup
 import com.waz.threading.Threading
 import com.waz.utils.events.EventContext
 import com.waz.zclient._
+import com.waz.zclient.appentry.AppEntryDialogs
 import com.waz.zclient.common.views.InputBox
 import com.waz.zclient.common.views.InputBox.NameValidator
 import com.waz.zclient.ui.utils.KeyboardUtils
+
+import scala.concurrent.Future
 
 case class TeamNameSceneController(container: ViewGroup)(implicit val context: Context, eventContext: EventContext, injector: Injector) extends SceneController with Injectable {
 
@@ -38,12 +41,29 @@ case class TeamNameSceneController(container: ViewGroup)(implicit val context: C
   lazy val inputField = root.findViewById[InputBox](R.id.input_field)
 
   def onCreate(): Unit = {
+    import Threading.Implicits.Ui
+
     inputField.setValidator(NameValidator)
     inputField.editText.requestFocus()
     KeyboardUtils.showKeyboard(context.asInstanceOf[Activity])
-    inputField.setOnClick( text => appEntryController.setTeamName(text).map {
-      case Right(error) => Some(error.message)
-      case _ => None
-    } (Threading.Ui))
+    inputField.setOnClick( text =>
+      appEntryController.isAB.flatMap{
+        case true =>
+          appEntryController.setTeamName(text).map {
+            case Right(error) => Some(error.message)
+            case _ => None
+          }
+        case false =>
+          AppEntryDialogs.showTermsAndConditions(context).flatMap {
+            case true =>
+              appEntryController.setTeamName(text).map {
+                case Right(error) => Some(error.message)
+                case _ => None
+              }
+            case false =>
+              Future.successful(None)
+          }
+      }
+    )
   }
 }

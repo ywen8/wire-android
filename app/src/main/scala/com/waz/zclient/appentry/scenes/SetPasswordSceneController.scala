@@ -24,10 +24,13 @@ import android.text.InputType
 import android.view.ViewGroup
 import com.waz.threading.Threading
 import com.waz.utils.events.EventContext
+import com.waz.zclient._
+import com.waz.zclient.appentry.AppEntryDialogs
 import com.waz.zclient.common.views.InputBox
 import com.waz.zclient.common.views.InputBox.PasswordValidator
 import com.waz.zclient.ui.utils.KeyboardUtils
-import com.waz.zclient._
+
+import scala.concurrent.Future
 
 case class SetPasswordSceneController(container: ViewGroup)(implicit val context: Context, eventContext: EventContext, injector: Injector) extends SceneController with Injectable {
 
@@ -39,13 +42,28 @@ case class SetPasswordSceneController(container: ViewGroup)(implicit val context
   lazy val inputField = root.findViewById[InputBox](R.id.input_field)
 
   def onCreate(): Unit = {
-    inputField.setInputType(InputType.TYPE_TEXT_VARIATION_PASSWORD)
+    import Threading.Implicits.Ui
+
+    inputField.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD)
     inputField.setValidator(PasswordValidator)
     inputField.editText.requestFocus()
     KeyboardUtils.showKeyboard(context.asInstanceOf[Activity])
-    inputField.setOnClick( text => appEntryController.setPassword(text).map {
-      case Right(error) => Some(error.message)
-      case _ => None
-    } (Threading.Ui))
+    inputField.setOnClick( text =>
+      appEntryController.isAB.flatMap {
+        case true =>
+          AppEntryDialogs.showTermsAndConditions(context).flatMap {
+            case true => appEntryController.setPassword(text).map {
+              case Right(error) => Some(error.message)
+              case _ => None
+            }
+            case false =>
+              Future.successful(None)
+          }
+        case false =>
+          appEntryController.setPassword(text).map {
+            case Right(error) => Some(error.message)
+            case _ => None
+          }
+      })
   }
 }
