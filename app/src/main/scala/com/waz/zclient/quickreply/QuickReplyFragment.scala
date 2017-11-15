@@ -30,14 +30,14 @@ import com.waz.api.{EphemeralExpiration, MessageContent}
 import com.waz.api.impl.Conversation
 import com.waz.model.{AccountId, ConvId}
 import com.waz.service.ZMessaging
+import com.waz.service.tracking.ContributionEvent
+import com.waz.service.tracking.ContributionEvent.Action
 import com.waz.utils.events.Signal
 import com.waz.utils.returning
 import com.waz.zclient.controllers.SharingController
 import com.waz.zclient.controllers.global.AccentColorController
 import com.waz.zclient.pages.main.popup.ViewPagerLikeLayoutManager
-import com.waz.zclient.tracking.ContributionEvent.Action
 import com.waz.zclient.tracking.GlobalTrackingController.convType
-import com.waz.zclient.tracking.{ContributionEvent, GlobalTrackingController}
 import com.waz.zclient.ui.text.{TypefaceEditText, TypefaceTextView}
 import com.waz.zclient.ui.utils.KeyboardUtils
 import com.waz.zclient.utils._
@@ -65,14 +65,13 @@ class QuickReplyFragment extends Fragment with FragmentHelper {
   lazy val accountId = AccountId(getArguments.getString(AccountIdExtra))
 
   //TODO make an accounts/zms controller or something
-  lazy val zms = ZMessaging.currentAccounts.zmsInstances.map(_.find(_.accountId == accountId)).collect { case Some(z) => z }
+  lazy val zms = ZMessaging.currentAccounts.zms(accountId).collect { case Some(z) => z }
 
-  lazy val tracking = inject[GlobalTrackingController]
   lazy val sharing  = inject[SharingController]
 
   lazy val accentColor = for {
-    z      <- zms
-    accent <- inject[AccentColorController].accentColor(z)
+    z <- zms
+    accent  <- inject[AccentColorController].accentColor(z)
   } yield accent
 
   lazy val message = findById[TypefaceEditText](R.id.tet__quick_reply__message)
@@ -140,7 +139,10 @@ class QuickReplyFragment extends Fragment with FragmentHelper {
           } {
             textView.setEnabled(true)
             if (msg.isDefined) {
-              tracking.trackEvent(zs, ContributionEvent(Action.Text, convType, c.ephemeral, isBot))
+              ZMessaging.globalModule.map(_.trackingService.track(
+                ContributionEvent(Action.Text, convType, c.ephemeral, isBot),
+                Some(zs.accountId)
+              ))
               getActivity.finish()
             }
           }

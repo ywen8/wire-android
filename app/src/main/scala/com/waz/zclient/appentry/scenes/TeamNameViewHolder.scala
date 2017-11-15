@@ -21,6 +21,7 @@ import android.app.Activity
 import android.content.{Context, Intent}
 import android.net.Uri
 import android.view.View
+import com.waz.service.tracking.TrackingService
 import com.waz.threading.Threading
 import com.waz.utils.events.EventContext
 import com.waz.zclient._
@@ -28,17 +29,17 @@ import com.waz.zclient.appentry.AppEntryDialogs
 import com.waz.zclient.common.views.InputBox
 import com.waz.zclient.common.views.InputBox.NameValidator
 import com.waz.zclient.controllers.SignInController.{Email, Register, SignInMethod}
-import com.waz.zclient.tracking.{GlobalTrackingController, TeamAcceptedTerms}
+import com.waz.zclient.tracking.TeamAcceptedTerms
 import com.waz.zclient.ui.utils.KeyboardUtils
 import com.waz.zclient.utils.ContextUtils._
-import com.waz.zclient.utils.{ContextUtils, _}
+import com.waz.zclient.utils._
 
 import scala.concurrent.Future
 
 case class TeamNameViewHolder(root: View)(implicit val context: Context, eventContext: EventContext, injector: Injector) extends ViewHolder with Injectable {
 
   val appEntryController = inject[AppEntryController]
-  val tracking = inject[GlobalTrackingController]
+  val tracking = inject[TrackingService]
 
   lazy val inputField = root.findViewById[InputBox](R.id.input_field)
   lazy val about = root.findViewById[View](R.id.about)
@@ -60,7 +61,7 @@ case class TeamNameViewHolder(root: View)(implicit val context: Context, eventCo
       } else {
         AppEntryDialogs.showTermsAndConditions(context).flatMap {
           case true =>
-            tracking.trackEvent(TeamAcceptedTerms(TeamAcceptedTerms.AfterName))
+            tracking.track(TeamAcceptedTerms(TeamAcceptedTerms.AfterName))
             appEntryController.setTeamName(text).map {
               case Left(error) =>
                 Some(getString(EntryError(error.code, error.label, SignInMethod(Register, Email)).bodyResource))

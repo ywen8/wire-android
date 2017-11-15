@@ -33,6 +33,7 @@ import com.waz.api.impl.AccentColor
 import com.waz.model.AccountData
 import com.waz.model.otr.Client
 import com.waz.service.ZMessaging
+import com.waz.service.tracking.TrackingService
 import com.waz.threading.Threading
 import com.waz.utils.events.{EventContext, EventStream, Signal}
 import com.waz.zclient._
@@ -194,7 +195,7 @@ case class ProfileBackStackKey(args: Bundle = new Bundle()) extends BackStackKey
 class ProfileViewController(view: ProfileView)(implicit inj: Injector, ec: EventContext) extends Injectable {
   private val zms = inject[Signal[ZMessaging]]
   implicit val uiStorage = inject[UiStorage]
-  private val tracking = inject[GlobalTrackingController]
+  private val tracking = inject[TrackingService]
   val MaxAccountsCount = 2
 
   val currentUser = ZMessaging.currentAccounts.activeAccount.collect { case Some(account) if account.userId.isDefined => account.userId.get }
@@ -239,5 +240,5 @@ class ProfileViewController(view: ProfileView)(implicit inj: Injector, ec: Event
 
   ZMessaging.currentAccounts.loggedInAccounts.map(_.size < MaxAccountsCount).onUi(view.setAddAccountEnabled)
 
-  view.onManageTeamClick { _ => tracking.trackEvent(OpenedManageTeam(), zms.currentValue) }
+  view.onManageTeamClick { _ => tracking.track(OpenedManageTeam(), zms.map(_.accountId).currentValue) }
 }

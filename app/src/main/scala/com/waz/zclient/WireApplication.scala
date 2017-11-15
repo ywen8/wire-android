@@ -26,6 +26,7 @@ import com.waz.api._
 import com.waz.content.GlobalPreferences
 import com.waz.log.InternalLog
 import com.waz.model.ConversationData
+import com.waz.service.tracking.TrackingService
 import com.waz.service.{NetworkModeService, UiLifeCycle, ZMessaging}
 import com.waz.utils.events.{EventContext, Signal, Subscription}
 import com.waz.zclient.api.scala.ScalaStoreFactory
@@ -60,6 +61,7 @@ import com.waz.zclient.preferences.PreferencesController
 import com.waz.zclient.tracking.{CallingTrackingController, CrashController, GlobalTrackingController, UiTrackingController}
 import com.waz.zclient.utils.{BackStackNavigator, BackendPicker, Callback, UiStorage}
 import com.waz.zclient.views.{DraftMap, ImageController}
+import net.hockeyapp.android.Constants
 
 object WireApplication {
   var APP_INSTANCE: WireApplication = _
@@ -77,6 +79,7 @@ object WireApplication {
     bind [GlobalPreferences]           to ZMessaging.currentGlobal.prefs
     bind [NetworkModeService]          to ZMessaging.currentGlobal.network
     bind [UiLifeCycle]                 to ZMessaging.currentGlobal.lifecycle
+    bind [TrackingService]             to ZMessaging.currentGlobal.trackingService
 
     // old controllers
     // TODO: remove controller factory, reimplement those controllers
@@ -205,6 +208,8 @@ class WireApplication extends MultiDexApplication with WireContext with Injectab
     new BackendPicker(this).withBackend(new Callback[Void]() {
       def callback(aVoid: Void) = ensureInitialized()
     })
+
+    Constants.loadFromContext(getApplicationContext)
   }
 
   def ensureInitialized() = {
