@@ -27,7 +27,7 @@
     <View
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1"/>
+        android:layout_weight="0.5"/>
 
     <ImageView
         android:layout_width="match_parent"
@@ -40,7 +40,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:gravity="center"
-        android:textSize="@dimen/wire__text_size__regular_small"
+        android:textSize="@dimen/wire__text_size__regular"
         android:textColor="@color/teams_description_text"
         app:w_font="@string/wire__typeface__regular"
         android:text="@string/app_entry_slogan"
@@ -61,7 +61,6 @@
         android:textSize="@dimen/app_entry_button_glyph_size"
         android:gravity="center"
         android:textColor="@color/white"
-        android:layout_marginTop="@dimen/wire__padding__huge"
         android:clickable="true"
         android:focusable="true"/>
 

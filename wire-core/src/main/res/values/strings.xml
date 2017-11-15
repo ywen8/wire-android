@@ -636,6 +636,7 @@
     <string name="url_otr_learn_how">https://wire.com/privacy/how</string>
     <string name="url_otr_decryption_error_1">https://wire.com/privacy/error-1</string>
     <string name="url_otr_decryption_error_2">https://wire.com/privacy/error-2</string>
+    <string name="url_about_teams">https://wire.com/en/features/#teams</string>
 
     <!-- No Internet connection -->
     <string name="system_status__no_internet">NO INTERNET</string>
@@ -1101,7 +1102,7 @@
     <string name="message_bottom_menu_action_reveal">Reveal in conversation</string>
     <string name="likes_list__header">Liked by</string>
     <string name="message_bottom_menu_action_save_ok">Picture saved</string>
-    <string name="message_bottom_menu_action_save_fail">Error saving image</string>
+    <string name="message_bottom_menu_action_save_fail" translatable="false">Error saving image</string>
 
     <string name="message_footer__tap_to_like">Tap to like</string>
     <plurals name="message_footer__number_of_likes">
@@ -1221,34 +1222,35 @@
     <string name="new_devices_dialog_info">If you didn\'t do this, remove the device and reset your password.</string>
     <string name="new_devices_dialog_manage_devices">Manage devices</string>
 
-    <string name="teams_set_email_title">Set email</string>
-    <string name="Teams_set_email_subtitle">You should use your company email address</string>
-    <string name="teams_set_email_hint">EMAIL ADDRESS</string>
+    <string name="teams_set_email_title">Your account</string>
+    <string name="Teams_set_email_subtitle">Enter your work email address.</string>
+    <string name="teams_set_email_hint">you@yourcompany.com</string>
 
-    <string name="teams_set_password_title">Set Password</string>
-    <string name="teams_set_password_hint">PASSWORD</string>
+    <string name="teams_set_password_title">Set password</string>
+    <string name="teams_set_password_hint">AT LEAST 8 CHARACTERS</string>
 
-    <string name="teams_set_username_title">Set Username</string>
+    <string name="teams_set_username_title">Set username</string>
     <string name="teams_set_username_hint">USERNAME</string>
 
-    <string name="teams_set_team_name_title">Set team name</string>
-    <string name="teams_set_team_name_subtitle">You can always change it later</string>
+    <string name="teams_set_team_name_title">Name your team</string>
+    <string name="teams_set_team_name_subtitle">You can always change it later.</string>
     <string name="teams_set_team_name_hint">TEAM NAME</string>
     <string name="teams_set_team_name_about">WHAT IS WIRE FOR TEAMS?</string>
 
     <string name="teams_verify_email_title">You\'ve got email</string>
+    <string name="teams_verify_email_subtitle">Enter the verification we sent to %1$s</string>
     <string name="teams_verify_email_resend">RESEND EMAIL</string>
     <string name="teams_verify_email_change">CHANGE EMAIL</string>
 
-    <string name="teams_set_name_title">Set Name</string>
-    <string name="teams_set_name_hint">NAME</string>
+    <string name="teams_set_name_title">Your name</string>
+    <string name="teams_set_name_hint">FULL NAME</string>
     <string name="app_entry_slogan">Secure messenger for everyone</string>
     <string name="app_entry_create_account">Create an account</string>
     <string name="app_entry_create_account_sub">for personal use</string>
     <string name="app_entry_create_team">Create a team</string>
     <string name="app_entry_create_team_sub">for work</string>
     <string name="app_entry_login_sub">Already have an account?</string>
-    <string name="app_entry_login">Login</string>
+    <string name="app_entry_login">Log in</string>
 
     <string name="app_entry_tc_dialog_title">Terms of Service</string>
     <string name="app_entry_tc_dialog_message">You must accept to continue</string>
