@@ -56,7 +56,7 @@ class CreateTeamFragment extends BaseFragment[Container] with FragmentHelper wit
         case SetPasswordTeam => SetPasswordSceneHolder(container)(getContext, this, injector)
         case SetUsernameTeam => SetUsernameSceneHolder(container)(getContext, this, injector)
       }
-      TransitionManager.go(entryScene.scene, new AutoTransition())
+      TransitionManager.go(entryScene.scene, new SupportAutoTransition())
       entryScene.onCreate()
 
       if(!state.isInstanceOf[NoAccountState])
@@ -82,4 +82,9 @@ object CreateTeamFragment {
   def newInstance = new CreateTeamFragment
 
   trait Container
+}
+
+class SupportAutoTransition extends TransitionSet {
+  setOrdering(TransitionSet.ORDERING_TOGETHER)
+  addTransition(new Fade(Fade.OUT)).addTransition(new ChangeBounds).addTransition(new Fade(Fade.IN))
 }
