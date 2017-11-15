@@ -28,8 +28,10 @@ import com.waz.zclient._
 import com.waz.zclient.appentry.AppEntryDialogs
 import com.waz.zclient.common.views.InputBox
 import com.waz.zclient.common.views.InputBox.PasswordValidator
+import com.waz.zclient.controllers.SignInController.{Email, Register, SignInMethod}
 import com.waz.zclient.ui.utils.KeyboardUtils
 import com.waz.zclient.utils._
+
 import scala.concurrent.Future
 
 case class SetPasswordSceneHolder(container: ViewGroup)(implicit val context: Context, eventContext: EventContext, injector: Injector) extends SceneHolder with Injectable {
@@ -54,17 +56,19 @@ case class SetPasswordSceneHolder(container: ViewGroup)(implicit val context: Co
       appEntryController.isAB.flatMap {
         case true =>
           AppEntryDialogs.showTermsAndConditions(context).flatMap {
-            case true => appEntryController.setPassword(text).map {
-              case Right(error) => Some(error.message)
-              case _ => None
+            case true => appEntryController.setPassword(text).collect {
+              case Right(error) =>
+                val errorMessage = ContextUtils.getString(EntryError(error.code, error.label, SignInMethod(Register, Email)).bodyResource)
+                Some(errorMessage)
             }
             case false =>
               Future.successful(None)
           }
         case false =>
-          appEntryController.setPassword(text).map {
-            case Right(error) => Some(error.message)
-            case _ => None
+          appEntryController.setPassword(text).collect {
+            case Right(error) =>
+              val errorMessage = ContextUtils.getString(EntryError(error.code, error.label, SignInMethod(Register, Email)).bodyResource)
+              Some(errorMessage)
           }
       })
   }
