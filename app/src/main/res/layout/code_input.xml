@@ -30,7 +30,8 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:orientation="horizontal">
+            android:orientation="horizontal"
+            android:baselineAligned="false">
 
             <FrameLayout
                 android:layout_width="0dp"
@@ -39,8 +40,8 @@
 
                 <com.waz.zclient.ui.text.TypefaceTextView
                     android:id="@+id/t1"
-                    android:layout_width="46dp"
-                    android:layout_height="56dp"
+                    android:layout_width="@dimen/verification_code_input_cell_width"
+                    android:layout_height="@dimen/verification_code_input_cell_height"
                     android:layout_gravity="center"
                     android:gravity="center"
                     android:textSize="@dimen/wire__text_size__medium"
@@ -54,8 +55,8 @@
 
                 <com.waz.zclient.ui.text.TypefaceTextView
                     android:id="@+id/t2"
-                    android:layout_width="46dp"
-                    android:layout_height="56dp"
+                    android:layout_width="@dimen/verification_code_input_cell_width"
+                    android:layout_height="@dimen/verification_code_input_cell_height"
                     android:layout_gravity="center"
                     android:gravity="center"
                     android:textSize="@dimen/wire__text_size__medium"
@@ -69,8 +70,8 @@
 
                 <com.waz.zclient.ui.text.TypefaceTextView
                     android:id="@+id/t3"
-                    android:layout_width="46dp"
-                    android:layout_height="56dp"
+                    android:layout_width="@dimen/verification_code_input_cell_width"
+                    android:layout_height="@dimen/verification_code_input_cell_height"
                     android:layout_gravity="center"
                     android:gravity="center"
                     android:textSize="@dimen/wire__text_size__medium"
@@ -84,8 +85,8 @@
 
                 <com.waz.zclient.ui.text.TypefaceTextView
                     android:id="@+id/t4"
-                    android:layout_width="46dp"
-                    android:layout_height="56dp"
+                    android:layout_width="@dimen/verification_code_input_cell_width"
+                    android:layout_height="@dimen/verification_code_input_cell_height"
                     android:layout_gravity="center"
                     android:gravity="center"
                     android:textSize="@dimen/wire__text_size__medium"
@@ -98,8 +99,8 @@
                 android:layout_weight="1">
                 <com.waz.zclient.ui.text.TypefaceTextView
                     android:id="@+id/t5"
-                    android:layout_width="46dp"
-                    android:layout_height="56dp"
+                    android:layout_width="@dimen/verification_code_input_cell_width"
+                    android:layout_height="@dimen/verification_code_input_cell_height"
                     android:layout_gravity="center"
                     android:gravity="center"
                     android:textSize="@dimen/wire__text_size__medium"
@@ -113,8 +114,8 @@
 
                 <com.waz.zclient.ui.text.TypefaceTextView
                     android:id="@+id/t6"
-                    android:layout_width="46dp"
-                    android:layout_height="56dp"
+                    android:layout_width="@dimen/verification_code_input_cell_width"
+                    android:layout_height="@dimen/verification_code_input_cell_height"
                     android:layout_gravity="center"
                     android:gravity="center"
                     android:textSize="@dimen/wire__text_size__medium"
@@ -126,17 +127,16 @@
         <com.waz.zclient.ui.cursor.CursorEditText
             android:id="@+id/code_edit_text"
             android:layout_width="match_parent"
-            android:layout_height="56dp"
-            android:paddingStart="16dp"
-            android:paddingEnd="16dp"
+            android:layout_height="@dimen/teams_input_box_height"
+            android:paddingStart="@dimen/wire__padding__regular"
+            android:paddingEnd="@dimen/wire__padding__regular"
             android:background="@null"
             android:textSize="@dimen/wire__text_size__medium"
             android:inputType="numberDecimal"
             android:maxLength="6"
             android:maxLines="1"
             android:visibility="visible"
-            android:layout_centerInParent="true"
-            android:alpha="0"
+            android:alpha="@dimen/framework__zero__alpha"
             android:textIsSelectable="false"
             />
 
@@ -144,13 +144,13 @@
 
     <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="40dp">
+        android:layout_height="@dimen/app_entry_input_box_aux_height">
 
         <ProgressBar
             android:id="@+id/progress_bar"
             android:layout_marginTop="@dimen/wire__padding__8"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
+            android:layout_width="@dimen/progress_spinner_size"
+            android:layout_height="@dimen/progress_spinner_size"
             android:layout_gravity="center_horizontal|top"/>
 
         <com.waz.zclient.ui.text.TypefaceTextView

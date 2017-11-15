@@ -899,5 +899,18 @@
     <dimen name="new_cursor_button_left_margin">4dp</dimen>
     <dimen name="phone_sign_in_container_height">160dp</dimen>
     <dimen name="settings_divider_margin_start">48dp</dimen>
+
     <dimen name="teams_input_box_height">56dp</dimen>
+    <dimen name="teams_back_button_size">16dp</dimen>
+    <dimen name="app_entry_logo_height">36dp</dimen>
+    <dimen name="app_entry_button_size">72dp</dimen>
+    <dimen name="app_entry_button_glyph_size">32dp</dimen>
+    <dimen name="verification_code_input_cell_height">56dp</dimen>
+    <dimen name="verification_code_input_cell_width">46dp</dimen>
+    <dimen name="app_entry_input_hint_padding">24dp</dimen>
+    <dimen name="app_entry_input_confirm_size">32dp</dimen>
+    <dimen name="app_entry_input_confirm_glyph_size">18dp</dimen>
+    <dimen name="progress_spinner_size">32dp</dimen>
+    <dimen name="app_entry_input_box_margin_top">56dp</dimen>
+    <dimen name="app_entry_input_box_aux_height">40dp</dimen>
 </resources>

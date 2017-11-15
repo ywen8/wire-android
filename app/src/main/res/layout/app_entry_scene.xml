@@ -31,7 +31,7 @@
 
     <ImageView
         android:layout_width="match_parent"
-        android:layout_height="36dp"
+        android:layout_height="@dimen/app_entry_logo_height"
         android:src="@drawable/wire"
         android:tint="@color/teams_headline_text"/>
 
@@ -53,12 +53,12 @@
 
     <com.waz.zclient.ui.text.GlyphTextView
         android:id="@+id/create_account_button"
-        android:layout_width="72dp"
-        android:layout_height="72dp"
+        android:layout_width="@dimen/app_entry_button_size"
+        android:layout_height="@dimen/app_entry_button_size"
         android:text="@string/glyph__profile"
         android:background="@drawable/app_entry_create_account"
         android:layout_gravity="center"
-        android:textSize="32dp"
+        android:textSize="@dimen/app_entry_button_glyph_size"
         android:gravity="center"
         android:textColor="@color/white"
         android:layout_marginTop="@dimen/wire__padding__huge"
@@ -91,12 +91,12 @@
 
     <com.waz.zclient.ui.text.GlyphTextView
         android:id="@+id/create_team_button"
-        android:layout_width="72dp"
-        android:layout_height="72dp"
+        android:layout_width="@dimen/app_entry_button_size"
+        android:layout_height="@dimen/app_entry_button_size"
         android:text="@string/glyph__manage_team"
         android:background="@drawable/app_entry_create_team"
         android:layout_gravity="center"
-        android:textSize="32dp"
+        android:textSize="@dimen/app_entry_button_glyph_size"
         android:gravity="center"
         android:textColor="@color/white"
         android:layout_marginTop="@dimen/wire__padding__huge"

@@ -97,8 +97,9 @@ public class CursorEditText extends TypefaceEditText {
     @Override
     protected void onSelectionChanged(int selStart, int selEnd) {
         super.onSelectionChanged(selStart, selEnd);
-        if (callback != null)
+        if (callback != null) {
             callback.onSelectionChanged(selStart, selEnd);
+        }
     }
 
     public void setSelectionChangedCallback(SelectionChangedCallback callback) {

@@ -36,7 +36,6 @@
         android:textSize="@dimen/wire__text_size__medium"
         app:w_font="@string/wire__typeface__light"
         android:maxLines="1"
-        android:singleLine="true"
         android:inputType="numberDecimal"
         android:textCursorDrawable="@null"
         android:cursorVisible="true"

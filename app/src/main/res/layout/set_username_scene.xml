@@ -52,7 +52,7 @@
         android:id="@+id/input_field"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="56dp"
+        android:layout_marginTop="@dimen/app_entry_input_box_margin_top"
         android:layout_marginBottom="@dimen/wire__padding__16"
         app:hint="@string/teams_set_username_hint"/>
 
