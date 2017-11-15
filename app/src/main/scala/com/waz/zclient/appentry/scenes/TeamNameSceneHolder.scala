@@ -75,8 +75,7 @@ case class TeamNameSceneHolder(container: ViewGroup)(implicit val context: Conte
           }
       }
     )
-    //TODO: what's the url?
-    about.onClick(openUrl(R.string.url_home))
+    about.onClick(openUrl(R.string.url_about_teams))
   }
 
   private def openUrl(id: Int): Unit ={

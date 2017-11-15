@@ -59,7 +59,7 @@ class CreateTeamFragment extends BaseFragment[Container] with FragmentHelper wit
       TransitionManager.go(entryScene.scene, new SupportAutoTransition())
       entryScene.onCreate()
 
-      if(!state.isInstanceOf[NoAccountState])
+      if(state != NoAccountState(FirstScreen) && state != SetUsernameTeam)
         backButton.setVisibility(View.VISIBLE)
       else
         backButton.setVisibility(View.GONE)

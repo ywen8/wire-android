@@ -18,8 +18,7 @@
 
 package com.waz.zclient.pages.main.profile.preferences.pages
 
-import android.content.{Context, Intent}
-import android.net.Uri
+import android.content.Context
 import android.os.Bundle
 import android.support.design.widget.BottomSheetDialog
 import android.view.View
@@ -27,10 +26,13 @@ import android.view.View.OnClickListener
 import android.widget.LinearLayout
 import com.waz.service.ZMessaging
 import com.waz.threading.Threading
-import com.waz.zclient.{DialogHelper, R}
+import com.waz.zclient.AppEntryController.{LoginScreen, RegisterTeamScreen}
+import com.waz.zclient.{AppEntryController, DialogHelper, R}
+import Threading.Implicits.Ui
 
 class ProfileBottomSheetDialog(val context: Context, theme: Int) extends BottomSheetDialog(context, theme) with DialogHelper {
 
+  lazy val appEntryController = inject[AppEntryController]
   val MaxAccountsCount = 2
 
   override def onCreate(savedInstanceState: Bundle): Unit = {
@@ -44,7 +46,8 @@ class ProfileBottomSheetDialog(val context: Context, theme: Int) extends BottomS
 
     createTeamButton.setOnClickListener(new OnClickListener {
       override def onClick(v: View): Unit = {
-        context.startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(context.getString(R.string.create_team_url))))
+        createTeamButton.setEnabled(false)
+        ZMessaging.currentAccounts.logout(false).map( _ => appEntryController.firstStage ! RegisterTeamScreen)
         dismiss()
       }
     })
@@ -52,7 +55,7 @@ class ProfileBottomSheetDialog(val context: Context, theme: Int) extends BottomS
     addAccountButton.setOnClickListener(new OnClickListener {
       override def onClick(v: View): Unit = {
         addAccountButton.setEnabled(false)
-        ZMessaging.currentAccounts.logout(false)
+        ZMessaging.currentAccounts.logout(false).map( _ => appEntryController.firstStage ! LoginScreen)
         dismiss()
       }
     })

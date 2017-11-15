@@ -131,14 +131,19 @@ class AppEntryController(implicit inj: Injector, eventContext: EventContext) ext
   def createTeamBack(): Unit = {
     ZMessaging.currentAccounts.activeAccount.head.flatMap {
       case Some(accountData) if accountData.pendingTeamName.isDefined && accountData.name.isDefined =>
+        password = ""
         ZMessaging.currentAccounts.updateCurrentAccount(_.copy(name = None))
       case Some(accountData) if accountData.pendingTeamName.isDefined && accountData.code.isDefined =>
+        teamUserName = ""
         ZMessaging.currentAccounts.updateCurrentAccount(_.copy(code = None))
       case Some(accountData) if accountData.pendingTeamName.isDefined && accountData.pendingEmail.isDefined =>
+        code = ""
         ZMessaging.currentAccounts.updateCurrentAccount(_.copy(pendingEmail = None))
       case Some(accountData) if accountData.pendingTeamName.isDefined =>
+        teamEmail = ""
         ZMessaging.currentAccounts.logout(true)
       case _ =>
+        teamName = ""
         Future.successful(firstStage ! FirstScreen)
     }
   }
@@ -327,7 +332,7 @@ class AppEntryController(implicit inj: Injector, eventContext: EventContext) ext
 
 
   private val fakeAB = Random.nextBoolean()
-  def isAB: Future[Boolean] = Future.successful(false)
+  def isAB: Future[Boolean] = Future.successful(fakeAB)
 
 }
 
