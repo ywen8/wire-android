@@ -99,8 +99,6 @@ class AppEntryController(implicit inj: Injector, eventContext: EventContext) ext
         VerifyTeamEmail
       case (Some(accountData), None) if accountData.pendingTeamName.isDefined && accountData.name.isEmpty =>
         SetUsersNameTeam
-      case (Some(accountData), None) if accountData.pendingTeamName.isDefined && accountData.handle.isEmpty =>
-        SetUsernameTeam
       case (Some(accountData), None) if accountData.pendingTeamName.isDefined =>
         SetPasswordTeam
       case (Some(accountData), _) if accountData.clientRegState == ClientRegistrationState.PASSWORD_MISSING && accountData.email.orElse(accountData.pendingEmail).isDefined =>
@@ -115,6 +113,8 @@ class AppEntryController(implicit inj: Injector, eventContext: EventContext) ext
         AddNameStage
       case (Some(accountData), None) if accountData.cookie.isDefined || accountData.accessToken.isDefined =>
         Waiting
+      case (Some(accountData), Some(userData)) if accountData.handle.isEmpty && (accountData.pendingTeamName.isDefined || accountData.teamId.fold(_ => false, _.isDefined)) =>
+        SetUsernameTeam
       case (Some(accountData), Some(userData)) if userData.picture.isEmpty =>
         AddPictureStage
       case (Some(accountData), Some(userData)) if userData.handle.isEmpty =>
@@ -317,9 +317,13 @@ class AppEntryController(implicit inj: Injector, eventContext: EventContext) ext
       }
     }
 
-  //TODO: set the actual username
   def setUsername(username: String): Future[Either[Unit, ErrorResponse]] =
-    ZMessaging.currentAccounts.updateCurrentAccount(_.copy(handle = Some(Handle(username)))) map { _ => Left(()) }
+    ZMessaging.currentUi.users.setSelfHandle(Handle(username), None).flatMap {
+      case Right(_) =>
+        ZMessaging.currentAccounts.updateCurrentAccount(_.copy(handle = Some(Handle(username)))) map { _ => Left(()) }
+      case Left(e) =>
+        Future.successful(Right(e))
+    }
 
 
   private val fakeAB = Random.nextBoolean()
