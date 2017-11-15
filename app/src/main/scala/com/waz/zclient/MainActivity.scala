@@ -54,7 +54,7 @@ import com.waz.zclient.fragments.ConnectivityFragment
 import com.waz.zclient.pages.main.{MainPhoneFragment, MainTabletFragment}
 import com.waz.zclient.pages.startup.UpdateFragment
 import com.waz.zclient.preferences.{PreferencesActivity, PreferencesController}
-import com.waz.zclient.tracking.{CrashController, GlobalTrackingController, LoggedOutEvent, UiTrackingController}
+import com.waz.zclient.tracking.{CrashController, GlobalTrackingController, UiTrackingController}
 import com.waz.zclient.utils.PhoneUtils.PhoneState
 import com.waz.zclient.utils.StringUtils.TextDrawing
 import com.waz.zclient.utils.{BuildConfigUtils, ContextUtils, Emojis, IntentUtils, LayoutSpec, PhoneUtils, ViewUtils}
@@ -74,7 +74,6 @@ class MainActivity extends BaseActivity
   with ConnectStoreObserver
   with NavigationControllerObserver
   with CallingObserver
-  with OtrDeviceLimitFragment.Container
   with ZMessagingApiStoreObserver {
 
   import Threading.Implicits.Background
@@ -428,23 +427,22 @@ class MainActivity extends BaseActivity
       case None =>
         getSupportFragmentManager
           .beginTransaction
-          .replace(R.id.fl_main_otr_warning, OtrDeviceLimitFragment.newInstance, OtrDeviceLimitFragment.TAG)
-          .addToBackStack(OtrDeviceLimitFragment.TAG)
+          .replace(R.id.fl_main_otr_warning, returning(OtrDeviceLimitFragment.newInstance) { implicit f =>
+            f.onDismiss.next.map(_ => getSupportFragmentManager.popBackStackImmediate)(Threading.Ui)
+            f.onLogout.next.map { _ =>
+              getSupportFragmentManager.popBackStackImmediate
+              getStoreFactory.zMessagingApiStore.logout()
+              getControllerFactory.getUsernameController.logout()
+            }(Threading.Ui)
+            f.onManageDevices.next.map { _ =>
+              getSupportFragmentManager.popBackStackImmediate
+              startActivity(ShowDevicesIntent(this))
+            }(Threading.Ui)
+
+          }, OtrDeviceLimitFragment.Tag)
+          .addToBackStack(OtrDeviceLimitFragment.Tag)
           .commitAllowingStateLoss
   }
-
-  def logout() = {
-    getSupportFragmentManager.popBackStackImmediate
-    getStoreFactory.zMessagingApiStore.logout()
-    getControllerFactory.getUsernameController.logout()
-  }
-
-  def manageDevices() = {
-    getSupportFragmentManager.popBackStackImmediate
-    startActivity(ShowDevicesIntent(this))
-  }
-
-  def dismissOtrDeviceLimitFragment() = getSupportFragmentManager.popBackStackImmediate
 
   def onInitialized(self: Self) = enterApplication(self)
 

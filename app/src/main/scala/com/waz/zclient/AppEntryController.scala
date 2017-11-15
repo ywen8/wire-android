@@ -45,6 +45,9 @@ class AppEntryController(implicit inj: Injector, eventContext: EventContext) ext
 
   lazy val optZms = inject[Signal[Option[ZMessaging]]]
   lazy val tracking = inject[GlobalTrackingController]
+
+  val pendingAccount = Signal.future(ZMessaging.accountsService).flatMap(_.pendingAccount)
+
   val currentAccount = ZMessaging.currentAccounts.activeAccount
   val currentAccountManager = ZMessaging.currentAccounts.activeAccountManager
   val currentUser = optZms.flatMap{ _.fold(Signal.const(Option.empty[UserData]))(z => z.usersStorage.optSignal(z.selfUserId)) }

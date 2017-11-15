@@ -40,7 +40,6 @@ public class MainTestActivity extends TestActivity implements MainPhoneFragment.
                                                               ConnectStoreObserver,
                                                               NavigationControllerObserver,
                                                               CallingObserver,
-                                                              OtrDeviceLimitFragment.Container,
                                                               ZMessagingApiStoreObserver {
 
     @Override
@@ -60,21 +59,6 @@ public class MainTestActivity extends TestActivity implements MainPhoneFragment.
 
     @Override
     public void onInviteRequestSent(IConversation conversation) {
-
-    }
-
-    @Override
-    public void logout() {
-
-    }
-
-    @Override
-    public void manageDevices() {
-
-    }
-
-    @Override
-    public void dismissOtrDeviceLimitFragment() {
 
     }
 
