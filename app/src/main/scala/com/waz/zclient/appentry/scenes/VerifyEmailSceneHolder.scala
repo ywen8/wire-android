@@ -46,6 +46,9 @@ case class VerifyEmailSceneHolder(container: ViewGroup)(implicit val context: Co
   lazy val changeEmail = root.findViewById[TypefaceTextView](R.id.change_email)
   lazy val subtitle = root.findViewById[TypefaceTextView](R.id.subtitle)
 
+  private var resendCount = 0
+  @volatile private var cooldown = true
+
   def onCreate(): Unit = {
     import Threading.Implicits.Ui
 
@@ -77,12 +80,26 @@ case class VerifyEmailSceneHolder(container: ViewGroup)(implicit val context: Co
       }
     })
 
-    resend.onClick(appEntryController.resendTeamEmailVerificationCode() map {
-      case Left(_) => Toast.makeText(context, "Email sent", Toast.LENGTH_SHORT).show()
-      case Right(error) =>
-        val errorMessage = ContextUtils.getString(EntryError(error.code, error.label, SignInMethod(Register, Email)).bodyResource)
-        Toast.makeText(context, errorMessage, Toast.LENGTH_SHORT).show()
-    })
+    resend.onClick {
+      if (resendCount < 3) {
+        if (cooldown) {
+          resendCount += 1
+          cooldown = false
+          appEntryController.resendTeamEmailVerificationCode() map {
+            case Left(_) =>
+              cooldown = true
+              Toast.makeText(context, ContextUtils.getString(R.string.app_entry_email_sent), Toast.LENGTH_SHORT).show()
+            case Right(error) =>
+              cooldown = true
+              val errorMessage = ContextUtils.getString(EntryError(error.code, error.label, SignInMethod(Register, Email)).bodyResource)
+              Toast.makeText(context, errorMessage, Toast.LENGTH_SHORT).show()
+          }
+        }
+      } else {
+        Toast.makeText(context, ContextUtils.getString(R.string.new_reg_phone_too_man_attempts_header), Toast.LENGTH_SHORT).show()
+      }
+    }
+
     changeEmail.onClick(appEntryController.createTeamBack())
   }
 

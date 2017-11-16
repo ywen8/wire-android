@@ -1260,4 +1260,6 @@
     <string name="app_entry_dialog_accept">ACCEPT</string>
     <string name="app_entry_dialog_cancel">CANCEL</string>
     <string name="app_entry_dialog_view">VIEW</string>
+
+    <string name="app_entry_email_sent">Email sent</string>
 </resources>
