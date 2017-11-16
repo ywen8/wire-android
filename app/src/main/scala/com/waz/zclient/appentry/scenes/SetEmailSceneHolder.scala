@@ -20,6 +20,7 @@ package com.waz.zclient.appentry.scenes
 import android.app.Activity
 import android.content.Context
 import android.support.transition.Scene
+import android.text.InputType
 import android.view.ViewGroup
 import com.waz.threading.Threading
 import com.waz.utils.events.EventContext
@@ -44,6 +45,7 @@ case class SetEmailSceneHolder(container: ViewGroup)(implicit val context: Conte
     inputField.editText.setText(appEntryController.teamEmail)
     inputField.editText.addTextListener(appEntryController.teamEmail = _)
     inputField.editText.requestFocus()
+    inputField.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS)
     KeyboardUtils.showKeyboard(context.asInstanceOf[Activity])
     inputField.setOnClick( text => appEntryController.requestTeamEmailVerificationCode(text).map {
       case Right(error) =>
