@@ -26,7 +26,7 @@ import com.waz.client.RegistrationClientImpl.ActivateResult.{Failure, PasswordEx
 import com.waz.model._
 import com.waz.service.ZMessaging
 import com.waz.threading.Threading
-import com.waz.utils.events.{EventContext, Signal}
+import com.waz.utils.events.{EventContext, EventStream, Signal}
 import com.waz.zclient.AppEntryController._
 import com.waz.zclient.controllers.SignInController
 import com.waz.zclient.controllers.SignInController._
@@ -47,6 +47,8 @@ class AppEntryController(implicit inj: Injector, eventContext: EventContext) ext
   val currentUser = optZms.flatMap{ _.fold(Signal.const(Option.empty[UserData]))(z => z.usersStorage.optSignal(z.selfUserId)) }
   val invitationToken = Signal(Option.empty[String])
   val firstStage = Signal[FirstStage](FirstScreen)
+
+  val onTeamRegistrationComplete = EventStream[Unit]()
 
   val invitationDetails = for {
     Some(token) <- invitationToken
@@ -115,7 +117,7 @@ class AppEntryController(implicit inj: Injector, eventContext: EventContext) ext
         Waiting
       case (Some(accountData), Some(userData)) if accountData.handle.isEmpty && (accountData.pendingTeamName.isDefined || accountData.teamId.fold(_ => false, _.isDefined)) =>
         SetUsernameTeam
-      case (Some(accountData), Some(userData)) if userData.picture.isEmpty =>
+      case (Some(accountData), Some(userData)) if userData.picture.isEmpty && !(accountData.pendingTeamName.isDefined || accountData.teamId.fold(_ => false, _.isDefined)) =>
         AddPictureStage
       case (Some(accountData), Some(userData)) if userData.handle.isEmpty =>
         AddHandleStage
@@ -317,7 +319,9 @@ class AppEntryController(implicit inj: Injector, eventContext: EventContext) ext
   def setPassword(password: String): Future[Either[Unit, ErrorResponse]] =
     ZMessaging.currentAccounts.updateCurrentAccount(_.copy(password= Some(password))) flatMap { _ =>
       ZMessaging.currentAccounts.register().map {
-        case Right(()) => Left(())
+        case Right(()) =>
+          onTeamRegistrationComplete ! (())
+          Left(())
         case Left(e) => Right(e)
       }
     }

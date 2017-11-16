@@ -29,10 +29,13 @@ import com.waz.threading.Threading
 import com.waz.zclient.AppEntryController.{LoginScreen, RegisterTeamScreen}
 import com.waz.zclient.{AppEntryController, DialogHelper, R}
 import Threading.Implicits.Ui
+import com.waz.zclient.controllers.SignInController
+import com.waz.zclient.controllers.SignInController.{Email, Login, SignInMethod}
 
 class ProfileBottomSheetDialog(val context: Context, theme: Int) extends BottomSheetDialog(context, theme) with DialogHelper {
 
   lazy val appEntryController = inject[AppEntryController]
+  lazy val signInController = inject[SignInController]
   val MaxAccountsCount = 2
 
   override def onCreate(savedInstanceState: Bundle): Unit = {
@@ -55,7 +58,10 @@ class ProfileBottomSheetDialog(val context: Context, theme: Int) extends BottomS
     addAccountButton.setOnClickListener(new OnClickListener {
       override def onClick(v: View): Unit = {
         addAccountButton.setEnabled(false)
-        ZMessaging.currentAccounts.logout(false).map( _ => appEntryController.firstStage ! LoginScreen)
+        ZMessaging.currentAccounts.logout(false).map{ _ =>
+          appEntryController.firstStage ! LoginScreen
+          signInController.uiSignInState ! SignInMethod(Login, Email)
+        }
         dismiss()
       }
     })

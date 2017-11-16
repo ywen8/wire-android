@@ -145,13 +145,14 @@ class SignInFragment extends BaseFragment[Container] with FragmentHelper with Vi
           case TabPages.CREATE_ACCOUNT =>
             tabSelector.setSelected(TabPages.CREATE_ACCOUNT)
             signInController.uiSignInState.mutate {
+              case _ => SignInMethod(Register, Phone) //TODO: remove to enable register by email
               case SignInMethod(Login, x) => SignInMethod(Register, x)
               case other => other
             }
           case TabPages.SIGN_IN =>
             tabSelector.setSelected(TabPages.SIGN_IN)
             signInController.uiSignInState.mutate {
-              case SignInMethod(Register, x) => SignInMethod(Login, Email)
+              case SignInMethod(Register, _) => SignInMethod(Login, Email)
               case other => other
             }
           case _ =>

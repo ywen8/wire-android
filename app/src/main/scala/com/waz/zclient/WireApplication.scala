@@ -122,6 +122,7 @@ object WireApplication {
     bind [ConversationController]          to new ConversationController()
     bind [NavigationController]      to new NavigationController()
     bind [AppEntryController]        to new AppEntryController()
+    bind [SignInController]          to new SignInController()
 
 
     // current conversation data
@@ -163,7 +164,6 @@ object WireApplication {
     bind [CollectionController]      to new CollectionController()
     bind [UiStorage]                 to new UiStorage()
     bind [BackStackNavigator]        to new BackStackNavigator()
-    bind [SignInController]          to new SignInController()
 
     bind [CursorController]           to new CursorController()
     bind [ConversationListController] to new ConversationListController()

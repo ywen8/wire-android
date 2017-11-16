@@ -107,6 +107,10 @@ class AppEntryActivity extends BaseActivity
       def onBitmapLoaded(b: Bitmap): Unit = {}
     })
 
+    appEntryController.onTeamRegistrationComplete.onUi { _ =>
+      appEntryController.setPicture(unsplashInitImageAsset, SignUpPhotoFragment.Source.Unsplash, SignUpPhotoFragment.RegistrationType.Email)
+    }
+
     appEntryController.entryStage.onUi {
       case EnterAppStage =>
         onEnterApplication(false)

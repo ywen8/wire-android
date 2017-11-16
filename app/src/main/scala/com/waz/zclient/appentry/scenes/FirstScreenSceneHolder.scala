@@ -24,7 +24,7 @@ import android.view.{View, ViewGroup}
 import com.waz.utils.events.EventContext
 import com.waz.zclient._
 import com.waz.zclient.controllers.SignInController
-import com.waz.zclient.controllers.SignInController.{Login, Phone, Register, SignInMethod}
+import com.waz.zclient.controllers.SignInController._
 import com.waz.zclient.ui.text.{GlyphTextView, TypefaceTextView}
 
 case class FirstScreenSceneHolder(container: ViewGroup)(implicit val context: Context, eventContext: EventContext, injector: Injector) extends SceneHolder with Injectable {
@@ -53,7 +53,7 @@ case class FirstScreenSceneHolder(container: ViewGroup)(implicit val context: Co
               signInController.uiSignInState ! SignInMethod(Register, Phone)
             case R.id.login_button =>
               appEntryController.goToLoginScreen()
-              signInController.uiSignInState ! SignInMethod(Login, Phone)
+              signInController.uiSignInState ! SignInMethod(Login, Email)
             case _ =>
           }
         }
