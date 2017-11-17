@@ -19,13 +19,18 @@ package com.waz.zclient.appentry.scenes
 
 import android.content.Context
 import android.support.transition.Scene
-import android.view.View.OnClickListener
-import android.view.{View, ViewGroup}
+import android.view.View.{OnClickListener, OnTouchListener}
+import android.view.{MotionEvent, View, ViewGroup, ViewPropertyAnimator}
+import android.widget.LinearLayout
+import com.waz.ZLog
 import com.waz.utils.events.EventContext
 import com.waz.zclient._
 import com.waz.zclient.controllers.SignInController
 import com.waz.zclient.controllers.SignInController._
-import com.waz.zclient.ui.text.{GlyphTextView, TypefaceTextView}
+import com.waz.zclient.ui.text.TypefaceTextView
+import android.animation.Animator
+import android.graphics.Rect
+import com.waz.zclient.appentry.scenes.FirstScreenSceneHolder.AppEntryButtonOnTouchListener
 
 case class FirstScreenSceneHolder(container: ViewGroup)(implicit val context: Context, eventContext: EventContext, injector: Injector) extends SceneHolder with Injectable {
 
@@ -35,28 +40,72 @@ case class FirstScreenSceneHolder(container: ViewGroup)(implicit val context: Co
   val scene = Scene.getSceneForLayout(container, R.layout.app_entry_scene, context)
   val root = scene.getSceneRoot
 
-  lazy val createTeamButton = root.findViewById[GlyphTextView](R.id.create_team_button)
-  lazy val createTeamText = root.findViewById[TypefaceTextView](R.id.create_team_text)
-  lazy val createAccountButton = root.findViewById[GlyphTextView](R.id.create_account_button)
-  lazy val createAccountText = root.findViewById[TypefaceTextView](R.id.create_account_text)
+  lazy val createTeamButton = root.findViewById[LinearLayout](R.id.create_team_button)
+  lazy val createAccountButton = root.findViewById[LinearLayout](R.id.create_account_button)
   lazy val loginButton = root.findViewById[TypefaceTextView](R.id.login_button)
 
   def onCreate(): Unit = {
-    Seq(createTeamButton, createTeamText, createAccountButton, createAccountText, loginButton)
-      .foreach(_.setOnClickListener(new OnClickListener {
+    createAccountButton.setOnTouchListener(AppEntryButtonOnTouchListener({
+      () =>
+        appEntryController.goToLoginScreen()
+        signInController.uiSignInState ! SignInMethod(Register, Phone)
+    }))
+    createTeamButton.setOnTouchListener(AppEntryButtonOnTouchListener(() => appEntryController.createTeam()))
+
+    loginButton.setOnClickListener(new OnClickListener {
         override def onClick(v: View): Unit = {
-          v.getId match {
-            case R.id.create_team_button | R.id.create_team_text =>
-              appEntryController.createTeam()
-            case R.id.create_account_button | R.id.create_account_text =>
-              appEntryController.goToLoginScreen()
-              signInController.uiSignInState ! SignInMethod(Register, Phone)
-            case R.id.login_button =>
-              appEntryController.goToLoginScreen()
-              signInController.uiSignInState ! SignInMethod(Login, Email)
-            case _ =>
-          }
+          appEntryController.goToLoginScreen()
+          signInController.uiSignInState ! SignInMethod(Login, Email)
         }
-      }))
+      })
+  }
+}
+
+object FirstScreenSceneHolder {
+  case class AppEntryButtonOnTouchListener(onClick: () => Unit)(implicit context: Context) extends OnTouchListener {
+
+    private var finished = false
+
+    def isOutside(v: View, event: MotionEvent): Boolean ={
+      val rect = new Rect(v.getLeft, v.getTop, v.getRight, v.getBottom)
+      !rect.contains(v.getLeft + event.getX.toInt, v.getTop + event.getY.toInt)
+    }
+
+    def animatePress(v: View): ViewPropertyAnimator =
+      v.animate()
+        .scaleX(0.96f)
+        .scaleY(0.96f)
+        .setDuration(context.getResources.getInteger(android.R.integer.config_shortAnimTime))
+
+    def animateRelease(v: View): ViewPropertyAnimator =
+      v.animate()
+        .scaleX(1f)
+        .scaleY(1f)
+        .setDuration(context.getResources.getInteger(android.R.integer.config_shortAnimTime))
+
+
+    override def onTouch(v: View, event: MotionEvent): Boolean = {
+      event.getAction match {
+        case MotionEvent.ACTION_DOWN =>
+          animatePress(v)
+          finished = false
+        case MotionEvent.ACTION_MOVE if isOutside(v, event) && !finished =>
+          animateRelease(v).start()
+          finished = true
+        case MotionEvent.ACTION_OUTSIDE | MotionEvent.ACTION_HOVER_EXIT | MotionEvent.ACTION_CANCEL if !finished =>
+          animateRelease(v).start()
+          finished = true
+        case MotionEvent.ACTION_UP if !finished =>
+          finished = true
+          animateRelease(v).setListener(new Animator.AnimatorListener {
+            override def onAnimationEnd(animation: Animator): Unit = onClick()
+            override def onAnimationCancel(animation: Animator): Unit = {}
+            override def onAnimationRepeat(animation: Animator): Unit = {}
+            override def onAnimationStart(animation: Animator): Unit = {}
+          }).start()
+        case _ =>
+      }
+      false
+    }
   }
 }

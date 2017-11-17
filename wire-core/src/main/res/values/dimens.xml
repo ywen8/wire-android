@@ -913,4 +913,5 @@
     <dimen name="progress_spinner_size">32dp</dimen>
     <dimen name="app_entry_input_box_margin_top">56dp</dimen>
     <dimen name="app_entry_input_box_aux_height">40dp</dimen>
+    <dimen name="app_entry_button_width">260dp</dimen>
 </resources>
