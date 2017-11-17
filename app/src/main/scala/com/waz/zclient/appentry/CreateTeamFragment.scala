@@ -64,15 +64,15 @@ class CreateTeamFragment extends BaseFragment[Container] with FragmentHelper wit
       val forward = previousStage.fold(true)(_.depth <= state.depth)
       val transition = DefaultTransition()
 
-      val previousView = if (container.getChildCount > 0) Some(container.getChildAt(0)) else None
-      previousView.foreach { pv =>
+      val previousViews = (0 until container.getChildCount).map(container.getChildAt)
+      previousViews.foreach { pv =>
         transition.outAnimation(pv, container, forward = forward).withEndAction(new Runnable {
           override def run(): Unit = container.removeView(pv)
-        })
+        }).start()
       }
 
       container.addView(viewHolder.root)
-      if (previousView.isDefined)
+      if (previousViews.nonEmpty)
         transition.inAnimation(viewHolder.root, container, forward = forward).start()
       viewHolder.onCreate()
 
