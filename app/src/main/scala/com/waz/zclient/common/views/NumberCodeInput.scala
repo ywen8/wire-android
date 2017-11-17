@@ -52,6 +52,7 @@ class NumberCodeInput(context: Context, attrs: AttributeSet, style: Int) extends
   progressBar.setIndeterminateTintList(ColorStateList.valueOf(ContextUtils.getColor(R.color.teams_inactive_button)))
   setupInputs()
   codeText.onUi { code =>
+    errorText.setVisible(false)
     if (code.length >= inputCount)
       setCode(code)
   }
