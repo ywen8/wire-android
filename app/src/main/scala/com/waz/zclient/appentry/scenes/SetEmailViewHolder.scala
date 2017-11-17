@@ -19,33 +19,31 @@ package com.waz.zclient.appentry.scenes
 
 import android.app.Activity
 import android.content.Context
-import android.support.transition.Scene
-import android.view.ViewGroup
+import android.text.InputType
+import android.view.View
 import com.waz.threading.Threading
 import com.waz.utils.events.EventContext
-import com.waz.zclient.common.views.InputBox
-import com.waz.zclient.common.views.InputBox.NameValidator
-import com.waz.zclient.ui.utils.KeyboardUtils
 import com.waz.zclient._
+import com.waz.zclient.common.views.InputBox
+import com.waz.zclient.common.views.InputBox.EmailValidator
 import com.waz.zclient.controllers.SignInController.{Email, Register, SignInMethod}
+import com.waz.zclient.ui.utils.KeyboardUtils
 import com.waz.zclient.utils._
 
-case class SetNameSceneHolder(container: ViewGroup)(implicit val context: Context, eventContext: EventContext, injector: Injector) extends SceneHolder with Injectable {
+case class SetEmailViewHolder(root: View)(implicit val context: Context, eventContext: EventContext, injector: Injector) extends ViewHolder with Injectable {
 
   private val appEntryController = inject[AppEntryController]
-
-  override val scene: Scene = Scene.getSceneForLayout(container, R.layout.set_name_scene, context)
-  override val root: ViewGroup = scene.getSceneRoot
 
   lazy val inputField = root.findViewById[InputBox](R.id.input_field)
 
   def onCreate(): Unit = {
-    inputField.setValidator(NameValidator)
+    inputField.setValidator(EmailValidator)
+    inputField.editText.setText(appEntryController.teamEmail)
+    inputField.editText.addTextListener(appEntryController.teamEmail = _)
     inputField.editText.requestFocus()
-    inputField.editText.setText(appEntryController.teamUserName)
-    inputField.editText.addTextListener(appEntryController.teamUserName = _)
+    inputField.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS)
     KeyboardUtils.showKeyboard(context.asInstanceOf[Activity])
-    inputField.setOnClick( text => appEntryController.setName(text).map {
+    inputField.setOnClick( text => appEntryController.requestTeamEmailVerificationCode(text).map {
       case Right(error) =>
         val errorMessage = ContextUtils.getString(EntryError(error.code, error.label, SignInMethod(Register, Email)).bodyResource)
         Some(errorMessage)

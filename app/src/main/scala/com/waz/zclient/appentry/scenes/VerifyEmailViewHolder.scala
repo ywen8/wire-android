@@ -19,8 +19,7 @@ package com.waz.zclient.appentry.scenes
 
 import android.app.Activity
 import android.content.Context
-import android.support.transition.Scene
-import android.view.ViewGroup
+import android.view.View
 import android.widget.Toast
 import com.waz.service.ZMessaging
 import com.waz.threading.Threading
@@ -34,12 +33,9 @@ import com.waz.zclient.utils._
 
 import scala.concurrent.Future
 
-case class VerifyEmailSceneHolder(container: ViewGroup)(implicit val context: Context, eventContext: EventContext, injector: Injector) extends SceneHolder with Injectable {
+case class VerifyEmailViewHolder(root: View)(implicit val context: Context, eventContext: EventContext, injector: Injector) extends ViewHolder with Injectable {
 
   val appEntryController = inject[AppEntryController]
-
-  val scene = Scene.getSceneForLayout(container, R.layout.verify_email_scene, context)
-  val root = scene.getSceneRoot
 
   lazy val codeField = root.findViewById[NumberCodeInput](R.id.input_field)
   lazy val resend = root.findViewById[TypefaceTextView](R.id.resend_email)

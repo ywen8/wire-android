@@ -18,9 +18,8 @@
 package com.waz.zclient.appentry.scenes
 
 import android.content.Context
-import android.support.transition.Scene
 import android.view.View.{OnClickListener, OnTouchListener}
-import android.view.{MotionEvent, View, ViewGroup, ViewPropertyAnimator}
+import android.view._
 import android.widget.LinearLayout
 import com.waz.ZLog
 import com.waz.utils.events.EventContext
@@ -30,15 +29,14 @@ import com.waz.zclient.controllers.SignInController._
 import com.waz.zclient.ui.text.TypefaceTextView
 import android.animation.Animator
 import android.graphics.Rect
-import com.waz.zclient.appentry.scenes.FirstScreenSceneHolder.AppEntryButtonOnTouchListener
+import com.waz.zclient.appentry.scenes.FirstScreenViewHolder.AppEntryButtonOnTouchListener
 
-case class FirstScreenSceneHolder(container: ViewGroup)(implicit val context: Context, eventContext: EventContext, injector: Injector) extends SceneHolder with Injectable {
+case class FirstScreenViewHolder(root: View)(implicit val context: Context, eventContext: EventContext, injector: Injector) extends ViewHolder with Injectable {
 
   val appEntryController = inject[AppEntryController]
   val signInController = inject[SignInController]
 
-  val scene = Scene.getSceneForLayout(container, R.layout.app_entry_scene, context)
-  val root = scene.getSceneRoot
+  //val root = LayoutInflater.from(context).inflate(R.layout.app_entry_scene, container, false).asInstanceOf[ViewGroup]
 
   lazy val createTeamButton = root.findViewById[LinearLayout](R.id.create_team_button)
   lazy val createAccountButton = root.findViewById[LinearLayout](R.id.create_account_button)
@@ -61,7 +59,7 @@ case class FirstScreenSceneHolder(container: ViewGroup)(implicit val context: Co
   }
 }
 
-object FirstScreenSceneHolder {
+object FirstScreenViewHolder {
   case class AppEntryButtonOnTouchListener(onClick: () => Unit)(implicit context: Context) extends OnTouchListener {
 
     private var finished = false

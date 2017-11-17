@@ -18,58 +18,63 @@
 package com.waz.zclient.appentry.scenes
 
 import android.app.Activity
-import android.content.Context
-import android.support.transition.Scene
-import android.text.InputType
-import android.view.ViewGroup
+import android.content.{Context, Intent}
+import android.net.Uri
+import android.view.View
 import com.waz.threading.Threading
 import com.waz.utils.events.EventContext
 import com.waz.zclient._
 import com.waz.zclient.appentry.AppEntryDialogs
 import com.waz.zclient.common.views.InputBox
-import com.waz.zclient.common.views.InputBox.PasswordValidator
+import com.waz.zclient.common.views.InputBox.NameValidator
 import com.waz.zclient.controllers.SignInController.{Email, Register, SignInMethod}
+import com.waz.zclient.ui.text.TypefaceTextView
 import com.waz.zclient.ui.utils.KeyboardUtils
 import com.waz.zclient.utils._
 
 import scala.concurrent.Future
 
-case class SetPasswordSceneHolder(container: ViewGroup)(implicit val context: Context, eventContext: EventContext, injector: Injector) extends SceneHolder with Injectable {
+case class TeamNameViewHolder(root: View)(implicit val context: Context, eventContext: EventContext, injector: Injector) extends ViewHolder with Injectable {
 
-  private val appEntryController = inject[AppEntryController]
-
-  override val scene: Scene = Scene.getSceneForLayout(container, R.layout.set_password_scene, context)
-  override val root: ViewGroup = scene.getSceneRoot
+  val appEntryController = inject[AppEntryController]
 
   lazy val inputField = root.findViewById[InputBox](R.id.input_field)
+  lazy val about = root.findViewById[TypefaceTextView](R.id.about)
 
   def onCreate(): Unit = {
     import Threading.Implicits.Ui
-
-    inputField.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD)
-    inputField.setValidator(PasswordValidator)
-    inputField.editText.setText(appEntryController.password)
-    inputField.editText.addTextListener(appEntryController.password = _)
+    inputField.setValidator(NameValidator)
+    inputField.editText.setText(appEntryController.teamName)
+    inputField.editText.addTextListener(appEntryController.teamName = _)
     inputField.editText.requestFocus()
     KeyboardUtils.showKeyboard(context.asInstanceOf[Activity])
     inputField.setOnClick( text =>
-      appEntryController.isAB.flatMap {
+      appEntryController.isAB.flatMap{
         case true =>
-          AppEntryDialogs.showTermsAndConditions(context).flatMap {
-            case true => appEntryController.setPassword(text).collect {
-              case Right(error) =>
-                val errorMessage = ContextUtils.getString(EntryError(error.code, error.label, SignInMethod(Register, Email)).bodyResource)
-                Some(errorMessage)
-            }
-            case false =>
-              Future.successful(None)
-          }
-        case false =>
-          appEntryController.setPassword(text).collect {
+          appEntryController.setTeamName(text).map {
             case Right(error) =>
               val errorMessage = ContextUtils.getString(EntryError(error.code, error.label, SignInMethod(Register, Email)).bodyResource)
               Some(errorMessage)
+            case _ => None
           }
-      })
+        case false =>
+          AppEntryDialogs.showTermsAndConditions(context).flatMap {
+            case true =>
+              appEntryController.setTeamName(text).map {
+                case Right(error) =>
+                  val errorMessage = ContextUtils.getString(EntryError(error.code, error.label, SignInMethod(Register, Email)).bodyResource)
+                  Some(errorMessage)
+                case _ => None
+              }
+            case false =>
+              Future.successful(None)
+          }
+      }
+    )
+    about.onClick(openUrl(R.string.url_about_teams))
+  }
+
+  private def openUrl(id: Int): Unit ={
+    context.startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(context.getString(id))))
   }
 }

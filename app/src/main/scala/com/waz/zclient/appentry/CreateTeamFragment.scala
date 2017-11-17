@@ -20,7 +20,7 @@ package com.waz.zclient.appentry
 import android.os.Bundle
 import android.support.transition._
 import android.view.View.OnClickListener
-import android.view.{Gravity, LayoutInflater, View, ViewGroup}
+import android.view.{LayoutInflater, View, ViewGroup}
 import android.widget.{Button, FrameLayout}
 import com.waz.zclient.appentry.CreateTeamFragment._
 import com.waz.zclient.appentry.scenes._
@@ -29,10 +29,13 @@ import com.waz.zclient.{AppEntryController, FragmentHelper, OnBackPressedListene
 import com.waz.zclient.AppEntryController._
 import com.waz.zclient.R
 import com.waz.ZLog.ImplicitTag.implicitLogTag
+import com.waz.zclient.utils.DefaultTransition
 
 class CreateTeamFragment extends BaseFragment[Container] with FragmentHelper with OnBackPressedListener {
 
   lazy val appEntryController = inject[AppEntryController]
+
+  var previousStage = Option.empty[AppEntryStage]
 
   override def onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState: Bundle): View =
     inflater.inflate(R.layout.app_entry_fragment, container, false)
@@ -47,22 +50,38 @@ class CreateTeamFragment extends BaseFragment[Container] with FragmentHelper wit
     })
 
     appEntryController.entryStage.onUi { state =>
-      val entryScene = state match {
-        case NoAccountState(FirstScreen) => FirstScreenSceneHolder(container)(getContext, this, injector)
-        case NoAccountState(RegisterTeamScreen) => TeamNameSceneHolder(container)(getContext, this, injector)
-        case SetTeamEmail => SetEmailSceneHolder(container)(getContext, this, injector)
-        case VerifyTeamEmail => VerifyEmailSceneHolder(container)(getContext, this, injector)
-        case SetUsersNameTeam => SetNameSceneHolder(container)(getContext, this, injector)
-        case SetPasswordTeam => SetPasswordSceneHolder(container)(getContext, this, injector)
-        case SetUsernameTeam => SetUsernameSceneHolder(container)(getContext, this, injector)
+      val inflator = LayoutInflater.from(getActivity)
+      val viewHolder = state match {
+        case NoAccountState(FirstScreen) => FirstScreenViewHolder(inflator.inflate(R.layout.app_entry_scene, container, false))(getContext, this, injector)
+        case NoAccountState(RegisterTeamScreen) => TeamNameViewHolder(inflator.inflate(R.layout.create_team_name_scene, container, false))(getContext, this, injector)
+        case SetTeamEmail => SetEmailViewHolder(inflator.inflate(R.layout.set_email_scene, container, false))(getContext, this, injector)
+        case VerifyTeamEmail => VerifyEmailViewHolder(inflator.inflate(R.layout.verify_email_scene, container, false))(getContext, this, injector)
+        case SetUsersNameTeam => SetNameViewHolder(inflator.inflate(R.layout.set_name_scene, container, false))(getContext, this, injector)
+        case SetPasswordTeam => SetPasswordViewHolder(inflator.inflate(R.layout.set_password_scene, container, false))(getContext, this, injector)
+        case SetUsernameTeam => SetUsernameViewHolder(inflator.inflate(R.layout.set_username_scene, container, false))(getContext, this, injector)
       }
-      TransitionManager.go(entryScene.scene, new SupportAutoTransition())
-      entryScene.onCreate()
+
+      val forward = previousStage.fold(true)(_.depth <= state.depth)
+      val transition = DefaultTransition()
+
+      val previousView = if (container.getChildCount > 0) Some(container.getChildAt(0)) else None
+      previousView.foreach { pv =>
+        transition.outAnimation(pv, container, forward = forward).withEndAction(new Runnable {
+          override def run(): Unit = container.removeView(pv)
+        })
+      }
+
+      container.addView(viewHolder.root)
+      if (previousView.isDefined)
+        transition.inAnimation(viewHolder.root, container, forward = forward).start()
+      viewHolder.onCreate()
 
       if(state != NoAccountState(FirstScreen) && state != SetUsernameTeam)
         backButton.setVisibility(View.VISIBLE)
       else
         backButton.setVisibility(View.GONE)
+
+      previousStage = Some(state)
     }
 
   }

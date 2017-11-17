@@ -19,23 +19,19 @@ package com.waz.zclient.appentry.scenes
 
 import android.app.Activity
 import android.content.Context
-import android.support.transition.Scene
-import android.view.ViewGroup
+import android.view.View
 import com.waz.threading.Threading
 import com.waz.utils.events.EventContext
+import com.waz.zclient._
 import com.waz.zclient.common.views.InputBox
 import com.waz.zclient.common.views.InputBox.UsernameValidator
-import com.waz.zclient.ui.utils.KeyboardUtils
-import com.waz.zclient._
 import com.waz.zclient.controllers.SignInController.{Email, Register, SignInMethod}
+import com.waz.zclient.ui.utils.KeyboardUtils
 import com.waz.zclient.utils._
 
-case class SetUsernameSceneHolder(container: ViewGroup)(implicit val context: Context, eventContext: EventContext, injector: Injector) extends SceneHolder with Injectable {
+case class SetUsernameViewHolder(root: View)(implicit val context: Context, eventContext: EventContext, injector: Injector) extends ViewHolder with Injectable {
 
   private val appEntryController = inject[AppEntryController]
-
-  override val scene: Scene = Scene.getSceneForLayout(container, R.layout.set_username_scene, context)
-  override val root: ViewGroup = scene.getSceneRoot
 
   lazy val inputField = root.findViewById[InputBox](R.id.input_field)
 

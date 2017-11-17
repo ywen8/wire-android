@@ -343,12 +343,16 @@ class AppEntryController(implicit inj: Injector, eventContext: EventContext) ext
 object AppEntryController {
   val GenericInviteToken: String = "getwire"
 
-  trait FirstStage
+  trait FirstStage {
+    val depth: Int = 0
+  }
   object FirstScreen extends FirstStage
-  object RegisterTeamScreen extends FirstStage
-  object LoginScreen extends FirstStage
+  object RegisterTeamScreen extends FirstStage { override val depth = 1 }
+  object LoginScreen extends FirstStage { override val depth = 1 }
 
-  trait AppEntryStage
+  trait AppEntryStage {
+    val depth: Int = 0
+  }
   object Unknown             extends AppEntryStage
   object Waiting             extends AppEntryStage
   object EnterAppStage       extends AppEntryStage
@@ -361,10 +365,10 @@ object AppEntryController {
   object AddHandleStage      extends AppEntryStage
   object InsertPasswordStage extends AppEntryStage
 
-  object SetTeamEmail            extends AppEntryStage
-  object VerifyTeamEmail         extends AppEntryStage
-  object SetUsersNameTeam        extends AppEntryStage
-  object SetPasswordTeam         extends AppEntryStage
-  object SetUsernameTeam         extends AppEntryStage
-  case class NoAccountState(page: FirstStage) extends AppEntryStage
+  object SetTeamEmail            extends AppEntryStage { override val depth = 2 }
+  object VerifyTeamEmail         extends AppEntryStage { override val depth = 3 }
+  object SetUsersNameTeam        extends AppEntryStage { override val depth = 4 }
+  object SetPasswordTeam         extends AppEntryStage { override val depth = 5 }
+  object SetUsernameTeam         extends AppEntryStage { override val depth = 6 }
+  case class NoAccountState(page: FirstStage) extends AppEntryStage { override val depth = page.depth }
 }

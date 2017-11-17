@@ -17,12 +17,10 @@
  */
 package com.waz.zclient.appentry.scenes
 
-import android.support.transition.Scene
-import android.view.ViewGroup
+import android.view.View
 
-trait SceneHolder {
-  val scene: Scene
-  val root: ViewGroup
+trait ViewHolder {
+  val root: View
 
   def onCreate(): Unit
 }
