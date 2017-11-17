@@ -20,7 +20,11 @@ package com.waz.zclient.common.views
 import android.content.Context
 import android.content.res.{ColorStateList, TypedArray}
 import android.util.AttributeSet
-import android.widget.{LinearLayout, ProgressBar}
+import android.view.{KeyEvent, View}
+import android.view.View.OnKeyListener
+import android.view.inputmethod.EditorInfo
+import android.widget.TextView.OnEditorActionListener
+import android.widget.{LinearLayout, ProgressBar, TextView}
 import com.waz.threading.Threading
 import com.waz.zclient.common.views.InputBox._
 import com.waz.zclient.ui.cursor.CursorEditText
@@ -64,6 +68,15 @@ class InputBox(context: Context, attrs: AttributeSet, style: Int) extends Linear
   progressBar.setVisible(false)
   errorText.setVisible(false)
   progressBar.setIndeterminateTintList(ColorStateList.valueOf(ContextUtils.getColor(R.color.teams_inactive_button)))
+
+  editText.setOnEditorActionListener(new OnEditorActionListener {
+    override def onEditorAction(v: TextView, actionId: Int, event: KeyEvent): Boolean = {
+      if (actionId == EditorInfo.IME_ACTION_DONE || actionId == EditorInfo.IME_ACTION_GO) {
+        confirmationButton.performClick()
+      }
+      false
+    }
+  })
 
   confirmationButton.onClick {
     hideErrorMessage()
