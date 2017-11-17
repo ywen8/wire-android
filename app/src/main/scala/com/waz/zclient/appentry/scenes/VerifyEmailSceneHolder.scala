@@ -60,9 +60,11 @@ case class VerifyEmailSceneHolder(container: ViewGroup)(implicit val context: Co
           subtitle.setText("")
       }
     }
-    codeField.codeInput.setText(appEntryController.code)
-    codeField.codeInput.addTextListener(appEntryController.code = _)
-    codeField.codeInput.requestFocus()
+
+    codeField.requestInputFocus()
+    if (appEntryController.code.nonEmpty)
+      codeField.inputCode(appEntryController.code)
+    codeField.codeText.onUi { appEntryController.code = _ }
     KeyboardUtils.showKeyboard(context.asInstanceOf[Activity])
     codeField.setOnCodeSet({ code =>
       for {
