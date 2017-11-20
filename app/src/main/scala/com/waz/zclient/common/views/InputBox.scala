@@ -68,11 +68,13 @@ class InputBox(context: Context, attrs: AttributeSet, style: Int) extends Linear
   progressBar.setVisible(false)
   errorText.setVisible(false)
   progressBar.setIndeterminateTintList(ColorStateList.valueOf(ContextUtils.getColor(R.color.teams_inactive_button)))
+  editText.setImeOptions(EditorInfo.IME_ACTION_DONE)
 
   editText.setOnEditorActionListener(new OnEditorActionListener {
     override def onEditorAction(v: TextView, actionId: Int, event: KeyEvent): Boolean = {
-      if (actionId == EditorInfo.IME_ACTION_DONE || actionId == EditorInfo.IME_ACTION_GO) {
-        confirmationButton.performClick()
+      if (actionId == EditorInfo.IME_ACTION_DONE || actionId == EditorInfo.IME_ACTION_GO || actionId == EditorInfo.IME_ACTION_NEXT) {
+        if (validator.forall(_.f(editText.getText.toString)))
+          confirmationButton.performClick()
       }
       false
     }
@@ -124,19 +126,16 @@ object InputBox {
   case class Validator(f: String => Boolean)
 
   object PasswordValidator extends Validator({ t =>
-    //TODO: Where are these values?
-    t.length >= 6 && t.length <= 101
+    t.length >= 8 && t.length <= 101
   })
 
   object NameValidator extends Validator(_.length >= 2)
 
-  //TODO: do
   object UsernameValidator extends Validator({ t =>
     t.length > 2
   })
 
   object EmailValidator extends Validator({ t =>
-    //TODO: Get a better validator for emails
     t.contains("@") && t.contains(".") && t.length >= 3
   })
 }

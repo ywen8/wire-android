@@ -128,6 +128,13 @@ class SignInController(implicit inj: Injector, eventContext: EventContext, conte
   }
 
   override def onCountryHasChanged(country: Country): Unit = phoneCountry ! country
+
+  def clearCredentials() = {
+    email ! ""
+    password ! ""
+    name ! ""
+    phone ! ""
+  }
 }
 
 object SignInController {

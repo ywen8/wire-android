@@ -37,7 +37,7 @@
         app:srcCompat="@drawable/action_back_dark"
         android:background="@color/transparent"
         android:scaleType="fitCenter"
-        android:padding="@dimen/wire__padding__large"
+        android:padding="@dimen/wire__padding__small"
         />
 
 </FrameLayout>

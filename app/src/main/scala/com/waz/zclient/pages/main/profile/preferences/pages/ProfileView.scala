@@ -54,6 +54,7 @@ trait ProfileView {
   def setTeamName(name: Option[String]): Unit
   def showNewDevicesDialog(devices: Seq[Client]): Unit
   def setManageTeamEnabled(enabled: Boolean): Unit
+  def setAddAccountEnabled(enabled: Boolean): Unit
 }
 
 class ProfileViewImpl(context: Context, attrs: AttributeSet, style: Int) extends LinearLayout(context, attrs, style) with ProfileView with ViewHelper {
@@ -140,6 +141,11 @@ class ProfileViewImpl(context: Context, attrs: AttributeSet, style: Int) extends
     }
   }
 
+  override def setAddAccountEnabled(enabled: Boolean): Unit = {
+    newTeamButtom.setEnabled(enabled)
+    newTeamButtom.setAlpha(if (enabled) 1f else 0.5f)
+  }
+
   private def getNewDevicesMessage(devices: Seq[Client]): String = {
     val now = LocalDateTime.now(ZoneId.systemDefault)
 
@@ -185,6 +191,7 @@ case class ProfileBackStackKey(args: Bundle = new Bundle()) extends BackStackKey
 class ProfileViewController(view: ProfileView)(implicit inj: Injector, ec: EventContext) extends Injectable {
   val zms = inject[Signal[ZMessaging]]
   implicit val uiStorage = inject[UiStorage]
+  val MaxAccountsCount = 2
 
   val currentUser = ZMessaging.currentAccounts.activeAccount.collect { case Some(account) if account.userId.isDefined => account.userId.get }
 
@@ -225,5 +232,7 @@ class ProfileViewController(view: ProfileView)(implicit inj: Injector, ec: Event
   account.onUi { acc =>
     view.setManageTeamEnabled(acc.selfPermissions.contains(AccountData.Permission.AddTeamMember))
   }
+
+  ZMessaging.currentAccounts.loggedInAccounts.map(_.size < MaxAccountsCount).onUi(view.setAddAccountEnabled)
 
 }

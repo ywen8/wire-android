@@ -17,6 +17,7 @@
  */
 package com.waz.zclient.appentry
 
+import android.content.DialogInterface.OnDismissListener
 import android.content.Intent.{ACTION_VIEW, FLAG_ACTIVITY_NEW_TASK}
 import android.content.{Context, DialogInterface, Intent}
 import android.net.Uri
@@ -32,19 +33,22 @@ object AppEntryDialogs {
     val dialogResult = Promise[Boolean]()
     val dialog = new AlertDialog.Builder(context)
       .setPositiveButton(R.string.app_entry_dialog_accept, new DialogInterface.OnClickListener {
-        override def onClick(dialog: DialogInterface, which: Int): Unit = dialogResult.success(true)
+        override def onClick(dialog: DialogInterface, which: Int): Unit = dialogResult.trySuccess(true)
       })
       .setNegativeButton(R.string.app_entry_dialog_cancel, new DialogInterface.OnClickListener {
-        override def onClick(dialog: DialogInterface, which: Int): Unit = dialogResult.success(false)
+        override def onClick(dialog: DialogInterface, which: Int): Unit = dialogResult.trySuccess(false)
       })
       .setNeutralButton(R.string.app_entry_dialog_view, new DialogInterface.OnClickListener {
         override def onClick(dialog: DialogInterface, which: Int): Unit = {
           onOpenUrl(context, context.getString(R.string.url_terms_of_service))
-          dialogResult.success(false)
+          dialogResult.trySuccess(false)
         }
       })
       .setTitle(R.string.app_entry_tc_dialog_title)
       .setMessage(R.string.app_entry_tc_dialog_message)
+      .setOnDismissListener(new OnDismissListener {
+        override def onDismiss(dialog: DialogInterface): Unit = dialogResult.trySuccess(false)
+      })
     dialog.show()
     dialogResult.future
   }
@@ -53,19 +57,22 @@ object AppEntryDialogs {
     val dialogResult = Promise[Boolean]()
     val dialog = new AlertDialog.Builder(context)
       .setPositiveButton(R.string.app_entry_dialog_accept, new DialogInterface.OnClickListener {
-        override def onClick(dialog: DialogInterface, which: Int): Unit = dialogResult.success(true)
+        override def onClick(dialog: DialogInterface, which: Int): Unit = dialogResult.trySuccess(true)
       })
       .setNegativeButton(R.string.app_entry_dialog_cancel, new DialogInterface.OnClickListener {
-        override def onClick(dialog: DialogInterface, which: Int): Unit = dialogResult.success(false)
+        override def onClick(dialog: DialogInterface, which: Int): Unit = dialogResult.trySuccess(false)
       })
       .setNeutralButton(R.string.app_entry_dialog_view, new DialogInterface.OnClickListener {
         override def onClick(dialog: DialogInterface, which: Int): Unit = {
           onOpenUrl(context, context.getString(R.string.url_privacy_policy))
-          dialogResult.success(false)
+          dialogResult.trySuccess(false)
         }
       })
       .setTitle(R.string.app_entry_notifications_dialog_title)
       .setMessage(R.string.app_entry_notifications_dialog_message)
+      .setOnDismissListener(new OnDismissListener {
+        override def onDismiss(dialog: DialogInterface): Unit = dialogResult.trySuccess(false)
+      })
     dialog.show()
     dialogResult.future
   }

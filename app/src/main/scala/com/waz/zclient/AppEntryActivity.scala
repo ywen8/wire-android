@@ -33,6 +33,7 @@ import com.waz.threading.Threading
 import com.waz.utils.wrappers.AndroidURIUtil
 import com.waz.zclient.AppEntryController._
 import com.waz.zclient.appentry._
+import com.waz.zclient.controllers.SignInController
 import com.waz.zclient.controllers.navigation.Page
 import com.waz.zclient.fragments.CountryDialogFragment
 import com.waz.zclient.newreg.fragments.SignUpPhotoFragment
@@ -75,6 +76,7 @@ class AppEntryActivity extends BaseActivity
   private var isPaused: Boolean = false
 
   private lazy val appEntryController = inject[AppEntryController]
+  private lazy val signInController = inject[SignInController]
 
   ZMessaging.currentGlobal.blacklist.upToDate.onUi {
     case false =>
@@ -102,6 +104,9 @@ class AppEntryActivity extends BaseActivity
     setContentView(R.layout.activity_signup)
     enableProgress(false)
     createdFromSavedInstance = savedInstanceState != null
+
+    if (!createdFromSavedInstance)
+      signInController.clearCredentials()
 
     unsplashInitLoadHandle = unsplashInitImageAsset.getSingleBitmap(AppEntryActivity.PREFETCH_IMAGE_WIDTH, new BitmapCallback() {
       def onBitmapLoaded(b: Bitmap): Unit = {}

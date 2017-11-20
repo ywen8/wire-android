@@ -28,6 +28,7 @@ import com.waz.zclient.{AppEntryController, FragmentHelper, OnBackPressedListene
 import com.waz.zclient.AppEntryController._
 import com.waz.zclient.R
 import com.waz.ZLog.ImplicitTag.implicitLogTag
+import com.waz.service.ZMessaging
 import com.waz.zclient.utils.DefaultTransition
 
 class CreateTeamFragment extends BaseFragment[Container] with FragmentHelper with OnBackPressedListener {
@@ -90,6 +91,9 @@ class CreateTeamFragment extends BaseFragment[Container] with FragmentHelper wit
   }
 
   override def onBackPressed(): Boolean = {
+    if (appEntryController.entryStage.currentValue.exists(_.isInstanceOf[NoAccountState]) && ZMessaging.currentAccounts.loggedInAccounts.currentValue.exists(_.nonEmpty))
+      return false
+
     if (appEntryController.entryStage.currentValue.exists(_ != NoAccountState(FirstScreen))) {
       appEntryController.createTeamBack()
       true
