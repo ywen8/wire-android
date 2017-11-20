@@ -22,9 +22,8 @@ import com.waz.api.{EphemeralExpiration, IConversation, Verification}
 import com.waz.model.ConversationData.ConversationType
 import com.waz.model._
 import com.waz.service.ZMessaging
-import com.waz.threading.{CancellableFuture, Threading}
+import com.waz.threading.{CancellableFuture, SerialDispatchQueue, Threading}
 import com.waz.utils.events.{EventContext, EventStream, Signal, SourceStream}
-import com.waz.zclient.controllers.UserAccountsController
 import com.waz.zclient.conversation.ConversationController.ConversationChange
 import com.waz.zclient.core.stores.conversation.ConversationChangeRequester
 import com.waz.zclient.utils.Callback
@@ -45,15 +44,14 @@ import scala.concurrent.duration._
 import com.waz.utils._
 
 class ConversationController(implicit injector: Injector, context: Context, ec: EventContext) extends Injectable {
-  import Threading.Implicits.Background
+  private implicit val dispatcher = new SerialDispatchQueue(name = "ConversationController")
 
   private val zms = inject[Signal[ZMessaging]]
-  private val userAccounts = inject[UserAccountsController]
   private lazy val convStore = inject[IStoreFactory].conversationStore
 
   private var lastConvId = Option.empty[ConvId]
 
-  val currentConvId: Signal[ConvId] = zms.flatMap(_.convsStats.selectedConversationId).collect { case Some(convId) => convId }
+  val currentConvId: Signal[ConvId] = zms.flatMap(_.convsStats.selectedConversationId).filter(_ != lastConvId).collect { case Some(convId) => convId }
   val currentConvOpt: Signal[Option[ConversationData]] = currentConvId.flatMap { conversationData } // updates on every change of the conversation data, not only on switching
   val currentConv: Signal[ConversationData] = currentConvOpt.collect { case Some(conv) => conv }
 
@@ -77,6 +75,7 @@ class ConversationController(implicit injector: Injector, context: Context, ec: 
     case Some(_) =>
       val stats = zms.map(_.convsStats)
       stats.head.flatMap(_.selectConversation(convId)).map { _ =>
+        verbose(s"changing conversation from $lastConvId to $convId, requester: $requester")
         convChanged ! ConversationChange(from = lastConvId, to = convId, requester = requester)
         lastConvId = convId
       }

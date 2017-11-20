@@ -30,7 +30,7 @@ import com.waz.service.ZMessaging
 import com.waz.threading.Threading
 import com.waz.utils.events.{EventStream, Signal}
 import com.waz.zclient.controllers.drawing.IDrawingController
-import com.waz.zclient.conversation.CollectionController
+import com.waz.zclient.conversation.{CollectionController, ConversationController}
 import com.waz.zclient.messages.MessageBottomSheetDialog.MessageAction
 import com.waz.zclient.messages.controllers.MessageActionsController
 import com.waz.zclient.pages.BaseFragment
@@ -43,7 +43,6 @@ import com.waz.zclient.views.toolbar._
 import com.waz.zclient.views.{ImageAssetDrawable, ImageViewPager}
 import com.waz.zclient.{FragmentHelper, OnBackPressedListener, R}
 import org.threeten.bp.{LocalDateTime, ZoneId}
-
 import com.waz.zclient.utils.ContextUtils._
 
 object ImageFragment {
@@ -69,6 +68,7 @@ class ImageFragment extends BaseFragment[ImageFragment.Container] with FragmentH
 
   lazy val zms = inject[Signal[ZMessaging]]
   lazy val collectionController = inject[CollectionController]
+  lazy val convController = inject[ConversationController]
   lazy val messageActionsController = inject[MessageActionsController]
   lazy val likedBySelf = collectionController.focusedItem flatMap {
     case Some(m) => zms.flatMap { z =>
@@ -82,12 +82,6 @@ class ImageFragment extends BaseFragment[ImageFragment.Container] with FragmentH
     case Some(messageData) => Signal[ImageAsset](ZMessaging.currentUi.images.getImageAsset(messageData.assetId))
     case _ => Signal.empty[ImageAsset]
   } disableAutowiring()
-
-  lazy val currentConversation = for {
-    z <- zms
-    Some(convId) <- z.convsStats.selectedConversationId
-    conv <- z.convsStorage.signal(convId)
-  } yield conv
 
   var animationStarted = false
 
@@ -153,8 +147,8 @@ class ImageFragment extends BaseFragment[ImageFragment.Container] with FragmentH
       case _ =>
     }
 
-    currentConversation.on(Threading.Ui) { conv =>
-      headerTitle.setText(conv.displayName)
+    convController.currentConvName.on(Threading.Ui) { convName =>
+      headerTitle.setText(convName)
     }
 
     collectionController.focusedItem.on(Threading.Ui) {

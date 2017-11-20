@@ -32,7 +32,7 @@ import android.view.animation.Animation
 import android.view.inputmethod.EditorInfo
 import android.widget.TextView.OnEditorActionListener
 import android.widget._
-import com.waz.ZLog
+import com.waz.ZLog._
 import com.waz.api._
 import com.waz.content.UserPreferences
 import com.waz.model.UserData.ConnectionStatus
@@ -144,7 +144,7 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
   private var teamPermissions = Set[AccountData.Permission]()
 
   private implicit lazy val uiStorage = inject[UiStorage]
-  private implicit lazy val logTag = ZLog.logTagFor[PickUserFragment]
+  private implicit lazy val logTag = logTagFor[PickUserFragment]
   private implicit lazy val context = getContext
   private lazy val zms = inject[Signal[ZMessaging]]
   private lazy val self = zms.flatMap(z => UserSignal(z.selfUserId))
@@ -563,6 +563,7 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
     Option(getUser(userId)) match {
       case Some(user) if !user.isMe && user.getConnectionStatus == User.ConnectionStatus.ACCEPTED =>
        conversationController.getOrCreateConv(userId).flatMap { conv =>
+         verbose(s"onConversationClicked(${conv.id})")
           conversationController.selectConv(Some(conv.id), ConversationChangeRequester.START_CONVERSATION)
         }(Threading.Ui)
       case _ => Future.successful({})
@@ -571,6 +572,7 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
 
   override def onConversationClicked(conversationData: ConversationData, position: Int): Unit = {
     KeyboardUtils.hideKeyboard(getActivity)
+    verbose(s"onConversationClicked(${conversationData.id})")
     conversationController.selectConv(Some(conversationData.id), ConversationChangeRequester.START_CONVERSATION)
   }
 
@@ -706,6 +708,7 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
           val conversation: IConversation = user.getConversation
           if (conversation != null) {
             KeyboardUtils.hideKeyboard(getActivity)
+            verbose(s"showUser ${conversation.getId}")
             conversationController.selectConv(new ConvId(conversation.getId), ConversationChangeRequester.START_CONVERSATION)
           }
         }

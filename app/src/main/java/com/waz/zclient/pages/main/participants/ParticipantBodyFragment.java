@@ -65,6 +65,7 @@ import com.waz.zclient.utils.ViewUtils;
 import com.waz.zclient.views.images.ImageAssetImageView;
 import com.waz.zclient.views.menus.FooterMenu;
 import com.waz.zclient.views.menus.FooterMenuCallback;
+import timber.log.Timber;
 
 public class ParticipantBodyFragment extends BaseFragment<ParticipantBodyFragment.Container> implements
                                                                                    ConversationScreenControllerObserver,
@@ -353,6 +354,7 @@ public class ParticipantBodyFragment extends BaseFragment<ParticipantBodyFragmen
 
                         // Go to conversation with this user
                         getControllerFactory().getPickUserController().hidePickUserWithoutAnimations(getContainer().getCurrentPickerDestination());
+                        Timber.i("conversationUpdated.onLeftActionClicked %s", user.getConversation().getId());
                         inject(ConversationController.class).selectConv(new ConvId(user.getConversation().getId()), ConversationChangeRequester.CONVERSATION_LIST);
                         return;
                     }
@@ -567,6 +569,7 @@ public class ParticipantBodyFragment extends BaseFragment<ParticipantBodyFragmen
 
                             // Go to conversation with this user
                             getControllerFactory().getPickUserController().hidePickUserWithoutAnimations(getContainer().getCurrentPickerDestination());
+                            Timber.i("onConnectUserUpdated.onLeftActionClicked %s", user.getConversation().getId());
                             inject(ConversationController.class).selectConv(new ConvId(user.getConversation().getId()), ConversationChangeRequester.CONVERSATION_LIST);
                         } else {
                             getControllerFactory().getConversationScreenController().addPeopleToConversation();

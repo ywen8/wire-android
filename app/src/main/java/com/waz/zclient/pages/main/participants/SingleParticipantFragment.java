@@ -59,6 +59,7 @@ import com.waz.zclient.views.e2ee.ShieldView;
 import com.waz.zclient.views.images.ImageAssetImageView;
 import com.waz.zclient.views.menus.FooterMenu;
 import com.waz.zclient.views.menus.FooterMenuCallback;
+import timber.log.Timber;
 
 public class SingleParticipantFragment extends BaseFragment<SingleParticipantFragment.Container> implements
                                                                                                  UserProfile,
@@ -312,6 +313,7 @@ public class SingleParticipantFragment extends BaseFragment<SingleParticipantFra
                     // Go to conversation with this user
                     goToConversationWithUser = true;
                     getContainer().dismissUserProfile();
+                    Timber.i("onUserUpdated %s", user.getConversation().getId());
                     inject(ConversationController.class).selectConv(new ConvId(user.getConversation().getId()), ConversationChangeRequester.START_CONVERSATION);
                 }
 
