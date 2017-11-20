@@ -58,13 +58,17 @@
 
     <com.waz.zclient.ui.text.TypefaceTextView
         android:id="@+id/about"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
         android:gravity="center_horizontal"
         android:text="@string/teams_set_team_name_about"
-        app:w_font="@string/wire__typeface__bold"
-        android:textSize="@dimen/wire__text_size__smaller"
         android:textColor="@color/black"
-        />
+        android:textSize="@dimen/wire__text_size__smaller"
+        app:w_font="@string/wire__typeface__bold"
+        android:padding="@dimen/wire__padding__small"
+        android:background="@drawable/app_entry_button_background"
+        android:clickable="true"
+        android:focusable="true"/>
 
 </LinearLayout>

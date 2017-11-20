@@ -24,7 +24,7 @@ import android.view.View
 import com.waz.threading.Threading
 import com.waz.utils.events.EventContext
 import com.waz.zclient._
-import com.waz.zclient.appentry.AppEntryDialogs
+import com.waz.zclient.appentry.{AppEntryButtonOnTouchListener, AppEntryDialogs}
 import com.waz.zclient.common.views.InputBox
 import com.waz.zclient.common.views.InputBox.NameValidator
 import com.waz.zclient.controllers.SignInController.{Email, Register, SignInMethod}
@@ -71,7 +71,7 @@ case class TeamNameViewHolder(root: View)(implicit val context: Context, eventCo
           }
       }
     )
-    about.onClick(openUrl(R.string.url_about_teams))
+    about.setOnTouchListener(AppEntryButtonOnTouchListener(() => openUrl(R.string.url_about_teams)))
   }
 
   private def openUrl(id: Int): Unit ={

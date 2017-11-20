@@ -25,6 +25,7 @@ import com.waz.service.ZMessaging
 import com.waz.threading.Threading
 import com.waz.utils.events.EventContext
 import com.waz.zclient._
+import com.waz.zclient.appentry.AppEntryButtonOnTouchListener
 import com.waz.zclient.common.views.NumberCodeInput
 import com.waz.zclient.controllers.SignInController.{Email, Register, SignInMethod}
 import com.waz.zclient.ui.text.TypefaceTextView
@@ -78,7 +79,7 @@ case class VerifyEmailViewHolder(root: View)(implicit val context: Context, even
       }
     })
 
-    resend.onClick {
+    resend.setOnTouchListener(AppEntryButtonOnTouchListener({ () =>
       if (resendCount < 3) {
         if (cooldown) {
           resendCount += 1
@@ -96,9 +97,9 @@ case class VerifyEmailViewHolder(root: View)(implicit val context: Context, even
       } else {
         Toast.makeText(context, ContextUtils.getString(R.string.new_reg_phone_too_man_attempts_header), Toast.LENGTH_SHORT).show()
       }
-    }
+    }))
 
-    changeEmail.onClick(appEntryController.createTeamBack())
+    changeEmail.setOnTouchListener(AppEntryButtonOnTouchListener(() => appEntryController.createTeamBack()))
   }
 
   def setButtonsVisible(visible: Boolean) = Future.successful {

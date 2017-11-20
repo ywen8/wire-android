@@ -901,7 +901,7 @@
     <dimen name="settings_divider_margin_start">48dp</dimen>
 
     <dimen name="teams_input_box_height">56dp</dimen>
-    <dimen name="teams_back_button_size">16dp</dimen>
+    <dimen name="teams_back_button_size">64dp</dimen>
     <dimen name="app_entry_logo_height">36dp</dimen>
     <dimen name="app_entry_button_size">72dp</dimen>
     <dimen name="app_entry_button_glyph_size">32dp</dimen>

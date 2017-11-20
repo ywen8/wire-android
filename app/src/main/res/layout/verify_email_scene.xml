@@ -58,31 +58,54 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        android:baselineAligned="false">
 
-        <com.waz.zclient.ui.text.TypefaceTextView
-            android:id="@+id/resend_email"
+        <FrameLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:text="@string/teams_verify_email_resend"
-            app:w_font="@string/wire__typeface__bold"
-            android:textSize="@dimen/wire__text_size__smaller"
-            android:textColor="@color/black"
-            />
+            android:layout_weight="1">
 
-        <com.waz.zclient.ui.text.TypefaceTextView
-            android:id="@+id/change_email"
+            <com.waz.zclient.ui.text.TypefaceTextView
+                android:id="@+id/resend_email"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:layout_gravity="center"
+                android:text="@string/teams_verify_email_resend"
+                app:w_font="@string/wire__typeface__bold"
+                android:textSize="@dimen/wire__text_size__smaller"
+                android:textColor="@color/black"
+                android:padding="@dimen/wire__padding__small"
+                android:background="@drawable/app_entry_button_background"
+                android:clickable="true"
+                android:focusable="true"
+                />
+
+        </FrameLayout>
+
+        <FrameLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:text="@string/teams_verify_email_change"
-            app:w_font="@string/wire__typeface__bold"
-            android:textSize="@dimen/wire__text_size__smaller"
-            android:textColor="@color/black"
-            />
+            android:layout_weight="1">
+
+            <com.waz.zclient.ui.text.TypefaceTextView
+                android:id="@+id/change_email"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:layout_gravity="center"
+                android:text="@string/teams_verify_email_change"
+                app:w_font="@string/wire__typeface__bold"
+                android:textSize="@dimen/wire__text_size__smaller"
+                android:textColor="@color/black"
+                android:padding="@dimen/wire__padding__small"
+                android:background="@drawable/app_entry_button_background"
+                android:clickable="true"
+                android:focusable="true"
+                />
+
+        </FrameLayout>
 
     </LinearLayout>
 

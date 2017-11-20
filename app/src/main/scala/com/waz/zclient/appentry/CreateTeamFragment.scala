@@ -18,10 +18,9 @@
 package com.waz.zclient.appentry
 
 import android.os.Bundle
-import android.support.transition._
 import android.view.View.OnClickListener
 import android.view.{LayoutInflater, View, ViewGroup}
-import android.widget.{Button, FrameLayout}
+import android.widget.{FrameLayout, ImageButton}
 import com.waz.zclient.appentry.CreateTeamFragment._
 import com.waz.zclient.appentry.scenes._
 import com.waz.zclient.pages.BaseFragment
@@ -42,7 +41,7 @@ class CreateTeamFragment extends BaseFragment[Container] with FragmentHelper wit
 
   override def onViewCreated(view: View, savedInstanceState: Bundle): Unit = {
 
-    val backButton = findById[Button](R.id.back_button)
+    val backButton = findById[ImageButton](R.id.back_button)
     val container = findById[FrameLayout](R.id.container)
 
     backButton.setOnClickListener(new OnClickListener {
@@ -61,18 +60,22 @@ class CreateTeamFragment extends BaseFragment[Container] with FragmentHelper wit
         case SetUsernameTeam => SetUsernameViewHolder(inflator.inflate(R.layout.set_username_scene, container, false))(getContext, this, injector)
       }
 
-      val forward = previousStage.fold(true)(_.depth <= state.depth)
+      val forward = previousStage.fold(true)(_.depth < state.depth)
+      val sameDepth = previousStage.fold(false)(_.depth == state.depth)
       val transition = DefaultTransition()
 
       val previousViews = (0 until container.getChildCount).map(container.getChildAt)
       previousViews.foreach { pv =>
-        transition.outAnimation(pv, container, forward = forward).withEndAction(new Runnable {
-          override def run(): Unit = container.removeView(pv)
-        }).start()
+        if (!sameDepth)
+          transition.outAnimation(pv, container, forward = forward).withEndAction(new Runnable {
+            override def run(): Unit = container.removeView(pv)
+          }).start()
+        else
+          container.removeView(pv)
       }
 
       container.addView(viewHolder.root)
-      if (previousViews.nonEmpty)
+      if (previousViews.nonEmpty && !sameDepth)
         transition.inAnimation(viewHolder.root, container, forward = forward).start()
       viewHolder.onCreate()
 
@@ -101,9 +104,8 @@ object CreateTeamFragment {
   def newInstance = new CreateTeamFragment
 
   trait Container
-}
 
-class SupportAutoTransition extends TransitionSet {
-  setOrdering(TransitionSet.ORDERING_TOGETHER)
-  addTransition(new Fade(Fade.OUT)).addTransition(new ChangeBounds).addTransition(new Fade(Fade.IN))
+  case class ARunnable(f: () => Unit) extends Runnable {
+    override def run(): Unit = f()
+  }
 }
