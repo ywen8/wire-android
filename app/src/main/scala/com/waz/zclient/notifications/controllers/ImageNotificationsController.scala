@@ -32,7 +32,8 @@ import com.waz.utils.LoggedTry
 import com.waz.utils.wrappers.URI
 import com.waz.utils.events.{EventContext, Signal}
 import com.waz.zclient.utils.ContextUtils._
-import com.waz.zclient._
+import com.waz.zclient.utils.IntentUtils._
+import com.waz.zclient.{Injectable, Injector, R, WireContext}
 
 class ImageNotificationsController(implicit cxt: WireContext, eventContext: EventContext, inj: Injector) extends Injectable {
 
@@ -57,9 +58,9 @@ class ImageNotificationsController(implicit cxt: WireContext, eventContext: Even
 
   //TODO use image controller when available from messages rewrite branch
   zms.zip(savedImageId).flatMap {
-    case (z, Some(imageId)) =>
-      z.assetsStorage.signal(imageId).flatMap {
-        case data@AssetData.IsImage() => BitmapSignal(z, data, Single(getDimenPx(R.dimen.notification__image_saving__image_width)))
+    case (zms, Some(imageId)) =>
+      zms.assetsStorage.signal(imageId).flatMap {
+        case data@AssetData.IsImage() => BitmapSignal(zms, data, Single(getDimenPx(R.dimen.notification__image_saving__image_width)))
         case _ => Signal.empty[BitmapResult]
       }
     case _ => Signal.empty[BitmapResult]
@@ -82,8 +83,8 @@ class ImageNotificationsController(implicit cxt: WireContext, eventContext: Even
       .setSmallIcon(R.drawable.ic_menu_save_image_gallery)
       .setLargeIcon(BitmapUtils.cropRect(bitmap, toPx(largeIconSizeDp)))
       .setStyle(notificationStyle)
-      .setContentIntent(Intents.GalleryIntent(cxt, uri))
-      .addAction(R.drawable.ic_menu_share, getString(R.string.notification__image_saving__action__share), Intents.PendingShareIntent(cxt, uri)).setLocalOnly(true).setAutoCancel(true)
+      .setContentIntent(getGalleryIntent(cxt, uri))
+      .addAction(R.drawable.ic_menu_share, getString(R.string.notification__image_saving__action__share), getPendingShareIntent(cxt, uri)).setLocalOnly(true).setAutoCancel(true)
 
     def showNotification() = notManager.notify(ZETA_SAVE_IMAGE_NOTIFICATION_ID, builder.build())
 

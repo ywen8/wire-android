@@ -25,7 +25,7 @@ import com.waz.model.MessageId
 import com.waz.utils.wrappers.{AndroidURIUtil, URI}
 import com.waz.utils.LoggedTry
 import com.waz.utils.events.EventStream
-import com.waz.zclient.Intents.GoogleMapsIntent
+import com.waz.zclient.utils.IntentUtils
 
 class BrowserController(implicit context: Context) {
 
@@ -42,7 +42,5 @@ class BrowserController(implicit context: Context) {
   }
 
   def openLocation(location: Location) =
-    Option(GoogleMapsIntent(context, location.getLatitude, location.getLongitude,
-                            location.getZoom, location.getName))
-    .foreach { context.startActivity }
+    Option(IntentUtils.getGoogleMapsIntent(context, location.getLatitude, location.getLongitude, location.getZoom, location.getName)) foreach { context.startActivity }
 }
