@@ -136,7 +136,8 @@ public class GlobalLayoutController implements IGlobalLayoutController {
         }
 
         ViewUtils.setSoftInputMode(activity.getWindow(),
-                                   getSoftInputModeForPage(page));
+                                   getSoftInputModeForPage(page),
+                                   TAG);
     }
 
     @Override
