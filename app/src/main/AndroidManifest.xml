@@ -99,16 +99,6 @@
                 <category android:name="android.intent.category.BROWSABLE" />
                 <category android:name="android.intent.category.VIEW" />
             </intent-filter>
-
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-                <data
-                    android:scheme="https"
-                    android:host="wire.com"
-                    android:pathPattern="/.*/download"/>
-            </intent-filter>
         </activity>
 
         <activity
@@ -162,7 +152,7 @@
                 <data android:mimeType="*/*" />
             </intent-filter>
         </activity>
-        <activity android:name=".ShareSavedImageActivity" />
+        <activity android:name=".controllers.notifications.ShareSavedImageActivity" />
         <activity
             android:name=".LaunchActivity"
             android:label="@string/app_name"

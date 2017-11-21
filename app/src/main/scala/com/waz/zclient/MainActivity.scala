@@ -17,7 +17,6 @@
  */
 package com.waz.zclient
 
-import android.content.DialogInterface.OnClickListener
 import android.content.Intent._
 import android.content.res.Configuration
 import android.content.{DialogInterface, Intent}
@@ -41,12 +40,11 @@ import com.waz.zclient.Intents._
 import com.waz.zclient.calling.CallingActivity
 import com.waz.zclient.calling.controllers.CallPermissionsController
 import com.waz.zclient.common.controllers.PermissionsController
-import com.waz.zclient.controllers.SignInController.{Email, Login, SignInMethod}
 import com.waz.zclient.controllers.accentcolor.AccentColorChangeRequester
 import com.waz.zclient.controllers.calling.CallingObserver
 import com.waz.zclient.controllers.global.AccentColorController
 import com.waz.zclient.controllers.navigation.{NavigationControllerObserver, Page}
-import com.waz.zclient.controllers.{SharingController, SignInController, UserAccountsController}
+import com.waz.zclient.controllers.{SharingController, UserAccountsController}
 import com.waz.zclient.conversation.ConversationController
 import com.waz.zclient.core.stores.api.ZMessagingApiStoreObserver
 import com.waz.zclient.core.stores.connect.{ConnectStoreObserver, IConnectStore}
@@ -56,10 +54,10 @@ import com.waz.zclient.fragments.ConnectivityFragment
 import com.waz.zclient.pages.main.{MainPhoneFragment, MainTabletFragment}
 import com.waz.zclient.pages.startup.UpdateFragment
 import com.waz.zclient.preferences.{PreferencesActivity, PreferencesController}
-import com.waz.zclient.tracking.{CrashController, GlobalTrackingController, UiTrackingController}
+import com.waz.zclient.tracking.{CrashController, GlobalTrackingController, LoggedOutEvent, UiTrackingController}
 import com.waz.zclient.utils.PhoneUtils.PhoneState
 import com.waz.zclient.utils.StringUtils.TextDrawing
-import com.waz.zclient.utils.{BuildConfigUtils, ContextUtils, Emojis, LayoutSpec, PhoneUtils, ViewUtils}
+import com.waz.zclient.utils.{BuildConfigUtils, ContextUtils, Emojis, IntentUtils, LayoutSpec, PhoneUtils, ViewUtils}
 import net.hockeyapp.android.{ExceptionHandler, NativeCrashManager}
 
 import scala.collection.JavaConverters._
@@ -247,9 +245,7 @@ class MainActivity extends BaseActivity
     super.onNewIntent(intent)
     verbose(s"onNewIntent: $intent")
 
-    intent match {
-      case PasswordResetIntent() => onPasswordWasReset()
-    }
+    if (IntentUtils.isPasswordResetIntent(intent)) onPasswordWasReset()
 
     setIntent(intent)
     handleIntent(intent)
@@ -271,41 +267,24 @@ class MainActivity extends BaseActivity
     getControllerFactory.getNavigationController.setIsLandscape(ContextUtils.isInLandscape(this))
   }
 
+  ///////////////////////////////////////////////////////////////////////////////////////////////////////////
+  //
+  //  Navigation
+  //
+  ///////////////////////////////////////////////////////////////////////////////////////////////////////////
   private def enterApplication(self: Self): Unit = {
     error("Entering application")
-    getIntent match {
-      case PasswordResetIntent() =>
-        onPasswordWasReset()
+    // step 1 - check if app was started via password reset intent
+    if (IntentUtils.isPasswordResetIntent(getIntent)) {
+      error("Password was reset")
+      onPasswordWasReset()
+      return
     }
   }
 
   private def onPasswordWasReset() = {
-    error("Password was reset")
     getStoreFactory.zMessagingApiStore.getApi.logout()
     openSignUpPage()
-  }
-
-  private def onTeamAccountCreated(email: String) = {
-    val accountsController = inject[UserAccountsController]
-    val signInController = inject[SignInController]
-    accountsController.accounts.foreach { accounts =>
-      if(accounts.length == 2) {
-        val handler = new OnClickListener {
-          override def onClick(dialog: DialogInterface, which: Int): Unit = {
-            dialog.dismiss()
-          }
-        }
-        ViewUtils.showAlertDialog(this, R.string.max_accounts_reached__dialog_title,
-                                  R.string.max_accounts_reached__dialog_text, android.R.string.ok,
-                                  handler, false)
-      } else {
-        ZMessaging.accountsService.flatMap(_.logout(false)).map { _ =>
-          signInController.uiSignInState ! SignInMethod(Login, Email)
-          signInController.email ! email
-          signInController.password ! ""
-        }
-      }
-    }
   }
 
   private def onUserLoggedInAndVerified(self: Self) = {
@@ -338,13 +317,13 @@ class MainActivity extends BaseActivity
         val switchAccount = {
           val accounts = ZMessaging.currentAccounts
           accounts.activeAccount.head.flatMap {
-            case Some(acc) if accountId.equals(acc.id) => Future.successful(false)
-            case _ => accounts.switchAccount(accountId).map(_ => true)
+            case Some(acc) if intent.accountId.contains(acc.id) => Future.successful(false)
+            case _ => accounts.switchAccount(intent.accountId.get).map(_ => true)
           }
         }
 
         switchAccount.flatMap { _ =>
-          (convId match {
+          (intent.convId match {
             case Some(id) => switchConversation(id, startCall)
             case _ =>        Future.successful({})
           }).map(_ => clearIntent())(Threading.Ui)
@@ -369,14 +348,6 @@ class MainActivity extends BaseActivity
         case Intents.Page.Settings => startActivityForResult(PreferencesActivity.getDefaultIntent(this), PreferencesActivity.SwitchAccountCode)
         case _ => error(s"Unknown page: $page - ignoring intent")
       }
-
-      case AccountCreatedIntent(uri) =>
-        val email = uri.getQueryParameter("email")
-        if(email != null) {
-          onTeamAccountCreated(email)
-        } else {
-          error("Expected email in team account intent but none was given")
-        }
 
       case _ => setIntent(intent)
     }
