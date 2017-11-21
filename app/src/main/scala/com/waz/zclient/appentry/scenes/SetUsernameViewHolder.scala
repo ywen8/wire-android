@@ -20,12 +20,12 @@ package com.waz.zclient.appentry.scenes
 import android.app.Activity
 import android.content.Context
 import android.view.View
+import com.waz.api.impl.ErrorResponse
 import com.waz.threading.Threading
 import com.waz.utils.events.EventContext
 import com.waz.zclient._
 import com.waz.zclient.common.views.InputBox
 import com.waz.zclient.common.views.InputBox.UsernameValidator
-import com.waz.zclient.controllers.SignInController.{Email, Register, SignInMethod}
 import com.waz.zclient.ui.utils.KeyboardUtils
 import com.waz.zclient.utils._
 
@@ -41,10 +41,12 @@ case class SetUsernameViewHolder(root: View)(implicit val context: Context, even
     inputField.editText.addTextListener(appEntryController.teamUserUsername = _)
     inputField.editText.requestFocus()
     KeyboardUtils.showKeyboard(context.asInstanceOf[Activity])
+    //TODO: do the checks on change?
     inputField.setOnClick( text => appEntryController.setUsername(text).map {
-      case Right(error) =>
-        val errorMessage = ContextUtils.getString(EntryError(error.code, error.label, SignInMethod(Register, Email)).bodyResource)
-        Some(errorMessage)
+      case Right(ErrorResponse(409, _, "handle-exists")) =>
+        Some(ContextUtils.getString(R.string.pref__account_action__dialog__change_username__error_already_taken))
+      case Right(_) =>
+        Some(ContextUtils.getString(R.string.pref__account_action__dialog__change_username__error_unknown))
       case _ => None
     } (Threading.Ui))
   }

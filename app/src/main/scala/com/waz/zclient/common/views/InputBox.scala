@@ -20,8 +20,7 @@ package com.waz.zclient.common.views
 import android.content.Context
 import android.content.res.{ColorStateList, TypedArray}
 import android.util.AttributeSet
-import android.view.{KeyEvent, View}
-import android.view.View.OnKeyListener
+import android.view.KeyEvent
 import android.view.inputmethod.EditorInfo
 import android.widget.TextView.OnEditorActionListener
 import android.widget.{LinearLayout, ProgressBar, TextView}
@@ -85,7 +84,13 @@ class InputBox(context: Context, attrs: AttributeSet, style: Int) extends Linear
     progressBar.setVisible(true)
     editText.setEnabled(false)
     confirmationButton.setEnabled(false)
-    onClick(editText.getText.toString).map { errorMessage =>
+    val content =
+      if (validator.forall(_.shouldTrim))
+        editText.getText.toString.trim
+      else
+        editText.getText.toString
+
+    onClick(content).map { errorMessage =>
       errorMessage.foreach(t => showErrorMessage(Some(t)))
       progressBar.setVisible(false)
       editText.setEnabled(true)
@@ -100,7 +105,7 @@ class InputBox(context: Context, attrs: AttributeSet, style: Int) extends Linear
   }
 
   def showErrorMessage(text: Option[String] = None): Unit = {
-    text.foreach(errorText.setText)
+    text.map(_.toUpperCase).foreach(errorText.setText)
     errorText.setVisible(true)
   }
 
@@ -123,19 +128,35 @@ class InputBox(context: Context, attrs: AttributeSet, style: Int) extends Linear
 
 object InputBox {
 
-  case class Validator(f: String => Boolean)
+  case class Validator(f: String => Boolean) {
+    def shouldTrim: Boolean = true
+  }
 
   object PasswordValidator extends Validator({ t =>
     t.length >= 8 && t.length <= 101
-  })
+  }) {
+    override def shouldTrim: Boolean = false
+  }
 
-  object NameValidator extends Validator(_.length >= 2)
+  object NameValidator extends Validator(_.trim.length >= 2)
 
+  //TODO: Unify this code with the one from the change username fragment
   object UsernameValidator extends Validator({ t =>
-    t.length > 2
+    val ValidUsername = s"""^([a-z]|[0-9]|_)*""".r
+    val MaxLength = 21
+    val MinLength = 2
+    t match {
+      case ValidUsername(_) =>
+        t.length match {
+          case l if l > MaxLength => false
+          case l if l < MinLength => false
+          case _ => true
+        }
+      case _ => false
+    }
   })
 
   object EmailValidator extends Validator({ t =>
-    t.contains("@") && t.contains(".") && t.length >= 3
+    t.contains("@") && t.contains(".") && t.trim.length >= 3
   })
 }

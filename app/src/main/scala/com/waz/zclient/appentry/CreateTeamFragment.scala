@@ -59,6 +59,7 @@ class CreateTeamFragment extends BaseFragment[Container] with FragmentHelper wit
         case SetUsersNameTeam => SetNameViewHolder(inflator.inflate(R.layout.set_name_scene, container, false))(getContext, this, injector)
         case SetPasswordTeam => SetPasswordViewHolder(inflator.inflate(R.layout.set_password_scene, container, false))(getContext, this, injector)
         case SetUsernameTeam => SetUsernameViewHolder(inflator.inflate(R.layout.set_username_scene, container, false))(getContext, this, injector)
+        case _ => EmptyViewHolder(new View(getContext))(getContext, this, injector)
       }
 
       val forward = previousStage.fold(true)(_.depth < state.depth)
@@ -80,7 +81,7 @@ class CreateTeamFragment extends BaseFragment[Container] with FragmentHelper wit
         transition.inAnimation(viewHolder.root, container, forward = forward).start()
       viewHolder.onCreate()
 
-      if(state != NoAccountState(FirstScreen) && state != SetUsernameTeam)
+      if(state != NoAccountState(FirstScreen) && state != SetUsernameTeam && state != VerifyTeamEmail)
         backButton.setVisibility(View.VISIBLE)
       else
         backButton.setVisibility(View.GONE)

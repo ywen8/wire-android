@@ -346,7 +346,9 @@ class MainActivity extends BaseActivity
         } yield clearIntent()
 
       case OpenPageIntent(page) => page match {
-        case Intents.Page.Settings => startActivityForResult(PreferencesActivity.getDefaultIntent(this), PreferencesActivity.SwitchAccountCode)
+        case Intents.Page.Settings =>
+          startActivityForResult(PreferencesActivity.getDefaultIntent(this), PreferencesActivity.SwitchAccountCode)
+          clearIntent()
         case _ => error(s"Unknown page: $page - ignoring intent")
       }
 

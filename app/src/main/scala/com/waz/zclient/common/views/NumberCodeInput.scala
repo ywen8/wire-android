@@ -23,9 +23,10 @@ import android.text.{Editable, TextWatcher}
 import android.util.AttributeSet
 import android.view.ViewGroup.LayoutParams
 import android.view._
-import android.widget.{FrameLayout, ProgressBar, TableLayout}
+import android.widget.TextView.OnEditorActionListener
+import android.widget.{FrameLayout, ProgressBar, TableLayout, TextView}
 import com.waz.threading.Threading
-import com.waz.utils.events.{EventStream, Signal}
+import com.waz.utils.events.Signal
 import com.waz.zclient.ui.cursor.CursorEditText
 import com.waz.zclient.ui.text.{TypefaceEditText, TypefaceTextView}
 import com.waz.zclient.utils.{ContextUtils, _}
@@ -69,16 +70,19 @@ class NumberCodeInput(context: Context, attrs: AttributeSet, style: Int) extends
     texts.foreach(_.setAccentColor(ContextUtils.getColor(R.color.accent_blue)))
     texts.zipWithIndex.foreach {
       case (editText, i) =>
-        editText.setOnKeyDownListener(new View.OnKeyListener {
-          override def onKey(v: View, keyCode: Int, event: KeyEvent): Boolean = {
-            if (event.getKeyCode == KeyEvent.KEYCODE_DEL) {
-              if (i != 0) {
-                editText.setText("")
-                texts(i - 1).requestFocus()
-              }
+
+        def handleBackKeyEvent(event: KeyEvent): Boolean = {
+          if (event.getKeyCode == KeyEvent.KEYCODE_DEL) {
+            if (i != 0) {
+              editText.setText("")
+              texts(i - 1).requestFocus()
             }
-            true
           }
+          false
+        }
+
+        editText.setOnKeyDownListener(new View.OnKeyListener {
+          override def onKey(v: View, keyCode: Int, event: KeyEvent): Boolean = handleBackKeyEvent(event)
         })
         editText.addTextChangedListener(new TextWatcher {
           override def onTextChanged(s: CharSequence, start: Int, before: Int, count: Int): Unit = {}

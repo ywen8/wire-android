@@ -105,8 +105,10 @@ class AppEntryActivity extends BaseActivity
     enableProgress(false)
     createdFromSavedInstance = savedInstanceState != null
 
-    if (!createdFromSavedInstance)
+    if (!createdFromSavedInstance) {
+      appEntryController.clearCredentials()
       signInController.clearCredentials()
+    }
 
     unsplashInitLoadHandle = unsplashInitImageAsset.getSingleBitmap(AppEntryActivity.PREFETCH_IMAGE_WIDTH, new BitmapCallback() {
       def onBitmapLoaded(b: Bitmap): Unit = {}
@@ -202,7 +204,7 @@ class AppEntryActivity extends BaseActivity
         }
       } { acc =>
         ZMessaging.currentAccounts.switchAccount(acc.id).map { _ =>
-          onEnterApplication(true)
+          onEnterApplication(openSettings = true)
         }
       }
     }

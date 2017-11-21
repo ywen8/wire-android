@@ -178,10 +178,10 @@
             android:text="@string/app_entry_login_sub"/>
 
         <com.waz.zclient.ui.text.TypefaceTextView
-
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
+            android:layout_marginTop="@dimen/wire__padding__4"
             android:gravity="center"
             android:textSize="@dimen/wire__text_size__medium"
             android:textColor="@color/teams_headline_text"

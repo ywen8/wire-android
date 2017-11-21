@@ -74,6 +74,15 @@ class AppEntryController(implicit inj: Injector, eventContext: EventContext) ext
   var teamUserUsername = ""
   var password = ""
 
+  def clearCredentials(): Unit = {
+    teamName = ""
+    teamEmail = ""
+    code = ""
+    teamUserName = ""
+    teamUserUsername = ""
+    password = ""
+  }
+
   val entryStage = for {
     account <- currentAccount
     user <- currentUser
