@@ -19,11 +19,9 @@ package com.waz.zclient
 
 import android.app.PendingIntent
 import android.content.{Context, Intent}
-import android.net.Uri
 import com.waz.model.{AccountId, ConvId}
 import com.waz.utils.returning
 import com.waz.zclient.preferences.PreferencesActivity
-import com.waz.zclient.utils.IntentUtils.isTeamAccountCreatedIntent
 
 object Intents {
 
@@ -89,8 +87,6 @@ object Intents {
 
     def page             = Option(intent).map(_.getStringExtra(OpenPageExtra)).filter(_ != null)
 
-    def uri              = Option(intent).map(isTeamAccountCreatedIntent).filter(_ != null)
-
     def clearExtras() = Option(intent).foreach { i =>
       i.removeExtra(FromNotificationExtra)
       i.removeExtra(FromSharingExtra)
@@ -108,7 +104,6 @@ object Intents {
           |Account id:       $accountId
           |Conv id:          $convId
           |Page:             $page
-          |AccountCreated:   $uri
         """.stripMargin
   }
 
@@ -126,8 +121,5 @@ object Intents {
     def unapply(i: Intent): Option[Page] = i.page
   }
 
-  object AccountCreatedIntent {
-    def unapply(i: Intent): Option[Uri] = i.uri
-  }
 
 }

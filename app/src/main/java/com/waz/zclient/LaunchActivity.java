@@ -49,7 +49,6 @@ public class LaunchActivity extends BaseActivity implements InitListener {
     @Override
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
-
         setIntent(intent);
         persistInviteToken();
     }
