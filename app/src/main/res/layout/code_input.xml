@@ -30,25 +30,30 @@
         android:paddingEnd="@dimen/wire__padding__8">
 
         <LinearLayout
+            android:id="@+id/container"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:orientation="horizontal"
-            android:baselineAligned="false">
+            android:baselineAligned="false"
+            android:clickable="true"
+            android:focusable="true">
 
             <FrameLayout
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1">
 
-                <com.waz.zclient.ui.text.TypefaceEditText
+                <com.waz.zclient.ui.text.TypefaceTextView
                     android:id="@+id/t1"
                     android:layout_width="@dimen/verification_code_input_cell_width"
                     android:layout_height="@dimen/verification_code_input_cell_height"
                     android:layout_gravity="center"
                     android:gravity="center"
                     android:textSize="@dimen/wire__text_size__medium"
-                    android:inputType="numberDecimal"
-                    android:background="@drawable/rounded_corner_background_white_small"/>
+                    android:background="@drawable/rounded_corner_background_white_small"
+                    android:clickable="false"
+                    android:focusable="false"
+                    android:textIsSelectable="false"/>
             </FrameLayout>
 
             <FrameLayout
@@ -56,15 +61,17 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1">
 
-                <com.waz.zclient.ui.text.TypefaceEditText
+                <com.waz.zclient.ui.text.TypefaceTextView
                     android:id="@+id/t2"
                     android:layout_width="@dimen/verification_code_input_cell_width"
                     android:layout_height="@dimen/verification_code_input_cell_height"
                     android:layout_gravity="center"
                     android:gravity="center"
                     android:textSize="@dimen/wire__text_size__medium"
-                    android:inputType="numberDecimal"
-                    android:background="@drawable/rounded_corner_background_white_small"/>
+                    android:background="@drawable/rounded_corner_background_white_small"
+                    android:clickable="false"
+                    android:focusable="false"
+                    android:textIsSelectable="false"/>
             </FrameLayout>
 
             <FrameLayout
@@ -72,15 +79,17 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1">
 
-                <com.waz.zclient.ui.text.TypefaceEditText
+                <com.waz.zclient.ui.text.TypefaceTextView
                     android:id="@+id/t3"
                     android:layout_width="@dimen/verification_code_input_cell_width"
                     android:layout_height="@dimen/verification_code_input_cell_height"
                     android:layout_gravity="center"
                     android:gravity="center"
                     android:textSize="@dimen/wire__text_size__medium"
-                    android:inputType="numberDecimal"
-                    android:background="@drawable/rounded_corner_background_white_small"/>
+                    android:background="@drawable/rounded_corner_background_white_small"
+                    android:clickable="false"
+                    android:focusable="false"
+                    android:textIsSelectable="false"/>
             </FrameLayout>
 
             <FrameLayout
@@ -88,30 +97,34 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1">
 
-                <com.waz.zclient.ui.text.TypefaceEditText
+                <com.waz.zclient.ui.text.TypefaceTextView
                     android:id="@+id/t4"
                     android:layout_width="@dimen/verification_code_input_cell_width"
                     android:layout_height="@dimen/verification_code_input_cell_height"
                     android:layout_gravity="center"
                     android:gravity="center"
                     android:textSize="@dimen/wire__text_size__medium"
-                    android:inputType="numberDecimal"
-                    android:background="@drawable/rounded_corner_background_white_small"/>
+                    android:background="@drawable/rounded_corner_background_white_small"
+                    android:clickable="false"
+                    android:focusable="false"
+                    android:textIsSelectable="false"/>
             </FrameLayout>
 
             <FrameLayout
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1">
-                <com.waz.zclient.ui.text.TypefaceEditText
+                <com.waz.zclient.ui.text.TypefaceTextView
                     android:id="@+id/t5"
                     android:layout_width="@dimen/verification_code_input_cell_width"
                     android:layout_height="@dimen/verification_code_input_cell_height"
                     android:layout_gravity="center"
                     android:gravity="center"
                     android:textSize="@dimen/wire__text_size__medium"
-                    android:inputType="numberDecimal"
-                    android:background="@drawable/rounded_corner_background_white_small"/>
+                    android:background="@drawable/rounded_corner_background_white_small"
+                    android:clickable="false"
+                    android:focusable="false"
+                    android:textIsSelectable="false"/>
             </FrameLayout>
 
             <FrameLayout
@@ -119,34 +132,43 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1">
 
-                <com.waz.zclient.ui.text.TypefaceEditText
+                <com.waz.zclient.ui.text.TypefaceTextView
                     android:id="@+id/t6"
                     android:layout_width="@dimen/verification_code_input_cell_width"
                     android:layout_height="@dimen/verification_code_input_cell_height"
                     android:layout_gravity="center"
                     android:gravity="center"
                     android:textSize="@dimen/wire__text_size__medium"
-                    android:inputType="numberDecimal"
-                    android:background="@drawable/rounded_corner_background_white_small"/>
+                    android:background="@drawable/rounded_corner_background_white_small"
+                    android:clickable="false"
+                    android:focusable="false"
+                    android:textIsSelectable="false"/>
+
             </FrameLayout>
 
         </LinearLayout>
 
-        <com.waz.zclient.ui.cursor.CursorEditText
-            android:id="@+id/code_edit_text"
-            android:layout_width="match_parent"
-            android:layout_height="@dimen/teams_input_box_height"
-            android:paddingStart="@dimen/wire__padding__regular"
-            android:paddingEnd="@dimen/wire__padding__regular"
-            android:background="@null"
-            android:textSize="@dimen/wire__text_size__medium"
-            android:inputType="numberDecimal"
-            android:maxLength="6"
-            android:maxLines="1"
-            android:visibility="gone"
-            android:alpha="@dimen/framework__zero__alpha"
-            android:textIsSelectable="false"
-            />
+        <FrameLayout
+            android:layout_width="@dimen/wire__divider__height"
+            android:layout_height="@dimen/wire__divider__height"
+            android:visibility="invisible">
+
+            <com.waz.zclient.ui.cursor.CursorEditText
+                android:id="@+id/code_edit_text"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/teams_input_box_height"
+                android:paddingStart="@dimen/wire__padding__regular"
+                android:paddingEnd="@dimen/wire__padding__regular"
+                android:background="@null"
+                android:textSize="@dimen/wire__text_size__medium"
+                android:inputType="numberDecimal"
+                android:maxLength="6"
+                android:maxLines="1"
+                android:visibility="visible"
+                android:alpha="@dimen/framework__zero__alpha"
+                />
+
+        </FrameLayout>
 
     </FrameLayout>
 

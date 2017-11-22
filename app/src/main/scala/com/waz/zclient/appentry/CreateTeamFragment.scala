@@ -18,18 +18,16 @@
 package com.waz.zclient.appentry
 
 import android.os.Bundle
-import android.view.View.OnClickListener
 import android.view.{LayoutInflater, View, ViewGroup}
-import android.widget.{FrameLayout, ImageButton}
+import android.widget.FrameLayout
+import com.waz.ZLog.ImplicitTag.implicitLogTag
+import com.waz.service.ZMessaging
+import com.waz.zclient.AppEntryController._
 import com.waz.zclient.appentry.CreateTeamFragment._
 import com.waz.zclient.appentry.scenes._
 import com.waz.zclient.pages.BaseFragment
-import com.waz.zclient.{AppEntryController, FragmentHelper, OnBackPressedListener}
-import com.waz.zclient.AppEntryController._
-import com.waz.zclient.R
-import com.waz.ZLog.ImplicitTag.implicitLogTag
-import com.waz.service.ZMessaging
 import com.waz.zclient.utils.DefaultTransition
+import com.waz.zclient.{AppEntryController, FragmentHelper, OnBackPressedListener, R}
 
 class CreateTeamFragment extends BaseFragment[Container] with FragmentHelper with OnBackPressedListener {
 
@@ -42,12 +40,7 @@ class CreateTeamFragment extends BaseFragment[Container] with FragmentHelper wit
 
   override def onViewCreated(view: View, savedInstanceState: Bundle): Unit = {
 
-    val backButton = findById[ImageButton](R.id.back_button)
     val container = findById[FrameLayout](R.id.container)
-
-    backButton.setOnClickListener(new OnClickListener {
-      override def onClick(v: View): Unit = appEntryController.createTeamBack()
-    })
 
     appEntryController.entryStage.onUi { state =>
       val inflator = LayoutInflater.from(getActivity)
@@ -80,11 +73,6 @@ class CreateTeamFragment extends BaseFragment[Container] with FragmentHelper wit
       if (previousViews.nonEmpty && !sameDepth)
         transition.inAnimation(viewHolder.root, container, forward = forward).start()
       viewHolder.onCreate()
-
-      if(state != NoAccountState(FirstScreen) && state != SetUsernameTeam && state != VerifyTeamEmail)
-        backButton.setVisibility(View.VISIBLE)
-      else
-        backButton.setVisibility(View.GONE)
 
       previousStage = Some(state)
     }

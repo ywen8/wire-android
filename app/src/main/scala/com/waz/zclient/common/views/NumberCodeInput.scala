@@ -1,34 +1,35 @@
 /**
- * Wire
- * Copyright (C) 2017 Wire Swiss GmbH
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
+  * Wire
+  * Copyright (C) 2017 Wire Swiss GmbH
+  *
+  * This program is free software: you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License as published by
+  * the Free Software Foundation, either version 3 of the License, or
+  * (at your option) any later version.
+  *
+  * This program is distributed in the hope that it will be useful,
+  * but WITHOUT ANY WARRANTY; without even the implied warranty of
+  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  * GNU General Public License for more details.
+  *
+  * You should have received a copy of the GNU General Public License
+  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  */
 package com.waz.zclient.common.views
 
-import android.content.Context
+import android.app.Activity
+import android.content.{ClipData, ClipboardManager, Context}
 import android.content.res.ColorStateList
 import android.text.{Editable, TextWatcher}
 import android.util.AttributeSet
-import android.view.ViewGroup.LayoutParams
+import android.view.View.OnTouchListener
 import android.view._
-import android.widget.TextView.OnEditorActionListener
-import android.widget.{FrameLayout, ProgressBar, TableLayout, TextView}
+import android.widget._
 import com.waz.threading.Threading
 import com.waz.utils.events.Signal
 import com.waz.zclient.ui.cursor.CursorEditText
-import com.waz.zclient.ui.text.{TypefaceEditText, TypefaceTextView}
+import com.waz.zclient.ui.text.TypefaceTextView
+import com.waz.zclient.ui.utils.KeyboardUtils
 import com.waz.zclient.utils.{ContextUtils, _}
 import com.waz.zclient.{R, ViewHelper}
 
@@ -43,7 +44,9 @@ class NumberCodeInput(context: Context, attrs: AttributeSet, style: Int) extends
   val inputCount = 6
   val errorText = findById[TypefaceTextView](R.id.error_text)
   val progressBar = findById[ProgressBar](R.id.progress_bar)
-  val texts = Seq(R.id.t1, R.id.t2, R.id.t3, R.id.t4, R.id.t5, R.id.t6).map(findById[TypefaceEditText])
+  val editText = findById[CursorEditText](R.id.code_edit_text)
+  val texts = Seq(R.id.t1, R.id.t2, R.id.t3, R.id.t4, R.id.t5, R.id.t6).map(findById[TypefaceTextView])
+  val container = findById[LinearLayout](R.id.container)
   val codeText = Signal[String]("")
   private var onCodeSet = (_: String) => Future.successful(Option.empty[String])
 
@@ -59,50 +62,37 @@ class NumberCodeInput(context: Context, attrs: AttributeSet, style: Int) extends
   }
 
   def inputCode(code: String): Unit = {
-    texts.zip(code.toCharArray).foreach {
-      case (editText, char) => editText.setText(char.toString)
-    }
+    editText.setText(code)
   }
 
-  def requestInputFocus(): Unit = texts.headOption.foreach(_.requestFocus())
+  def requestInputFocus(): Unit = editText.requestFocus()
 
   private def setupInputs(): Unit = {
-    texts.foreach(_.setAccentColor(ContextUtils.getColor(R.color.accent_blue)))
-    texts.zipWithIndex.foreach {
-      case (editText, i) =>
-
-        def handleBackKeyEvent(event: KeyEvent): Boolean = {
-          if (event.getKeyCode == KeyEvent.KEYCODE_DEL) {
-            if (i != 0) {
-              editText.setText("")
-              texts(i - 1).requestFocus()
-            }
-          }
-          false
+    editText.addTextChangedListener(new TextWatcher {
+      override def onTextChanged(s: CharSequence, start: Int, before: Int, count: Int): Unit = {}
+      override def afterTextChanged(s: Editable): Unit = {
+        val content = s.toString.toCharArray.map(_.toString)
+        texts.zipWithIndex.foreach {
+          case (textView, i) =>
+            textView.setText(content.applyOrElse[Int, String](i, _ => ""))
         }
+        codeText ! s.toString
+      }
+      override def beforeTextChanged(s: CharSequence, start: Int, count: Int, after: Int): Unit = {}
+    })
+    container.setOnTouchListener(new OnTouchListener {
+      override def onTouch(v: View, event: MotionEvent): Boolean = {
+        event.getAction match {
+          case MotionEvent.ACTION_UP =>
+            editText.requestFocus()
+            KeyboardUtils.showKeyboard(context.asInstanceOf[Activity])
+            getClipboardCode.foreach { text => editText.getText.replace(0, editText.length(), text) }
+          case _ =>
+        }
+        false
+      }
+    })
 
-        editText.setOnKeyDownListener(new View.OnKeyListener {
-          override def onKey(v: View, keyCode: Int, event: KeyEvent): Boolean = handleBackKeyEvent(event)
-        })
-        editText.addTextChangedListener(new TextWatcher {
-          override def onTextChanged(s: CharSequence, start: Int, before: Int, count: Int): Unit = {}
-          override def afterTextChanged(s: Editable): Unit = {
-            if (s.length() > 1) {
-              val remainder = s.subSequence(1, s.length())
-              s.delete(1, s.length())
-              if (i < inputCount - 1) {
-                texts(i + 1).setText(remainder)
-              }
-            } else if (s.length() > 0 && i < inputCount - 1) {
-              texts(i + 1).requestFocus()
-            }
-            if (s.length() <= 1) {
-              self.codeText ! getCode
-            }
-          }
-          override def beforeTextChanged(s: CharSequence, start: Int, count: Int, after: Int): Unit = {}
-        })
-    }
   }
 
   def getCode: String = texts.map(_.getText.toString).mkString
@@ -112,25 +102,20 @@ class NumberCodeInput(context: Context, attrs: AttributeSet, style: Int) extends
   private def setCode(code: String): Unit = {
     progressBar.setVisible(true)
     errorText.setVisible(false)
-    texts.foreach(_.setEnabled(false))
     onCodeSet(code).map {
       case Some(error) =>
         errorText.setVisible(true)
         errorText.setText(error)
         progressBar.setVisible(false)
-        texts.foreach(_.setEnabled(true))
+        editText.setFocusable(true)
+        editText.requestFocus()
       case _ =>
     } (Threading.Ui)
   }
-}
 
-class SingleNumberCodeInput(context: Context, attrs: AttributeSet, style: Int) extends FrameLayout(context, attrs, style) with ViewHelper {
-  def this(context: Context, attrs: AttributeSet) = this(context, attrs, 0)
-  def this(context: Context) = this(context, null, 0)
-
-  inflate(R.layout.single_code_number_input)
-  setLayoutParams(new TableLayout.LayoutParams(0, LayoutParams.MATCH_PARENT, 1f))
-
-  val editText = findById[CursorEditText](R.id.edit_text)
-  editText.setAccentColor(ContextUtils.getColor(R.color.accent_blue))
+  private def getClipboardCode: Option[String] ={
+    val clip = context.getSystemService(Context.CLIPBOARD_SERVICE).asInstanceOf[ClipboardManager].getPrimaryClip
+    val clipItem = if (clip.getItemCount > 0) Some(clip.getItemAt(0)) else Option.empty[ClipData.Item]
+    clipItem.map(_.coerceToText(context).toString).filter(_.matches("^[0-9]{6}$"))
+  }
 }

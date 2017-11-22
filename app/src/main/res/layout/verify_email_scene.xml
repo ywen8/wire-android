@@ -46,6 +46,8 @@
         android:textSize="@dimen/wire__text_size__regular"
         android:textColor="@color/teams_description_text"
         android:layout_marginTop="@dimen/wire__padding__8"
+        android:paddingStart="@dimen/wire__padding__regular"
+        android:paddingEnd="@dimen/wire__padding__regular"
         />
 
     <com.waz.zclient.common.views.NumberCodeInput
