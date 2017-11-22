@@ -113,9 +113,10 @@ class NumberCodeInput(context: Context, attrs: AttributeSet, style: Int) extends
     } (Threading.Ui)
   }
 
-  private def getClipboardCode: Option[String] ={
-    val clip = context.getSystemService(Context.CLIPBOARD_SERVICE).asInstanceOf[ClipboardManager].getPrimaryClip
-    val clipItem = if (clip.getItemCount > 0) Some(clip.getItemAt(0)) else Option.empty[ClipData.Item]
+  private def getClipboardCode: Option[String] = {
+    val clipboardManager = context.getSystemService(Context.CLIPBOARD_SERVICE).asInstanceOf[ClipboardManager]
+    val clipOpt = if (clipboardManager.hasPrimaryClip) Option(clipboardManager.getPrimaryClip) else None
+    val clipItem = clipOpt.flatMap(clip => if (clip.getItemCount > 0) Some(clip.getItemAt(0)) else Option.empty[ClipData.Item])
     clipItem.map(_.coerceToText(context).toString).filter(_.matches("^[0-9]{6}$"))
   }
 }
