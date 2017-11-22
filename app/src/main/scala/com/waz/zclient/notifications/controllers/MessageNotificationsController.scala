@@ -20,8 +20,6 @@ package com.waz.zclient.notifications.controllers
 import android.annotation.TargetApi
 import android.app.{Notification, NotificationManager}
 import android.content.Context
-import android.graphics.Bitmap.Config
-import android.graphics.PorterDuff.Mode
 import android.graphics._
 import android.net.Uri
 import android.os.Build

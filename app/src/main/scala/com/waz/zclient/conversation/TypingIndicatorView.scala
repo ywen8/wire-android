@@ -22,7 +22,6 @@ import android.os.Handler
 import android.util.AttributeSet
 import android.view.View
 import android.widget.{FrameLayout, TextView}
-import com.waz.model.UserId
 import com.waz.service.ZMessaging
 import com.waz.utils.events.Signal
 

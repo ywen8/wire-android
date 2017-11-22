@@ -38,7 +38,7 @@ import com.waz.zclient.pages.main.profile.preferences.dialogs.{ChangeEmailDialog
 import com.waz.zclient.pages.main.profile.preferences.views.{EditNameDialog, PictureTextButton, TextButton}
 import com.waz.zclient.preferences.PreferencesActivity
 import com.waz.zclient.preferences.dialogs.{AccentColorPickerFragment, VerifyPhoneFragment}
-import com.waz.zclient.tracking.{GlobalTrackingController, LoggedOutEvent}
+import com.waz.zclient.tracking.GlobalTrackingController
 import com.waz.zclient.ui.utils.TextViewUtils._
 import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.utils.ViewUtils._
