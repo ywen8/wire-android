@@ -25,7 +25,6 @@ import com.waz.zclient.utils.ContextUtils;
 public class KeyboardVisibilityListener {
     private final View contentView;
     private final int statusAndNavigationBarHeight;
-    private int lastKeyboardHeight;
     private int keyboardHeight;
 
     public interface Callback {
@@ -34,18 +33,8 @@ public class KeyboardVisibilityListener {
     }
     private Callback callback;
 
-    private Handler keyboardHeightHandler;
-    private Runnable keyboardHeightRunnable = new Runnable() {
-        public void run() {
-        if (callback != null) {
-            callback.onKeyboardHeightChanged(keyboardHeight);
-        }
-        }
-    };
-
     public KeyboardVisibilityListener(View contentView) {
         this.contentView = contentView;
-        this.keyboardHeightHandler = new Handler();
         if (contentView == null) {
             this.statusAndNavigationBarHeight = 0;
             return;
@@ -61,29 +50,39 @@ public class KeyboardVisibilityListener {
         return keyboardHeight;
     }
 
-    public void onLayoutChange() {
-        Rect r = new Rect();
-        contentView.getWindowVisibleDisplayFrame(r);
-        int screenHeight = contentView.getRootView().getHeight();
-        keyboardHeight = screenHeight - r.bottom - statusAndNavigationBarHeight;
-
-        if (keyboardHeight == lastKeyboardHeight) {
-            return;
-        }
-
-        // Use delay to filter out intermediate height values
-        keyboardHeightHandler.removeCallbacks(keyboardHeightRunnable);
-        keyboardHeightHandler.postDelayed(keyboardHeightRunnable, 200);
-
-        if (lastKeyboardHeight > 0 && keyboardHeight > 0) {
-            lastKeyboardHeight = keyboardHeight;
-            return;
-        }
-
-        lastKeyboardHeight = keyboardHeight;
-
-        if (callback != null) {
-            callback.onKeyboardChanged(keyboardHeight > 0, keyboardHeight);
+    public synchronized void onLayoutChange() {
+        if (!layoutChangeInProgress) {
+            layoutChangeInProgress = true;
+            layoutChangeHandler.removeCallbacks(layoutChangeRunnable);
+            layoutChangeHandler.postDelayed(layoutChangeRunnable, 200);
         }
     }
+
+    private boolean layoutChangeInProgress = false;
+
+    private Handler layoutChangeHandler = new Handler();
+
+    private Runnable layoutChangeRunnable = new Runnable() {
+        @Override
+        public void run() {
+            Rect r = new Rect();
+            contentView.getWindowVisibleDisplayFrame(r);
+
+            int newKeyboardHeight = Math.max(0, contentView.getRootView().getHeight() - r.bottom - statusAndNavigationBarHeight);
+
+            if (newKeyboardHeight != keyboardHeight) {
+                boolean visibilityChanged = keyboardHeight == 0 || newKeyboardHeight == 0;
+                keyboardHeight = newKeyboardHeight;
+
+                if (callback != null) {
+                    callback.onKeyboardHeightChanged(newKeyboardHeight);
+                    if (visibilityChanged) {
+                        callback.onKeyboardChanged(newKeyboardHeight > 0, newKeyboardHeight);
+                    }
+                }
+            }
+
+            layoutChangeInProgress = false;
+        }
+    };
 }
