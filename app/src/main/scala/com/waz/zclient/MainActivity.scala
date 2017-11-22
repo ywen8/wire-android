@@ -54,7 +54,7 @@ import com.waz.zclient.fragments.ConnectivityFragment
 import com.waz.zclient.pages.main.{MainPhoneFragment, MainTabletFragment}
 import com.waz.zclient.pages.startup.UpdateFragment
 import com.waz.zclient.preferences.{PreferencesActivity, PreferencesController}
-import com.waz.zclient.tracking.{CrashController, GlobalTrackingController, LoggedOutEvent, UiTrackingController}
+import com.waz.zclient.tracking.{CrashController, GlobalTrackingController, UiTrackingController}
 import com.waz.zclient.utils.PhoneUtils.PhoneState
 import com.waz.zclient.utils.StringUtils.TextDrawing
 import com.waz.zclient.utils.{BuildConfigUtils, ContextUtils, Emojis, IntentUtils, LayoutSpec, PhoneUtils, ViewUtils}
@@ -471,7 +471,7 @@ class MainActivity extends BaseActivity
           def onClick(dialog: DialogInterface, which: Int) = call()
         }, null
       ) else call()
-    }
+    }(Threading.Ui)
     else call()
   }
 
