@@ -36,6 +36,7 @@ import com.waz.api.OtrClient;
 import com.waz.api.SyncState;
 import com.waz.api.User;
 import com.waz.model.ConvId;
+import com.waz.model.ConversationData;
 import com.waz.model.UserId;
 import com.waz.zclient.BaseActivity;
 import com.waz.zclient.OnBackPressedListener;
@@ -978,9 +979,9 @@ public class ConversationListManagerFragment extends BaseFragment<ConversationLi
 
         final ConversationController conversationController = inject(ConversationController.class);
 
-        conversationController.withCurrentConvType(new Callback<IConversation.Type>() {
+        conversationController.withConvLoaded(convId, new Callback<ConversationData>() {
             @Override
-            public void callback(final IConversation.Type convType) {
+            public void callback(final ConversationData conv) {
 
                 final ConfirmationCallback callback = new TwoButtonConfirmationCallback() {
                     @Override public void positiveButtonClicked(boolean checkboxIsSelected) { }
@@ -1003,7 +1004,7 @@ public class ConversationListManagerFragment extends BaseFragment<ConversationLi
                 String cancel = getString(R.string.confirmation_menu__cancel);
                 String checkboxLabel = "";
 
-                if (convType == IConversation.Type.GROUP) {
+                if (conv.convType() == IConversation.Type.GROUP) {
                     checkboxLabel = getString(R.string.confirmation_menu__delete_conversation__checkbox__label);
                 }
 
