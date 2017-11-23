@@ -20,7 +20,7 @@
 -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
               xmlns:app="http://schemas.android.com/apk/res-auto"
-              android:layout_gravity="center"
+              android:layout_gravity="top"
               android:orientation="vertical"
               android:layout_width="match_parent"
               android:layout_height="wrap_content">
@@ -53,7 +53,18 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/app_entry_input_box_margin_top"
-        android:layout_marginBottom="@dimen/wire__padding__16"
         app:hint="@string/teams_set_email_hint"/>
+
+    <com.waz.zclient.ui.text.TypefaceTextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:gravity="center_horizontal"
+        android:text="@string/empty_string"
+        android:textSize="@dimen/wire__text_size__smaller"
+        app:w_font="@string/wire__typeface__bold"
+        android:textColor="@drawable/app_entry_text_button"
+        android:clickable="true"
+        android:focusable="true"/>
 
 </LinearLayout>

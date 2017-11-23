@@ -24,13 +24,12 @@ import android.view.View
 import com.waz.threading.Threading
 import com.waz.utils.events.EventContext
 import com.waz.zclient._
-import com.waz.zclient.appentry.{AppEntryButtonOnTouchListener, AppEntryDialogs}
+import com.waz.zclient.appentry.AppEntryDialogs
 import com.waz.zclient.common.views.InputBox
 import com.waz.zclient.common.views.InputBox.NameValidator
 import com.waz.zclient.controllers.SignInController.{Email, Register, SignInMethod}
-import com.waz.zclient.ui.text.TypefaceTextView
 import com.waz.zclient.ui.utils.KeyboardUtils
-import com.waz.zclient.utils._
+import com.waz.zclient.utils.{ContextUtils, _}
 
 import scala.concurrent.Future
 

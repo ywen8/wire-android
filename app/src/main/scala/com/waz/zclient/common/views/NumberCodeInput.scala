@@ -105,7 +105,7 @@ class NumberCodeInput(context: Context, attrs: AttributeSet, style: Int) extends
     onCodeSet(code).map {
       case Some(error) =>
         errorText.setVisible(true)
-        errorText.setText(error)
+        errorText.setText(error.toUpperCase)
         progressBar.setVisible(false)
         editText.setFocusable(true)
         editText.requestFocus()

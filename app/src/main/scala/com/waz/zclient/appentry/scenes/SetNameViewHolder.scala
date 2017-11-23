@@ -19,6 +19,7 @@ package com.waz.zclient.appentry.scenes
 
 import android.app.Activity
 import android.content.Context
+import android.text.InputType
 import android.view.View
 import com.waz.threading.Threading
 import com.waz.utils.events.EventContext
@@ -40,6 +41,7 @@ case class SetNameViewHolder(root: View)(implicit val context: Context, eventCon
     inputField.editText.requestFocus()
     inputField.editText.setText(appEntryController.teamUserName)
     inputField.editText.addTextListener(appEntryController.teamUserName = _)
+    inputField.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PERSON_NAME)
     KeyboardUtils.showKeyboard(context.asInstanceOf[Activity])
     inputField.setOnClick( text => appEntryController.setName(text).map {
       case Right(error) =>
