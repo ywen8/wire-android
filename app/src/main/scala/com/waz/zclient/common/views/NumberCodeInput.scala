@@ -62,7 +62,7 @@ class NumberCodeInput(context: Context, attrs: AttributeSet, style: Int) extends
   }
 
   def inputCode(code: String): Unit = {
-    editText.setText(code)
+    editText.getText.replace(0, editText.length(), code)
   }
 
   def requestInputFocus(): Unit = editText.requestFocus()

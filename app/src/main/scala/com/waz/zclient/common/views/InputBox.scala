@@ -50,6 +50,7 @@ class InputBox(context: Context, attrs: AttributeSet, style: Int) extends Linear
   val confirmationButton = findById[GlyphButton](R.id.confirmation_button)
   val errorText = findById[TypefaceTextView](R.id.error_text)
   val progressBar = findById[ProgressBar](R.id.progress_bar)
+  val startText = findById[TypefaceTextView](R.id.start_text)
 
   private var validator = Option.empty[Validator]
   private var onClick = (_: String) => Future.successful(Option.empty[String])

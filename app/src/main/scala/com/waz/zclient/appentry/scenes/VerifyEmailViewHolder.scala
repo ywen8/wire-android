@@ -79,31 +79,35 @@ case class VerifyEmailViewHolder(root: View)(implicit val context: Context, even
       }
     })
 
-    resend.setOnTouchListener(AppEntryButtonOnTouchListener({ () =>
-      if (resendCount < 3) {
-        if (cooldown) {
-          resendCount += 1
-          cooldown = false
-          appEntryController.resendTeamEmailVerificationCode() map {
-            case Left(_) =>
-              cooldown = true
-              Toast.makeText(context, ContextUtils.getString(R.string.app_entry_email_sent), Toast.LENGTH_SHORT).show()
-            case Right(error) =>
-              cooldown = true
-              val errorMessage = ContextUtils.getString(EntryError(error.code, error.label, SignInMethod(Register, Email)).bodyResource)
-              Toast.makeText(context, errorMessage, Toast.LENGTH_SHORT).show()
+    resend.setOnClickListener(new View.OnClickListener {
+      override def onClick(v: View): Unit = {
+        if (resendCount < 3) {
+          if (cooldown) {
+            resendCount += 1
+            cooldown = false
+            appEntryController.resendTeamEmailVerificationCode() map {
+              case Left(_) =>
+                cooldown = true
+                Toast.makeText(context, ContextUtils.getString(R.string.app_entry_email_sent), Toast.LENGTH_SHORT).show()
+              case Right(error) =>
+                cooldown = true
+                val errorMessage = ContextUtils.getString(EntryError(error.code, error.label, SignInMethod(Register, Email)).bodyResource)
+                Toast.makeText(context, errorMessage, Toast.LENGTH_SHORT).show()
+            }
           }
+        } else {
+          Toast.makeText(context, ContextUtils.getString(R.string.new_reg_phone_too_man_attempts_header), Toast.LENGTH_SHORT).show()
         }
-      } else {
-        Toast.makeText(context, ContextUtils.getString(R.string.new_reg_phone_too_man_attempts_header), Toast.LENGTH_SHORT).show()
       }
-    }))
+    })
 
-    changeEmail.setOnTouchListener(AppEntryButtonOnTouchListener(() => appEntryController.createTeamBack()))
+    changeEmail.setOnClickListener(new View.OnClickListener {
+      override def onClick(v: View): Unit = appEntryController.createTeamBack()
+    })
   }
 
   def setButtonsVisible(visible: Boolean) = Future.successful {
-    resend.setVisible(visible)
-    changeEmail.setVisible(visible)
+    resend.setVisibility(if (visible) View.VISIBLE else View.INVISIBLE)
+    changeEmail.setVisibility(if (visible) View.VISIBLE else View.INVISIBLE)
   }
 }

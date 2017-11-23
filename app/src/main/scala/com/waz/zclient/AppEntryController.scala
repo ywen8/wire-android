@@ -128,7 +128,7 @@ class AppEntryController(implicit inj: Injector, eventContext: EventContext) ext
         SetUsernameTeam
       case (Some(accountData), Some(userData)) if userData.picture.isEmpty && !(accountData.pendingTeamName.isDefined || accountData.teamId.fold(_ => false, _.isDefined)) =>
         AddPictureStage
-      case (Some(accountData), Some(userData)) if userData.handle.isEmpty =>
+      case (Some(accountData), Some(userData)) if userData.handle.isEmpty && !(accountData.pendingTeamName.isDefined || accountData.teamId.fold(_ => false, _.isDefined)) =>
         AddHandleStage
       case (Some(accountData), Some(userData)) if accountData.firstLogin && accountData.clientRegState == ClientRegistrationState.REGISTERED =>
         FirstEnterAppStage

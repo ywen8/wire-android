@@ -155,7 +155,6 @@
         android:layout_weight="0.8"/>
 
     <LinearLayout
-        android:id="@+id/login_button"
         android:layout_width="@dimen/app_entry_button_width"
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/wire__padding__small"
@@ -163,7 +162,6 @@
         android:layout_gravity="center_horizontal"
         android:paddingTop="@dimen/wire__padding__regular"
         android:paddingBottom="@dimen/wire__padding__regular"
-        android:background="@drawable/app_entry_button_background"
         android:clickable="true"
         android:focusable="true">
 
@@ -178,15 +176,17 @@
             android:text="@string/app_entry_login_sub"/>
 
         <com.waz.zclient.ui.text.TypefaceTextView
+            android:id="@+id/login_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:layout_marginTop="@dimen/wire__padding__4"
             android:gravity="center"
             android:textSize="@dimen/wire__text_size__medium"
-            android:textColor="@color/teams_headline_text"
             app:w_font="@string/wire__typeface__bold"
-            android:text="@string/app_entry_login"/>
+            android:text="@string/app_entry_login"
+            android:textColor="@drawable/app_entry_text_button"
+            />
 
     </LinearLayout>
 

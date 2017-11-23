@@ -63,11 +63,10 @@
         android:layout_gravity="center_horizontal"
         android:gravity="center_horizontal"
         android:text="@string/teams_set_team_name_about"
-        android:textColor="@color/black"
         android:textSize="@dimen/wire__text_size__smaller"
         app:w_font="@string/wire__typeface__bold"
         android:padding="@dimen/wire__padding__small"
-        android:background="@drawable/app_entry_button_background"
+        android:textColor="@drawable/app_entry_text_button"
         android:clickable="true"
         android:focusable="true"/>
 

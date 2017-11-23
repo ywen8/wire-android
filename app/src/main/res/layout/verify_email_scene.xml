@@ -77,9 +77,8 @@
                 android:text="@string/teams_verify_email_resend"
                 app:w_font="@string/wire__typeface__bold"
                 android:textSize="@dimen/wire__text_size__smaller"
-                android:textColor="@color/black"
                 android:padding="@dimen/wire__padding__small"
-                android:background="@drawable/app_entry_button_background"
+                android:textColor="@drawable/app_entry_text_button"
                 android:clickable="true"
                 android:focusable="true"
                 />
@@ -100,9 +99,8 @@
                 android:text="@string/teams_verify_email_change"
                 app:w_font="@string/wire__typeface__bold"
                 android:textSize="@dimen/wire__text_size__smaller"
-                android:textColor="@color/black"
                 android:padding="@dimen/wire__padding__small"
-                android:background="@drawable/app_entry_button_background"
+                android:textColor="@drawable/app_entry_text_button"
                 android:clickable="true"
                 android:focusable="true"
                 />

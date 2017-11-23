@@ -907,7 +907,7 @@
     <dimen name="app_entry_button_glyph_size">32dp</dimen>
     <dimen name="verification_code_input_cell_height">56dp</dimen>
     <dimen name="verification_code_input_cell_width">46dp</dimen>
-    <dimen name="app_entry_input_hint_padding">24dp</dimen>
+    <dimen name="app_entry_input_hint_padding">8dp</dimen>
     <dimen name="app_entry_input_confirm_size">32dp</dimen>
     <dimen name="app_entry_input_confirm_glyph_size">18dp</dimen>
     <dimen name="progress_spinner_size">32dp</dimen>

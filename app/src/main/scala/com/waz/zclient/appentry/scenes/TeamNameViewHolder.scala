@@ -39,7 +39,7 @@ case class TeamNameViewHolder(root: View)(implicit val context: Context, eventCo
   val appEntryController = inject[AppEntryController]
 
   lazy val inputField = root.findViewById[InputBox](R.id.input_field)
-  lazy val about = root.findViewById[TypefaceTextView](R.id.about)
+  lazy val about = root.findViewById[View](R.id.about)
 
   def onCreate(): Unit = {
     import Threading.Implicits.Ui
@@ -71,7 +71,9 @@ case class TeamNameViewHolder(root: View)(implicit val context: Context, eventCo
           }
       }
     )
-    about.setOnTouchListener(AppEntryButtonOnTouchListener(() => openUrl(R.string.url_about_teams)))
+    about.setOnClickListener(new View.OnClickListener {
+      override def onClick(v: View): Unit = openUrl(R.string.url_about_teams)
+    })
   }
 
   private def openUrl(id: Int): Unit ={

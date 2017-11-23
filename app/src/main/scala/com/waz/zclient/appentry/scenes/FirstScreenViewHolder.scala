@@ -33,7 +33,7 @@ case class FirstScreenViewHolder(root: View)(implicit val context: Context, even
 
   lazy val createTeamButton = root.findViewById[LinearLayout](R.id.create_team_button)
   lazy val createAccountButton = root.findViewById[LinearLayout](R.id.create_account_button)
-  lazy val loginButton = root.findViewById[LinearLayout](R.id.login_button)
+  lazy val loginButton = root.findViewById[View](R.id.login_button)
 
   def onCreate(): Unit = {
     createAccountButton.setOnTouchListener(AppEntryButtonOnTouchListener({
@@ -42,10 +42,11 @@ case class FirstScreenViewHolder(root: View)(implicit val context: Context, even
         signInController.uiSignInState ! SignInMethod(Register, Phone)
     }))
     createTeamButton.setOnTouchListener(AppEntryButtonOnTouchListener(() => appEntryController.createTeam()))
-    loginButton.setOnTouchListener(AppEntryButtonOnTouchListener({
-      () =>
+    loginButton.setOnClickListener(new View.OnClickListener {
+      override def onClick(v: View): Unit = {
         appEntryController.goToLoginScreen()
         signInController.uiSignInState ! SignInMethod(Login, Email)
-    }))
+      }
+    })
   }
 }

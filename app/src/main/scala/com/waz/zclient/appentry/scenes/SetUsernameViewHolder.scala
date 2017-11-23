@@ -39,6 +39,8 @@ case class SetUsernameViewHolder(root: View)(implicit val context: Context, even
     inputField.setValidator(UsernameValidator)
     inputField.editText.setText(appEntryController.teamUserUsername)
     inputField.editText.addTextListener(appEntryController.teamUserUsername = _)
+    inputField.startText.setText("@")
+    //inputField.startText.setVisible(true)
     inputField.editText.requestFocus()
     KeyboardUtils.showKeyboard(context.asInstanceOf[Activity])
     //TODO: do the checks on change?

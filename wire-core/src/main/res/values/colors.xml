@@ -113,6 +113,7 @@
     <color name="teams_textfield_arrow">@color/white</color>
     <color name="teams_inactive_button">@color/graphite_16</color>
     <color name="teams_headline_text">@color/graphite</color>
+    <color name="teams_headline_text_pressed">@color/graphite_40</color>
     <color name="teams_description_text">#90272A2C</color>
     <color name="teams_placeholder_text">@color/light_graphite</color>
     <color name="teams_error_red">#FB0807</color>
