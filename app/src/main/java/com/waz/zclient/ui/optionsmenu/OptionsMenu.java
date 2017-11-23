@@ -108,10 +108,15 @@ public class OptionsMenu extends FrameLayout implements View.OnClickListener {
 
     public OptionsMenu(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
-        init(attrs);
+        post(new Runnable() {
+            @Override
+            public void run() {
+                init();
+            }
+        });
     }
 
-    private void init(AttributeSet attributeSet) {
+    private void init() {
         expoOut = new Expo.EaseOut();
         expoIn = new Expo.EaseIn();
         quartOut = new Quart.EaseOut();
@@ -318,8 +323,6 @@ public class OptionsMenu extends FrameLayout implements View.OnClickListener {
             }
         });
         menuLayout.addView(cancelView);
-        notifyOptionsMenuStateHasChanged(State.CLOSED);
-        setVisibility(View.INVISIBLE);
     }
 
     /**
