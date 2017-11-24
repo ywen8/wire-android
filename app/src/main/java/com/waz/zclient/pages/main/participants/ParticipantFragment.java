@@ -82,6 +82,7 @@ import com.waz.zclient.utils.LayoutSpec;
 import com.waz.zclient.utils.ViewUtils;
 import com.waz.zclient.views.DefaultPageTransitionAnimation;
 import com.waz.zclient.views.LoadingIndicatorView;
+import timber.log.Timber;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -943,6 +944,7 @@ public class ParticipantFragment extends BaseFragment<ParticipantFragment.Contai
     @Override
     public void onAcceptedConnectRequest(final IConversation conversation) {
         getControllerFactory().getConversationScreenController().hideUser();
+        Timber.i("onAcceptedConnectRequest %s", conversation.getId());
         convController.selectConv(new ConvId(conversation.getId()), ConversationChangeRequester.START_CONVERSATION);
     }
 
@@ -955,6 +957,7 @@ public class ParticipantFragment extends BaseFragment<ParticipantFragment.Contai
     @Override
     public void onUnblockedUser(IConversation restoredConversationWithUser) {
         getControllerFactory().getConversationScreenController().hideUser();
+        Timber.i("onUnblockedUser %s", restoredConversationWithUser.getId());
         convController.selectConv(new ConvId(restoredConversationWithUser.getId()), ConversationChangeRequester.START_CONVERSATION);
     }
 

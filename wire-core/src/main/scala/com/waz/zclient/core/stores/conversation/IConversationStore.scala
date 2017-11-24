@@ -17,13 +17,8 @@
  */
 package com.waz.zclient.core.stores.conversation
 
-import com.waz.api.AssetForUpload
-import com.waz.api.AudioAssetForUpload
 import com.waz.api.IConversation
-import com.waz.api.ImageAsset
-import com.waz.api.MessageContent
 import com.waz.api.SyncState
-import com.waz.api.User
 import com.waz.model.ConvId
 import com.waz.zclient.core.stores.IStore
 

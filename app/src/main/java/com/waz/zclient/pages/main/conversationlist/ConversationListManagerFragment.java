@@ -85,6 +85,7 @@ import com.waz.zclient.utils.LayoutSpec;
 import com.waz.zclient.utils.ViewUtils;
 import com.waz.zclient.views.LoadingIndicatorView;
 import com.waz.zclient.views.menus.ConfirmationMenu;
+import timber.log.Timber;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -351,6 +352,7 @@ public class ConversationListManagerFragment extends BaseFragment<ConversationLi
     @Override
     public void showIncomingPendingConnectRequest(IConversation conversation) {
         getControllerFactory().getPickUserController().hidePickUser(getCurrentPickerDestination(), false);
+        Timber.i("showIncomingPendingConnectRequest %s", conversation.getId());
         inject(ConversationController.class).selectConv(new ConvId(conversation.getId()), ConversationChangeRequester.INBOX);
     }
 
@@ -368,6 +370,7 @@ public class ConversationListManagerFragment extends BaseFragment<ConversationLi
             User user = users.get(0);
             IConversation conversation = user.getConversation();
             if (conversation != null) {
+                Timber.i("onSelectedUsers %s", conversation.getId());
                 inject(ConversationController.class).selectConv(new ConvId(conversation.getId()), requester);
             }
         } else {
@@ -549,11 +552,13 @@ public class ConversationListManagerFragment extends BaseFragment<ConversationLi
 
     @Override
     public void onAcceptedConnectRequest(IConversation conversation) {
+        Timber.i("onAcceptedConnectRequest %s", conversation.getId());
         inject(ConversationController.class).selectConv(new ConvId(conversation.getId()), ConversationChangeRequester.START_CONVERSATION);
     }
 
     @Override
     public void onAcceptedPendingOutgoingConnectRequest(IConversation conversation) {
+        Timber.i("onAcceptedPendingOutgoingConnectRequest %s", conversation.getId());
         inject(ConversationController.class).selectConv(new ConvId(conversation.getId()), ConversationChangeRequester.CONNECT_REQUEST_ACCEPTED);
     }
 
@@ -566,6 +571,7 @@ public class ConversationListManagerFragment extends BaseFragment<ConversationLi
     @Override
     public void onUnblockedUser(IConversation restoredConversationWithUser) {
         getControllerFactory().getPickUserController().hideUserProfile();
+        Timber.i("onUnblockedUser %s", restoredConversationWithUser.getId());
         inject(ConversationController.class).selectConv(new ConvId(restoredConversationWithUser.getId()), ConversationChangeRequester.START_CONVERSATION);
     }
 
@@ -965,11 +971,13 @@ public class ConversationListManagerFragment extends BaseFragment<ConversationLi
     }
 
     public void callConversation(ConvId convId) {
+        Timber.i("callConversation %s", convId.str());
         inject(ConversationController.class).selectConv(convId, ConversationChangeRequester.CONVERSATION_LIST);
         getControllerFactory().getCallingController().startCall(false);
     }
 
     public void sendPictureToConversation(ConvId convId) {
+        Timber.i("endPictureToConversation %s", convId.str());
         inject(ConversationController.class).selectConv(convId, ConversationChangeRequester.CONVERSATION_LIST);
         getControllerFactory().getCameraController().openCamera(CameraContext.MESSAGE);
     }

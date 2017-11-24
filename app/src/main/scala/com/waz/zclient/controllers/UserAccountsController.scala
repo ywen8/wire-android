@@ -26,7 +26,8 @@ import com.waz.utils.events.{EventContext, Signal}
 import com.waz.zclient.conversation.ConversationController
 import com.waz.zclient.core.stores.conversation.ConversationChangeRequester
 import com.waz.zclient.{BaseActivity, Injectable, Injector}
-
+import com.waz.ZLog._
+import com.waz.ZLog.ImplicitTag._
 import scala.concurrent.Future
 
 class UserAccountsController(implicit injector: Injector, context: Context, ec: EventContext) extends Injectable {
@@ -96,12 +97,10 @@ class UserAccountsController(implicit injector: Injector, context: Context, ec: 
           z.convsUi.createGroupConversation(ConvId(), users, teamId)
     } yield conv
 
-    val conversationController = inject[ConversationController]
-    (for {
-      conv <- createConv
-      Some(loaded) <- conversationController.loadConv(conv.id) // is this necessary?
-      _ <- conversationController.selectConv(Some(loaded.id), requester)
-    } yield ())(Threading.Ui)
+    createConv.flatMap { conv =>
+      verbose(s"createAndOpenConversation ${conv.id}")
+      inject[ConversationController].selectConv(conv.id, requester)
+    } (Threading.Ui)
   }
 
   zms.map(_.teamId) { case teamId => _teamId = teamId }

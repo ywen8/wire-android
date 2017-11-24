@@ -49,6 +49,9 @@ import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.utils.{RichView, ViewUtils}
 import com.waz.zclient.views.conversationlist.{ArchiveTopToolbar, ConversationListTopToolbar, NormalTopToolbar}
 
+import com.waz.ZLog._
+import com.waz.ZLog.ImplicitTag._
+
 import com.waz.zclient.{FragmentHelper, OnBackPressedListener, R}
 
 abstract class ConversationListFragment extends BaseFragment[ConversationListFragment.Container] with FragmentHelper {
@@ -97,6 +100,7 @@ abstract class ConversationListFragment extends BaseFragment[ConversationListFra
 
   private def handleItemClick(conversationData: ConversationData): Unit = {
     import Threading.Implicits.Background
+    verbose(s"handleItemClick, switching conv to ${conversationData.id}")
     conversationController.selectConv(Option(conversationData.id), ConversationChangeRequester.CONVERSATION_LIST).map { _ =>
       conversationController.archive(conversationData.id, archive = false)
     }

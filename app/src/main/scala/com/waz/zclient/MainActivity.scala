@@ -28,7 +28,7 @@ import android.support.v4.app.Fragment
 import android.text.TextUtils
 import com.waz.ZLog.ImplicitTag._
 import com.waz.ZLog.{error, info, verbose}
-import com.waz.api.{NetworkMode, _}
+import com.waz.api.{NetworkMode, User, _}
 import com.waz.model.{AccountId, ConvId, ConversationData}
 import com.waz.service.ZMessaging
 import com.waz.service.ZMessaging.clock
@@ -314,6 +314,7 @@ class MainActivity extends BaseActivity
 
     intent match {
       case NotificationIntent(accountId, convId, startCall) =>
+        verbose(s"notification intent, accountId=$accountId, convId=$convId")
         val switchAccount = {
           val accounts = ZMessaging.currentAccounts
           accounts.activeAccount.head.flatMap {
@@ -406,10 +407,12 @@ class MainActivity extends BaseActivity
     getControllerFactory.getNavigationController.setPagerSettingForPage(page)
   }
 
-  def onConnectUserUpdated(user: User, usertype: IConnectStore.UserRequester) = ()
+  def onConnectUserUpdated(user: User, userRequester: IConnectStore.UserRequester): Unit = {}
 
-  def onInviteRequestSent(conversation: IConversation) =
+  def onInviteRequestSent(conversation: IConversation) = {
+    info(s"onInviteRequestSent(${conversation.getId})")
     conversationController.selectConv(Option(new ConvId(conversation.getId)), ConversationChangeRequester.INVITE)
+  }
 
   def onOpenUrl(url: String) = {
     try {
