@@ -78,7 +78,7 @@ class CreateTeamFragment extends BaseFragment[Container] with FragmentHelper wit
 
       previousStage = Some(state)
 
-      if (state != NoAccountState(FirstScreen)) {
+      if (state != NoAccountState(FirstScreen) && viewHolder.root.isInstanceOf[ViewGroup]) {
         setKeyboardAnimation(viewHolder.root.asInstanceOf[ViewGroup])
       }
 

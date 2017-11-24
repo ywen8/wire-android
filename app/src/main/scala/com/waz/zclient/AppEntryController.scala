@@ -146,7 +146,7 @@ class AppEntryController(implicit inj: Injector, eventContext: EventContext) ext
   }
 
   def createTeamBack(): Unit = {
-    ZMessaging.currentAccounts.activeAccount.head.flatMap {
+    ZMessaging.currentAccounts.activeAccount.currentValue.foreach {
       case Some(accountData) if accountData.pendingTeamName.isDefined && accountData.name.isDefined =>
         password = ""
         ZMessaging.currentAccounts.updateCurrentAccount(_.copy(name = None))
@@ -158,7 +158,7 @@ class AppEntryController(implicit inj: Injector, eventContext: EventContext) ext
         ZMessaging.currentAccounts.updateCurrentAccount(_.copy(pendingEmail = None))
       case Some(accountData) if accountData.pendingTeamName.isDefined =>
         teamEmail = ""
-        ZMessaging.currentAccounts.logout(true)
+        ZMessaging.currentAccounts.logout(false)
       case _ =>
         teamName = ""
         Future.successful(firstStage ! FirstScreen)
