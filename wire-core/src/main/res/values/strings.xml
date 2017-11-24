@@ -1238,7 +1238,7 @@
 
     <string name="teams_verify_email_title">You\'ve got email</string>
     <string name="teams_verify_email_subtitle">Enter the verification we sent to %1$s.</string>
-    <string name="teams_verify_email_resend">RESEND EMAIL</string>
+    <string name="teams_verify_email_resend">RESEND CODE</string>
     <string name="teams_verify_email_change">CHANGE EMAIL</string>
 
     <string name="teams_set_name_title">Your name</string>
