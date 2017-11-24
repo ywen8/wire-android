@@ -111,12 +111,10 @@ class AppEntryActivity extends BaseActivity
     }
 
     unsplashInitLoadHandle = unsplashInitImageAsset.getSingleBitmap(AppEntryActivity.PREFETCH_IMAGE_WIDTH, new BitmapCallback() {
-      def onBitmapLoaded(b: Bitmap): Unit = {}
+      def onBitmapLoaded(b: Bitmap): Unit = {
+        ZLog.verbose(s"onBitmapLoaded $b")
+      }
     })
-
-    appEntryController.onTeamRegistrationComplete.onUi { _ =>
-      appEntryController.setPicture(unsplashInitImageAsset, SignUpPhotoFragment.Source.Unsplash, SignUpPhotoFragment.RegistrationType.Email)
-    }
 
     appEntryController.entryStage.onUi {
       case EnterAppStage =>
@@ -141,6 +139,8 @@ class AppEntryActivity extends BaseActivity
         onShowSetUsername()
       case InsertPasswordStage =>
         onShowInsertPassword()
+      case TeamSetPicture =>
+        appEntryController.setPicture(unsplashInitImageAsset, SignUpPhotoFragment.Source.Unsplash, SignUpPhotoFragment.RegistrationType.Email)
       case _ =>
     }
   }

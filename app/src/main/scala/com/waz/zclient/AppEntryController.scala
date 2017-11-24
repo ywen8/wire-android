@@ -48,8 +48,6 @@ class AppEntryController(implicit inj: Injector, eventContext: EventContext) ext
   val invitationToken = Signal(Option.empty[String])
   val firstStage = Signal[FirstStage](FirstScreen)
 
-  val onTeamRegistrationComplete = EventStream[Unit]()
-
   val invitationDetails = for {
     Some(token) <- invitationToken
     req <- Signal.future(ZMessaging.currentAccounts.retrieveInvitationDetails(PersonalInvitationToken(token)))
@@ -132,6 +130,8 @@ class AppEntryController(implicit inj: Injector, eventContext: EventContext) ext
         Waiting
       case (Some(accountData), Some(userData)) if accountData.handle.isEmpty && (accountData.pendingTeamName.isDefined || accountData.teamId.fold(_ => false, _.isDefined)) =>
         SetUsernameTeam
+      case (Some(accountData), Some(userData)) if userData.picture.isEmpty && (accountData.pendingTeamName.isDefined || accountData.teamId.fold(_ => false, _.isDefined)) =>
+        TeamSetPicture
       case (Some(accountData), Some(userData)) if userData.picture.isEmpty && !(accountData.pendingTeamName.isDefined || accountData.teamId.fold(_ => false, _.isDefined)) =>
         AddPictureStage
       case (Some(accountData), Some(userData)) if userData.handle.isEmpty && !(accountData.pendingTeamName.isDefined || accountData.teamId.fold(_ => false, _.isDefined)) =>
@@ -335,7 +335,6 @@ class AppEntryController(implicit inj: Injector, eventContext: EventContext) ext
     ZMessaging.currentAccounts.updateCurrentAccount(_.copy(password= Some(password))) flatMap { _ =>
       ZMessaging.currentAccounts.register().map {
         case Right(()) =>
-          onTeamRegistrationComplete ! (())
           Left(())
         case Left(e) => Right(e)
       }
@@ -385,5 +384,6 @@ object AppEntryController {
   object SetUsersNameTeam        extends AppEntryStage { override val depth = 4 }
   object SetPasswordTeam         extends AppEntryStage { override val depth = 5 }
   object SetUsernameTeam         extends AppEntryStage { override val depth = 6 }
+  object TeamSetPicture          extends AppEntryStage { override val depth = 6 }
   case class NoAccountState(page: FirstStage) extends AppEntryStage { override val depth = page.depth }
 }
