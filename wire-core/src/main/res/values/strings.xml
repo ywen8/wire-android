@@ -1216,7 +1216,6 @@
     <string name="preferences_profile_add_account">Add an account</string>
     <string name="preferences_profile_create_team">Create a team</string>
 
-
     <string name="preferences_profile_in_team">in %1$s</string>
     <string name="new_devices_dialog_title">You have connected a device to your Wire account</string>
     <string name="new_devices_dialog_info">If you didn\'t do this, remove the device and reset your password.</string>
@@ -1238,7 +1237,7 @@
     <string name="teams_set_team_name_about">WHAT IS WIRE FOR TEAMS?</string>
 
     <string name="teams_verify_email_title">You\'ve got email</string>
-    <string name="teams_verify_email_subtitle">Enter the verification we sent to %1$s</string>
+    <string name="teams_verify_email_subtitle">Enter the verification we sent to %1$s.</string>
     <string name="teams_verify_email_resend">RESEND EMAIL</string>
     <string name="teams_verify_email_change">CHANGE EMAIL</string>
 
