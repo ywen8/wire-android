@@ -99,6 +99,12 @@ class AppEntryController(implicit inj: Injector, eventContext: EventContext) ext
     ZLog.verbose(s"Current stage: $stage")
   }
 
+  ZMessaging.currentAccounts.loggedInAccounts.map(_.isEmpty) {
+    case true =>
+      firstStage ! FirstScreen
+    case false =>
+  }
+
   def stateForAccountAndUser(account: Option[AccountData], user: Option[UserData], firstPageState: FirstStage): AppEntryStage = {
     ZLog.verbose(s"Current account and user: $account $user")
     (account, user) match {
