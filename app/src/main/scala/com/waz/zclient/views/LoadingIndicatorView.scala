@@ -106,7 +106,7 @@ class LoadingIndicatorView(context: Context, attrs: AttributeSet, defStyle: Int)
 
   def show(animationType: AnimationType, delayMs: Long): Unit = {
     setToVisible = true
-    CancellableFuture.delayed(delayMs.millis) { animations(animationType) }
+    CancellableFuture.delayed(delayMs.millis) { animations(animationType)() }
   }
 
   def hide(): Unit = {
