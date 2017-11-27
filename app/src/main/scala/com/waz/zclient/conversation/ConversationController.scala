@@ -51,7 +51,7 @@ class ConversationController(implicit injector: Injector, context: Context, ec: 
 
   private var lastConvId = Option.empty[ConvId]
 
-  val currentConvId: Signal[ConvId] = zms.flatMap(_.convsStats.selectedConversationId).filter(_ != lastConvId).collect { case Some(convId) => convId }
+  val currentConvId: Signal[ConvId] = zms.flatMap(_.convsStats.selectedConversationId).collect { case Some(convId) => convId }
   val currentConvOpt: Signal[Option[ConversationData]] = currentConvId.flatMap { conversationData } // updates on every change of the conversation data, not only on switching
   val currentConv: Signal[ConversationData] = currentConvOpt.collect { case Some(conv) => conv }
 
@@ -80,14 +80,15 @@ class ConversationController(implicit injector: Injector, context: Context, ec: 
   def selectConv(convId: Option[ConvId], requester: ConversationChangeRequester): Future[Unit] = convId match {
     case None => Future.successful({})
     case Some(id) =>
+      val oldId = lastConvId
+      lastConvId = convId
       for {
         z <- zms.head
         _ <- z.convsUi.setConversationArchived(id, archived = false)
         _ <- z.convsStats.selectConversation(convId)
       } yield { // catches changes coming from UI
-        verbose(s"changing conversation from $lastConvId to $convId, requester: $requester")
-        convChanged ! ConversationChange(from = lastConvId, to = convId, requester = requester)
-        lastConvId = convId
+        verbose(s"changing conversation from $oldId to $convId, requester: $requester")
+        convChanged ! ConversationChange(from = oldId, to = convId, requester = requester)
       }
   }
 
