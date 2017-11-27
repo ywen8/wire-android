@@ -67,14 +67,24 @@ class ConversationController(implicit injector: Injector, context: Context, ec: 
   val currentConvIsVerified: Signal[Boolean] = currentConv.map { _.verified == Verification.VERIFIED }
   val currentConvIsGroup: Signal[Boolean] = currentConv.flatMap { conv => Signal.future(isGroup(conv)) }
 
-  currentConvId { convId => zms(_.conversations.forceNameUpdate(convId)) }
+  currentConvId { convId =>
+    zms(_.conversations.forceNameUpdate(convId))
+    if (!lastConvId.contains(convId)) { // to only catch changes coming from SE (we assume it's an account switch)
+      verbose(s"a conversation change bypassed selectConv: last = $lastConvId, current = $convId")
+      convChanged ! ConversationChange(from = lastConvId, to = Option(convId), requester = ConversationChangeRequester.ACCOUNT_CHANGE)
+      lastConvId = Option(convId)
+    }
+  }
 
   // this should be the only UI entry point to change conv in SE
   def selectConv(convId: Option[ConvId], requester: ConversationChangeRequester): Future[Unit] = convId match {
     case None => Future.successful({})
-    case Some(_) =>
-      val stats = zms.map(_.convsStats)
-      stats.head.flatMap(_.selectConversation(convId)).map { _ =>
+    case Some(id) =>
+      for {
+        z <- zms.head
+        _ <- z.convsUi.setConversationArchived(id, archived = false)
+        _ <- z.convsStats.selectConversation(convId)
+      } yield { // catches changes coming from UI
         verbose(s"changing conversation from $lastConvId to $convId, requester: $requester")
         convChanged ! ConversationChange(from = lastConvId, to = convId, requester = requester)
         lastConvId = convId
