@@ -101,9 +101,7 @@ abstract class ConversationListFragment extends BaseFragment[ConversationListFra
   private def handleItemClick(conversationData: ConversationData): Unit = {
     import Threading.Implicits.Background
     verbose(s"handleItemClick, switching conv to ${conversationData.id}")
-    conversationController.selectConv(Option(conversationData.id), ConversationChangeRequester.CONVERSATION_LIST).map { _ =>
-      conversationController.archive(conversationData.id, archive = false)
-    }
+    conversationController.selectConv(Option(conversationData.id), ConversationChangeRequester.CONVERSATION_LIST)
   }
 
   private def handleItemLongClick(conversationData: ConversationData, anchorView: View): Unit = {
