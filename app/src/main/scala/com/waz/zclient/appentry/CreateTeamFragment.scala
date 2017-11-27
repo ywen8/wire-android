@@ -33,9 +33,10 @@ import com.waz.zclient.{AppEntryController, FragmentHelper, OnBackPressedListene
 
 class CreateTeamFragment extends BaseFragment[Container] with FragmentHelper with OnBackPressedListener {
 
-  lazy val appEntryController = inject[AppEntryController]
+  private lazy val appEntryController = inject[AppEntryController]
 
-  var previousStage = Option.empty[AppEntryStage]
+  private var previousStage = Option.empty[AppEntryStage]
+  private var lastKeyboardHeight = 0
 
   override def onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState: Bundle): View =
     inflater.inflate(R.layout.app_entry_fragment, container, false)
@@ -83,33 +84,34 @@ class CreateTeamFragment extends BaseFragment[Container] with FragmentHelper wit
       }
 
     }
+  }
 
-    def setKeyboardAnimation(view: ViewGroup): Unit = {
-      implicit val ctx = getContext
-      view.getLayoutParams.height = ViewGroup.LayoutParams.WRAP_CONTENT
-      view.addOnLayoutChangeListener(new OnLayoutChangeListener {
-        override def onLayoutChange(v: View, left: Int, top: Int, right: Int, bottom: Int, oldLeft: Int, oldTop: Int, oldRight: Int, oldBottom: Int): Unit = {
-          val softKeysHeight = KeyboardUtils.getSoftButtonsBarHeight(getActivity)
-          val kHeight = KeyboardUtils.getKeyboardHeight(view)
-          val padding = ContextUtils.getDimenPx(R.dimen.app_entry_keyboard_content_padding)
-          val screenHeight = ctx.getResources.getDisplayMetrics.heightPixels - ContextUtils.getStatusBarHeight(ctx) - softKeysHeight
+  def setKeyboardAnimation(view: ViewGroup): Unit = {
+    implicit val ctx = getContext
+    view.getLayoutParams.height = ViewGroup.LayoutParams.WRAP_CONTENT
+    view.addOnLayoutChangeListener(new OnLayoutChangeListener {
+      override def onLayoutChange(v: View, left: Int, top: Int, right: Int, bottom: Int, oldLeft: Int, oldTop: Int, oldRight: Int, oldBottom: Int): Unit = {
+        val softKeysHeight = KeyboardUtils.getSoftButtonsBarHeight(getActivity)
+        val kHeight = KeyboardUtils.getKeyboardHeight(view)
+        val padding = ContextUtils.getDimenPx(R.dimen.app_entry_keyboard_content_padding)
+        val screenHeight = ctx.getResources.getDisplayMetrics.heightPixels - ContextUtils.getStatusBarHeight(ctx) - softKeysHeight
 
-          if (v.getTranslationY == 0) {
-            v.setTranslationY(screenHeight / 2 - v.getHeight / 2)
-          }
-
-          if (kHeight - softKeysHeight > 0) {
-            v.animate()
-              .translationY(screenHeight - kHeight - padding - v.getHeight + 2 * softKeysHeight)
-              .setDuration(ContextUtils.getInt(R.integer.wire__animation__delay__short))
-          } else {
-            v.animate()
-              .translationY(screenHeight / 2 - v.getHeight / 2)
-              .setDuration(ContextUtils.getInt(R.integer.wire__animation__delay__short))
-          }
+        if (v.getTranslationY == 0 && lastKeyboardHeight > 0) {
+          v.setTranslationY(screenHeight - lastKeyboardHeight - padding - v.getHeight + 2 * softKeysHeight)
+        } else if (v.getTranslationY == 0) {
+          v.setTranslationY(screenHeight / 2 - v.getHeight / 2)
+        } else if (kHeight - softKeysHeight > 0) {
+          lastKeyboardHeight = kHeight
+          v.animate()
+            .translationY(screenHeight - kHeight - padding - v.getHeight + 2 * softKeysHeight)
+            .setDuration(ContextUtils.getInt(R.integer.wire__animation__delay__short))
+        } else {
+          v.animate()
+            .translationY(screenHeight / 2 - v.getHeight / 2)
+            .setDuration(ContextUtils.getInt(R.integer.wire__animation__delay__short))
         }
-      })
-    }
+      }
+    })
   }
 
   override def onBackPressed(): Boolean = {
