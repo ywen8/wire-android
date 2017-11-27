@@ -41,7 +41,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center_horizontal"
-        android:text=""
+        android:text="@string/teams_set_username_subtitle"
         app:w_font="@string/wire__typeface__light"
         android:textSize="@dimen/wire__text_size__regular"
         android:textColor="@color/teams_description_text"

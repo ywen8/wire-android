@@ -41,7 +41,7 @@ case class SetEmailViewHolder(root: View)(implicit val context: Context, eventCo
     inputField.editText.setText(appEntryController.teamEmail)
     inputField.editText.addTextListener(appEntryController.teamEmail = _)
     inputField.editText.requestFocus()
-    inputField.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS)
+    inputField.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS | InputType.TYPE_TEXT_FLAG_AUTO_COMPLETE | InputType.TYPE_TEXT_FLAG_AUTO_CORRECT)
     KeyboardUtils.showKeyboard(context.asInstanceOf[Activity])
     inputField.setOnClick( text => appEntryController.requestTeamEmailVerificationCode(text).map {
       case Right(error) =>

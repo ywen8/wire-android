@@ -66,6 +66,7 @@
         app:w_font="@string/wire__typeface__bold"
         android:textColor="@drawable/app_entry_text_button"
         android:clickable="true"
-        android:focusable="true"/>
+        android:focusable="true"
+        android:padding="@dimen/wire__padding__small"/>
 
 </LinearLayout>

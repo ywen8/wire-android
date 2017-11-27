@@ -26,7 +26,7 @@ import com.waz.client.RegistrationClientImpl.ActivateResult.{Failure, PasswordEx
 import com.waz.model._
 import com.waz.service.ZMessaging
 import com.waz.threading.Threading
-import com.waz.utils.events.{EventContext, EventStream, Signal}
+import com.waz.utils.events.{EventContext, Signal}
 import com.waz.zclient.AppEntryController._
 import com.waz.zclient.controllers.SignInController
 import com.waz.zclient.controllers.SignInController._
@@ -257,7 +257,7 @@ class AppEntryController(implicit inj: Injector, eventContext: EventContext) ext
 
     ZMessaging.currentAccounts.getActiveAccount.flatMap {
       case Some(account) if account.pendingPhone.isDefined =>
-        val kindOfAccess = if (account.regWaiting) KindOfAccess.REGISTRATION else KindOfAccess.LOGIN
+         val kindOfAccess = if (account.regWaiting) KindOfAccess.REGISTRATION else KindOfAccess.LOGIN
         requestCode(account, kindOfAccess).map {
           case Failure(error) =>
             Left(EntryError(error.code, error.label, SignInMethod(Register, Phone)))

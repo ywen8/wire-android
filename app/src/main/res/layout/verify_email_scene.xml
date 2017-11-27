@@ -80,6 +80,7 @@
                 android:textColor="@drawable/app_entry_text_button"
                 android:clickable="true"
                 android:focusable="true"
+                android:padding="@dimen/wire__padding__small"
                 />
 
         </FrameLayout>
@@ -101,6 +102,7 @@
                 android:textColor="@drawable/app_entry_text_button"
                 android:clickable="true"
                 android:focusable="true"
+                android:padding="@dimen/wire__padding__small"
                 />
 
         </FrameLayout>

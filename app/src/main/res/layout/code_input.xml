@@ -19,6 +19,7 @@
 
 -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:app="http://schemas.android.com/apk/res-auto"
               android:orientation="vertical"
               android:layout_width="match_parent"
               android:layout_height="wrap_content">
@@ -49,10 +50,11 @@
                     android:layout_height="@dimen/verification_code_input_cell_height"
                     android:layout_gravity="center"
                     android:gravity="center"
-                    android:textSize="@dimen/wire__text_size__medium"
+                    android:textSize="@dimen/wire__text_size__huge"
                     android:background="@drawable/rounded_corner_background_white_small"
                     android:clickable="false"
                     android:focusable="false"
+                    app:w_font="@string/wire__typeface__regular"
                     android:textIsSelectable="false"/>
             </FrameLayout>
 
@@ -67,10 +69,11 @@
                     android:layout_height="@dimen/verification_code_input_cell_height"
                     android:layout_gravity="center"
                     android:gravity="center"
-                    android:textSize="@dimen/wire__text_size__medium"
+                    android:textSize="@dimen/wire__text_size__huge"
                     android:background="@drawable/rounded_corner_background_white_small"
                     android:clickable="false"
                     android:focusable="false"
+                    app:w_font="@string/wire__typeface__regular"
                     android:textIsSelectable="false"/>
             </FrameLayout>
 
@@ -85,10 +88,11 @@
                     android:layout_height="@dimen/verification_code_input_cell_height"
                     android:layout_gravity="center"
                     android:gravity="center"
-                    android:textSize="@dimen/wire__text_size__medium"
+                    android:textSize="@dimen/wire__text_size__huge"
                     android:background="@drawable/rounded_corner_background_white_small"
                     android:clickable="false"
                     android:focusable="false"
+                    app:w_font="@string/wire__typeface__regular"
                     android:textIsSelectable="false"/>
             </FrameLayout>
 
@@ -103,10 +107,11 @@
                     android:layout_height="@dimen/verification_code_input_cell_height"
                     android:layout_gravity="center"
                     android:gravity="center"
-                    android:textSize="@dimen/wire__text_size__medium"
+                    android:textSize="@dimen/wire__text_size__huge"
                     android:background="@drawable/rounded_corner_background_white_small"
                     android:clickable="false"
                     android:focusable="false"
+                    app:w_font="@string/wire__typeface__regular"
                     android:textIsSelectable="false"/>
             </FrameLayout>
 
@@ -120,10 +125,11 @@
                     android:layout_height="@dimen/verification_code_input_cell_height"
                     android:layout_gravity="center"
                     android:gravity="center"
-                    android:textSize="@dimen/wire__text_size__medium"
+                    android:textSize="@dimen/wire__text_size__huge"
                     android:background="@drawable/rounded_corner_background_white_small"
                     android:clickable="false"
                     android:focusable="false"
+                    app:w_font="@string/wire__typeface__regular"
                     android:textIsSelectable="false"/>
             </FrameLayout>
 
@@ -138,10 +144,11 @@
                     android:layout_height="@dimen/verification_code_input_cell_height"
                     android:layout_gravity="center"
                     android:gravity="center"
-                    android:textSize="@dimen/wire__text_size__medium"
+                    android:textSize="@dimen/wire__text_size__huge"
                     android:background="@drawable/rounded_corner_background_white_small"
                     android:clickable="false"
                     android:focusable="false"
+                    app:w_font="@string/wire__typeface__regular"
                     android:textIsSelectable="false"/>
 
             </FrameLayout>
