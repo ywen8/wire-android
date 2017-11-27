@@ -168,7 +168,7 @@
                 android:paddingEnd="@dimen/wire__padding__regular"
                 android:background="@null"
                 android:textSize="@dimen/wire__text_size__medium"
-                android:inputType="numberDecimal"
+                android:inputType="phone"
                 android:maxLength="6"
                 android:maxLines="1"
                 android:visibility="visible"

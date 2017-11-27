@@ -66,7 +66,8 @@ class AppEntryActivity extends BaseActivity
   with FirstLaunchAfterLoginFragment.Container
   with SignInFragment.Container
   with FirstTimeAssignUsernameFragment.Container
-  with InsertPasswordFragment.Container {
+  with InsertPasswordFragment.Container
+  with CreateTeamFragment.Container {
 
   private lazy val unsplashInitImageAsset = ImageAssetFactory.getImageAsset(AndroidURIUtil.parse(UNSPLASH_API_URL))
   private var unsplashInitLoadHandle: LoadHandle = null

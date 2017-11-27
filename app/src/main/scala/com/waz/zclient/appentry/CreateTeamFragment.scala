@@ -18,7 +18,7 @@
 package com.waz.zclient.appentry
 
 import android.os.Bundle
-import android.view.View.OnLayoutChangeListener
+import android.view.View.{OnClickListener, OnLayoutChangeListener}
 import android.view.{LayoutInflater, View, ViewGroup}
 import android.widget.FrameLayout
 import com.waz.ZLog.ImplicitTag.implicitLogTag
@@ -27,6 +27,7 @@ import com.waz.zclient.AppEntryController._
 import com.waz.zclient.appentry.CreateTeamFragment._
 import com.waz.zclient.appentry.scenes._
 import com.waz.zclient.pages.BaseFragment
+import com.waz.zclient.ui.text.GlyphTextView
 import com.waz.zclient.ui.utils.KeyboardUtils
 import com.waz.zclient.utils.{ContextUtils, DefaultTransition}
 import com.waz.zclient.{AppEntryController, FragmentHelper, OnBackPressedListener, R}
@@ -44,6 +45,7 @@ class CreateTeamFragment extends BaseFragment[Container] with FragmentHelper wit
   override def onViewCreated(view: View, savedInstanceState: Bundle): Unit = {
 
     val container = findById[FrameLayout](R.id.container)
+    val closeButton = findById[GlyphTextView](R.id.close_button)
 
     appEntryController.entryStage.onUi { state =>
       val inflator = LayoutInflater.from(getActivity)
@@ -82,8 +84,16 @@ class CreateTeamFragment extends BaseFragment[Container] with FragmentHelper wit
       if (state != NoAccountState(FirstScreen) && viewHolder.root.isInstanceOf[ViewGroup]) {
         setKeyboardAnimation(viewHolder.root.asInstanceOf[ViewGroup])
       }
-
     }
+
+    ZMessaging.currentAccounts.loggedInAccounts.map(_.nonEmpty).zip(appEntryController.entryStage).onUi {
+      case (true, state) if state != SetUsernameTeam && state != TeamSetPicture => closeButton.setVisibility(View.VISIBLE)
+      case _ => closeButton.setVisibility(View.GONE)
+    }
+
+    closeButton.setOnClickListener(new OnClickListener {
+      override def onClick(v: View): Unit = getContainer.abortAddAccount()
+    })
   }
 
   def setKeyboardAnimation(view: ViewGroup): Unit = {
@@ -131,7 +141,9 @@ object CreateTeamFragment {
 
   def newInstance = new CreateTeamFragment
 
-  trait Container
+  trait Container {
+    def abortAddAccount(): Unit
+  }
 
   case class ARunnable(f: () => Unit) extends Runnable {
     override def run(): Unit = f()

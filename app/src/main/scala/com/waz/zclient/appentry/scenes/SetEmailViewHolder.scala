@@ -18,7 +18,8 @@
 package com.waz.zclient.appentry.scenes
 
 import android.app.Activity
-import android.content.Context
+import android.content.{Context, Intent}
+import android.net.Uri
 import android.text.InputType
 import android.view.View
 import com.waz.threading.Threading
@@ -27,6 +28,7 @@ import com.waz.zclient._
 import com.waz.zclient.common.views.InputBox
 import com.waz.zclient.common.views.InputBox.EmailValidator
 import com.waz.zclient.controllers.SignInController.{Email, Register, SignInMethod}
+import com.waz.zclient.ui.text.TypefaceTextView
 import com.waz.zclient.ui.utils.KeyboardUtils
 import com.waz.zclient.utils._
 
@@ -35,6 +37,7 @@ case class SetEmailViewHolder(root: View)(implicit val context: Context, eventCo
   private val appEntryController = inject[AppEntryController]
 
   lazy val inputField = root.findViewById[InputBox](R.id.input_field)
+  lazy val aboutButton = root.findViewById[TypefaceTextView](R.id.about_button)
 
   def onCreate(): Unit = {
     inputField.setValidator(EmailValidator)
@@ -49,5 +52,11 @@ case class SetEmailViewHolder(root: View)(implicit val context: Context, eventCo
         Some(errorMessage)
       case _ => None
     } (Threading.Ui))
+
+    aboutButton.onClick(openUrl(R.string.teams_set_email_about_url))
+  }
+
+  private def openUrl(id: Int): Unit ={
+    context.startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(context.getString(id))))
   }
 }
