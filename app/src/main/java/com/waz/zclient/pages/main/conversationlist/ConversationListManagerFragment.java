@@ -290,8 +290,9 @@ public class ConversationListManagerFragment extends BaseFragment<ConversationLi
         switch (syncState) {
             case SYNCING:
             case WAITING:
-                listLoadingIndicatorView.show(animationType);
-                return;
+                //TODO: There seems to be a problem with the sync state right now, remove after resolved
+                //listLoadingIndicatorView.show(animationType);
+                //return;
             case COMPLETED:
                 listLoadingIndicatorView.hide();
                 break;
