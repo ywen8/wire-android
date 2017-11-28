@@ -31,6 +31,7 @@ import com.waz.zclient.controllers.SignInController.{Email, Register, SignInMeth
 import com.waz.zclient.ui.text.TypefaceTextView
 import com.waz.zclient.ui.utils.KeyboardUtils
 import com.waz.zclient.utils._
+import SetEmailViewHolder._
 
 case class SetEmailViewHolder(root: View)(implicit val context: Context, eventContext: EventContext, injector: Injector) extends ViewHolder with Injectable {
 
@@ -42,13 +43,19 @@ case class SetEmailViewHolder(root: View)(implicit val context: Context, eventCo
   def onCreate(): Unit = {
     inputField.setValidator(EmailValidator)
     inputField.editText.setText(appEntryController.teamEmail)
-    inputField.editText.addTextListener(appEntryController.teamEmail = _)
+    inputField.editText.addTextListener { text =>
+      appEntryController.teamEmail = text
+      aboutButton.setVisibility(View.INVISIBLE)
+    }
     inputField.editText.requestFocus()
     inputField.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS | InputType.TYPE_TEXT_FLAG_AUTO_COMPLETE | InputType.TYPE_TEXT_FLAG_AUTO_CORRECT)
     KeyboardUtils.showKeyboard(context.asInstanceOf[Activity])
     inputField.setOnClick( text => appEntryController.requestTeamEmailVerificationCode(text).map {
       case Right(error) =>
         val errorMessage = ContextUtils.getString(EntryError(error.code, error.label, SignInMethod(Register, Email)).bodyResource)
+        if (error.code == DuplicateEmailErrorCode) {
+          aboutButton.setVisible(true)
+        }
         Some(errorMessage)
       case _ => None
     } (Threading.Ui))
@@ -59,4 +66,8 @@ case class SetEmailViewHolder(root: View)(implicit val context: Context, eventCo
   private def openUrl(id: Int): Unit ={
     context.startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(context.getString(id))))
   }
+}
+
+object SetEmailViewHolder {
+  val DuplicateEmailErrorCode = 409
 }

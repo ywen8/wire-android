@@ -110,7 +110,8 @@
             android:textSize="@dimen/wire__text_size__small"
             android:textColor="@color/teams_error_red"
             android:gravity="center"
-            android:layout_gravity="center"/>
+            android:layout_gravity="center"
+            app:w_font="@string/wire__typeface__regular"/>
 
     </FrameLayout>
 

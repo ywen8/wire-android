@@ -60,13 +60,16 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
-        android:gravity="center_horizontal"
+        android:gravity="center_horizontal|top"
         android:text="@string/teams_set_email_about"
-        android:textSize="@dimen/wire__text_size__smaller"
-        app:w_font="@string/wire__typeface__bold"
+        android:textSize="@dimen/wire__text_size__small"
+        app:w_font="@string/wire__typeface__regular"
         android:textColor="@drawable/app_entry_text_button"
         android:clickable="true"
         android:focusable="true"
-        android:padding="@dimen/wire__padding__small"/>
+        android:paddingStart="@dimen/wire__padding__small"
+        android:paddingEnd="@dimen/wire__padding__small"
+        android:paddingBottom="@dimen/wire__padding__regular"
+        android:visibility="invisible"/>
 
 </LinearLayout>
