@@ -176,6 +176,13 @@ public class ConversationListManagerFragment extends BaseFragment<ConversationLi
         return view;
     }
 
+    private final Callback callback = new Callback<ConversationController.ConversationChange>() {
+        @Override
+        public void callback(ConversationController.ConversationChange conversationChange) {
+            onCurrentConversationHasChanged(conversationChange);
+        }
+    };
+
     @Override
     public void onStart() {
         super.onStart();
@@ -187,12 +194,7 @@ public class ConversationListManagerFragment extends BaseFragment<ConversationLi
         getControllerFactory().getNavigationController().addNavigationControllerObserver(this);
         getControllerFactory().getConfirmationController().addConfirmationObserver(this);
 
-        inject(ConversationController.class).onConvChanged(new Callback<ConversationController.ConversationChange>() {
-            @Override
-            public void callback(ConversationController.ConversationChange conversationChange) {
-                onCurrentConversationHasChanged(conversationChange);
-            }
-        });
+        inject(ConversationController.class).addConvChangedCallback(callback);
     }
 
     @Override
@@ -210,6 +212,8 @@ public class ConversationListManagerFragment extends BaseFragment<ConversationLi
         getControllerFactory().getConversationScreenController().removeConversationControllerObservers(this);
         getControllerFactory().getNavigationController().removeNavigationControllerObserver(this);
         getControllerFactory().getConfirmationController().removeConfirmationObserver(this);
+
+        inject(ConversationController.class).removeConvChangedCallback(callback);
 
         super.onStop();
     }

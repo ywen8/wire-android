@@ -253,6 +253,14 @@ public class ParticipantFragment extends BaseFragment<ParticipantFragment.Contai
 
     }
 
+    private Callback callback = new Callback<ConversationController.ConversationChange>() {
+        @Override
+        public void callback(ConversationController.ConversationChange change) {
+            onCurrentConversationHasChanged(change);
+            onConversationLoaded(change.toConvId());
+        }
+    };
+
     @Override
     public void onStart() {
         super.onStart();
@@ -270,13 +278,7 @@ public class ParticipantFragment extends BaseFragment<ParticipantFragment.Contai
         }
         getControllerFactory().getPickUserController().addPickUserScreenControllerObserver(this);
 
-        convController.onConvChanged(new Callback<ConversationController.ConversationChange>() {
-            @Override
-            public void callback(ConversationController.ConversationChange change) {
-                onCurrentConversationHasChanged(change);
-                onConversationLoaded(change.toConvId());
-            }
-        });
+        convController.addConvChangedCallback(callback);
     }
 
     @Override
@@ -287,6 +289,8 @@ public class ParticipantFragment extends BaseFragment<ParticipantFragment.Contai
         }
         getStoreFactory().participantsStore().removeParticipantsStoreObserver(this);
         getControllerFactory().getPickUserController().removePickUserScreenControllerObserver(this);
+
+        convController.removeConvChangedCallback(callback);
 
         super.onStop();
     }

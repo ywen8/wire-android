@@ -100,6 +100,42 @@ public class ConversationManagerFragment extends BaseFragment<ConversationManage
         return new ConversationManagerFragment();
     }
 
+
+    private final Callback callback = new Callback<ConversationController.ConversationChange>() {
+        @Override
+        public void callback(ConversationController.ConversationChange change) {
+            if (change.noChange()) {
+                return;
+            }
+
+            if (change.requester() == ConversationChangeRequester.START_CONVERSATION ||
+                change.requester() == ConversationChangeRequester.INCOMING_CALL ||
+                change.requester() == ConversationChangeRequester.LEAVE_CONVERSATION ||
+                change.requester() == ConversationChangeRequester.DELETE_CONVERSATION ||
+                change.requester() == ConversationChangeRequester.BLOCK_USER) {
+                if (getControllerFactory().getNavigationController().getCurrentRightPage() == Page.CAMERA &&
+                    !change.noChange()) {
+                    getControllerFactory().getCameraController().closeCamera(CameraContext.MESSAGE);
+                }
+
+                getControllerFactory().getConversationScreenController().hideParticipants(false, (change.requester() == ConversationChangeRequester.START_CONVERSATION));
+
+                closeLikesList();
+            }
+
+            if (change.toConvId() != null) {
+                IConversation iConv = inject(ConversationController.class).iConv(change.toConvId());
+                getStoreFactory().participantsStore().setCurrentConversation(iConv);
+                conversationModelObserver.setAndUpdate(iConv);
+            }
+
+            CollectionController colController = inject(CollectionController.class);
+            if (colController != null) {
+                colController.closeCollection();
+            }
+        }
+    };
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_conversation_manager, container, false);
@@ -114,41 +150,7 @@ public class ConversationManagerFragment extends BaseFragment<ConversationManage
 
         loadingIndicatorView = ViewUtils.getView(view, R.id.liv__conversation_manager__loading_indicator);
 
-        final ConversationController convController = inject(ConversationController.class);
-        final CollectionController colController = inject(CollectionController.class);
-        convController.onConvChanged(new Callback<ConversationController.ConversationChange>() {
-            @Override
-            public void callback(ConversationController.ConversationChange change) {
-                if (change.noChange()) {
-                    return;
-                }
-
-                if (change.requester() == ConversationChangeRequester.START_CONVERSATION ||
-                    change.requester() == ConversationChangeRequester.INCOMING_CALL ||
-                    change.requester() == ConversationChangeRequester.LEAVE_CONVERSATION ||
-                    change.requester() == ConversationChangeRequester.DELETE_CONVERSATION ||
-                    change.requester() == ConversationChangeRequester.BLOCK_USER) {
-                    if (getControllerFactory().getNavigationController().getCurrentRightPage() == Page.CAMERA &&
-                        !change.noChange()) {
-                        getControllerFactory().getCameraController().closeCamera(CameraContext.MESSAGE);
-                    }
-
-                    getControllerFactory().getConversationScreenController().hideParticipants(false, (change.requester() == ConversationChangeRequester.START_CONVERSATION));
-
-                    closeLikesList();
-                }
-
-                if (change.toConvId() != null) {
-                    IConversation iConv = convController.iConv(change.toConvId());
-                    getStoreFactory().participantsStore().setCurrentConversation(iConv);
-                    conversationModelObserver.setAndUpdate(iConv);
-                }
-
-                if (colController != null) {
-                    colController.closeCollection();
-                }
-            }
-        });
+        inject(ConversationController.class).addConvChangedCallback(callback);
 
         return view;
     }
@@ -190,6 +192,7 @@ public class ConversationManagerFragment extends BaseFragment<ConversationManage
     @Override
     public void onDestroyView() {
         loadingIndicatorView = null;
+        inject(ConversationController.class).removeConvChangedCallback(callback);
         super.onDestroyView();
     }
 

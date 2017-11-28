@@ -209,6 +209,13 @@ public class RootFragment extends BaseFragment<RootFragment.Container> implement
         }
     }
 
+    private final Callback callback = new Callback<ConversationController.ConversationChange>() {
+        @Override
+        public void callback(ConversationController.ConversationChange conversationChange) {
+            onCurrentConversationHasChanged(conversationChange);
+        }
+    };
+
     @Override
     public void onStart() {
         super.onStart();
@@ -220,12 +227,7 @@ public class RootFragment extends BaseFragment<RootFragment.Container> implement
         getControllerFactory().getConversationScreenController().addConversationControllerObservers(this);
         getControllerFactory().getNavigationController().addPagerControllerObserver(this);
 
-        inject(ConversationController.class).onConvChanged(new Callback<ConversationController.ConversationChange>() {
-            @Override
-            public void callback(ConversationController.ConversationChange conversationChange) {
-                onCurrentConversationHasChanged(conversationChange);
-            }
-        });
+        inject(ConversationController.class).addConvChangedCallback(callback);
 
         getControllerFactory().getCameraController().addCameraActionObserver(this);
         getControllerFactory().getPickUserController().addPickUserScreenControllerObserver(this);
@@ -250,6 +252,9 @@ public class RootFragment extends BaseFragment<RootFragment.Container> implement
         getControllerFactory().getGiphyController().removeObserver(this);
         getControllerFactory().getDrawingController().removeDrawingObserver(this);
         getCollectionController().removeObserver(this);
+
+        inject(ConversationController.class).removeConvChangedCallback(callback);
+
         super.onStop();
     }
 
