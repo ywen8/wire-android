@@ -32,7 +32,7 @@ import com.waz.zclient.controllers.SignInController
 import com.waz.zclient.controllers.SignInController._
 import com.waz.zclient.newreg.fragments.SignUpPhotoFragment
 import com.waz.zclient.newreg.fragments.SignUpPhotoFragment.RegistrationType
-import com.waz.zclient.tracking.{AddPhotoOnRegistrationEvent, GlobalTrackingController}
+import com.waz.zclient.tracking._
 
 import scala.concurrent.Future
 import scala.util.Random
@@ -95,6 +95,12 @@ class AppEntryController(implicit inj: Injector, eventContext: EventContext) ext
 
   entryStage.onUi { stage =>
     ZLog.verbose(s"Current stage: $stage")
+    stage match {
+      case NoAccountState(FirstScreen) => tracking.trackEvent(OpenedStartScreen())
+      case NoAccountState(LoginScreen) => tracking.trackEvent(OpenedPersonalRegistration())
+      case NoAccountState(RegisterTeamScreen) => tracking.trackEvent(OpenedTeamRegistration())
+      case _ =>
+    }
   }
 
   ZMessaging.currentAccounts.loggedInAccounts.map(_.isEmpty) {
@@ -319,20 +325,26 @@ class AppEntryController(implicit inj: Injector, eventContext: EventContext) ext
     }
   }
 
-  def setEmailVerificationCode(code: String): Future[Either[Unit, ErrorResponse]] =
+  def setEmailVerificationCode(code: String, copyPaste: Boolean = false): Future[Either[Unit, ErrorResponse]] = {
+    import TeamsEnteredVerification._
     ZMessaging.currentAccounts.verify(ConfirmationCode(code)).map {
-      case Right(()) => Left(())
-      case Left(e) => Right(e)
+      case Right(()) =>
+        tracking.trackEvent(TeamsEnteredVerification(if (copyPaste) CopyPaste else Manual, None))
+        Left(())
+      case Left(e) =>
+        tracking.trackEvent(TeamsEnteredVerification(if (copyPaste) CopyPaste else Manual, Some(e.code, e.label)))
+        Right(e)
     }
+  }
 
   def setName(name: String): Future[Either[Unit, ErrorResponse]] =
     ZMessaging.currentAccounts.updateCurrentAccount(_.copy(name = Some(name))) map { _ => Left(()) }
 
-  //TODO: separate register from set password
   def setPassword(password: String): Future[Either[Unit, ErrorResponse]] =
-    ZMessaging.currentAccounts.updateCurrentAccount(_.copy(password= Some(password))) flatMap { _ =>
+    ZMessaging.currentAccounts.updateCurrentAccount(_.copy(password = Some(password))) flatMap { _ =>
       ZMessaging.currentAccounts.register().map {
         case Right(()) =>
+          tracking.trackEvent(TeamCreated())
           Left(())
         case Left(e) => Right(e)
       }
@@ -346,9 +358,7 @@ class AppEntryController(implicit inj: Injector, eventContext: EventContext) ext
         Future.successful(Right(e))
     }
 
-
-  private val fakeAB = Random.nextBoolean()
-  def isAB: Future[Boolean] = Future.successful(fakeAB)
+  lazy val termsOfUseAB: Boolean = Random.nextBoolean()
 
 }
 

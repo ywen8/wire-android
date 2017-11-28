@@ -47,7 +47,7 @@ class NumberCodeInput(context: Context, attrs: AttributeSet, style: Int) extends
   val editText = findById[CursorEditText](R.id.code_edit_text)
   val texts = Seq(R.id.t1, R.id.t2, R.id.t3, R.id.t4, R.id.t5, R.id.t6).map(findById[TypefaceTextView])
   val container = findById[LinearLayout](R.id.container)
-  val codeText = Signal[String]("")
+  val codeText = Signal[(String, Boolean)](("", false))
   private var onCodeSet = (_: String) => Future.successful(Option.empty[String])
 
   progressBar.setIndeterminate(true)
@@ -55,10 +55,11 @@ class NumberCodeInput(context: Context, attrs: AttributeSet, style: Int) extends
   errorText.setVisible(false)
   progressBar.setIndeterminateTintList(ColorStateList.valueOf(ContextUtils.getColor(R.color.teams_inactive_button)))
   setupInputs()
-  codeText.onUi { code =>
-    errorText.setVisible(false)
-    if (code.length >= inputCount)
-      setCode(code)
+  codeText.onUi {
+    case (code, method) =>
+      errorText.setVisible(false)
+      if (code.length >= inputCount)
+        setCode(code)
   }
 
   def inputCode(code: String): Unit = {
@@ -69,15 +70,15 @@ class NumberCodeInput(context: Context, attrs: AttributeSet, style: Int) extends
 
   private def setupInputs(): Unit = {
     editText.addTextChangedListener(new TextWatcher {
-      override def onTextChanged(s: CharSequence, start: Int, before: Int, count: Int): Unit = {}
-      override def afterTextChanged(s: Editable): Unit = {
+      override def onTextChanged(s: CharSequence, start: Int, before: Int, count: Int): Unit = {
         val content = s.toString.toCharArray.map(_.toString)
         texts.zipWithIndex.foreach {
           case (textView, i) =>
             textView.setText(content.applyOrElse[Int, String](i, _ => ""))
         }
-        codeText ! s.toString
+        codeText ! (s.toString, count == inputCount)
       }
+      override def afterTextChanged(s: Editable): Unit = {}
       override def beforeTextChanged(s: CharSequence, start: Int, count: Int, after: Int): Unit = {}
     })
     container.setOnTouchListener(new OnTouchListener {

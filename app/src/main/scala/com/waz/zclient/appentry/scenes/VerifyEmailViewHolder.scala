@@ -61,7 +61,7 @@ case class VerifyEmailViewHolder(root: View)(implicit val context: Context, even
     codeField.requestInputFocus()
     if (appEntryController.code.nonEmpty)
       codeField.inputCode(appEntryController.code)
-    codeField.codeText.onUi { appEntryController.code = _ }
+    codeField.codeText.onUi { code => appEntryController.code = code._1 }
     KeyboardUtils.showKeyboard(context.asInstanceOf[Activity])
     codeField.setOnCodeSet({ code =>
       for {

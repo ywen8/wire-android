@@ -28,6 +28,7 @@ import com.waz.zclient.appentry.AppEntryDialogs
 import com.waz.zclient.common.views.InputBox
 import com.waz.zclient.common.views.InputBox.PasswordValidator
 import com.waz.zclient.controllers.SignInController.{Email, Register, SignInMethod}
+import com.waz.zclient.tracking.{GlobalTrackingController, TeamAcceptedTerms}
 import com.waz.zclient.ui.utils.KeyboardUtils
 import com.waz.zclient.utils._
 
@@ -36,6 +37,7 @@ import scala.concurrent.Future
 case class SetPasswordViewHolder(root: View)(implicit val context: Context, eventContext: EventContext, injector: Injector) extends ViewHolder with Injectable {
 
   private val appEntryController = inject[AppEntryController]
+  private val tracking = inject[GlobalTrackingController]
 
   lazy val inputField = root.findViewById[InputBox](R.id.input_field)
 
@@ -49,23 +51,24 @@ case class SetPasswordViewHolder(root: View)(implicit val context: Context, even
     inputField.editText.requestFocus()
     KeyboardUtils.showKeyboard(context.asInstanceOf[Activity])
     inputField.setOnClick( text =>
-      appEntryController.isAB.flatMap {
-        case true =>
-          AppEntryDialogs.showTermsAndConditions(context).flatMap {
-            case true => appEntryController.setPassword(text).collect {
-              case Right(error) =>
-                val errorMessage = ContextUtils.getString(EntryError(error.code, error.label, SignInMethod(Register, Email)).bodyResource)
-                Some(errorMessage)
-            }
-            case false =>
-              Future.successful(None)
-          }
-        case false =>
-          appEntryController.setPassword(text).collect {
+      if (appEntryController.termsOfUseAB) {
+        AppEntryDialogs.showTermsAndConditions(context).flatMap {
+          case true =>
+            tracking.trackEvent(TeamAcceptedTerms(TeamAcceptedTerms.AfterPassword))
+            appEntryController.setPassword(text).collect {
             case Right(error) =>
               val errorMessage = ContextUtils.getString(EntryError(error.code, error.label, SignInMethod(Register, Email)).bodyResource)
               Some(errorMessage)
           }
+          case false =>
+            Future.successful(None)
+        }
+      } else {
+        appEntryController.setPassword(text).collect {
+          case Right(error) =>
+            val errorMessage = ContextUtils.getString(EntryError(error.code, error.label, SignInMethod(Register, Email)).bodyResource)
+            Some(errorMessage)
+        }
       })
   }
 }

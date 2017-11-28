@@ -37,6 +37,7 @@ import com.waz.threading.Threading
 import com.waz.utils.events.{EventContext, EventStream, Signal}
 import com.waz.zclient._
 import com.waz.zclient.pages.main.profile.preferences.views.TextButton
+import com.waz.zclient.tracking.{GlobalTrackingController, OpenedManageTeam}
 import com.waz.zclient.ui.text.TypefaceTextView
 import com.waz.zclient.utils.{BackStackKey, BackStackNavigator, RichView, StringUtils, UiStorage, UserSignal, ZTimeFormatter}
 import com.waz.zclient.views.ImageAssetDrawable
@@ -46,6 +47,7 @@ import org.threeten.bp.{LocalDateTime, ZoneId}
 
 trait ProfileView {
   val onDevicesDialogAccept: EventStream[Unit]
+  val onManageTeamClick: EventStream[Unit]
 
   def setUserName(name: String): Unit
   def setHandle(handle: String): Unit
@@ -75,6 +77,7 @@ class ProfileViewImpl(context: Context, attrs: AttributeSet, style: Int) extends
   val settingsButton = findById[TextButton](R.id.profile_settings)
 
   override val onDevicesDialogAccept = EventStream[Unit]()
+  override val onManageTeamClick: EventStream[Unit] = teamButtom.onClickEvent.map(_ => ())
 
   private var deviceDialog = Option.empty[AlertDialog]
 
@@ -189,8 +192,9 @@ case class ProfileBackStackKey(args: Bundle = new Bundle()) extends BackStackKey
 }
 
 class ProfileViewController(view: ProfileView)(implicit inj: Injector, ec: EventContext) extends Injectable {
-  val zms = inject[Signal[ZMessaging]]
+  private val zms = inject[Signal[ZMessaging]]
   implicit val uiStorage = inject[UiStorage]
+  private val tracking = inject[GlobalTrackingController]
   val MaxAccountsCount = 2
 
   val currentUser = ZMessaging.currentAccounts.activeAccount.collect { case Some(account) if account.userId.isDefined => account.userId.get }
@@ -235,4 +239,5 @@ class ProfileViewController(view: ProfileView)(implicit inj: Injector, ec: Event
 
   ZMessaging.currentAccounts.loggedInAccounts.map(_.size < MaxAccountsCount).onUi(view.setAddAccountEnabled)
 
+  view.onManageTeamClick { _ => tracking.trackEvent(OpenedManageTeam(), zms.currentValue) }
 }

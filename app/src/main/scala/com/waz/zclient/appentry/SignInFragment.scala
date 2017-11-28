@@ -178,7 +178,7 @@ class SignInFragment extends BaseFragment[Container] with FragmentHelper with Vi
           emailButton.setVisible(true)
       }
     } else {
-      signInController.uiSignInState ! SignInMethod(Register, Email)
+      signInController.uiSignInState ! SignInMethod(Login, Email)
     }
 
     signInController.uiSignInState.onUi { state =>

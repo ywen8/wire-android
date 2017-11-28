@@ -31,6 +31,7 @@ import org.json.JSONObject
 import org.threeten.bp.Duration
 import com.waz.utils._
 import com.waz.zclient.tracking.AddPhotoOnRegistrationEvent.Source
+import com.waz.zclient.tracking.TeamAcceptedTerms.Occurrence
 
 sealed trait TrackingEvent {
   val name: String
@@ -272,10 +273,15 @@ case class OpenedLogin() extends TrackingEvent {
   override val props = None
 }
 
-case class TeamsEnteredVerification(method: TeamsEnteredVerification.Method) extends TrackingEvent {
+case class TeamsEnteredVerification(method: TeamsEnteredVerification.Method, error: Option[(Int, String)]) extends TrackingEvent {
   override val name: String = "team.entered_verification"
   override val props = Some(returning(new JSONObject()) { o =>
     o.put("method", method.str)
+    o.put("outcome", error.fold2("success", _ => "fail"))
+    error.foreach { case (code, label) =>
+      o.put("error", code)
+      o.put("error_message", label)
+    }
   })
 }
 
@@ -290,9 +296,17 @@ case class TeamVerified() extends TrackingEvent {
   override val props = None
 }
 
-case class TeamAcceptedTerms() extends TrackingEvent {
+case class TeamAcceptedTerms(occurrence: Occurrence) extends TrackingEvent {
   override val name: String = "team.accepted_terms"
-  override val props = None
+  override val props =  Some(returning(new JSONObject()) { o =>
+    o.put("method", occurrence.str)
+  })
+}
+
+object TeamAcceptedTerms {
+  case class Occurrence(str: String)
+  object AfterName extends Occurrence("after_name")
+  object AfterPassword extends Occurrence("after_password")
 }
 
 case class TeamCreated() extends TrackingEvent {
