@@ -112,6 +112,7 @@ public class SecondPageFragment extends BaseFragment<SecondPageFragment.Containe
     @Override
     public void onDestroyView() {
         getControllerFactory().getNavigationController().removePagerControllerObserver(this);
+        inject(ConversationController.class).removeConvChangedCallback(callback);
         super.onDestroyView();
     }
 
@@ -124,42 +125,43 @@ public class SecondPageFragment extends BaseFragment<SecondPageFragment.Containe
         }
     }
 
+    private final Callback callback = new Callback<ConversationController.ConversationChange>() {
+        @Override
+        public void callback(final ConversationController.ConversationChange change) {
+            if (change.toConvId() == null) {
+                return;
+            }
+
+            inject(ConversationController.class).withConvLoaded(change.toConvId(), new Callback<ConversationData>() {
+                @Override
+                public void callback(final ConversationData convData) {
+                    Timber.i("Conversation: %s type: %s requester: %s",
+                        change.toConvId(),
+                        convData.convType(),
+                        change.requester());
+                    // either starting from beginning or switching fragment
+                    final boolean switchingToPendingConnectRequest = (convData.convType() == IConversation.Type.WAIT_FOR_CONNECTION);
+                    final boolean switchingToConnectRequestInbox = convData.convType() == IConversation.Type.INCOMING_CONNECTION;
+
+                    if (switchingToConnectRequestInbox) {
+                        Bundle arguments = new Bundle();
+                        arguments.putString(ARGUMENT_CONVERSATION_ID, change.toConvId().str());
+                        openPage(Page.CONNECT_REQUEST_INBOX, arguments);
+                    } else if (switchingToPendingConnectRequest) {
+                        Bundle arguments = new Bundle();
+                        arguments.putString(ARGUMENT_CONVERSATION_ID, change.toConvId().str());
+                        openPage(Page.CONNECT_REQUEST_PENDING, arguments);
+                    } else {
+                        openPage(Page.MESSAGE_STREAM, new Bundle());
+                    }
+                }
+            });
+        }
+    };
+
     @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
-        final ConversationController convController = inject(ConversationController.class);
-        convController.onConvChanged(new Callback<ConversationController.ConversationChange>() {
-            @Override
-            public void callback(final ConversationController.ConversationChange change) {
-                if (change.toConvId() == null) {
-                    return;
-                }
-
-                convController.withConvLoaded(change.toConvId(), new Callback<ConversationData>() {
-                    @Override
-                    public void callback(final ConversationData convData) {
-                        Timber.i("Conversation: %s type: %s requester: %s",
-                            change.toConvId(),
-                            convData.convType(),
-                            change.requester());
-                        // either starting from beginning or switching fragment
-                        final boolean switchingToPendingConnectRequest = (convData.convType() == IConversation.Type.WAIT_FOR_CONNECTION);
-                        final boolean switchingToConnectRequestInbox = convData.convType() == IConversation.Type.INCOMING_CONNECTION;
-
-                        if (switchingToConnectRequestInbox) {
-                            Bundle arguments = new Bundle();
-                            arguments.putString(ARGUMENT_CONVERSATION_ID, change.toConvId().str());
-                            openPage(Page.CONNECT_REQUEST_INBOX, arguments);
-                        } else if (switchingToPendingConnectRequest) {
-                            Bundle arguments = new Bundle();
-                            arguments.putString(ARGUMENT_CONVERSATION_ID, change.toConvId().str());
-                            openPage(Page.CONNECT_REQUEST_PENDING, arguments);
-                        } else {
-                            openPage(Page.MESSAGE_STREAM, new Bundle());
-                        }
-                    }
-                });
-            }
-        });
+        inject(ConversationController.class).addConvChangedCallback(callback);
     }
 
     private void openPage(Page page, Bundle arguments) {

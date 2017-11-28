@@ -264,6 +264,20 @@ public class LocationFragment extends BaseFragment<LocationFragment.Container> i
         mapView.onSaveInstanceState(outState);
     }
 
+    private final Callback callback = new Callback<ConversationController.ConversationChange>() {
+        @Override
+        public void callback(ConversationController.ConversationChange change) {
+            if (change.toConvId() != null) {
+                inject(ConversationController.class).withConvLoaded(change.toConvId(), new Callback<ConversationData>() {
+                    @Override
+                    public void callback(ConversationData conversationData) {
+                        toolbarTitle.setText(conversationData.displayName());
+                    }
+                });
+            }
+        }
+    };
+
     @Override
     public void onStart() {
         super.onStart();
@@ -281,20 +295,7 @@ public class LocationFragment extends BaseFragment<LocationFragment.Container> i
             requestCurrentLocationButton.setVisibility(View.GONE);
         }
 
-        final ConversationController ctrl = inject(ConversationController.class);
-        ctrl.onConvChanged(new Callback<ConversationController.ConversationChange>() {
-            @Override
-            public void callback(ConversationController.ConversationChange change) {
-                if (change.toConvId() != null) {
-                    ctrl.withConvLoaded(change.toConvId(), new Callback<ConversationData>() {
-                        @Override
-                        public void callback(ConversationData conversationData) {
-                            toolbarTitle.setText(conversationData.displayName());
-                        }
-                    });
-                }
-            }
-        });
+        inject(ConversationController.class).addConvChangedCallback(callback);
     }
 
     @Override
@@ -337,6 +338,7 @@ public class LocationFragment extends BaseFragment<LocationFragment.Container> i
     public void onStop() {
         getControllerFactory().getRequestPermissionsController().removeObserver(this);
         getControllerFactory().getAccentColorController().removeAccentColorObserver(this);
+        inject(ConversationController.class).removeConvChangedCallback(callback);
         super.onStop();
     }
 

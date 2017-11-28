@@ -189,11 +189,16 @@ class ConversationController(implicit injector: Injector, context: Context, ec: 
   def withCurrentConvType(callback: Callback[IConversation.Type]): Unit = currentConvType.head.foreach(callback.callback)(Threading.Ui)
 
   def getCurrentConvId: ConvId = currentConvId.currentValue.orNull
-  def onConvChanged(callback: Callback[ConversationChange]): Unit =  convChanged.onUi { callback.callback }
   def withConvLoaded(convId: ConvId, callback: Callback[ConversationData]): Unit = loadConv(convId).foreach {
     case Some(data) => callback.callback(data)
     case None =>
   }(Threading.Ui)
+
+  private var convChangedCallbackSet = Set.empty[Callback[ConversationChange]]
+  def addConvChangedCallback(callback: Callback[ConversationChange]): Unit = convChangedCallbackSet += callback
+  def removeConvChangedCallback(callback: Callback[ConversationChange]): Unit = convChangedCallbackSet -= callback
+
+  convChanged.onUi { ev => convChangedCallbackSet.foreach(callback => callback.callback(ev)) }
 
   def withMembers(convId: ConvId, callback: Callback[java.util.Collection[UserData]]): Unit =
     loadMembers(convId).foreach { users => callback.callback(users.asJavaCollection) }(Threading.Ui)

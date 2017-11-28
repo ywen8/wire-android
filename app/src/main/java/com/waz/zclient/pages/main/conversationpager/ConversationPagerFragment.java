@@ -91,6 +91,13 @@ public class ConversationPagerFragment extends BaseFragment<ConversationPagerFra
         return conversationPager;
     }
 
+    private final Callback callback = new Callback<ConversationController.ConversationChange>() {
+        @Override
+        public void callback(ConversationController.ConversationChange change) {
+            onCurrentConversationHasChanged(change);
+        }
+    };
+
     @Override
     public void onStart() {
         super.onStart();
@@ -102,12 +109,7 @@ public class ConversationPagerFragment extends BaseFragment<ConversationPagerFra
         getControllerFactory().getNavigationController().addPagerControllerObserver(this);
         getControllerFactory().getNavigationController().addNavigationControllerObserver(this);
 
-        inject(ConversationController.class).onConvChanged(new Callback<ConversationController.ConversationChange>() {
-            @Override
-            public void callback(ConversationController.ConversationChange change) {
-                onCurrentConversationHasChanged(change);
-            }
-        });
+        inject(ConversationController.class).addConvChangedCallback(callback);
     }
 
     @Override
@@ -115,6 +117,7 @@ public class ConversationPagerFragment extends BaseFragment<ConversationPagerFra
         getControllerFactory().getNavigationController().removePagerControllerObserver(this);
         getControllerFactory().getNavigationController().removeNavigationControllerObserver(this);
         conversationPager.setOnPageChangeListener(null);
+        inject(ConversationController.class).removeConvChangedCallback(callback);
         super.onStop();
     }
 
