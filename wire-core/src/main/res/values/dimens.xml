@@ -917,4 +917,5 @@
     <dimen name="app_entry_button_width">260dp</dimen>
     <dimen name="app_entry_keyboard_content_padding">16dp</dimen>
     <dimen name="app_entry_close_button_size">32dp</dimen>
+    <dimen name="app_entry_tablet_container_width">400dp</dimen>
 </resources>
