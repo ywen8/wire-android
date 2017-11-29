@@ -56,7 +56,7 @@
                 android:paddingEnd="@dimen/app_entry_input_hint_padding"
                 android:textColor="@color/teams_placeholder_text"
                 android:textSize="@dimen/wire__text_size__smaller"
-                app:w_font="@string/wire__typeface__light"
+                app:w_font="@string/wire__typeface__regular"
                 android:clickable="false"
                 android:focusable="false"
                 />
@@ -69,7 +69,7 @@
                 android:paddingRight="@dimen/wire__padding__regular"
                 android:textColor="@color/teams_headline_text"
                 android:textSize="@dimen/wire__text_size__regular_small"
-                app:w_font="@string/wire__typeface__light"
+                app:w_font="@string/wire__typeface__regular"
                 android:maxLines="1"
                 android:inputType="text"
                 android:textCursorDrawable="@null"
