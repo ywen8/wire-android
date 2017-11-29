@@ -160,6 +160,9 @@ class AppEntryController(implicit inj: Injector, eventContext: EventContext) ext
         teamUserName = ""
         code = ""
         ZMessaging.currentAccounts.updateCurrentAccount(_.copy(code = None, pendingEmail = None))
+      case Some(accountData) if accountData.pendingTeamName.isDefined && accountData.pendingEmail.isDefined =>
+        code = ""
+        ZMessaging.currentAccounts.updateCurrentAccount(_.copy(pendingEmail = None))
       case Some(accountData) if accountData.pendingTeamName.isDefined =>
         teamEmail = ""
         ZMessaging.currentAccounts.logout(false)

@@ -187,7 +187,7 @@ class AccountViewController(view: AccountView)(implicit inj: Injector, ec: Event
     view.setPhone(account.phone.map(_.str))
   }
 
-  isTeam.onUi(view.setDeleteAccountEnabled)
+  isTeam.onUi(t => view.setDeleteAccountEnabled(!t))
 
   isPhoneNumerEnabled.onUi(view.setPhoneNumberEnabled)
 
