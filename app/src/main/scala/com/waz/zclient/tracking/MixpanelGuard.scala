@@ -28,9 +28,10 @@ import com.waz.zclient.{BuildConfig, WireContext}
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 
+import scala.language.reflectiveCalls
+import scala.language.implicitConversions
+
 object MixpanelGuard {
-  import scala.language.reflectiveCalls
-  import scala.language.implicitConversions
 
   private implicit def refl(ref: AnyRef) = new {
 
