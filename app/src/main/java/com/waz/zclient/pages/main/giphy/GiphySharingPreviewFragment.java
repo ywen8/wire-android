@@ -54,7 +54,6 @@ import com.waz.zclient.utils.ContextUtils;
 import com.waz.zclient.utils.ViewUtils;
 import com.waz.zclient.views.LoadingIndicatorView;
 import com.waz.zclient.views.images.ImageAssetView;
-import timber.log.Timber;
 
 public class GiphySharingPreviewFragment extends BaseFragment<GiphySharingPreviewFragment.Container> implements AccentColorObserver,
                                                                                                                 ImageAssetView.BitmapLoadedCallback,
