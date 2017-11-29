@@ -694,6 +694,7 @@ class ConversationFragment extends BaseFragment[ConversationFragment.Container] 
     override def onCursorClicked(): Unit = if (!cursorView.isEditingMessage) listView.scrollToBottom()
 
     override def onFocusChange(hasFocus: Boolean): Unit = {
+
       if (hasFocus) getControllerFactory.getFocusController.setFocus(IFocusController.CONVERSATION_CURSOR)
       if (!LayoutSpec.isPhone(getActivity) && getControllerFactory.getPickUserController.isShowingPickUser(IPickUserController.Destination.CONVERSATION_LIST)) {
         // On tablet, apply Page.MESSAGE_STREAM soft input mode when conversation cursor has focus (soft input mode of page gets changed when left startui is open)
@@ -756,7 +757,7 @@ class ConversationFragment extends BaseFragment[ConversationFragment.Container] 
 
   private val keyboardVisibilityObserver = new KeyboardVisibilityObserver {
     override def onKeyboardVisibilityChanged(keyboardIsVisible: Boolean, keyboardHeight: Int, currentFocus: View): Unit =
-      cursorView.notifyKeyboardVisibilityChanged(keyboardIsVisible, currentFocus)
+      cursorView.notifyKeyboardVisibilityChanged(keyboardIsVisible)
   }
 
   private val syncErrorObserver = new SyncErrorObserver {

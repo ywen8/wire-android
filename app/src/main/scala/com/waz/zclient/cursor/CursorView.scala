@@ -24,6 +24,7 @@ import android.graphics.drawable.ColorDrawable
 import android.support.v4.content.res.ResourcesCompat
 import android.text.{Editable, TextUtils, TextWatcher}
 import android.util.AttributeSet
+import android.view.View.OnClickListener
 import android.view._
 import android.view.inputmethod.EditorInfo
 import android.widget.TextView.OnEditorActionListener
@@ -125,8 +126,9 @@ class CursorView(val context: Context, val attrs: AttributeSet, val defStyleAttr
   emojiButton.onClick {
     controller.keyboard ! KeyboardState.ExtendedCursor(ExtendedCursorContainer.Type.EMOJIS)
   }
+
   keyboardButton.onClick {
-    controller.keyboard ! KeyboardState.Shown
+    notifyKeyboardVisibilityChanged(true)
   }
 
   val cursorHeight = getDimenPx(R.dimen.new_cursor_height)
@@ -148,6 +150,10 @@ class CursorView(val context: Context, val attrs: AttributeSet, val defStyleAttr
     }
 
     override def beforeTextChanged(charSequence: CharSequence, start: Int, count: Int, after: Int): Unit = ()
+  })
+
+  cursorEditText.setOnClickListener(new OnClickListener {
+    override def onClick(v: View): Unit = notifyKeyboardVisibilityChanged(true)
   })
 
   cursorEditText.setOnEditorActionListener(new OnEditorActionListener {
@@ -250,7 +256,7 @@ class CursorView(val context: Context, val attrs: AttributeSet, val defStyleAttr
     cursorEditText.getText.insert(cursorEditText.getSelectionStart, text)
   }
 
-  def notifyKeyboardVisibilityChanged(keyboardIsVisible: Boolean, currentFocus: View): Unit = {
+  def notifyKeyboardVisibilityChanged(keyboardIsVisible: Boolean): Unit = {
     controller.keyboard.mutate {
       case KeyboardState.Shown if !keyboardIsVisible => KeyboardState.Hidden
       case _ if keyboardIsVisible => KeyboardState.Shown
