@@ -797,6 +797,8 @@ class ConversationFragment extends BaseFragment[ConversationFragment.Container] 
         errorDescription.dismiss()
       case ErrorType.CANNOT_SEND_MESSAGE_TO_UNVERIFIED_CONVERSATION =>
         onErrorCanNotSentMessageToUnverifiedConversation(errorDescription)
+      case err =>
+        error(s"Unhandled onSyncError: $errorDescription")
     }
 
     private def onErrorCanNotSentMessageToUnverifiedConversation(errorDescription: ErrorsList.ErrorDescription) =
