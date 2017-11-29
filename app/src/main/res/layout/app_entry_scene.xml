@@ -88,7 +88,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:gravity="center"
-            android:textSize="@dimen/wire__text_size__medium"
+            android:textSize="@dimen/wire__text_size__regular"
             android:textColor="@color/teams_headline_text"
             app:w_font="@string/wire__typeface__regular"
             android:text="@string/app_entry_create_account_sub"/>
@@ -142,7 +142,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:gravity="center"
-            android:textSize="@dimen/wire__text_size__medium"
+            android:textSize="@dimen/wire__text_size__regular"
             android:textColor="@color/teams_headline_text"
             app:w_font="@string/wire__typeface__regular"
             android:text="@string/app_entry_create_team_sub"/>
