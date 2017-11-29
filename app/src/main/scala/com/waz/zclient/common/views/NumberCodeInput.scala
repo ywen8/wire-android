@@ -48,7 +48,7 @@ class NumberCodeInput(context: Context, attrs: AttributeSet, style: Int) extends
   val texts = Seq(R.id.t1, R.id.t2, R.id.t3, R.id.t4, R.id.t5, R.id.t6).map(findById[TypefaceTextView])
   val container = findById[LinearLayout](R.id.container)
   val codeText = Signal[(String, Boolean)](("", false))
-  private var onCodeSet = (_: String) => Future.successful(Option.empty[String])
+  private var onCodeSet = (_: (String, Boolean)) => Future.successful(Option.empty[String])
 
   progressBar.setIndeterminate(true)
   progressBar.setVisible(false)
@@ -59,7 +59,7 @@ class NumberCodeInput(context: Context, attrs: AttributeSet, style: Int) extends
     case (code, method) =>
       errorText.setVisible(false)
       if (code.length >= inputCount)
-        setCode(code)
+        setCode(code, method)
   }
 
   def inputCode(code: String): Unit = {
@@ -98,12 +98,12 @@ class NumberCodeInput(context: Context, attrs: AttributeSet, style: Int) extends
 
   def getCode: String = texts.map(_.getText.toString).mkString
 
-  def setOnCodeSet(f: (String) => Future[Option[String]]): Unit = onCodeSet = f
+  def setOnCodeSet(f: ((String, Boolean)) => Future[Option[String]]): Unit = onCodeSet = f
 
-  private def setCode(code: String): Unit = {
+  private def setCode(code: String, copyPaste: Boolean): Unit = {
     progressBar.setVisible(true)
     errorText.setVisible(false)
-    onCodeSet(code).map {
+    onCodeSet(code, copyPaste).map {
       case Some(error) =>
         errorText.setVisible(true)
         errorText.setText(error.toUpperCase)

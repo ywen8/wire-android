@@ -288,7 +288,7 @@ case class TeamsEnteredVerification(method: TeamsEnteredVerification.Method, err
 object TeamsEnteredVerification {
   case class Method(str: String)
   object CopyPaste extends Method("copy_paste")
-  object Manual extends Method("copy_paste")
+  object Manual extends Method("manual")
 }
 
 case class TeamVerified() extends TrackingEvent {

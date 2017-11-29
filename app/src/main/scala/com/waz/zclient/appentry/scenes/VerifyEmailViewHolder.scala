@@ -63,10 +63,10 @@ case class VerifyEmailViewHolder(root: View)(implicit val context: Context, even
       codeField.inputCode(appEntryController.code)
     codeField.codeText.onUi { code => appEntryController.code = code._1 }
     KeyboardUtils.showKeyboard(context.asInstanceOf[Activity])
-    codeField.setOnCodeSet({ code =>
+    codeField.setOnCodeSet({ case (code, method) =>
       for {
         _ <- setButtonsVisible(false)
-        resp <- appEntryController.setEmailVerificationCode(code)
+        resp <- appEntryController.setEmailVerificationCode(code, method)
         _ <- setButtonsVisible(true)
       } yield resp match {
         case Right(error) =>
