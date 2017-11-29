@@ -97,7 +97,6 @@ class AppEntryController(implicit inj: Injector, eventContext: EventContext) ext
     ZLog.verbose(s"Current stage: $stage")
     stage match {
       case NoAccountState(FirstScreen) => tracking.trackEvent(OpenedStartScreen())
-      case NoAccountState(LoginScreen) => tracking.trackEvent(OpenedPersonalRegistration())
       case NoAccountState(RegisterTeamScreen) => tracking.trackEvent(OpenedTeamRegistration())
       case _ =>
     }
@@ -284,15 +283,17 @@ class AppEntryController(implicit inj: Injector, eventContext: EventContext) ext
     optZms.head.map {
       case Some(zms) =>
         zms.users.updateSelfPicture(imageAsset).map { _ =>
-          val trackingSource = source match {
-            case SignUpPhotoFragment.Source.Unsplash => AddPhotoOnRegistrationEvent.Unsplash
-            case SignUpPhotoFragment.Source.Gallery => AddPhotoOnRegistrationEvent.Gallery
+          if (source != SignUpPhotoFragment.Source.Auto) {
+            val trackingSource = source match {
+              case SignUpPhotoFragment.Source.Unsplash => AddPhotoOnRegistrationEvent.Unsplash
+              case _ => AddPhotoOnRegistrationEvent.Gallery
+            }
+            val trackingRegType = registrationType match {
+              case SignUpPhotoFragment.RegistrationType.Email => Email
+              case SignUpPhotoFragment.RegistrationType.Phone => Phone
+            }
+            tracking.onAddPhotoOnRegistration(trackingRegType, trackingSource)
           }
-          val trackingRegType = registrationType match {
-            case SignUpPhotoFragment.RegistrationType.Email => Email
-            case SignUpPhotoFragment.RegistrationType.Phone => Phone
-          }
-          tracking.onAddPhotoOnRegistration(trackingRegType, trackingSource)
         }
       case _ =>
     }
@@ -333,6 +334,7 @@ class AppEntryController(implicit inj: Injector, eventContext: EventContext) ext
     ZMessaging.currentAccounts.verify(ConfirmationCode(code)).map {
       case Right(()) =>
         tracking.trackEvent(TeamsEnteredVerification(if (copyPaste) CopyPaste else Manual, None))
+        tracking.trackEvent(TeamVerified())
         Left(())
       case Left(e) =>
         tracking.trackEvent(TeamsEnteredVerification(if (copyPaste) CopyPaste else Manual, Some(e.code, e.label)))

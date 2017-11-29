@@ -31,7 +31,7 @@
         android:layout_height="wrap_content"
         android:gravity="center_horizontal"
         android:text="@string/teams_set_email_title"
-        app:w_font="@string/wire__typeface__regular"
+        app:w_font="@string/wire__typeface__light"
         android:textSize="@dimen/wire__text_size__even_huger"
         android:textColor="@color/black"
         />

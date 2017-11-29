@@ -141,7 +141,7 @@ class AppEntryActivity extends BaseActivity
       case InsertPasswordStage =>
         onShowInsertPassword()
       case TeamSetPicture =>
-        appEntryController.setPicture(unsplashInitImageAsset, SignUpPhotoFragment.Source.Unsplash, SignUpPhotoFragment.RegistrationType.Email)
+        appEntryController.setPicture(unsplashInitImageAsset, SignUpPhotoFragment.Source.Auto, SignUpPhotoFragment.RegistrationType.Email)
       case _ =>
     }
   }

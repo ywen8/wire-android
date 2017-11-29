@@ -222,9 +222,7 @@ class GlobalTrackingController(implicit inj: Injector, cxt: WireContext, eventCo
   def onAddPhotoOnRegistration(inputType: InputType, source: Source, response: Either[EntryError, Unit] = Right(())): Unit =
     ZMessaging.currentAccounts.activeZms.head.map{ zms => trackEvent(AddPhotoOnRegistrationEvent(inputType, responseToErrorPair(response), source), zms) }
 
-  def onSignUpScreen(method: SignInMethod): Unit = {
-    ZMessaging.currentAccounts.activeZms.head.map{ zms => trackEvent(SignUpScreenEvent(method), zms) }
-  }
+  def onSignUpScreen(method: SignInMethod): Unit = trackEvent(SignUpScreenEvent(method))
 
   def onOptOut(enabled: Boolean): Unit = zMessaging.head.map(zms => trackEvent(zms, OptEvent(enabled)))
 

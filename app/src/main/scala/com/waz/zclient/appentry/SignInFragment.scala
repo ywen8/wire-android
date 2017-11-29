@@ -205,7 +205,10 @@ class SignInFragment extends BaseFragment[Container] with FragmentHelper with Vi
           phoneField.foreach(_.requestFocus())
       }
       signInController.phoneCountry.currentValue.foreach{ onCountryHasChanged }
-      if (state.signType == Register) tracking.onSignUpScreen(state)
+    }
+
+    signInController.uiSignInState.map(s => SignInMethod(s.signType, Phone)).onUi {
+      tracking.onSignUpScreen
     }
 
     signInController.isValid.onUi { setConfirmationButtonActive }

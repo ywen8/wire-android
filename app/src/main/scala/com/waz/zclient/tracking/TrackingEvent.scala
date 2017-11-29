@@ -153,10 +153,8 @@ case class ResendVerificationEvent(method: SignInMethod, isCall: Boolean, error:
 
 case class SignUpScreenEvent(method: SignInMethod) extends TrackingEvent {
   override val name = method match {
-    case SignInMethod(Register, Phone) => "registration.opened_phone_signup"
-    case SignInMethod(Register, Email) => "registration.opened_email_signup"
-    case SignInMethod(Login, Phone) => "registration.opened_phone_signin"
-    case SignInMethod(Login, Email) => "registration.opened_email_signin"
+    case SignInMethod(Register, _) => "start.opened_person_registration"
+    case SignInMethod(Login, _) => "start.opened_login"
   }
 
   override val props = None
@@ -255,11 +253,6 @@ object LoggedOutEvent {
 
 case class OpenedStartScreen() extends TrackingEvent {
   override val name: String = "start.opened_start_screen"
-  override val props = None
-}
-
-case class OpenedPersonalRegistration() extends TrackingEvent {
-  override val name: String = "start.opened_person_registration"
   override val props = None
 }
 

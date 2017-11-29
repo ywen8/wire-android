@@ -1223,7 +1223,7 @@
 
     <string name="teams_set_email_title">Your account</string>
     <string name="Teams_set_email_subtitle">Enter your work email address.</string>
-    <string name="teams_set_email_hint">you@yourcompany.com</string>
+    <string name="teams_set_email_hint">YOU@YOURCOMPANY.COM</string>
     <string name="teams_set_email_about">LEARN MORE</string>
     <string name="teams_set_email_about_url">https://support.wire.com/hc/en-us/articles/115004082129</string>
 
@@ -1245,7 +1245,7 @@
 
     <string name="teams_set_name_title">Your name</string>
     <string name="teams_set_name_hint">FULL NAME</string>
-    <string name="app_entry_slogan">Secure messenger for everyone</string>
+    <string name="app_entry_slogan">Secure messenger for everyone.</string>
     <string name="app_entry_create_account">Create an account</string>
     <string name="app_entry_create_account_sub">for personal use</string>
     <string name="app_entry_create_team">Create a team</string>

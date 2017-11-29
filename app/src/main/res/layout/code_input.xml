@@ -197,7 +197,8 @@
             android:layout_marginTop="@dimen/wire__padding__8"
             android:textSize="@dimen/wire__text_size__small"
             android:textColor="@color/teams_error_red"
-            android:gravity="center_horizontal|top"/>
+            android:gravity="center_horizontal|top"
+            app:w_font="@string/wire__typeface__medium"/>
 
     </FrameLayout>
 
