@@ -1222,7 +1222,7 @@
     <string name="new_devices_dialog_manage_devices">Manage devices</string>
 
     <string name="teams_set_email_title">Your account</string>
-    <string name="Teams_set_email_subtitle">Enter your work email address.</string>
+    <string name="teams_set_email_subtitle">Enter your work email address.</string>
     <string name="teams_set_email_hint">YOU@YOURCOMPANY.COM</string>
     <string name="teams_set_email_about">LEARN MORE</string>
     <string name="teams_set_email_about_url">https://support.wire.com/hc/en-us/articles/115004082129</string>

@@ -41,7 +41,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center_horizontal"
-        android:text="@string/Teams_set_email_subtitle"
+        android:text="@string/teams_set_email_subtitle"
         app:w_font="@string/wire__typeface__regular"
         android:textSize="@dimen/wire__text_size__regular"
         android:textColor="@color/teams_description_text"
@@ -52,7 +52,7 @@
         android:id="@+id/input_field"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/app_entry_input_box_margin_top"
+        android:layout_marginTop="@dimen/teams_input_margin_top"
         app:hint="@string/teams_set_email_hint"/>
 
     <com.waz.zclient.ui.text.TypefaceTextView

@@ -912,7 +912,6 @@
     <dimen name="app_entry_input_confirm_size">32dp</dimen>
     <dimen name="app_entry_input_confirm_glyph_size">18dp</dimen>
     <dimen name="progress_spinner_size">32dp</dimen>
-    <dimen name="app_entry_input_box_margin_top">56dp</dimen>
     <dimen name="app_entry_input_box_aux_height">45dp</dimen>
     <dimen name="app_entry_button_width">260dp</dimen>
     <dimen name="app_entry_keyboard_content_padding">16dp</dimen>
