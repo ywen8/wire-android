@@ -27,7 +27,6 @@ import android.widget.Toast
 import com.waz.ZLog
 import com.waz.ZLog.ImplicitTag._
 import com.waz.api._
-import com.waz.model.Handle
 import com.waz.service.ZMessaging
 import com.waz.threading.Threading
 import com.waz.utils.wrappers.AndroidURIUtil

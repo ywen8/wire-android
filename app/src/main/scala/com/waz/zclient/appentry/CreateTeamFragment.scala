@@ -144,8 +144,4 @@ object CreateTeamFragment {
   trait Container {
     def abortAddAccount(): Unit
   }
-
-  case class ARunnable(f: () => Unit) extends Runnable {
-    override def run(): Unit = f()
-  }
 }
