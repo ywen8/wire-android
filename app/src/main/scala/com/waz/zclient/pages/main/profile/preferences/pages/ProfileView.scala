@@ -208,7 +208,7 @@ class ProfileViewController(view: ProfileView)(implicit inj: Injector, ec: Event
 
   val selfPicture: Signal[ImageSource] = self.map(_.picture).collect{ case Some(pic) => WireImage(pic) }
 
-  val incomingClients = for{
+  val incomingClients = for {
     z       <- zms
     acc     <- z.account.accountData
     clients <- acc.clientId.fold(Signal.empty[Seq[Client]])(aid => z.otrClientsStorage.incomingClientsSignal(z.selfUserId, aid))

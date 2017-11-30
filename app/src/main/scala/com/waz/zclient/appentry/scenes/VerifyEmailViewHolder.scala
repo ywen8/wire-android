@@ -20,7 +20,6 @@ package com.waz.zclient.appentry.scenes
 import android.app.Activity
 import android.content.Context
 import android.view.View
-import android.widget.Toast
 import com.waz.service.ZMessaging
 import com.waz.threading.Threading
 import com.waz.utils.events.EventContext
@@ -29,6 +28,7 @@ import com.waz.zclient.common.views.NumberCodeInput
 import com.waz.zclient.controllers.SignInController.{Email, Register, SignInMethod}
 import com.waz.zclient.ui.text.TypefaceTextView
 import com.waz.zclient.ui.utils.KeyboardUtils
+import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.utils._
 
 import scala.concurrent.Future
@@ -62,15 +62,14 @@ case class VerifyEmailViewHolder(root: View)(implicit val context: Context, even
       codeField.inputCode(appEntryController.code)
     codeField.codeText.onUi { code => appEntryController.code = code._1 }
     KeyboardUtils.showKeyboard(context.asInstanceOf[Activity])
-    codeField.setOnCodeSet({ case (code, method) =>
+    codeField.setOnCodeSet({ case (code, copyPaste) =>
       for {
         _ <- setButtonsVisible(false)
-        resp <- appEntryController.setEmailVerificationCode(code, method)
+        resp <- appEntryController.setEmailVerificationCode(code, copyPaste)
         _ <- setButtonsVisible(true)
       } yield resp match {
-        case Right(error) =>
-          val errorMessage = ContextUtils.getString(EntryError(error.code, error.label, SignInMethod(Register, Email)).bodyResource)
-          Some(errorMessage)
+        case Left(error) =>
+          Some(getString(EntryError(error.code, error.label, SignInMethod(Register, Email)).bodyResource))
         case _ =>
           appEntryController.code = ""
           None
@@ -85,17 +84,16 @@ case class VerifyEmailViewHolder(root: View)(implicit val context: Context, even
             resendCount += 1
             cooldown = false
             appEntryController.resendTeamEmailVerificationCode() map {
-              case Left(_) =>
+              case Right(_) =>
                 cooldown = true
-                Toast.makeText(context, ContextUtils.getString(R.string.app_entry_email_sent), Toast.LENGTH_SHORT).show()
-              case Right(error) =>
+                showToast(R.string.app_entry_email_sent)
+              case Left(error) =>
                 cooldown = true
-                val errorMessage = ContextUtils.getString(EntryError(error.code, error.label, SignInMethod(Register, Email)).bodyResource)
-                Toast.makeText(context, errorMessage, Toast.LENGTH_SHORT).show()
+                showToast(EntryError(error.code, error.label, SignInMethod(Register, Email)).bodyResource)
             }
           }
         } else {
-          Toast.makeText(context, ContextUtils.getString(R.string.new_reg_phone_too_man_attempts_header), Toast.LENGTH_SHORT).show()
+          showToast(R.string.new_reg_phone_too_man_attempts_header)
         }
       }
     })

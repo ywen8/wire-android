@@ -30,6 +30,7 @@ import com.waz.zclient.common.views.InputBox.PasswordValidator
 import com.waz.zclient.controllers.SignInController.{Email, Register, SignInMethod}
 import com.waz.zclient.tracking.{GlobalTrackingController, TeamAcceptedTerms}
 import com.waz.zclient.ui.utils.KeyboardUtils
+import com.waz.zclient.utils.ContextUtils.getString
 import com.waz.zclient.utils._
 
 import scala.concurrent.Future
@@ -55,19 +56,19 @@ case class SetPasswordViewHolder(root: View)(implicit val context: Context, even
         AppEntryDialogs.showTermsAndConditions(context).flatMap {
           case true =>
             tracking.trackEvent(TeamAcceptedTerms(TeamAcceptedTerms.AfterPassword))
-            appEntryController.setPassword(text).collect {
-            case Right(error) =>
-              val errorMessage = ContextUtils.getString(EntryError(error.code, error.label, SignInMethod(Register, Email)).bodyResource)
-              Some(errorMessage)
-          }
+            appEntryController.setPassword(text).map {
+              case Left(error) =>
+                Some(getString(EntryError(error.code, error.label, SignInMethod(Register, Email)).bodyResource))
+              case _ => None
+            }
           case false =>
             Future.successful(None)
         }
       } else {
-        appEntryController.setPassword(text).collect {
-          case Right(error) =>
-            val errorMessage = ContextUtils.getString(EntryError(error.code, error.label, SignInMethod(Register, Email)).bodyResource)
-            Some(errorMessage)
+        appEntryController.setPassword(text).map {
+          case Left(error) =>
+            Some(getString(EntryError(error.code, error.label, SignInMethod(Register, Email)).bodyResource))
+          case _ => None
         }
       })
   }

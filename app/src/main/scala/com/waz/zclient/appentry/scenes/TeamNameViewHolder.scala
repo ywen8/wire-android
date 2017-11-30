@@ -30,6 +30,7 @@ import com.waz.zclient.common.views.InputBox.NameValidator
 import com.waz.zclient.controllers.SignInController.{Email, Register, SignInMethod}
 import com.waz.zclient.tracking.{GlobalTrackingController, TeamAcceptedTerms}
 import com.waz.zclient.ui.utils.KeyboardUtils
+import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.utils.{ContextUtils, _}
 
 import scala.concurrent.Future
@@ -52,9 +53,8 @@ case class TeamNameViewHolder(root: View)(implicit val context: Context, eventCo
     inputField.setOnClick( text =>
       if (appEntryController.termsOfUseAB) {
         appEntryController.setTeamName(text).map {
-          case Right(error) =>
-            val errorMessage = ContextUtils.getString(EntryError(error.code, error.label, SignInMethod(Register, Email)).bodyResource)
-            Some(errorMessage)
+          case Left(error) =>
+            Some(getString(EntryError(error.code, error.label, SignInMethod(Register, Email)).bodyResource))
           case _ => None
         }
       } else {
@@ -62,9 +62,8 @@ case class TeamNameViewHolder(root: View)(implicit val context: Context, eventCo
           case true =>
             tracking.trackEvent(TeamAcceptedTerms(TeamAcceptedTerms.AfterName))
             appEntryController.setTeamName(text).map {
-              case Right(error) =>
-                val errorMessage = ContextUtils.getString(EntryError(error.code, error.label, SignInMethod(Register, Email)).bodyResource)
-                Some(errorMessage)
+              case Left(error) =>
+                Some(getString(EntryError(error.code, error.label, SignInMethod(Register, Email)).bodyResource))
               case _ => None
             }
           case false =>

@@ -308,8 +308,8 @@ class AppEntryController(implicit inj: Injector, eventContext: EventContext) ext
 
   def goToLoginScreen(): Unit = firstStage ! LoginScreen
 
-  def setTeamName(name: String): Future[Either[Unit, ErrorResponse]] =
-    ZMessaging.currentAccounts.createTeamAccount(name) map { _ => Left(()) }
+  def setTeamName(name: String): ErrorOr[Unit] =
+    ZMessaging.currentAccounts.createTeamAccount(name).map(_ => Right(()))
 
   def requestTeamEmailVerificationCode(email: String): Future[Either[Unit, ErrorResponse]] = {
     ZMessaging.currentAccounts.requestActivationCode(EmailAddress(email)).map {
@@ -318,41 +318,33 @@ class AppEntryController(implicit inj: Injector, eventContext: EventContext) ext
     }
   }
 
-  def resendTeamEmailVerificationCode(): Future[Either[Unit, ErrorResponse]] = {
+  def resendTeamEmailVerificationCode(): ErrorOr[Unit] = {
     ZMessaging.currentAccounts.getActiveAccount.flatMap {
       case Some(accountData) if accountData.pendingEmail.isDefined =>
-        ZMessaging.currentAccounts.requestActivationCode(accountData.pendingEmail.get).map {
-          case Right(()) => Left(())
-          case Left(e) => Right(e)
-        }
+        ZMessaging.currentAccounts.requestActivationCode(accountData.pendingEmail.get)
       case _ =>
         Future.successful(Right(ErrorResponse.internalError("No pending email or account")))
     }
   }
 
-  def setEmailVerificationCode(code: String, copyPaste: Boolean = false): Future[Either[Unit, ErrorResponse]] = {
+  def setEmailVerificationCode(code: String, copyPaste: Boolean = false): ErrorOr[Unit] = {
     import TeamsEnteredVerification._
-    ZMessaging.currentAccounts.verify(ConfirmationCode(code)).map {
-      case Right(()) =>
-        tracking.trackEvent(TeamsEnteredVerification(if (copyPaste) CopyPaste else Manual, None))
-        tracking.trackEvent(TeamVerified())
-        Left(())
-      case Left(e) =>
-        tracking.trackEvent(TeamsEnteredVerification(if (copyPaste) CopyPaste else Manual, Some(e.code, e.label)))
-        Right(e)
+    ZMessaging.currentAccounts.verify(ConfirmationCode(code)).map { resp =>
+      val err = resp.fold(e => Some((e.code, e.label)), _ => None)
+      tracking.trackEvent(TeamsEnteredVerification(if (copyPaste) CopyPaste else Manual, err))
+      if (err.isEmpty) tracking.trackEvent(TeamVerified())
+      resp
     }
   }
 
-  def setName(name: String): Future[Either[Unit, ErrorResponse]] =
-    ZMessaging.currentAccounts.updateCurrentAccount(_.copy(name = Some(name))) map { _ => Left(()) }
+  def setName(name: String): ErrorOr[Unit] =
+    ZMessaging.currentAccounts.updateCurrentAccount(_.copy(name = Some(name))).map(_ => Right(()))
 
-  def setPassword(password: String): Future[Either[Unit, ErrorResponse]] =
+  def setPassword(password: String): ErrorOr[Unit] =
     ZMessaging.currentAccounts.updateCurrentAccount(_.copy(password = Some(password))) flatMap { _ =>
-      ZMessaging.currentAccounts.register().map {
-        case Right(()) =>
-          tracking.trackEvent(TeamCreated())
-          Left(())
-        case Left(e) => Right(e)
+      ZMessaging.currentAccounts.register().map { resp =>
+        if (resp.isRight) tracking.trackEvent(TeamCreated())
+        resp
       }
     }
 

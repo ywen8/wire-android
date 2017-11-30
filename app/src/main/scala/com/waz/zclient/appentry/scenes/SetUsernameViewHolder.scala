@@ -27,6 +27,7 @@ import com.waz.zclient._
 import com.waz.zclient.common.views.InputBox
 import com.waz.zclient.common.views.InputBox.UsernameValidator
 import com.waz.zclient.ui.utils.KeyboardUtils
+import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.utils._
 
 case class SetUsernameViewHolder(root: View)(implicit val context: Context, eventContext: EventContext, injector: Injector) extends ViewHolder with Injectable {
@@ -45,9 +46,9 @@ case class SetUsernameViewHolder(root: View)(implicit val context: Context, even
     //TODO: do the checks on change?
     inputField.setOnClick( text => appEntryController.setUsername(text).map {
       case Left(ErrorResponse(409, _, "handle-exists")) =>
-        Some(ContextUtils.getString(R.string.pref__account_action__dialog__change_username__error_already_taken))
+        Some(getString(R.string.pref__account_action__dialog__change_username__error_already_taken))
       case Left(_) =>
-        Some(ContextUtils.getString(R.string.pref__account_action__dialog__change_username__error_unknown))
+        Some(getString(R.string.pref__account_action__dialog__change_username__error_unknown))
       case _ => None
     } (Threading.Ui))
   }

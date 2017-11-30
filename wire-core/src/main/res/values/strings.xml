@@ -450,7 +450,6 @@
 
     <!-- Manage Team -->
     <string name="pref_manage_team_title">Manage Team</string>
-    <string name="pref_manage_team_url">https://teams.wire.com/login/</string>
 
     <!-- About screen -->
     <string name="about_privacy_policy">Privacy Policy</string>

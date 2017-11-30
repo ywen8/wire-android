@@ -25,6 +25,7 @@ import android.support.annotation.StyleableRes
 import android.support.v4.content.ContextCompat
 import android.util.{AttributeSet, DisplayMetrics, TypedValue}
 import android.view.WindowManager
+import android.widget.Toast
 import com.waz.zclient.ui.utils.ResourceUtils
 
 
@@ -41,6 +42,9 @@ object ContextUtils {
 
   def getString(resId: Int)(implicit context: Context): String = context.getResources.getString(resId)
   def getString(resId: Int, args: String*)(implicit context: Context): String = context.getResources.getString(resId, args:_*)
+
+  def showToast(resId: Int, long: Boolean = true)()(implicit context: Context): Unit =
+    Toast.makeText(context, resId, if (long) Toast.LENGTH_LONG else Toast.LENGTH_SHORT).show()
 
   def getStringOrEmpty(resId: Int)(implicit context: Context): String = if (resId > 0) getString(resId) else ""
   def getStringOrEmpty(resId: Int, args: String*)(implicit context: Context): String = if (resId > 0) getString(resId, args:_*) else ""

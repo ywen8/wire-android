@@ -28,6 +28,7 @@ import com.waz.zclient.common.views.InputBox
 import com.waz.zclient.common.views.InputBox.NameValidator
 import com.waz.zclient.controllers.SignInController.{Email, Register, SignInMethod}
 import com.waz.zclient.ui.utils.KeyboardUtils
+import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.utils._
 
 case class SetNameViewHolder(root: View)(implicit val context: Context, eventContext: EventContext, injector: Injector) extends ViewHolder with Injectable {
@@ -44,9 +45,8 @@ case class SetNameViewHolder(root: View)(implicit val context: Context, eventCon
     inputField.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PERSON_NAME)
     KeyboardUtils.showKeyboard(context.asInstanceOf[Activity])
     inputField.setOnClick( text => appEntryController.setName(text).map {
-      case Right(error) =>
-        val errorMessage = ContextUtils.getString(EntryError(error.code, error.label, SignInMethod(Register, Email)).bodyResource)
-        Some(errorMessage)
+      case Left(error) =>
+        Some(getString(EntryError(error.code, error.label, SignInMethod(Register, Email)).bodyResource))
       case _ => None
     } (Threading.Ui))
   }
