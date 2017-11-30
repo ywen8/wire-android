@@ -104,6 +104,14 @@ case class EnteredNameOnRegistrationEvent(inputType: InputType, error: Option[(I
   })
 }
 
+//TODO - this needs to be re-implemented for emails. For now, this only affects tablets (not super critical)
+case class RegistrationSuccessfulEvent(invitation: Option[PersonalToken]) extends TrackingEvent {
+  override val name = "registration.succeeded"
+  override val props = Some(returning (new JSONObject()) { o =>
+    o.put("context", if (invitation.isEmpty) "phone" else s"personal_invite_phone")
+  })
+}
+
 case class AddPhotoOnRegistrationEvent(inputType: InputType, error: Option[(Int, String)], source: Source) extends TrackingEvent {
   override val name = "registration.added_photo"
 

@@ -20,11 +20,12 @@ package com.waz.zclient.tracking
 import com.waz.ZLog.ImplicitTag._
 import com.waz.ZLog._
 import com.waz.api.EphemeralExpiration
+import com.waz.api.Invitations.PersonalToken
 import com.waz.content.Preferences.PrefKey
 import com.waz.content.{GlobalPreferences, MembersStorage, UsersStorage}
 import com.waz.model.ConversationData.ConversationType
 import com.waz.model.{UserId, _}
-import com.waz.service.{AccountManager, ZMessaging, UiLifeCycle}
+import com.waz.service.{AccountManager, UiLifeCycle, ZMessaging}
 import com.waz.threading.{SerialDispatchQueue, Threading}
 import com.waz.utils.{RichThreetenBPDuration, _}
 import com.waz.utils.events.{EventContext, Signal}
@@ -214,7 +215,13 @@ class GlobalTrackingController(implicit inj: Injector, cxt: WireContext, eventCo
     ZMessaging.currentAccounts.activeZms.head.map{ zms => trackEvent(ResendVerificationEvent(method, isCall, responseToErrorPair(response)), zms) }
 
   def onAddNameOnRegistration(response: Either[EntryError, Unit], inputType: InputType): Unit =
-    ZMessaging.currentAccounts.activeZms.head.map{ zms => trackEvent(EnteredNameOnRegistrationEvent(inputType, responseToErrorPair(response)), zms) }
+    for {
+      zms    <- ZMessaging.currentAccounts.getActiveZms
+      invite <- ZMessaging.currentAccounts.getActiveAccount.map(_.flatMap(_.invitationToken))
+    } yield {
+      trackEvent(EnteredNameOnRegistrationEvent(inputType, responseToErrorPair(response)), zms)
+      trackEvent(RegistrationSuccessfulEvent(invite), zms)
+    }
 
   def onAddPhotoOnRegistration(inputType: InputType, source: Source, response: Either[EntryError, Unit] = Right(())): Unit =
     ZMessaging.currentAccounts.activeZms.head.map{ zms => trackEvent(AddPhotoOnRegistrationEvent(inputType, responseToErrorPair(response), source), zms) }
