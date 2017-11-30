@@ -44,9 +44,9 @@ case class SetUsernameViewHolder(root: View)(implicit val context: Context, even
     KeyboardUtils.showKeyboard(context.asInstanceOf[Activity])
     //TODO: do the checks on change?
     inputField.setOnClick( text => appEntryController.setUsername(text).map {
-      case Right(ErrorResponse(409, _, "handle-exists")) =>
+      case Left(ErrorResponse(409, _, "handle-exists")) =>
         Some(ContextUtils.getString(R.string.pref__account_action__dialog__change_username__error_already_taken))
-      case Right(_) =>
+      case Left(_) =>
         Some(ContextUtils.getString(R.string.pref__account_action__dialog__change_username__error_unknown))
       case _ => None
     } (Threading.Ui))

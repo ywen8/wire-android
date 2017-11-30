@@ -33,6 +33,7 @@ import com.waz.zclient.controllers.SignInController._
 import com.waz.zclient.newreg.fragments.SignUpPhotoFragment
 import com.waz.zclient.newreg.fragments.SignUpPhotoFragment.RegistrationType
 import com.waz.zclient.tracking._
+import com.waz.znet.ZNetClient.ErrorOr
 
 import scala.concurrent.Future
 import scala.util.Random
@@ -355,13 +356,10 @@ class AppEntryController(implicit inj: Injector, eventContext: EventContext) ext
       }
     }
 
-  def setUsername(username: String): Future[Either[Unit, ErrorResponse]] =
-    ZMessaging.currentUi.users.setSelfHandle(Handle(username), None).flatMap {
-      case Right(_) =>
-        ZMessaging.currentAccounts.updateCurrentAccount(_.copy(handle = Some(Handle(username)))) map { _ => Left(()) }
-      case Left(e) =>
-        Future.successful(Right(e))
-    }
+  def setUsername(username: String): ErrorOr[Unit] =
+    ZMessaging.accountsService.flatMap(_.getActiveAccountManager)
+      .collect { case Some(acc) => acc }
+      .flatMap(_.updateHandle(Handle(username)))
 
   lazy val termsOfUseAB: Boolean = Random.nextBoolean()
 

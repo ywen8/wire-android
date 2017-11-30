@@ -402,13 +402,12 @@ class AppEntryActivity extends BaseActivity
       .commit
   }
 
-  override def onKeepUsernameChosen(username: String) = {
-    ZMessaging.currentUi.users.setSelfHandle(Handle(username), None).map {
+  override def onKeepUsernameChosen(username: String) =
+    appEntryController.setUsername(username).map {
       case Left(_) =>
         Toast.makeText(AppEntryActivity.this, getString(R.string.username__set__toast_error), Toast.LENGTH_SHORT).show()
         getControllerFactory.getUsernameController.logout()
         getControllerFactory.getUsernameController.setUser(getStoreFactory.zMessagingApiStore.getApi.getSelf)
       case Right(_) =>
     } (Threading.Ui)
-  }
 }

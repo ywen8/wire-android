@@ -25,7 +25,6 @@ import com.waz.service.ZMessaging
 import com.waz.threading.Threading
 import com.waz.utils.events.EventContext
 import com.waz.zclient._
-import com.waz.zclient.appentry.AppEntryButtonOnTouchListener
 import com.waz.zclient.common.views.NumberCodeInput
 import com.waz.zclient.controllers.SignInController.{Email, Register, SignInMethod}
 import com.waz.zclient.ui.text.TypefaceTextView
