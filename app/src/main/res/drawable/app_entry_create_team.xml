@@ -18,14 +18,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 -->
-<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
-
-<item android:drawable="@color/black"/>
-
-<item>
-    <bitmap
-        android:gravity="center"
-        android:src="@drawable/wire_logo_shield"/>
-</item>
-
-</layer-list>
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="oval">
+    <solid android:color="@color/teams_create_button"/>
+</shape>

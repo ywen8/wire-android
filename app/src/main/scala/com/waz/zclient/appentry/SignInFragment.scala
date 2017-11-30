@@ -145,13 +145,14 @@ class SignInFragment extends BaseFragment[Container] with FragmentHelper with Vi
           case TabPages.CREATE_ACCOUNT =>
             tabSelector.setSelected(TabPages.CREATE_ACCOUNT)
             signInController.uiSignInState.mutate {
+              case _ => SignInMethod(Register, Phone) //TODO: remove to enable register by email
               case SignInMethod(Login, x) => SignInMethod(Register, x)
               case other => other
             }
           case TabPages.SIGN_IN =>
             tabSelector.setSelected(TabPages.SIGN_IN)
             signInController.uiSignInState.mutate {
-              case SignInMethod(Register, x) => SignInMethod(Login, Email)
+              case SignInMethod(Register, _) => SignInMethod(Login, Email)
               case other => other
             }
           case _ =>
@@ -177,7 +178,7 @@ class SignInFragment extends BaseFragment[Container] with FragmentHelper with Vi
           emailButton.setVisible(true)
       }
     } else {
-      signInController.uiSignInState ! SignInMethod(Register, Email)
+      signInController.uiSignInState ! SignInMethod(Login, Email)
     }
 
     signInController.uiSignInState.onUi { state =>
@@ -204,7 +205,10 @@ class SignInFragment extends BaseFragment[Container] with FragmentHelper with Vi
           phoneField.foreach(_.requestFocus())
       }
       signInController.phoneCountry.currentValue.foreach{ onCountryHasChanged }
-      if (state.signType == Register) tracking.onSignUpScreen(state)
+    }
+
+    signInController.uiSignInState.map(s => SignInMethod(s.signType, Phone)).onUi {
+      tracking.onSignUpScreen
     }
 
     signInController.isValid.onUi { setConfirmationButtonActive }

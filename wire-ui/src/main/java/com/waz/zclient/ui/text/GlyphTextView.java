@@ -19,10 +19,9 @@ package com.waz.zclient.ui.text;
 
 import android.content.Context;
 import android.util.AttributeSet;
-import android.widget.TextView;
 import com.waz.zclient.ui.utils.TypefaceUtils;
 
-public class GlyphTextView extends TextView {
+public class GlyphTextView extends android.support.v7.widget.AppCompatTextView {
 
     public GlyphTextView(Context context) {
         super(context);

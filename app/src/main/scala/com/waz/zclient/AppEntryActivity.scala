@@ -27,12 +27,12 @@ import android.widget.Toast
 import com.waz.ZLog
 import com.waz.ZLog.ImplicitTag._
 import com.waz.api._
-import com.waz.model.Handle
 import com.waz.service.ZMessaging
 import com.waz.threading.Threading
 import com.waz.utils.wrappers.AndroidURIUtil
 import com.waz.zclient.AppEntryController._
 import com.waz.zclient.appentry._
+import com.waz.zclient.controllers.SignInController
 import com.waz.zclient.controllers.navigation.Page
 import com.waz.zclient.fragments.CountryDialogFragment
 import com.waz.zclient.newreg.fragments.SignUpPhotoFragment
@@ -65,7 +65,8 @@ class AppEntryActivity extends BaseActivity
   with FirstLaunchAfterLoginFragment.Container
   with SignInFragment.Container
   with FirstTimeAssignUsernameFragment.Container
-  with InsertPasswordFragment.Container {
+  with InsertPasswordFragment.Container
+  with CreateTeamFragment.Container {
 
   private lazy val unsplashInitImageAsset = ImageAssetFactory.getImageAsset(AndroidURIUtil.parse(UNSPLASH_API_URL))
   private var unsplashInitLoadHandle: LoadHandle = null
@@ -75,6 +76,7 @@ class AppEntryActivity extends BaseActivity
   private var isPaused: Boolean = false
 
   private lazy val appEntryController = inject[AppEntryController]
+  private lazy val signInController = inject[SignInController]
 
   ZMessaging.currentGlobal.blacklist.upToDate.onUi {
     case false =>
@@ -103,8 +105,15 @@ class AppEntryActivity extends BaseActivity
     enableProgress(false)
     createdFromSavedInstance = savedInstanceState != null
 
+    if (!createdFromSavedInstance) {
+      appEntryController.clearCredentials()
+      signInController.clearCredentials()
+    }
+
     unsplashInitLoadHandle = unsplashInitImageAsset.getSingleBitmap(AppEntryActivity.PREFETCH_IMAGE_WIDTH, new BitmapCallback() {
-      def onBitmapLoaded(b: Bitmap): Unit = {}
+      def onBitmapLoaded(b: Bitmap): Unit = {
+        ZLog.verbose(s"onBitmapLoaded $b")
+      }
     })
 
     appEntryController.entryStage.onUi {
@@ -112,8 +121,10 @@ class AppEntryActivity extends BaseActivity
         onEnterApplication(false)
       case FirstEnterAppStage =>
         onShowFirstLaunchPage()
-      case LoginStage =>
+      case NoAccountState(LoginScreen) =>
         onShowSignInPage()
+      case NoAccountState(_) | SetTeamEmail | VerifyTeamEmail | SetUsersNameTeam | SetPasswordTeam | SetUsernameTeam =>
+        onShowCreateTeamFragment()
       case DeviceLimitStage =>
         onEnterApplication(false)
       case AddNameStage =>
@@ -128,6 +139,8 @@ class AppEntryActivity extends BaseActivity
         onShowSetUsername()
       case InsertPasswordStage =>
         onShowInsertPassword()
+      case TeamSetPicture =>
+        appEntryController.setPicture(unsplashInitImageAsset, SignUpPhotoFragment.Source.Auto, SignUpPhotoFragment.RegistrationType.Email)
       case _ =>
     }
   }
@@ -181,13 +194,17 @@ class AppEntryActivity extends BaseActivity
     enableProgress(true)
     ZMessaging.currentAccounts.loggedInAccounts.head.map { accounts =>
       accounts.headOption.fold {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP)
-          finish()
-        else
-          finishAfterTransition()
+        if (appEntryController.entryStage.currentValue.exists(_ != NoAccountState(FirstScreen))) {
+          appEntryController.gotToFirstPage()
+        } else {
+          if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP)
+            finish()
+          else
+            finishAfterTransition()
+        }
       } { acc =>
         ZMessaging.currentAccounts.switchAccount(acc.id).map { _ =>
-          onEnterApplication(true)
+          onEnterApplication(openSettings = true)
         }
       }
     }
@@ -209,6 +226,15 @@ class AppEntryActivity extends BaseActivity
         ZLog.error(s"Failed to open URL: $url")
       }
     }
+  }
+
+  def onShowCreateTeamFragment(): Unit = {
+    if (getSupportFragmentManager.findFragmentByTag(CreateTeamFragment.TAG) != null) {
+      return
+    }
+    val transaction: FragmentTransaction = getSupportFragmentManager.beginTransaction
+    setDefaultAnimation(transaction).replace(R.id.fl_main_content, CreateTeamFragment.newInstance, CreateTeamFragment.TAG).commit
+    enableProgress(false)
   }
 
   def onShowPhoneCodePage(): Unit = {
@@ -375,13 +401,12 @@ class AppEntryActivity extends BaseActivity
       .commit
   }
 
-  override def onKeepUsernameChosen(username: String) = {
-    ZMessaging.currentUi.users.setSelfHandle(Handle(username), None).map {
+  override def onKeepUsernameChosen(username: String) =
+    appEntryController.setUsername(username).map {
       case Left(_) =>
         Toast.makeText(AppEntryActivity.this, getString(R.string.username__set__toast_error), Toast.LENGTH_SHORT).show()
         getControllerFactory.getUsernameController.logout()
         getControllerFactory.getUsernameController.setUser(getStoreFactory.zMessagingApiStore.getApi.getSelf)
       case Right(_) =>
     } (Threading.Ui)
-  }
 }

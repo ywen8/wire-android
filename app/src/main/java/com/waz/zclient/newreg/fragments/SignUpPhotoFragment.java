@@ -86,7 +86,7 @@ public class SignUpPhotoFragment extends BaseFragment<SignUpPhotoFragment.Contai
     private boolean isImageLoaded;
 
     public enum RegistrationType { Phone, Email }
-    public enum Source { Unsplash, Gallery}
+    public enum Source { Unsplash, Gallery, Auto}
 
     public static SignUpPhotoFragment newInstance(RegistrationType registrationType) {
         SignUpPhotoFragment newFragment = new SignUpPhotoFragment();

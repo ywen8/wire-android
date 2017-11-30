@@ -31,6 +31,7 @@ import org.json.JSONObject
 import org.threeten.bp.Duration
 import com.waz.utils._
 import com.waz.zclient.tracking.AddPhotoOnRegistrationEvent.Source
+import com.waz.zclient.tracking.TeamAcceptedTerms.Occurrence
 
 sealed trait TrackingEvent {
   val name: String
@@ -152,13 +153,11 @@ case class ResendVerificationEvent(method: SignInMethod, isCall: Boolean, error:
 
 case class SignUpScreenEvent(method: SignInMethod) extends TrackingEvent {
   override val name = method match {
-    case SignInMethod(Register, Phone) => "registration.opened_phone_signup"
-    case SignInMethod(Register, Email) => "registration.opened_email_signup"
-    case SignInMethod(Login, Phone) => "registration.opened_phone_signin"
-    case SignInMethod(Login, Email) => "registration.opened_email_signin"
+    case SignInMethod(Register, _) => "start.opened_person_registration"
+    case SignInMethod(Login, _) => "start.opened_login"
   }
 
-  override val props = Some(returning(new JSONObject()) { _ => })
+  override val props = None
 }
 
 case class ContributionEvent(action: Action, conversationType: ConversationType, ephExp: EphemeralExpiration, withBot: Boolean) extends TrackingEvent {
@@ -250,4 +249,73 @@ object LoggedOutEvent {
   val SelfDeleted = "self_deleted"
   val ResetPassword = "reset_password"
   val Manual = "manual"
+}
+
+case class OpenedStartScreen() extends TrackingEvent {
+  override val name: String = "start.opened_start_screen"
+  override val props = None
+}
+
+case class OpenedTeamRegistration() extends TrackingEvent {
+  override val name: String = "start.opened_team_registration"
+  override val props = None
+}
+
+case class OpenedLogin() extends TrackingEvent {
+  override val name: String = "start.opened_login"
+  override val props = None
+}
+
+case class TeamsEnteredVerification(method: TeamsEnteredVerification.Method, error: Option[(Int, String)]) extends TrackingEvent {
+  override val name: String = "team.entered_verification"
+  override val props = Some(returning(new JSONObject()) { o =>
+    o.put("method", method.str)
+    o.put("outcome", error.fold2("success", _ => "fail"))
+    error.foreach { case (code, label) =>
+      o.put("error", code)
+      o.put("error_message", label)
+    }
+  })
+}
+
+object TeamsEnteredVerification {
+  case class Method(str: String)
+  object CopyPaste extends Method("copy_paste")
+  object Manual extends Method("manual")
+}
+
+case class TeamVerified() extends TrackingEvent {
+  override val name: String = "team.verified"
+  override val props = None
+}
+
+case class TeamAcceptedTerms(occurrence: Occurrence) extends TrackingEvent {
+  override val name: String = "team.accepted_terms"
+  override val props =  Some(returning(new JSONObject()) { o =>
+    o.put("method", occurrence.str)
+  })
+}
+
+object TeamAcceptedTerms {
+  case class Occurrence(str: String)
+  object AfterName extends Occurrence("after_name")
+  object AfterPassword extends Occurrence("after_password")
+}
+
+case class TeamCreated() extends TrackingEvent {
+  override val name: String = "team.created"
+  override val props = None
+}
+
+case class TeamFinishedInvite(invited: Boolean, nInvites: Int) extends TrackingEvent {
+  override val name: String = "team.finished_invite_step"
+  override val props = Some(returning(new JSONObject()) { o =>
+    o.put("invited", invited)
+    o.put("invites", nInvites)
+  })
+}
+
+case class OpenedManageTeam() extends TrackingEvent {
+  override val name: String = "settings.opened_manage_team"
+  override val props = None
 }

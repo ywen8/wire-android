@@ -18,14 +18,11 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 -->
-<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
-
-<item android:drawable="@color/black"/>
-
-<item>
-    <bitmap
-        android:gravity="center"
-        android:src="@drawable/wire_logo_shield"/>
-</item>
-
-</layer-list>
+<selector xmlns:android="http://schemas.android.com/apk/res/android"
+          android:enterFadeDuration="@integer/wire__animation__delay__short"
+          android:exitFadeDuration="@integer/wire__animation__delay__short">
+    <item android:state_focused="true" android:color="@color/teams_headline_text_pressed"/>
+    <item android:state_pressed="true" android:color="@color/teams_headline_text_pressed" />
+    <item android:state_selected="true" android:color="@color/teams_headline_text_pressed" />
+    <item android:color="@color/teams_headline_text"/>
+</selector>

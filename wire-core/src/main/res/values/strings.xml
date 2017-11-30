@@ -37,9 +37,9 @@
     <string name="profile__email__verify__instructions">We sent an email to \n[[%1$s]]. \nFollow the link to verify your address.</string>
     <string name="profile__email__verify__didnt_get">Didn\'t get the message?</string>
     <string name="profile__email__verify__resend">Re-send</string>
-    <string name="sign_up__account_creation_error__duplicate_email_header">Email address already taken.</string>
-    <string name="sign_up__account_creation_error__duplicate_email_message">The email address you provided has already been registered. Please try a different email address.</string>
-    <string name="profile__guidance__invalid_email">The email address you entered is not valid. Please verify and try again.</string>
+    <string name="sign_up__account_creation_error__duplicate_email_header">Email address already taken</string>
+    <string name="sign_up__account_creation_error__duplicate_email_message">This email address has already been registered</string>
+    <string name="profile__guidance__invalid_email">The email address you entered is not valid. Please verify and try again</string>
     <string name="profile__phone__guidance__first_time__title"
             tools:ignore="UnusedResources">_VERIFY_ YOUR NUMBER</string>
     <string name="profile__phone__guidance__first_time__explanation" tools:ignore="UnusedResources">YOUR NUMBER IS OPTIONAL, BUT IT MAKES IT EASIER FOR US TO FIND PEOPLE YOU KNOW. TO MAKE SURE IT\'S YOU, WE\'LL SEND A CONFIRMATION CODE VIA SMS.</string>
@@ -61,41 +61,41 @@
     <string name="new_reg_email_exists_header">@string/sign_up__account_creation_error__duplicate_email_header</string>
     <string name="new_reg_email_exists_message">@string/sign_up__account_creation_error__duplicate_email_message</string>
     <string name="new_reg_email_invalid_header">Invalid email address</string>
-    <string name="new_reg_email_invalid_message">Please enter a valid email address.</string>
+    <string name="new_reg_email_invalid_message">Please enter a valid email address</string>
     <string name="new_reg_email_generic_error_header">Something went wrong</string>
-    <string name="new_reg_email_generic_error_message">Please try to register again.</string>
+    <string name="new_reg_email_generic_error_message">Please try to register again</string>
     <string name="new_reg_email_register_generic_error_header">Invalid information</string>
     <string name="new_reg_email_register_generic_error_message">Please enter your full name and a valid email address and password.</string>
     <string name="new_reg_email_invalid_login_credentials_header">Invalid information</string>
-    <string name="new_reg_email_invalid_login_credentials_message">Please verify your details and try again.</string>
+    <string name="new_reg_email_invalid_login_credentials_message">Please verify your details and try again</string>
     <string name="new_reg_phone_exists_header">Phone number already taken</string>
-    <string name="new_reg_phone_exists_message">The phone number you provided has already been registered. Please try again.</string>
+    <string name="new_reg_phone_exists_message">The phone number you provided has already been registered. Please try again</string>
     <string name="new_reg_phone_invalid_format_header">Invalid phone number</string>
     <string name="new_reg_phone_invalid_format_message">Please enter a valid phone number</string>
     <string name="new_reg_phone_invalid_registration_code_header">Invalid code</string>
-    <string name="new_reg_phone_invalid_registration_code_message">Please enter a valid code.</string>
+    <string name="new_reg_phone_invalid_registration_code_message">Please enter a valid code</string>
     <string name="new_reg_phone_invalid_add_code_header">Invalid code</string>
-    <string name="new_reg_phone_invalid_add_code_message">Please enter a valid code.</string>
+    <string name="new_reg_phone_invalid_add_code_message">Please enter a valid code</string>
     <string name="new_reg_phone_invalid_login_code_header">Incorrect Code</string>
-    <string name="new_reg_phone_invalid_login_code_message">Please enter a valid code.</string>
+    <string name="new_reg_phone_invalid_login_code_message">Please enter a valid code</string>
     <string name="new_reg_phone_pending_login_header">Code Already Sent</string>
     <string name="new_reg_phone_pending_login_message">We already sent you a code via SMS. Tap Resend after 10 minutes to get a new one.</string>
     <string name="new_reg_phone_add_password_header">Invalid Password</string>
-    <string name="new_reg_phone_add_password_message">Please verify your details and try again.</string>
+    <string name="new_reg_phone_add_password_message">Please verify your details and try again</string>
     <string name="new_reg_phone_generic_error_header">Something went wrong</string>
-    <string name="new_reg_phone_generic_error_message">Please try to register again.</string>
+    <string name="new_reg_phone_generic_error_message">Please try to register again</string>
     <string name="new_sign_in_generic_error_header">Something went wrong</string>
-    <string name="new_sign_in_generic_error_message">Please try to login again.</string>
+    <string name="new_sign_in_generic_error_message">Please try to login again</string>
     <string name="profile_generic_error_header">Something went wrong</string>
-    <string name="profile_generic_error_message">Please try again.</string>
+    <string name="profile_generic_error_message">Please try again</string>
     <string name="profile_phone_generic_error_header">Invalid phone number</string>
-    <string name="profile_phone_generic_error_message">Please enter a valid phone number.</string>
+    <string name="profile_phone_generic_error_message">Please enter a valid phone number</string>
     <string name="new_reg_phone_too_man_attempts_header">Too many attempts</string>
-    <string name="new_reg_phone_too_man_attempts_message">Please try to log in later.</string>
+    <string name="new_reg_phone_too_man_attempts_message">Please try to log in later</string>
     <string name="new_reg_server_connectivity_error_header">Something went wrong</string>
-    <string name="new_reg_server_connectivity_error_message">Please check your Internet connection and try again.</string>
+    <string name="new_reg_server_connectivity_error_message">Please check your Internet connection and try again</string>
     <string name="new_reg_internet_connectivity_error_header">No Internet Connection</string>
-    <string name="new_reg_internet_connectivity_error_message">Please check your Internet connection and try again.</string>
+    <string name="new_reg_internet_connectivity_error_message">Please check your Internet connection and try again</string>
     <string name="new_reg__code_resent">A new code was sent to you via SMS</string>
     <string name="new_reg__code_resent__call">Stand by for a call</string>
     <string name="new_reg__invalid_code__auto_verification__manual">Something went wrong.\nPlease confirm that phone number and code are correct.</string>
@@ -450,7 +450,6 @@
 
     <!-- Manage Team -->
     <string name="pref_manage_team_title">Manage Team</string>
-    <string name="pref_manage_team_url">https://teams.wire.com/login/</string>
 
     <!-- About screen -->
     <string name="about_privacy_policy">Privacy Policy</string>
@@ -636,6 +635,7 @@
     <string name="url_otr_learn_how">https://wire.com/privacy/how</string>
     <string name="url_otr_decryption_error_1">https://wire.com/privacy/error-1</string>
     <string name="url_otr_decryption_error_2">https://wire.com/privacy/error-2</string>
+    <string name="url_about_teams">https://wire.com/en/create-team/#features</string>
 
     <!-- No Internet connection -->
     <string name="system_status__no_internet">NO INTERNET</string>
@@ -855,17 +855,17 @@
 
     <!-- http://joda-time.sourceforge.net/apidocs/org/joda/time/format/DateTimeFormat.html -->
     <!-- Example: FRIDAY, MAR 9, 11:29 -->
-    <string name="timestamp_pattern__date_and_time__no_year">EEE, MMM d, %1$s</string> 
+    <string name="timestamp_pattern__date_and_time__no_year">EEE, MMM d, %1$s</string>
     <!-- Example: FRIDAY, MAR 9, 2015, 11:29 -->
     <string name="timestamp_pattern__date_and_time__with_year">EEE, MMM d, YYYY, %1$s</string>
     <!-- Example: MAR 9, 11:29 -->
     <string name="timestamp_pattern__date_and_time__no_year_no_weekday">MMM d, %1$s</string>
     <!-- Example: MAR 9, 2015, 11:29 -->
-    <string name="timestamp_pattern__date_and_time__with_year_no_weekday">MMM d, YYYY, %1$s</string> 
+    <string name="timestamp_pattern__date_and_time__with_year_no_weekday">MMM d, YYYY, %1$s</string>
     <!-- Example: MONDAY, 9 MARCH 2015 \u30FB 12:08 -->
-    <string name="timestamp_pattern__single_message">EEEE, d MMMM YYYY \u30FB %1$s</string> 
+    <string name="timestamp_pattern__single_message">EEEE, d MMMM YYYY \u30FB %1$s</string>
     <!-- MONDAY -->
-    <string name="timestamp_pattern__separator_header__this_week">EEEE</string> 
+    <string name="timestamp_pattern__separator_header__this_week">EEEE</string>
      <!-- MARCH 2 -->
     <string name="timestamp_pattern__separator_header__this_year">MMMM d</string>
      <!-- MARCH 2, 2015 -->
@@ -873,7 +873,7 @@
     <string name="timestamp_pattern__separator_header__today">Today</string>
     <string name="timestamp_pattern__separator_header__yesterday">Yesterday</string>
     <!-- 23:15 -->
-    <string name="timestamp_pattern__24h_format">HH:mm</string> 
+    <string name="timestamp_pattern__24h_format">HH:mm</string>
     <string name="timestamp_pattern__12h_format">hh:mm a</string>
     <string name="timestamp_pattern__week" translatable="false">w, YYYY</string>
     <string name="reg__phone_alert__button">OK</string>
@@ -1101,7 +1101,7 @@
     <string name="message_bottom_menu_action_reveal">Reveal in conversation</string>
     <string name="likes_list__header">Liked by</string>
     <string name="message_bottom_menu_action_save_ok">Picture saved</string>
-    <string name="message_bottom_menu_action_save_fail">Error saving image</string>
+    <string name="message_bottom_menu_action_save_fail" translatable="false">Error saving image</string>
 
     <string name="message_footer__tap_to_like">Tap to like</string>
     <plurals name="message_footer__number_of_likes">
@@ -1215,9 +1215,52 @@
     <string name="preferences_profile_add_account">Add an account</string>
     <string name="preferences_profile_create_team">Create a team</string>
 
-
     <string name="preferences_profile_in_team">in %1$s</string>
     <string name="new_devices_dialog_title">You have connected a device to your Wire account</string>
     <string name="new_devices_dialog_info">If you didn\'t do this, remove the device and reset your password.</string>
     <string name="new_devices_dialog_manage_devices">Manage devices</string>
+
+    <string name="teams_set_email_title">Your account</string>
+    <string name="teams_set_email_subtitle">Enter your work email address.</string>
+    <string name="teams_set_email_hint">YOU@YOURCOMPANY.COM</string>
+    <string name="teams_set_email_about">LEARN MORE</string>
+    <string name="teams_set_email_about_url">https://support.wire.com/hc/en-us/articles/115004082129</string>
+
+    <string name="teams_set_password_title">Set password</string>
+    <string name="teams_set_password_hint">AT LEAST 8 CHARACTERS</string>
+
+    <string name="teams_set_username_title">Set username</string>
+    <string name="teams_set_username_hint">USERNAME</string>
+
+    <string name="teams_set_team_name_title">Name your team</string>
+    <string name="teams_set_team_name_subtitle">You can always change it later.</string>
+    <string name="teams_set_team_name_hint">TEAM NAME</string>
+    <string name="teams_set_team_name_about">WHAT IS WIRE FOR TEAMS?</string>
+
+    <string name="teams_verify_email_title">You\'ve got mail</string>
+    <string name="teams_verify_email_subtitle">Enter the verification code we sent to %1$s.</string>
+    <string name="teams_verify_email_resend">RESEND CODE</string>
+    <string name="teams_verify_email_change">CHANGE EMAIL</string>
+
+    <string name="teams_set_name_title">Your name</string>
+    <string name="teams_set_name_hint">FULL NAME</string>
+    <string name="app_entry_slogan">Secure messenger for everyone.</string>
+    <string name="app_entry_create_account">Create an account</string>
+    <string name="app_entry_create_account_sub">for personal use</string>
+    <string name="app_entry_create_team">Create a team</string>
+    <string name="app_entry_create_team_sub">for work</string>
+    <string name="app_entry_login_sub">Already have an account?</string>
+    <string name="app_entry_login">Log in</string>
+
+    <string name="app_entry_tc_dialog_title">Terms of Service</string>
+    <string name="app_entry_tc_dialog_message">You must accept to continue</string>
+    <string name="app_entry_notifications_dialog_title">Notifications</string>
+    <string name="app_entry_notifications_dialog_message">Notifications may include alerts, sounds, and icon badges. These can be configured in Settings.</string>
+
+    <string name="app_entry_dialog_accept">ACCEPT</string>
+    <string name="app_entry_dialog_cancel">CANCEL</string>
+    <string name="app_entry_dialog_view">VIEW</string>
+
+    <string name="app_entry_email_sent">Email sent</string>
+    <string name="teams_set_username_subtitle">Usernames help people find you.</string>
 </resources>

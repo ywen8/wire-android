@@ -28,6 +28,7 @@ case class EntryError(code: Int, label: String, signInMethod: SignInMethod) {
       case (400, _, _, Email) =>                        (R.string.new_reg_email_invalid_header, R.string.new_reg_email_invalid_message)
       case (403, _, _, Email) =>                        (R.string.new_reg_email_invalid_login_credentials_header, R.string.new_reg_email_invalid_login_credentials_message)
       case (409, _, Register, Email) =>                 (R.string.new_reg_email_exists_header, R.string.new_reg_email_exists_message)
+      case (404, "invalid-code" , Register, Email) =>   (R.string.new_reg_phone_invalid_registration_code_header, R.string.new_reg_phone_invalid_registration_code_message)
       case (_, _, Register, Email) =>                   (R.string.new_reg_email_generic_error_header, R.string.new_reg_email_generic_error_message)
 
       case (400, _, _, Phone) =>                        (R.string.new_reg_phone_invalid_format_header, R.string.new_reg_phone_invalid_format_message)
