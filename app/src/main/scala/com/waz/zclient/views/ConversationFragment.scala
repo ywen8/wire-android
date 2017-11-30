@@ -183,7 +183,6 @@ class ConversationFragment extends BaseFragment[ConversationFragment.Container] 
     // Recording audio messages
     audioMessageRecordingView = returningF( findById( R.id.amrv_audio_message_recording) ){ view: AudioMessageRecordingView =>
       view.setVisibility(View.INVISIBLE)
-      view.setCallback(audioMessageRecordingCallback)
       view.setDarkTheme(inject[ThemeController].isDarkTheme)
     }
 
@@ -290,6 +289,8 @@ class ConversationFragment extends BaseFragment[ConversationFragment.Container] 
         case _ => false
       }
     })
+
+    audioMessageRecordingView.setCallback(audioMessageRecordingCallback)
 
     getControllerFactory.getGlobalLayoutController.addKeyboardHeightObserver(extendedCursorContainer)
     getControllerFactory.getGlobalLayoutController.addKeyboardVisibilityObserver(extendedCursorContainer)
