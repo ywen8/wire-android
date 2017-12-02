@@ -20,6 +20,7 @@ package com.waz.zclient.fragments
 import android.app.{AlertDialog, Dialog}
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
+import android.support.v4.app.Fragment
 import android.support.v4.content.ContextCompat
 import android.view.{LayoutInflater, View}
 import android.widget.{AdapterView, ListView}
@@ -31,12 +32,24 @@ import com.waz.zclient.utils.ViewUtils
 import com.waz.zclient.{FragmentHelper, R}
 
 object CallQualityFragment {
+  def newInstance(title:String): Fragment = {
+    val fragment = new ImageFragment
+    val bundle = new Bundle()
+    bundle.putString("title", title)
+    fragment.setArguments(bundle)
+    fragment
 
+  }
 }
 
 class CallQualityFragment extends BaseDialogFragment[Container] with FragmentHelper with AdapterView.OnItemClickListener{
 
   override def onCreateDialog(savedInstanceState: Bundle): Dialog = {
+    new AlertDialog.Builder(getActivity)
+      // set Dialog Title
+      .setTitle("Call Quality Survey")
+      // Set Dialog Message
+      .setMessage("Question 1").create
 
   }
 
