@@ -19,10 +19,11 @@ package com.waz.zclient;
 
 import com.waz.api.ImageAsset;
 import com.waz.api.Self;
-import com.waz.zclient.appentry.PhoneSetNameFragment;
-import com.waz.zclient.appentry.VerifyPhoneFragment;
+import com.waz.zclient.appentry.EntryError;
+import com.waz.zclient.appentry.fragments.PhoneSetNameFragment;
+import com.waz.zclient.appentry.fragments.VerifyPhoneFragment;
 import com.waz.zclient.core.stores.api.ZMessagingApiStoreObserver;
-import com.waz.zclient.fragments.CountryDialogFragment;
+import com.waz.zclient.appentry.fragments.CountryDialogFragment;
 import com.waz.zclient.newreg.fragments.PhoneAddEmailFragment;
 import com.waz.zclient.newreg.fragments.SignUpPhotoFragment;
 import com.waz.zclient.newreg.fragments.country.CountryController;

@@ -17,7 +17,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 -->
-<com.waz.zclient.views.CollectionFileAssetPartView
+<com.waz.zclient.collection.views.CollectionFileAssetPartView
                                                          xmlns:android="http://schemas.android.com/apk/res/android"
                                                          android:id="@+id/collection_file_view"
                                                          android:layout_width="match_parent"

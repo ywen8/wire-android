@@ -20,13 +20,13 @@
 -->
 <merge xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <com.waz.zclient.views.toolbar.CustomToolbar
+    <com.waz.zclient.conversation.toolbar.CustomToolbar
         android:id="@+id/toolbar_top"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         />
 
-    <com.waz.zclient.views.toolbar.CustomToolbar
+    <com.waz.zclient.conversation.toolbar.CustomToolbar
         android:id="@+id/toolbar_bottom"
         android:layout_width="match_parent"
         android:layout_height="match_parent"

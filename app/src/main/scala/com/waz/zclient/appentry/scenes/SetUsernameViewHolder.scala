@@ -24,6 +24,7 @@ import com.waz.api.impl.ErrorResponse
 import com.waz.threading.Threading
 import com.waz.utils.events.EventContext
 import com.waz.zclient._
+import com.waz.zclient.appentry.controllers.AppEntryController
 import com.waz.zclient.common.views.InputBox
 import com.waz.zclient.common.views.InputBox.UsernameValidator
 import com.waz.zclient.ui.utils.KeyboardUtils

@@ -41,7 +41,7 @@
                 android:textColor="@color/accent_blue"
                 />
 
-            <com.waz.zclient.pages.main.profile.preferences.views.DeviceButton
+            <com.waz.zclient.preferences.views.DeviceButton
                 android:id="@+id/current_device"
                 android:layout_width="match_parent"
                 android:layout_height="@dimen/preference_button_height"

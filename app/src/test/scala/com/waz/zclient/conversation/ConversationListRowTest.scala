@@ -25,8 +25,8 @@ import com.waz.service.call.CallInfo.CallState
 import com.waz.testutils.TestUtils._
 import com.waz.testutils.ViewTestActivity
 import com.waz.utils.events.EventContext
-import com.waz.zclient.views.ConversationBadge
-import com.waz.zclient.views.conversationlist.ConversationListRow
+import com.waz.zclient.conversationlist.ConversationListRow
+import com.waz.zclient.conversationlist.views.ConversationListRow
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.Mockito._

@@ -28,8 +28,7 @@ import com.waz.threading.Threading
 import com.waz.utils.returning
 import com.waz.zclient.camera._
 import com.waz.zclient.camera.controllers.{GlobalCameraController, Orientation, PreviewSize}
-import com.waz.zclient.common.controllers.{CameraPermission, PermissionsController}
-import com.waz.zclient.media.SoundController
+import com.waz.zclient.common.controllers.{CameraPermission, PermissionsController, SoundController}
 import com.waz.zclient.{R, ViewHelper}
 import timber.log.Timber
 

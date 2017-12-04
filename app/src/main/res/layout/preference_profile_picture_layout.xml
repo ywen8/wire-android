@@ -38,7 +38,7 @@
         android:layout_width="match_parent"
         >
 
-        <com.waz.zclient.views.GlyphButton
+        <com.waz.zclient.common.views.GlyphButton
             android:id="@+id/profile_user_camera"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

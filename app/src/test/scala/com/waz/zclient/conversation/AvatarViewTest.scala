@@ -18,7 +18,7 @@
 package com.waz.zclient.conversation
 
 import com.waz.model.ConvId
-import com.waz.zclient.views.conversationlist.ConversationAvatarView
+import com.waz.zclient.conversationlist.views.ConversationAvatarView
 import org.junit.Test
 import org.scalatest.junit.JUnitSuite
 

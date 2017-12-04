@@ -36,21 +36,21 @@
             android:orientation="vertical"
             >
 
-            <com.waz.zclient.pages.main.profile.preferences.views.TextButton
+            <com.waz.zclient.preferences.views.TextButton
                 android:id="@+id/avs__logging"
                 android:layout_width="match_parent"
                 android:layout_height="@dimen/preference_button_height"
                 app:title="Logging"
                 />
 
-            <com.waz.zclient.pages.main.profile.preferences.views.TextButton
+            <com.waz.zclient.preferences.views.TextButton
                 android:id="@+id/avs__post_session_id"
                 android:layout_width="match_parent"
                 android:layout_height="@dimen/preference_button_height"
                 app:title="Post session ID"
                 />
 
-            <com.waz.zclient.pages.main.profile.preferences.views.TextButton
+            <com.waz.zclient.preferences.views.TextButton
                 android:id="@+id/avs__last_session_id"
                 android:layout_width="match_parent"
                 android:layout_height="@dimen/preference_button_height"

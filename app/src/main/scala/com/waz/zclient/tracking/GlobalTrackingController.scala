@@ -32,7 +32,8 @@ import com.waz.threading.{SerialDispatchQueue, Threading}
 import com.waz.utils.events.{EventContext, Signal}
 import com.waz.utils.{RichThreetenBPDuration, _}
 import com.waz.zclient._
-import com.waz.zclient.controllers.SignInController.{InputType, SignInMethod}
+import com.waz.zclient.appentry.EntryError
+import com.waz.zclient.appentry.controllers.SignInController.{InputType, SignInMethod}
 import com.waz.zclient.tracking.AddPhotoOnRegistrationEvent.Source
 import net.hockeyapp.android.{CrashManagerListener, ExceptionHandler}
 import org.json.JSONObject

@@ -23,8 +23,8 @@ import android.widget.LinearLayout
 import com.waz.utils.events.EventContext
 import com.waz.zclient._
 import com.waz.zclient.appentry.AppEntryButtonOnTouchListener
-import com.waz.zclient.controllers.SignInController
-import com.waz.zclient.controllers.SignInController._
+import com.waz.zclient.appentry.controllers.SignInController._
+import com.waz.zclient.appentry.controllers.{AppEntryController, SignInController}
 
 case class FirstScreenViewHolder(root: View)(implicit val context: Context, eventContext: EventContext, injector: Injector) extends ViewHolder with Injectable {
 

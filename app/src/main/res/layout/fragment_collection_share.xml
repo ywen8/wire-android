@@ -24,12 +24,12 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context="com.waz.zclient.conversation.ShareToMultipleFragment"
+    tools:context="com.waz.zclient.sharing.ShareToMultipleFragment"
     android:background="@null"
     android:clickable="true"
     >
 
-    <com.waz.zclient.views.AccountTabsView
+    <com.waz.zclient.common.views.AccountTabsView
         android:id="@+id/account_tabs"
         android:layout_width="wrap_content"
         android:layout_height="?attr/actionBarSize"
@@ -45,7 +45,7 @@
         android:layout_height="@dimen/collections__multi_share__image_preview__height">
     </RelativeLayout>
 
-    <com.waz.zclient.views.SearchEditText
+    <com.waz.zclient.usersearch.views.SearchEditText
         android:id="@+id/multi_share_search_box"
         android:layout_width="match_parent"
         android:layout_height="@dimen/collections__multi_share_search_height"
@@ -85,7 +85,7 @@
             android:textColor="@color/drawing__icon__text_color"
             />
 
-        <com.waz.zclient.views.EphemeralCursorButton
+        <com.waz.zclient.common.views.EphemeralCursorButton
             android:id="@+id/ephemeral_toggle"
             android:layout_width="@dimen/cursor__menu_button__diameter"
             android:layout_height="@dimen/cursor__menu_button__diameter"
@@ -100,7 +100,7 @@
 
     </RelativeLayout>
 
-    <com.waz.zclient.views.AnimatedBottomContainer
+    <com.waz.zclient.common.views.AnimatedBottomContainer
         android:id="@+id/ephemeral_container"
         android:layout_width="match_parent"
         android:layout_height="@dimen/extend_container_height"

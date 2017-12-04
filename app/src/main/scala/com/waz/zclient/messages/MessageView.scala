@@ -26,8 +26,8 @@ import com.waz.model.ConversationData.ConversationType
 import com.waz.model.{Dim2, MessageData, MessageId}
 import com.waz.service.messages.MessageAndLikes
 import com.waz.utils.RichOption
-import com.waz.zclient.controllers.AssetsController
 import com.waz.zclient.conversation.ConversationController
+import com.waz.zclient.common.controllers.AssetsController
 import com.waz.zclient.messages.MessageViewLayout.PartDesc
 import com.waz.zclient.messages.MsgPart._
 import com.waz.zclient.messages.controllers.MessageActionsController

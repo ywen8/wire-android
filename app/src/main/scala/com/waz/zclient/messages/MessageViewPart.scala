@@ -32,7 +32,7 @@ import com.waz.service.messages.MessageAndLikes
 import com.waz.threading.Threading
 import com.waz.utils.events.{EventStream, Signal}
 import com.waz.zclient.common.views.ChatheadView
-import com.waz.zclient.controllers.global.AccentColorController
+import com.waz.zclient.common.controllers.global.AccentColorController
 import com.waz.zclient.messages.MessageView.MsgBindOptions
 import com.waz.zclient.messages.parts.EphemeralDotsDrawable
 import com.waz.zclient.ui.text.{GlyphTextView, TypefaceTextView}

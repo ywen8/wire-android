@@ -25,7 +25,7 @@ import com.waz.api.AccentColor
 import com.waz.threading.Threading
 import com.waz.utils.events.Signal
 import com.waz.zclient.ViewHelper
-import com.waz.zclient.controllers.global.AccentColorController
+import com.waz.zclient.common.controllers.global.AccentColorController
 import com.waz.zclient.messages.MessageViewPart
 import com.waz.zclient.ui.theme.ThemeUtils
 import com.waz.zclient.ui.utils.{ColorUtils, TypefaceUtils}

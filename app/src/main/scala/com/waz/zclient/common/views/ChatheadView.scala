@@ -38,7 +38,7 @@ import com.waz.threading.Threading
 import com.waz.ui.MemoryImageCache.BitmapRequest.{Round, Single}
 import com.waz.utils.events.{EventContext, Signal}
 import com.waz.utils.{NameParts, returning}
-import com.waz.zclient.controllers.UserAccountsController
+import com.waz.zclient.common.controllers.UserAccountsController
 import com.waz.zclient.ui.utils.TypefaceUtils
 import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.{Injectable, Injector, R, ViewHelper}

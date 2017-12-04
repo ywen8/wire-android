@@ -24,9 +24,11 @@ import android.view.View
 import com.waz.threading.Threading
 import com.waz.utils.events.EventContext
 import com.waz.zclient._
+import com.waz.zclient.appentry.EntryError
+import com.waz.zclient.appentry.controllers.AppEntryController
+import com.waz.zclient.appentry.controllers.SignInController.{Email, Register, SignInMethod}
 import com.waz.zclient.common.views.InputBox
 import com.waz.zclient.common.views.InputBox.NameValidator
-import com.waz.zclient.controllers.SignInController.{Email, Register, SignInMethod}
 import com.waz.zclient.ui.utils.KeyboardUtils
 import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.utils._

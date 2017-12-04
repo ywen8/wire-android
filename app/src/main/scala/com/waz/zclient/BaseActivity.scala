@@ -27,8 +27,8 @@ import android.view.View
 import com.waz.api.{Permission, PermissionProvider}
 import com.waz.log.InternalLog
 import com.waz.service.UiLifeCycle
-import com.waz.zclient.common.controllers.PermissionActivity
-import com.waz.zclient.controllers.{IControllerFactory, ThemeController}
+import com.waz.zclient.common.controllers.{PermissionActivity, ThemeController}
+import com.waz.zclient.controllers.IControllerFactory
 import com.waz.zclient.core.stores.IStoreFactory
 import com.waz.zclient.permissions.PermissionRequest
 import com.waz.zclient.tracking.GlobalTrackingController

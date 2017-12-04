@@ -18,8 +18,8 @@
 package com.waz.zclient.api.scala
 
 import com.waz.api._
-import com.waz.zclient.core.stores.conversation.{ConversationStoreObserver, IConversationStore}
 import com.waz.model.ConvId
+import com.waz.zclient.core.stores.conversation.{ConversationStoreObserver, IConversationStore}
 
 class ScalaConversationStore(zMessagingApi: ZMessagingApi) extends IConversationStore  {
 

@@ -30,14 +30,13 @@ import com.waz.service.ZMessaging
 import com.waz.threading.{CancellableFuture, Threading}
 import com.waz.utils.events.{EventContext, EventStream, Signal}
 import com.waz.zclient.{Injectable, Injector, R}
-import com.waz.zclient.common.controllers.{CameraPermission, PermissionsController, ReadExternalStoragePermission, RecordAudioPermission}
+import com.waz.zclient.common.controllers._
 import com.waz.zclient.controllers.camera.ICameraController
 import com.waz.zclient.controllers.drawing.IDrawingController
 import com.waz.zclient.controllers.giphy.IGiphyController
 import com.waz.zclient.controllers.location.ILocationController
 import com.waz.zclient.controllers.userpreferences.IUserPreferencesController
 import com.waz.zclient.core.stores.network.{DefaultNetworkAction, INetworkStore}
-import com.waz.zclient.media.SoundController
 import com.waz.zclient.messages.MessageBottomSheetDialog.MessageAction
 import com.waz.zclient.messages.controllers.MessageActionsController
 import com.waz.zclient.pages.extendedcursor.ExtendedCursorContainer

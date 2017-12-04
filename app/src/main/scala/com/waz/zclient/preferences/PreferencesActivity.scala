@@ -37,12 +37,12 @@ import com.waz.threading.Threading
 import com.waz.utils.events.Signal
 import com.waz.utils.returning
 import com.waz.zclient.Intents._
+import com.waz.zclient.common.controllers.global.AccentColorController
+import com.waz.zclient.common.views.AccountTabsView
 import com.waz.zclient.controllers.accentcolor.AccentColorChangeRequester
-import com.waz.zclient.controllers.global.AccentColorController
 import com.waz.zclient.pages.main.profile.camera.{CameraContext, CameraFragment}
-import com.waz.zclient.pages.main.profile.preferences.pages.{DevicesBackStackKey, OptionsView, ProfileBackStackKey}
+import com.waz.zclient.preferences.pages.{DevicesBackStackKey, OptionsView, ProfileBackStackKey}
 import com.waz.zclient.utils.{BackStackNavigator, LayoutSpec, RingtoneUtils, ViewUtils}
-import com.waz.zclient.views.AccountTabsView
 import com.waz.zclient.{ActivityHelper, BaseActivity, MainActivity, R}
 
 class PreferencesActivity extends BaseActivity

@@ -29,7 +29,6 @@ import com.waz.zclient.common.views.InputBox._
 import com.waz.zclient.ui.cursor.CursorEditText
 import com.waz.zclient.ui.text.TypefaceTextView
 import com.waz.zclient.utils._
-import com.waz.zclient.views.GlyphButton
 import com.waz.zclient.{R, ViewHelper}
 
 import scala.concurrent.Future

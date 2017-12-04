@@ -23,14 +23,15 @@ import android.view.{LayoutInflater, View, ViewGroup}
 import android.widget.FrameLayout
 import com.waz.ZLog.ImplicitTag.implicitLogTag
 import com.waz.service.ZMessaging
-import com.waz.zclient.AppEntryController._
 import com.waz.zclient.appentry.CreateTeamFragment._
+import com.waz.zclient.appentry.controllers.AppEntryController
+import com.waz.zclient.appentry.controllers.AppEntryController._
 import com.waz.zclient.appentry.scenes._
 import com.waz.zclient.pages.BaseFragment
 import com.waz.zclient.ui.text.GlyphTextView
 import com.waz.zclient.ui.utils.KeyboardUtils
 import com.waz.zclient.utils.{ContextUtils, DefaultTransition}
-import com.waz.zclient.{AppEntryController, FragmentHelper, OnBackPressedListener, R}
+import com.waz.zclient.{FragmentHelper, OnBackPressedListener, R}
 
 class CreateTeamFragment extends BaseFragment[Container] with FragmentHelper with OnBackPressedListener {
 

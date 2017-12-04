@@ -27,7 +27,7 @@ import com.waz.api.UpdateListener;
 import com.waz.api.User;
 import com.waz.model.UserId;
 import com.waz.zclient.R;
-import com.waz.zclient.views.ChatheadWithTextFooter;
+import com.waz.zclient.common.views.ChatheadWithTextFooter;
 
 import java.util.ArrayList;
 import java.util.List;

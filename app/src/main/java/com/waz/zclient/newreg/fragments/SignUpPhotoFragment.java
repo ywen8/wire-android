@@ -38,7 +38,7 @@ import android.widget.LinearLayout;
 import com.waz.api.BitmapCallback;
 import com.waz.api.ImageAsset;
 import com.waz.api.LoadHandle;
-import com.waz.zclient.AppEntryController;
+import com.waz.zclient.appentry.controllers.AppEntryController;
 import com.waz.zclient.BaseActivity;
 import com.waz.zclient.OnBackPressedListener;
 import com.waz.zclient.R;
