@@ -54,10 +54,10 @@ class GlobalTrackingController(implicit inj: Injector, cxt: WireContext, eventCo
     o.put(RegionSuperProperty, null)
   }).disableAutowiring()
 
-  private val mixpanel = new MixpanelGuard(cxt)
+  private val mixpanelGuard = returning(new MixpanelGuard(cxt))(_.open())
 
   //For automation tests
-  def getId = mixpanel.map(_.getDistinctId).getOrElse("")
+  def getId = mixpanelGuard.withApi(_.getDistinctId).getOrElse("")
 
   val zmsOpt = inject[Signal[Option[ZMessaging]]]
   val zMessaging = inject[Signal[ZMessaging]]
@@ -67,7 +67,7 @@ class GlobalTrackingController(implicit inj: Injector, cxt: WireContext, eventCo
 
   inject[UiLifeCycle].uiActive.onChanged {
     case false =>
-      mixpanel.foreach { m =>
+      mixpanelGuard.withApi { m =>
         verbose("flushing mixpanel events")
         m.flush()
       }
@@ -89,7 +89,7 @@ class GlobalTrackingController(implicit inj: Injector, cxt: WireContext, eventCo
             case _ => Future.successful(0)
           }
         } yield {
-          mixpanel.foreach { m =>
+          mixpanelGuard.withApi { m =>
             //clear account-based super properties
             m.unregisterSuperProperty(TeamInTeamSuperProperty)
             m.unregisterSuperProperty(TeamSizeSuperProperty)
@@ -107,7 +107,7 @@ class GlobalTrackingController(implicit inj: Injector, cxt: WireContext, eventCo
             s"""
                |trackEvent: ${event.name}
                |properties: ${event.props.map(_.toString(2))}
-               |superProps: ${mixpanel.map(_.getSuperProperties).getOrElse(sProps).toString(2)}
+               |superProps: ${mixpanelGuard.withApi(_.getSuperProperties).getOrElse(sProps).toString(2)}
           """.stripMargin)
         }
       }
@@ -117,20 +117,20 @@ class GlobalTrackingController(implicit inj: Injector, cxt: WireContext, eventCo
         //TODO - re-enable this event when we can reduce their frequency a little. Too many events for mixpanel right now
         case e: ReceivedPushEvent if e.p.toFetch.forall(_.asScala < 10.seconds) =>
         //don't track - there are a lot of these events! We want to keep the event count lower
-        case OptEvent(true) =>
-          mixpanel.open()
-          mixpanel.foreach { m =>
+        case OptInEvent =>
+          mixpanelGuard.open()
+          mixpanelGuard.withApi { m =>
             verbose("Opted in to analytics, re-registering")
             m.unregisterSuperProperty(MixpanelIgnoreProperty)
           }
-          send().map { _ => mixpanel.flush() }
-        case OptEvent(false) =>
+          send().map { _ => mixpanelGuard.flush() }
+        case OptOutEvent =>
           send().map { _ =>
-            mixpanel.foreach { m =>
+            mixpanelGuard.withApi { m =>
               verbose("Opted out of analytics, flushing and de-registering")
               m.registerSuperProperties(returning(new JSONObject()) { _.put(MixpanelIgnoreProperty, true) })
             }
-            mixpanel.close()
+            mixpanelGuard.close()
           }
         case e@ExceptionEvent(_, _, description, Some(throwable)) =>
           error(description, throwable)(e.tag)
@@ -183,7 +183,7 @@ class GlobalTrackingController(implicit inj: Injector, cxt: WireContext, eventCo
   def onAddPhotoOnRegistration(inputType: InputType, source: Source, response: Either[EntryError, Unit] = Right(())): Unit =
     track(AddPhotoOnRegistrationEvent(inputType, responseToErrorPair(response), source))
 
-  def flushEvents(): Unit = mixpanel.flush()
+  def flushEvents(): Unit = mixpanelGuard.flush()
 }
 
 object GlobalTrackingController {
