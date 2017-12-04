@@ -180,7 +180,6 @@ class ConversationController(implicit injector: Injector, context: Context, ec: 
     zms.head.flatMap { _.convsUi.createGroupConversation(localId, users) }
 
   // TODO: remove when not used anymore
-
   def iConv(id: ConvId): IConversation = convStore.getConversation(id.str)
   def iCurrentConv: IConversation = currentConvId.currentValue.map(iConv).orNull
 
