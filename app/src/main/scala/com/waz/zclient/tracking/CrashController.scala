@@ -25,6 +25,8 @@ import android.content.Context
 import com.waz.ZLog.ImplicitTag._
 import com.waz.ZLog.verbose
 import com.waz.log.InternalLog
+import com.waz.service.ZMessaging
+import com.waz.service.tracking.CrashEvent
 import com.waz.threading.Threading
 import com.waz.utils.events.EventContext
 import com.waz.zclient.{Injectable, Injector, WireContext}
@@ -35,20 +37,12 @@ import scala.util.control.NonFatal
 
 class CrashController (implicit inj: Injector, cxt: WireContext, eventContext: EventContext) extends Injectable with Thread.UncaughtExceptionHandler {
 
-  val tracking = inject[GlobalTrackingController]
-
   val defaultHandler = Option(Thread.getDefaultUncaughtExceptionHandler) //reference to previously set handler
   Thread.setDefaultUncaughtExceptionHandler(this) //override with this
 
   override def uncaughtException(t: Thread, e: Throwable) = {
     try {
-      def getRootCause: Throwable = if (e.getCause != null) getRootCause else e
-
-      val cause = getRootCause
-      val stack = cause.getStackTrace
-      val details = if (stack != null && stack.nonEmpty) stack(0).toString else null
-
-      tracking.trackEvent(CrashEvent(cause.getClass.getSimpleName, details))
+      ZMessaging.globalModule.map(_.trackingService.crash(e))(Threading.Ui)
     }
     catch {
       case NonFatal(_) =>
@@ -61,7 +55,7 @@ class CrashController (implicit inj: Injector, cxt: WireContext, eventContext: E
 object CrashController {
 
 
-  def checkForCrashes(context: Context, deviceId: String, tracking: GlobalTrackingController) = {
+  def checkForCrashes(context: Context, deviceId: String) = {
     verbose("checkForCrashes - registering...")
     val listener = new CrashManagerListener() {
 
@@ -71,7 +65,7 @@ object CrashController {
 
     CrashManager.initialize(context, Util.getAppIdentifier(context), listener)
     val nativeCrashFound = NativeCrashManager.loggedDumpFiles(Util.getAppIdentifier(context))
-    if (nativeCrashFound) tracking.trackEvent(CrashEvent("NDK", s"${Constants.PHONE_MANUFACTURER}/${Constants.PHONE_MODEL}"))
+    if (nativeCrashFound) ZMessaging.globalModule.map(_.trackingService.track(CrashEvent("NDK", s"${Constants.PHONE_MANUFACTURER}/${Constants.PHONE_MODEL}")))(Threading.Ui)
 
     // execute crash manager in background, it does IO and can take some time
     // XXX: this works because we use auto upload (and app context), so hockey doesn't try to show a dialog

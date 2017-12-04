@@ -21,6 +21,7 @@ import android.app.Activity
 import android.content.Context
 import android.text.InputType
 import android.view.View
+import com.waz.service.tracking.TrackingService
 import com.waz.threading.Threading
 import com.waz.utils.events.EventContext
 import com.waz.zclient._
@@ -28,7 +29,7 @@ import com.waz.zclient.appentry.AppEntryDialogs
 import com.waz.zclient.common.views.InputBox
 import com.waz.zclient.common.views.InputBox.PasswordValidator
 import com.waz.zclient.controllers.SignInController.{Email, Register, SignInMethod}
-import com.waz.zclient.tracking.{GlobalTrackingController, TeamAcceptedTerms}
+import com.waz.zclient.tracking.TeamAcceptedTerms
 import com.waz.zclient.ui.utils.KeyboardUtils
 import com.waz.zclient.utils.ContextUtils.getString
 import com.waz.zclient.utils._
@@ -38,7 +39,7 @@ import scala.concurrent.Future
 case class SetPasswordViewHolder(root: View)(implicit val context: Context, eventContext: EventContext, injector: Injector) extends ViewHolder with Injectable {
 
   private val appEntryController = inject[AppEntryController]
-  private val tracking = inject[GlobalTrackingController]
+  private val tracking = inject[TrackingService]
 
   lazy val inputField = root.findViewById[InputBox](R.id.input_field)
 
@@ -55,7 +56,7 @@ case class SetPasswordViewHolder(root: View)(implicit val context: Context, even
       if (appEntryController.termsOfUseAB) {
         AppEntryDialogs.showTermsAndConditions(context).flatMap {
           case true =>
-            tracking.trackEvent(TeamAcceptedTerms(TeamAcceptedTerms.AfterPassword))
+            tracking.track(TeamAcceptedTerms(TeamAcceptedTerms.AfterPassword))
             appEntryController.setPassword(text).map {
               case Left(error) =>
                 Some(getString(EntryError(error.code, error.label, SignInMethod(Register, Email)).bodyResource))

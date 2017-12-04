@@ -147,10 +147,10 @@ class AppEntryActivity extends BaseActivity
 
   override protected def onResume(): Unit = {
     super.onResume()
-    //TODO move hockey crash reporting to globaltracking controller
+
     val trackingEnabled: Boolean = injectJava(classOf[PreferencesController]).isAnalyticsEnabled
     if (trackingEnabled) {
-      CrashController.checkForCrashes(getApplicationContext, getControllerFactory.getUserPreferencesController.getDeviceId, inject[GlobalTrackingController])
+      CrashController.checkForCrashes(getApplicationContext, getControllerFactory.getUserPreferencesController.getDeviceId)
     }
     else {
       CrashController.deleteCrashReports(getApplicationContext)

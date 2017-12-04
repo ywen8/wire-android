@@ -25,7 +25,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import com.waz.api.ErrorsList;
-import com.waz.api.Message;
 import com.waz.api.User;
 import com.waz.model.MessageData;
 import com.waz.zclient.BaseActivity;
@@ -194,10 +193,10 @@ public class MainPhoneFragment extends BaseFragment<MainPhoneFragment.Container>
     }
 
     @Override
-    public void onShowSingleImage(Message message) {
+    public void onShowSingleImage(String messageId) {
         getChildFragmentManager().beginTransaction()
                                  .add(R.id.fl__overlay_container,
-                                     ImageFragment.newInstance(message.getId()),
+                                     ImageFragment.newInstance(messageId),
                                      ImageFragment.TAG())
                                  .addToBackStack(ImageFragment.TAG())
                                  .commit();

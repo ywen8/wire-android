@@ -36,17 +36,18 @@ trait AdvancedView
 
 class AdvancedViewImpl(context: Context, attrs: AttributeSet, style: Int) extends LinearLayout(context, attrs, style) with AdvancedView with ViewHelper {
   def this(context: Context, attrs: AttributeSet) = this(context, attrs, 0)
+
   def this(context: Context) = this(context, null, 0)
 
   inflate(R.layout.preferences_advanced_layout)
 
   val analyticsSwitch = findById[SwitchPreference](R.id.preferences_analytics)
-  val submitReport    = findById[TextButton](R.id.preferences_debug_report)
-  val resetPush       = findById[TextButton](R.id.preferences_reset_push)
+  val submitReport = findById[TextButton](R.id.preferences_debug_report)
+  val resetPush = findById[TextButton](R.id.preferences_reset_push)
 
   analyticsSwitch.setPreference(GlobalTrackingController.analyticsPrefKey, global = true)
 
-  submitReport.onClickEvent{ _ =>
+  submitReport.onClickEvent { _ =>
     DebugUtils.sendDebugReport(context.asInstanceOf[Activity])
   }
 
@@ -63,7 +64,8 @@ class AdvancedViewImpl(context: Context, attrs: AttributeSet, style: Int) extend
   }
 
   analyticsSwitch.pref.flatMap(_.signal).onChanged { pref =>
-    inject[GlobalTrackingController].onOptOut(pref)
+    if (pref) ZMessaging.currentGlobal.trackingService.optIn()
+    else ZMessaging.currentGlobal.trackingService.optOut()
     setAnalyticsSwitchEnabled(false)
     CancellableFuture.delay(MixpanelGuard.MIXPANEL_CLOSE_DELAY + 1.seconds).map(_ => setAnalyticsSwitchEnabled(true))(Threading.Ui)
   }

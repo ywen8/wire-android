@@ -43,12 +43,12 @@ import com.waz.zclient.ui.views.tab.TabIndicatorLayout.Callback
 import com.waz.zclient.utils._
 import android.os.Build.VERSION.SDK_INT
 import android.os.Build.VERSION_CODES.KITKAT
-import com.waz.zclient.tracking.GlobalTrackingController
+import com.waz.service.ZMessaging
+import com.waz.zclient.tracking.SignUpScreenEvent
 
 class SignInFragment extends BaseFragment[Container] with FragmentHelper with View.OnClickListener {
 
   lazy val signInController = inject[SignInController]
-  lazy val tracking = inject[GlobalTrackingController]
 
   lazy val container = getView.findViewById(R.id.sign_in_container).asInstanceOf[FrameLayout]
   lazy val scenes = Array(
@@ -207,8 +207,8 @@ class SignInFragment extends BaseFragment[Container] with FragmentHelper with Vi
       signInController.phoneCountry.currentValue.foreach{ onCountryHasChanged }
     }
 
-    signInController.uiSignInState.map(s => SignInMethod(s.signType, Phone)).onUi {
-      tracking.onSignUpScreen
+    signInController.uiSignInState.map(s => SignInMethod(s.signType, Phone)).onUi { method =>
+      ZMessaging.globalModule.map(_.trackingService.track(SignUpScreenEvent(method)))(Threading.Ui)
     }
 
     signInController.isValid.onUi { setConfirmationButtonActive }

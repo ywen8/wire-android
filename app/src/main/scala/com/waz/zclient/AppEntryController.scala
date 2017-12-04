@@ -25,6 +25,7 @@ import com.waz.client.RegistrationClientImpl.ActivateResult
 import com.waz.client.RegistrationClientImpl.ActivateResult.{Failure, PasswordExists}
 import com.waz.model._
 import com.waz.service.ZMessaging
+import com.waz.service.tracking.TrackingService
 import com.waz.threading.Threading
 import com.waz.utils.events.{EventContext, Signal}
 import com.waz.zclient.AppEntryController._
@@ -43,7 +44,8 @@ class AppEntryController(implicit inj: Injector, eventContext: EventContext) ext
   implicit val ec = Threading.Background
 
   lazy val optZms = inject[Signal[Option[ZMessaging]]]
-  lazy val tracking = inject[GlobalTrackingController]
+  lazy val tracking = inject[TrackingService]
+  lazy val uiTracking = inject[GlobalTrackingController] //TODO slowly move away from referencing this class
   val currentAccount = ZMessaging.currentAccounts.activeAccount
   val currentUser = optZms.flatMap{ _.fold(Signal.const(Option.empty[UserData]))(z => z.usersStorage.optSignal(z.selfUserId)) }
   val invitationToken = Signal(Option.empty[String])
@@ -97,8 +99,8 @@ class AppEntryController(implicit inj: Injector, eventContext: EventContext) ext
   entryStage.onUi { stage =>
     ZLog.verbose(s"Current stage: $stage")
     stage match {
-      case NoAccountState(FirstScreen) => tracking.trackEvent(OpenedStartScreen())
-      case NoAccountState(RegisterTeamScreen) => tracking.trackEvent(OpenedTeamRegistration())
+      case NoAccountState(FirstScreen) => tracking.track(OpenedStartScreen())
+      case NoAccountState(RegisterTeamScreen) => tracking.track(OpenedTeamRegistration())
       case _ =>
     }
   }
@@ -208,10 +210,10 @@ class AppEntryController(implicit inj: Injector, eventContext: EventContext) ext
         ZMessaging.currentAccounts.activatePhoneOnRegister(accountData.id, ConfirmationCode(code)).map {
           case Left(error) =>
             val entryError = EntryError(error.code, error.label, method)
-            tracking.onEnterCode(Left(entryError), method)
+            uiTracking.onEnterCode(Left(entryError), method)
             Left(entryError)
           case _ =>
-            tracking.onEnterCode(Right(()), method)
+            uiTracking.onEnterCode(Right(()), method)
             Right(())
         }
       case Some(accountData) =>
@@ -219,10 +221,10 @@ class AppEntryController(implicit inj: Injector, eventContext: EventContext) ext
         ZMessaging.currentAccounts.loginPhone(accountData.id, ConfirmationCode(code)).flatMap {
           case Left(error) =>
             val entryError = EntryError(error.code, error.label, method)
-            tracking.onEnterCode(Left(entryError), method)
+            uiTracking.onEnterCode(Left(entryError), method)
             Future.successful(Left(entryError))
           case _ =>
-            tracking.onEnterCode(Right(()), method)
+            uiTracking.onEnterCode(Right(()), method)
             ZMessaging.currentAccounts.switchAccount(accountData.id).map(_ => Right(()))
         }
       case _ => Future.successful(Left(GenericRegisterPhoneError))
@@ -235,10 +237,10 @@ class AppEntryController(implicit inj: Injector, eventContext: EventContext) ext
         ZMessaging.currentAccounts.registerNameOnPhone(accountData.id, name).flatMap {
           case Left(error) =>
             val entryError = EntryError(error.code, error.label, SignInMethod(Register, Phone))
-            tracking.onAddNameOnRegistration(Left(entryError), SignInController.Phone)
+            uiTracking.onAddNameOnRegistration(Left(entryError), SignInController.Phone)
             Future.successful(Left(entryError))
           case _ =>
-            tracking.onAddNameOnRegistration(Right(()), SignInController.Phone)
+            uiTracking.onAddNameOnRegistration(Right(()), SignInController.Phone)
             ZMessaging.currentAccounts.switchAccount(accountData.id).map(_ => Right(()))
         }
       case _ => Future.successful(Left(GenericRegisterPhoneError))
@@ -293,7 +295,7 @@ class AppEntryController(implicit inj: Injector, eventContext: EventContext) ext
               case SignUpPhotoFragment.RegistrationType.Email => Email
               case SignUpPhotoFragment.RegistrationType.Phone => Phone
             }
-            tracking.onAddPhotoOnRegistration(trackingRegType, trackingSource)
+            uiTracking.onAddPhotoOnRegistration(trackingRegType, trackingSource)
           }
         }
       case _ =>
@@ -331,8 +333,8 @@ class AppEntryController(implicit inj: Injector, eventContext: EventContext) ext
     import TeamsEnteredVerification._
     ZMessaging.currentAccounts.verify(ConfirmationCode(code)).map { resp =>
       val err = resp.fold(e => Some((e.code, e.label)), _ => None)
-      tracking.trackEvent(TeamsEnteredVerification(if (copyPaste) CopyPaste else Manual, err))
-      if (err.isEmpty) tracking.trackEvent(TeamVerified())
+      tracking.track(TeamsEnteredVerification(if (copyPaste) CopyPaste else Manual, err))
+      if (err.isEmpty) tracking.track(TeamVerified())
       resp
     }
   }
@@ -343,7 +345,7 @@ class AppEntryController(implicit inj: Injector, eventContext: EventContext) ext
   def setPassword(password: String): ErrorOr[Unit] =
     ZMessaging.currentAccounts.updateCurrentAccount(_.copy(password = Some(password))) flatMap { _ =>
       ZMessaging.currentAccounts.register().map { resp =>
-        if (resp.isRight) tracking.trackEvent(TeamCreated())
+        if (resp.isRight) tracking.track(TeamCreated())
         resp
       }
     }

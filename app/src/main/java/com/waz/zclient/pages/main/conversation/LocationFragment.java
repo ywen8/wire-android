@@ -59,6 +59,8 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.waz.api.MessageContent;
 import com.waz.model.ConversationData;
+import com.waz.service.ZMessaging;
+import com.waz.service.tracking.ContributionEvent;
 import com.waz.zclient.BuildConfig;
 import com.waz.zclient.OnBackPressedListener;
 import com.waz.zclient.R;
@@ -67,8 +69,6 @@ import com.waz.zclient.controllers.permission.RequestPermissionsObserver;
 import com.waz.zclient.controllers.userpreferences.IUserPreferencesController;
 import com.waz.zclient.conversation.ConversationController;
 import com.waz.zclient.pages.BaseFragment;
-import com.waz.zclient.tracking.ContributionEvent;
-import com.waz.zclient.tracking.GlobalTrackingController;
 import com.waz.zclient.ui.text.GlyphTextView;
 import com.waz.zclient.ui.views.TouchRegisteringFrameLayout;
 
@@ -517,7 +517,7 @@ public class LocationFragment extends BaseFragment<LocationFragment.Container> i
                 }
 
                 getControllerFactory().getLocationController().hideShareLocation(location);
-                inject(GlobalTrackingController.class).onContributionEvent(new ContributionEvent.Action("location")); //TODO use lazy val when in scala
+                ZMessaging.getCurrentGlobal().trackingService().contribution(new ContributionEvent.Action("location")); //TODO use lazy val when in scala
                 break;
         }
     }
