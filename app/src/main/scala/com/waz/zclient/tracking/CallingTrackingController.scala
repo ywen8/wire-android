@@ -27,11 +27,12 @@ import com.waz.service.ZMessaging
 import com.waz.service.call.Avs.ClosedReason.{Interrupted, Normal}
 import com.waz.service.call.CallInfo.CallState
 import com.waz.service.call.CallInfo.CallState._
+import com.waz.service.tracking.ContributionEvent
+import com.waz.service.tracking.ContributionEvent.Action
 import com.waz.threading.Threading
 import com.waz.utils.RichInstant
 import com.waz.utils.events.EventContext
 import com.waz.zclient.calling.controllers.GlobalCallingController
-import com.waz.zclient.tracking.ContributionEvent.Action
 import com.waz.zclient.{Injectable, Injector}
 import org.threeten.bp.Instant
 
@@ -74,7 +75,7 @@ class CallingTrackingController(implicit injector: Injector, ctx: Context, ec: E
       if (st == SelfConnected)
         callEstablished = Some(Instant.now)
 
-      val estDuration = startedJoining.getOrElse(Instant.now).until(Instant.now)
+      //val estDuration = startedJoining.getOrElse(Instant.now).until(Instant.now)
 
       getCallTrackingInfo(st) map { i =>
           st match {
@@ -82,7 +83,10 @@ class CallingTrackingController(implicit injector: Injector, ctx: Context, ec: E
 //              tagEvent(ReceivedCallEvent(v3Call, isVideoCall, isGroupCall, wasUiActive, withOtto))
 
             case SelfCalling =>
-              trackEvent(i.zms, ContributionEvent(if (i.isVideoCall) Action.VideoCall else Action.AudioCall, if (i.isGroupCall) Group else OneToOne, EphemeralExpiration.NONE, i.withOtto))
+              ZMessaging.globalModule.map(_.trackingService.track(
+                ContributionEvent(if (i.isVideoCall) Action.VideoCall else Action.AudioCall, if (i.isGroupCall) Group else OneToOne, EphemeralExpiration.NONE, i.withOtto),
+                Some(i.zms.accountId)
+              ))
 //              tagEvent(StartedCallEvent(v3Call, isVideoCall, isGroupCall, withOtto))
 
             case SelfJoining => //For calling v3, this will only ever be for incoming calls

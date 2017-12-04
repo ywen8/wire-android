@@ -18,27 +18,25 @@
 package com.waz.zclient.tracking
 
 import android.content.Context
+import com.waz.service.ZMessaging
+import com.waz.service.tracking.ContributionEvent.Action
+import com.waz.threading.Threading
 import com.waz.utils.events.EventContext
 import com.waz.zclient.cursor.{CursorController, CursorMenuItem}
-import com.waz.zclient.tracking.ContributionEvent.Action
 import com.waz.zclient.{Injectable, Injector}
 
 class UiTrackingController(implicit injector: Injector, ctx: Context, ec: EventContext) extends Injectable {
-
-  val global = inject[GlobalTrackingController]
-
-  import global._
   val cursorController      = inject[CursorController]
 
   //TODO - slowly re-introduce removed localytics events to mixpanel
 
   import CursorMenuItem._
   cursorController.onCursorItemClick.onUi {
-    case Ping => onContributionEvent(Action.Ping)
+    case Ping => ZMessaging.globalModule.map(_.trackingService.contribution(Action.Ping))(Threading.Ui)
     case _    => //
   }
 
   cursorController.onMessageSent.onUi { _ =>
-    onContributionEvent(Action.Text)
+    ZMessaging.globalModule.map(_.trackingService.contribution(Action.Text))(Threading.Ui)
   }
 }

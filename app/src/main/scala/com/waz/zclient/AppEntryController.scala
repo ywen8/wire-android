@@ -25,6 +25,7 @@ import com.waz.client.RegistrationClientImpl.ActivateResult
 import com.waz.client.RegistrationClientImpl.ActivateResult.{Failure, PasswordExists}
 import com.waz.model._
 import com.waz.service.ZMessaging
+import com.waz.service.tracking.TrackingService
 import com.waz.threading.Threading
 import com.waz.utils.events.{EventContext, Signal}
 import com.waz.zclient.AppEntryController._
@@ -32,19 +33,23 @@ import com.waz.zclient.controllers.SignInController
 import com.waz.zclient.controllers.SignInController._
 import com.waz.zclient.newreg.fragments.SignUpPhotoFragment
 import com.waz.zclient.newreg.fragments.SignUpPhotoFragment.RegistrationType
-import com.waz.zclient.tracking.{AddPhotoOnRegistrationEvent, GlobalTrackingController}
+import com.waz.zclient.tracking._
+import com.waz.znet.ZNetClient.ErrorOr
 
 import scala.concurrent.Future
+import scala.util.Random
 
 class AppEntryController(implicit inj: Injector, eventContext: EventContext) extends Injectable {
 
   implicit val ec = Threading.Background
 
   lazy val optZms = inject[Signal[Option[ZMessaging]]]
-  lazy val tracking = inject[GlobalTrackingController]
+  lazy val tracking = inject[TrackingService]
+  lazy val uiTracking = inject[GlobalTrackingController] //TODO slowly move away from referencing this class
   val currentAccount = ZMessaging.currentAccounts.activeAccount
   val currentUser = optZms.flatMap{ _.fold(Signal.const(Option.empty[UserData]))(z => z.usersStorage.optSignal(z.selfUserId)) }
   val invitationToken = Signal(Option.empty[String])
+  val firstStage = Signal[FirstStage](FirstScreen)
 
   val invitationDetails = for {
     Some(token) <- invitationToken
@@ -62,10 +67,28 @@ class AppEntryController(implicit inj: Injector, eventContext: EventContext) ext
     case _ =>
   }
 
+  //Vars to persist text in edit boxes
+  var teamName = ""
+  var teamEmail = ""
+  var code = ""
+  var teamUserName = ""
+  var teamUserUsername = ""
+  var password = ""
+
+  def clearCredentials(): Unit = {
+    teamName = ""
+    teamEmail = ""
+    code = ""
+    teamUserName = ""
+    teamUserUsername = ""
+    password = ""
+  }
+
   val entryStage = for {
     account <- currentAccount
     user <- currentUser
-    state <- Signal.const(stateForAccountAndUser(account, user)).collect{ case s if s != Waiting => s }
+    firstPageState <- firstStage
+    state <- Signal.const(stateForAccountAndUser(account, user, firstPageState)).collect{ case s if s != Waiting => s }
   } yield state
 
   val autoConnectInvite = for {
@@ -75,13 +98,32 @@ class AppEntryController(implicit inj: Injector, eventContext: EventContext) ext
 
   entryStage.onUi { stage =>
     ZLog.verbose(s"Current stage: $stage")
+    stage match {
+      case NoAccountState(FirstScreen) => tracking.track(OpenedStartScreen())
+      case NoAccountState(RegisterTeamScreen) => tracking.track(OpenedTeamRegistration())
+      case _ =>
+    }
   }
 
-  def stateForAccountAndUser(account: Option[AccountData], user: Option[UserData]): AppEntryStage = {
+  ZMessaging.currentAccounts.loggedInAccounts.map(_.isEmpty) {
+    case true =>
+      firstStage ! FirstScreen
+    case false =>
+  }
+
+  def stateForAccountAndUser(account: Option[AccountData], user: Option[UserData], firstPageState: FirstStage): AppEntryStage = {
     ZLog.verbose(s"Current account and user: $account $user")
     (account, user) match {
       case (None, _) =>
-        LoginStage
+        NoAccountState(firstPageState)
+      case (Some(accountData), None) if accountData.pendingTeamName.isDefined && accountData.pendingEmail.isEmpty =>
+        SetTeamEmail
+      case (Some(accountData), None) if accountData.pendingTeamName.isDefined && accountData.code.isEmpty =>
+        VerifyTeamEmail
+      case (Some(accountData), None) if accountData.pendingTeamName.isDefined && accountData.name.isEmpty =>
+        SetUsersNameTeam
+      case (Some(accountData), None) if accountData.pendingTeamName.isDefined =>
+        SetPasswordTeam
       case (Some(accountData), _) if accountData.clientRegState == ClientRegistrationState.PASSWORD_MISSING && accountData.email.orElse(accountData.pendingEmail).isDefined =>
         InsertPasswordStage
       case (Some(accountData), _) if accountData.clientRegState == ClientRegistrationState.LIMIT_REACHED =>
@@ -94,16 +136,41 @@ class AppEntryController(implicit inj: Injector, eventContext: EventContext) ext
         AddNameStage
       case (Some(accountData), None) if accountData.cookie.isDefined || accountData.accessToken.isDefined =>
         Waiting
-      case (Some(accountData), Some(userData)) if userData.picture.isEmpty =>
+      case (Some(accountData), Some(userData)) if accountData.handle.isEmpty && (accountData.pendingTeamName.isDefined || accountData.teamId.fold(_ => false, _.isDefined)) =>
+        SetUsernameTeam
+      case (Some(accountData), Some(userData)) if userData.picture.isEmpty && (accountData.pendingTeamName.isDefined || accountData.teamId.fold(_ => false, _.isDefined)) =>
+        TeamSetPicture
+      case (Some(accountData), Some(userData)) if userData.picture.isEmpty && !(accountData.pendingTeamName.isDefined || accountData.teamId.fold(_ => false, _.isDefined)) =>
         AddPictureStage
-      case (Some(accountData), Some(userData)) if userData.handle.isEmpty =>
+      case (Some(accountData), Some(userData)) if userData.handle.isEmpty && !(accountData.pendingTeamName.isDefined || accountData.teamId.fold(_ => false, _.isDefined)) =>
         AddHandleStage
       case (Some(accountData), Some(userData)) if accountData.firstLogin && accountData.clientRegState == ClientRegistrationState.REGISTERED =>
         FirstEnterAppStage
       case (Some(accountData), Some(userData)) if accountData.clientRegState == ClientRegistrationState.REGISTERED =>
         EnterAppStage
       case _ =>
-        LoginStage
+        NoAccountState(firstPageState)
+    }
+  }
+
+  def createTeamBack(): Unit = {
+    ZMessaging.currentAccounts.activeAccount.currentValue.foreach {
+      case Some(accountData) if accountData.pendingTeamName.isDefined && accountData.name.isDefined =>
+        password = ""
+        ZMessaging.currentAccounts.updateCurrentAccount(_.copy(name = None))
+      case Some(accountData) if accountData.pendingTeamName.isDefined && accountData.code.isDefined =>
+        teamUserName = ""
+        code = ""
+        ZMessaging.currentAccounts.updateCurrentAccount(_.copy(code = None, pendingEmail = None))
+      case Some(accountData) if accountData.pendingTeamName.isDefined && accountData.pendingEmail.isDefined =>
+        code = ""
+        ZMessaging.currentAccounts.updateCurrentAccount(_.copy(pendingEmail = None))
+      case Some(accountData) if accountData.pendingTeamName.isDefined =>
+        teamEmail = ""
+        ZMessaging.currentAccounts.logout(false)
+      case _ =>
+        teamName = ""
+        Future.successful(firstStage ! FirstScreen)
     }
   }
 
@@ -143,10 +210,10 @@ class AppEntryController(implicit inj: Injector, eventContext: EventContext) ext
         ZMessaging.currentAccounts.activatePhoneOnRegister(accountData.id, ConfirmationCode(code)).map {
           case Left(error) =>
             val entryError = EntryError(error.code, error.label, method)
-            tracking.onEnterCode(Left(entryError), method)
+            uiTracking.onEnterCode(Left(entryError), method)
             Left(entryError)
           case _ =>
-            tracking.onEnterCode(Right(()), method)
+            uiTracking.onEnterCode(Right(()), method)
             Right(())
         }
       case Some(accountData) =>
@@ -154,10 +221,10 @@ class AppEntryController(implicit inj: Injector, eventContext: EventContext) ext
         ZMessaging.currentAccounts.loginPhone(accountData.id, ConfirmationCode(code)).flatMap {
           case Left(error) =>
             val entryError = EntryError(error.code, error.label, method)
-            tracking.onEnterCode(Left(entryError), method)
+            uiTracking.onEnterCode(Left(entryError), method)
             Future.successful(Left(entryError))
           case _ =>
-            tracking.onEnterCode(Right(()), method)
+            uiTracking.onEnterCode(Right(()), method)
             ZMessaging.currentAccounts.switchAccount(accountData.id).map(_ => Right(()))
         }
       case _ => Future.successful(Left(GenericRegisterPhoneError))
@@ -170,10 +237,10 @@ class AppEntryController(implicit inj: Injector, eventContext: EventContext) ext
         ZMessaging.currentAccounts.registerNameOnPhone(accountData.id, name).flatMap {
           case Left(error) =>
             val entryError = EntryError(error.code, error.label, SignInMethod(Register, Phone))
-            tracking.onAddNameOnRegistration(Left(entryError), SignInController.Phone)
+            uiTracking.onAddNameOnRegistration(Left(entryError), SignInController.Phone)
             Future.successful(Left(entryError))
           case _ =>
-            tracking.onAddNameOnRegistration(Right(()), SignInController.Phone)
+            uiTracking.onAddNameOnRegistration(Right(()), SignInController.Phone)
             ZMessaging.currentAccounts.switchAccount(accountData.id).map(_ => Right(()))
         }
       case _ => Future.successful(Left(GenericRegisterPhoneError))
@@ -199,7 +266,7 @@ class AppEntryController(implicit inj: Injector, eventContext: EventContext) ext
 
     ZMessaging.currentAccounts.getActiveAccount.flatMap {
       case Some(account) if account.pendingPhone.isDefined =>
-        val kindOfAccess = if (account.regWaiting) KindOfAccess.REGISTRATION else KindOfAccess.LOGIN
+         val kindOfAccess = if (account.regWaiting) KindOfAccess.REGISTRATION else KindOfAccess.LOGIN
         requestCode(account, kindOfAccess).map {
           case Failure(error) =>
             Left(EntryError(error.code, error.label, SignInMethod(Register, Phone)))
@@ -219,26 +286,92 @@ class AppEntryController(implicit inj: Injector, eventContext: EventContext) ext
     optZms.head.map {
       case Some(zms) =>
         zms.users.updateSelfPicture(imageAsset).map { _ =>
-          val trackingSource = source match {
-            case SignUpPhotoFragment.Source.Unsplash => AddPhotoOnRegistrationEvent.Unsplash
-            case SignUpPhotoFragment.Source.Gallery => AddPhotoOnRegistrationEvent.Gallery
+          if (source != SignUpPhotoFragment.Source.Auto) {
+            val trackingSource = source match {
+              case SignUpPhotoFragment.Source.Unsplash => AddPhotoOnRegistrationEvent.Unsplash
+              case _ => AddPhotoOnRegistrationEvent.Gallery
+            }
+            val trackingRegType = registrationType match {
+              case SignUpPhotoFragment.RegistrationType.Email => Email
+              case SignUpPhotoFragment.RegistrationType.Phone => Phone
+            }
+            uiTracking.onAddPhotoOnRegistration(trackingRegType, trackingSource)
           }
-          val trackingRegType = registrationType match {
-            case SignUpPhotoFragment.RegistrationType.Email => Email
-            case SignUpPhotoFragment.RegistrationType.Phone => Phone
-          }
-          tracking.onAddPhotoOnRegistration(trackingRegType, trackingSource)
         }
       case _ =>
     }
   }
+
+  def gotToFirstPage(): Unit = firstStage ! FirstScreen
+
+  def createTeam(): Unit = firstStage ! RegisterTeamScreen
+
+  def cancelCreateTeam(): Unit = firstStage ! FirstScreen
+
+  def goToLoginScreen(): Unit = firstStage ! LoginScreen
+
+  def setTeamName(name: String): ErrorOr[Unit] =
+    ZMessaging.currentAccounts.createTeamAccount(name).map(_ => Right(()))
+
+  def requestTeamEmailVerificationCode(email: String): Future[Either[Unit, ErrorResponse]] = {
+    ZMessaging.currentAccounts.requestActivationCode(EmailAddress(email)).map {
+      case Right(()) => Left(())
+      case Left(e) => Right(e)
+    }
+  }
+
+  def resendTeamEmailVerificationCode(): ErrorOr[Unit] = {
+    ZMessaging.currentAccounts.getActiveAccount.flatMap {
+      case Some(accountData) if accountData.pendingEmail.isDefined =>
+        ZMessaging.currentAccounts.requestActivationCode(accountData.pendingEmail.get)
+      case _ =>
+        Future.successful(Right(ErrorResponse.internalError("No pending email or account")))
+    }
+  }
+
+  def setEmailVerificationCode(code: String, copyPaste: Boolean = false): ErrorOr[Unit] = {
+    import TeamsEnteredVerification._
+    ZMessaging.currentAccounts.verify(ConfirmationCode(code)).map { resp =>
+      val err = resp.fold(e => Some((e.code, e.label)), _ => None)
+      tracking.track(TeamsEnteredVerification(if (copyPaste) CopyPaste else Manual, err))
+      if (err.isEmpty) tracking.track(TeamVerified())
+      resp
+    }
+  }
+
+  def setName(name: String): ErrorOr[Unit] =
+    ZMessaging.currentAccounts.updateCurrentAccount(_.copy(name = Some(name))).map(_ => Right(()))
+
+  def setPassword(password: String): ErrorOr[Unit] =
+    ZMessaging.currentAccounts.updateCurrentAccount(_.copy(password = Some(password))) flatMap { _ =>
+      ZMessaging.currentAccounts.register().map { resp =>
+        if (resp.isRight) tracking.track(TeamCreated())
+        resp
+      }
+    }
+
+  def setUsername(username: String): ErrorOr[Unit] =
+    ZMessaging.accountsService.flatMap(_.getActiveAccountManager)
+      .collect { case Some(acc) => acc }
+      .flatMap(_.updateHandle(Handle(username)))
+
+  lazy val termsOfUseAB: Boolean = Random.nextBoolean()
 
 }
 
 object AppEntryController {
   val GenericInviteToken: String = "getwire"
 
-  trait AppEntryStage
+  trait FirstStage {
+    val depth: Int = 0
+  }
+  object FirstScreen extends FirstStage
+  object RegisterTeamScreen extends FirstStage { override val depth = 1 }
+  object LoginScreen extends FirstStage { override val depth = 1 }
+
+  trait AppEntryStage {
+    val depth: Int = 0
+  }
   object Unknown             extends AppEntryStage
   object Waiting             extends AppEntryStage
   object EnterAppStage       extends AppEntryStage
@@ -248,7 +381,14 @@ object AppEntryController {
   object AddPictureStage     extends AppEntryStage
   object VerifyEmailStage    extends AppEntryStage
   object VerifyPhoneStage    extends AppEntryStage
-  object LoginStage          extends AppEntryStage
   object AddHandleStage      extends AppEntryStage
   object InsertPasswordStage extends AppEntryStage
+
+  object SetTeamEmail            extends AppEntryStage { override val depth = 2 }
+  object VerifyTeamEmail         extends AppEntryStage { override val depth = 3 }
+  object SetUsersNameTeam        extends AppEntryStage { override val depth = 4 }
+  object SetPasswordTeam         extends AppEntryStage { override val depth = 5 }
+  object SetUsernameTeam         extends AppEntryStage { override val depth = 6 }
+  object TeamSetPicture          extends AppEntryStage { override val depth = 6 }
+  case class NoAccountState(page: FirstStage) extends AppEntryStage { override val depth = page.depth }
 }

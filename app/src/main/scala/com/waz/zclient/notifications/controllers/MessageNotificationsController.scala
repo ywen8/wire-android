@@ -20,8 +20,6 @@ package com.waz.zclient.notifications.controllers
 import android.annotation.TargetApi
 import android.app.{Notification, NotificationManager}
 import android.content.Context
-import android.graphics.Bitmap.Config
-import android.graphics.PorterDuff.Mode
 import android.graphics._
 import android.net.Uri
 import android.os.Build
@@ -46,6 +44,7 @@ import com.waz.zclient.Intents._
 import com.waz.zclient._
 import com.waz.zclient.controllers.navigation.Page
 import com.waz.zclient.controllers.userpreferences.UserPreferencesController
+import com.waz.zclient.conversation.ConversationController
 import com.waz.zclient.media.SoundController
 import com.waz.zclient.messages.controllers.NavigationController
 import com.waz.zclient.utils.ContextUtils._
@@ -68,6 +67,8 @@ class MessageNotificationsController(implicit inj: Injector, cxt: Context, event
   val sharedPreferences = cxt.getSharedPreferences(UserPreferencesController.USER_PREFS_TAG, Context.MODE_PRIVATE)
   lazy val soundController = inject[SoundController]
   lazy val navigationController = inject[NavigationController]
+  lazy val convController = inject[ConversationController]
+
   val currentAccount = ZMessaging.currentAccounts.activeAccount
 
   var accentColors = Map[AccountId, Int]()
@@ -116,21 +117,21 @@ class MessageNotificationsController(implicit inj: Injector, cxt: Context, event
     accounts <- ZMessaging.currentAccounts.loggedInAccounts
     zms <- zms
     uiActive <- gl.lifecycle.uiActive
-    selectedConversation <- zms.convsStats.selectedConversationId
+    convId <- convController.currentConvId.map(Option(_)).orElse(Signal.const(Option.empty[ConvId]))
     conversationsSet <- zms.convsStorage.convsSignal
     page <- navigationController.visiblePage
   } yield (gl, accounts.map { acc =>
     val convs =
       if (zms.accountId != acc.id || !uiActive) {
-        Set[ConvId]()
+        Set.empty[ConvId]
       } else {
         page match {
           case Page.CONVERSATION_LIST =>
             conversationsSet.conversations.map(_.id)
           case Page.MESSAGE_STREAM =>
-            selectedConversation.fold(Set[ConvId]())(Set(_))
+            Set(convId).flatten
           case _ =>
-            Set[ConvId]()
+            Set.empty[ConvId]
         }
       }
     acc.id -> convs

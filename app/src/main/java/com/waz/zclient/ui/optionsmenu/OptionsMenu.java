@@ -28,7 +28,9 @@ import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import com.waz.api.IConversation;
+import com.waz.model.ConversationData;
 import com.waz.zclient.common.views.UserDetailsView;
+import com.waz.zclient.conversation.ConversationController;
 import com.waz.zclient.ui.R;
 import com.waz.zclient.ui.animation.interpolators.penner.Expo;
 import com.waz.zclient.ui.animation.interpolators.penner.Quart;
@@ -106,10 +108,15 @@ public class OptionsMenu extends FrameLayout implements View.OnClickListener {
 
     public OptionsMenu(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
-        init(attrs);
+        post(new Runnable() {
+            @Override
+            public void run() {
+                init();
+            }
+        });
     }
 
-    private void init(AttributeSet attributeSet) {
+    private void init() {
         expoOut = new Expo.EaseOut();
         expoIn = new Expo.EaseIn();
         quartOut = new Quart.EaseOut();
@@ -316,8 +323,6 @@ public class OptionsMenu extends FrameLayout implements View.OnClickListener {
             }
         });
         menuLayout.addView(cancelView);
-        notifyOptionsMenuStateHasChanged(State.CLOSED);
-        setVisibility(View.INVISIBLE);
     }
 
     /**
@@ -334,12 +339,11 @@ public class OptionsMenu extends FrameLayout implements View.OnClickListener {
         titleTextView.setText(title);
     }
 
-    public void setConversationDetails(IConversation conversation) {
-        if (conversation.getType() == IConversation.Type.GROUP ||
-            conversation.getType() == IConversation.Type.UNKNOWN) {
-            return;
+    public void setConversationDetails(ConversationData conv) {
+        if (conv.convType() != IConversation.Type.GROUP &&
+            conv.convType() != IConversation.Type.UNKNOWN) {
+            userDetailsView.setUserId(ConversationController.getOtherParticipantForOneToOneConv(conv));
         }
-        userDetailsView.setUser(conversation.getOtherParticipant());
     }
 
     @Override

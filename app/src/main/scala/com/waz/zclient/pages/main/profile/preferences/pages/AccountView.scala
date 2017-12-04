@@ -38,15 +38,13 @@ import com.waz.zclient.pages.main.profile.preferences.dialogs.{ChangeEmailDialog
 import com.waz.zclient.pages.main.profile.preferences.views.{EditNameDialog, PictureTextButton, TextButton}
 import com.waz.zclient.preferences.PreferencesActivity
 import com.waz.zclient.preferences.dialogs.{AccentColorPickerFragment, VerifyPhoneFragment}
-import com.waz.zclient.tracking.{GlobalTrackingController, LoggedOutEvent}
 import com.waz.zclient.ui.utils.TextViewUtils._
 import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.utils.ViewUtils._
-import com.waz.zclient.utils.{BackStackKey, BackStackNavigator, StringUtils, UiStorage, UserSignal}
+import com.waz.zclient.utils.{BackStackKey, BackStackNavigator, RichView, StringUtils, UiStorage, UserSignal}
 import com.waz.zclient.views.ImageAssetDrawable
 import com.waz.zclient.views.ImageAssetDrawable.{RequestBuilder, ScaleType}
 import com.waz.zclient.views.ImageController.{ImageSource, WireImage}
-import com.waz.zclient.utils.RichView
 
 trait AccountView {
   val onNameClick:          EventStream[Unit]
@@ -66,6 +64,7 @@ trait AccountView {
   def setPictureDrawable(drawable: Drawable): Unit
   def setAccentDrawable(drawable: Drawable): Unit
   def setDeleteAccountEnabled(enabled: Boolean): Unit
+  def setPhoneNumberEnabled(enabled: Boolean): Unit
 }
 
 class AccountViewImpl(context: Context, attrs: AttributeSet, style: Int) extends LinearLayout(context, attrs, style) with AccountView with ViewHelper {
@@ -107,6 +106,8 @@ class AccountViewImpl(context: Context, attrs: AttributeSet, style: Int) extends
   override def setAccentDrawable(drawable: Drawable) = colorButton.setDrawableStart(Some(drawable))
 
   override def setDeleteAccountEnabled(enabled: Boolean) = deleteAccountButton.setVisible(enabled)
+
+  override def setPhoneNumberEnabled(enabled: Boolean) = phoneButton.setVisible(enabled)
 }
 
 case class AccountBackStackKey(args: Bundle = new Bundle()) extends BackStackKey(args) {
@@ -137,7 +138,6 @@ class AccountViewController(view: AccountView)(implicit inj: Injector, ec: Event
   implicit val uiStorage = inject[UiStorage]
   val navigator          = inject[BackStackNavigator]
   val password           = inject[PasswordController].password
-  val tracking           = inject[GlobalTrackingController]
 
   val self = for {
     zms <- zms
@@ -149,7 +149,12 @@ class AccountViewController(view: AccountView)(implicit inj: Injector, ec: Event
     account <- zms.account.accountData
   } yield account
 
-  val team = zms.flatMap(_.teams.selfTeam)
+  val isTeam = zms.map(_.teamId.isDefined)
+
+  val isPhoneNumerEnabled = for {
+    hasPhone <- account.map(a => a.phone.isDefined || a.pendingPhone.isDefined)
+    isTeam <- isTeam
+  } yield hasPhone || !isTeam
 
   val selfPicture: Signal[ImageSource] = self.map(_.picture).collect{case Some(pic) => WireImage(pic)}
 
@@ -180,7 +185,9 @@ class AccountViewController(view: AccountView)(implicit inj: Injector, ec: Event
     view.setPhone(account.phone.map(_.str))
   }
 
-  team.onUi { team => view.setDeleteAccountEnabled(team.isEmpty) }
+  isTeam.onUi(t => view.setDeleteAccountEnabled(!t))
+
+  isPhoneNumerEnabled.onUi(view.setPhoneNumberEnabled)
 
   view.onNameClick.onUi { _ =>
     self.head.map { self =>
@@ -261,7 +268,6 @@ class AccountViewController(view: AccountView)(implicit inj: Injector, ec: Event
       new DialogInterface.OnClickListener() {
         def onClick(dialog: DialogInterface, which: Int) = {
           context.asInstanceOf[PreferencesActivity].getControllerFactory.getUsernameController.tearDown()
-          tracking.onLoggedOut(LoggedOutEvent.Manual)
           zms.map(_.account).head.flatMap(_.logout(true))(Threading.Ui)
           navigator.back()
           navigator.back()

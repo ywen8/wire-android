@@ -18,7 +18,6 @@
 package com.waz.zclient.controllers.stubs;
 
 import android.view.View;
-import com.waz.api.Message;
 import com.waz.api.User;
 import com.waz.zclient.controllers.singleimage.ISingleImageController;
 import com.waz.zclient.controllers.singleimage.SingleImageObserver;
@@ -28,11 +27,6 @@ public class StubSingleImageController implements ISingleImageController {
     @Override
     public void hideSingleImage() {
 
-    }
-
-    @Override
-    public Message getMessage() {
-        return null;
     }
 
     @Override
@@ -66,7 +60,7 @@ public class StubSingleImageController implements ISingleImageController {
     }
 
     @Override
-    public void showSingleImage(Message message) {
+    public void showSingleImage(String messageId) {
 
     }
 

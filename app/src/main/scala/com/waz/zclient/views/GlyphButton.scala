@@ -62,7 +62,7 @@ class GlyphButton(val context: Context, val attrs: AttributeSet, val defStyleAtt
       pressedColor = Color.rgb((Color.red(pressedColor) * darken).toInt, (Color.green(pressedColor) * darken).toInt, (Color.blue(pressedColor) * darken).toInt)
     }
     val pressed = ColorUtils.injectAlpha(alphaPressed, pressedColor)
-    val pressedBgColor = returning(new GradientDrawable(BOTTOM_TOP, Array(pressed, pressed)))(_.setAlpha(OVAL))
+    val pressedBgColor = returning(new GradientDrawable(BOTTOM_TOP, Array(pressed, pressed)))(_.setShape(OVAL))
     val defaultBgColor = returning(new GradientDrawable(BOTTOM_TOP, Array(defaultColor, defaultColor)))(_.setShape(OVAL))
 
     val states = new StateListDrawable
@@ -92,4 +92,22 @@ class GlyphButton(val context: Context, val attrs: AttributeSet, val defStyleAtt
     val colorStateList: ColorStateList = new ColorStateList(states, colors)
     super.setTextColor(colorStateList)
   }
+
+  def setBackgroundColors(enabledColor: Int, disabledColor: Int): Unit =
+    setBackgroundColors(enabledColor, disabledColor, ColorUtils.adjustBrightness(enabledColor, 0.8f))
+
+  def setBackgroundColors(enabledColor: Int, disabledColor: Int, pressedColor: Int): Unit =
+    setBackgroundColors(enabledColor, disabledColor, pressedColor, enabledColor)
+
+  def setBackgroundColors(enabledColor: Int, disabledColor: Int, pressedColor: Int, selectedColor: Int): Unit = {
+    val drawables = Seq(pressedColor, enabledColor, disabledColor, selectedColor, enabledColor).map(circleDrawable)
+    val states = Seq(android.R.attr.state_pressed, android.R.attr.state_enabled, -android.R.attr.state_enabled, android.R.attr.state_focused, 0)
+    val stateDrawables = drawables.zip(states)
+    val stateList = new StateListDrawable
+    stateDrawables.foreach { case (d, s) => stateList.addState(Array(s), d) }
+    setBackground(stateList)
+    invalidate()
+  }
+
+  private def circleDrawable(color: Int) = returning(new GradientDrawable(BOTTOM_TOP, Array(color, color)))(_.setShape(OVAL))
 }

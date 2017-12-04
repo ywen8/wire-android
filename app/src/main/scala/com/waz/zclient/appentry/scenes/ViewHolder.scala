@@ -1,6 +1,6 @@
 /**
  * Wire
- * Copyright (C) 2016 Wire Swiss GmbH
+ * Copyright (C) 2017 Wire Swiss GmbH
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -15,13 +15,12 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package com.waz.zclient.core.stores.draft;
+package com.waz.zclient.appentry.scenes
 
-import com.waz.api.IConversation;
-import com.waz.zclient.core.stores.IStore;
+import android.view.View
 
-public interface IDraftStore extends IStore {
+trait ViewHolder {
+  val root: View
 
-    void setDraft(IConversation conversation, String text);
-    String getDraft(IConversation conversation);
+  def onCreate(): Unit
 }

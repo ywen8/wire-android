@@ -146,8 +146,14 @@
     <dimen name="wire__text_size__medium">24sp</dimen>
     <dimen name="wire__text_size__big">28sp</dimen>
     <dimen name="wire__text_size__huge">32sp</dimen>
+
+    <!-- TODO: Check with design if all should be 11 or all 12 or should we actually have both -->
+    <dimen name="wire__text_size__smaller">11sp</dimen>
+    <dimen name="wire__text_size__regular_small">14sp</dimen>
+    <dimen name="wire__text_size__even_huger">40sp</dimen>
+
     <dimen name="wire__text_size__insane">160sp</dimen>
-    <dimen name="wire__text_size__emoji">40sp</dimen>
+    <dimen name="wire__text_size__emoji">@dimen/wire__text_size__even_huger</dimen>
     <dimen name="wire__text_spacing__tiny">2dp</dimen>
     <dimen name="wire__text_spacing__medium">4dp</dimen>
     <dimen name="wire__text_spacing__large">8dp</dimen>
@@ -893,4 +899,22 @@
     <dimen name="new_cursor_button_left_margin">4dp</dimen>
     <dimen name="phone_sign_in_container_height">160dp</dimen>
     <dimen name="settings_divider_margin_start">48dp</dimen>
+
+    <dimen name="teams_input_margin_top">80dp</dimen>
+    <dimen name="teams_input_box_height">56dp</dimen>
+    <dimen name="teams_back_button_size">36dp</dimen>
+    <dimen name="app_entry_logo_height">36dp</dimen>
+    <dimen name="app_entry_button_size">72dp</dimen>
+    <dimen name="app_entry_button_glyph_size">32dp</dimen>
+    <dimen name="verification_code_input_cell_height">56dp</dimen>
+    <dimen name="verification_code_input_cell_width">46dp</dimen>
+    <dimen name="app_entry_input_hint_padding">8dp</dimen>
+    <dimen name="app_entry_input_confirm_size">32dp</dimen>
+    <dimen name="app_entry_input_confirm_glyph_size">18dp</dimen>
+    <dimen name="progress_spinner_size">32dp</dimen>
+    <dimen name="app_entry_input_box_aux_height">45dp</dimen>
+    <dimen name="app_entry_button_width">260dp</dimen>
+    <dimen name="app_entry_keyboard_content_padding">16dp</dimen>
+    <dimen name="app_entry_close_button_size">32dp</dimen>
+    <dimen name="app_entry_tablet_container_width">400dp</dimen>
 </resources>

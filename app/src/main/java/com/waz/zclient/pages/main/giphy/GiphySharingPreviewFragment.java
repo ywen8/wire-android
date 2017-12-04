@@ -17,7 +17,6 @@
  */
 package com.waz.zclient.pages.main.giphy;
 
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.Nullable;
@@ -35,20 +34,23 @@ import android.widget.TextView;
 import com.waz.api.GiphyResults;
 import com.waz.api.ImageAsset;
 import com.waz.api.UpdateListener;
+import com.waz.service.ZMessaging;
+import com.waz.service.tracking.ContributionEvent;
 import com.waz.zclient.BaseActivity;
 import com.waz.zclient.OnBackPressedListener;
 import com.waz.zclient.R;
 import com.waz.zclient.controllers.ThemeController;
 import com.waz.zclient.controllers.accentcolor.AccentColorObserver;
+import com.waz.zclient.conversation.ConversationController;
 import com.waz.zclient.core.stores.network.NetworkStoreObserver;
 import com.waz.zclient.pages.BaseFragment;
 import com.waz.zclient.pages.main.profile.views.ConfirmationMenu;
 import com.waz.zclient.pages.main.profile.views.ConfirmationMenuListener;
-import com.waz.zclient.tracking.ContributionEvent;
-import com.waz.zclient.tracking.GlobalTrackingController;
 import com.waz.zclient.ui.theme.ThemeUtils;
 import com.waz.zclient.ui.utils.KeyboardUtils;
 import com.waz.zclient.ui.utils.TextViewUtils;
+import com.waz.zclient.utils.Callback;
+import com.waz.zclient.utils.ContextUtils;
 import com.waz.zclient.utils.ViewUtils;
 import com.waz.zclient.views.LoadingIndicatorView;
 import com.waz.zclient.views.images.ImageAssetView;
@@ -154,8 +156,6 @@ public class GiphySharingPreviewFragment extends BaseFragment<GiphySharingPrevie
 
         giphySearchHandler = new Handler();
 
-        loadingIndicator.setType(LoadingIndicatorView.INFINITE_LOADING_BAR);
-
         giphySearchEditText.addTextChangedListener(this);
         giphySearchEditText.setText(searchTerm);
 
@@ -204,7 +204,13 @@ public class GiphySharingPreviewFragment extends BaseFragment<GiphySharingPrevie
         giphyGridViewAdapter.setScrollGifCallback(this);
         getControllerFactory().getAccentColorController().addAccentColorObserver(this);
         getStoreFactory().networkStore().addNetworkStoreObserver(this);
-        giphyTitle.setText(getStoreFactory().conversationStore().getCurrentConversation().getName());
+
+        inject(ConversationController.class).withCurrentConvName(new Callback<String>() {
+            @Override
+            public void callback(String convName) {
+                giphyTitle.setText(convName);
+            }
+        });
     }
 
     @Override
@@ -242,12 +248,7 @@ public class GiphySharingPreviewFragment extends BaseFragment<GiphySharingPrevie
         confirmationMenu.setAccentColor(color);
         if (!((BaseActivity) getActivity()).injectJava(ThemeController.class).isDarkTheme()) {
             confirmationMenu.setCancelColor(color, color);
-            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
-                //noinspection deprecation
-                confirmationMenu.setConfirmColor(getResources().getColor(R.color.white), color);
-            } else {
-                confirmationMenu.setConfirmColor(getResources().getColor(R.color.white, getContext().getTheme()), color);
-            }
+            confirmationMenu.setConfirmColor(ContextUtils.getColorWithTheme(R.color.white, getContext()), color);
         }
         loadingIndicator.setColor(color);
     }
@@ -293,7 +294,7 @@ public class GiphySharingPreviewFragment extends BaseFragment<GiphySharingPrevie
         confirmationMenu.setConfirmEnabled(false);
         previewImageAssetView.setBitmapLoadedCallback(this);
         previewImageAssetView.setImageAsset(gifAsset);
-        loadingIndicator.show();
+        loadingIndicator.show(LoadingIndicatorView.INFINITE_LOADING_BAR());
         KeyboardUtils.closeKeyboardIfShown(getActivity());
         if (ThemeUtils.isDarkTheme(getContext())) {
             toolbar.setNavigationIcon(R.drawable.action_back_light);
@@ -346,7 +347,7 @@ public class GiphySharingPreviewFragment extends BaseFragment<GiphySharingPrevie
     private void updateGiphyResults() {
         errorView.setVisibility(View.GONE);
         previewImageAssetView.clearImage();
-        loadingIndicator.show();
+        loadingIndicator.show(LoadingIndicatorView.INFINITE_LOADING_BAR());
         if (TextUtils.isEmpty(searchTerm) || searchTerm == null) {
             giphyResults = getStoreFactory().zMessagingApiStore()
                                             .getApi()
@@ -396,15 +397,16 @@ public class GiphySharingPreviewFragment extends BaseFragment<GiphySharingPrevie
     }
 
     private void sendGif() {
-        inject(GlobalTrackingController.class).onContributionEvent(new ContributionEvent.Action("text")); //TODO use lazy val when in scala
+        ZMessaging.getCurrentGlobal().trackingService().contribution(new ContributionEvent.Action("text")); //TODO use lazy val when in scala
+        ConversationController conversationController = inject(ConversationController.class);
+
         if (TextUtils.isEmpty(searchTerm) || searchTerm == null) {
-            getStoreFactory().conversationStore().sendMessage(getString(R.string.giphy_preview__message_via_random_trending));
+            conversationController.sendMessage(getString(R.string.giphy_preview__message_via_random_trending));
         } else {
-            getStoreFactory().conversationStore().sendMessage(getString(R.string.giphy_preview__message_via_search,
-                                                                           searchTerm));
+            conversationController.sendMessage(getString(R.string.giphy_preview__message_via_search, searchTerm));
         }
         getStoreFactory().networkStore().doIfHasInternetOrNotifyUser(null);
-        getStoreFactory().conversationStore().sendMessage(foundImage);
+        conversationController.sendMessage(foundImage);
         getControllerFactory().getGiphyController().close();
     }
 

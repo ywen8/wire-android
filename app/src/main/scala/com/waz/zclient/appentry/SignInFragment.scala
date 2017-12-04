@@ -43,12 +43,12 @@ import com.waz.zclient.ui.views.tab.TabIndicatorLayout.Callback
 import com.waz.zclient.utils._
 import android.os.Build.VERSION.SDK_INT
 import android.os.Build.VERSION_CODES.KITKAT
-import com.waz.zclient.tracking.GlobalTrackingController
+import com.waz.service.ZMessaging
+import com.waz.zclient.tracking.SignUpScreenEvent
 
 class SignInFragment extends BaseFragment[Container] with FragmentHelper with View.OnClickListener {
 
   lazy val signInController = inject[SignInController]
-  lazy val tracking = inject[GlobalTrackingController]
 
   lazy val container = getView.findViewById(R.id.sign_in_container).asInstanceOf[FrameLayout]
   lazy val scenes = Array(
@@ -145,13 +145,14 @@ class SignInFragment extends BaseFragment[Container] with FragmentHelper with Vi
           case TabPages.CREATE_ACCOUNT =>
             tabSelector.setSelected(TabPages.CREATE_ACCOUNT)
             signInController.uiSignInState.mutate {
+              case _ => SignInMethod(Register, Phone) //TODO: remove to enable register by email
               case SignInMethod(Login, x) => SignInMethod(Register, x)
               case other => other
             }
           case TabPages.SIGN_IN =>
             tabSelector.setSelected(TabPages.SIGN_IN)
             signInController.uiSignInState.mutate {
-              case SignInMethod(Register, x) => SignInMethod(Login, Email)
+              case SignInMethod(Register, _) => SignInMethod(Login, Email)
               case other => other
             }
           case _ =>
@@ -177,7 +178,7 @@ class SignInFragment extends BaseFragment[Container] with FragmentHelper with Vi
           emailButton.setVisible(true)
       }
     } else {
-      signInController.uiSignInState ! SignInMethod(Register, Email)
+      signInController.uiSignInState ! SignInMethod(Login, Email)
     }
 
     signInController.uiSignInState.onUi { state =>
@@ -204,7 +205,10 @@ class SignInFragment extends BaseFragment[Container] with FragmentHelper with Vi
           phoneField.foreach(_.requestFocus())
       }
       signInController.phoneCountry.currentValue.foreach{ onCountryHasChanged }
-      if (state.signType == Register) tracking.onSignUpScreen(state)
+    }
+
+    signInController.uiSignInState.map(s => SignInMethod(s.signType, Phone)).onUi { method =>
+      ZMessaging.globalModule.map(_.trackingService.track(SignUpScreenEvent(method)))(Threading.Ui)
     }
 
     signInController.isValid.onUi { setConfirmationButtonActive }

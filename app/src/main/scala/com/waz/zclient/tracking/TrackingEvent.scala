@@ -17,30 +17,14 @@
   */
 package com.waz.zclient.tracking
 
-import java.lang.Math.max
-
-import com.waz.api.EphemeralExpiration
 import com.waz.api.Invitations.PersonalToken
-import com.waz.model.ConversationData.ConversationType
-import com.waz.model.{ConversationData, Mime}
-import com.waz.service.push.{MissedPushes, ReceivedPushData}
+import com.waz.service.tracking.TrackingEvent
 import com.waz.utils.returning
 import com.waz.zclient.controllers.SignInController._
-import com.waz.zclient.tracking.ContributionEvent.Action
 import org.json.JSONObject
-import org.threeten.bp.Duration
 import com.waz.utils._
 import com.waz.zclient.tracking.AddPhotoOnRegistrationEvent.Source
-
-sealed trait TrackingEvent {
-  val name: String
-  val props: Option[JSONObject]
-}
-
-case class OptEvent(enabled: Boolean) extends TrackingEvent {
-  override val name = s"settings.opted_${if (enabled) "in" else "out"}_tracking"
-  override val props = None
-}
+import com.waz.zclient.tracking.TeamAcceptedTerms.Occurrence
 
 //TODO - handle generic invitation tokens
 case class EnteredCredentialsEvent(method: SignInMethod, error: Option[(Int, String)], invitation: Option[PersonalToken]) extends TrackingEvent {
@@ -104,6 +88,14 @@ case class EnteredNameOnRegistrationEvent(inputType: InputType, error: Option[(I
   })
 }
 
+//TODO - this needs to be re-implemented for emails. For now, this only affects tablets (not super critical)
+case class RegistrationSuccessfulEvent(invitation: Option[PersonalToken]) extends TrackingEvent {
+  override val name = "registration.succeeded"
+  override val props = Some(returning (new JSONObject()) { o =>
+    o.put("context", if (invitation.isEmpty) "phone" else s"personal_invite_phone")
+  })
+}
+
 case class AddPhotoOnRegistrationEvent(inputType: InputType, error: Option[(Int, String)], source: Source) extends TrackingEvent {
   override val name = "registration.added_photo"
 
@@ -152,102 +144,78 @@ case class ResendVerificationEvent(method: SignInMethod, isCall: Boolean, error:
 
 case class SignUpScreenEvent(method: SignInMethod) extends TrackingEvent {
   override val name = method match {
-    case SignInMethod(Register, Phone) => "registration.opened_phone_signup"
-    case SignInMethod(Register, Email) => "registration.opened_email_signup"
-    case SignInMethod(Login, Phone) => "registration.opened_phone_signin"
-    case SignInMethod(Login, Email) => "registration.opened_email_signin"
+    case SignInMethod(Register, _) => "start.opened_person_registration"
+    case SignInMethod(Login, _) => "start.opened_login"
   }
 
-  override val props = Some(returning(new JSONObject()) { _ => })
+  override val props = None
 }
 
-case class ContributionEvent(action: Action, conversationType: ConversationType, ephExp: EphemeralExpiration, withBot: Boolean) extends TrackingEvent {
-  override val name = "contributed"
+case class OpenedStartScreen() extends TrackingEvent {
+  override val name: String = "start.opened_start_screen"
+  override val props = None
+}
 
+case class OpenedTeamRegistration() extends TrackingEvent {
+  override val name: String = "start.opened_team_registration"
+  override val props = None
+}
+
+case class OpenedLogin() extends TrackingEvent {
+  override val name: String = "start.opened_login"
+  override val props = None
+}
+
+case class TeamsEnteredVerification(method: TeamsEnteredVerification.Method, error: Option[(Int, String)]) extends TrackingEvent {
+  override val name: String = "team.entered_verification"
   override val props = Some(returning(new JSONObject()) { o =>
-    o.put("action", action.name)
-    o.put("conversation_type", if (conversationType == ConversationType.Group) "group" else "one_to_one")
-    o.put("with_bot", withBot)
-    o.put("is_ephemeral", ephExp != EphemeralExpiration.NONE) //TODO is this flag necessary?
-    o.put("ephemeral_expiration", ephExp.duration().toSeconds.toString)
-  })
-}
-
-object ContributionEvent {
-
-  case class Action(name: String)
-
-  object Action {
-    lazy val Text = Action("text")
-    lazy val Ping = Action("ping")
-    lazy val AudioCall = Action("audio_call")
-    lazy val VideoCall = Action("video_call")
-    lazy val Photo = Action("photo")
-    lazy val Audio = Action("audio")
-    lazy val Video = Action("video")
-    lazy val File = Action("file")
-    lazy val Location = Action("location")
-  }
-
-  def apply(action: Action, conv: ConversationData, withOtto: Boolean): ContributionEvent =
-    ContributionEvent(action, conv.convType, conv.ephemeral, withOtto)
-
-  def fromMime(mime: Mime) = {
-    import Action._
-    mime match {
-      case Mime.Image() => Photo
-      case Mime.Audio() => Audio
-      case Mime.Video() => Video
-      case _ => File
+    o.put("method", method.str)
+    o.put("outcome", error.fold2("success", _ => "fail"))
+    error.foreach { case (code, label) =>
+      o.put("error", code)
+      o.put("error_message", label)
     }
-  }
-}
-
-//only for exceptions that actually crash the app
-case class CrashEvent(crashType: String, crashDetails: String) extends TrackingEvent {
-  override val name = "crash"
-  override val props = Some(returning(new JSONObject()) { o =>
-    o.put("crashType", crashType)
-    o.put("crashDetails", crashDetails)
   })
 }
 
-case class MissedPushEvent(p: MissedPushes) extends TrackingEvent {
-  override val name = "debug.push_missed"
-  override val props = Some(returning(new JSONObject()) { o =>
-    o.put("time", p.time.toString)
-    o.put("missed_count", p.countMissed)
-    o.put("in_background", p.inBackground)
-    o.put("network_mode", p.networkMode)
+object TeamsEnteredVerification {
+  case class Method(str: String)
+  object CopyPaste extends Method("copy_paste")
+  object Manual extends Method("manual")
+}
+
+case class TeamVerified() extends TrackingEvent {
+  override val name: String = "team.verified"
+  override val props = None
+}
+
+case class TeamAcceptedTerms(occurrence: Occurrence) extends TrackingEvent {
+  override val name: String = "team.accepted_terms"
+  override val props =  Some(returning(new JSONObject()) { o =>
+    o.put("method", occurrence.str)
   })
 }
 
-case class ReceivedPushEvent(p: ReceivedPushData) extends TrackingEvent {
-  override val name = "debug.push_received"
+object TeamAcceptedTerms {
+  case class Occurrence(str: String)
+  object AfterName extends Occurrence("after_name")
+  object AfterPassword extends Occurrence("after_password")
+}
 
-  def secondsAndMillis(d: Duration) = max(d.toMillis.toDouble / 1000, 0)
+case class TeamCreated() extends TrackingEvent {
+  override val name: String = "team.created"
+  override val props = None
+}
 
+case class TeamFinishedInvite(invited: Boolean, nInvites: Int) extends TrackingEvent {
+  override val name: String = "team.finished_invite_step"
   override val props = Some(returning(new JSONObject()) { o =>
-    o.put("since_sent_seconds", secondsAndMillis(p.sinceSent))
-    o.put("received_at", p.receivedAt.toString)
-    o.put("network_mode", p.networkMode)
-    o.put("network_operator", p.networkOperator)
-    o.put("is_device_idle", p.isDeviceIdle)
-    p.toFetch.foreach(d => o.put("to_fetch_seconds", secondsAndMillis(d)))
+    o.put("invited", invited)
+    o.put("invites", nInvites)
   })
 }
 
-case class LoggedOutEvent(reason: String) extends TrackingEvent {
-  override val name = "account.logged_out"
-  override val props = Some(returning(new JSONObject()) { o =>
-    o.put("reason", reason)
-  })
-}
-
-object LoggedOutEvent {
-  val RemovedClient = "removed_client"
-  val InvalidCredentials = "invalid_credentials"
-  val SelfDeleted = "self_deleted"
-  val ResetPassword = "reset_password"
-  val Manual = "manual"
+case class OpenedManageTeam() extends TrackingEvent {
+  override val name: String = "settings.opened_manage_team"
+  override val props = None
 }
