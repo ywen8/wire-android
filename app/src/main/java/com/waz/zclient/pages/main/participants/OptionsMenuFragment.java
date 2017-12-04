@@ -316,6 +316,7 @@ public class OptionsMenuFragment extends BaseFragment<OptionsMenuFragment.Contai
             public void callback(ConversationData conversationData) {
                 optionsMenu.setTitle(conversationData.displayName());
                 optionsMenu.setConversationDetails(conversationData);
+                onMenuConversationHasChanged(conversationData);
             }
         });
     }
