@@ -91,6 +91,7 @@ public class NavigationController implements INavigationController {
 
         currentPage = page;
 
+        setPagerSettingForPage(page);
         for (NavigationControllerObserver navigationControllerObserver : navigationControllerObservers) {
             navigationControllerObserver.onPageVisible(page);
         }
@@ -196,7 +197,7 @@ public class NavigationController implements INavigationController {
         switch (page) {
             case CONVERSATION_LIST:
                 if (isPhone) {
-                    // Handled in ConversationListManagerFragment
+                    setPagerEnabled(false);
                     return;
                 }
                 setPagerEnabled(true);

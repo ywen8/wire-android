@@ -39,8 +39,6 @@ object ContactRowView {
 
     def onContactListContactClicked(contactDetails: ContactDetails): Unit
 
-    @IPickUserController.ContactListDestination def getDestination: Int
-
     def isUserSelected(user: User): Boolean
   }
 

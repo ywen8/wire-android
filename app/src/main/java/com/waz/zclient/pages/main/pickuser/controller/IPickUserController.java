@@ -17,11 +17,8 @@
  */
 package com.waz.zclient.pages.main.pickuser.controller;
 
-import android.support.annotation.IntDef;
 import android.view.View;
-import com.waz.api.User;
-
-import java.util.List;
+import com.waz.model.UserId;
 
 public interface IPickUserController {
 
@@ -31,26 +28,17 @@ public interface IPickUserController {
         CURSOR
     }
 
-    @IntDef({CONVERSATION_LIST,
-             CONVERSATION,
-             STARTUI
-    })
-    @interface ContactListDestination { }
-    int CONVERSATION_LIST = 0;
-    int CONVERSATION = 1;
-    int STARTUI = 2;
-
     void addPickUserScreenControllerObserver(PickUserControllerScreenObserver observer);
 
     void removePickUserScreenControllerObserver(PickUserControllerScreenObserver observer);
 
     // Showing people picker
-    void showPickUser(Destination destination, View anchorView);
+    void showPickUser(Destination destination);
 
     /**
      * @return true, if a picker was hidden, false otherwise
      */
-    boolean hidePickUser(Destination destination, boolean closeWithoutSelectingPeople);
+    boolean hidePickUser(Destination destination);
 
     boolean isHideWithoutAnimations();
 
@@ -60,33 +48,11 @@ public interface IPickUserController {
 
     void resetShowingPickUser(Destination destination);
 
-    void showUserProfile(User user, View anchorView);
+    void showUserProfile(UserId userId, View anchorView);
 
     void hideUserProfile();
 
     boolean isShowingUserProfile();
-
-    void addPickUserSearchControllerObserver(PickUserControllerSearchObserver observer);
-
-    void removePickUserSearchControllerObserver(PickUserControllerSearchObserver observer);
-
-    void notifySearchBoxHasNewSearchFilter(String filter);
-
-    void notifyKeyboardDoneAction();
-
-    void addUser(User user);
-
-    void removeUser(User user);
-
-    String getSearchFilter();
-
-    List<User> getSelectedUsers();
-
-    boolean hasSelectedUsers();
-
-    boolean searchInputIsInvalidEmail();
-
-    void setSearchFilter(String newSearchFilter);
 
     void tearDown();
 }

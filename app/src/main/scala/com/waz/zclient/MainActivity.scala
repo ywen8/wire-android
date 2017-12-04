@@ -401,10 +401,8 @@ class MainActivity extends BaseActivity
 
   def onAccentColorChangedRemotely(sender: Any, color: Int) = getControllerFactory.getAccentColorController.setColor(AccentColorChangeRequester.REMOTE, color)
 
-  def onPageVisible(page: Page) = {
+  def onPageVisible(page: Page) =
     getControllerFactory.getGlobalLayoutController.setSoftInputModeForPage(page)
-    getControllerFactory.getNavigationController.setPagerSettingForPage(page)
-  }
 
   def onConnectUserUpdated(user: User, userRequester: IConnectStore.UserRequester): Unit = {}
 

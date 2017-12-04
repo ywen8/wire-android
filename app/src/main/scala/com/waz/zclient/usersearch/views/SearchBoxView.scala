@@ -33,8 +33,6 @@ import com.waz.zclient.{R, ViewHelper}
 object SearchBoxView {
 
   trait Callback extends PickerSpannableEditText.Callback {
-    def onKeyboardDoneAction(): Unit
-
     def onFocusChange(hasFocus: Boolean): Unit
 
     def onClearButton(): Unit
@@ -85,7 +83,6 @@ class SearchBoxView(val context: Context, val attrs: AttributeSet, val defStyleA
       def onEditorAction(v: TextView, actionId: Int, event: KeyEvent): Boolean =
         Option(callback).filter(_ => actionId == EditorInfo.IME_ACTION_GO || (event != null && event.getKeyCode == KeyEvent.KEYCODE_ENTER)) match {
           case Some(c) =>
-            c.onKeyboardDoneAction()
             true
           case _ =>
             false

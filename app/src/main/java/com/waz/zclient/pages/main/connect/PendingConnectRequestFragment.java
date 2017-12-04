@@ -324,7 +324,7 @@ public class PendingConnectRequestFragment extends BaseFragment<PendingConnectRe
             @Override
             public void onLeftActionClicked() {
                 IConversation conversation = user.acceptConnection();
-                getContainer().onAcceptedConnectRequest(conversation);
+                getContainer().onAcceptedConnectRequest(new ConvId(conversation.getId()));
             }
 
             @Override
@@ -346,7 +346,7 @@ public class PendingConnectRequestFragment extends BaseFragment<PendingConnectRe
             @Override
             public void onLeftActionClicked() {
                 IConversation conversation = user.acceptConnection();
-                getContainer().onAcceptedConnectRequest(conversation);
+                getContainer().onAcceptedConnectRequest(new ConvId(conversation.getId()));
             }
 
             @Override
@@ -467,20 +467,16 @@ public class PendingConnectRequestFragment extends BaseFragment<PendingConnectRe
         }
     }
 
-    //////////////////////////////////////////////////////////////////////////////////////////
-    //
-    //  UpdateListener for Conversation
-    //
-    //////////////////////////////////////////////////////////////////////////////////////////
-
     @Override
     public void updated() {
-        getContainer().onConversationUpdated(conversation);
+        if (conversation != null && conversation.getType() == IConversation.Type.ONE_TO_ONE) {
+            getContainer().onConversationUpdated(new ConvId(conversation.getId()));
+        }
     }
 
     public interface Container extends UserProfileContainer {
-        void onAcceptedConnectRequest(IConversation conversation);
+        void onAcceptedConnectRequest(ConvId conversation);
 
-        void onConversationUpdated(IConversation conversation);
+        void onConversationUpdated(ConvId conversation);
     }
 }

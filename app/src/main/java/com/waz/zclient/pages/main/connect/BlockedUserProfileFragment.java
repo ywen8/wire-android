@@ -27,6 +27,7 @@ import android.view.animation.Animation;
 import android.widget.TextView;
 import com.waz.api.IConversation;
 import com.waz.api.User;
+import com.waz.model.ConvId;
 import com.waz.zclient.R;
 import com.waz.zclient.common.views.UserDetailsView;
 import com.waz.zclient.controllers.accentcolor.AccentColorObserver;
@@ -383,11 +384,11 @@ public class BlockedUserProfileFragment extends BaseFragment<BlockedUserProfileF
         IConversation conversation = getStoreFactory().connectStore().unblockUser(user);
         if (conversation != null) {
             // Note! important to pass conversation returned by unblockUser() instead of user.getConversation()
-            getContainer().onUnblockedUser(conversation);
+            getContainer().onUnblockedUser(new ConvId(conversation.getId()));
         }
     }
 
     public interface Container extends UserProfileContainer {
-        void onUnblockedUser(IConversation restoredConversationWithUser);
+        void onUnblockedUser(ConvId restoredConversationWithUser);
     }
 }

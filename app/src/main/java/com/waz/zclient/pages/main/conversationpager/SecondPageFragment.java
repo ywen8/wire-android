@@ -274,15 +274,15 @@ public class SecondPageFragment extends BaseFragment<SecondPageFragment.Containe
     //////////////////////////////////////////////////////////////////////////////////////////
 
     @Override
-    public void onAcceptedConnectRequest(IConversation conversation) {
-        Timber.i("onAcceptedConnectRequest %s", conversation.getId());
-        inject(ConversationController.class).selectConv(new ConvId(conversation.getId()), ConversationChangeRequester.CONVERSATION_LIST);
+    public void onAcceptedConnectRequest(ConvId conversation) {
+        Timber.i("onAcceptedConnectRequest %s", conversation);
+        inject(ConversationController.class).selectConv(conversation, ConversationChangeRequester.CONVERSATION_LIST);
     }
 
     @Override
-    public void onAcceptedPendingOutgoingConnectRequest(IConversation conversation) {
-        Timber.i("onAcceptedPendingOutgoingConnectRequest %s", conversation.getId());
-        inject(ConversationController.class).selectConv(new ConvId(conversation.getId()), ConversationChangeRequester.CONNECT_REQUEST_ACCEPTED);
+    public void onAcceptedPendingOutgoingConnectRequest(ConvId conversation) {
+        Timber.i("onAcceptedPendingOutgoingConnectRequest %s", conversation);
+        inject(ConversationController.class).selectConv(conversation, ConversationChangeRequester.CONNECT_REQUEST_ACCEPTED);
     }
 
     @Override

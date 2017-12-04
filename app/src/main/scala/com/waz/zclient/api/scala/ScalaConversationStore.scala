@@ -19,22 +19,12 @@ package com.waz.zclient.api.scala
 
 import com.waz.api._
 import com.waz.model.ConvId
-import com.waz.zclient.core.stores.conversation.{ConversationStoreObserver, IConversationStore}
+import com.waz.zclient.core.stores.conversation.IConversationStore
 
 class ScalaConversationStore(zMessagingApi: ZMessagingApi) extends IConversationStore  {
 
-  // observers attached to a IConversationStore
-  private var conversationStoreObservers = Set.empty[ConversationStoreObserver]
-
   private val conversationsList = zMessagingApi.getConversations
   private val establishedConversationsList = conversationsList.getEstablishedConversations
-
-  private val syncIndicator = conversationsList.getSyncIndicator
-
-  private val syncStateUpdateListener = new UpdateListener() {
-    override def updated(): Unit = notifySyncChanged(syncIndicator.getState)
-  }
-  syncIndicator.addUpdateListener(syncStateUpdateListener)
 
   override def getConversation(conversationId: String): IConversation = conversationsList.getConversation(conversationId)
 
@@ -45,33 +35,6 @@ class ScalaConversationStore(zMessagingApi: ZMessagingApi) extends IConversation
       .map(ic => new ConvId(ic.getId))
 
   override def numberOfActiveConversations: Int = if (establishedConversationsList == null) 0 else establishedConversationsList.size
-
-  override protected def conversationSyncingState: SyncState = syncIndicator.getState
-
-  override def addConversationStoreObserver(conversationStoreObserver: ConversationStoreObserver): Unit = {
-    // Prevent concurrent modification (if this add was executed by one of current observers during notify* callback)
-    conversationStoreObservers = conversationStoreObservers + conversationStoreObserver
-  }
-
-  override def addConversationStoreObserverAndUpdate(conversationStoreObserver: ConversationStoreObserver): Unit = {
-      //debug(s"addConversationStoreObserverAndUpdate, current conv: $currentConversation")
-    addConversationStoreObserver(conversationStoreObserver)
-
-    conversationStoreObserver.onConversationSyncingStateHasChanged(conversationSyncingState)
-
-    conversationStoreObserver.onConversationListUpdated(conversationsList)
-  }
-
-  override def removeConversationStoreObserver(conversationStoreObserver: ConversationStoreObserver): Unit = {
-    // Prevent concurrent modification
-    conversationStoreObservers = conversationStoreObservers - conversationStoreObserver
-  }
-
-  private def notifyConversationListUpdated() = conversationStoreObservers.foreach(_.onConversationListUpdated(conversationsList))
-
-  private def notifySyncChanged(syncState: SyncState) = conversationStoreObservers.foreach {
-    _.onConversationSyncingStateHasChanged(syncState)
-  }
 
   override def tearDown(): Unit = {}
 }

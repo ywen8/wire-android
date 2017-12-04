@@ -35,8 +35,6 @@ public interface ConversationScreenControllerObserver {
 
     void onScrollParticipantsList(int verticalOffset, boolean scrolledToBottom);
 
-    void onConversationLoaded();
-
     void onShowUser(User user);
 
     void onHideUser();

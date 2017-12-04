@@ -18,27 +18,10 @@
 package com.waz.zclient.core.stores.conversation
 
 import com.waz.api.IConversation
-import com.waz.api.SyncState
 import com.waz.model.ConvId
 import com.waz.zclient.core.stores.IStore
 
-
-
 trait IConversationStore extends IStore {
-
-  /**
-   * adds an observer on this store
-   * @param conversationStoreObserver
-   */
-  def addConversationStoreObserver(conversationStoreObserver: ConversationStoreObserver): Unit
-
-  def addConversationStoreObserverAndUpdate(conversationStoreObserver: ConversationStoreObserver): Unit
-
-  /**
-   * removes an observer on this store
-   * @param conversationStoreObserver
-   */
-  def removeConversationStoreObserver(conversationStoreObserver: ConversationStoreObserver): Unit
 
   /**
    * For use when archiving a conversation - you need to set a new current conversation
@@ -52,5 +35,4 @@ trait IConversationStore extends IStore {
 
   def numberOfActiveConversations: Int
 
-  protected def conversationSyncingState: SyncState
 }

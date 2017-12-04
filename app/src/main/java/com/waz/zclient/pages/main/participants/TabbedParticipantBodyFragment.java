@@ -315,11 +315,6 @@ public class TabbedParticipantBodyFragment extends BaseFragment<TabbedParticipan
     }
 
     @Override
-    public void onConversationLoaded() {
-
-    }
-
-    @Override
     public void onShowUser(User user) {
 
     }

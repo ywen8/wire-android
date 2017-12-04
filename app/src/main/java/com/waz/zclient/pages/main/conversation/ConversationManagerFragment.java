@@ -67,7 +67,6 @@ import com.waz.zclient.utils.ViewUtils;
 import com.waz.zclient.views.ConversationFragment;
 import com.waz.zclient.views.LoadingIndicatorView;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class ConversationManagerFragment extends BaseFragment<ConversationManagerFragment.Container> implements ParticipantFragment.Container,
@@ -88,14 +87,12 @@ public class ConversationManagerFragment extends BaseFragment<ConversationManage
 
     // doesn't need to be restored
     private boolean groupConversation;
-    private User otherUser;
     private IPickUserController.Destination pickUserDestination;
 
     private final ModelObserver<IConversation> conversationModelObserver = new ModelObserver<IConversation>() {
         @Override
         public void updated(IConversation model) {
             groupConversation = model.getType() == IConversation.Type.GROUP;
-            otherUser = groupConversation ? null :  model.getOtherParticipant();
         }
     };
 
@@ -226,7 +223,7 @@ public class ConversationManagerFragment extends BaseFragment<ConversationManage
         }
 
         if (fragment instanceof PickUserFragment) {
-            getControllerFactory().getPickUserController().hidePickUser(getCurrentPickerDestination(), true);
+            getControllerFactory().getPickUserController().hidePickUser(getCurrentPickerDestination());
             return true;
         }
 
@@ -287,11 +284,6 @@ public class ConversationManagerFragment extends BaseFragment<ConversationManage
 
     @Override
     public void onScrollParticipantsList(int verticalOffset, boolean scrolledToBottom) {
-
-    }
-
-    @Override
-    public void onConversationLoaded() {
 
     }
 
@@ -499,26 +491,21 @@ public class ConversationManagerFragment extends BaseFragment<ConversationManage
     }
 
     @Override
-    public void showIncomingPendingConnectRequest(IConversation conversation) {
+    public void showIncomingPendingConnectRequest(ConvId conv) {
         // noop
     }
 
     @Override
-    public void onSelectedUsers(final List<User> users, final ConversationChangeRequester requester) {
+    public void onSelectedUsers(final List<UserId> users, final ConversationChangeRequester requester) {
         // TODO https://wearezeta.atlassian.net/browse/AN-3730
-        getControllerFactory().getPickUserController().hidePickUser(getCurrentPickerDestination(), false);
-
-        final List<UserId> userIds = new ArrayList<>(users.size());
-        for(User user: users) {
-            userIds.add(new UserId(user.getId()));
-        }
+        getControllerFactory().getPickUserController().hidePickUser(getCurrentPickerDestination());
 
         final ConversationController conversationController = inject(ConversationController.class);
         conversationController.withCurrentConv(new Callback<ConversationData>() {
             @Override
             public void callback(ConversationData conv) {
                 if (conv.convType() == IConversation.Type.ONE_TO_ONE) {
-                    conversationController.createGroupConversation(userIds, requester);
+                    conversationController.createGroupConversation(users, requester);
                     if (!getStoreFactory().networkStore().hasInternetConnection()) {
                         ViewUtils.showAlertDialog(getActivity(),
                             R.string.conversation__create_group_conversation__no_network__title,
@@ -527,7 +514,7 @@ public class ConversationManagerFragment extends BaseFragment<ConversationManage
                             null, true);
                     }
                 } else if (conv.convType() == IConversation.Type.GROUP) {
-                    conversationController.addMembers(conv.id(), userIds);
+                    conversationController.addMembers(conv.id(), users);
                     if (!getStoreFactory().networkStore().hasInternetConnection()) {
                         ViewUtils.showAlertDialog(getActivity(),
                             R.string.conversation__add_user__no_network__title,
@@ -551,7 +538,7 @@ public class ConversationManagerFragment extends BaseFragment<ConversationManage
     }
 
     @Override
-    public void onShowPickUser(IPickUserController.Destination destination, View anchorView) {
+    public void onShowPickUser(IPickUserController.Destination destination) {
         if (!(destination.equals(IPickUserController.Destination.CURSOR) ||
               destination.equals(IPickUserController.Destination.PARTICIPANTS))) {
             return;
@@ -562,10 +549,6 @@ public class ConversationManagerFragment extends BaseFragment<ConversationManage
         }
 
         getControllerFactory().getNavigationController().setRightPage(Page.PICK_USER_ADD_TO_CONVERSATION, TAG);
-        if (!groupConversation && otherUser != null) {
-            getControllerFactory().getPickUserController().addUser(otherUser);
-        }
-
 
         getChildFragmentManager()
             .beginTransaction()
@@ -581,7 +564,7 @@ public class ConversationManagerFragment extends BaseFragment<ConversationManage
     }
 
     @Override
-    public void onHidePickUser(IPickUserController.Destination destination, boolean closeWithoutSelectingPeople) {
+    public void onHidePickUser(IPickUserController.Destination destination) {
         if (!destination.equals(getCurrentPickerDestination())) {
             return;
         }
@@ -594,7 +577,7 @@ public class ConversationManagerFragment extends BaseFragment<ConversationManage
     }
 
     @Override
-    public void onShowUserProfile(User user, View anchorView) {
+    public void onShowUserProfile(UserId userId, View anchorView) {
         // noop
     }
 
