@@ -125,7 +125,6 @@ class MixpanelGuard(cxt: WireContext) {
     mixpanel = None
   }
 
-  def foreach(f: MixpanelAPI => Unit): Unit = mixpanel.foreach(f)
-  def map[T](f: MixpanelAPI => T): Option[T] = mixpanel.map(f)
-  def flush(): Unit = foreach { _.flush() }
+  def withApi[T](f: MixpanelAPI => T): Option[T] = mixpanel.map(f)
+  def flush(): Unit = withApi { _.flush() }
 }
