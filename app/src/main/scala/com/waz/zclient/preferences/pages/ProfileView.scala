@@ -30,7 +30,7 @@ import android.widget.{ImageView, LinearLayout}
 import com.waz.ZLog
 import com.waz.ZLog.ImplicitTag._
 import com.waz.api.impl.AccentColor
-import com.waz.model.AccountData
+import com.waz.model.{AccountData, Availability}
 import com.waz.model.otr.Client
 import com.waz.service.ZMessaging
 import com.waz.service.tracking.TrackingService
@@ -41,9 +41,11 @@ import com.waz.zclient.common.views.ImageAssetDrawable
 import com.waz.zclient.common.views.ImageAssetDrawable.{RequestBuilder, ScaleType}
 import com.waz.zclient.common.views.ImageController.{ImageSource, WireImage}
 import com.waz.zclient.preferences.views.TextButton
+import com.waz.zclient.messages.UsersController
 import com.waz.zclient.tracking.OpenedManageTeam
 import com.waz.zclient.ui.text.TypefaceTextView
 import com.waz.zclient.utils.{BackStackKey, BackStackNavigator, RichView, StringUtils, UiStorage, UserSignal, ZTimeFormatter}
+import com.waz.zclient.views.AvailabilityView
 import org.threeten.bp.{LocalDateTime, ZoneId}
 
 trait ProfileView {
@@ -51,6 +53,7 @@ trait ProfileView {
   val onManageTeamClick: EventStream[Unit]
 
   def setUserName(name: String): Unit
+  def setAvailability(visible: Boolean, availability: Availability): Unit
   def setHandle(handle: String): Unit
   def setProfilePictureDrawable(drawable: Drawable): Unit
   def setAccentColor(color: Int): Unit
@@ -100,6 +103,13 @@ class ProfileViewImpl(context: Context, attrs: AttributeSet, style: Int) extends
   })
 
   override def setUserName(name: String): Unit = userNameText.setText(name)
+
+  private lazy val userAvailability = findById[AvailabilityView](R.id.profile_user_availability)
+
+  override def setAvailability(visible: Boolean, availability: Availability): Unit = {
+    userAvailability.setVisible(visible)
+    userAvailability.set(availability)
+  }
 
   override def setHandle(handle: String): Unit = userHandleText.setText(handle)
 
@@ -196,6 +206,7 @@ class ProfileViewController(view: ProfileView)(implicit inj: Injector, ec: Event
   private val zms = inject[Signal[ZMessaging]]
   implicit val uiStorage = inject[UiStorage]
   private val tracking = inject[TrackingService]
+  private lazy val usersController = inject [UsersController]
   val MaxAccountsCount = 2
 
   val currentUser = ZMessaging.currentAccounts.activeAccount.collect { case Some(account) if account.userId.isDefined => account.userId.get }
@@ -218,9 +229,19 @@ class ProfileViewController(view: ProfileView)(implicit inj: Injector, ec: Event
   view.setProfilePictureDrawable(new ImageAssetDrawable(selfPicture, scaleType = ScaleType.CenterInside, request = RequestBuilder.Round))
 
   self.on(Threading.Ui) { self =>
-      view.setAccentColor(AccentColor(self.accent).getColor())
-      self.handle.foreach(handle => view.setHandle(StringUtils.formatHandle(handle.string)))
-      view.setUserName(self.getDisplayName)
+    view.setAccentColor(AccentColor(self.accent).getColor())
+    self.handle.foreach(handle => view.setHandle(StringUtils.formatHandle(handle.string)))
+    view.setUserName(self.getDisplayName)
+  }
+
+  for {
+    userId <- currentUser
+    avVisible <- usersController.availabilityVisible
+    av <- usersController.availability(userId)
+  } yield (av)
+
+  usersController.availabilityVisible.zip(self.map(_.availability)).on(Threading.Ui) {
+    case (visible, availability) => view.setAvailability(visible, availability)
   }
 
   team.on(Threading.Ui) { team => view.setTeamName(team.map(_.name)) }

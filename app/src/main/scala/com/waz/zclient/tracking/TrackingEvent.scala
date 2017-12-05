@@ -18,12 +18,14 @@
 package com.waz.zclient.tracking
 
 import com.waz.api.Invitations.PersonalToken
+import com.waz.model.Availability
 import com.waz.service.tracking.TrackingEvent
 import com.waz.utils.returning
 import com.waz.zclient.appentry.controllers.SignInController._
 import org.json.JSONObject
 import com.waz.utils._
 import com.waz.zclient.tracking.AddPhotoOnRegistrationEvent.Source
+import com.waz.zclient.tracking.AvailabilityChanged.Method
 import com.waz.zclient.tracking.TeamAcceptedTerms.Occurrence
 
 //TODO - handle generic invitation tokens
@@ -218,4 +220,18 @@ case class TeamFinishedInvite(invited: Boolean, nInvites: Int) extends TrackingE
 case class OpenedManageTeam() extends TrackingEvent {
   override val name: String = "settings.opened_manage_team"
   override val props = None
+}
+
+case class AvailabilityChanged(status: Availability, method: Method) extends TrackingEvent {
+  override val name: String = "settings.changed_status"
+  override val props = Some(returning(new JSONObject()) { o =>
+    o.put("status", status.toString.toLowerCase)
+    o.put("method", method.str)
+  })
+}
+
+object AvailabilityChanged {
+  case class Method(str: String)
+  object Settings extends Method("settings")
+  object ListHeader extends Method("list_header")
 }

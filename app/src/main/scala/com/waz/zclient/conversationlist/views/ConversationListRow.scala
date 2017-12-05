@@ -23,7 +23,7 @@ import android.util.AttributeSet
 import android.view.{Gravity, View, ViewGroup}
 import android.widget.LinearLayout.LayoutParams
 import android.widget.{FrameLayout, LinearLayout}
-import com.waz.ZLog
+import com.waz.ZLog.verbose
 import com.waz.ZLog.ImplicitTag._
 import com.waz.api.Message
 import com.waz.model.ConversationData.ConversationType
@@ -34,6 +34,7 @@ import com.waz.threading.Threading
 import com.waz.utils._
 import com.waz.utils.events.Signal
 import com.waz.zclient.calling.controllers.CallPermissionsController
+import com.waz.zclient.common.controllers.UserAccountsController
 import com.waz.zclient.common.controllers.global.AccentColorController
 import com.waz.zclient.conversationlist.ConversationListController
 import com.waz.zclient.conversationlist.views.ConversationListRow._
@@ -46,6 +47,7 @@ import com.waz.zclient.ui.utils.TextViewUtils
 import com.waz.zclient.ui.views.properties.MoveToAnimateable
 import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.utils.{ConversationSignal, StringUtils, UiStorage, UserSetSignal, UserSignal, ViewUtils}
+import com.waz.zclient.views.AvailabilityView
 import com.waz.zclient.{R, ViewHelper}
 
 import scala.collection.Set
@@ -70,6 +72,8 @@ class NormalConversationListRow(context: Context, attrs: AttributeSet, style: In
   val zms = inject[Signal[ZMessaging]]
   val accentColor = inject[AccentColorController].accentColor
   val callPermissionsController = inject[CallPermissionsController]
+  lazy val userAccountsController = inject[UserAccountsController]
+
   val selfId = zms.map(_.selfUserId)
 
   private val conversationId = Signal[Option[ConvId]]()
@@ -103,7 +107,7 @@ class NormalConversationListRow(context: Context, attrs: AttributeSet, style: In
     z <- zms
     convId <- conversation.map(_.id)
     typing <- Signal.wrap(z.typing.onTypingChanged.filter(_._1 == convId).map(_._2.headOption)).orElse(Signal.const(None))
-    typingUser <- typing.fold2(Signal(Option.empty[UserData]), tu => UserSignal(tu.id).map(Option(_)))
+    typingUser <- userData(typing.map(_.id))
   } yield typingUser
 
   val badgeInfo = for {
@@ -122,8 +126,10 @@ class NormalConversationListRow(context: Context, attrs: AttributeSet, style: In
     lastUnreadMessageMembers <- lastUnreadMessage.fold2(Signal.const(Vector[UserData]()), message => UserSetSignal(message.members).map(_.toVector))
     typingUser <- userTyping
     ms <- members
-    otherUser <- ms.headOption.fold2(Signal.const(Option.empty[UserData]), uid => UserSignal(uid).map(Some(_)))
+    otherUser <- userData(ms.headOption)
   } yield (conv.id, subtitleStringForLastMessages(conv, otherUser, ms.toSet, lastMessage, lastUnreadMessage, lastUnreadMessageUser, lastUnreadMessageMembers, typingUser, z.selfUserId))
+
+  private def userData(id: Option[UserId]) = id.fold2(Signal.const(Option.empty[UserData]), uid => UserSignal(uid).map(Option(_)))
 
   val avatarInfo = for {
     z <- zms
@@ -150,20 +156,27 @@ class NormalConversationListRow(context: Context, attrs: AttributeSet, style: In
     }
   }
 
-  conversationName.on(Threading.Ui) { title.setText }
+  (for {
+    name <- conversationName
+    Some(convId) <- conversationId
+    av <- controller.availability(convId)
+  } yield (name, av)).on(Threading.Ui) { case (name, av) =>
+    title.setText(name)
+    AvailabilityView.displayLeftOfText(title, av, title.getCurrentTextColor)
+  }
 
   subtitleText.on(Threading.Ui) {
     case (convId, text) if conversationData.forall(_.id == convId) =>
       setSubtitle(text)
     case _ =>
-      ZLog.debug("Outdated conversation subtitle")
+      verbose("Outdated conversation subtitle")
     }
 
   badgeInfo.on(Threading.Ui) {
     case (convId, status) if conversationData.forall(_.id == convId) =>
       badge.setStatus(status)
     case _ =>
-      ZLog.debug("Outdated badge status")
+      verbose("Outdated badge status")
   }
 
   avatarInfo.on(Threading.Background){
@@ -175,7 +188,7 @@ class NormalConversationListRow(context: Context, attrs: AttributeSet, style: In
         convType
       avatar.setMembers(members.map(_.id), convId, cType)
     case _ =>
-      ZLog.debug("Outdated avatar info")
+      verbose("Outdated avatar info")
   }
   avatarInfo.on(Threading.Ui){
     case (convId, convType, members, alpha) if conversationData.forall(_.id == convId) =>
@@ -184,7 +197,7 @@ class NormalConversationListRow(context: Context, attrs: AttributeSet, style: In
       }
       avatar.setAlpha(alpha)
     case _ =>
-      ZLog.debug("Outdated avatar info")
+      verbose("Outdated avatar info")
   }
 
   badge.onClickEvent{
@@ -203,22 +216,25 @@ class NormalConversationListRow(context: Context, attrs: AttributeSet, style: In
   private var moveToAnimator: ObjectAnimator = null
   private var shouldRedraw = false
 
-  private def showSubtitle(): Unit = title.setGravity(Gravity.TOP)
+  private def showSubtitle(): Unit = {
+    subtitle.setVisibility(View.VISIBLE)
+  }
 
-  private def hideSubtitle(): Unit = title.setGravity(Gravity.CENTER_VERTICAL)
+  private def hideSubtitle(): Unit = {
+    subtitle.setVisibility(View.GONE)
+  }
 
-  def setConversation(conversationData: ConversationData): Unit = {
-    if (this.conversationData.forall(_.id != conversationData.id)) {
-      this.conversationData = Some(conversationData)
-      title.setText(conversationData.displayName)
-      badge.setStatus(ConversationBadge.Empty)
-      subtitle.setText("")
-      avatar.setConversationType(conversationData.convType)
-      avatar.clearImages()
-      avatar.setAlpha(getResourceFloat(R.dimen.conversation_avatar_alpha_active))
-      conversationId.publish(Some(conversationData.id), Threading.Background)
-      closeImmediate()
-    }
+  def setConversation(conversationData: ConversationData): Unit = if (this.conversationData.forall(_.id != conversationData.id)) {
+    this.conversationData = Some(conversationData)
+    title.setText(conversationData.displayName)
+
+    badge.setStatus(ConversationBadge.Empty)
+    subtitle.setText("")
+    avatar.setConversationType(conversationData.convType)
+    avatar.clearImages()
+    avatar.setAlpha(getResourceFloat(R.dimen.conversation_avatar_alpha_active))
+    conversationId.publish(Some(conversationData.id), Threading.Background)
+    closeImmediate()
   }
 
   menuIndicatorView.setClickable(false)

@@ -46,6 +46,7 @@ import com.waz.zclient.utils.LayoutSpec
 import com.waz.zclient.ui.cursor.{CursorMenuItem => JCursorMenuItem}
 import com.waz.ZLog.ImplicitTag._
 import com.waz.zclient.conversation.ConversationController
+import com.waz.zclient.conversationlist.ConversationListController
 
 import concurrent.duration._
 
@@ -55,6 +56,7 @@ class CursorController(implicit inj: Injector, ctx: Context, evc: EventContext) 
 
   val zms = inject[Signal[ZMessaging]]
   val conversationController = inject[ConversationController]
+  lazy val convListController = inject[ConversationListController]
   val conv = conversationController.currentConv
 
   val keyboard = Signal[KeyboardState](KeyboardState.Hidden)
@@ -80,6 +82,10 @@ class CursorController(implicit inj: Injector, ctx: Context, evc: EventContext) 
   val ephemeralSelected = extendedCursor.map(_ == ExtendedCursorContainer.Type.EPHEMERAL)
   val emojiKeyboardVisible = extendedCursor.map(_ == ExtendedCursorContainer.Type.EMOJIS)
   val convIsEphemeral = conv.map(_.ephemeral != EphemeralExpiration.NONE)
+  val convAvailability = for {
+    convId <- conv.map(_.id)
+    av <- convListController.availability(convId)
+  } yield av
 
   val convIsActive = conv.map(_.isActive)
   val isEphemeralMode = convIsEphemeral.zip(ephemeralSelected) map { case (ephConv, selected) => ephConv || selected }

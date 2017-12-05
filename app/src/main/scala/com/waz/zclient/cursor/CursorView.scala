@@ -30,6 +30,7 @@ import android.widget.TextView.OnEditorActionListener
 import android.widget.{LinearLayout, TextView}
 import com.waz.ZLog.ImplicitTag._
 import com.waz.api._
+import com.waz.model.Availability
 import com.waz.threading.Threading
 import com.waz.utils.events.Signal
 import com.waz.zclient.ViewHelper
@@ -43,6 +44,8 @@ import com.waz.zclient.ui.theme.ThemeUtils
 import com.waz.zclient.ui.utils.CursorUtils
 import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.utils._
+import com.waz.zclient.views.AvailabilityView
+import com.waz.zclient.ui.text.TextTransform
 
 class CursorView(val context: Context, val attrs: AttributeSet, val defStyleAttr: Int)
     extends LinearLayout(context, attrs, defStyleAttr) with ViewHelper {
@@ -196,26 +199,39 @@ class CursorView(val context: Context, val attrs: AttributeSet, val defStyleAttr
     hintView.setTranslationX(pos)
   }
 
+  private lazy val transformer = TextTransform.get(ContextUtils.getString(R.string.single_image_message__name__font_transform))
 
-  val hintText = controller.convIsEphemeral map {
-    case true => R.string.cursor__ephemeral_message
-    case false => R.string.cursor__type_a_message
+  (for {
+    eph <- controller.convIsEphemeral
+    av <- controller.convAvailability
+    name <- controller.conv.map(_.displayName)
+  } yield (eph, av, name)).on(Threading.Ui) {
+    case (true, av, _) =>
+      hintView.setText(getString(R.string.cursor__ephemeral_message))
+      AvailabilityView.displayLeftOfText(hintView, av, defaultHintTextColor)
+    case (false, Availability.None, _) =>
+      hintView.setText(getString(R.string.cursor__type_a_message))
+      AvailabilityView.displayLeftOfText(hintView, Availability.None,  defaultHintTextColor)
+    case (false, av, name) =>
+      val transformedName = transformer.transform(name).toString
+      hintView.setText(getString(AvailabilityView.viewData(av).textId, transformedName))
+      AvailabilityView.displayLeftOfText(hintView, av, defaultHintTextColor)
   }
 
-  val hintColor = controller.convIsEphemeral.zip(accentColor) map {
-    case (true, accent) => accent.getColor
-    case (false, _) => defaultHintTextColor
+  (for {
+    eph <- controller.convIsEphemeral
+    av <- controller.convAvailability
+    ac <- accentColor
+  } yield (eph, av, ac)).on(Threading.Ui) {
+    case (true, Availability.None, accent) => hintView.setTextColor(accent.getColor)
+    case _ => hintView.setTextColor(defaultHintTextColor)
   }
 
-  val hintVisible = controller.isEditingMessage.zip(controller.enteredText) map {
+  (controller.isEditingMessage.zip(controller.enteredText) map {
     case (editing, text) => !editing && text.isEmpty
-  }
+  }).on(Threading.Ui) { hintView.setVisible }
 
   controller.convIsActive.on(Threading.Ui) { this.setVisible }
-
-  hintText.on(Threading.Ui) { hintView.setText }
-  hintColor.on(Threading.Ui) { hintView.setTextColor }
-  hintVisible.on(Threading.Ui) { hintView.setVisible }
 
   topBarVisible.on(Threading.Ui) { topBorder.setVisible }
 

@@ -21,14 +21,16 @@
 <merge xmlns:android="http://schemas.android.com/apk/res/android"
        xmlns:tools="http://schemas.android.com/tools">
 
-    <RelativeLayout
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
         android:gravity="center"
+        android:orientation="vertical"
         tools:ignore="UselessParent">
 
         <FrameLayout
+            android:id="@+id/fl_participant_layout"
             android:layout_width="@dimen/profile__image__width"
             android:layout_height="@dimen/profile__image__height"
             >
@@ -54,7 +56,17 @@
 
         </FrameLayout>
 
-    </RelativeLayout>
+        <com.waz.zclient.views.ShowAvailabilityView
+            android:id="@+id/participant_availability"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginTop="@dimen/wire__margin__huge"
+            android:visibility="gone"/>
+
+    </LinearLayout>
+
+
 
     <!-- Footer with left & right actions -->
     <com.waz.zclient.views.menus.FooterMenu

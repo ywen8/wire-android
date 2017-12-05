@@ -66,6 +66,7 @@
         android:ellipsize="end"
         android:textColor="@color/text__primary_dark"
         android:textSize="@dimen/wire__text_size__small"
+        android:drawablePadding="@dimen/wire__padding__4"
         app:w_font="@string/wire__typeface__light"
         />
 

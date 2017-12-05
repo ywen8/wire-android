@@ -32,8 +32,9 @@
         android:layout_height="0dp"
         android:layout_weight="1"
         android:ellipsize="end"
-        android:gravity="start|bottom"
+        android:gravity="start|center_vertical"
         android:maxLines="1"
+        android:drawablePadding="@dimen/wire__padding__8"
         app:w_font="@string/wire__typeface__light"
         style="?startUiUserRowLabel"
         />

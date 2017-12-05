@@ -58,7 +58,7 @@
         android:layout_height="0dp"
         android:layout_weight="1"
         android:layout_marginTop="@dimen/wire__padding__32"
-        android:layout_marginBottom="@dimen/wire__padding__26"
+        android:layout_marginBottom="@dimen/wire__margin__20"
         android:layout_gravity="center_horizontal"
         >
 
@@ -68,6 +68,15 @@
             android:layout_height="match_parent"/>
 
     </FrameLayout>
+
+    <com.waz.zclient.views.UpdateAvailabilityView
+        android:id="@+id/profile_user_availability"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginBottom="@dimen/wire__margin__20"
+        android:visibility="gone"
+        />
 
     <View
         android:id="@+id/settings_team_divider"

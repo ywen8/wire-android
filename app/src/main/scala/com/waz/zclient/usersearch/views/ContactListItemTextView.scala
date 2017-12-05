@@ -31,6 +31,10 @@ import com.waz.zclient.usersearch.views.ContactListItemTextView._
 import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.utils.StringUtils
 import com.waz.zclient.{Injectable, R, ViewHelper}
+import ContactListItemTextView._
+import com.waz.zclient.messages.UsersController
+import com.waz.zclient.views.AvailabilityView
+
 
 object ContactListItemTextView {
   private val SEPARATOR_SYMBOL: String = " · "
@@ -74,6 +78,7 @@ class ContactListItemTextView(val context: Context, val attrs: AttributeSet, val
 
   val zms = inject[Signal[ZMessaging]]
   val userDataSignal = Signal[UserData]
+  lazy val usersController = inject[UsersController]
   val showContactDetailsSignal = Signal[Boolean]
   val userDetails = for {
     z <- zms
@@ -107,6 +112,9 @@ class ContactListItemTextView(val context: Context, val attrs: AttributeSet, val
         subLabelView.setText(sublabel)
       }
       nameView.setText(userData.getDisplayName)
+      usersController.availability(userData.id).head.foreach { av =>
+        AvailabilityView.displayLeftOfText(nameView, av, nameView.getCurrentTextColor)
+      }(Threading.Ui)
     } { contact =>
       nameView.setGravity(Gravity.START | Gravity.CENTER_VERTICAL)
       nameView.setText(contact.name)
@@ -135,6 +143,7 @@ class ContactListItemTextView(val context: Context, val attrs: AttributeSet, val
 
   def recycle(): Unit = {
     nameView.setText("")
+    AvailabilityView.hideAvailabilityIcon(nameView)
     subLabelView.setText("")
     subLabelView.setVisibility(View.GONE)
   }
