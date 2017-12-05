@@ -37,6 +37,7 @@ import com.waz.zclient.tracking.AddPhotoOnRegistrationEvent.Source
 import net.hockeyapp.android.{CrashManagerListener, ExceptionHandler}
 import org.json.JSONObject
 
+import scala.collection.JavaConverters._
 import scala.concurrent.Future._
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
@@ -48,13 +49,19 @@ class GlobalTrackingController(implicit inj: Injector, cxt: WireContext, eventCo
 
   private implicit val dispatcher = new SerialDispatchQueue(name = "Tracking")
 
-  private val superProps = Signal(returning(new JSONObject()) { o =>
-    o.put(AppSuperProperty, AppSuperPropertyValue)
-    o.put(CitySuperProperty, null)
-    o.put(RegionSuperProperty, null)
-  }).disableAutowiring()
+  private val superProps = Signal(new JSONObject())
 
-  private val mixpanelGuard = returning(new MixpanelGuard(cxt))(_.open())
+  //Create mixpanel object and set persistant super property values
+  private val mixpanelGuard = returning(new MixpanelGuard(cxt)) { g =>
+    g.open()
+    g.withApi { m =>
+      m.registerSuperPropertiesMap(Map(
+        "app"     -> "android",
+        "$city"   -> null.asInstanceOf[AnyRef],
+        "$region" -> null.asInstanceOf[AnyRef]
+      ).asJava)
+    }
+  }
 
   //For automation tests
   def getId = mixpanelGuard.withApi(_.getDistinctId).getOrElse("")
@@ -157,7 +164,7 @@ class GlobalTrackingController(implicit inj: Injector, cxt: WireContext, eventCo
 
   for {
     //Should wait until a ZMS instance exists before firing the event
-    _ <- ZMessaging.currentAccounts.activeZms.collect { case Some(z) => z }.head
+    _   <- ZMessaging.currentAccounts.activeZms.collect { case Some(z) => z }.head
     acc <- ZMessaging.currentAccounts.activeAccount.collect { case Some(acc) => acc }.head
   } yield {
     //TODO when are generic tokens still used?
@@ -173,7 +180,7 @@ class GlobalTrackingController(implicit inj: Injector, cxt: WireContext, eventCo
   def onAddNameOnRegistration(response: Either[EntryError, Unit], inputType: InputType): Unit =
     for {
     //Should wait until a ZMS instance exists before firing the event
-      _ <- ZMessaging.currentAccounts.activeZms.collect { case Some(z) => z }.head
+      _   <- ZMessaging.currentAccounts.activeZms.collect { case Some(z) => z }.head
       acc <- ZMessaging.currentAccounts.activeAccount.collect { case Some(acc) => acc }.head
     } yield {
       track(EnteredNameOnRegistrationEvent(inputType, responseToErrorPair(response)), Some(acc.id))
@@ -201,13 +208,8 @@ object GlobalTrackingController {
   }
 
   private lazy val MixpanelIgnoreProperty = "$ignore"
-
-  private lazy val AppSuperProperty = "app"
-  private lazy val AppSuperPropertyValue = "android"
   private lazy val TeamInTeamSuperProperty = "team.in_team"
   private lazy val TeamSizeSuperProperty = "team.size"
-  private lazy val CitySuperProperty = "$city"
-  private lazy val RegionSuperProperty = "$region"
 
   val analyticsPrefKey = BuildConfig.APPLICATION_ID match {
     case "com.wire" | "com.wire.internal" => GlobalPreferences.AnalyticsEnabled
