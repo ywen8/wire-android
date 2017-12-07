@@ -16,18 +16,20 @@
   * along with this program.  If not, see <http://www.gnu.org/licenses/>.
   */
 
-package com.waz.zclient.fragments
+package com.waz.zclient.callquality
 import android.app.{AlertDialog, Dialog}
 import android.os.Bundle
-import android.support.v4.app.Fragment
+import android.support.v4.app.{DialogFragment, Fragment}
 import android.view.View.OnClickListener
 import android.view.{LayoutInflater, View}
 import android.widget.AdapterView
-import com.waz.zclient.fragments.CallQualityFragment._
+import com.waz.zclient.callquality.CallQualityFragment._
 import com.waz.zclient.pages.BaseDialogFragment
 import com.waz.zclient.{FragmentHelper, R}
+import com.waz.ZLog._
 
 object CallQualityFragment {
+  val Tag = logTagFor[CallQualityFragment]
   def newInstance(): Fragment = {
     val fragment = new CallQualityFragment
     val bundle = new Bundle()
@@ -39,6 +41,8 @@ object CallQualityFragment {
 }
 
 class CallQualityFragment extends BaseDialogFragment[Container] with FragmentHelper with OnClickListener {
+
+  lazy val callQualityController = inject[CallQualityController]
 
   override def onCreateDialog(savedInstanceState: Bundle): Dialog = {
     val view = LayoutInflater.from(getActivity).inflate(R.layout.fragment_call_quality, null)
@@ -55,7 +59,12 @@ class CallQualityFragment extends BaseDialogFragment[Container] with FragmentHel
   }
 
   override def onClick(view: View): Unit = {
-    
+
+  }
+
+  override def onCreate(savedInstanceState: Bundle): Unit = {
+    super.onCreate(savedInstanceState)
+    setStyle(DialogFragment.STYLE_NO_FRAME, R.style.Theme_Dark_Dialog)
   }
 }
 
