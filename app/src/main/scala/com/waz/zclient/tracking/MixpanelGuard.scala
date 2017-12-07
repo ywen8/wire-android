@@ -33,28 +33,24 @@ import scala.language.implicitConversions
 
 object MixpanelGuard {
 
-  private implicit def refl(ref: AnyRef) = new {
+  private def find[T](ref: AnyRef, name: String) = returning(ref.getClass.getDeclaredFields.find(_.getName == name)) { field =>
+    if (field.isEmpty) warn(s"mixpanel field $name not found")
+  }
 
-    private def find(name: String) = returning(ref.getClass.getDeclaredFields.find(_.getName == name)) { field =>
-      if (field.isEmpty) warn(s"mixpanel field $name not found")
-    }
+  private def getField(ref: AnyRef, name: String): Option[AnyRef] = find(ref, name).map { field =>
+    field.setAccessible(true)
+    field.get(ref)
+  }
 
-    def getField(name: String): Option[AnyRef] = find(name).map { field =>
-      field.setAccessible(true)
-      field.get(ref)
-    }
+  private def call(ref: AnyRef, name: String): Unit = {
+    val method = ref.getClass.getDeclaredMethod(name)
+    method.setAccessible(true)
+    method.invoke(ref)
+  }
 
-    def call(name: String): Unit = {
-      val method = ref.getClass.getDeclaredMethod(name)
-      method.setAccessible(true)
-      method.invoke(ref)
-    }
-
-    def setField(name: String, value: Any): Unit = find(name).foreach { field =>
-      verbose(s"mixpanel field $name set to $value")
-      field.setAccessible(true)
-      field.set(ref, value)
-    }
+  private def setField(ref: AnyRef, name: String, value: Any): Unit = find(ref, name).foreach { field =>
+    field.setAccessible(true)
+    field.set(ref, value)
   }
 
   private val offlineMode = new OfflineMode {
@@ -62,11 +58,11 @@ object MixpanelGuard {
   }
 
   private def status(m: MixpanelAPI): Unit = {
-    val sessionTimeoutDuration = m.getField("mConfig").map { _.asInstanceOf[MPConfig].getSessionTimeoutDuration }
-    verbose(s"  mSessionTimeoutDuration: $sessionTimeoutDuration")
-    val isOffline = m.getField("mConfig").flatMap { c => Option(c.asInstanceOf[MPConfig].getOfflineMode).map(_.isOffline) }
+    val sessionTimeoutDuration = getField(m, CONFIG_NAME).map { _.asInstanceOf[MPConfig].getSessionTimeoutDuration }
+    verbose(s"  $SESSION_TIMEOUT_NAME: $sessionTimeoutDuration")
+    val isOffline = getField(m, CONFIG_NAME).flatMap { c => Option(c.asInstanceOf[MPConfig].getOfflineMode).map(_.isOffline) }
     verbose(s"  isOffline              : $isOffline")
-    val automaticEventsEnabled = m.getField("mDecideMessages").flatMap { _.getField("mAutomaticEventsEnabled") }.map(_.asInstanceOf[Boolean])
+    val automaticEventsEnabled = getField(m, DECIDE_NAME).flatMap { r => getField(r, AUTO_EVENTS_NAME) }.map(_.asInstanceOf[Boolean])
     verbose(s"  automaticEventsEnabled : $automaticEventsEnabled")
   }
 
@@ -91,9 +87,9 @@ class MixpanelGuard(cxt: WireContext) {
 
     mixpanel = MixpanelApiToken.map(MixpanelAPI.getInstance(cxt.getApplicationContext, _))
     mixpanel.foreach { m =>
-      m.getField(CONFIG_NAME).foreach { _.setField(SESSION_TIMEOUT_NAME, Int.MaxValue) }
-      m.getField(CONFIG_NAME).foreach { _.asInstanceOf[MPConfig].setOfflineMode(null) }
-      m.getField(DECIDE_NAME).foreach { _.setField(AUTO_EVENTS_NAME, true) }
+      getField(m, CONFIG_NAME).foreach { r => setField(r, SESSION_TIMEOUT_NAME, Int.MaxValue) }
+      getField(m, CONFIG_NAME).foreach { _.asInstanceOf[MPConfig].setOfflineMode(null) }
+      getField(m, DECIDE_NAME).foreach { r => setField(r, AUTO_EVENTS_NAME, true) }
 
       verbose(s"status after opening: ")
       status(m)
@@ -109,14 +105,14 @@ class MixpanelGuard(cxt: WireContext) {
     verbose(s"closing mixpanel instance")
 
     m.reset()
-    m.call("flushNoDecideCheck")
+    call(m, "flushNoDecideCheck")
 
     // the delay is necessary to give Mixpanel time for the flush
     // be sure not to call 'open' before that (TODO: synchronize with signals?)
     CancellableFuture.delayed(MIXPANEL_CLOSE_DELAY) {
-      m.getField(CONFIG_NAME).foreach { _.setField(SESSION_TIMEOUT_NAME, 0) }
-      m.getField(CONFIG_NAME).foreach { _.asInstanceOf[MPConfig].setOfflineMode(offlineMode) }
-      m.getField(DECIDE_NAME).foreach { _.setField(AUTO_EVENTS_NAME, false) }
+      getField(m, CONFIG_NAME).foreach { r => setField(r, SESSION_TIMEOUT_NAME, 0) }
+      getField(m, CONFIG_NAME).foreach { _.asInstanceOf[MPConfig].setOfflineMode(offlineMode) }
+      getField(m, DECIDE_NAME).foreach { r => setField(r, AUTO_EVENTS_NAME, false) }
 
       verbose(s"status after closing: ")
       status(m)
