@@ -18,43 +18,44 @@
 
 package com.waz.zclient.fragments
 import android.app.{AlertDialog, Dialog}
-import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.support.v4.app.Fragment
-import android.support.v4.content.ContextCompat
+import android.view.View.OnClickListener
 import android.view.{LayoutInflater, View}
-import android.widget.{AdapterView, ListView}
-import com.waz.zclient.controllers.SignInController
-import com.waz.zclient.fragments.CountryDialogFragment._
-import com.waz.zclient.newreg.fragments.country.{CountryCodeAdapter, CountryController}
+import android.widget.AdapterView
+import com.waz.zclient.fragments.CallQualityFragment._
 import com.waz.zclient.pages.BaseDialogFragment
-import com.waz.zclient.utils.ViewUtils
 import com.waz.zclient.{FragmentHelper, R}
 
 object CallQualityFragment {
-  def newInstance(title:String): Fragment = {
-    val fragment = new ImageFragment
+  def newInstance(): Fragment = {
+    val fragment = new CallQualityFragment
     val bundle = new Bundle()
-    bundle.putString("title", title)
     fragment.setArguments(bundle)
     fragment
 
   }
+  trait Container
 }
 
-class CallQualityFragment extends BaseDialogFragment[Container] with FragmentHelper with AdapterView.OnItemClickListener{
+class CallQualityFragment extends BaseDialogFragment[Container] with FragmentHelper with OnClickListener {
 
   override def onCreateDialog(savedInstanceState: Bundle): Dialog = {
-    new AlertDialog.Builder(getActivity)
-      // set Dialog Title
-      .setTitle("Call Quality Survey")
-      // Set Dialog Message
-      .setMessage("Question 1").create
+    val view = LayoutInflater.from(getActivity).inflate(R.layout.fragment_call_quality, null)
 
+    lazy val btn1 = findById[View](view, R.id.call_quality_button_1)
+    lazy val btn2 = findById[View](view, R.id.call_quality_button_2)
+    lazy val btn3 = findById[View](view, R.id.call_quality_button_3)
+    lazy val btn4 = findById[View](view, R.id.call_quality_button_4)
+    lazy val btn5 = findById[View](view, R.id.call_quality_button_5)
+
+    Seq(btn1, btn2, btn3, btn4, btn5).foreach(_.setOnClickListener(this))
+
+    new AlertDialog.Builder(getActivity).setView(view).setCancelable(true).create
   }
 
-  def onItemClick(adapterView: AdapterView[_], view: View, i: Int, l: Long): Unit = {
-
+  override def onClick(view: View): Unit = {
+    
   }
 }
 
