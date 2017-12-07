@@ -128,7 +128,7 @@ class AppEntryController(implicit inj: Injector, eventContext: EventContext) ext
         SetPasswordTeam
       case (Some(accountData), _) if accountData.pendingPhone.isDefined && (!accountData.verified || !accountData.canLogin || (accountData.pendingPhone == accountData.phone)) =>
         VerifyPhoneStage
-      case (Some(accountData), _) if accountData.clientRegState == ClientRegistrationState.PASSWORD_MISSING || (accountData.pendingPhone == accountData.phone && !accountData.canLogin) =>
+      case (Some(accountData), _) if accountData.clientRegState == ClientRegistrationState.PASSWORD_MISSING || (accountData.pendingPhone == accountData.phone && !accountData.canLogin && accountData.cookie.isEmpty) =>
         InsertPasswordStage
       case (Some(accountData), _) if accountData.clientRegState == ClientRegistrationState.LIMIT_REACHED =>
         DeviceLimitStage
