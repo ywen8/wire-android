@@ -17,11 +17,21 @@
  */
 package com.waz.zclient.callquality
 
+import com.waz.service.ZMessaging
+import com.waz.service.call.CallInfo
+import com.waz.threading.Threading
+import com.waz.utils.events.{EventContext, Signal}
 import com.waz.zclient.calling.controllers.GlobalCallingController
 import com.waz.zclient.{Injectable, Injector}
 
-class CallQualityController(implicit inj: Injector) extends Injectable {
+class CallQualityController(implicit inj: Injector, eventContext: EventContext) extends Injectable {
 
+  val zms = inject[Signal[ZMessaging]]
   val callingController = inject[GlobalCallingController]
 
+  val callToReport = Signal(Option.empty[CallInfo])
+
+  zms.flatMap(_.calling.previousCall).on(Threading.Background) { call =>
+    callToReport ! call
+  }
 }
