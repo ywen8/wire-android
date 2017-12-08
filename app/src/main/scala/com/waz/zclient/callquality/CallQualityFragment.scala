@@ -17,16 +17,14 @@
   */
 
 package com.waz.zclient.callquality
-import android.app.{AlertDialog, Dialog}
 import android.os.Bundle
 import android.support.v4.app.{DialogFragment, Fragment}
 import android.view.View.OnClickListener
-import android.view.{LayoutInflater, View}
-import android.widget.AdapterView
+import android.view.{LayoutInflater, View, ViewGroup}
+import com.waz.ZLog._
 import com.waz.zclient.callquality.CallQualityFragment._
 import com.waz.zclient.pages.BaseDialogFragment
 import com.waz.zclient.{FragmentHelper, R}
-import com.waz.ZLog._
 
 object CallQualityFragment {
   val Tag = logTagFor[CallQualityFragment]
@@ -44,27 +42,31 @@ class CallQualityFragment extends BaseDialogFragment[Container] with FragmentHel
 
   lazy val callQualityController = inject[CallQualityController]
 
-  override def onCreateDialog(savedInstanceState: Bundle): Dialog = {
+
+  override def onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState: Bundle): View = {
     val view = LayoutInflater.from(getActivity).inflate(R.layout.fragment_call_quality, null)
 
-    lazy val btn1 = findById[View](view, R.id.call_quality_button_1)
-    lazy val btn2 = findById[View](view, R.id.call_quality_button_2)
-    lazy val btn3 = findById[View](view, R.id.call_quality_button_3)
-    lazy val btn4 = findById[View](view, R.id.call_quality_button_4)
-    lazy val btn5 = findById[View](view, R.id.call_quality_button_5)
+    val buttons = Seq(
+      R.id.call_quality_button_1,
+      R.id.call_quality_button_2,
+      R.id.call_quality_button_3,
+      R.id.call_quality_button_4,
+      R.id.call_quality_button_5).map(findById[View](view, _))
 
-    Seq(btn1, btn2, btn3, btn4, btn5).foreach(_.setOnClickListener(this))
+    buttons.foreach(_.setOnClickListener(this))
 
-    new AlertDialog.Builder(getActivity).setView(view).setCancelable(true).create
+    setCancelable(false)
+    view
   }
 
   override def onClick(view: View): Unit = {
-
+    callQualityController.callToReport ! None
+    dismiss()
   }
 
   override def onCreate(savedInstanceState: Bundle): Unit = {
     super.onCreate(savedInstanceState)
-    setStyle(DialogFragment.STYLE_NO_FRAME, R.style.Theme_Dark_Dialog)
+    setStyle(DialogFragment.STYLE_NO_FRAME, R.style.Theme_AppCompat_NoActionBar)
   }
 }
 
