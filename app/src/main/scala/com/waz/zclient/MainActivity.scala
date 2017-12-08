@@ -32,7 +32,6 @@ import com.waz.api.{NetworkMode, User, _}
 import com.waz.model.{AccountId, ConvId, ConversationData}
 import com.waz.service.ZMessaging
 import com.waz.service.ZMessaging.clock
-import com.waz.service.call.Avs
 import com.waz.threading.{CancellableFuture, Threading}
 import com.waz.utils.events.Signal
 import com.waz.utils.{RichInstant, returning}
@@ -41,7 +40,7 @@ import com.waz.zclient.appentry.AppEntryActivity
 import com.waz.zclient.appentry.controllers.AppEntryController
 import com.waz.zclient.appentry.controllers.AppEntryController.{DeviceLimitStage, EnterAppStage, Unknown}
 import com.waz.zclient.calling.CallingActivity
-import com.waz.zclient.calling.controllers.{CallPermissionsController, GlobalCallingController}
+import com.waz.zclient.calling.controllers.CallPermissionsController
 import com.waz.zclient.common.controllers.global.AccentColorController
 import com.waz.zclient.common.controllers.{SharingController, UserAccountsController}
 import com.waz.zclient.controllers.accentcolor.AccentColorChangeRequester
@@ -52,7 +51,7 @@ import com.waz.zclient.core.stores.api.ZMessagingApiStoreObserver
 import com.waz.zclient.core.stores.connect.{ConnectStoreObserver, IConnectStore}
 import com.waz.zclient.core.stores.conversation.ConversationChangeRequester
 import com.waz.zclient.core.stores.profile.ProfileStoreObserver
-import com.waz.zclient.callquality.{CallQualityFragment, ConnectivityFragment}
+import com.waz.zclient.callquality.{CallQualityController, CallQualityFragment, ConnectivityFragment}
 import com.waz.zclient.pages.main.{MainPhoneFragment, MainTabletFragment}
 import com.waz.zclient.pages.startup.UpdateFragment
 import com.waz.zclient.preferences.{PreferencesActivity, PreferencesController}
@@ -88,7 +87,7 @@ class MainActivity extends BaseActivity
   lazy val conversationController   = inject[ConversationController]
   lazy val userAccountsController   = inject[UserAccountsController]
   lazy val appEntryController       = inject[AppEntryController]
-  lazy val callingController        = inject[GlobalCallingController]
+  lazy val callQualityController    = inject[CallQualityController]
 
   override def onAttachedToWindow() = {
     super.onAttachedToWindow()
@@ -149,19 +148,15 @@ class MainActivity extends BaseActivity
       appEntryController.invitationToken ! None
     }
 
-    val sig = zms.flatMap(_.calling.previousCall).disableAutowiring()
-
-    sig.onChanged.onUi {
-      case Some(call) if call.closedReason != Avs.ClosedReason.Canceled =>
-        info("activeCall ended")
-        getSupportFragmentManager
-          .beginTransaction
-          .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
-          .add(new CallQualityFragment, CallQualityFragment.Tag)
-          .addToBackStack(CallQualityFragment.Tag)
-          .commit
+    callQualityController.callToReport.onUi {
+      case Some(call) if call.estabTime.isDefined =>
+        if (getSupportFragmentManager.findFragmentByTag(CallQualityFragment.Tag) == null)
+          getSupportFragmentManager
+            .beginTransaction
+            .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
+            .add(new CallQualityFragment, CallQualityFragment.Tag)
+            .commit
       case _ =>
-        info("activeCall started")
     }
   }
 
