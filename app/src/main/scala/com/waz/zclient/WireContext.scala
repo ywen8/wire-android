@@ -21,6 +21,7 @@ import android.annotation.SuppressLint
 import android.app.{Activity, Dialog, Service}
 import android.content.{Context, ContextWrapper, DialogInterface}
 import android.support.v4.app.{Fragment, FragmentActivity}
+import android.support.v7.app.AppCompatActivity
 import android.support.v7.preference.Preference
 import android.view.{LayoutInflater, View, ViewGroup, ViewStub}
 import com.waz.ZLog
@@ -190,7 +191,7 @@ trait DialogHelper extends Dialog with Injectable with EventContext {
   }
 }
 
-trait ActivityHelper extends Activity with ViewFinder with Injectable with WireContext with EventContext {
+trait ActivityHelper extends AppCompatActivity with ViewFinder with Injectable with WireContext with EventContext {
 
   override implicit def eventContext: EventContext = this
 

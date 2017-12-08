@@ -143,9 +143,6 @@ public class CameraFragment extends BaseFragment<CameraFragment.Container> imple
             public void openIntent(Intent intent, AssetIntentsManager.IntentType intentType) {
                 startActivityForResult(intent, intentType.requestCode);
             }
-
-            @Override
-            public void onPermissionFailed(AssetIntentsManager.IntentType type) {}
         }, savedInstanceState);
     }
 

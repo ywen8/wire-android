@@ -49,8 +49,6 @@ import com.waz.zclient.controllers.orientation.IOrientationController;
 import com.waz.zclient.controllers.orientation.OrientationController;
 import com.waz.zclient.controllers.password.IPasswordController;
 import com.waz.zclient.controllers.password.PasswordController;
-import com.waz.zclient.controllers.permission.IRequestPermissionsController;
-import com.waz.zclient.controllers.permission.RequestPermissionsController;
 import com.waz.zclient.controllers.singleimage.ISingleImageController;
 import com.waz.zclient.controllers.singleimage.SingleImageController;
 import com.waz.zclient.controllers.usernames.IUsernamesController;
@@ -94,8 +92,6 @@ public class ControllerFactory implements IControllerFactory {
   protected IOrientationController orientationController;
 
   protected IPasswordController passwordController;
-
-  protected IRequestPermissionsController requestPermissionsController;
 
   protected ISingleImageController singleImageController;
 
@@ -195,10 +191,6 @@ public class ControllerFactory implements IControllerFactory {
     if (passwordController != null) {
       passwordController.tearDown();
       passwordController = null;
-    }
-    if (requestPermissionsController != null) {
-      requestPermissionsController.tearDown();
-      requestPermissionsController = null;
     }
     if (singleImageController != null) {
       singleImageController.tearDown();
@@ -302,15 +294,6 @@ public class ControllerFactory implements IControllerFactory {
       callingController = new CallingController();
     }
     return callingController;
-  }
-
-  @Override
-  public IRequestPermissionsController getRequestPermissionsController() {
-    verifyLifecycle();
-    if (requestPermissionsController == null) {
-      requestPermissionsController = new RequestPermissionsController();
-    }
-    return requestPermissionsController;
   }
 
   @Override

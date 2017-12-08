@@ -17,38 +17,40 @@
  */
 package com.waz.zclient.cursor
 
+import android.Manifest.permission.{CAMERA, READ_EXTERNAL_STORAGE, RECORD_AUDIO}
 import android.app.Activity
 import android.content.Context
 import android.text.TextUtils
 import android.view.{MotionEvent, View}
 import android.widget.Toast
 import com.google.android.gms.common.{ConnectionResult, GoogleApiAvailability}
+import com.waz.ZLog.ImplicitTag._
 import com.waz.api._
 import com.waz.content.UserPreferences
 import com.waz.model.{ConversationData, MessageData}
 import com.waz.service.ZMessaging
+import com.waz.service.permissions.PermissionsService
 import com.waz.threading.{CancellableFuture, Threading}
 import com.waz.utils.events.{EventContext, EventStream, Signal}
-import com.waz.zclient.{Injectable, Injector, R}
 import com.waz.zclient.common.controllers._
 import com.waz.zclient.controllers.camera.ICameraController
 import com.waz.zclient.controllers.drawing.IDrawingController
 import com.waz.zclient.controllers.giphy.IGiphyController
 import com.waz.zclient.controllers.location.ILocationController
 import com.waz.zclient.controllers.userpreferences.IUserPreferencesController
+import com.waz.zclient.conversation.ConversationController
+import com.waz.zclient.conversationlist.ConversationListController
 import com.waz.zclient.core.stores.network.{DefaultNetworkAction, INetworkStore}
 import com.waz.zclient.messages.MessageBottomSheetDialog.MessageAction
 import com.waz.zclient.messages.controllers.MessageActionsController
 import com.waz.zclient.pages.extendedcursor.ExtendedCursorContainer
 import com.waz.zclient.pages.main.profile.camera.CameraContext
+import com.waz.zclient.ui.cursor.{CursorMenuItem => JCursorMenuItem}
 import com.waz.zclient.ui.utils.KeyboardUtils
 import com.waz.zclient.utils.LayoutSpec
-import com.waz.zclient.ui.cursor.{CursorMenuItem => JCursorMenuItem}
-import com.waz.ZLog.ImplicitTag._
-import com.waz.zclient.conversation.ConversationController
-import com.waz.zclient.conversationlist.ConversationListController
+import com.waz.zclient.{Injectable, Injector, R}
 
-import concurrent.duration._
+import scala.concurrent.duration._
 
 class CursorController(implicit inj: Injector, ctx: Context, evc: EventContext) extends Injectable {
   import CursorController._
@@ -168,8 +170,11 @@ class CursorController(implicit inj: Injector, ctx: Context, evc: EventContext) 
       if (LayoutSpec.isTablet(ctx) && tpe == ExtendedCursorContainer.Type.IMAGES) {
         cameraController.openCamera(CameraContext.MESSAGE)
         keyboard ! KeyboardState.Hidden
-      } else permissions.withPermissions(keyboardPermissions(tpe): _*) {
-        cursorCallback.foreach(_.openExtendedCursor(tpe))
+      } else {
+        permissions.requestAllPermissions(keyboardPermissions(tpe)).map {
+          case true => cursorCallback.foreach(_.openExtendedCursor(tpe))
+          case _ => //TODO error message?
+        } (Threading.Ui)
       }
   }
 
@@ -241,7 +246,7 @@ class CursorController(implicit inj: Injector, ctx: Context, evc: EventContext) 
   lazy val cameraController = inject[ICameraController]
   lazy val locationController = inject[ILocationController]
   lazy val soundController = inject[SoundController]
-  lazy val permissions = inject[PermissionsController]
+  lazy val permissions = inject[PermissionsService]
   lazy val networkStore = inject[INetworkStore]
   lazy val activity = inject[Activity]
 
@@ -296,11 +301,11 @@ object CursorController {
   }
 
   val KeyboardPermissions = Map(
-    ExtendedCursorContainer.Type.IMAGES -> Seq(CameraPermission, ReadExternalStoragePermission),
-    ExtendedCursorContainer.Type.VOICE_FILTER_RECORDING -> Seq(RecordAudioPermission)
+    ExtendedCursorContainer.Type.IMAGES -> Seq(CAMERA, READ_EXTERNAL_STORAGE),
+    ExtendedCursorContainer.Type.VOICE_FILTER_RECORDING -> Seq(RECORD_AUDIO)
   )
 
-  def keyboardPermissions(tpe: ExtendedCursorContainer.Type) = KeyboardPermissions.getOrElse(tpe, Seq.empty)
+  def keyboardPermissions(tpe: ExtendedCursorContainer.Type): Set[PermissionsService.PermissionKey] = KeyboardPermissions.getOrElse(tpe, Seq.empty).toSet
 }
 
 // temporary for compatibility with ConversationFragment

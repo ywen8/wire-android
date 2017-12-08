@@ -17,12 +17,18 @@
  */
 package com.waz.zclient.calling.controllers
 
+import android.Manifest.permission._
+import android.content.{DialogInterface, Intent}
+import android.net.Uri
+import android.provider.Settings
 import com.waz.content.GlobalPreferences.AutoAnswerCallPrefKey
 import com.waz.model.ConvId
 import com.waz.service.call.CallInfo.CallState.OtherCalling
+import com.waz.service.permissions.PermissionsService
 import com.waz.threading.Threading
+import com.waz.utils.returning
 import com.waz.zclient._
-import com.waz.zclient.common.controllers.{CameraPermission, PermissionsController, RecordAudioPermission}
+import com.waz.zclient.utils.ViewUtils
 
 /**
   * This class is intended to be a relatively small controller that every PermissionsActivity can have access to in order
@@ -37,7 +43,7 @@ class CallPermissionsController(implicit inj: Injector, cxt: WireContext) extend
   val globController = inject[GlobalCallingController]
   import globController._
 
-  val permissionsController = inject[PermissionsController]
+  val permissions = inject[PermissionsService]
 
   for {
     cId <- convId
@@ -54,12 +60,30 @@ class CallPermissionsController(implicit inj: Injector, cxt: WireContext) extend
     * underlying service
     */
   def startCall(convId: ConvId, withVideo: Boolean = false): Unit = {
-    convIdOpt.head.map(_.isDefined).map { incoming =>
-      permissionsController.requiring(if (withVideo) Set(CameraPermission, RecordAudioPermission) else Set(RecordAudioPermission)) {
-        callingService.head.map(_.startCall(convId, withVideo))
-      }(R.string.calling__cannot_start__title, if (withVideo) R.string.calling__cannot_start__no_video_permission__message else R.string.calling__cannot_start__no_permission__message,
-        if (incoming) callingService.head.map(_.endCall(convId)))
+    currentCallOpt.head.map { incomingCall =>
+      permissions.requestAllPermissions(if (incomingCall.map(_.isVideoCall).getOrElse(withVideo)) Set(CAMERA, RECORD_AUDIO) else Set(RECORD_AUDIO)).map {
+        case true => callingService.head.map(_.startCall(convId, withVideo))
+        case false =>
+          ViewUtils.showAlertDialog(
+            cxt,
+            R.string.calling__cannot_start__title,
+            if (withVideo) R.string.calling__cannot_start__no_video_permission__message else R.string.calling__cannot_start__no_permission__message,
+            R.string.permissions_denied_dialog_acknowledge,
+            R.string.permissions_denied_dialog_settings,
+            new DialogInterface.OnClickListener() {
+              override def onClick(dialog: DialogInterface, which: Int): Unit =
+                if (incomingCall.isDefined) callingService.head.map(_.endCall(convId))
+            },
+            new DialogInterface.OnClickListener() {
+              override def onClick(dialog: DialogInterface, which: Int): Unit = {
+                returning(new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.fromParts("package", cxt.getPackageName, null))) { i =>
+                  i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                  cxt.startActivity(i)
+                }
+                if (incomingCall.isDefined) callingService.head.map(_.endCall(convId))
+              }
+            })
+      } (Threading.Ui)
     }
   }
-
 }

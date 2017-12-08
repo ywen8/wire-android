@@ -34,7 +34,6 @@ import com.waz.zclient.controllers.location.ILocationController;
 import com.waz.zclient.controllers.navigation.INavigationController;
 import com.waz.zclient.controllers.orientation.IOrientationController;
 import com.waz.zclient.controllers.password.IPasswordController;
-import com.waz.zclient.controllers.permission.IRequestPermissionsController;
 import com.waz.zclient.controllers.singleimage.ISingleImageController;
 import com.waz.zclient.controllers.stubs.StubAccentColorController;
 import com.waz.zclient.controllers.stubs.StubCallingController;
@@ -52,7 +51,6 @@ import com.waz.zclient.controllers.stubs.StubNavigationController;
 import com.waz.zclient.controllers.stubs.StubOrientationController;
 import com.waz.zclient.controllers.stubs.StubPasswordController;
 import com.waz.zclient.controllers.stubs.StubPickUserController;
-import com.waz.zclient.controllers.stubs.StubRequestPermissionsController;
 import com.waz.zclient.controllers.stubs.StubSingleImageController;
 import com.waz.zclient.controllers.stubs.StubSlidingPaneController;
 import com.waz.zclient.controllers.stubs.StubUserPreferencesController;
@@ -95,8 +93,6 @@ public class MockControllerFactory implements IControllerFactory {
   protected IOrientationController orientationController = spy(StubOrientationController.class);
 
   protected IPasswordController passwordController = spy(StubPasswordController.class);
-
-  protected IRequestPermissionsController requestPermissionsController = spy(StubRequestPermissionsController.class);
 
   protected ISingleImageController singleImageController = spy(StubSingleImageController.class);
 
@@ -149,11 +145,6 @@ public class MockControllerFactory implements IControllerFactory {
   @Override
   public IConfirmationController getConfirmationController() {
     return confirmationController;
-  }
-
-  @Override
-  public IRequestPermissionsController getRequestPermissionsController() {
-    return requestPermissionsController;
   }
 
   @Override

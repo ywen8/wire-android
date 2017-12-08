@@ -43,7 +43,7 @@ object ContextUtils {
   def getString(resId: Int)(implicit context: Context): String = context.getResources.getString(resId)
   def getString(resId: Int, args: String*)(implicit context: Context): String = context.getResources.getString(resId, args:_*)
 
-  def showToast(resId: Int, long: Boolean = true)()(implicit context: Context): Unit =
+  def showToast(resId: Int, long: Boolean = true)(implicit context: Context): Unit =
     Toast.makeText(context, resId, if (long) Toast.LENGTH_LONG else Toast.LENGTH_SHORT).show()
 
   def getStringOrEmpty(resId: Int)(implicit context: Context): String = if (resId > 0) getString(resId) else ""

@@ -17,12 +17,10 @@
   */
 package com.waz.zclient.usersearch
 
-import android.Manifest
-import android.content.pm.PackageManager
+import android.Manifest.permission.READ_CONTACTS
 import android.content.{DialogInterface, Intent}
 import android.net.Uri
 import android.os.{Bundle, Handler}
-import android.support.v4.app.ActivityCompat
 import android.support.v4.content.ContextCompat
 import android.support.v7.app.AlertDialog
 import android.support.v7.widget.{LinearLayoutManager, RecyclerView, Toolbar}
@@ -37,6 +35,7 @@ import com.waz.api._
 import com.waz.content.UserPreferences
 import com.waz.model.UserData.ConnectionStatus
 import com.waz.model._
+import com.waz.service.permissions.PermissionsService
 import com.waz.service.{SearchState, ZMessaging}
 import com.waz.threading.Threading
 import com.waz.utils.events.Signal
@@ -47,7 +46,6 @@ import com.waz.zclient.common.views.{ChatheadWithTextFooter, FlatWireButton, Pic
 import com.waz.zclient.controllers.currentfocus.IFocusController
 import com.waz.zclient.controllers.globallayout.KeyboardVisibilityObserver
 import com.waz.zclient.controllers.navigation.NavigationController
-import com.waz.zclient.controllers.permission.RequestPermissionsObserver
 import com.waz.zclient.controllers.userpreferences.IUserPreferencesController
 import com.waz.zclient.conversation.ConversationController
 import com.waz.zclient.core.stores.conversation.ConversationChangeRequester
@@ -62,12 +60,11 @@ import com.waz.zclient.ui.theme.ThemeUtils
 import com.waz.zclient.ui.utils.KeyboardUtils
 import com.waz.zclient.usersearch.adapters.PickUsersAdapter
 import com.waz.zclient.usersearch.views.{ContactRowView, SearchBoxView, SearchEditText, UserRowView}
-import com.waz.zclient.utils.device.DeviceDetector
-import com.waz.zclient.utils.{IntentUtils, LayoutSpec, PermissionUtils, StringUtils, UiStorage, UserSignal}
 import com.waz.zclient.utils.ContextUtils._
+import com.waz.zclient.utils.device.DeviceDetector
+import com.waz.zclient.utils.{IntentUtils, LayoutSpec, StringUtils, UiStorage, UserSignal, ViewUtils}
 import com.waz.zclient.views._
 import com.waz.zclient.{BaseActivity, FragmentHelper, OnBackPressedListener, R}
-import com.waz.zclient.utils.ViewUtils
 
 import scala.collection.JavaConverters._
 import scala.concurrent.Future
@@ -116,8 +113,7 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
   with ConversationQuickMenuCallback
   with OnBackPressedListener
   with SearchResultOnItemTouchListener.Callback
-  with PickUsersAdapter.Callback
-  with RequestPermissionsObserver {
+  with PickUsersAdapter.Callback {
 
   private var searchResultAdapter: PickUsersAdapter = null
   // Saves user from which a pending connect request is loaded
@@ -349,7 +345,6 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
   override def onStart(): Unit = {
     super.onStart()
     getControllerFactory.getGlobalLayoutController.addKeyboardVisibilityObserver(this)
-    getControllerFactory.getRequestPermissionsController.addObserver(this)
     if (isAddingToConversation && !getArguments.getBoolean(PickUserFragment.ARGUMENT_GROUP_CONVERSATION)) {
       new Handler().post(new Runnable() {
         def run(): Unit = {
@@ -399,7 +394,6 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
   override def onStop(): Unit = {
     getContainer.getLoadingViewIndicator.hide()
     getControllerFactory.getGlobalLayoutController.removeKeyboardVisibilityObserver(this)
-    getControllerFactory.getRequestPermissionsController.removeObserver(this)
     super.onStop()
   }
 
@@ -779,25 +773,6 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
     getControllerFactory.getPickUserController.hidePickUser(getCurrentPickerDestination, true)
   }
 
-  override def onRequestPermissionsResult(requestCode: Int, grantResults: Array[Int]): Unit = {
-    if (requestCode == PermissionUtils.REQUEST_READ_CONTACTS) {
-      updateShareContacts(false)
-      if (grantResults.length > 0) {
-        if (grantResults(0) == PackageManager.PERMISSION_GRANTED) {
-          //Changing the value of the shareContacts seems to be the
-          //only way to trigger a refresh on the sync engine...
-          updateShareContacts(true)
-        } else if (grantResults(0) == PackageManager.PERMISSION_DENIED) {
-          val showRationale = shouldShowRequestPermissionRationale(Manifest.permission.READ_CONTACTS)
-          if (!showRationale && getControllerFactory != null && !getControllerFactory.isTornDown) {
-            getControllerFactory.getUserPreferencesController.setPerformedAction(
-              IUserPreferencesController.DO_NOT_SHOW_SHARE_CONTACTS_DIALOG)
-          }
-        }
-      }
-    }
-  }
-
   private def getSelectedUsersJava: java.util.List[User] = {
     searchUserController.selectedUsers.map(uid => getStoreFactory.pickUserStore.getUser(uid.str)).toList.asJava
   }
@@ -826,7 +801,18 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
       checkBox.setText(R.string.people_picker__share_contacts__nevvah)
       val dialog = new AlertDialog.Builder(getContext).setTitle(R.string.people_picker__share_contacts__title).setMessage(R.string.people_picker__share_contacts__message).setView(checkBoxView).setPositiveButton(R.string.people_picker__share_contacts__yay, new DialogInterface.OnClickListener() {
         def onClick(dialog: DialogInterface, which: Int): Unit = {
-          requestShareContactsPermissions()
+          inject[PermissionsService].requestAllPermissions(Set(READ_CONTACTS)).map {
+            case true =>
+              updateShareContacts(true)
+
+            case _ =>
+              updateShareContacts(false)
+              val showRationale = shouldShowRequestPermissionRationale(READ_CONTACTS)
+              if (!showRationale && getControllerFactory != null && !getControllerFactory.isTornDown) {
+                getControllerFactory.getUserPreferencesController.setPerformedAction(
+                  IUserPreferencesController.DO_NOT_SHOW_SHARE_CONTACTS_DIALOG)
+              }
+          } (Threading.Ui)
         }
       }).setNegativeButton(R.string.people_picker__share_contacts__nah, new DialogInterface.OnClickListener() {
         def onClick(dialog: DialogInterface, which: Int): Unit = {
@@ -836,13 +822,6 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
       dialog.show()
     }
   }
-
-  private def requestShareContactsPermissions(): Unit =
-    if (getControllerFactory != null && !getControllerFactory.isTornDown && !userAccountsController.isTeamAccount)
-      if (PermissionUtils.hasSelfPermissions(getContext, Manifest.permission.READ_CONTACTS))
-        updateShareContacts(true)
-      else
-        ActivityCompat.requestPermissions(getActivity, Array[String](Manifest.permission.READ_CONTACTS), PermissionUtils.REQUEST_READ_CONTACTS)
 
   private def updateShareContacts(share: Boolean): Unit ={
     zms.head.flatMap(_.userPrefs.preference(UserPreferences.ShareContacts).update(share)) (Threading.Background)

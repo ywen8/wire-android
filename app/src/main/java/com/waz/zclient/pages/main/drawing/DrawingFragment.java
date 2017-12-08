@@ -17,18 +17,15 @@
  */
 package com.waz.zclient.pages.main.drawing;
 
-import android.Manifest;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
-import android.graphics.Color;
 import android.graphics.Rect;
 import android.hardware.Sensor;
 import android.hardware.SensorManager;
 import android.media.ExifInterface;
 import android.os.Bundle;
-import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
@@ -38,13 +35,13 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.widget.FrameLayout;
-import android.widget.HorizontalScrollView;
 import android.widget.TextView;
 import com.waz.api.BitmapCallback;
 import com.waz.api.ImageAsset;
 import com.waz.api.ImageAssetFactory;
 import com.waz.api.LoadHandle;
 import com.waz.api.MemoryImageCache;
+import com.waz.service.permissions.PermissionsService;
 import com.waz.utils.wrappers.URI;
 import com.waz.zclient.OnBackPressedListener;
 import com.waz.zclient.R;
@@ -52,7 +49,6 @@ import com.waz.zclient.controllers.accentcolor.AccentColorObserver;
 import com.waz.zclient.controllers.drawing.DrawingController;
 import com.waz.zclient.controllers.drawing.IDrawingController;
 import com.waz.zclient.controllers.globallayout.KeyboardVisibilityObserver;
-import com.waz.zclient.controllers.permission.RequestPermissionsObserver;
 import com.waz.zclient.conversation.ConversationController;
 import com.waz.zclient.pages.BaseFragment;
 import com.waz.zclient.pages.main.conversation.AssetIntentsManager;
@@ -68,13 +64,14 @@ import com.waz.zclient.ui.utils.MathUtils;
 import com.waz.zclient.ui.views.CursorIconButton;
 import com.waz.zclient.ui.views.SketchEditText;
 import com.waz.zclient.utils.Callback;
+import com.waz.zclient.utils.ContextUtils;
 import com.waz.zclient.utils.LayoutSpec;
-import com.waz.zclient.utils.PermissionUtils;
 import com.waz.zclient.utils.ViewUtils;
 import com.waz.zclient.utils.debug.ShakeEventListener;
-import com.waz.zclient.utils.ContextUtils;
 
 import java.util.Locale;
+
+import static android.Manifest.permission.READ_EXTERNAL_STORAGE;
 
 public class DrawingFragment extends BaseFragment<DrawingFragment.Container> implements OnBackPressedListener,
                                                                                         ColorPickerLayout.OnColorSelectedListener,
@@ -82,7 +79,6 @@ public class DrawingFragment extends BaseFragment<DrawingFragment.Container> imp
                                                                                         ViewTreeObserver.OnScrollChangedListener,
                                                                                         AccentColorObserver,
                                                                                         AssetIntentsManager.Callback,
-                                                                                        RequestPermissionsObserver,
                                                                                         ColorPickerLayout.OnWidthChangedListener,
                                                                                         KeyboardVisibilityObserver {
 
@@ -92,22 +88,16 @@ public class DrawingFragment extends BaseFragment<DrawingFragment.Container> imp
     private static final String ARGUMENT_DRAWING_DESTINATION = "ARGUMENT_DRAWING_DESTINATION";
     private static final String ARGUMENT_DRAWING_METHOD = "ARGUMENT_DRAWING_METHOD";
 
-    private static final String[] SKETCH_FROM_GALLERY_PERMISSION = new String[] {Manifest.permission.READ_EXTERNAL_STORAGE};
-    private static final int OPEN_SKETCH_FROM_GALLERY = 8864;
-
     private static final float TEXT_ALPHA_INVISIBLE = 0F;
     private static final float TEXT_ALPHA_MOVE = 0.2F;
     private static final float TEXT_ALPHA_VISIBLE = 1F;
     private static final int SEND_BUTTON_DISABLED_ALPHA = 102;
-    private static final int DEFAULT_TEXT_COLOR = Color.WHITE;
-    private static final int EDIT_BOX_POS_MARGIN = 10;
 
     private ShakeEventListener shakeEventListener;
     private SensorManager sensorManager;
     private AssetIntentsManager assetIntentsManager;
     private DrawingCanvasView drawingCanvasView;
     private ColorPickerLayout colorLayout;
-    private HorizontalScrollView colorPickerScrollContainer;
     private Toolbar toolbar;
 
     // TODO uncomment once AN-4649 is fixed
@@ -237,8 +227,6 @@ public class DrawingFragment extends BaseFragment<DrawingFragment.Container> imp
         drawingCanvasView.setDrawingColor(getControllerFactory().getAccentColorController().getColor());
         drawingCanvasView.setOnTouchListener(drawingCanvasViewOnTouchListener);
 
-        colorPickerScrollContainer = ViewUtils.getView(rootView, R.id.hsv_color_picker_scroll_view);
-
         colorLayout = ViewUtils.getView(rootView, R.id.cpdl__color_layout);
         colorLayout.setOnColorSelectedListener(this);
         int[] colors = getResources().getIntArray(R.array.draw_color);
@@ -290,13 +278,20 @@ public class DrawingFragment extends BaseFragment<DrawingFragment.Container> imp
         galleryButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (PermissionUtils.hasSelfPermissions(getContext(), SKETCH_FROM_GALLERY_PERMISSION)) {
+
+                PermissionsService pService = inject(PermissionsService.class);
+                if (pService.checkPermission(READ_EXTERNAL_STORAGE)) {
                     sketchEditTextView.destroyDrawingCache();
                     assetIntentsManager.openGalleryForSketch();
                 } else {
-                    ActivityCompat.requestPermissions(getActivity(),
-                                                      SKETCH_FROM_GALLERY_PERMISSION,
-                                                      OPEN_SKETCH_FROM_GALLERY);
+                    pService.requestPermission(READ_EXTERNAL_STORAGE, new PermissionsService.PermissionsCallback() {
+                        @Override
+                        public void onPermissionResult(boolean granted) {
+                            if (granted) {
+                                assetIntentsManager.openGalleryForSketch();
+                            }
+                        }
+                    });
                 }
             }
         });
@@ -412,7 +407,6 @@ public class DrawingFragment extends BaseFragment<DrawingFragment.Container> imp
                 SensorManager.SENSOR_DELAY_NORMAL);
         getControllerFactory().getGlobalLayoutController().addKeyboardVisibilityObserver(this);
         getControllerFactory().getAccentColorController().addAccentColorObserver(this);
-        getControllerFactory().getRequestPermissionsController().addObserver(this);
     }
 
     @Override
@@ -427,7 +421,6 @@ public class DrawingFragment extends BaseFragment<DrawingFragment.Container> imp
     public void onStop() {
         getControllerFactory().getAccentColorController().removeAccentColorObserver(this);
         getControllerFactory().getGlobalLayoutController().removeKeyboardVisibilityObserver(this);
-        getControllerFactory().getRequestPermissionsController().removeObserver(this);
         sensorManager.unregisterListener(shakeEventListener);
         super.onStop();
     }
@@ -479,26 +472,6 @@ public class DrawingFragment extends BaseFragment<DrawingFragment.Container> imp
     public void openIntent(Intent intent, AssetIntentsManager.IntentType intentType) {
         startActivityForResult(intent, intentType.requestCode);
         getActivity().overridePendingTransition(R.anim.camera_in, R.anim.camera_out);
-    }
-
-    @Override
-    public void onPermissionFailed(AssetIntentsManager.IntentType type) {
-
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, int[] grantResults) {
-        if (assetIntentsManager.onRequestPermissionsResult(requestCode, grantResults)) {
-            return;
-        }
-
-
-        switch (requestCode) {
-            case OPEN_SKETCH_FROM_GALLERY:
-                if (PermissionUtils.verifyPermissions(grantResults)) {
-                    assetIntentsManager.openGalleryForSketch();
-                }
-        }
     }
 
     public void cancelLoadHandle() {
