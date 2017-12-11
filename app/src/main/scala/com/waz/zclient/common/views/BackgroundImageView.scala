@@ -25,21 +25,23 @@ import android.widget.ImageView
 import com.waz.service.ZMessaging
 import com.waz.utils.events.Signal
 import com.waz.zclient.ViewHelper
+import com.waz.zclient.common.views.BackgroundDrawable.PictureInfo
+import com.waz.zclient.common.views.ImageController.WireImage
 import com.waz.zclient.ui.utils.ColorUtils
-import com.waz.zclient.common.views.ImageController.{ImageSource, WireImage}
 
 class BackgroundImageView(val context: Context, val attrs: AttributeSet, val defStyleAttr: Int) extends ImageView(context, attrs, defStyleAttr) with ViewHelper {
   def this(context: Context, attrs: AttributeSet) = this(context, attrs, 0)
   def this(context: Context) = this(context, null)
 
-  val zms = inject[Signal[ZMessaging]]
-  val blackLevel = 0.58f
+  private val zms = inject[Signal[ZMessaging]]
+  private val blackLevel = 0.58f
 
-  val pictureId: Signal[ImageSource] = for {
+  private val pictureInfo = for {
     z <- zms
     Some(picture) <- z.usersStorage.signal(z.selfUserId).map(_.picture)
-  } yield WireImage(picture)
+    assetData <- z.assetsStorage.signal(picture)
+  } yield PictureInfo(WireImage(picture), assetData.dimensions)
 
-  setBackground(new BackgroundDrawable(pictureId, getContext))
+  setBackground(new BackgroundDrawable(pictureInfo, getContext))
   setImageDrawable(new ColorDrawable(ColorUtils.injectAlpha(blackLevel, Color.BLACK)))
 }

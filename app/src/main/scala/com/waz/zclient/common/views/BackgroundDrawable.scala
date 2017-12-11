@@ -27,12 +27,13 @@ import com.waz.model.Dim2
 import com.waz.service.assets.AssetService.BitmapResult.BitmapLoaded
 import com.waz.ui.MemoryImageCache.BitmapRequest
 import com.waz.utils.events.{EventContext, Signal}
+import com.waz.zclient.common.views.BackgroundDrawable.PictureInfo
 import com.waz.zclient.utils.ViewUtils
 import com.waz.zclient.common.views.ImageAssetDrawable.ScaleType
 import com.waz.zclient.common.views.ImageController.ImageSource
 import com.waz.zclient.{Injectable, Injector}
 
-class BackgroundDrawable(src: Signal[ImageSource],
+class BackgroundDrawable(info: Signal[PictureInfo],
                          context: Context)(implicit inj: Injector, eventContext: EventContext) extends Drawable with Injectable {
   import BackgroundDrawable._
 
@@ -51,8 +52,9 @@ class BackgroundDrawable(src: Signal[ImageSource],
   private val prevMatrix = new Matrix
 
   private val bmp = for {
-    src <- src
-    bmp <- images.imageSignal(src, BitmapRequest.Blurred(Math.min(screenSize.width, 300), BlurRadius, BlurPasses), forceDownload = true).collect { case BitmapLoaded(bm, _) => bm }
+    info <- info
+    scale = Math.min(Math.max(screenSize.width / info.dim.width, screenSize.height / info.dim.height), 1f)
+    bmp <- images.imageSignal(info.image, BitmapRequest.Blurred((info.dim.width * scale).toInt, BlurRadius, BlurPasses), forceDownload = true).collect { case BitmapLoaded(bm, _) => bm }
   } yield bmp
 
   private val colorMatrix = new ColorMatrix
@@ -119,4 +121,6 @@ object BackgroundDrawable {
   val BlurPasses = 6
   val ScaleValue = 1.4f
   val SaturationValue = 2f
+
+  case class PictureInfo(image: ImageSource, dim: Dim2)
 }
