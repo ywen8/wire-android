@@ -25,6 +25,7 @@ import com.waz.zclient._
 import com.waz.zclient.appentry.AppEntryButtonOnTouchListener
 import com.waz.zclient.appentry.controllers.SignInController._
 import com.waz.zclient.appentry.controllers.{AppEntryController, SignInController}
+import com.waz.zclient.utils.LayoutSpec
 
 case class FirstScreenViewHolder(root: View)(implicit val context: Context, eventContext: EventContext, injector: Injector) extends ViewHolder with Injectable {
 
@@ -39,7 +40,10 @@ case class FirstScreenViewHolder(root: View)(implicit val context: Context, even
     createAccountButton.setOnTouchListener(AppEntryButtonOnTouchListener({
       () =>
         appEntryController.goToLoginScreen()
-        signInController.uiSignInState ! SignInMethod(Register, Phone)
+        if (LayoutSpec.isPhone(context))
+          signInController.uiSignInState ! SignInMethod(Register, Phone)
+        else
+          signInController.uiSignInState ! SignInMethod(Register, Email)
     }))
     createTeamButton.setOnTouchListener(AppEntryButtonOnTouchListener(() => appEntryController.createTeam()))
     loginButton.setOnClickListener(new View.OnClickListener {
