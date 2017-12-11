@@ -23,7 +23,6 @@ import android.graphics.drawable.Drawable;
 import android.graphics.drawable.ShapeDrawable;
 import android.graphics.drawable.shapes.RectShape;
 import android.util.AttributeSet;
-import android.widget.EditText;
 
 import com.waz.zclient.ui.utils.ReflectionUtils;
 import com.waz.zclient.utils.ViewUtils;
@@ -32,7 +31,7 @@ import java.lang.reflect.Field;
 
 import timber.log.Timber;
 
-public class AccentColorEditText extends EditText {
+public class AccentColorEditText extends android.support.v7.widget.AppCompatEditText {
 
     private static final int DEFAULT_CURSOR_WIDTH_DP = 2;
     private int accentColor = Color.WHITE;

@@ -346,13 +346,15 @@ public class RootFragment extends BaseFragment<RootFragment.Container> implement
             animOut = R.anim.fragment_animation_swap_conversation_tablet_out;
         }
 
-        getChildFragmentManager()
-            .beginTransaction()
-            .setCustomAnimations(animIn, animOut)
-            .replace(R.id.fl__root__right_view,
-                     fragment,
-                     tag)
-            .commitAllowingStateLoss();
+        if (getChildFragmentManager().findFragmentByTag(tag) == null) {
+            getChildFragmentManager()
+                .beginTransaction()
+                .setCustomAnimations(animIn, animOut)
+                .replace(R.id.fl__root__right_view,
+                         fragment,
+                         tag)
+                .commitAllowingStateLoss();
+        }
     }
 
     private CollectionController getCollectionController() {
