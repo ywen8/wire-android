@@ -17,13 +17,14 @@
  */
 package com.waz
 
-import android.app.{Activity, ActivityManager, Application, NotificationManager}
+import android.app._
 import android.content.{ClipboardManager, ContentResolver, Context, ContextWrapper}
 import android.media.AudioManager
-import android.os.{PowerManager, Vibrator}
+import android.os.{Build, PowerManager, Vibrator}
 import android.renderscript.RenderScript
 import android.support.v4.app.{FragmentActivity, FragmentManager}
 import com.waz.utils.events.EventContext
+import com.waz.utils.returning
 
 package object zclient {
 
@@ -40,7 +41,10 @@ package object zclient {
     bind [PowerManager]         to ctx.getSystemService(Context.POWER_SERVICE).asInstanceOf[PowerManager]
     bind [Vibrator]             to ctx.getSystemService(Context.VIBRATOR_SERVICE).asInstanceOf[Vibrator]
     bind [AudioManager]         to ctx.getSystemService(Context.AUDIO_SERVICE).asInstanceOf[AudioManager]
-    bind [NotificationManager]  to ctx.getSystemService(Context.NOTIFICATION_SERVICE).asInstanceOf[NotificationManager]
+    bind[NotificationManager]   to returning(ctx.getSystemService(Context.NOTIFICATION_SERVICE).asInstanceOf[NotificationManager]) { nm =>
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+        nm.createNotificationChannel(new NotificationChannel(NotificationChannelId, NotificationChannelName, NotificationManager.IMPORTANCE_DEFAULT))
+    }
     bind [ClipboardManager]     to ctx.getSystemService(Context.CLIPBOARD_SERVICE).asInstanceOf[ClipboardManager]
     bind [RenderScript]         to RenderScript.create(ctx)
   }
@@ -58,4 +62,7 @@ package object zclient {
     }
     bind [FragmentManager] to inject[Activity].asInstanceOf[FragmentActivity].getSupportFragmentManager
   }
+
+  val NotificationChannelId = "channel_01"
+  val NotificationChannelName = "Normal Channel"
 }
