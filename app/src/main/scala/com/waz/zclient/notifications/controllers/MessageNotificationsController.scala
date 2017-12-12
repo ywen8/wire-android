@@ -36,7 +36,7 @@ import com.waz.bitmap.BitmapUtils
 import com.waz.model._
 import com.waz.service.ZMessaging
 import com.waz.service.push.NotificationService.NotificationInfo
-import com.waz.threading.Threading
+import com.waz.threading.{CancellableFuture, Threading}
 import com.waz.ui.MemoryImageCache.BitmapRequest
 import com.waz.utils.events.{EventContext, Signal}
 import com.waz.utils.returning
@@ -54,6 +54,7 @@ import org.threeten.bp.Instant
 import com.waz.utils._
 import com.waz.utils.wrappers.Bitmap
 
+import scala.concurrent.duration._
 import scala.concurrent.Future
 
 class MessageNotificationsController(implicit inj: Injector, cxt: Context, eventContext: EventContext) extends Injectable { self =>
@@ -161,7 +162,9 @@ class MessageNotificationsController(implicit inj: Injector, cxt: Context, event
         case _ => Future.successful(None)
       }
       bmp <- (zms, assetData) match {
-        case (Some(z), Some(ad)) => z.imageLoader.loadBitmap(ad, BitmapRequest.Single(iconWidth), forceDownload = false).map(Option(_)).future
+        case (Some(z), Some(ad)) => z.imageLoader.loadBitmap(ad, BitmapRequest.Single(iconWidth), forceDownload = false).map(Option(_)).withTimeout(500.millis).recoverWith {
+          case _ : Throwable => CancellableFuture.successful(None)
+        }.future
         case _ => Future.successful(None)
       }
     } yield {
@@ -430,7 +433,7 @@ class MessageNotificationsController(implicit inj: Injector, cxt: Context, event
       case MEMBER_LEAVE             => getString(R.string.notification__message__group__remove)
       case MEMBER_JOIN              => getString(R.string.notification__message__group__add)
       case LIKE if n.likedContent.nonEmpty =>
-        n.likedContent.map {
+        n.likedContent.collect {
           case LikedContent.PICTURE =>
             getString(R.string.notification__message__liked_picture)
           case LikedContent.TEXT_OR_URL =>
