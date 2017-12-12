@@ -357,7 +357,7 @@ class AppEntryController(implicit inj: Injector, eventContext: EventContext) ext
       .collect { case Some(acc) => acc }
       .flatMap(_.updateHandle(Handle(username)))
 
-  lazy val termsOfUseAB: Boolean = Random.nextBoolean()
+  var termsOfUseAB: Boolean = Random.nextBoolean()
 
 }
 

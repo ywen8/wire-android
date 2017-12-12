@@ -19,17 +19,15 @@ package com.waz.zclient.tracking
 
 import com.mixpanel.android.mpmetrics.{MPConfig, MixpanelAPI}
 import com.mixpanel.android.util.OfflineMode
-import com.waz.ZLog._
 import com.waz.ZLog.ImplicitTag._
+import com.waz.ZLog._
 import com.waz.threading.CancellableFuture
 import com.waz.utils.returning
 import com.waz.zclient.{BuildConfig, WireContext}
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
-
-import scala.language.reflectiveCalls
-import scala.language.implicitConversions
+import scala.language.{implicitConversions, reflectiveCalls}
 
 object MixpanelGuard {
 
@@ -75,6 +73,7 @@ object MixpanelGuard {
 }
 
 class MixpanelGuard(cxt: WireContext) {
+
   import MixpanelGuard._
 
   private var mixpanel = Option.empty[MixpanelAPI]

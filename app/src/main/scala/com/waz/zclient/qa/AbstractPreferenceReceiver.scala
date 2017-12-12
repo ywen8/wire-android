@@ -23,6 +23,7 @@ import com.waz.content.GlobalPreferences._
 import com.waz.content.Preferences.PrefKey
 import com.waz.content.UserPreferences._
 import com.waz.service.ZMessaging
+import com.waz.zclient.appentry.controllers.AppEntryController
 import com.waz.zclient.controllers.userpreferences.IUserPreferencesController._
 import com.waz.zclient.controllers.userpreferences.UserPreferencesController
 import com.waz.zclient.controllers.userpreferences.UserPreferencesController._
@@ -76,6 +77,11 @@ trait AbstractPreferenceReceiver extends BroadcastReceiver {
       case DISABLE_TRACKING_INTENT =>
         globalPrefs.map(_.preference(DeveloperAnalyticsEnabled) := false)
         setResultCode(Activity.RESULT_OK)
+      case TEAM_CREATION_TOU_AB_INTENT =>
+        val wireApplication = context.getApplicationContext.asInstanceOf[WireApplication]
+        implicit val injector = wireApplication.module
+        val appEntryController = wireApplication.inject[AppEntryController]
+        appEntryController.termsOfUseAB = intent.getBooleanExtra(TEAM_CREATION_TOU_AB_EXTRA_KEY, false)
       case _ =>
         setResultData("Unknown Intent!")
         setResultCode(Activity.RESULT_CANCELED)
@@ -95,6 +101,9 @@ object AbstractPreferenceReceiver {
   val SILENT_MODE = packageName + ".intent.action.SILENT_MODE"
   val NO_CONTACT_SHARING = packageName + ".intent.action.NO_CONTACT_SHARING"
   val TRACKING_ID_INTENT = packageName + ".intent.action.TRACKING_ID"
+
+  val TEAM_CREATION_TOU_AB_INTENT = packageName + ".intent.action.TEAM_CREATION_TOS_AB"
+  val TEAM_CREATION_TOU_AB_EXTRA_KEY = "SET_B_POSITION"
 
   lazy val DeveloperAnalyticsEnabled = PrefKey[Boolean]("DEVELOPER_TRACKING_ENABLED")
 }
