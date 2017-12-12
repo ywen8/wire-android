@@ -23,11 +23,12 @@ import com.waz.content.GlobalPreferences._
 import com.waz.content.Preferences.PrefKey
 import com.waz.content.UserPreferences._
 import com.waz.service.ZMessaging
+import com.waz.zclient.appentry.controllers.AppEntryController
 import com.waz.zclient.controllers.userpreferences.IUserPreferencesController._
 import com.waz.zclient.controllers.userpreferences.UserPreferencesController
 import com.waz.zclient.controllers.userpreferences.UserPreferencesController._
 import com.waz.zclient.tracking.GlobalTrackingController
-import com.waz.zclient.{AppEntryController, BuildConfig, WireApplication}
+import com.waz.zclient.{BuildConfig, WireApplication}
 
 trait AbstractPreferenceReceiver extends BroadcastReceiver {
 
