@@ -61,6 +61,11 @@ class SignInController(implicit inj: Injector, eventContext: EventContext, conte
       acc.email.orElse(acc.pendingEmail).foreach(email ! _.str)
       password ! ""
       uiSignInState ! SignInMethod(Login, Email)
+    case (InsertPasswordStage, _) =>
+      //TODO: This is an invalid state with no current way of getting out
+      email ! ""
+      password ! ""
+      uiSignInState ! SignInMethod(Login, Email)
     case _ =>
   }
 
