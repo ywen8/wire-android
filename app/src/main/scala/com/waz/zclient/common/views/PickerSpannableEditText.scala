@@ -64,7 +64,7 @@ class PickerSpannableEditText(val context: Context, val attrs: AttributeSet, val
 
   private def initAttributes(@Nullable attrs: AttributeSet): Unit = {
     if (attrs == null) {
-      return
+      return //TODO remove return
     }
     val a: TypedArray = getContext.obtainStyledAttributes(attrs, R.styleable.PickUserEditText)
     hintTextSmallScreen = a.getString(R.styleable.PickUserEditText_hintSmallScreen)
@@ -107,7 +107,7 @@ class PickerSpannableEditText(val context: Context, val attrs: AttributeSet, val
         for (element <- elements) {
           if (element.id == id) {
             callback.onRemovedTokenSpan(element)
-            return
+            return //TODO remove return
           }
         }
       }
@@ -119,7 +119,7 @@ class PickerSpannableEditText(val context: Context, val attrs: AttributeSet, val
 
   override protected def setHintCursorSize(cursorDrawable: ShapeDrawable): Unit = {
     if (hasText || Build.VERSION.SDK_INT <= Build.VERSION_CODES.LOLLIPOP_MR1 || getHint.length() == 0) {
-      return
+      return //TODO remove return
     }
     val padding: Int = ViewUtils.toPx(getContext, PickerSpannableEditText.EXTRA_PADDING_DP)
     val textSizeDifferencePx: Int = getTextSize.toInt - hintTextSize
@@ -129,7 +129,7 @@ class PickerSpannableEditText(val context: Context, val attrs: AttributeSet, val
 
   def addElement(element: PickableElement): Unit = {
     if (hasToken(element)) {
-      return
+      return //TODO remove return
     }
     if (elements == null) {
       elements = Set[PickableElement]()
@@ -144,7 +144,7 @@ class PickerSpannableEditText(val context: Context, val attrs: AttributeSet, val
 
   private def hasToken(element: PickableElement): Boolean = {
     if (element == null) {
-      return false
+      return false //TODO remove return
     }
     val buffer: Editable = getText
     val spans: Array[SpannableEditText.TokenSpan] = buffer.getSpans(0, buffer.length, classOf[SpannableEditText.TokenSpan])
@@ -153,7 +153,7 @@ class PickerSpannableEditText(val context: Context, val attrs: AttributeSet, val
       {
         val span: SpannableEditText.TokenSpan = spans(i)
         if (span.getId == element.id) {
-          return true
+          return true //TODO remove return
         }
       }
       {
@@ -166,7 +166,7 @@ class PickerSpannableEditText(val context: Context, val attrs: AttributeSet, val
 
   def removeElement(element: PickableElement): Unit = {
     if (elements == null || !hasToken(element) || !removeSpan(element.id)) {
-      return
+      return //TODO remove return
     }
     elements = elements - element
     resetDeleteModeForSpans()
@@ -174,7 +174,7 @@ class PickerSpannableEditText(val context: Context, val attrs: AttributeSet, val
 
   def setSelectedElements(elements: List[PickableElement]): Unit = {
     if (this.elements != null && equalLists(elements, this.elements.toList)) {
-      return
+      return //TODO remove return
     }
     this.elements = elements.toSet
     notifyDatasetChanged()
@@ -184,10 +184,10 @@ class PickerSpannableEditText(val context: Context, val attrs: AttributeSet, val
 
   private def equalLists(one: List[PickableElement], two: List[PickableElement]): Boolean = {
     if (one == null && two == null) {
-      return true
+      return true //TODO remove return
     }
     if (one == null || two == null || one.size != two.size) {
-      return false
+      return false //TODO remove return
     }
     two.forall(one.contains) && one.forall(two.contains)
   }
@@ -195,7 +195,7 @@ class PickerSpannableEditText(val context: Context, val attrs: AttributeSet, val
   private def notifyDatasetChanged(): Unit = {
     reset()
     if (elements == null) {
-      return
+      return //TODO remove return
     }
     flagNotifyAfterTextChanged = false
     for (element <- elements) {
@@ -235,7 +235,7 @@ class PickerSpannableEditText(val context: Context, val attrs: AttributeSet, val
     val buffer: Editable = getText
     val allSpans: Array[ReplacementSpan] = buffer.getSpans(0, buffer.length, classOf[ReplacementSpan])
     if (allSpans.length <= 0) {
-      return
+      return //TODO remove return
     }
     val lastSpan: ReplacementSpan = allSpans(allSpans.length - 1)
     val to: Int = buffer.getSpanStart(lastSpan)
@@ -249,7 +249,7 @@ class PickerSpannableEditText(val context: Context, val attrs: AttributeSet, val
 
   private def adjustHintTextForSmallScreen(): Unit = {
     if (TextUtils.isEmpty(getHint) || TextUtils.isEmpty(hintTextSmallScreen)) {
-      return
+      return //TODO remove return
     }
     val paint: TextPaint = getPaint
     val hintWidth: Float = paint.measureText(getHint, 0, getHint.length)
@@ -266,7 +266,7 @@ class PickerSpannableEditText(val context: Context, val attrs: AttributeSet, val
       if (span.getDeleteMode) {
         super.removeSpan(span)
         elements = elements.filterNot(_.id == span.getId)
-        return true
+        return true //TODO remove return
       }
     }
     false
@@ -276,7 +276,7 @@ class PickerSpannableEditText(val context: Context, val attrs: AttributeSet, val
     val buffer: Editable = getText
     val spans: Array[SpannableEditText.TokenSpan] = buffer.getSpans(getSelectionStart, getSelectionEnd, classOf[SpannableEditText.TokenSpan])
     if (spans.length == 0) {
-      return false
+      return false //TODO remove return
     }
     val selectionEnd: Int = getSelectionEnd
     var i: Int = spans.length - 1
@@ -289,7 +289,7 @@ class PickerSpannableEditText(val context: Context, val attrs: AttributeSet, val
           super.removeSpan(span)
           elements = elements.filterNot(_.id == span.getId)
           setSelection(getText.length)
-          return true
+          return true //TODO remove return
         }
       }
       {
@@ -309,7 +309,7 @@ class PickerSpannableEditText(val context: Context, val attrs: AttributeSet, val
 
   def afterTextChanged(s: Editable): Unit = {
     if (!notifyTextWatcher) {
-      return
+      return //TODO remove return
     }
     if (flagNotifyAfterTextChanged) {
       callback.afterTextChanged(getSearchFilter)
@@ -329,10 +329,10 @@ class PickerSpannableEditText(val context: Context, val attrs: AttributeSet, val
     override def sendKeyEvent(event: KeyEvent): Boolean = {
       if (event.getAction == KeyEvent.ACTION_DOWN && event.getKeyCode == KeyEvent.KEYCODE_DEL) {
         if (removeSelectedElementToken()) {
-          return true
+          return true //TODO remove return
         }
         if (deleteSpanBeforeSelection()) {
-          return true
+          return true //TODO remove return
         }
       }
       super.sendKeyEvent(event)

@@ -302,7 +302,7 @@ class CollectionAdapter(viewDim: Signal[Dim2])(implicit context: Context, inject
   private def getHeaderCountText(headerId: HeaderId): String = {
     val count = getHeaderCount(headerId)
     if (count > 0) {
-      return context.getResources.getString(R.string.collection_all, count.toString)
+      return context.getResources.getString(R.string.collection_all, count.toString) //TODO remove return
     }
     ""
   }

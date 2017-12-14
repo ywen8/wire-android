@@ -85,7 +85,7 @@ class SearchBoxView(val context: Context, val attrs: AttributeSet, val defStyleA
       def onEditorAction(v: TextView, actionId: Int, event: KeyEvent): Boolean = {
         if (callback != null && (actionId == EditorInfo.IME_ACTION_GO || (event != null && event.getKeyCode == KeyEvent.KEYCODE_ENTER))) {
           callback.onKeyboardDoneAction()
-          return true
+          return true //TODO remove return
         }
         false
       }

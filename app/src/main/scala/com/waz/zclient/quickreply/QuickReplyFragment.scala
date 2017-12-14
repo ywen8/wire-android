@@ -126,7 +126,7 @@ class QuickReplyFragment extends Fragment with FragmentHelper {
       override def onEditorAction(textView: TextView, actionId: Int, event: KeyEvent): Boolean = {
         if (actionId == EditorInfo.IME_ACTION_SEND || (event != null && event.getKeyCode == KeyEvent.KEYCODE_ENTER && event.getAction == KeyEvent.ACTION_DOWN)) {
           val sendText = textView.getText.toString
-          if (TextUtils.isEmpty(sendText)) return false
+          if (TextUtils.isEmpty(sendText)) return false //TODO remove return
 
           textView.setEnabled(false)
           for {
@@ -147,7 +147,7 @@ class QuickReplyFragment extends Fragment with FragmentHelper {
             }
           }
 
-          return true
+          return true //TODO remove return
         }
         false
       }

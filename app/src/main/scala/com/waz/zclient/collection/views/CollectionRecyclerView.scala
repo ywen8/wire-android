@@ -110,7 +110,7 @@ class CollectionRecyclerView(context: Context, attrs: AttributeSet, style: Int) 
             false
           case MotionEvent.ACTION_UP =>
             if (!headerDown) {
-              return false
+              return false //TODO remove return
             }
             adapter.onHeaderClicked(collectionItemDecorator.getHeaderClicked(x, y))
           case _ => false;
@@ -130,7 +130,7 @@ class CollectionRecyclerView(context: Context, attrs: AttributeSet, style: Int) 
   override def onInterceptTouchEvent(event: MotionEvent): Boolean = {
     val superIntercept = super.onInterceptTouchEvent(event)
     if (collectionItemDecorator == null) {
-      return superIntercept
+      return superIntercept //TODO remove return
     }
     val x = Math.round(event.getX)
     val y = Math.round(event.getY)

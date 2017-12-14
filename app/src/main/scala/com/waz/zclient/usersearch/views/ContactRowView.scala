@@ -86,7 +86,7 @@ class ContactRowView(val context: Context, val attrs: AttributeSet, val defStyle
 
   def setContact(contact: Contact): Unit = {
     if (contact == null) {
-      return
+      return //TODO remove return
     }
     userModelObserver.clear()
     contactDetailsModelObserver.clear()
@@ -140,7 +140,7 @@ class ContactRowView(val context: Context, val attrs: AttributeSet, val defStyle
       contactInviteButton.setOnClickListener(new View.OnClickListener() {
         def onClick(view: View): Unit = {
           if (callback == null) {
-            return
+            return //TODO remove return
           }
           callback.onContactListUserClicked(user)
         }
@@ -157,19 +157,19 @@ class ContactRowView(val context: Context, val attrs: AttributeSet, val defStyle
         setOnClickListener(new View.OnClickListener() {
           def onClick(view: View): Unit = {
             if (callback == null) {
-              return
+              return //TODO remove return
             }
             callback.onContactListContactClicked(details)
           }
         })
-        return
+        return //TODO remove return
       }
       contactInviteButton.setVisibility(View.VISIBLE)
       contactInviteButton.setText(getResources.getText(R.string.people_picker__contact_list__contact_selection_button__label))
       contactInviteButton.setOnClickListener(new View.OnClickListener() {
         def onClick(view: View): Unit = {
           if (callback == null) {
-            return
+            return //TODO remove return
           }
           callback.onContactListContactClicked(details)
         }

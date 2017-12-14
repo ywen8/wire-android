@@ -192,11 +192,11 @@ class ShareToMultipleFragment extends BaseFragment[ShareToMultipleFragment.Conta
       override def onEditorAction(v: TextView, actionId: Int, event: KeyEvent): Boolean = {
         if (actionId == EditorInfo.IME_ACTION_DONE || actionId == EditorInfo.IME_ACTION_GO) {
           if (adapter.selectedConversations.currentValue.forall(_.isEmpty)) {
-            return false
+            return false //TODO remove return
           }
           KeyboardUtils.closeKeyboardIfShown(getActivity)
           onClickEvent ! (())
-          return true
+          return true //TODO remove return
         }
         false
       }
@@ -205,7 +205,7 @@ class ShareToMultipleFragment extends BaseFragment[ShareToMultipleFragment.Conta
     sendButton.setOnClickListener(new OnClickListener {
       override def onClick(v: View): Unit = {
         if (adapter.selectedConversations.currentValue.forall(_.isEmpty)) {
-          return
+          return //TODO remove return
         }
         onClickEvent ! (())
       }
@@ -247,7 +247,7 @@ class ShareToMultipleFragment extends BaseFragment[ShareToMultipleFragment.Conta
     val bottomContainer = ViewUtils.getView(getView, R.id.ephemeral_container).asInstanceOf[AnimatedBottomContainer]
     if (bottomContainer.isExpanded.currentValue.exists(a => a)) {
       bottomContainer.closedAnimated()
-      return true
+      return true //TODO remove return
     }
     false
   }

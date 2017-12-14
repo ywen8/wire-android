@@ -163,9 +163,9 @@ class CursorController(implicit inj: Injector, ctx: Context, evc: EventContext) 
   def submit(msg: String): Boolean = {
     if (isEditingMessage.currentValue.contains(true)) {
       onApproveEditMessage()
-      return true
+      return true //TODO remove return
     }
-    if (TextUtils.isEmpty(msg.trim)) return false
+    if (TextUtils.isEmpty(msg.trim)) return false //TODO remove return
 
     for {
       cId <- conversationController.currentConvId.head

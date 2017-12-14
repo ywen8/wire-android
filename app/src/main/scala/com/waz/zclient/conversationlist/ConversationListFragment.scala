@@ -105,7 +105,7 @@ abstract class ConversationListFragment extends BaseFragment[ConversationListFra
     if (conversationData.convType != ConversationType.Group &&
         conversationData.convType != ConversationType.OneToOne &&
         conversationData.convType != ConversationType.WaitForConnection) {
-      return
+      return //TODO remove return
     }
 
     getControllerFactory.getConversationScreenController.showConversationMenu(IConversationScreenController.CONVERSATION_LIST_LONG_PRESS, conversationData.id, anchorView)
@@ -113,10 +113,10 @@ abstract class ConversationListFragment extends BaseFragment[ConversationListFra
 
   override def onCreateAnimation(transit: Int, enter: Boolean, nextAnim: Int): Animation = {
     if (nextAnim == 0 || getContainer == null || getControllerFactory.isTornDown)
-      return super.onCreateAnimation(transit, enter, nextAnim)
+      return super.onCreateAnimation(transit, enter, nextAnim) //TODO remove return
 
     if (getControllerFactory.getPickUserController.isHideWithoutAnimations)
-      return new ConversationListAnimation(
+      return new ConversationListAnimation( //TODO remove return
         0,
         getResources.getDimensionPixelSize(R.dimen.open_new_conversation__thread_list__max_top_distance),
         enter,
@@ -126,7 +126,7 @@ abstract class ConversationListFragment extends BaseFragment[ConversationListFra
         1f)
 
     if (enter)
-      return new ConversationListAnimation(
+      return new ConversationListAnimation( //TODO remove return
         0,
         getResources.getDimensionPixelSize(R.dimen.open_new_conversation__thread_list__max_top_distance),
         enter,

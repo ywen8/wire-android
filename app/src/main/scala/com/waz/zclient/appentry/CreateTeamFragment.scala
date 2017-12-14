@@ -127,7 +127,7 @@ class CreateTeamFragment extends BaseFragment[Container] with FragmentHelper wit
 
   override def onBackPressed(): Boolean = {
     if (appEntryController.entryStage.currentValue.exists(_.isInstanceOf[NoAccountState]) && ZMessaging.currentAccounts.loggedInAccounts.currentValue.exists(_.nonEmpty))
-      return false
+      return false //TODO remove return
 
     if (appEntryController.entryStage.currentValue.exists(_ != NoAccountState(FirstScreen))) {
       appEntryController.createTeamBack()

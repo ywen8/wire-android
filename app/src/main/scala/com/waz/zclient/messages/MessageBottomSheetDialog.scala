@@ -117,7 +117,7 @@ object MessageBottomSheetDialog {
 
     case object Forward extends MessageAction(R.id.message_bottom_menu_item_forward, R.string.glyph__share, R.string.message_bottom_menu_action_forward) {
       override def enabled(msg: MessageData, zms: ZMessaging, p: Params): Signal[Boolean] = {
-        if (msg.isEphemeral) return Signal const false
+        if (msg.isEphemeral) return Signal const false //TODO remove return
         msg.msgType match {
           case TEXT | TEXT_EMOJI_ONLY | RICH_MEDIA | ASSET =>
             // TODO: Once https://wearezeta.atlassian.net/browse/CM-976 is resolved, we should handle image asset like any other asset

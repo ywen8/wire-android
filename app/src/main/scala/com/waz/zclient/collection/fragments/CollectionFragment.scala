@@ -270,7 +270,7 @@ class CollectionFragment extends BaseFragment[CollectionFragment.Container] with
             controller.focusedItem ! None
             controller.contentSearchQuery ! ContentSearchQuery.empty
             controller.closeCollection
-            return true
+            return true //TODO remove return
         }
         false
       }
@@ -285,7 +285,7 @@ class CollectionFragment extends BaseFragment[CollectionFragment.Container] with
       rv.getSpanSizeLookup().clearCache()
     }
     getChildFragmentManager.findFragmentByTag(SingleImageCollectionFragment.TAG) match {
-      case fragment: SingleImageCollectionFragment => controller.focusedItem ! None; return true
+      case fragment: SingleImageCollectionFragment => controller.focusedItem ! None; return true //TODO remove return
       case _ =>
     }
     if (!collectionAdapter.onBackPressed){

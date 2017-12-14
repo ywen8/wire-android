@@ -70,7 +70,7 @@ class SearchResultOnItemTouchListener(val context: Context, var callback: Search
     rowView = rv.findChildViewUnder(e.getX, e.getY)
     position = rv.getChildAdapterPosition(rowView)
     if (rowView.isInstanceOf[RecyclerView]) {
-      return false
+      return false //TODO remove return
     }
     position = rv.getChildAdapterPosition(rowView)
     if (rowView != null && callback != null) {

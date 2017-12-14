@@ -176,11 +176,11 @@ class MessageNotificationsController(implicit inj: Injector, cxt: Context, event
 
     if (nots.isEmpty) {
       notManager.cancel(toNotificationGroupId(account))
-      return
+      return //TODO remove return
     }
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
       if (notManager.getActiveNotifications.exists(_.getId == toNotificationGroupId(account)))
-        return
+        return //TODO remove return
 
     verbose(s"creating summary notification")
 

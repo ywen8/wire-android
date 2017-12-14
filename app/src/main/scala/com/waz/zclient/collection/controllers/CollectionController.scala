@@ -136,21 +136,21 @@ object CollectionUtils {
     def getQueryPosition(normalizedMessage: String, query: String, fromIndex: Int = 0, acc: Seq[(Int, Int)] = Seq()): Seq[(Int, Int)] ={
       val beginIndex = normalizedMessage.indexOf(query, fromIndex)
       if (beginIndex < 0) {
-        return acc
+        return acc //TODO remove return
       }
       val endIndex = Math.min(beginIndex + query.length, normalizedMessage.length)
       if (beginIndex > 0 && normalizedMessage.charAt(beginIndex - 1).isLetterOrDigit){
-        return getQueryPosition(normalizedMessage, query, endIndex, acc)
+        return getQueryPosition(normalizedMessage, query, endIndex, acc) //TODO remove return
       }
       getQueryPosition(normalizedMessage, query, endIndex, acc ++ Seq((beginIndex, endIndex)))
     }
     val matches = queries.map(getQueryPosition(normalizedMessage, _))
     if (matches.exists(_.isEmpty)) {
-      return (new SpannableString(originalMessage), 0)
+      return (new SpannableString(originalMessage), 0) //TODO remove return
     }
     val flatMatches = matches.flatten.filter(_._1 >= 0)
     if (flatMatches.isEmpty) {
-      return (new SpannableString(originalMessage), 0)
+      return (new SpannableString(originalMessage), 0) //TODO remove return
     }
     val minPos = if (beginThreshold == -1) 0 else Math.max(flatMatches.map(_._1).min - beginThreshold, 0)
     val ellipsis = if (minPos > 0) "..." else ""

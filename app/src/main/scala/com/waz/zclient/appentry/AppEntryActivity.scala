@@ -89,9 +89,9 @@ class AppEntryActivity extends BaseActivity
     getSupportFragmentManager.getFragments.asScala.foreach {
       case fragment: InAppWebViewFragment =>
         getSupportFragmentManager.popBackStackImmediate
-        return
+        return //TODO remove return
       case fragment: OnBackPressedListener if fragment.onBackPressed() =>
-        return
+        return //TODO remove return
       case _ =>
     }
     abortAddAccount()
@@ -230,7 +230,7 @@ class AppEntryActivity extends BaseActivity
 
   def onShowCreateTeamFragment(): Unit = {
     if (getSupportFragmentManager.findFragmentByTag(CreateTeamFragment.TAG) != null) {
-      return
+      return //TODO remove return
     }
     val transaction: FragmentTransaction = getSupportFragmentManager.beginTransaction
     setDefaultAnimation(transaction).replace(R.id.fl_main_content, CreateTeamFragment.newInstance, CreateTeamFragment.TAG).commit
@@ -239,7 +239,7 @@ class AppEntryActivity extends BaseActivity
 
   def onShowPhoneCodePage(): Unit = {
     if (isPaused) {
-      return
+      return //TODO remove return
     }
     val transaction: FragmentTransaction = getSupportFragmentManager.beginTransaction
     setDefaultAnimation(transaction).replace(R.id.fl_main_content, VerifyPhoneFragment.newInstance(false), VerifyPhoneFragment.TAG).commit
@@ -261,7 +261,7 @@ class AppEntryActivity extends BaseActivity
 
   def onShowSignInPage(): Unit = {
     if (getSupportFragmentManager.findFragmentByTag(SignInFragment.Tag) != null) {
-      return
+      return //TODO remove return
     }
 
     enableProgress(false)
@@ -280,7 +280,7 @@ class AppEntryActivity extends BaseActivity
 
   def onShowSetPicturePage(): Unit = {
     if (getSupportFragmentManager.findFragmentByTag(SignUpPhotoFragment.TAG) != null) {
-      return
+      return //TODO remove return
     }
     ZMessaging.currentAccounts.getActiveAccount.map { accountData =>
       val transaction: FragmentTransaction = getSupportFragmentManager.beginTransaction

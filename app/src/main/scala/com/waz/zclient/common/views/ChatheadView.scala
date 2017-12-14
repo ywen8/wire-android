@@ -160,7 +160,7 @@ class ChatheadView(val context: Context, val attrs: AttributeSet, val defStyleAt
     val size: Float = Math.min(getWidth, getHeight)
     // This is just to prevent a really small image. Instead we want to draw just nothing
     if (size <= 1) {
-      return
+      return //TODO remove return
     }
 
     val borderWidth = ctrl.borderWidth.currentValue.getOrElse(0)

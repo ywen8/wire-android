@@ -190,17 +190,17 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
 
   override def onCreateAnimation(transit: Int, enter: Boolean, nextAnim: Int): Animation = {
     if (nextAnim == 0 || getContainer == null || getControllerFactory.isTornDown) {
-      return super.onCreateAnimation(transit, enter, nextAnim)
+      return super.onCreateAnimation(transit, enter, nextAnim) //TODO remove return
     }
     if (getControllerFactory.getPickUserController.isHideWithoutAnimations) {
-      return new DefaultPageTransitionAnimation(0, getOrientationIndependentDisplayHeight(getActivity), enter, 0, 0, 1f)
+      return new DefaultPageTransitionAnimation(0, getOrientationIndependentDisplayHeight(getActivity), enter, 0, 0, 1f) //TODO remove return
     }
     if (enter) {
       // Fade animation in participants dialog on tablet
       if (LayoutSpec.isTablet(getActivity) && isAddingToConversation) {
-        return new FadeAnimation(getResources.getInteger(R.integer.open_new_conversation__top_conversation__animation_duration), 0f, 1f)
+        return new FadeAnimation(getResources.getInteger(R.integer.open_new_conversation__top_conversation__animation_duration), 0f, 1f) //TODO remove return
       }
-      return new DefaultPageTransitionAnimation(0, getResources.getDimensionPixelSize(R.dimen.open_new_conversation__thread_list__max_top_distance), enter, getResources.getInteger(R.integer.framework_animation_duration_long), getResources.getInteger(R.integer.framework_animation_duration_medium), 1f)
+      return new DefaultPageTransitionAnimation(0, getResources.getDimensionPixelSize(R.dimen.open_new_conversation__thread_list__max_top_distance), enter, getResources.getInteger(R.integer.framework_animation_duration_long), getResources.getInteger(R.integer.framework_animation_duration_medium), 1f) //TODO remove return
     }
     new DefaultPageTransitionAnimation(0, getResources.getDimensionPixelSize(R.dimen.open_new_conversation__thread_list__max_top_distance), enter, getResources.getInteger(R.integer.framework_animation_duration_medium), 0, 1f)
   }
@@ -321,7 +321,7 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
       override def onEditorAction(v: TextView, actionId: Int, event: KeyEvent): Boolean = {
         if (actionId == EditorInfo.IME_ACTION_DONE || actionId == EditorInfo.IME_ACTION_GO) {
           onKeyboardDoneAction()
-          return true
+          return true //TODO remove return
         }
         false
       }
@@ -368,11 +368,11 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
       new Handler().postDelayed(new Runnable() {
         def run(): Unit = {
           if (getStoreFactory == null || getStoreFactory.isTornDown) {
-            return
+            return //TODO remove return
           }
           val numberOfActiveConversations: Int = getStoreFactory.conversationStore.numberOfActiveConversations
           if (searchBoxView == null || numberOfActiveConversations <= PickUserFragment.SHOW_KEYBOARD_THRESHOLD) {
-            return
+            return //TODO remove return
           }
           if (isTeamAccount) {
             searchBoxView.setFocus()
@@ -418,7 +418,7 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
     }
     else if (getControllerFactory.getPickUserController.isShowingUserProfile) {
       getControllerFactory.getPickUserController.hideUserProfile()
-      return true
+      return true //TODO remove return
     }
     isKeyboardVisible
   }
@@ -433,7 +433,7 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
 
     getContainer.getLoadingViewIndicator.setColor(color)
     if (isAddingToConversation) {
-      return
+      return //TODO remove return
     }
     val inviteVisibility: Int =
       if (keyboardIsVisible || searchUserController.selectedUsers.nonEmpty || isTeamAccount)
@@ -523,7 +523,7 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
   private def changeUserSelectedState(user: User, selected: Boolean): Unit = {
     changeUserSelectedState(searchResultRecyclerView, user, selected)
     if (searchUserController.allDataSignal.currentValue.exists(_._1.isEmpty)) // TODO: maybe change to checking searchResultAdapter for top users
-      return
+      return //TODO remove return
     (0 until searchResultRecyclerView.getChildCount).map(searchResultRecyclerView.getChildAt).foreach{
       case view: RecyclerView =>
         changeUserSelectedState(view, user, selected)
@@ -546,7 +546,7 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
   override def onUserClicked(userId: UserId, position: Int, anchorView: View): Unit = {
     val user: User = getUser(userId)
     if (user == null || user.isMe || getControllerFactory == null || getControllerFactory.isTornDown) {
-      return
+      return //TODO remove return
     }
     UserSignal(userId).head.map{ userData =>
       if (userData.connection == ConnectionStatus.Accepted || (isTeamAccount && userAccountsController.isTeamMember(userData.id))) {
@@ -584,7 +584,7 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
   override def onContactListUserClicked(userId: UserId): Unit = {
     val user: User = getUser(userId)
     if (user == null) {
-      return
+      return //TODO remove return
     }
 
     user.getConnectionStatus match {
@@ -607,7 +607,7 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
           // Launch SMS app directly if contact only has phone number
           val number = contactMethods(0).getStringRepresentation
           sendSMSInvite(number)
-          return
+          return //TODO remove return
         }
         val itemNames: Array[CharSequence] = new Array[CharSequence](contactMethodsCount)
 
@@ -626,7 +626,7 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
               selectedContactMethod = contactMethods(selected)
             }
             if (selectedContactMethod == null) {
-              return
+              return //TODO remove return
             }
             if (selectedContactMethod.getKind eq ContactMethod.Kind.SMS) {
               val number = String.valueOf(itemNames(selected))
@@ -687,7 +687,7 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
 
   private def sendGenericInvite(fromSearch: Boolean): Unit = {
     if (getControllerFactory == null || getControllerFactory.isTornDown) {
-      return
+      return //TODO remove return
     }
     self.head.map { self =>
       val name: String = self.getDisplayName
@@ -730,7 +730,7 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
 
   private def setConversationQuickMenuVisible(show: Boolean): Unit = {
     if (getView == null || getControllerFactory == null || getControllerFactory.isTornDown) {
-      return
+      return //TODO remove return
     }
     if (isAddingToConversation) {
       userSelectionConfirmationButton.setVisibility(if (getSelectedUsers.nonEmpty) View.VISIBLE else View.GONE)
@@ -765,7 +765,7 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
   private def setFocusByCurrentPickerDestination(): Unit = {
     // Don't trigger setting focus in closed split mode on tablet portrait, search is not visible then
     if (LayoutSpec.isTablet(getActivity) && isInPortrait(getActivity) && getControllerFactory.getNavigationController.getPagerPosition == NavigationController.SECOND_PAGE) {
-      return
+      return //TODO remove return
     }
     if ((getCurrentPickerDestination eq IPickUserController.Destination.CONVERSATION_LIST) && (LayoutSpec.isTablet(getActivity) || getControllerFactory.getNavigationController.getPagerPosition == NavigationController.FIRST_PAGE)) {
       getControllerFactory.getFocusController.setFocus(IFocusController.CONVERSATION_LIST_SEARCHBOX)
@@ -852,7 +852,7 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
 
   private def requestShareContactsPermissions(): Unit = {
     if (getControllerFactory == null || getControllerFactory.isTornDown || userAccountsController.isTeamAccount) {
-      return
+      return //TODO remove return
     }
 
     if (PermissionUtils.hasSelfPermissions(getContext, Manifest.permission.READ_CONTACTS)) {

@@ -75,7 +75,7 @@ class ParticipantDetailsTab(val context: Context, val attrs: AttributeSet, val d
 
   def updateFooterMenu(@StringRes leftAction: Int, @StringRes leftActionLabel: Int, @StringRes rightAction: Int, @StringRes rightActionLabel: Int, callback: FooterMenuCallback): Unit = {
     if (footerMenu == null) {
-      return
+      return //TODO remove return
     }
     footerMenu.setLeftActionText(getContext.getString(leftAction))
     footerMenu.setLeftActionLabelText(getContext.getString(leftActionLabel))

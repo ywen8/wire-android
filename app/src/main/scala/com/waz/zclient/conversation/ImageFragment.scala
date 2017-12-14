@@ -200,7 +200,7 @@ class ImageFragment extends BaseFragment[ImageFragment.Container] with FragmentH
     if (clickedImage == null || clickedImage.getBackground == null || !clickedImage.getBackground.isInstanceOf[ImageAssetDrawable]) {
       imageViewPager.setVisibility(View.VISIBLE)
       background.setAlpha(1f)
-      return
+      return //TODO remove return
     }
     val imagePadding = clickedImage.getBackground.asInstanceOf[ImageAssetDrawable].padding.currentValue.getOrElse(Offset.Empty)
     val clickedImageHeight = clickedImage.getHeight - imagePadding.t - imagePadding.b
@@ -209,7 +209,7 @@ class ImageFragment extends BaseFragment[ImageFragment.Container] with FragmentH
     if (clickedImageHeight == 0 || clickedImageWidth == 0) {
       imageViewPager.setVisibility(View.VISIBLE)
       background.setAlpha(1f)
-      return
+      return //TODO remove return
     }
 
     val clickedImageLocation = ViewUtils.getLocationOnScreen(clickedImage)

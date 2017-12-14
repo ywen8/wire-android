@@ -67,7 +67,7 @@ abstract class ConversationListTopToolbar(val context: Context, val attrs: Attri
 
   def setScrolledToTop(scrolledToTop: Boolean): Unit = {
     if (this.scrolledToTop == scrolledToTop) {
-      return
+      return //TODO remove return
     }
     this.scrolledToTop = scrolledToTop
     if (!scrolledToTop) {
@@ -113,7 +113,7 @@ class NormalTopToolbar(override val context: Context, override val attrs: Attrib
 
   override def setScrolledToTop(scrolledToTop: Boolean): Unit = {
     if (this.scrolledToTop == scrolledToTop) {
-      return
+      return //TODO remove return
     }
     super.setScrolledToTop(scrolledToTop)
   }

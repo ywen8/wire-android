@@ -160,7 +160,7 @@ class TeamIconDrawable(implicit inj: Injector, eventContext: EventContext, ctx: 
     path.reset()
     if (corners == 0) {
       path.addCircle(0, 0, radius, Path.Direction.CW)
-      return
+      return //TODO remove return
     }
     val angle = 2 * Math.PI / corners
     val phase = angle / 2

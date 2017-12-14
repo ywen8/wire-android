@@ -46,10 +46,10 @@ object ContactListItemTextView {
       }
     }
     if (TextUtils.isEmpty(userHandle)) {
-      return otherString
+      return otherString //TODO remove return
     }
     else if (TextUtils.isEmpty(otherString)) {
-      return usernameString
+      return usernameString //TODO remove return
     }
     usernameString + ContactListItemTextView.SEPARATOR_SYMBOL + otherString
   }

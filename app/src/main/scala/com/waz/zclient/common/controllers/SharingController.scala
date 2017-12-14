@@ -53,7 +53,7 @@ class SharingController(implicit injector: Injector, wContext: WireContext, even
     def noWifiAndFileIsLarge(sizeInBytes: Long, net: NetworkMode, answer: MessageContent.Asset.Answer): Unit = {
       if (activity == null) {
         answer.ok()
-        return
+        return //TODO remove return
       }
       val dialog: AlertDialog =
         ViewUtils.showAlertDialog(activity,

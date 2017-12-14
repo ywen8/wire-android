@@ -52,7 +52,7 @@ class CollectionSpanSizeLookup(val spanCount: Int, val adapter: CollectionAdapte
 
   override def getSpanSize(position: Int): Int = {
     if (spanSizeIsCached(position)) {
-      return getCachedSpanSize(position)
+      return getCachedSpanSize(position) //TODO remove return
     }
     if (adapter.isFullSpan(position)) {
       addSpanIndexToCache(position, 0)
@@ -68,7 +68,7 @@ class CollectionSpanSizeLookup(val spanCount: Int, val adapter: CollectionAdapte
 
   def isLastBeforeHeader(position: Int): Boolean = {
     if (position == adapter.getItemCount - 1){
-      return true
+      return true //TODO remove return
     }
     val headerId = adapter.getHeaderId(position)
     val nextPosition = position + 1
@@ -78,24 +78,24 @@ class CollectionSpanSizeLookup(val spanCount: Int, val adapter: CollectionAdapte
 
   def isFirstAfterHeader(position: Int): Boolean ={
     if (position == 0) {
-      return true
+      return true //TODO remove return
     }
     if (position == adapter.getItemCount - 1) {
-      return false
+      return false //TODO remove return
     }
     if (isLastBeforeHeader(position - 1)) {
-      return true
+      return true //TODO remove return
     }
     false
   }
 
   override def getSpanIndex(position: Int, spanCount: Int): Int ={
     if (spanIndexIsCached(position)) {
-      return getCachedSpanIndex(position)
+      return getCachedSpanIndex(position) //TODO remove return
     }
 
     if (isFirstAfterHeader(position)){
-      return 0
+      return 0 //TODO remove return
     }
 
     val indexBefore = getSpanIndex(position - 1, spanCount)
@@ -137,7 +137,7 @@ class CollectionSpanSizeLookup(val spanCount: Int, val adapter: CollectionAdapte
   def clearCacheFromPosition(position: Int): Unit = {
     if (position <= 0 || Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) {
       clearCache()
-      return
+      return //TODO remove return
     }
     if (position <= spanIndexCache.size() - 1) {
       spanIndexCache.removeAtRange(position, spanIndexCache.size() - position)

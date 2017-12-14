@@ -235,7 +235,7 @@ class NormalConversationListRow(context: Context, attrs: AttributeSet, style: In
   }
 
   override def open(): Unit =  {
-    if (openState) return
+    if (openState) return //TODO remove return
     animateMenu(menuOpenOffset)
     menuIndicatorView.setClickable(true)
     openState = true
@@ -363,7 +363,7 @@ object ConversationListRow {
     lazy val memberName = members.headOption.fold2(getString(R.string.conversation_list__someone), _.getDisplayName)
 
     if (messageData.isEphemeral) {
-      return formatSubtitle(getString(R.string.conversation_list__ephemeral), senderName, isGroup)
+      return formatSubtitle(getString(R.string.conversation_list__ephemeral), senderName, isGroup) //TODO remove return
     }
     messageData.msgType match {
       case Message.Type.TEXT | Message.Type.TEXT_EMOJI_ONLY | Message.Type.RICH_MEDIA =>
