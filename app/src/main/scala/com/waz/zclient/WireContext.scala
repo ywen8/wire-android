@@ -198,6 +198,9 @@ trait ActivityHelper extends Activity with ViewFinder with Injectable with WireC
     this.asInstanceOf[FragmentActivity].getSupportFragmentManager.findFragmentById(id).asInstanceOf[T]
   }
 
+  def withFragmentOpt[A](tag: String)(f: Option[Fragment] => A): A =
+    f(Option(this.asInstanceOf[FragmentActivity].getSupportFragmentManager.findFragmentByTag(tag)))
+
   override def onStart(): Unit = {
     onContextStart()
     super.onStart()
