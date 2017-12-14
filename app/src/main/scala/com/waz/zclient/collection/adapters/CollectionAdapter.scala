@@ -45,6 +45,7 @@ import org.threeten.bp._
 import org.threeten.bp.temporal.ChronoUnit
 import CollectionAdapter._
 import com.waz.zclient.conversation.ConversationController
+import com.waz.zclient.utils.RichView
 
 class CollectionAdapter(viewDim: Signal[Dim2])(implicit context: Context, injector: Injector, eventContext: EventContext) extends RecyclerView.Adapter[ViewHolder] with Injectable { adapter =>
 
@@ -301,10 +302,7 @@ class CollectionAdapter(viewDim: Signal[Dim2])(implicit context: Context, inject
 
   private def getHeaderCountText(headerId: HeaderId): String = {
     val count = getHeaderCount(headerId)
-    if (count > 0) {
-      return context.getResources.getString(R.string.collection_all, count.toString) //TODO remove return
-    }
-    ""
+    if (count > 0) getString(R.string.collection_all, count.toString) else ""
   }
 
   private def getHeaderCount(headerId: HeaderId): Int = {
