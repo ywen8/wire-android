@@ -24,13 +24,21 @@ import android.view.{LayoutInflater, View, ViewGroup}
 import com.waz.ZLog._
 import com.waz.zclient.callquality.CallQualityFragment._
 import com.waz.zclient.pages.BaseDialogFragment
+import com.waz.zclient.ui.text.TypefaceTextView
+import com.waz.zclient.utils.ContextUtils
 import com.waz.zclient.{FragmentHelper, R}
 
 object CallQualityFragment {
   val Tag = logTagFor[CallQualityFragment]
-  def newInstance(): Fragment = {
+
+  val QuestionTypeArg = "QuestionTypeArg"
+  val CallSetupQuality = 1
+  val CallQuality = 2
+
+  def newInstance(questionType: Int): Fragment = {
     val fragment = new CallQualityFragment
     val bundle = new Bundle()
+    bundle.putInt(QuestionTypeArg, questionType)
     fragment.setArguments(bundle)
     fragment
 
@@ -42,9 +50,12 @@ class CallQualityFragment extends BaseDialogFragment[Container] with FragmentHel
 
   lazy val callQualityController = inject[CallQualityController]
 
+  def questionType = Option(getArguments).map(_.getInt(QuestionTypeArg)).getOrElse(CallSetupQuality)
 
   override def onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState: Bundle): View = {
     val view = LayoutInflater.from(getActivity).inflate(R.layout.fragment_call_quality, null)
+
+    val subtitle = findById[TypefaceTextView](view, R.id.subtitle)
 
     val buttons = Seq(
       R.id.call_quality_button_1,
@@ -55,12 +66,39 @@ class CallQualityFragment extends BaseDialogFragment[Container] with FragmentHel
 
     buttons.foreach(_.setOnClickListener(this))
 
+    questionType match {
+      case CallSetupQuality =>
+//        ContextUtils.getString(R.string.stuff)
+        subtitle.setText("Call setup quality")
+      case CallQuality =>
+        subtitle.setText("Call quality")
+      case _ =>
+    }
+
     setCancelable(false)
     view
   }
 
   override def onClick(view: View): Unit = {
-    callQualityController.callToReport ! None
+
+    val quality = view.getId match {
+      case R.id.call_quality_button_1 => 1
+      case R.id.call_quality_button_2 => 2
+      case R.id.call_quality_button_3 => 3
+      case R.id.call_quality_button_4 => 4
+      case R.id.call_quality_button_5 => 5
+      case _ => 0
+    }
+
+    questionType match {
+      case CallSetupQuality =>
+        callQualityController.setupQuality = quality
+        callQualityController.callQualityShouldOpen ! (())
+      case CallQuality =>
+        callQualityController.callQuality = quality
+        callQualityController.callToReport ! None
+      case _ =>
+    }
     dismiss()
   }
 

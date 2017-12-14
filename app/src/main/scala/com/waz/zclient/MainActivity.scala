@@ -154,9 +154,18 @@ class MainActivity extends BaseActivity
           getSupportFragmentManager
             .beginTransaction
             .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
-            .add(new CallQualityFragment, CallQualityFragment.Tag)
+            .add(CallQualityFragment.newInstance(CallQualityFragment.CallSetupQuality), CallQualityFragment.Tag)
             .commit
       case _ =>
+    }
+
+    callQualityController.callQualityShouldOpen.onUi { _ =>
+      //if (getSupportFragmentManager.findFragmentByTag(CallQualityFragment.Tag) != null)
+        getSupportFragmentManager
+          .beginTransaction
+          .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
+          .add(CallQualityFragment.newInstance(CallQualityFragment.CallQuality), CallQualityFragment.Tag)
+          .commit
     }
   }
 

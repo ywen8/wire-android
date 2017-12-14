@@ -20,7 +20,7 @@ package com.waz.zclient.callquality
 import com.waz.service.ZMessaging
 import com.waz.service.call.CallInfo
 import com.waz.threading.Threading
-import com.waz.utils.events.{EventContext, Signal}
+import com.waz.utils.events.{EventContext, EventStream, Signal, SourceStream}
 import com.waz.zclient.calling.controllers.GlobalCallingController
 import com.waz.zclient.{Injectable, Injector}
 
@@ -30,6 +30,10 @@ class CallQualityController(implicit inj: Injector, eventContext: EventContext) 
   val callingController = inject[GlobalCallingController]
 
   val callToReport = Signal(Option.empty[CallInfo])
+  val callQualityShouldOpen: SourceStream[Unit] = EventStream[Unit]()
+
+  var setupQuality: Int = 0
+  var callQuality: Int = 0
 
   zms.flatMap(_.calling.previousCall).on(Threading.Background) { call =>
     callToReport ! call
