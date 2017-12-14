@@ -174,8 +174,7 @@ class MessageNotificationsController(implicit inj: Injector, cxt: Context, event
 
   private def createSummaryNotification(account: AccountId, silent: Boolean, nots: Seq[NotificationInfo], teamName: Option[String]): Unit =
     if (nots.isEmpty) notManager.cancel(toNotificationGroupId(account))
-    else if (notManager.getActiveNotifications.exists(_.getId == toNotificationGroupId(account))) {}
-    else {
+    else if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.M || !notManager.getActiveNotifications.exists(_.getId == toNotificationGroupId(account))) {
       verbose(s"creating summary notification")
 
       val inboxStyle = new NotificationCompat.InboxStyle()

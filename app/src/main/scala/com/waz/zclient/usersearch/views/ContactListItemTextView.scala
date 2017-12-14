@@ -27,31 +27,30 @@ import com.waz.model.{Contact, UserData}
 import com.waz.service.ZMessaging
 import com.waz.threading.Threading
 import com.waz.utils.events.Signal
+import com.waz.zclient.usersearch.views.ContactListItemTextView._
+import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.utils.StringUtils
 import com.waz.zclient.{Injectable, R, ViewHelper}
-import ContactListItemTextView._
 
 object ContactListItemTextView {
   private val SEPARATOR_SYMBOL: String = " · "
 
   def getFormattedSubLabel(name: String, userHandle: String, addressBookName: String, showContactDetails: Boolean)(implicit context: Context): String = {
     val usernameString = StringUtils.formatHandle(userHandle)
-    var otherString: String = ""
-    if (addressBookName.nonEmpty && showContactDetails) {
-      if (name.equalsIgnoreCase(addressBookName)) {
-        otherString = context.getString(R.string.people_picker__contact_list_contact_sub_label_address_book_identical)
-      }
-      else {
-        otherString = context.getString(R.string.people_picker__contact_list_contact_sub_label_address_book, addressBookName)
-      }
-    }
-    if (TextUtils.isEmpty(userHandle)) {
-      return otherString //TODO remove return
-    }
-    else if (TextUtils.isEmpty(otherString)) {
-      return usernameString //TODO remove return
-    }
-    usernameString + ContactListItemTextView.SEPARATOR_SYMBOL + otherString
+    val otherString =
+      if (addressBookName.nonEmpty && showContactDetails) {
+        if (name.equalsIgnoreCase(addressBookName))
+          getString(R.string.people_picker__contact_list_contact_sub_label_address_book_identical)
+        else
+          getString(R.string.people_picker__contact_list_contact_sub_label_address_book, addressBookName)
+      } else ""
+
+    if (TextUtils.isEmpty(userHandle))
+      otherString
+    else if (TextUtils.isEmpty(otherString))
+      usernameString
+    else
+      usernameString + ContactListItemTextView.SEPARATOR_SYMBOL + otherString
   }
 
   def getFormattedSubLabel(userData: UserData, contact: Option[Contact], showContactDetails: Boolean)(implicit context: Context): String = {

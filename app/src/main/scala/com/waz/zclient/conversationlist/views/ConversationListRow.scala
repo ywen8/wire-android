@@ -234,12 +234,12 @@ class NormalConversationListRow(context: Context, attrs: AttributeSet, style: In
     this.conversationCallback = conversationCallback
   }
 
-  override def open(): Unit =  {
-    if (openState) return //TODO remove return
-    animateMenu(menuOpenOffset)
-    menuIndicatorView.setClickable(true)
-    openState = true
-  }
+  override def open(): Unit =
+    if (!openState) {
+      animateMenu(menuOpenOffset)
+      menuIndicatorView.setClickable(true)
+      openState = true
+    }
 
   def close(): Unit = {
     if (openState) openState = false
@@ -362,9 +362,7 @@ object ConversationListRow {
     lazy val senderName = user.fold(getString(R.string.conversation_list__someone))(_.getDisplayName)
     lazy val memberName = members.headOption.fold2(getString(R.string.conversation_list__someone), _.getDisplayName)
 
-    if (messageData.isEphemeral) {
-      return formatSubtitle(getString(R.string.conversation_list__ephemeral), senderName, isGroup) //TODO remove return
-    }
+    if (messageData.isEphemeral) formatSubtitle(getString(R.string.conversation_list__ephemeral), senderName, isGroup)
     messageData.msgType match {
       case Message.Type.TEXT | Message.Type.TEXT_EMOJI_ONLY | Message.Type.RICH_MEDIA =>
         formatSubtitle(messageData.contentString, senderName, isGroup)

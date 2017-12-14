@@ -60,23 +60,18 @@ abstract class ConversationListTopToolbar(val context: Context, val attrs: Attri
   bottomBorder.setBackground(separatorDrawable)
 
   buttonContainer.setOnClickListener(new OnClickListener {
-    override def onClick(v: View) = {
-      onRightButtonClick ! v
-    }
+    override def onClick(v: View) = onRightButtonClick ! v
   })
 
-  def setScrolledToTop(scrolledToTop: Boolean): Unit = {
-    if (this.scrolledToTop == scrolledToTop) {
-      return //TODO remove return
+  def setScrolledToTop(scrolledToTop: Boolean): Unit =
+    if (this.scrolledToTop != scrolledToTop) {
+      this.scrolledToTop = scrolledToTop
+      if (!scrolledToTop) {
+        separatorDrawable.animateCollapse()
+      } else {
+        separatorDrawable.animateExpand()
+      }
     }
-    this.scrolledToTop = scrolledToTop
-    if (!scrolledToTop) {
-      separatorDrawable.animateCollapse()
-    } else {
-      separatorDrawable.animateExpand()
-    }
-  }
-
 }
 
 class NormalTopToolbar(override val context: Context, override val attrs: AttributeSet, override val defStyleAttr: Int)  extends ConversationListTopToolbar(context, attrs, defStyleAttr){
@@ -111,20 +106,16 @@ class NormalTopToolbar(override val context: Context, override val attrs: Attrib
   separatorDrawable.setMinMax(0f, 1.0f)
   separatorDrawable.setClip(1.0f)
 
-  override def setScrolledToTop(scrolledToTop: Boolean): Unit = {
-    if (this.scrolledToTop == scrolledToTop) {
-      return //TODO remove return
+  override def setScrolledToTop(scrolledToTop: Boolean): Unit =
+    if (this.scrolledToTop != scrolledToTop) {
+      super.setScrolledToTop(scrolledToTop)
     }
-    super.setScrolledToTop(scrolledToTop)
-  }
 
-  def setIndicatorVisible(visible: Boolean): Unit = {
+  def setIndicatorVisible(visible: Boolean): Unit =
     settingsIndicator.setVisible(visible)
-  }
 
-  def setIndicatorColor(color: Int): Unit = {
+  def setIndicatorColor(color: Int): Unit =
     settingsIndicator.setAccentColor(color)
-  }
 
   def setLoading(loading: Boolean): Unit =
     profileButton.setImageDrawable(if (loading) getDrawable(R.drawable.list_row_chathead_loading) else drawable)

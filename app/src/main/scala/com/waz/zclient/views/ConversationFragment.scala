@@ -36,7 +36,7 @@ import com.waz.model.ConversationData.ConversationType
 import com.waz.model.{AssetId, ConvId, ConversationData, MessageData}
 import com.waz.threading.{CancellableFuture, Threading}
 import com.waz.utils.events.{EventStreamWithAuxSignal, Signal}
-import com.waz.utils.returningF //TODO remove return
+import com.waz.utils.returningF
 import com.waz.utils.wrappers.URI
 import com.waz.zclient.Intents.ShowDevicesIntent
 import com.waz.zclient.camera.controllers.GlobalCameraController
@@ -175,18 +175,18 @@ class ConversationFragment extends BaseFragment[ConversationFragment.Container] 
     extendedCursorContainer = findById(R.id.ecc__conversation)
     listView = findById(R.id.messages_list_view)
 
-    returningF( findById(R.id.sv__conversation_toolbar__verified_shield) ){ view: ShieldView => //TODO remove return
+    returningF( findById(R.id.sv__conversation_toolbar__verified_shield) ){ view: ShieldView =>
       view.setVisible(false)
     }
 
     // Recording audio messages
-    audioMessageRecordingView = returningF( findById( R.id.amrv_audio_message_recording) ){ view: AudioMessageRecordingView => //TODO remove return
+    audioMessageRecordingView = returningF( findById( R.id.amrv_audio_message_recording) ){ view: AudioMessageRecordingView =>
       view.setVisibility(View.INVISIBLE)
       view.setDarkTheme(inject[ThemeController].isDarkTheme)
     }
 
     // invisible footer to scroll over inputfield
-    returningF( new FrameLayout(getActivity) ){ footer: FrameLayout => //TODO remove return
+    returningF( new FrameLayout(getActivity) ){ footer: FrameLayout =>
       footer.setLayoutParams(
         new AbsListView.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, getResources.getDimensionPixelSize(R.dimen.cursor__list_view_footer__height))
       )
@@ -658,19 +658,19 @@ class ConversationFragment extends BaseFragment[ConversationFragment.Container] 
 
   private val orientationControllerObserver = new  OrientationControllerObserver {
     override def onOrientationHasChanged(squareOrientation: SquareOrientation): Unit = inLandscape.head.foreach { oldInLandscape =>
-      implicit val ctx: Context = getActivity
-      if (ctx == null) return //TODO remove return
-      val newInLandscape = isInLandscape
-      oldInLandscape match {
-        case Some(landscape) if landscape != newInLandscape =>
-          val conversationListVisible = getControllerFactory.getNavigationController.getCurrentPage == Page.CONVERSATION_LIST
-          if (newInLandscape && !conversationListVisible)
-            CancellableFuture.delayed(getInt(R.integer.framework_animation_duration_short).millis){
-              Option(getActivity).foreach(_.onBackPressed())
-            }
-        case _ =>
+      Option(getActivity).foreach { implicit ctx: Context =>
+        val newInLandscape = isInLandscape
+        oldInLandscape match {
+          case Some(landscape) if landscape != newInLandscape =>
+            val conversationListVisible = getControllerFactory.getNavigationController.getCurrentPage == Page.CONVERSATION_LIST
+            if (newInLandscape && !conversationListVisible)
+              CancellableFuture.delayed(getInt(R.integer.framework_animation_duration_short).millis){
+                Option(getActivity).foreach(_.onBackPressed())
+              }
+          case _ =>
+        }
+        inLandscape ! Some(newInLandscape)
       }
-      inLandscape ! Some(newInLandscape)
     }
   }
 
