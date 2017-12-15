@@ -278,7 +278,6 @@ class MainActivity extends BaseActivity
     if (IntentUtils.isPasswordResetIntent(getIntent)) {
       error("Password was reset")
       onPasswordWasReset()
-      return
     }
   }
 

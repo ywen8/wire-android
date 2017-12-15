@@ -269,30 +269,32 @@ class CollectionFragment extends BaseFragment[CollectionFragment.Container] with
           case R.id.close =>
             controller.focusedItem ! None
             controller.contentSearchQuery ! ContentSearchQuery.empty
-            controller.closeCollection
-            return true
+            controller.closeCollection()
+            true
+          case _ => false
         }
-        false
       }
     })
     view
   }
 
   override def onBackPressed(): Boolean = {
-    val recyclerView: Option[CollectionRecyclerView] = Option(findById(R.id.collection_list))
-    recyclerView.foreach{ rv =>
+    Option(findById[CollectionRecyclerView](R.id.collection_list)).foreach { rv =>
       rv.stopScroll()
       rv.getSpanSizeLookup().clearCache()
     }
-    getChildFragmentManager.findFragmentByTag(SingleImageCollectionFragment.TAG) match {
-      case fragment: SingleImageCollectionFragment => controller.focusedItem ! None; return true
+
+    withFragmentOpt(SingleImageCollectionFragment.TAG) {
+      case Some(_: SingleImageCollectionFragment) =>
+        controller.focusedItem ! None
+        true
       case _ =>
+        if (!collectionAdapter.onBackPressed){
+          controller.contentSearchQuery ! ContentSearchQuery.empty
+          controller.closeCollection()
+        }
+        true
     }
-    if (!collectionAdapter.onBackPressed){
-      controller.contentSearchQuery ! ContentSearchQuery.empty
-      controller.closeCollection
-    }
-    true
   }
 }
 

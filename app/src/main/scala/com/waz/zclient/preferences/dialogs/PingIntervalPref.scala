@@ -48,8 +48,7 @@ class PingIntervalPref(context: Context, attrs: AttributeSet) extends EditTextPr
       Try(value.toLong.millis) foreach { interval =>
         pingIntervalService.currentValue foreach { _.setPingInterval(interval) }
       }
-      return true
-    }
-    false
+      true
+    } else false
   }
 }

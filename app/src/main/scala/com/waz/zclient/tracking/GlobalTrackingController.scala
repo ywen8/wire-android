@@ -121,8 +121,8 @@ class GlobalTrackingController(implicit inj: Injector, cxt: WireContext, eventCo
       }
 
       event match {
-        case _: MissedPushEvent =>
-        //TODO - re-enable this event when we can reduce their frequency a little. Too many events for mixpanel right now
+        case _: MissedPushEvent if !BuildConfig.FLAVOR.equals("internal") =>
+          //This event is high volume, so we limit it to only internal clients
         case e: ReceivedPushEvent if e.p.toFetch.forall(_.asScala < 10.seconds) =>
         //don't track - there are a lot of these events! We want to keep the event count lower
         case OptInEvent =>

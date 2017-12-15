@@ -18,43 +18,39 @@
 package com.waz.zclient.common.views
 
 import android.content.Context
-import android.content.res.TypedArray
 import android.graphics.drawable.ShapeDrawable
 import android.os.Build
 import android.support.annotation.{NonNull, Nullable}
-import android.text.style.{AbsoluteSizeSpan, ReplacementSpan}
 import android.text._
+import android.text.style.{AbsoluteSizeSpan, ReplacementSpan}
 import android.util.AttributeSet
 import android.view.ActionMode.Callback
-import android.view.inputmethod.{EditorInfo, InputConnection, InputConnectionWrapper}
 import android.view._
+import android.view.inputmethod.{EditorInfo, InputConnection, InputConnectionWrapper}
 import com.waz.zclient.R
 import com.waz.zclient.pages.main.pickuser.UserTokenSpan
 import com.waz.zclient.ui.text.SpannableEditText
-import com.waz.zclient.utils.ViewUtils
 import com.waz.zclient.utils.ContextUtils._
 
-/**
-  * Created by joaoponte on 06.11.17.
-  */
 class PickerSpannableEditText(val context: Context, val attrs: AttributeSet, val defStyle: Int) extends SpannableEditText(context, attrs, defStyle) with TextWatcher {
 
+  implicit val cxt = context
   initAttributes(attrs)
   init()
 
-  private var flagNotifyAfterTextChanged: Boolean = true
-  private var hintTextSmallScreen: String = ""
-  private var hintTextSize: Int = 0
-  private var lightTheme: Boolean = false
-  private var elements: Set[PickableElement] = null
-  private var hasText: Boolean = false
-  private var callback: PickerSpannableEditText.Callback = null
+  private var flagNotifyAfterTextChanged = true
+  private var hintTextSmallScreen = ""
+  private var hintTextSize = 0
+  private var lightTheme = false
+  private var elements = Set.empty[PickableElement]
+  private var hasText = false
+  private var callback: PickerSpannableEditText.Callback = _
 
-  def this(context: Context, attrs: AttributeSet) {
+  def this(context: Context, attrs: AttributeSet) = {
     this(context, attrs, 0)
   }
 
-  def this(context: Context) {
+  def this(context: Context) = {
     this(context, null)
   }
 
@@ -62,15 +58,13 @@ class PickerSpannableEditText(val context: Context, val attrs: AttributeSet, val
     this.lightTheme = lightTheme
   }
 
-  private def initAttributes(@Nullable attrs: AttributeSet): Unit = {
-    if (attrs == null) {
-      return
+  private def initAttributes(@Nullable attrs: AttributeSet): Unit =
+    Option(attrs).foreach { attrs =>
+      val a = getContext.obtainStyledAttributes(attrs, R.styleable.PickUserEditText)
+      hintTextSmallScreen = a.getString(R.styleable.PickUserEditText_hintSmallScreen)
+      hintTextSize = a.getDimensionPixelSize(R.styleable.PickUserEditText_hintTextSize, 0)
+      a.recycle()
     }
-    val a: TypedArray = getContext.obtainStyledAttributes(attrs, R.styleable.PickUserEditText)
-    hintTextSmallScreen = a.getString(R.styleable.PickUserEditText_hintSmallScreen)
-    hintTextSize = a.getDimensionPixelSize(R.styleable.PickUserEditText_hintTextSize, 0)
-    a.recycle()
-  }
 
   private def init(): Unit = {
     setCustomSelectionActionModeCallback(new Callback {
@@ -103,106 +97,50 @@ class PickerSpannableEditText(val context: Context, val attrs: AttributeSet, val
   def setCallback(callback: PickerSpannableEditText.Callback): Unit = {
     this.callback = callback
     super.setCallback(new SpannableEditText.Callback() {
-      def onRemovedTokenSpan(id: String): Unit = {
-        for (element <- elements) {
-          if (element.id == id) {
-            callback.onRemovedTokenSpan(element)
-            return
-          }
-        }
-      }
+      def onRemovedTokenSpan(id: String): Unit =
+        elements.find(_.id == id).foreach(callback.onRemovedTokenSpan)
 
-      def onClick(v: View): Unit = {
-      }
+      def onClick(v: View): Unit = {}
     })
   }
 
-  override protected def setHintCursorSize(cursorDrawable: ShapeDrawable): Unit = {
-    if (hasText || Build.VERSION.SDK_INT <= Build.VERSION_CODES.LOLLIPOP_MR1 || getHint.length() == 0) {
-      return
+  override protected def setHintCursorSize(cursorDrawable: ShapeDrawable): Unit =
+    if (!(hasText || Build.VERSION.SDK_INT <= Build.VERSION_CODES.LOLLIPOP_MR1) && !(getHint.length() == 0)) {
+      val padding = toPx(PickerSpannableEditText.EXTRA_PADDING_DP)
+      val textSizeDifferencePx = getTextSize.toInt - hintTextSize
+      val bottomPadding = textSizeDifferencePx + padding
+      cursorDrawable.setPadding(0, padding, 0, bottomPadding)
     }
-    val padding: Int = ViewUtils.toPx(getContext, PickerSpannableEditText.EXTRA_PADDING_DP)
-    val textSizeDifferencePx: Int = getTextSize.toInt - hintTextSize
-    val bottomPadding: Int = textSizeDifferencePx + padding
-    cursorDrawable.setPadding(0, padding, 0, bottomPadding)
-  }
 
-  def addElement(element: PickableElement): Unit = {
-    if (hasToken(element)) {
-      return
+  def addElement(element: PickableElement): Unit =
+    if (!hasToken(element)) {
+      elements += element
+      flagNotifyAfterTextChanged = false
+      addElementToken(element.id, element.name)
+      flagNotifyAfterTextChanged = true
+      clearNonSpannableText()
+      resetDeleteModeForSpans()
     }
-    if (elements == null) {
-      elements = Set[PickableElement]()
-    }
-    elements = elements + element
-    flagNotifyAfterTextChanged = false
-    addElementToken(element.id, element.name)
-    flagNotifyAfterTextChanged = true
-    clearNonSpannableText()
-    resetDeleteModeForSpans()
-  }
 
-  private def hasToken(element: PickableElement): Boolean = {
-    if (element == null) {
-      return false
-    }
-    val buffer: Editable = getText
-    val spans: Array[SpannableEditText.TokenSpan] = buffer.getSpans(0, buffer.length, classOf[SpannableEditText.TokenSpan])
-    var i: Int = spans.length - 1
-    while (i >= 0) {
-      {
-        val span: SpannableEditText.TokenSpan = spans(i)
-        if (span.getId == element.id) {
-          return true
+  private def hasToken(element: PickableElement): Boolean =
+    Option(element) match {
+      case None => false
+      case Some(_) =>
+        val buffer = getText
+        val spans = buffer.getSpans(0, buffer.length, classOf[SpannableEditText.TokenSpan])
+        spans.find(_.getId == element.id) match {
+          case Some(_) => true
+          case _ => false
         }
-      }
-      {
-        i -= 1
-        i + 1
-      }
     }
-    false
-  }
 
-  def removeElement(element: PickableElement): Unit = {
-    if (elements == null || !hasToken(element) || !removeSpan(element.id)) {
-      return
+  def removeElement(element: PickableElement): Unit =
+    if (hasToken(element) && removeSpan(element.id)) {
+      elements -= element
+      resetDeleteModeForSpans()
     }
-    elements = elements - element
-    resetDeleteModeForSpans()
-  }
-
-  def setSelectedElements(elements: List[PickableElement]): Unit = {
-    if (this.elements != null && equalLists(elements, this.elements.toList)) {
-      return
-    }
-    this.elements = elements.toSet
-    notifyDatasetChanged()
-  }
 
   def getElements: Set[PickableElement] = elements
-
-  private def equalLists(one: List[PickableElement], two: List[PickableElement]): Boolean = {
-    if (one == null && two == null) {
-      return true
-    }
-    if (one == null || two == null || one.size != two.size) {
-      return false
-    }
-    two.forall(one.contains) && one.forall(two.contains)
-  }
-
-  private def notifyDatasetChanged(): Unit = {
-    reset()
-    if (elements == null) {
-      return
-    }
-    flagNotifyAfterTextChanged = false
-    for (element <- elements) {
-      addElementToken(element.id, element.name)
-    }
-    flagNotifyAfterTextChanged = true
-  }
 
   def reset(): Unit = {
     clearNonSpannableText()
@@ -232,111 +170,85 @@ class PickerSpannableEditText(val context: Context, val attrs: AttributeSet, val
   }
 
   private def moveTypedTextToEnd(start: Int, before: Int, count: Int): Unit = {
-    val buffer: Editable = getText
-    val allSpans: Array[ReplacementSpan] = buffer.getSpans(0, buffer.length, classOf[ReplacementSpan])
-    if (allSpans.length <= 0) {
-      return
-    }
-    val lastSpan: ReplacementSpan = allSpans(allSpans.length - 1)
-    val to: Int = buffer.getSpanStart(lastSpan)
-    if (start < to && before == 0) {
-      val typedText: String = buffer.toString.substring(start, start + count)
-      buffer.delete(start, start + count)
-      append(typedText)
-      setSelection(getText.length)
+    val buffer = getText
+    val allSpans = buffer.getSpans(0, buffer.length, classOf[ReplacementSpan])
+
+    allSpans.headOption match {
+      case Some(span) =>
+        if (start < buffer.getSpanStart(span) && before == 0) {
+          buffer.delete(start, start + count)
+          append(buffer.toString.substring(start, start + count))
+          setSelection(getText.length)
+        }
+      case _ => //
     }
   }
 
-  private def adjustHintTextForSmallScreen(): Unit = {
-    if (TextUtils.isEmpty(getHint) || TextUtils.isEmpty(hintTextSmallScreen)) {
-      return
-    }
-    val paint: TextPaint = getPaint
-    val hintWidth: Float = paint.measureText(getHint, 0, getHint.length)
-    val availableTextSpace: Float = getMeasuredWidth - getPaddingLeft - getPaddingRight
-    if (hintWidth > availableTextSpace) {
-      setHint(hintTextSmallScreen)
-    }
-  }
-
-  private def removeSelectedElementToken(): Boolean = {
-    val buffer: Editable = getText
-    val spans: Array[UserTokenSpan] = buffer.getSpans(0, buffer.length, classOf[UserTokenSpan])
-    for (span <- spans) {
-      if (span.getDeleteMode) {
-        super.removeSpan(span)
-        elements = elements.filterNot(_.id == span.getId)
-        return true
+  private def adjustHintTextForSmallScreen(): Unit =
+    if (!TextUtils.isEmpty(getHint) && !TextUtils.isEmpty(hintTextSmallScreen)) {
+      val paint = getPaint
+      val hintWidth: Float = paint.measureText(getHint, 0, getHint.length)
+      val availableTextSpace: Float = getMeasuredWidth - getPaddingLeft - getPaddingRight
+      if (hintWidth > availableTextSpace) {
+        setHint(hintTextSmallScreen)
       }
     }
-    false
+
+  private def removeSelectedElementToken(): Boolean = {
+    val buffer = getText
+    val spans = buffer.getSpans(0, buffer.length, classOf[UserTokenSpan])
+    spans.find(_.getDeleteMode) match {
+      case Some(span) =>
+        super.removeSpan(span)
+        elements = elements.filterNot(_.id == span.getId)
+        true
+      case _ => false
+    }
   }
 
   private def deleteSpanBeforeSelection(): Boolean = {
-    val buffer: Editable = getText
-    val spans: Array[SpannableEditText.TokenSpan] = buffer.getSpans(getSelectionStart, getSelectionEnd, classOf[SpannableEditText.TokenSpan])
-    if (spans.length == 0) {
-      return false
-    }
+    val buffer = getText
     val selectionEnd: Int = getSelectionEnd
-    var i: Int = spans.length - 1
-    while (i >= 0) {
-      {
-        val span: SpannableEditText.TokenSpan = spans(i)
-        val end: Int = buffer.getSpanEnd(span)
-        val atLineBreak: Boolean = getLayout.getLineForOffset(end) != getLayout.getLineForOffset(selectionEnd)
-        if (end <= selectionEnd || (end <= (selectionEnd + 1) && atLineBreak)) {
-          super.removeSpan(span)
-          elements = elements.filterNot(_.id == span.getId)
-          setSelection(getText.length)
-          return true
-        }
-      }
-      {
-        i -= 1
-        i + 1
-      }
+    val spans = buffer.getSpans(getSelectionStart, selectionEnd, classOf[SpannableEditText.TokenSpan])
+
+    spans.reverse.find { span =>
+      val end = buffer.getSpanEnd(span)
+      val atLineBreak = getLayout.getLineForOffset(end) != getLayout.getLineForOffset(selectionEnd)
+      end <= selectionEnd || (end <= (selectionEnd + 1) && atLineBreak)
+    } match {
+      case Some(span) =>
+        super.removeSpan(span)
+        elements = elements.filterNot(_.id == span.getId)
+        setSelection(getText.length)
+        true
+      case _ => false
     }
-    false
   }
 
-  def beforeTextChanged(s: CharSequence, start: Int, count: Int, after: Int): Unit = {
-  }
 
-  override def onTextChanged(s: CharSequence, start: Int, before: Int, count: Int): Unit = {
+  def beforeTextChanged(s: CharSequence, start: Int, count: Int, after: Int): Unit = {}
+
+  override def onTextChanged(s: CharSequence, start: Int, before: Int, count: Int): Unit =
     moveTypedTextToEnd(start, before, count)
-  }
 
-  def afterTextChanged(s: Editable): Unit = {
-    if (!notifyTextWatcher) {
-      return
+
+  def afterTextChanged(s: Editable): Unit =
+    if (notifyTextWatcher) {
+      if (flagNotifyAfterTextChanged) callback.afterTextChanged(getSearchFilter)
+      val hadText = hasText
+      hasText = s.length > 0
+      if (hadText && !hasText || !hadText && hasText) updateCursor()
     }
-    if (flagNotifyAfterTextChanged) {
-      callback.afterTextChanged(getSearchFilter)
-    }
-    val hadText: Boolean = hasText
-    hasText = s.length > 0
-    if (hadText && !hasText || !hadText && hasText) {
-      updateCursor()
-    }
-  }
 
   private class CustomInputConnection (val target: InputConnection, val mutable: Boolean) extends InputConnectionWrapper(target, mutable) {
     override def deleteSurroundingText(beforeLength: Int, afterLength: Int): Boolean = {
       sendKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_DEL)) && sendKeyEvent(new KeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_DEL))
     }
 
-    override def sendKeyEvent(event: KeyEvent): Boolean = {
-      if (event.getAction == KeyEvent.ACTION_DOWN && event.getKeyCode == KeyEvent.KEYCODE_DEL) {
-        if (removeSelectedElementToken()) {
-          return true
-        }
-        if (deleteSpanBeforeSelection()) {
-          return true
-        }
-      }
-      super.sendKeyEvent(event)
-    }
+    override def sendKeyEvent(event: KeyEvent): Boolean =
+      if (event.getAction == KeyEvent.ACTION_DOWN && event.getKeyCode == KeyEvent.KEYCODE_DEL &&
+        (removeSelectedElementToken() || deleteSpanBeforeSelection())) true
+      else super.sendKeyEvent(event)
   }
 
 }

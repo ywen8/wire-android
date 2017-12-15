@@ -105,18 +105,15 @@ abstract class ConversationListFragment extends BaseFragment[ConversationListFra
     if (conversationData.convType != ConversationType.Group &&
         conversationData.convType != ConversationType.OneToOne &&
         conversationData.convType != ConversationType.WaitForConnection) {
-      return
-    }
-
-    getControllerFactory.getConversationScreenController.showConversationMenu(IConversationScreenController.CONVERSATION_LIST_LONG_PRESS, conversationData.id, anchorView)
+    } else
+      getControllerFactory.getConversationScreenController.showConversationMenu(IConversationScreenController.CONVERSATION_LIST_LONG_PRESS, conversationData.id, anchorView)
   }
 
   override def onCreateAnimation(transit: Int, enter: Boolean, nextAnim: Int): Animation = {
     if (nextAnim == 0 || getContainer == null || getControllerFactory.isTornDown)
-      return super.onCreateAnimation(transit, enter, nextAnim)
-
-    if (getControllerFactory.getPickUserController.isHideWithoutAnimations)
-      return new ConversationListAnimation(
+      super.onCreateAnimation(transit, enter, nextAnim)
+    else if (getControllerFactory.getPickUserController.isHideWithoutAnimations)
+      new ConversationListAnimation(
         0,
         getResources.getDimensionPixelSize(R.dimen.open_new_conversation__thread_list__max_top_distance),
         enter,
@@ -124,9 +121,8 @@ abstract class ConversationListFragment extends BaseFragment[ConversationListFra
         0,
         false,
         1f)
-
-    if (enter)
-      return new ConversationListAnimation(
+    else if (enter)
+      new ConversationListAnimation(
         0,
         getResources.getDimensionPixelSize(R.dimen.open_new_conversation__thread_list__max_top_distance),
         enter,
@@ -134,8 +130,7 @@ abstract class ConversationListFragment extends BaseFragment[ConversationListFra
         getResources.getInteger(R.integer.framework_animation_duration_medium),
         false,
         1f)
-
-    new ConversationListAnimation(
+    else new ConversationListAnimation(
       0,
       getResources.getDimensionPixelSize(R.dimen.open_new_conversation__thread_list__max_top_distance),
       enter,

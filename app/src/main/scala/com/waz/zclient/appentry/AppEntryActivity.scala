@@ -22,13 +22,14 @@ import android.content.{DialogInterface, Intent}
 import android.graphics.Bitmap
 import android.net.Uri
 import android.os.{Build, Bundle}
-import android.support.v4.app.FragmentTransaction
+import android.support.v4.app.{Fragment, FragmentTransaction}
 import android.widget.Toast
-import com.waz.ZLog
+import com.waz.ZLog._
 import com.waz.ZLog.ImplicitTag._
 import com.waz.api._
 import com.waz.service.ZMessaging
 import com.waz.threading.Threading
+import com.waz.utils.returning
 import com.waz.utils.wrappers.AndroidURIUtil
 import com.waz.zclient._
 import com.waz.zclient.appentry.controllers.{AppEntryController, SignInController}
@@ -86,15 +87,19 @@ class AppEntryActivity extends BaseActivity
   }
 
   override def onBackPressed(): Unit = {
-    getSupportFragmentManager.getFragments.asScala.foreach {
-      case fragment: InAppWebViewFragment =>
-        getSupportFragmentManager.popBackStackImmediate
-        return
-      case fragment: OnBackPressedListener if fragment.onBackPressed() =>
-        return
-      case _ =>
+
+    val topFragment = getSupportFragmentManager.getFragments.asScala.find {
+      case _: InAppWebViewFragment => true
+      case f: OnBackPressedListener if f.onBackPressed() => true
+      case _ => false
     }
-    abortAddAccount()
+
+    topFragment match {
+      case Some(_: InAppWebViewFragment) =>
+        getSupportFragmentManager.popBackStackImmediate
+      case Some(f: OnBackPressedListener) if f.onBackPressed() => //
+      case _ => abortAddAccount()
+    }
   }
 
   override def onCreate(savedInstanceState: Bundle): Unit = {
@@ -112,7 +117,7 @@ class AppEntryActivity extends BaseActivity
 
     unsplashInitLoadHandle = unsplashInitImageAsset.getSingleBitmap(AppEntryActivity.PREFETCH_IMAGE_WIDTH, new BitmapCallback() {
       def onBitmapLoaded(b: Bitmap): Unit = {
-        ZLog.verbose(s"onBitmapLoaded $b")
+        verbose(s"onBitmapLoaded $b")
       }
     })
 
@@ -177,7 +182,7 @@ class AppEntryActivity extends BaseActivity
   }
 
   override protected def onActivityResult(requestCode: Int, resultCode: Int, data: Intent): Unit = {
-    ZLog.info(s"OnActivity result: $requestCode, $resultCode")
+    info(s"OnActivity result: $requestCode, $resultCode")
     super.onActivityResult(requestCode, resultCode, data)
     getSupportFragmentManager.findFragmentById(R.id.fl_main_content).onActivityResult(requestCode, resultCode, data)
   }
@@ -210,106 +215,71 @@ class AppEntryActivity extends BaseActivity
     }
   }
 
-  def onOpenUrl(url: String): Unit = {
+  def onOpenUrl(url: String): Unit =
     try {
       val prefixedUrl =
         if (!url.startsWith(AppEntryActivity.HTTP_PREFIX) && !url.startsWith(AppEntryActivity.HTTPS_PREFIX))
           AppEntryActivity.HTTP_PREFIX + url
         else
           url
-      val browserIntent: Intent = new Intent(Intent.ACTION_VIEW, Uri.parse(prefixedUrl))
-      browserIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-      startActivity(browserIntent)
+      startActivity(returning(new Intent(Intent.ACTION_VIEW, Uri.parse(prefixedUrl)))(_.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)))
     }
     catch {
-      case e: Exception => {
-        ZLog.error(s"Failed to open URL: $url")
-      }
-    }
-  }
-
-  def onShowCreateTeamFragment(): Unit = {
-    if (getSupportFragmentManager.findFragmentByTag(CreateTeamFragment.TAG) != null) {
-      return
-    }
-    val transaction: FragmentTransaction = getSupportFragmentManager.beginTransaction
-    setDefaultAnimation(transaction).replace(R.id.fl_main_content, CreateTeamFragment.newInstance, CreateTeamFragment.TAG).commit
-    enableProgress(false)
-  }
-
-  def onShowPhoneCodePage(): Unit = {
-    if (isPaused) {
-      return
-    }
-    val transaction: FragmentTransaction = getSupportFragmentManager.beginTransaction
-    setDefaultAnimation(transaction).replace(R.id.fl_main_content, VerifyPhoneFragment.newInstance(false), VerifyPhoneFragment.TAG).commit
-    enableProgress(false)
-    getControllerFactory.getNavigationController.setLeftPage(Page.PHONE_VERIFY_CODE, AppEntryActivity.TAG)
-  }
-
-  def onShowPhoneVerifyEmailPage(): Unit = {
-    val transaction: FragmentTransaction = getSupportFragmentManager.beginTransaction
-    setDefaultAnimation(transaction).replace(R.id.fl_main_content, VerifyPhoneFragment.newInstance(false), VerifyPhoneFragment.TAG).commit
-    enableProgress(false)
-  }
-
-  def onShowEmailVerifyEmailPage(): Unit = {
-    val transaction: FragmentTransaction = getSupportFragmentManager.beginTransaction
-    setDefaultAnimation(transaction).replace(R.id.fl_main_content, EmailVerifyEmailFragment.newInstance, EmailVerifyEmailFragment.TAG).commit
-    enableProgress(false)
-  }
-
-  def onShowSignInPage(): Unit = {
-    if (getSupportFragmentManager.findFragmentByTag(SignInFragment.Tag) != null) {
-      return
+      case _: Exception => error(s"Failed to open URL: $url")
     }
 
-    enableProgress(false)
-
-    if (fromGenericInvite) {
-      val referralToken = getControllerFactory.getUserPreferencesController.getReferralToken
-      val token = getControllerFactory.getUserPreferencesController.getGenericInvitationToken
-      appEntryController.invitationToken ! Option(token)
+  def onShowCreateTeamFragment(): Unit =
+    withFragmentOpt(CreateTeamFragment.TAG) {
+      case Some(_) =>
+      case None => showFragment(CreateTeamFragment.newInstance, CreateTeamFragment.TAG)
     }
 
-    val transaction: FragmentTransaction = getSupportFragmentManager.beginTransaction
-    setDefaultAnimation(transaction).replace(R.id.fl_main_content, new SignInFragment, SignInFragment.Tag).commit
-    enableProgress(false)
-    getControllerFactory.getNavigationController.setLeftPage(Page.LOGIN_REGISTRATION, AppEntryActivity.TAG)
-  }
 
-  def onShowSetPicturePage(): Unit = {
-    if (getSupportFragmentManager.findFragmentByTag(SignUpPhotoFragment.TAG) != null) {
-      return
+  def onShowPhoneCodePage(): Unit =
+    if (!isPaused) {
+      showFragment(VerifyPhoneFragment.newInstance(false), VerifyPhoneFragment.TAG)
+      getControllerFactory.getNavigationController.setLeftPage(Page.PHONE_VERIFY_CODE, AppEntryActivity.TAG)
     }
-    ZMessaging.currentAccounts.getActiveAccount.map { accountData =>
-      val transaction: FragmentTransaction = getSupportFragmentManager.beginTransaction
-      accountData match {
-        case Some(acc) if acc.phone.isDefined && acc.email.isEmpty =>
-          setDefaultAnimation(transaction).replace(R.id.fl_main_content, SignUpPhotoFragment.newInstance(SignUpPhotoFragment.RegistrationType.Phone), SignUpPhotoFragment.TAG).commit
-        case _ =>
-          setDefaultAnimation(transaction).replace(R.id.fl_main_content, SignUpPhotoFragment.newInstance(SignUpPhotoFragment.RegistrationType.Email), SignUpPhotoFragment.TAG).commit
-      }
-      enableProgress(false)
-    } (Threading.Ui)
-  }
 
-  def onShowEmailPhoneCodePage(): Unit = {
-    val transaction: FragmentTransaction = getSupportFragmentManager.beginTransaction
-    setDefaultAnimation(transaction).replace(R.id.fl_main_content, VerifyPhoneFragment.newInstance(true), VerifyPhoneFragment.TAG).commit
-    enableProgress(false)
-  }
+  def onShowPhoneVerifyEmailPage(): Unit =
+    showFragment(VerifyPhoneFragment.newInstance(false), VerifyPhoneFragment.TAG)
 
-  def onShowFirstLaunchPage(): Unit = {
-    val transaction: FragmentTransaction = getSupportFragmentManager.beginTransaction
-    setDefaultAnimation(transaction).replace(R.id.fl_main_content, FirstLaunchAfterLoginFragment.newInstance, FirstLaunchAfterLoginFragment.TAG).commit
-    enableProgress(false)
-  }
+  def onShowEmailVerifyEmailPage(): Unit =
+    showFragment(EmailVerifyEmailFragment.newInstance, EmailVerifyEmailFragment.TAG)
+
+  def onShowSignInPage(): Unit =
+    withFragmentOpt(SignInFragment.Tag) {
+      case Some(_) =>
+      case None =>
+        if (fromGenericInvite)
+          appEntryController.invitationToken ! Option(getControllerFactory.getUserPreferencesController.getGenericInvitationToken)
+
+        showFragment(new SignInFragment, SignInFragment.Tag)
+        getControllerFactory.getNavigationController.setLeftPage(Page.LOGIN_REGISTRATION, AppEntryActivity.TAG)
+    }
+
+  def onShowSetPicturePage(): Unit =
+    withFragmentOpt(SignUpPhotoFragment.TAG) {
+      case Some(_) => //
+      case None =>
+        ZMessaging.currentAccounts.getActiveAccount.map { accountData =>
+          import SignUpPhotoFragment._
+          val tpe = accountData match {
+            case Some(acc) if acc.phone.isDefined && acc.email.isEmpty => RegistrationType.Phone
+            case _ => RegistrationType.Email
+          }
+          showFragment(newInstance(tpe), TAG)
+        } (Threading.Ui)
+    }
+
+  def onShowEmailPhoneCodePage(): Unit =
+    showFragment(VerifyPhoneFragment.newInstance(true), VerifyPhoneFragment.TAG)
+
+  def onShowFirstLaunchPage(): Unit =
+    showFragment(FirstLaunchAfterLoginFragment.newInstance, FirstLaunchAfterLoginFragment.TAG)
 
   def onShowPhoneNamePage(): Unit = {
-    val transaction: FragmentTransaction = getSupportFragmentManager.beginTransaction
-    setDefaultAnimation(transaction).replace(R.id.fl_main_content, PhoneSetNameFragment.newInstance, PhoneSetNameFragment.TAG).commit
-    enableProgress(false)
+    showFragment(PhoneSetNameFragment.newInstance, PhoneSetNameFragment.TAG)
     getControllerFactory.getNavigationController.setLeftPage(Page.PHONE_REGISTRATION_ADD_NAME, AppEntryActivity.TAG)
   }
 
@@ -365,9 +335,6 @@ class AppEntryActivity extends BaseActivity
 
   def getUnsplashImageAsset: ImageAsset = unsplashInitImageAsset
 
-  def onPageVisible(page: Page): Unit = {
-  }
-
   def showError(entryError: EntryError, okCallback: => Unit = {}): Unit =
     ViewUtils.showAlertDialog(this,
       entryError.headerResource,
@@ -381,15 +348,16 @@ class AppEntryActivity extends BaseActivity
       },
       false)
 
-  def onShowSetUsername(): Unit = {
-    val transaction: FragmentTransaction = getSupportFragmentManager.beginTransaction
-    setDefaultAnimation(transaction).replace(R.id.fl_main_content, FirstTimeAssignUsernameFragment.newInstance("", ""), FirstTimeAssignUsernameFragment.TAG).commit
-    enableProgress(false)
-  }
+  def onShowSetUsername(): Unit =
+    showFragment(FirstTimeAssignUsernameFragment.newInstance("", ""), FirstTimeAssignUsernameFragment.TAG)
 
-  def onShowInsertPassword(): Unit = {
-    val transaction: FragmentTransaction = getSupportFragmentManager.beginTransaction
-    setDefaultAnimation(transaction).replace(R.id.fl_main_content, InsertPasswordFragment.newInstance(), InsertPasswordFragment.Tag).commit
+  def onShowInsertPassword(): Unit =
+    showFragment(InsertPasswordFragment.newInstance(), InsertPasswordFragment.Tag)
+
+  private def showFragment(f: => Fragment, tag: String): Unit = {
+    setDefaultAnimation(getSupportFragmentManager.beginTransaction)
+      .replace(R.id.fl_main_content, f, tag)
+      .commit
     enableProgress(false)
   }
 

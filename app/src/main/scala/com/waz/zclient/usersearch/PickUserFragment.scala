@@ -40,6 +40,7 @@ import com.waz.model._
 import com.waz.service.{SearchState, ZMessaging}
 import com.waz.threading.Threading
 import com.waz.utils.events.Signal
+import com.waz.utils.returning
 import com.waz.zclient.common.controllers.global.AccentColorController
 import com.waz.zclient.common.controllers.{SearchUserController, ThemeController, UserAccountsController}
 import com.waz.zclient.common.views.{ChatheadWithTextFooter, FlatWireButton, PickableElement}
@@ -69,7 +70,7 @@ import com.waz.zclient.{BaseActivity, FragmentHelper, OnBackPressedListener, R}
 import com.waz.zclient.utils.ViewUtils
 
 import scala.collection.JavaConverters._
-import scala.concurrent. Future
+import scala.concurrent.Future
 
 object PickUserFragment {
   val TAG: String = classOf[PickUserFragment].getName
@@ -189,20 +190,29 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
   }
 
   override def onCreateAnimation(transit: Int, enter: Boolean, nextAnim: Int): Animation = {
-    if (nextAnim == 0 || getContainer == null || getControllerFactory.isTornDown) {
-      return super.onCreateAnimation(transit, enter, nextAnim)
-    }
-    if (getControllerFactory.getPickUserController.isHideWithoutAnimations) {
-      return new DefaultPageTransitionAnimation(0, getOrientationIndependentDisplayHeight(getActivity), enter, 0, 0, 1f)
-    }
-    if (enter) {
-      // Fade animation in participants dialog on tablet
-      if (LayoutSpec.isTablet(getActivity) && isAddingToConversation) {
-        return new FadeAnimation(getResources.getInteger(R.integer.open_new_conversation__top_conversation__animation_duration), 0f, 1f)
-      }
-      return new DefaultPageTransitionAnimation(0, getResources.getDimensionPixelSize(R.dimen.open_new_conversation__thread_list__max_top_distance), enter, getResources.getInteger(R.integer.framework_animation_duration_long), getResources.getInteger(R.integer.framework_animation_duration_medium), 1f)
-    }
-    new DefaultPageTransitionAnimation(0, getResources.getDimensionPixelSize(R.dimen.open_new_conversation__thread_list__max_top_distance), enter, getResources.getInteger(R.integer.framework_animation_duration_medium), 0, 1f)
+    if (nextAnim == 0 || getContainer == null || getControllerFactory.isTornDown)
+      super.onCreateAnimation(transit, enter, nextAnim)
+    else if (getControllerFactory.getPickUserController.isHideWithoutAnimations)
+      new DefaultPageTransitionAnimation(0, getOrientationIndependentDisplayHeight(getActivity), enter, 0, 0, 1f)
+    else if (enter)  // Fade animation in participants dialog on tablet
+      if (LayoutSpec.isTablet(getActivity) && isAddingToConversation)
+        new FadeAnimation(getInt(R.integer.open_new_conversation__top_conversation__animation_duration), 0f, 1f)
+      else
+        new DefaultPageTransitionAnimation(0,
+          getDimenPx(R.dimen.open_new_conversation__thread_list__max_top_distance),
+          enter,
+          getInt(R.integer.framework_animation_duration_long),
+          getInt(R.integer.framework_animation_duration_medium),
+          1f)
+    else
+      new DefaultPageTransitionAnimation(
+        0,
+        getDimenPx(R.dimen.open_new_conversation__thread_list__max_top_distance),
+        enter,
+        getInt(R.integer.framework_animation_duration_medium),
+        0,
+        1f)
+
   }
 
   override def onCreateView(inflater: LayoutInflater, viewContainer: ViewGroup, savedInstanceState: Bundle): View = {
@@ -321,9 +331,8 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
       override def onEditorAction(v: TextView, actionId: Int, event: KeyEvent): Boolean = {
         if (actionId == EditorInfo.IME_ACTION_DONE || actionId == EditorInfo.IME_ACTION_GO) {
           onKeyboardDoneAction()
-          return true
-        }
-        false
+          true
+        } else false
       }
     })
 
@@ -366,20 +375,17 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
     errorMessageViewSendInvite.setOnClickListener(this)
     if (!isAddingToConversation) {
       new Handler().postDelayed(new Runnable() {
-        def run(): Unit = {
-          if (getStoreFactory == null || getStoreFactory.isTornDown) {
-            return
-          }
-          val numberOfActiveConversations: Int = getStoreFactory.conversationStore.numberOfActiveConversations
-          if (searchBoxView == null || numberOfActiveConversations <= PickUserFragment.SHOW_KEYBOARD_THRESHOLD) {
-            return
-          }
-          if (isTeamAccount) {
-            searchBoxView.setFocus()
-            KeyboardUtils.showKeyboard(getActivity)
-          }
+        def run(): Unit =
+          Option(getStoreFactory).filterNot(_.isTornDown).foreach { store =>
+            val numberOfActiveConversations: Int = store.conversationStore.numberOfActiveConversations
+            Option(searchBoxView).filter(_ => numberOfActiveConversations > PickUserFragment.SHOW_KEYBOARD_THRESHOLD).foreach { v =>
+              if (isTeamAccount) {
+                v.setFocus()
+                KeyboardUtils.showKeyboard(getActivity)
+              }
+            }
         }
-      }, getResources.getInteger(R.integer.people_picker__keyboard__show_delay))
+      }, getInt(R.integer.people_picker__keyboard__show_delay))
     }
   }
 
@@ -415,32 +421,28 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
   override def onBackPressed: Boolean = {
     if (isKeyboardVisible) {
       KeyboardUtils.hideKeyboard(getActivity)
-    }
-    else if (getControllerFactory.getPickUserController.isShowingUserProfile) {
+      true
+    } else if (getControllerFactory.getPickUserController.isShowingUserProfile) {
       getControllerFactory.getPickUserController.hideUserProfile()
-      return true
-    }
-    isKeyboardVisible
+      true
+    } else false
   }
 
   override def onKeyboardVisibilityChanged(keyboardIsVisible: Boolean, keyboardHeight: Int, currentFocus: View): Unit = {
     isKeyboardVisible = keyboardIsVisible
-    val color: Int =
+    val color =
       if (keyboardIsVisible || !searchBoxIsEmpty)
         ContextCompat.getColor(getContext, R.color.people_picker__loading__color)
       else
         accentColor.currentValue.getOrElse(0)
 
     getContainer.getLoadingViewIndicator.setColor(color)
-    if (isAddingToConversation) {
-      return
+    if (!isAddingToConversation) {
+      val inviteVisibility =
+        if (keyboardIsVisible || searchUserController.selectedUsers.nonEmpty || isTeamAccount) View.GONE
+        else View.VISIBLE
+      inviteButton.setVisibility(inviteVisibility)
     }
-    val inviteVisibility: Int =
-      if (keyboardIsVisible || searchUserController.selectedUsers.nonEmpty || isTeamAccount)
-        View.GONE
-      else
-        View.VISIBLE
-    inviteButton.setVisibility(inviteVisibility)
   }
 
   private def createAndOpenConversation(users: Seq[UserId], requester: ConversationChangeRequester): Unit = {
@@ -522,12 +524,12 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
 
   private def changeUserSelectedState(user: User, selected: Boolean): Unit = {
     changeUserSelectedState(searchResultRecyclerView, user, selected)
-    if (searchUserController.allDataSignal.currentValue.exists(_._1.isEmpty)) // TODO: maybe change to checking searchResultAdapter for top users
-      return
-    (0 until searchResultRecyclerView.getChildCount).map(searchResultRecyclerView.getChildAt).foreach{
-      case view: RecyclerView =>
-        changeUserSelectedState(view, user, selected)
-      case _ =>
+    if (!searchUserController.allDataSignal.currentValue.exists(_._1.isEmpty)) {
+      (0 until searchResultRecyclerView.getChildCount).map(searchResultRecyclerView.getChildAt).foreach {
+        case view: RecyclerView =>
+          changeUserSelectedState(view, user, selected)
+        case _ =>
+      }
     }
   }
 
@@ -543,20 +545,19 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
 
   private def getUser(id: UserId) = getStoreFactory.zMessagingApiStore.getApi.getUser(id.str)
 
-  override def onUserClicked(userId: UserId, position: Int, anchorView: View): Unit = {
-    val user: User = getUser(userId)
-    if (user == null || user.isMe || getControllerFactory == null || getControllerFactory.isTornDown) {
-      return
-    }
-    UserSignal(userId).head.map{ userData =>
-      if (userData.connection == ConnectionStatus.Accepted || (isTeamAccount && userAccountsController.isTeamMember(userData.id))) {
-        if (anchorView.isSelected) searchUserController.addUser(userId) else searchUserController.removeUser(userId)
-        setConversationQuickMenuVisible(searchUserController.selectedUsers.nonEmpty)
-      } else if (!anchorView.isInstanceOf[ContactRowView] || (userData.connection != ConnectionStatus.Unconnected)) {
-        showUser(user, anchorView)
+  override def onUserClicked(userId: UserId, position: Int, anchorView: View): Unit =
+    Option(getUser(userId)).filterNot(_.isMe).foreach { user =>
+      Option(getControllerFactory).filterNot(_.isTornDown).foreach { factory =>
+        UserSignal(userId).head.map { userData =>
+          if (userData.connection == ConnectionStatus.Accepted || (isTeamAccount && userAccountsController.isTeamMember(userData.id))) {
+            if (anchorView.isSelected) searchUserController.addUser(userId) else searchUserController.removeUser(userId)
+            setConversationQuickMenuVisible(searchUserController.selectedUsers.nonEmpty)
+          } else if (!anchorView.isInstanceOf[ContactRowView] || (userData.connection != ConnectionStatus.Unconnected)) {
+            showUser(user, anchorView)
+          }
+        }(Threading.Ui)
       }
-    }(Threading.Ui)
-  }
+    }
 
   override def onUserDoubleClicked(userId: UserId, position: Int, anchorView: View): Future[Unit] =
     if (anchorView.isInstanceOf[ChatheadWithTextFooter] && searchUserController.selectedUsers.isEmpty) {
@@ -582,19 +583,16 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
   def getSelectedAndExcluded: Set[UserId] = searchUserController.selectedUsers ++ searchUserController.excludedUsers.currentValue.getOrElse(Set[UserId]())
 
   override def onContactListUserClicked(userId: UserId): Unit = {
-    val user: User = getUser(userId)
-    if (user == null) {
-      return
-    }
-
-    user.getConnectionStatus match {
-      case ConnectionStatus.Unconnected =>
-        self.head.map { self =>
-          val myName: String = self.getDisplayName
-          val message: String = getString(R.string.connect__message, user.getName, myName)
-          user.connect(message)
-        }(Threading.Ui)
-      case _ =>
+    Option(getUser(userId)).foreach { user =>
+      user.getConnectionStatus match {
+        case ConnectionStatus.Unconnected =>
+          self.head.map { self =>
+            val myName: String = self.getDisplayName
+            val message: String = getString(R.string.connect__message, user.getName, myName)
+            user.connect(message)
+          }(Threading.Ui)
+        case _ =>
+      }
     }
   }
 
@@ -607,43 +605,42 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
           // Launch SMS app directly if contact only has phone number
           val number = contactMethods(0).getStringRepresentation
           sendSMSInvite(number)
-          return
-        }
-        val itemNames: Array[CharSequence] = new Array[CharSequence](contactMethodsCount)
+        } else {
+          val itemNames: Array[CharSequence] = new Array[CharSequence](contactMethodsCount)
 
-        (0 until contactMethodsCount).foreach{i =>
-          val contactMethod: ContactMethod = contactMethods(i)
-          itemNames(i) = contactMethod.getStringRepresentation
-        }
+          (0 until contactMethodsCount).foreach{i =>
+            val contactMethod: ContactMethod = contactMethods(i)
+            itemNames(i) = contactMethod.getStringRepresentation
+          }
 
-        val builder: AlertDialog.Builder = new AlertDialog.Builder(getActivity)
-        builder.setTitle(getResources.getString(R.string.people_picker__contact_list__invite_dialog__title)).setPositiveButton(getResources.getText(R.string.confirmation_menu__confirm_done), new DialogInterface.OnClickListener() {
-          def onClick(dialogInterface: DialogInterface, i: Int): Unit = {
-            val lv: ListView = dialog.getListView
-            val selected: Int = lv.getCheckedItemPosition
-            var selectedContactMethod: ContactMethod = null
-            if (selected >= 0) {
-              selectedContactMethod = contactMethods(selected)
+          val builder: AlertDialog.Builder = new AlertDialog.Builder(getActivity)
+          builder.setTitle(getResources.getString(R.string.people_picker__contact_list__invite_dialog__title)).setPositiveButton(getResources.getText(R.string.confirmation_menu__confirm_done), new DialogInterface.OnClickListener() {
+            def onClick(dialogInterface: DialogInterface, i: Int): Unit = {
+              val lv: ListView = dialog.getListView
+              val selected: Int = lv.getCheckedItemPosition
+              var selectedContactMethod: ContactMethod = null
+              if (selected >= 0) {
+                selectedContactMethod = contactMethods(selected)
+              }
+              if (selectedContactMethod != null) {
+                if (selectedContactMethod.getKind eq ContactMethod.Kind.SMS) {
+                  val number = String.valueOf(itemNames(selected))
+                  sendSMSInvite(number)
+                }
+                else {
+                  selectedContactMethod.invite(" ", null)
+                  Toast.makeText(getActivity, getResources.getString(R.string.people_picker__invite__sent_feedback), Toast.LENGTH_LONG).show()
+                }
+              }
             }
-            if (selectedContactMethod == null) {
-              return
+          }).setNegativeButton(getResources.getText(R.string.confirmation_menu__cancel), new DialogInterface.OnClickListener() {
+            def onClick(dialogInterface: DialogInterface, i: Int): Unit = {
+              dialogInterface.cancel()
             }
-            if (selectedContactMethod.getKind eq ContactMethod.Kind.SMS) {
-              val number = String.valueOf(itemNames(selected))
-              sendSMSInvite(number)
-            }
-            else {
-              selectedContactMethod.invite(" ", null)
-              Toast.makeText(getActivity, getResources.getString(R.string.people_picker__invite__sent_feedback), Toast.LENGTH_LONG).show()
-            }
-          }
-        }).setNegativeButton(getResources.getText(R.string.confirmation_menu__cancel), new DialogInterface.OnClickListener() {
-          def onClick(dialogInterface: DialogInterface, i: Int): Unit = {
-            dialogInterface.cancel()
-          }
-        }).setSingleChoiceItems(itemNames, PickUserFragment.DEFAULT_SELECTED_INVITE_METHOD, null)
-        dialog = builder.create
-        dialog.show()
+          }).setSingleChoiceItems(itemNames, PickUserFragment.DEFAULT_SELECTED_INVITE_METHOD, null)
+          dialog = builder.create
+          dialog.show()
+        }
       }
     })
   }
@@ -685,18 +682,14 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
     getContainer.getCurrentPickerDestination
   }
 
-  private def sendGenericInvite(fromSearch: Boolean): Unit = {
-    if (getControllerFactory == null || getControllerFactory.isTornDown) {
-      return
+  private def sendGenericInvite(fromSearch: Boolean): Unit =
+    Option(getControllerFactory).filterNot(_.isTornDown).foreach { _ =>
+      self.head.map { self =>
+        val username = self.handle.map(_.string).getOrElse("")
+        val sharingIntent = IntentUtils.getInviteIntent(getString(R.string.people_picker__invite__share_text__header, self.getDisplayName), getString(R.string.people_picker__invite__share_text__body, StringUtils.formatHandle(username)))
+        startActivity(Intent.createChooser(sharingIntent, getString(R.string.people_picker__invite__share_details_dialog)))
+      }(Threading.Ui)
     }
-    self.head.map { self =>
-      val name: String = self.getDisplayName
-      val username: String = self.handle.map(_.string).getOrElse("")
-      val sharingIntent = IntentUtils.getInviteIntent(getString(R.string.people_picker__invite__share_text__header, name), getString(R.string.people_picker__invite__share_text__body, StringUtils.formatHandle(username)))
-      startActivity(Intent.createChooser(sharingIntent, getString(R.string.people_picker__invite__share_details_dialog)))
-    }(Threading.Ui)
-
-  }
 
   private def showUser(user: User, anchorView: View): Unit = {
     user.getConnectionStatus match {
@@ -729,15 +722,14 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
   }
 
   private def setConversationQuickMenuVisible(show: Boolean): Unit = {
-    if (getView == null || getControllerFactory == null || getControllerFactory.isTornDown) {
-      return
-    }
-    if (isAddingToConversation) {
-      userSelectionConfirmationButton.setVisibility(if (getSelectedUsers.nonEmpty) View.VISIBLE else View.GONE)
-    } else {
-      val visible: Boolean = show || searchUserController.selectedUsers.nonEmpty
-      conversationQuickMenu.setVisibility(if (visible) View.VISIBLE else View.GONE)
-      inviteButton.setVisibility(if (visible || isKeyboardVisible || isTeamAccount) View.GONE else View.VISIBLE)
+    if (getView != null && getControllerFactory != null && !getControllerFactory.isTornDown) {
+      if (isAddingToConversation) {
+        userSelectionConfirmationButton.setVisibility(if (getSelectedUsers.nonEmpty) View.VISIBLE else View.GONE)
+      } else {
+        val visible: Boolean = show || searchUserController.selectedUsers.nonEmpty
+        conversationQuickMenu.setVisibility(if (visible) View.VISIBLE else View.GONE)
+        inviteButton.setVisibility(if (visible || isKeyboardVisible || isTeamAccount) View.GONE else View.VISIBLE)
+      }
     }
   }
 
@@ -762,18 +754,13 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
     }
   }
 
-  private def setFocusByCurrentPickerDestination(): Unit = {
+  private def setFocusByCurrentPickerDestination(): Unit =
     // Don't trigger setting focus in closed split mode on tablet portrait, search is not visible then
-    if (LayoutSpec.isTablet(getActivity) && isInPortrait(getActivity) && getControllerFactory.getNavigationController.getPagerPosition == NavigationController.SECOND_PAGE) {
-      return
-    }
-    if ((getCurrentPickerDestination eq IPickUserController.Destination.CONVERSATION_LIST) && (LayoutSpec.isTablet(getActivity) || getControllerFactory.getNavigationController.getPagerPosition == NavigationController.FIRST_PAGE)) {
-      getControllerFactory.getFocusController.setFocus(IFocusController.CONVERSATION_LIST_SEARCHBOX)
-    }
-    else if (getCurrentPickerDestination eq IPickUserController.Destination.PARTICIPANTS) {
-      getControllerFactory.getFocusController.setFocus(IFocusController.PARTICIPANTS_SEARCHBOX)
-    }
-  }
+    if (!(LayoutSpec.isTablet(getActivity) && isInPortrait(getActivity)) || getControllerFactory.getNavigationController.getPagerPosition != NavigationController.SECOND_PAGE)
+      if ((getCurrentPickerDestination == IPickUserController.Destination.CONVERSATION_LIST) && (LayoutSpec.isTablet(getActivity) || getControllerFactory.getNavigationController.getPagerPosition == NavigationController.FIRST_PAGE))
+        getControllerFactory.getFocusController.setFocus(IFocusController.CONVERSATION_LIST_SEARCHBOX)
+      else if (getCurrentPickerDestination == IPickUserController.Destination.PARTICIPANTS)
+        getControllerFactory.getFocusController.setFocus(IFocusController.PARTICIPANTS_SEARCHBOX)
 
   private def isAddingToConversation: Boolean = {
     getArguments.getBoolean(PickUserFragment.ARGUMENT_ADD_TO_CONVERSATION)
@@ -850,18 +837,12 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
     }
   }
 
-  private def requestShareContactsPermissions(): Unit = {
-    if (getControllerFactory == null || getControllerFactory.isTornDown || userAccountsController.isTeamAccount) {
-      return
-    }
-
-    if (PermissionUtils.hasSelfPermissions(getContext, Manifest.permission.READ_CONTACTS)) {
-      updateShareContacts(true)
-    }
-    else {
-      ActivityCompat.requestPermissions(getActivity, Array[String](Manifest.permission.READ_CONTACTS), PermissionUtils.REQUEST_READ_CONTACTS)
-    }
-  }
+  private def requestShareContactsPermissions(): Unit =
+    if (getControllerFactory != null && !getControllerFactory.isTornDown && !userAccountsController.isTeamAccount)
+      if (PermissionUtils.hasSelfPermissions(getContext, Manifest.permission.READ_CONTACTS))
+        updateShareContacts(true)
+      else
+        ActivityCompat.requestPermissions(getActivity, Array[String](Manifest.permission.READ_CONTACTS), PermissionUtils.REQUEST_READ_CONTACTS)
 
   private def updateShareContacts(share: Boolean): Unit ={
     zms.head.flatMap(_.userPrefs.preference(UserPreferences.ShareContacts).update(share)) (Threading.Background)

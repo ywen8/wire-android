@@ -658,19 +658,19 @@ class ConversationFragment extends BaseFragment[ConversationFragment.Container] 
 
   private val orientationControllerObserver = new  OrientationControllerObserver {
     override def onOrientationHasChanged(squareOrientation: SquareOrientation): Unit = inLandscape.head.foreach { oldInLandscape =>
-      implicit val ctx: Context = getActivity
-      if (ctx == null) return
-      val newInLandscape = isInLandscape
-      oldInLandscape match {
-        case Some(landscape) if landscape != newInLandscape =>
-          val conversationListVisible = getControllerFactory.getNavigationController.getCurrentPage == Page.CONVERSATION_LIST
-          if (newInLandscape && !conversationListVisible)
-            CancellableFuture.delayed(getInt(R.integer.framework_animation_duration_short).millis){
-              Option(getActivity).foreach(_.onBackPressed())
-            }
-        case _ =>
+      Option(getActivity).foreach { implicit ctx: Context =>
+        val newInLandscape = isInLandscape
+        oldInLandscape match {
+          case Some(landscape) if landscape != newInLandscape =>
+            val conversationListVisible = getControllerFactory.getNavigationController.getCurrentPage == Page.CONVERSATION_LIST
+            if (newInLandscape && !conversationListVisible)
+              CancellableFuture.delayed(getInt(R.integer.framework_animation_duration_short).millis){
+                Option(getActivity).foreach(_.onBackPressed())
+              }
+          case _ =>
+        }
+        inLandscape ! Some(newInLandscape)
       }
-      inLandscape ! Some(newInLandscape)
     }
   }
 

@@ -172,39 +172,32 @@ class MessageNotificationsController(implicit inj: Injector, cxt: Context, event
     }
   }
 
-  private def createSummaryNotification(account: AccountId, silent: Boolean, nots: Seq[NotificationInfo], teamName: Option[String]): Unit = {
+  private def createSummaryNotification(account: AccountId, silent: Boolean, nots: Seq[NotificationInfo], teamName: Option[String]): Unit =
+    if (nots.isEmpty) notManager.cancel(toNotificationGroupId(account))
+    else if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.M || !notManager.getActiveNotifications.exists(_.getId == toNotificationGroupId(account))) {
+      verbose(s"creating summary notification")
 
-    if (nots.isEmpty) {
-      notManager.cancel(toNotificationGroupId(account))
-      return
+      val inboxStyle = new NotificationCompat.InboxStyle()
+
+      val builder = new NotificationCompat.Builder(cxt)
+        .setWhen(nots.minBy(_.time).time.toEpochMilli)
+        .setShowWhen(true)
+        .setCategory(NotificationCompat.CATEGORY_MESSAGE)
+        .setPriority(NotificationCompat.PRIORITY_HIGH)
+        .setSmallIcon(R.drawable.ic_menu_logo)
+        .setContentTitle("")
+        .setContentText("")
+        .setStyle(inboxStyle)
+        .setGroupSummary(true)
+        .setGroup(account.str)
+        .setContentIntent(OpenAccountIntent(account))
+        .setDeleteIntent(NotificationsAndroidService.clearNotificationsIntent(account, context))
+
+      teamName.foreach(builder.setContentInfo)
+      notificationColor(account).foreach(builder.setColor)
+
+      notManager.notify(toNotificationGroupId(account), builder.build())
     }
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
-      if (notManager.getActiveNotifications.exists(_.getId == toNotificationGroupId(account)))
-        return
-
-    verbose(s"creating summary notification")
-
-    val inboxStyle = new NotificationCompat.InboxStyle()
-
-    val builder = new NotificationCompat.Builder(cxt)
-      .setWhen(nots.minBy(_.time).time.toEpochMilli)
-      .setShowWhen(true)
-      .setCategory(NotificationCompat.CATEGORY_MESSAGE)
-      .setPriority(NotificationCompat.PRIORITY_HIGH)
-      .setSmallIcon(R.drawable.ic_menu_logo)
-      .setContentTitle("")
-      .setContentText("")
-      .setStyle(inboxStyle)
-      .setGroupSummary(true)
-      .setGroup(account.str)
-      .setContentIntent(OpenAccountIntent(account))
-      .setDeleteIntent(NotificationsAndroidService.clearNotificationsIntent(account, context))
-
-    teamName.foreach(builder.setContentInfo)
-    notificationColor(account).foreach(builder.setColor)
-
-    notManager.notify(toNotificationGroupId(account), builder.build())
-  }
 
   private def createConvNotifications(account: AccountId, silent: Boolean, nots: Seq[NotificationInfo], teamName: Option[String]): Future[Unit] = {
     verbose(s"Notifications updated for account: $account: shouldBeSilent: $silent, $nots")

@@ -31,9 +31,11 @@ import com.waz.service.ZMessaging
 import com.waz.threading.Threading
 import com.waz.utils.events.{EventContext, Signal}
 import com.waz.utils.returning
-import com.waz.zclient.collection.controllers._
+import com.waz.zclient.collection.adapters.CollectionAdapter._
 import com.waz.zclient.collection.controllers.CollectionController._
+import com.waz.zclient.collection.controllers._
 import com.waz.zclient.collection.views._
+import com.waz.zclient.conversation.ConversationController
 import com.waz.zclient.messages.RecyclerCursor
 import com.waz.zclient.messages.RecyclerCursor.RecyclerNotifier
 import com.waz.zclient.ui.text.GlyphTextView
@@ -43,8 +45,6 @@ import com.waz.zclient.utils.ViewUtils
 import com.waz.zclient.{Injectable, Injector, R, ViewHelper}
 import org.threeten.bp._
 import org.threeten.bp.temporal.ChronoUnit
-import CollectionAdapter._
-import com.waz.zclient.conversation.ConversationController
 
 class CollectionAdapter(viewDim: Signal[Dim2])(implicit context: Context, injector: Injector, eventContext: EventContext) extends RecyclerView.Adapter[ViewHolder] with Injectable { adapter =>
 
@@ -301,10 +301,7 @@ class CollectionAdapter(viewDim: Signal[Dim2])(implicit context: Context, inject
 
   private def getHeaderCountText(headerId: HeaderId): String = {
     val count = getHeaderCount(headerId)
-    if (count > 0) {
-      return context.getResources.getString(R.string.collection_all, count.toString)
-    }
-    ""
+    if (count > 0) getString(R.string.collection_all, count.toString) else ""
   }
 
   private def getHeaderCount(headerId: HeaderId): Int = {

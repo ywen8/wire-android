@@ -19,7 +19,6 @@ package com.waz.zclient.common.controllers
 
 import android.app.Activity
 import android.content.DialogInterface
-import android.support.v7.app.AlertDialog
 import android.text.format.Formatter
 import com.waz.ZLog.ImplicitTag._
 import com.waz.api._
@@ -51,29 +50,29 @@ class SharingController(implicit injector: Injector, wContext: WireContext, even
 
   private def assetErrorHandler(activity: Activity): MessageContent.Asset.ErrorHandler = new MessageContent.Asset.ErrorHandler() {
     def noWifiAndFileIsLarge(sizeInBytes: Long, net: NetworkMode, answer: MessageContent.Asset.Answer): Unit = {
-      if (activity == null) {
-        answer.ok()
-        return
-      }
-      val dialog: AlertDialog =
-        ViewUtils.showAlertDialog(activity,
-          R.string.asset_upload_warning__large_file__title,
-          R.string.asset_upload_warning__large_file__message_default,
-          R.string.asset_upload_warning__large_file__button_accept,
-          R.string.asset_upload_warning__large_file__button_cancel,
-          new DialogInterface.OnClickListener() {
-            def onClick(dialog: DialogInterface, which: Int): Unit = {
-              answer.ok()
-            }
-          }, new DialogInterface.OnClickListener() {
-            def onClick(dialog: DialogInterface, which: Int): Unit = {
-              answer.cancel()
-            }
-          })
-      dialog.setCancelable(false)
-      if (sizeInBytes > 0) {
-        val fileSize: String = Formatter.formatFileSize(activity, sizeInBytes)
-        dialog.setMessage(activity.getString(R.string.asset_upload_warning__large_file__message, fileSize))
+      Option(activity) match {
+        case None => answer.ok()
+        case Some(_) =>
+          val dialog =
+            ViewUtils.showAlertDialog(activity,
+              R.string.asset_upload_warning__large_file__title,
+              R.string.asset_upload_warning__large_file__message_default,
+              R.string.asset_upload_warning__large_file__button_accept,
+              R.string.asset_upload_warning__large_file__button_cancel,
+              new DialogInterface.OnClickListener() {
+                def onClick(dialog: DialogInterface, which: Int): Unit = {
+                  answer.ok()
+                }
+              }, new DialogInterface.OnClickListener() {
+                def onClick(dialog: DialogInterface, which: Int): Unit = {
+                  answer.cancel()
+                }
+              })
+          dialog.setCancelable(false)
+          if (sizeInBytes > 0) {
+            val fileSize: String = Formatter.formatFileSize(activity, sizeInBytes)
+            dialog.setMessage(activity.getString(R.string.asset_upload_warning__large_file__message, fileSize))
+          }
       }
     }
   }

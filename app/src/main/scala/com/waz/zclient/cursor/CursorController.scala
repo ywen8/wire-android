@@ -163,22 +163,22 @@ class CursorController(implicit inj: Injector, ctx: Context, evc: EventContext) 
   def submit(msg: String): Boolean = {
     if (isEditingMessage.currentValue.contains(true)) {
       onApproveEditMessage()
-      return true
+      true
     }
-    if (TextUtils.isEmpty(msg.trim)) return false
-
-    for {
-      cId <- conversationController.currentConvId.head
-      cs <- zms.head.map(_.convsUi)
-      m <- cs.sendMessage(cId, new MessageContent.Text(msg))
-    } {
-      m foreach { msg =>
-        onMessageSent ! msg
-        cursorCallback.foreach(_.onMessageSent(msg))
+    else if (TextUtils.isEmpty(msg.trim)) false
+    else {
+      for {
+        cId <- conversationController.currentConvId.head
+        cs <- zms.head.map(_.convsUi)
+        m <- cs.sendMessage(cId, new MessageContent.Text(msg))
+      } {
+        m foreach { msg =>
+          onMessageSent ! msg
+          cursorCallback.foreach(_.onMessageSent(msg))
+        }
       }
+      true
     }
-
-    true
   }
 
   def onApproveEditMessage(): Unit =
