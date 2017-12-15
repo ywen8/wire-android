@@ -126,7 +126,7 @@ class AppEntryController(implicit inj: Injector, eventContext: EventContext) ext
         SetUsersNameTeam
       case (Some(accountData), None) if accountData.pendingTeamName.isDefined =>
         SetPasswordTeam
-      case (Some(accountData), _) if accountData.pendingPhone.isDefined && (!accountData.verified || !(accountData.canLogin || accountData.cookie.isDefined) || (accountData.pendingPhone == accountData.phone)) =>
+      case (Some(accountData), _) if accountData.pendingPhone.isDefined && (!accountData.verified || !accountData.canLogin || (accountData.pendingPhone == accountData.phone)) && accountData.cookie.isEmpty =>
         VerifyPhoneStage
       case (Some(accountData), _) if accountData.clientRegState == ClientRegistrationState.PASSWORD_MISSING || (accountData.pendingPhone == accountData.phone && !accountData.canLogin && accountData.cookie.isEmpty) =>
         InsertPasswordStage
