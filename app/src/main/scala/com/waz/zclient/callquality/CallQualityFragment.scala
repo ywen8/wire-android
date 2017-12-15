@@ -96,7 +96,7 @@ class CallQualityFragment extends BaseDialogFragment[Container] with FragmentHel
         callQualityController.callQualityShouldOpen ! (())
       case CallQuality =>
         callQualityController.callQuality = quality
-        callQualityController.callToReport ! None
+        callQualityController.sendEvent()
       case _ =>
     }
     dismiss()

@@ -19,15 +19,18 @@ package com.waz.zclient.callquality
 
 import com.waz.service.ZMessaging
 import com.waz.service.call.CallInfo
+import com.waz.service.tracking.TrackingService.track
 import com.waz.threading.Threading
 import com.waz.utils.events.{EventContext, EventStream, Signal, SourceStream}
 import com.waz.zclient.calling.controllers.GlobalCallingController
+import com.waz.zclient.tracking.{AvsMetrics, GlobalTrackingController}
 import com.waz.zclient.{Injectable, Injector}
 
 class CallQualityController(implicit inj: Injector, eventContext: EventContext) extends Injectable {
 
   val zms = inject[Signal[ZMessaging]]
   val callingController = inject[GlobalCallingController]
+  val tracking = inject[GlobalTrackingController]
 
   val callToReport = Signal(Option.empty[CallInfo])
   val callQualityShouldOpen: SourceStream[Unit] = EventStream[Unit]()
@@ -37,5 +40,10 @@ class CallQualityController(implicit inj: Injector, eventContext: EventContext) 
 
   zms.flatMap(_.calling.previousCall).on(Threading.Background) { call =>
     callToReport ! call
+  }
+
+  def sendEvent(): Unit = {
+    track(AvsMetrics(setupQuality, callQuality))
+    callToReport ! None
   }
 }
