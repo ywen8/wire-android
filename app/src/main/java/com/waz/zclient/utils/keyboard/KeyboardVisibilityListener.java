@@ -17,10 +17,10 @@
  */
 package com.waz.zclient.utils.keyboard;
 
-import android.graphics.Rect;
-import android.os.Handler;
 import android.view.View;
+import com.waz.zclient.ui.utils.KeyboardUtils;
 import com.waz.zclient.utils.ContextUtils;
+import timber.log.Timber;
 
 public class KeyboardVisibilityListener {
     private final View contentView;
@@ -51,38 +51,20 @@ public class KeyboardVisibilityListener {
     }
 
     public synchronized void onLayoutChange() {
-        if (!layoutChangeInProgress) {
-            layoutChangeInProgress = true;
-            layoutChangeHandler.removeCallbacks(layoutChangeRunnable);
-            layoutChangeHandler.postDelayed(layoutChangeRunnable, 200);
-        }
-    }
+        int newKeyboardHeight = Math.max(0, KeyboardUtils.getKeyboardHeight(contentView) - statusAndNavigationBarHeight);
 
-    private boolean layoutChangeInProgress = false;
+        if (newKeyboardHeight != keyboardHeight) {
+            Timber.i("keyboard height changes from %s to %s", keyboardHeight, newKeyboardHeight);
+            boolean visibilityChanged = keyboardHeight == 0 || newKeyboardHeight == 0;
+            keyboardHeight = newKeyboardHeight;
 
-    private Handler layoutChangeHandler = new Handler();
-
-    private Runnable layoutChangeRunnable = new Runnable() {
-        @Override
-        public void run() {
-            Rect r = new Rect();
-            contentView.getWindowVisibleDisplayFrame(r);
-
-            int newKeyboardHeight = Math.max(0, contentView.getRootView().getHeight() - r.bottom - statusAndNavigationBarHeight);
-
-            if (newKeyboardHeight != keyboardHeight) {
-                boolean visibilityChanged = keyboardHeight == 0 || newKeyboardHeight == 0;
-                keyboardHeight = newKeyboardHeight;
-
-                if (callback != null) {
-                    callback.onKeyboardHeightChanged(newKeyboardHeight);
-                    if (visibilityChanged) {
-                        callback.onKeyboardChanged(newKeyboardHeight > 0, newKeyboardHeight);
-                    }
+            if (callback != null) {
+                callback.onKeyboardHeightChanged(newKeyboardHeight);
+                if (visibilityChanged) {
+                    callback.onKeyboardChanged(newKeyboardHeight > 0, newKeyboardHeight);
                 }
             }
-
-            layoutChangeInProgress = false;
         }
+
     };
 }

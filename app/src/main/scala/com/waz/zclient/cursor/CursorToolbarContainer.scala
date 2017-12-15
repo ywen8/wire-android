@@ -43,10 +43,9 @@ import com.waz.ZLog.ImplicitTag._
 import com.waz.threading.Threading
 import com.waz.utils.returning
 import com.waz.zclient.ViewHelper
-import com.waz.zclient.cursor.CursorController.KeyboardState
 import com.waz.zclient.R
 import com.waz.zclient.ui.animation.interpolators.penner.Expo
-import com.waz.zclient.utils.{ViewUtils, _}
+import com.waz.zclient.utils._
 
 class CursorToolbarContainer(context: Context, attrs: AttributeSet, defStyleAttr: Int)
     extends FrameLayout(context, attrs, defStyleAttr) with ViewHelper {
@@ -57,12 +56,6 @@ class CursorToolbarContainer(context: Context, attrs: AttributeSet, defStyleAttr
   val controller = inject[CursorController]
 
   val heightExpanded = getResources.getDimensionPixelSize(R.dimen.new_cursor_height)
-  val heightShrinked = getResources.getDimensionPixelSize(R.dimen.cursor_height_shrinked)
-
-  val height = controller.keyboard map {
-    case KeyboardState.Hidden => heightExpanded
-    case _ => heightShrinked
-  }
 
   lazy val mainToolbar: View         = findById(R.id.c__cursor__main)
   lazy val secondaryToolbar: View    = findById(R.id.c__cursor__secondary)
@@ -87,10 +80,9 @@ class CursorToolbarContainer(context: Context, attrs: AttributeSet, defStyleAttr
     anim.setInterpolator(new Expo.EaseInOut)
     anim.addUpdateListener(new ValueAnimator.AnimatorUpdateListener {
       override def onAnimationUpdate(animation: ValueAnimator): Unit = {
-        val cursorHeight = height.currentValue.getOrElse(heightExpanded)
         val offset = animation.getAnimatedValue.asInstanceOf[java.lang.Float]
-        mainToolbar.setTranslationY(offset * -cursorHeight)
-        secondaryToolbar.setTranslationY(cursorHeight + offset * -cursorHeight)
+        mainToolbar.setTranslationY(offset * -heightExpanded)
+        secondaryToolbar.setTranslationY(heightExpanded + offset * -heightExpanded)
       }
     })
 
@@ -107,9 +99,8 @@ class CursorToolbarContainer(context: Context, attrs: AttributeSet, defStyleAttr
     anim.setInterpolator(new Expo.EaseInOut)
     anim.addUpdateListener(new ValueAnimator.AnimatorUpdateListener {
       override def onAnimationUpdate(animation: ValueAnimator): Unit = {
-        val cursorHeight = height.currentValue.getOrElse(heightExpanded)
         val offset = animation.getAnimatedValue.asInstanceOf[java.lang.Float]
-        editToolbar.setTranslationY(cursorHeight + offset * -cursorHeight)
+        editToolbar.setTranslationY(heightExpanded + offset * -heightExpanded)
       }
     })
 
@@ -132,11 +123,6 @@ class CursorToolbarContainer(context: Context, attrs: AttributeSet, defStyleAttr
       case false =>
         toolbarSwitchAnimator.cancel()
         toolbarSwitchAnimator.reverse()
-    }
-
-    height.on(Threading.Ui) { h =>
-      ViewUtils.setHeight(this, h)
-      requestLayout()
     }
 
     editVisible.onChanged.on(Threading.Ui) {
