@@ -87,7 +87,7 @@ class AppEntryController(implicit inj: Injector, eventContext: EventContext) ext
   }
 
   val entryStage = for {
-    account <- currentAccount.orElse(Signal.const(None))
+    account <- currentAccount
     user <- currentUser.orElse(Signal.const(None))
     firstPageState <- firstStage
     state <- Signal.const(stateForAccountAndUser(account, user, firstPageState)).collect{ case s if s != Waiting => s }
