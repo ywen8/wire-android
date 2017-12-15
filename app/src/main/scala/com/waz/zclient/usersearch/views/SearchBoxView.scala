@@ -82,13 +82,14 @@ class SearchBoxView(val context: Context, val attrs: AttributeSet, val defStyleA
     inputEditText.setFocusableInTouchMode(true)
     inputEditText.setHintTextColor(hintColorStartUI)
     inputEditText.setOnEditorActionListener(new TextView.OnEditorActionListener() {
-      def onEditorAction(v: TextView, actionId: Int, event: KeyEvent): Boolean = {
-        if (callback != null && (actionId == EditorInfo.IME_ACTION_GO || (event != null && event.getKeyCode == KeyEvent.KEYCODE_ENTER))) {
-          callback.onKeyboardDoneAction()
-          return true
+      def onEditorAction(v: TextView, actionId: Int, event: KeyEvent): Boolean =
+        Option(callback).filter(_ => actionId == EditorInfo.IME_ACTION_GO || (event != null && event.getKeyCode == KeyEvent.KEYCODE_ENTER)) match {
+          case Some(c) =>
+            c.onKeyboardDoneAction()
+            true
+          case _ =>
+            false
         }
-        false
-      }
     })
     inputEditText.setOnFocusChangeListener(new View.OnFocusChangeListener() {
       def onFocusChange(view: View, hasFocus: Boolean): Unit = {

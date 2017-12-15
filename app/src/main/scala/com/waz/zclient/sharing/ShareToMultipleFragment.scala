@@ -191,24 +191,21 @@ class ShareToMultipleFragment extends BaseFragment[ShareToMultipleFragment.Conta
     searchBox.setOnEditorActionListener(new OnEditorActionListener {
       override def onEditorAction(v: TextView, actionId: Int, event: KeyEvent): Boolean = {
         if (actionId == EditorInfo.IME_ACTION_DONE || actionId == EditorInfo.IME_ACTION_GO) {
-          if (adapter.selectedConversations.currentValue.forall(_.isEmpty)) {
-            return false
+          if (adapter.selectedConversations.currentValue.forall(_.isEmpty)) false
+          else {
+            KeyboardUtils.closeKeyboardIfShown(getActivity)
+            onClickEvent ! (())
+            true
           }
-          KeyboardUtils.closeKeyboardIfShown(getActivity)
-          onClickEvent ! (())
-          return true
-        }
-        false
+        } else false
       }
     })
 
     sendButton.setOnClickListener(new OnClickListener {
-      override def onClick(v: View): Unit = {
-        if (adapter.selectedConversations.currentValue.forall(_.isEmpty)) {
-          return
+      override def onClick(v: View): Unit =
+        if (!adapter.selectedConversations.currentValue.forall(_.isEmpty)) {
+          onClickEvent ! (())
         }
-        onClickEvent ! (())
-      }
     })
 
     val ephemeralCallback = new EphemeralLayout.Callback(){
@@ -244,17 +241,14 @@ class ShareToMultipleFragment extends BaseFragment[ShareToMultipleFragment.Conta
   }
 
   override def onBackPressed(): Boolean = {
-    val bottomContainer = ViewUtils.getView(getView, R.id.ephemeral_container).asInstanceOf[AnimatedBottomContainer]
+    val bottomContainer = findById[AnimatedBottomContainer](getView, R.id.ephemeral_container)
     if (bottomContainer.isExpanded.currentValue.exists(a => a)) {
       bottomContainer.closedAnimated()
-      return true
-    }
-    false
+      true
+    } else false
   }
 
-  def updatePreview(): Unit ={
-    updatePreviewEvent ! (())
-  }
+  def updatePreview(): Unit = updatePreviewEvent ! (())
 }
 
 object ShareToMultipleFragment {

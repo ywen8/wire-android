@@ -160,20 +160,20 @@ class TeamIconDrawable(implicit inj: Injector, eventContext: EventContext, ctx: 
     path.reset()
     if (corners == 0) {
       path.addCircle(0, 0, radius, Path.Direction.CW)
-      return
-    }
-    val angle = 2 * Math.PI / corners
-    val phase = angle / 2
-    (0 until corners).foreach{ i =>
-      val x = radius * Math.cos(angle * i + phase)
-      val y = radius * Math.sin(angle * i + phase)
-      if (i == 0) {
-        path.moveTo(x.toFloat, y.toFloat)
-      } else {
-        path.lineTo(x.toFloat, y.toFloat)
+    } else {
+      val angle = 2 * Math.PI / corners
+      val phase = angle / 2
+      (0 until corners).foreach{ i =>
+        val x = radius * Math.cos(angle * i + phase)
+        val y = radius * Math.sin(angle * i + phase)
+        if (i == 0) {
+          path.moveTo(x.toFloat, y.toFloat)
+        } else {
+          path.lineTo(x.toFloat, y.toFloat)
+        }
       }
+      path.close()
     }
-    path.close()
   }
 
   override def onBoundsChange(bounds: Rect) = {

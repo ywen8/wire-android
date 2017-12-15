@@ -126,30 +126,29 @@ class QuickReplyFragment extends Fragment with FragmentHelper {
       override def onEditorAction(textView: TextView, actionId: Int, event: KeyEvent): Boolean = {
         if (actionId == EditorInfo.IME_ACTION_SEND || (event != null && event.getKeyCode == KeyEvent.KEYCODE_ENTER && event.getAction == KeyEvent.ACTION_DOWN)) {
           val sendText = textView.getText.toString
-          if (TextUtils.isEmpty(sendText)) return false
-
-          textView.setEnabled(false)
-          for {
-            zs       <- zms.head
-            c        <- conv.head
-            isBot    <- Conversation.isOtto(c, zs.usersStorage)
-            convType <- convType(c, zs.membersStorage)
-            _        <- zs.convsUi.setEphemeral(c.id, EphemeralExpiration.NONE)
-            msg      <- zs.convsUi.sendMessage(c.id, new MessageContent.Text(sendText))
-          } {
-            textView.setEnabled(true)
-            if (msg.isDefined) {
-              ZMessaging.globalModule.map(_.trackingService.track(
-                ContributionEvent(Action.Text, convType, c.ephemeral, isBot),
-                Some(zs.accountId)
-              ))
-              getActivity.finish()
+          if (TextUtils.isEmpty(sendText)) false
+          else {
+            textView.setEnabled(false)
+            for {
+              zs       <- zms.head
+              c        <- conv.head
+              isBot    <- Conversation.isOtto(c, zs.usersStorage)
+              convType <- convType(c, zs.membersStorage)
+              _        <- zs.convsUi.setEphemeral(c.id, EphemeralExpiration.NONE)
+              msg      <- zs.convsUi.sendMessage(c.id, new MessageContent.Text(sendText))
+            } {
+              textView.setEnabled(true)
+              if (msg.isDefined) {
+                ZMessaging.globalModule.map(_.trackingService.track(
+                  ContributionEvent(Action.Text, convType, c.ephemeral, isBot),
+                  Some(zs.accountId)
+                ))
+                getActivity.finish()
+              }
             }
+            true
           }
-
-          return true
-        }
-        false
+        } else false
       }
     })
 

@@ -158,43 +158,40 @@ class ChatheadView(val context: Context, val attrs: AttributeSet, val defStyleAt
 
   override def onDraw(canvas: Canvas): Unit = {
     val size: Float = Math.min(getWidth, getHeight)
-    // This is just to prevent a really small image. Instead we want to draw just nothing
-    if (size <= 1) {
-      return
-    }
+    if (size > 1) { // This is just to prevent a really small image. Instead we want to draw just nothing
+      val borderWidth = ctrl.borderWidth.currentValue.getOrElse(0)
+      val selected = ctrl.selected.currentValue.getOrElse(false)
+      val connectionStatus = ctrl.connectionStatus.currentValue.getOrElse(UNCONNECTED)
+      val hasBeenInvited = ctrl.hasBeenInvited.currentValue.getOrElse(false)
+      val glyph = getGlyphText(selected, hasBeenInvited, connectionStatus, ctrl.showWaitingForConnection)
+      val bitmap = ctrl.bitmap.currentValue.getOrElse(Option.empty[Bitmap])
 
-    val borderWidth = ctrl.borderWidth.currentValue.getOrElse(0)
-    val selected = ctrl.selected.currentValue.getOrElse(false)
-    val connectionStatus = ctrl.connectionStatus.currentValue.getOrElse(UNCONNECTED)
-    val hasBeenInvited = ctrl.hasBeenInvited.currentValue.getOrElse(false)
-    val glyph = getGlyphText(selected, hasBeenInvited, connectionStatus, ctrl.showWaitingForConnection)
-    val bitmap = ctrl.bitmap.currentValue.getOrElse(Option.empty[Bitmap])
+      val radius: Float = size / 2f
+      val x = (getWidth - size) / 2
+      val y = (getHeight - size) / 2
 
-    val radius: Float = size / 2f
-    val x = (getWidth - size) / 2
-    val y = (getHeight - size) / 2
-
-    bitmap.fold {
-      if (backgroundPaint.getColor != Color.TRANSPARENT) {
-        drawBackgroundAndBorder(canvas, x, y, radius, borderWidth)
-      }
-      ctrl.initials.currentValue.foreach { initials =>
-        var fontSize: Float = initialsFontSize
-        if (initialsFontSize == defaultInitialFontSize) {
-          fontSize = 3f * radius / 4f
+      bitmap.fold {
+        if (backgroundPaint.getColor != Color.TRANSPARENT) {
+          drawBackgroundAndBorder(canvas, x, y, radius, borderWidth)
         }
-        initialsTextPaint.setTextSize(fontSize)
-        canvas.drawText(initials, radius, getVerticalTextCenter(initialsTextPaint, radius), initialsTextPaint)
+        ctrl.initials.currentValue.foreach { initials =>
+          var fontSize: Float = initialsFontSize
+          if (initialsFontSize == defaultInitialFontSize) {
+            fontSize = 3f * radius / 4f
+          }
+          initialsTextPaint.setTextSize(fontSize)
+          canvas.drawText(initials, radius, getVerticalTextCenter(initialsTextPaint, radius), initialsTextPaint)
+        }
+      } { bitmap =>
+
+        canvas.drawBitmap(bitmap, null, new RectF(x, y, x + size, y + size), backgroundPaint)
       }
-    } { bitmap =>
 
-      canvas.drawBitmap(bitmap, null, new RectF(x, y, x + size, y + size), backgroundPaint)
-    }
-
-    // Cut out
-    if (selected || !TextUtils.isEmpty(glyph)) {
-      canvas.drawCircle(radius + x, radius + y, radius - borderWidth, glyphOverlayPaint)
-      canvas.drawText(glyph, radius + x, (radius + iconTextPaint.getTextSize / 2) + y, iconTextPaint)
+      // Cut out
+      if (selected || !TextUtils.isEmpty(glyph)) {
+        canvas.drawCircle(radius + x, radius + y, radius - borderWidth, glyphOverlayPaint)
+        canvas.drawText(glyph, radius + x, (radius + iconTextPaint.getTextSize / 2) + y, iconTextPaint)
+      }
     }
   }
 

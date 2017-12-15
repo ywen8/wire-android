@@ -84,18 +84,16 @@ class ContactRowView(val context: Context, val attrs: AttributeSet, val defStyle
     this.callback = callback
   }
 
-  def setContact(contact: Contact): Unit = {
-    if (contact == null) {
-      return
+  def setContact(contact: Contact): Unit =
+    Option(contact).foreach { c =>
+      userModelObserver.clear()
+      contactDetailsModelObserver.clear()
+      contactDetails = None
+      user = None
+      contactDetailsModelObserver.setAndUpdate(c.getDetails)
+      userModelObserver.setAndUpdate(c.getUser)
+      contactListItemTextView.setContact(c)
     }
-    userModelObserver.clear()
-    contactDetailsModelObserver.clear()
-    contactDetails = None
-    user = None
-    contactDetailsModelObserver.setAndUpdate(contact.getDetails)
-    userModelObserver.setAndUpdate(contact.getUser)
-    contactListItemTextView.setContact(contact)
-  }
 
   def applyDarkTheme(): Unit = {
     contactListItemTextView.applyDarkTheme()
@@ -138,12 +136,8 @@ class ContactRowView(val context: Context, val attrs: AttributeSet, val defStyle
         case _ =>
       }
       contactInviteButton.setOnClickListener(new View.OnClickListener() {
-        def onClick(view: View): Unit = {
-          if (callback == null) {
-            return
-          }
-          callback.onContactListUserClicked(user)
-        }
+        def onClick(view: View): Unit =
+          Option(callback).foreach(_.onContactListUserClicked(user))
       })
     }
   }
@@ -155,25 +149,16 @@ class ContactRowView(val context: Context, val attrs: AttributeSet, val defStyle
       if (details.hasBeenInvited) {
         contactInviteButton.setVisibility(View.GONE)
         setOnClickListener(new View.OnClickListener() {
-          def onClick(view: View): Unit = {
-            if (callback == null) {
-              return
-            }
-            callback.onContactListContactClicked(details)
-          }
+          def onClick(view: View): Unit = Option(callback).foreach(_.onContactListContactClicked(details))
         })
-        return
+      } else {
+        contactInviteButton.setVisibility(View.VISIBLE)
+        contactInviteButton.setText(getResources.getText(R.string.people_picker__contact_list__contact_selection_button__label))
+        contactInviteButton.setOnClickListener(new View.OnClickListener() {
+          def onClick(view: View): Unit = Option(callback).foreach(_.onContactListContactClicked(details))
+        })
       }
-      contactInviteButton.setVisibility(View.VISIBLE)
-      contactInviteButton.setText(getResources.getText(R.string.people_picker__contact_list__contact_selection_button__label))
-      contactInviteButton.setOnClickListener(new View.OnClickListener() {
-        def onClick(view: View): Unit = {
-          if (callback == null) {
-            return
-          }
-          callback.onContactListContactClicked(details)
-        }
-      })
+
     }
   }
 }

@@ -52,9 +52,8 @@ class CollectionSpanSizeLookup(val spanCount: Int, val adapter: CollectionAdapte
 
   override def getSpanSize(position: Int): Int = {
     if (spanSizeIsCached(position)) {
-      return getCachedSpanSize(position)
-    }
-    if (adapter.isFullSpan(position)) {
+      getCachedSpanSize(position)
+    } else if (adapter.isFullSpan(position)) {
       addSpanIndexToCache(position, 0)
       returning(spanCount)(addSpanSizeToCache(position, _))
     } else if (isLastBeforeHeader(position)) {
@@ -66,84 +65,59 @@ class CollectionSpanSizeLookup(val spanCount: Int, val adapter: CollectionAdapte
     }
   }
 
-  def isLastBeforeHeader(position: Int): Boolean = {
-    if (position == adapter.getItemCount - 1){
-      return true
-    }
-    val headerId = adapter.getHeaderId(position)
-    val nextPosition = position + 1
-    val res = nextPosition >= 0 && nextPosition < adapter.getItemCount && !headerId.equals(adapter.getHeaderId(nextPosition))
-    res
-  }
-
-  def isFirstAfterHeader(position: Int): Boolean ={
-    if (position == 0) {
-      return true
-    }
-    if (position == adapter.getItemCount - 1) {
-      return false
-    }
-    if (isLastBeforeHeader(position - 1)) {
-      return true
-    }
-    false
-  }
-
-  override def getSpanIndex(position: Int, spanCount: Int): Int ={
-    if (spanIndexIsCached(position)) {
-      return getCachedSpanIndex(position)
+  def isLastBeforeHeader(position: Int): Boolean =
+    if (position == adapter.getItemCount - 1) true
+    else {
+      val nextPosition = position + 1
+      nextPosition >= 0 && nextPosition < adapter.getItemCount &&
+        !adapter.getHeaderId(position).equals(adapter.getHeaderId(nextPosition))
     }
 
-    if (isFirstAfterHeader(position)){
-      return 0
+  def isFirstAfterHeader(position: Int): Boolean =
+    position match {
+      case 0 => true
+      case p if p == adapter.getItemCount - 1 => false
+      case p if isLastBeforeHeader(p - 1) => true
+      case _ => false
     }
 
-    val indexBefore = getSpanIndex(position - 1, spanCount)
-    (indexBefore + 1) % spanCount
-  }
+  override def getSpanIndex(position: Int, spanCount: Int): Int =
+    if (spanIndexIsCached(position)) getCachedSpanIndex(position)
+    else if (isFirstAfterHeader(position)) 0
+    else (getSpanIndex(position - 1, spanCount) + 1) % spanCount
 
   override def isSpanIndexCacheEnabled: Boolean = false
 
-  def spanIndexIsCached(position: Int): Boolean = {
+  def spanIndexIsCached(position: Int): Boolean =
     spanIndexCache.get(position, -1) != -1
-  }
 
-  def getCachedSpanIndex(position: Int): Int ={
+  def getCachedSpanIndex(position: Int): Int =
     spanIndexCache.get(position, 0)
-  }
 
-  def addSpanIndexToCache(position: Int, index: Int): Unit ={
+  def addSpanIndexToCache(position: Int, index: Int): Unit =
     spanIndexCache.put(position, index)
-  }
 
-  def spanSizeIsCached(position: Int): Boolean ={
+
+  def spanSizeIsCached(position: Int): Boolean =
     spanSizeCache.get(position, -1) != -1
-  }
 
-  def getCachedSpanSize(position: Int): Int={
+  def getCachedSpanSize(position: Int): Int =
     spanSizeCache.get(position, 0)
-  }
 
-  def addSpanSizeToCache(position: Int, size: Int): Unit = {
+  def addSpanSizeToCache(position: Int, size: Int): Unit =
     spanSizeCache.put(position, size)
-  }
 
-  def clearCache(): Unit ={
+  def clearCache(): Unit = {
     spanIndexCache.clear()
     spanSizeCache.clear()
   }
 
   @TargetApi(Build.VERSION_CODES.KITKAT)
-  def clearCacheFromPosition(position: Int): Unit = {
-    if (position <= 0 || Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) {
-      clearCache()
-      return
+  def clearCacheFromPosition(position: Int): Unit =
+    if (position <= 0 || Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) clearCache()
+    else {
+      Set(spanIndexCache, spanSizeCache).foreach { cache =>
+        if (position <= cache.size() - 1) cache.removeAtRange(position, cache.size() - position)
+      }
     }
-    if (position <= spanIndexCache.size() - 1) {
-      spanIndexCache.removeAtRange(position, spanIndexCache.size() - position)
-    }
-    if (position <= spanSizeCache.size() - 1) {
-      spanSizeCache.removeAtRange(position, spanSizeCache.size() - position)
-    }
-  }
 }

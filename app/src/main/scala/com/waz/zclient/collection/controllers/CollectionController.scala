@@ -17,6 +17,8 @@
  */
 package com.waz.zclient.collection.controllers
 
+import java.lang.Math.min
+
 import android.text.SpannableString
 import android.text.style.BackgroundColorSpan
 import com.waz.ZLog._
@@ -132,31 +134,31 @@ object CollectionController {
 }
 
 object CollectionUtils {
-  def getHighlightedSpannableString(originalMessage: String, normalizedMessage: String, queries: Set[String], color: Int, beginThreshold: Int = -1): (SpannableString, Int) ={
-    def getQueryPosition(normalizedMessage: String, query: String, fromIndex: Int = 0, acc: Seq[(Int, Int)] = Seq()): Seq[(Int, Int)] ={
+  def getHighlightedSpannableString(originalMessage: String, normalizedMessage: String, queries: Set[String], color: Int, beginThreshold: Int = -1): (SpannableString, Int) = {
+
+    def getQueryPosition(normalizedMessage: String, query: String, fromIndex: Int = 0, acc: Seq[(Int, Int)] = Seq()): Seq[(Int, Int)] = {
       val beginIndex = normalizedMessage.indexOf(query, fromIndex)
-      if (beginIndex < 0) {
-        return acc
+      if (beginIndex < 0) acc
+      else {
+        val endIndex = min(beginIndex + query.length, normalizedMessage.length)
+        getQueryPosition(normalizedMessage, query, endIndex, acc ++ (if (beginIndex > 0 && normalizedMessage.charAt(beginIndex - 1).isLetterOrDigit) Seq.empty else Seq((beginIndex, endIndex))))
       }
-      val endIndex = Math.min(beginIndex + query.length, normalizedMessage.length)
-      if (beginIndex > 0 && normalizedMessage.charAt(beginIndex - 1).isLetterOrDigit){
-        return getQueryPosition(normalizedMessage, query, endIndex, acc)
-      }
-      getQueryPosition(normalizedMessage, query, endIndex, acc ++ Seq((beginIndex, endIndex)))
     }
+
     val matches = queries.map(getQueryPosition(normalizedMessage, _))
-    if (matches.exists(_.isEmpty)) {
-      return (new SpannableString(originalMessage), 0)
+    if (matches.exists(_.isEmpty)) (new SpannableString(originalMessage), 0)
+    else {
+      val flatMatches = matches.flatten.filter(_._1 >= 0)
+      if (flatMatches.isEmpty) {
+        (new SpannableString(originalMessage), 0)
+      } else {
+        val minPos = if (beginThreshold == -1) 0 else Math.max(flatMatches.map(_._1).min - beginThreshold, 0)
+        val ellipsis = if (minPos > 0) "..." else ""
+        val spannableString = new SpannableString(ellipsis + originalMessage.substring(minPos))
+        val offset = minPos - ellipsis.length
+        flatMatches.foreach(pos => spannableString.setSpan(new BackgroundColorSpan(color), pos._1 - offset, pos._2 - offset, 0))
+        (spannableString, flatMatches.size)
+      }
     }
-    val flatMatches = matches.flatten.filter(_._1 >= 0)
-    if (flatMatches.isEmpty) {
-      return (new SpannableString(originalMessage), 0)
-    }
-    val minPos = if (beginThreshold == -1) 0 else Math.max(flatMatches.map(_._1).min - beginThreshold, 0)
-    val ellipsis = if (minPos > 0) "..." else ""
-    val spannableString = new SpannableString(ellipsis + originalMessage.substring(minPos))
-    val offset = minPos - ellipsis.length
-    flatMatches.foreach(pos => spannableString.setSpan(new BackgroundColorSpan(color), pos._1 - offset, pos._2 - offset, 0))
-    (spannableString, flatMatches.size)
   }
 }

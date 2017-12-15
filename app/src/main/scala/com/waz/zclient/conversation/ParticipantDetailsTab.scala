@@ -73,14 +73,12 @@ class ParticipantDetailsTab(val context: Context, val attrs: AttributeSet, val d
     userId ! UserId(user.getId)
   }
 
-  def updateFooterMenu(@StringRes leftAction: Int, @StringRes leftActionLabel: Int, @StringRes rightAction: Int, @StringRes rightActionLabel: Int, callback: FooterMenuCallback): Unit = {
-    if (footerMenu == null) {
-      return
+  def updateFooterMenu(@StringRes leftAction: Int, @StringRes leftActionLabel: Int, @StringRes rightAction: Int, @StringRes rightActionLabel: Int, callback: FooterMenuCallback): Unit =
+    Option(footerMenu).foreach { v =>
+      v.setLeftActionText(getContext.getString(leftAction))
+      v.setLeftActionLabelText(getContext.getString(leftActionLabel))
+      v.setRightActionText(getContext.getString(rightAction))
+      v.setRightActionLabelText(getContext.getString(rightActionLabel))
+      v.setCallback(callback)
     }
-    footerMenu.setLeftActionText(getContext.getString(leftAction))
-    footerMenu.setLeftActionLabelText(getContext.getString(leftActionLabel))
-    footerMenu.setRightActionText(getContext.getString(rightAction))
-    footerMenu.setRightActionLabelText(getContext.getString(rightActionLabel))
-    footerMenu.setCallback(callback)
-  }
 }

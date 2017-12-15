@@ -128,6 +128,9 @@ trait FragmentHelper extends Fragment with ViewFinder with Injectable with Event
     else getActivity.findViewById(id).asInstanceOf[V]
   }
 
+  def withFragmentOpt[A](tag: String)(f: Option[Fragment] => A): A =
+    f(Option(this.asInstanceOf[Fragment].getChildFragmentManager.findFragmentByTag(tag)))
+
   def findById[V <: View](parent: View, id: Int) =
     parent.findViewById(id).asInstanceOf[V]
 
@@ -197,6 +200,9 @@ trait ActivityHelper extends Activity with ViewFinder with Injectable with WireC
   def findFragment[T](id: Int) : T = {
     this.asInstanceOf[FragmentActivity].getSupportFragmentManager.findFragmentById(id).asInstanceOf[T]
   }
+
+  def withFragmentOpt[A](tag: String)(f: Option[Fragment] => A): A =
+    f(Option(this.asInstanceOf[FragmentActivity].getSupportFragmentManager.findFragmentByTag(tag)))
 
   override def onStart(): Unit = {
     onContextStart()

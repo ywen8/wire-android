@@ -108,12 +108,9 @@ class CollectionRecyclerView(context: Context, attrs: AttributeSet, style: Int) 
               }
             }
             false
-          case MotionEvent.ACTION_UP =>
-            if (!headerDown) {
-              return false
-            }
-            adapter.onHeaderClicked(collectionItemDecorator.getHeaderClicked(x, y))
-          case _ => false;
+          case MotionEvent.ACTION_UP if !headerDown => false
+          case MotionEvent.ACTION_UP => adapter.onHeaderClicked(collectionItemDecorator.getHeaderClicked(x, y))
+          case _ => false
         }
       }
     })
@@ -130,12 +127,13 @@ class CollectionRecyclerView(context: Context, attrs: AttributeSet, style: Int) 
   override def onInterceptTouchEvent(event: MotionEvent): Boolean = {
     val superIntercept = super.onInterceptTouchEvent(event)
     if (collectionItemDecorator == null) {
-      return superIntercept
+      superIntercept
+    } else {
+      val x = Math.round(event.getX)
+      val y = Math.round(event.getY)
+      val shouldIntercept = collectionItemDecorator.getHeaderClicked(x, y) >= 0
+      superIntercept || shouldIntercept
     }
-    val x = Math.round(event.getX)
-    val y = Math.round(event.getY)
-    val shouldIntercept = collectionItemDecorator.getHeaderClicked(x, y) >= 0
-    superIntercept || shouldIntercept
   }
 }
 
