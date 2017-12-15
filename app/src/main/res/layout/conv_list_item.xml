@@ -52,19 +52,23 @@
 
             <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="@dimen/conversation_list__row_title__height"
+                android:layout_height="match_parent"
                 android:orientation="vertical"
                 android:layout_toStartOf="@+id/conversation_badge"
-                android:layout_marginTop="@dimen/conversation_list__row_title__margin_top"
                 android:layout_marginEnd="@dimen/conversation_list__row__side_padding"
                 android:layout_marginStart="@dimen/conversation_list__row__zero"
                 >
 
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="1"
+                    />
+
                 <com.waz.zclient.ui.text.TypefaceTextView
                     android:id="@+id/conversation_title"
                     android:layout_width="wrap_content"
-                    android:layout_height="0dp"
-                    android:layout_weight="1"
+                    android:layout_height="wrap_content"
                     android:ellipsize="end"
                     android:gravity="start|center_vertical"
                     android:maxLines="1"
@@ -77,14 +81,19 @@
                 <com.waz.zclient.ui.text.TypefaceTextView
                     android:id="@+id/conversation_subtitle"
                     android:layout_width="wrap_content"
-                    android:layout_height="0dp"
-                    android:layout_weight="1"
+                    android:layout_height="wrap_content"
                     android:ellipsize="end"
-                    android:gravity="start|center_vertical"
+                    android:gravity="start|top"
                     android:maxLines="1"
                     app:w_font="@string/wire__typeface__light"
                     android:textSize="@dimen/wire__text_size__small"
                     style="?startUiUserRowSubLabel"
+                    />
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="1"
                     />
             </LinearLayout>
 

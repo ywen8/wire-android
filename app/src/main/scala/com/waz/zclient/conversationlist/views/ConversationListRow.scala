@@ -147,11 +147,11 @@ class NormalConversationListRow(context: Context, attrs: AttributeSet, style: In
 
   def setSubtitle(text: String): Unit = {
     if (text.nonEmpty) {
-      showSubtitle()
+      subtitle.setVisibility(View.VISIBLE)
       subtitle.setText(text)
       TextViewUtils.boldText(subtitle)
     } else {
-      hideSubtitle()
+      subtitle.setVisibility(View.GONE)
       subtitle.setText("")
     }
   }
