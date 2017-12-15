@@ -174,6 +174,7 @@
     <dimen name="wire__padding__16">16dp</dimen>
     <dimen name="wire__padding__18">18dp</dimen>
     <dimen name="wire__padding__20">20dp</dimen>
+    <dimen name="wire__padding__24">24dp</dimen>
     <dimen name="wire__padding__26">26dp</dimen>
     <dimen name="wire__padding__28">28dp</dimen>
     <dimen name="wire__padding__32">32dp</dimen>
@@ -183,6 +184,8 @@
     <dimen name="wire__padding__large">22dp</dimen>
     <dimen name="wire__padding__big">24dp</dimen>
     <dimen name="wire__padding__huge">28dp</dimen>
+    <dimen name="wire__margin__20">20dp</dimen>
+    <dimen name="wire__margin__24">24dp</dimen>
     <dimen name="wire__margin__39">39dp</dimen>
     <dimen name="wire__margin__huge">40dp</dimen>
     <dimen name="wire__divider__height">1dp</dimen>
@@ -759,6 +762,8 @@
     <dimen name="cursor_strip_width">48dp</dimen>
     <dimen name="fake_icon_diameter">31dp</dimen>
     <dimen name="message__bottom_menu__icon_view_size">24dp</dimen>
+    <dimen name="message__bottom_menu__icon_view_medium_size">16dp</dimen>
+    <dimen name="message__bottom_menu__icon_view_small_size">10dp</dimen>
 
     <dimen name="sketch__emoji__size__small">32dp</dimen>
     <dimen name="sketch__emoji__size__medium">48dp</dimen>

@@ -22,15 +22,23 @@ import com.waz.api.impl.AccentColor
 import com.waz.model.ConversationData.ConversationType
 import com.waz.model._
 import com.waz.service.ZMessaging
+import com.waz.threading.Threading
 import com.waz.utils.events.Signal
 import com.waz.zclient.messages.UsersController.DisplayName
 import com.waz.zclient.messages.UsersController.DisplayName.{Me, Other}
 import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.{Injectable, Injector, R}
+import com.waz.ZLog.verbose
+import com.waz.ZLog.ImplicitTag._
+import com.waz.service.tracking.TrackingService
+import com.waz.zclient.tracking.AvailabilityChanged
+
+import scala.concurrent.Future
 
 class UsersController(implicit injector: Injector, context: Context) extends Injectable {
 
   private val zMessaging = inject[Signal[ZMessaging]]
+  private val tracking = inject[TrackingService]
 
   lazy val itemSeparator = getString(R.string.content__system__item_separator)
   lazy val lastSeparator = getString(R.string.content__system__last_item_separator)
@@ -60,6 +68,29 @@ class UsersController(implicit injector: Injector, context: Context) extends Inj
   def displayName(id: UserId): Signal[DisplayName] = zMessaging.flatMap { zms =>
     if (zms.selfUserId == id) Signal const Me
     else zms.users.userSignal(id).map(u => Other(u.getDisplayName))
+  }
+
+  lazy val availabilityVisible: Signal[Boolean] = for {
+    selfId <- selfUserId
+    self <- user(selfId)
+  } yield self.teamId.nonEmpty
+
+  def availability(userId: UserId): Signal[Availability] = for {
+    avVisible <- availabilityVisible
+    otherUser <- if (avVisible) user(userId).map(Option(_)) else Signal.const(Option.empty[UserData])
+  } yield {
+    otherUser.fold[Availability](Availability.None)(_.availability)
+  }
+
+  def trackAvailability(availability: Availability, method: AvailabilityChanged.Method): Unit =
+    tracking.track(AvailabilityChanged(availability, method))
+
+  def updateAvailability(availability: Availability): Future[Unit] = {
+    import Threading.Implicits.Background
+    for {
+      zms     <- zMessaging.head
+      _       <- zms.users.updateAvailability(availability)
+    } yield ()
   }
 
   def accentColor(id: UserId): Signal[AccentColor] = user(id).map(u => AccentColor(u.accent))
@@ -111,4 +142,5 @@ object UsersController {
     case object Me extends DisplayName
     case class Other(name: String) extends DisplayName
   }
+
 }

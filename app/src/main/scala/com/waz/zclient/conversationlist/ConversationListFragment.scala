@@ -29,10 +29,10 @@ import com.waz.service.ZMessaging
 import com.waz.threading.Threading
 import com.waz.utils.events.Signal
 import com.waz.utils.returning
-import com.waz.zclient.conversation.ConversationController
 import com.waz.zclient.common.controllers.UserAccountsController
 import com.waz.zclient.common.controllers.global.AccentColorController
 import com.waz.zclient.conversationlist.views.{ArchiveTopToolbar, ConversationListTopToolbar, NormalTopToolbar}
+import com.waz.zclient.conversation.ConversationController
 import com.waz.zclient.core.stores.conversation.ConversationChangeRequester
 import com.waz.zclient.pages.BaseFragment
 import com.waz.zclient.pages.main.conversation.controller.IConversationScreenController
@@ -45,10 +45,9 @@ import com.waz.zclient.preferences.PreferencesActivity
 import com.waz.zclient.ui.text.TypefaceTextView
 import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.utils.{RichView, ViewUtils}
-
 import com.waz.ZLog._
 import com.waz.ZLog.ImplicitTag._
-
+import com.waz.zclient.messages.UsersController
 import com.waz.zclient.{FragmentHelper, OnBackPressedListener, R}
 
 abstract class ConversationListFragment extends BaseFragment[ConversationListFragment.Container] with FragmentHelper {
@@ -58,6 +57,7 @@ abstract class ConversationListFragment extends BaseFragment[ConversationListFra
   val layoutId: Int
   lazy val userAccountsController = inject[UserAccountsController]
   lazy val conversationController = inject[ConversationController]
+  lazy val usersController        = inject [UsersController]
 
   override def onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState: Bundle) =
     inflater.inflate(layoutId, container, false)
@@ -67,8 +67,11 @@ abstract class ConversationListFragment extends BaseFragment[ConversationListFra
 
     val adapter = returning(new ConversationListAdapter(getContext)) { a =>
       a.setMaxAlpha(getResourceFloat(R.dimen.list__swipe_max_alpha))
-      a.currentMode.on(Threading.Ui) { mode =>
-        topToolbar.title.setText(mode.nameId)
+      (for {
+        mode <- a.currentMode
+        user <- userAccountsController.currentUser
+      } yield (mode, user)).on(Threading.Ui) {
+        case (mode,user) => topToolbar.setTitle(mode, user)
       }
     }
 
@@ -83,6 +86,7 @@ abstract class ConversationListFragment extends BaseFragment[ConversationListFra
         }
       })
     }
+
     userAccountsController.currentUser.on(Threading.Ui) { _ =>
       conversationListView.scrollToPosition(0)
     }
@@ -96,7 +100,6 @@ abstract class ConversationListFragment extends BaseFragment[ConversationListFra
   def init(view: View, adapter: ConversationListAdapter): Unit
 
   private def handleItemClick(conversationData: ConversationData): Unit = {
-    import Threading.Implicits.Background
     verbose(s"handleItemClick, switching conv to ${conversationData.id}")
     conversationController.selectConv(Option(conversationData.id), ConversationChangeRequester.CONVERSATION_LIST)
   }

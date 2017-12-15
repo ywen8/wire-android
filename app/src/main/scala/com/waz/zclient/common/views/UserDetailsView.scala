@@ -39,32 +39,27 @@ class UserDetailsView(val context: Context, val attrs: AttributeSet, val defStyl
 
   val users = inject[UsersController]
   val userId = Signal[UserId]
-  val handle = userId.flatMap(users.userHandle)
-  val firstContact = userId.flatMap(users.userFirstContact)
-  val displayName = userId.flatMap(users.displayNameString)
 
-  val handleText = handle.map {
+  userId.flatMap(users.userHandle).map {
     case Some(h) => StringUtils.formatHandle(h.string)
     case None => ""
-  }
+  }.on(Threading.Ui) { userNameTextView.setText }
 
-  val contactText = for {
-    c <- firstContact
-    n <- displayName
+  (for {
+    id <- userId
+    c <- users.userFirstContact(id)
+    n <- users.displayNameString(id)
   } yield {
       c match {
         case Some(cont) if cont.name == n => getContext.getString(R.string.content__message__connect_request__user_info, "")
         case Some(cont) => getContext.getString(R.string.content__message__connect_request__user_info, c.get.name)
         case _ => ""
       }
-  }
+  }).on(Threading.Ui) { userInfoTextView.setText }
 
-  handleText.on(Threading.Ui) { userNameTextView.setText }
-  contactText.on(Threading.Ui) { userInfoTextView.setText }
-
-  def setUserId(id: UserId) =
+  def setUserId(id: UserId): Unit =
     Option(id).fold(throw new IllegalArgumentException("UserId should not be null"))(userId ! _)
 
-  def setUser(user: User) = setUserId(UserId(user.getId))
+  def setUser(user: User): Unit = setUserId(UserId(user.getId))
 
 }

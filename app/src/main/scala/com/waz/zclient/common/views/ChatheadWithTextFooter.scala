@@ -28,15 +28,19 @@ import com.waz.model.{UserData, UserId}
 import com.waz.service.ZMessaging
 import com.waz.threading.Threading
 import com.waz.utils.events.Signal
+import com.waz.zclient.messages.UsersController
 import com.waz.zclient.ui.text.{TextTransform, TypefaceTextView}
 import com.waz.zclient.ui.theme.ThemeUtils
 import com.waz.zclient.usersearch.views.UserRowView
-import com.waz.zclient.utils.ViewUtils
+import com.waz.zclient.utils.{ContextUtils, ViewUtils}
+import com.waz.zclient.views.AvailabilityView
 import com.waz.zclient.{R, ViewHelper}
 
 class ChatheadWithTextFooter(val context: Context, val attrs: AttributeSet, val defStyleAttr: Int) extends LinearLayout(context, attrs, defStyleAttr) with ViewHelper with UserRowView {
   def this(context: Context, attrs: AttributeSet) = this(context, attrs, 0)
   def this(context: Context) = this(context, null)
+
+  private lazy val usersController = inject[UsersController]
 
   implicit val logTag = ZLog.logTagFor[ChatheadWithTextFooter]
 
@@ -45,7 +49,9 @@ class ChatheadWithTextFooter(val context: Context, val attrs: AttributeSet, val 
   private val chathead = findById[ChatheadView](R.id.cv__chathead)
   private val footer = findById[TypefaceTextView](R.id.ttv__text_view)
   private val guestIndicator = findById[TypefaceTextView](R.id.guest_indicator)
-  private val transformer = TextTransform.get(context.getResources.getString(R.string.participants__chathead__name_label__text_transform))
+
+  private lazy val transformer = TextTransform.get(ContextUtils.getString(R.string.participants__chathead__name_label__text_transform))
+
   private val userId = Signal[UserId]()
   private val userInfo = for{
     z <- inject[Signal[ZMessaging]]
@@ -53,6 +59,10 @@ class ChatheadWithTextFooter(val context: Context, val attrs: AttributeSet, val 
     data <- z.usersStorage.signal(uId)
     isGuest <- z.teams.isGuest(uId)
   } yield (data, isGuest) // true means guest status
+
+  userId.flatMap(usersController.availability).on(Threading.Ui) { av =>
+    AvailabilityView.displayLeftOfText(footer, av, footer.getCurrentTextColor)
+  }
 
   setOrientation(LinearLayout.VERTICAL)
   initAttributes(attrs)

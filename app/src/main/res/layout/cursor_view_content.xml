@@ -93,6 +93,7 @@
             android:textSize="@dimen/wire__text_size__small"
             app:w_font="@string/wire__typeface__medium"
             android:paddingStart="@dimen/wire__padding__small"
+            android:drawablePadding="@dimen/wire__padding__8"
         />
 
         <FrameLayout
