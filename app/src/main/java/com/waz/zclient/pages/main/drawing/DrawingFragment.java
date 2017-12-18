@@ -656,6 +656,7 @@ public class DrawingFragment extends BaseFragment<DrawingFragment.Container> imp
                 sketchEditTextView.setBackground(ColorUtils.getTransparentDrawable());
             }
             sketchEditTextView.setVisibility(View.VISIBLE);
+            changeEditTextVisibility();
             showKeyboard();
             hideTip();
         }
@@ -724,6 +725,10 @@ public class DrawingFragment extends BaseFragment<DrawingFragment.Container> imp
         if (!keyboardIsVisible) {
             closeKeyboard();
         }
+        changeEditTextVisibility(keyboardHeight);
+    }
+
+    private void changeEditTextVisibility(int keyboardHeight) {
         if (shouldOpenEditText) {
             shouldOpenEditText = false;
             FrameLayout.LayoutParams params = (FrameLayout.LayoutParams) sketchEditTextView.getLayoutParams();
@@ -743,7 +748,13 @@ public class DrawingFragment extends BaseFragment<DrawingFragment.Container> imp
         } else {
             sketchEditTextView.setAlpha(TEXT_ALPHA_VISIBLE);
         }
+    }
 
+    private void changeEditTextVisibility() {
+        View view = ViewUtils.getContentView(getActivity().getWindow());
+        if (view != null) {
+            changeEditTextVisibility(KeyboardUtils.getKeyboardHeight(view));
+        }
     }
 
     private void drawSketchEditText() {

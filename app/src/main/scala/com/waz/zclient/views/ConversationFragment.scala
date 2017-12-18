@@ -56,7 +56,7 @@ import com.waz.zclient.conversation.ConversationController
 import com.waz.zclient.conversation.ConversationController.ConversationChange
 import com.waz.zclient.core.stores.conversation.ConversationChangeRequester
 import com.waz.zclient.core.stores.inappnotification.SyncErrorObserver
-import com.waz.zclient.cursor.{CursorCallback, CursorView}
+import com.waz.zclient.cursor.{CursorCallback, CursorController, CursorView}
 import com.waz.zclient.messages.MessagesListView
 import com.waz.zclient.pages.BaseFragment
 import com.waz.zclient.pages.extendedcursor.ExtendedCursorContainer
@@ -757,7 +757,7 @@ class ConversationFragment extends BaseFragment[ConversationFragment.Container] 
 
   private val keyboardVisibilityObserver = new KeyboardVisibilityObserver {
     override def onKeyboardVisibilityChanged(keyboardIsVisible: Boolean, keyboardHeight: Int, currentFocus: View): Unit =
-      cursorView.notifyKeyboardVisibilityChanged(keyboardIsVisible)
+      inject[CursorController].notifyKeyboardVisibilityChanged(keyboardIsVisible)
   }
 
   private val syncErrorObserver = new SyncErrorObserver {

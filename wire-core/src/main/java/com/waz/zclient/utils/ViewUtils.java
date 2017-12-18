@@ -360,6 +360,10 @@ public class ViewUtils {
         return (T) v.findViewById(resId);
     }
 
+    public static <T extends View> T getContentView(@NonNull Window window) {
+        return getView(window.getDecorView(), android.R.id.content);
+    }
+
     @SuppressLint("com.waz.ViewUtils")
     public static <T extends View> T getView(@NonNull Dialog d, @IdRes int resId) {
         return (T) d.findViewById(resId);
