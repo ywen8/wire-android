@@ -159,7 +159,7 @@ case class OpenedStartScreen() extends TrackingEvent {
 }
 
 case class OpenedTeamRegistration() extends TrackingEvent {
-  override val name: String = "start.opened_team_registration"
+  override val name: String = "settings.opened_team_registration"
   override val props = None
 }
 
