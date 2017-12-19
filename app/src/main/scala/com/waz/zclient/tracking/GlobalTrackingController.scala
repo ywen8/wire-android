@@ -121,6 +121,8 @@ class GlobalTrackingController(implicit inj: Injector, cxt: WireContext, eventCo
       }
 
       event match {
+        case e: LoggedOutEvent if e.reason == LoggedOutEvent.InvalidCredentials =>
+          //This event type is trigged a lot, so disable for now
         case _: MissedPushEvent if !BuildConfig.FLAVOR.equals("internal") =>
           //This event is high volume, so we limit it to only internal clients
         case e: ReceivedPushEvent if e.p.toFetch.forall(_.asScala < 10.seconds) =>

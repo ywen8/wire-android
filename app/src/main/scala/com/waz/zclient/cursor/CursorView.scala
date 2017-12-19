@@ -131,7 +131,7 @@ class CursorView(val context: Context, val attrs: AttributeSet, val defStyleAttr
   }
 
   keyboardButton.onClick {
-    notifyKeyboardVisibilityChanged(true)
+    controller.notifyKeyboardVisibilityChanged(true)
   }
 
   val cursorHeight = getDimenPx(R.dimen.new_cursor_height)
@@ -156,7 +156,7 @@ class CursorView(val context: Context, val attrs: AttributeSet, val defStyleAttr
   })
 
   cursorEditText.setOnClickListener(new OnClickListener {
-    override def onClick(v: View): Unit = notifyKeyboardVisibilityChanged(true)
+    override def onClick(v: View): Unit = controller.notifyKeyboardVisibilityChanged(true)
   })
 
   cursorEditText.setOnEditorActionListener(new OnEditorActionListener {
@@ -270,17 +270,6 @@ class CursorView(val context: Context, val attrs: AttributeSet, val defStyleAttr
 
   def insertText(text: String): Unit = {
     cursorEditText.getText.insert(cursorEditText.getSelectionStart, text)
-  }
-
-  def notifyKeyboardVisibilityChanged(keyboardIsVisible: Boolean): Unit = {
-    controller.keyboard.mutate {
-      case KeyboardState.Shown if !keyboardIsVisible => KeyboardState.Hidden
-      case _ if keyboardIsVisible => KeyboardState.Shown
-      case state => state
-    }
-
-    if (keyboardIsVisible && cursorEditText.hasFocus)
-      controller.cursorCallback.foreach(_.onCursorClicked())
   }
 
   def hasText: Boolean = !TextUtils.isEmpty(cursorEditText.getText.toString)

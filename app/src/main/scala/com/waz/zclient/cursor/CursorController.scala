@@ -141,6 +141,20 @@ class CursorController(implicit inj: Injector, ctx: Context, evc: EventContext) 
   } yield
     users.nonEmpty
 
+  def notifyKeyboardVisibilityChanged(keyboardIsVisible: Boolean): Unit = {
+    keyboard.mutate {
+      case KeyboardState.Shown if !keyboardIsVisible => KeyboardState.Hidden
+      case _ if keyboardIsVisible => KeyboardState.Shown
+      case state => state
+    }
+
+    if (keyboardIsVisible) editHasFocus.head.foreach { hasFocus =>
+      if (hasFocus) {
+        cursorCallback.foreach(_.onCursorClicked())
+      }
+    }
+  }
+
   keyboard.on(Threading.Ui) {
     case KeyboardState.Shown =>
       cursorCallback.foreach(_.hideExtendedCursor())

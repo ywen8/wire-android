@@ -70,7 +70,7 @@ class BaseActivity extends AppCompatActivity
       inject[UiLifeCycle].acquireUi()
     }
     getStoreFactory.zMessagingApiStore.getApi.setPermissionProvider(this)
-    val contentView: View = ViewUtils.getView(getWindow.getDecorView, android.R.id.content)
+    val contentView: View = ViewUtils.getContentView(getWindow)
     if (contentView != null) getControllerFactory.setGlobalLayout(contentView)
   }
 
