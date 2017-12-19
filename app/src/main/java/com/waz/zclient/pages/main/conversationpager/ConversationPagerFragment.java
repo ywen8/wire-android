@@ -35,8 +35,8 @@ import com.waz.zclient.controllers.navigation.Page;
 import com.waz.zclient.controllers.navigation.PagerControllerObserver;
 import com.waz.zclient.conversation.ConversationController;
 import com.waz.zclient.collection.controllers.CollectionController;
+import com.waz.zclient.cursor.CursorController;
 import com.waz.zclient.pages.BaseFragment;
-import com.waz.zclient.ui.utils.KeyboardUtils;
 import com.waz.zclient.ui.utils.ResourceUtils;
 import com.waz.zclient.utils.Callback;
 import com.waz.zclient.utils.LayoutSpec;
@@ -159,6 +159,7 @@ public class ConversationPagerFragment extends BaseFragment<ConversationPagerFra
                     @Override
                     public void run() {
                         conversationPager.setCurrentItem(NavigationController.FIRST_PAGE, false);
+
                     }
                 }, PAGER_DELAY);
                 break;
@@ -249,7 +250,7 @@ public class ConversationPagerFragment extends BaseFragment<ConversationPagerFra
     public void onPageScrollStateChanged(int state) {
         if (state == ViewPager.SCROLL_STATE_DRAGGING &&
             getControllerFactory().getGlobalLayoutController().isKeyboardVisible()) {
-            KeyboardUtils.hideKeyboard(getActivity());
+            getCursorController().notifyKeyboardVisibilityChanged(false);
         }
     }
 
@@ -262,16 +263,21 @@ public class ConversationPagerFragment extends BaseFragment<ConversationPagerFra
     public void onPageVisible(Page page) {
         if (page == Page.CONVERSATION_LIST) {
             getCollectionController().clearSearch();
-        }
-        if (page == Page.CONVERSATION_LIST &&
-            getControllerFactory().getNavigationController()
-                                  .getPagerPosition() == NavigationController.SECOND_PAGE) {
-            conversationPager.setCurrentItem(NavigationController.FIRST_PAGE);
+            getCursorController().notifyKeyboardVisibilityChanged(false);
+
+            if (getControllerFactory().getNavigationController()
+                    .getPagerPosition() == NavigationController.SECOND_PAGE) {
+                conversationPager.setCurrentItem(NavigationController.FIRST_PAGE);
+            }
         }
     }
 
     private CollectionController getCollectionController() {
         return ((BaseActivity) getActivity()).injectJava(CollectionController.class);
+    }
+
+    private CursorController getCursorController() {
+        return ((BaseActivity) getActivity()).injectJava(CursorController.class);
     }
 
     public interface Container {
