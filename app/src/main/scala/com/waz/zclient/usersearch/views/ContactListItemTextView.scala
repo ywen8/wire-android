@@ -112,9 +112,8 @@ class ContactListItemTextView(val context: Context, val attrs: AttributeSet, val
         subLabelView.setText(sublabel)
       }
       nameView.setText(userData.getDisplayName)
-      usersController.availability(userData.id).head.foreach { av =>
-        AvailabilityView.displayLeftOfText(nameView, av, nameView.getCurrentTextColor)
-      }(Threading.Ui)
+      AvailabilityView.displayLeftOfText(nameView, userData.availability, nameView.getCurrentTextColor)
+
     } { contact =>
       nameView.setGravity(Gravity.START | Gravity.CENTER_VERTICAL)
       nameView.setText(contact.name)
