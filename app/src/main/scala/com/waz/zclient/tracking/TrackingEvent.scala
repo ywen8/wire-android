@@ -146,7 +146,7 @@ case class ResendVerificationEvent(method: SignInMethod, isCall: Boolean, error:
 
 case class SignUpScreenEvent(method: SignInMethod) extends TrackingEvent {
   override val name = method match {
-    case SignInMethod(Register, _) => "start.opened_person_registration"
+    case SignInMethod(Register, _) => "start.opened_personal_registration"
     case SignInMethod(Login, _) => "start.opened_login"
   }
 
