@@ -89,10 +89,10 @@ class GlobalTrackingController(implicit inj: Injector, cxt: WireContext, eventCo
     */
   ZMessaging.globalModule.map(_.trackingService.events).foreach {
     _ { case (zms, event) =>
-      def send() = {
+      def send(zmsArg: Option[ZMessaging], eventArg: TrackingEvent) = {
         for {
           sProps <- superProps.head
-          teamSize <- zms match {
+          teamSize <- zmsArg match {
             case Some(z) => z.teamId.fold(Future.successful(0))(_ => z.teams.searchTeamMembers().head.map(_.size))
             case _ => Future.successful(0)
           }
@@ -103,24 +103,36 @@ class GlobalTrackingController(implicit inj: Injector, cxt: WireContext, eventCo
             m.unregisterSuperProperty(TeamSizeSuperProperty)
 
             //set account-based super properties based on supplied zms
-            sProps.put(TeamInTeamSuperProperty, zms.flatMap(_.teamId).isDefined)
+            sProps.put(TeamInTeamSuperProperty, zmsArg.flatMap(_.teamId).isDefined)
             sProps.put(TeamSizeSuperProperty, teamSize)
 
             //register the super properties, and track
             m.registerSuperProperties(sProps)
-            verbose(s"tracking ${event.name}")
-            m.track(event.name, event.props.orNull)
+            verbose(s"tracking ${eventArg.name}")
+            m.track(eventArg.name, eventArg.props.orNull)
           }
           verbose(
             s"""
-               |trackEvent: ${event.name}
-               |properties: ${event.props.map(_.toString(2))}
+               |trackEvent: ${eventArg.name}
+               |properties: ${eventArg.props.map(_.toString(2))}
                |superProps: ${mixpanelGuard.withApi(_.getSuperProperties).getOrElse(sProps).toString(2)}
           """.stripMargin)
         }
       }
 
       event match {
+        case _: OpenedTeamRegistration =>
+          trackingEnabled.map {
+            case true => ZMessaging.currentAccounts.loggedInAccounts.head.map {
+              _.size match {
+                case 0 =>
+                  send(zms, event)
+                case _ =>
+                  send(zms, OpenedTeamRegistrationFromProfile())
+              }
+            }
+            case _ =>
+          }
         case e: LoggedOutEvent if e.reason == LoggedOutEvent.InvalidCredentials =>
           //This event type is trigged a lot, so disable for now
         case _: MissedPushEvent if !BuildConfig.FLAVOR.equals("internal") =>
@@ -133,9 +145,9 @@ class GlobalTrackingController(implicit inj: Injector, cxt: WireContext, eventCo
             verbose("Opted in to analytics, re-registering")
             m.unregisterSuperProperty(MixpanelIgnoreProperty)
           }
-          send().map { _ => mixpanelGuard.flush() }
+          send(zms, event).map { _ => mixpanelGuard.flush() }
         case OptOutEvent =>
-          send().map { _ =>
+          send(zms, event).map { _ =>
             mixpanelGuard.withApi { m =>
               verbose("Opted out of analytics, flushing and de-registering")
               m.registerSuperProperties(returning(new JSONObject()) { _.put(MixpanelIgnoreProperty, true) })
@@ -154,7 +166,7 @@ class GlobalTrackingController(implicit inj: Injector, cxt: WireContext, eventCo
           }
         case _ =>
           trackingEnabled.map {
-            case true => send()
+            case true => send(zms, event)
             case _ => //no action
           }
       }
