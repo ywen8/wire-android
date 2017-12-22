@@ -57,7 +57,7 @@ class InsertPasswordFragment extends BaseFragment[Container] with FragmentHelper
     Option(findById[GuidedEditText](getView, R.id.password_field)).foreach { field =>
       field.setValidator(signInController.passwordValidator)
       field.setResource(R.layout.guided_edit_text_sign_in__password)
-      field.setText(signInController.password.currentValue.getOrElse(""))
+      signInController.password { field.setText }
       field.getEditText.addTextListener(signInController.password ! _)
     }
 
