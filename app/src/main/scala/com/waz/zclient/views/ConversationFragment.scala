@@ -687,11 +687,12 @@ class ConversationFragment extends BaseFragment[ConversationFragment.Container] 
 
     override def onMessageSent(msg: MessageData): Unit = {
       getStoreFactory.networkStore.doIfHasInternetOrNotifyUser(null)
+      listView.scrollToBottom()
     }
 
     override def openExtendedCursor(tpe: ExtendedCursorContainer.Type): Unit = ConversationFragment.this.openExtendedCursor(tpe)
 
-    override def onCursorClicked(): Unit = if (!cursorView.isEditingMessage) listView.scrollToBottom()
+    override def onCursorClicked(): Unit = if (!cursorView.isEditingMessage && listView.scrollController.targetPosition.isEmpty) listView.scrollToBottom()
 
     override def onFocusChange(hasFocus: Boolean): Unit = {
 
