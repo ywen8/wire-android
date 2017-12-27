@@ -17,7 +17,7 @@
  */
 package com.waz.zclient.views
 
-import android.Manifest.permission.{CAMERA, READ_EXTERNAL_STORAGE, RECORD_AUDIO, WRITE_EXTERNAL_STORAGE}
+import android.Manifest.permission.{CAMERA, READ_EXTERNAL_STORAGE, WRITE_EXTERNAL_STORAGE}
 import android.content.{Context, DialogInterface, Intent}
 import android.os.Bundle
 import android.provider.MediaStore
@@ -42,18 +42,19 @@ import com.waz.utils.wrappers.URI
 import com.waz.zclient.Intents.ShowDevicesIntent
 import com.waz.zclient.camera.controllers.GlobalCameraController
 import com.waz.zclient.collection.controllers.CollectionController
-import com.waz.zclient.common.controllers.{SoundController, ThemeController, UserAccountsController}
+import com.waz.zclient.common.controllers.{ThemeController, UserAccountsController}
 import com.waz.zclient.controllers.accentcolor.AccentColorObserver
 import com.waz.zclient.controllers.confirmation.{ConfirmationCallback, ConfirmationRequest, IConfirmationController}
 import com.waz.zclient.controllers.currentfocus.IFocusController
 import com.waz.zclient.controllers.drawing.IDrawingController
 import com.waz.zclient.controllers.giphy.GiphyObserver
-import com.waz.zclient.controllers.globallayout.KeyboardVisibilityObserver
+import com.waz.zclient.controllers.globallayout.{IGlobalLayoutController, KeyboardVisibilityObserver}
 import com.waz.zclient.controllers.navigation.{NavigationControllerObserver, Page, PagerControllerObserver}
 import com.waz.zclient.controllers.orientation.OrientationControllerObserver
 import com.waz.zclient.controllers.singleimage.SingleImageObserver
 import com.waz.zclient.conversation.ConversationController
 import com.waz.zclient.conversation.ConversationController.ConversationChange
+import com.waz.zclient.conversation.toolbar.AudioMessageRecordingView
 import com.waz.zclient.core.stores.conversation.ConversationChangeRequester
 import com.waz.zclient.core.stores.inappnotification.SyncErrorObserver
 import com.waz.zclient.cursor.{CursorCallback, CursorController, CursorView}
@@ -70,7 +71,6 @@ import com.waz.zclient.pages.main.conversationpager.controller.SlidingPaneObserv
 import com.waz.zclient.pages.main.pickuser.controller.IPickUserController
 import com.waz.zclient.pages.main.profile.camera.CameraContext
 import com.waz.zclient.ui.animation.interpolators.penner.Expo
-import com.waz.zclient.ui.audiomessage.AudioMessageRecordingView
 import com.waz.zclient.ui.cursor.CursorMenuItem
 import com.waz.zclient.ui.utils.KeyboardUtils
 import com.waz.zclient.utils.ContextUtils._
@@ -179,10 +179,7 @@ class ConversationFragment extends BaseFragment[ConversationFragment.Container] 
     }
 
     // Recording audio messages
-    audioMessageRecordingView = returningF( findById( R.id.amrv_audio_message_recording) ){ view: AudioMessageRecordingView =>
-      view.setVisibility(View.INVISIBLE)
-      view.setDarkTheme(inject[ThemeController].isDarkTheme)
-    }
+    audioMessageRecordingView = findById[AudioMessageRecordingView](R.id.amrv_audio_message_recording)
 
     // invisible footer to scroll over inputfield
     returningF( new FrameLayout(getActivity) ){ footer: FrameLayout =>
@@ -288,8 +285,6 @@ class ConversationFragment extends BaseFragment[ConversationFragment.Container] 
       }
     })
 
-    audioMessageRecordingView.setCallback(audioMessageRecordingCallback)
-
     getControllerFactory.getGlobalLayoutController.addKeyboardHeightObserver(extendedCursorContainer)
     getControllerFactory.getGlobalLayoutController.addKeyboardVisibilityObserver(extendedCursorContainer)
     extendedCursorContainer.setCallback(extendedCursorContainerCallback)
@@ -311,11 +306,6 @@ class ConversationFragment extends BaseFragment[ConversationFragment.Container] 
 
   private def updateTitle(text: String): Unit = if (toolbarTitle != null) toolbarTitle.setText(text)
 
-  override def onResume(): Unit = {
-    super.onResume()
-    audioMessageRecordingView.setVisibility(View.INVISIBLE)
-  }
-
   override def onSaveInstanceState(outState: Bundle): Unit = {
     super.onSaveInstanceState(outState)
     assetIntentsManager.foreach { _.onSaveInstanceState(outState) }
@@ -325,7 +315,7 @@ class ConversationFragment extends BaseFragment[ConversationFragment.Container] 
   override def onPause(): Unit = {
     super.onPause()
     KeyboardUtils.hideKeyboard(getActivity)
-    hideAudioMessageRecording()
+    audioMessageRecordingView.hide()
   }
 
   override def onStop(): Unit = {
@@ -336,7 +326,6 @@ class ConversationFragment extends BaseFragment[ConversationFragment.Container] 
     toolbar.setOnClickListener(null)
     toolbar.setOnMenuItemClickListener(null)
     toolbar.setNavigationOnClickListener(null)
-    audioMessageRecordingView.setCallback(null)
     leftMenu.setOnMenuItemClickListener(null)
 
     getControllerFactory.getGlobalLayoutController.removeKeyboardHeightObserver(extendedCursorContainer)
@@ -375,7 +364,7 @@ class ConversationFragment extends BaseFragment[ConversationFragment.Container] 
         cursorView.setText(draftText)
         cursorView.setConversation()
       }
-      hideAudioMessageRecording()
+      audioMessageRecordingView.hide()
     }
 
     getControllerFactory.getConversationScreenController.setSingleConversation(toConv.convType == IConversation.Type.ONE_TO_ONE)
@@ -430,23 +419,6 @@ class ConversationFragment extends BaseFragment[ConversationFragment.Container] 
 
   private def errorHandler = new MessageContent.Asset.ErrorHandler() {
     override def noWifiAndFileIsLarge(sizeInBytes: Long, net: NetworkMode, answer: MessageContent.Asset.Answer): Unit = answer.ok()
-  }
-
-  private lazy val audioMessageRecordingCallback = new AudioMessageRecordingView.Callback {
-
-    override def onPreviewedAudioMessage(): Unit = {}
-    override def onSendAudioMessage(audioAssetForUpload: AudioAssetForUpload, appliedAudioEffect: AudioEffect, sentWithQuickAction: Boolean): Unit = audioAssetForUpload match {
-      case a: com.waz.api.impl.AudioAssetForUpload =>
-        convController.currentConvId.head.map { convId =>
-          convController.sendMessage(convId, a, errorHandler)
-          hideAudioMessageRecording()
-        }
-      case _ =>
-    }
-
-    override def onCancelledAudioMessageRecording(): Unit = hideAudioMessageRecording()
-
-    override def onStartedRecordingAudioMessage(): Unit = getControllerFactory.getGlobalLayoutController.keepScreenAwake()
   }
 
   private def sendVideo(uri: URI): Unit = {
@@ -595,7 +567,6 @@ class ConversationFragment extends BaseFragment[ConversationFragment.Container] 
         case _ =>
       }
 
-      hideAudioMessageRecording()
       extendedCursorContainer.close(true)
     }
   }
@@ -645,7 +616,7 @@ class ConversationFragment extends BaseFragment[ConversationFragment.Container] 
 
   private val cursorCallback = new CursorCallback {
     override def onMotionEventFromCursorButton(cursorMenuItem: CursorMenuItem, motionEvent: MotionEvent): Unit =
-      if (cursorMenuItem == CursorMenuItem.AUDIO_MESSAGE && audioMessageRecordingView.getVisibility == View.VISIBLE)
+      if (cursorMenuItem == CursorMenuItem.AUDIO_MESSAGE && audioMessageRecordingView.isVisible)
         audioMessageRecordingView.onMotionEventFromAudioMessageButton(motionEvent)
 
     override def captureVideo(): Unit = captureVideoAskPermissions()
@@ -673,18 +644,7 @@ class ConversationFragment extends BaseFragment[ConversationFragment.Container] 
     override def openFileSharing(): Unit = assetIntentsManager.foreach { _.openFileSharing() }
 
     override def onCursorButtonLongPressed(cursorMenuItem: CursorMenuItem): Unit = cursorMenuItem match {
-      case CursorMenuItem.AUDIO_MESSAGE =>
-        permissions.requestAllPermissions(Set(RECORD_AUDIO)).map {
-          case true =>
-            extendedCursorContainer.close(true)
-            if (!audioMessageRecordingView.isVisible) {
-              inject[SoundController].shortVibrate()
-              audioMessageRecordingView.prepareForRecording()
-              audioMessageRecordingView.setVisibility(View.VISIBLE)
-            }
-          case false =>
-            showToast(R.string.audio_message_error__missing_audio_permissions)(getContext)
-        }
+      case CursorMenuItem.AUDIO_MESSAGE => audioMessageRecordingView.show()
       case _ => //
     }
   }
@@ -722,7 +682,6 @@ class ConversationFragment extends BaseFragment[ConversationFragment.Container] 
   private val accentColorObserver = new AccentColorObserver {
     override def onAccentColorHasChanged(sender: Any, color: Int): Unit = {
       loadingIndicatorView.setColor(color)
-      audioMessageRecordingView.setAccentColor(color)
       extendedCursorContainer.setAccentColor(color)
     }
   }
@@ -844,12 +803,6 @@ class ConversationFragment extends BaseFragment[ConversationFragment.Container] 
     override def onPanelSlide(panel: View, slideOffset: Float): Unit = {}
     override def onPanelOpened(panel: View): Unit = KeyboardUtils.closeKeyboardIfShown(getActivity)
     override def onPanelClosed(panel: View): Unit = {}
-  }
-
-  private def hideAudioMessageRecording(): Unit = if (audioMessageRecordingView.getVisibility == View.VISIBLE) {
-    audioMessageRecordingView.reset()
-    audioMessageRecordingView.setVisibility(View.INVISIBLE)
-    getControllerFactory.getGlobalLayoutController.resetScreenAwakeState()
   }
 
   private def showImagePreview(asset: ImageAsset, source: ImagePreviewLayout.Source): Unit = {

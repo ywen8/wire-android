@@ -51,6 +51,11 @@ package object utils {
       view.requestLayout()
     }
 
+    def setMarginLeft(m: Int) = {
+      view.getLayoutParams.asInstanceOf[ViewGroup.MarginLayoutParams].leftMargin = m
+      view.requestLayout()
+    }
+
     def setMargin(r: Offset): Unit = setMargin(r.l, r.t, r.r, r.b)
 
     def setMargin(l: Int, t: Int, r: Int, b: Int): Unit = {
