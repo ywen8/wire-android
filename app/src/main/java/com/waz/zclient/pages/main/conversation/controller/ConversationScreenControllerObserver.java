@@ -43,7 +43,7 @@ public interface ConversationScreenControllerObserver {
 
     void onAddPeopleToConversation();
 
-    void onShowConversationMenu(@IConversationScreenController.ConversationMenuRequester int requester, ConvId convId);
+    void onShowConversationMenu(boolean inConvList, ConvId convId);
 
     void onShowOtrClient(OtrClient otrClient, User user);
 

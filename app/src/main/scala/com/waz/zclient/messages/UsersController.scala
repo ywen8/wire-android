@@ -18,13 +18,16 @@
 package com.waz.zclient.messages
 
 import android.content.Context
+import com.waz.api.IConversation
 import com.waz.api.impl.AccentColor
 import com.waz.model.ConversationData.ConversationType
+import com.waz.model.ConversationData.ConversationType.isOneToOne
 import com.waz.model._
 import com.waz.service.ZMessaging
 import com.waz.service.tracking.TrackingService
 import com.waz.threading.Threading
 import com.waz.utils.events.Signal
+import com.waz.zclient.conversation.ConversationController
 import com.waz.zclient.messages.UsersController.DisplayName
 import com.waz.zclient.messages.UsersController.DisplayName.{Me, Other}
 import com.waz.zclient.tracking.AvailabilityChanged
@@ -36,7 +39,7 @@ import scala.concurrent.Future
 class UsersController(implicit injector: Injector, context: Context) extends Injectable {
 
   private val zMessaging = inject[Signal[ZMessaging]]
-  private val tracking = inject[TrackingService]
+  private val tracking   = inject[TrackingService]
 
   lazy val itemSeparator = getString(R.string.content__system__item_separator)
   lazy val lastSeparator = getString(R.string.content__system__last_item_separator)
@@ -49,7 +52,7 @@ class UsersController(implicit injector: Injector, context: Context) extends Inj
     msg <- message
     conv <- zms.convsStorage.signal(msg.convId)
     user <- zms.users.userSignal(UserId(conv.id.str))
-  } yield if (ConversationType.isOneToOne(conv.convType)) Some(user) else None
+  } yield if (isOneToOne(conv.convType)) Some(user) else None
 
   def displayNameStringIncludingSelf(id: UserId): Signal[String] =
     for {
