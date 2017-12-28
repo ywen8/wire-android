@@ -267,12 +267,6 @@ public class SecondPageFragment extends BaseFragment<SecondPageFragment.Containe
 
     }
 
-    //////////////////////////////////////////////////////////////////////////////////////////
-    //
-    //  UserProfile
-    //
-    //////////////////////////////////////////////////////////////////////////////////////////
-
     @Override
     public void onAcceptedConnectRequest(ConvId conversation) {
         Timber.i("onAcceptedConnectRequest %s", conversation);

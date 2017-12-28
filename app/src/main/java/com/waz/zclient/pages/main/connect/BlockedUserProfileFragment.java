@@ -36,7 +36,6 @@ import com.waz.zclient.core.stores.connect.ConnectStoreObserver;
 import com.waz.zclient.core.stores.connect.IConnectStore;
 import com.waz.zclient.pages.BaseFragment;
 import com.waz.zclient.pages.main.participants.ProfileAnimation;
-import com.waz.zclient.pages.main.participants.ProfileSourceAnimation;
 import com.waz.zclient.pages.main.participants.ProfileTabletAnimation;
 import com.waz.zclient.pages.main.participants.dialog.DialogLaunchMode;
 import com.waz.zclient.ui.animation.fragment.FadeAnimation;
@@ -49,8 +48,7 @@ import com.waz.zclient.views.images.ImageAssetImageView;
 import com.waz.zclient.views.menus.FooterMenu;
 import com.waz.zclient.views.menus.FooterMenuCallback;
 
-public class BlockedUserProfileFragment extends BaseFragment<BlockedUserProfileFragment.Container> implements UserProfile,
-                                                                                                              ConnectStoreObserver,
+public class BlockedUserProfileFragment extends BaseFragment<BlockedUserProfileFragment.Container> implements ConnectStoreObserver,
                                                                                                               AccentColorObserver {
     public static final String TAG = BlockedUserProfileFragment.class.getName();
     public static final String ARGUMENT_USER_ID = "ARGUMENT_USER_ID";
@@ -61,7 +59,6 @@ public class BlockedUserProfileFragment extends BaseFragment<BlockedUserProfileF
     private IConnectStore.UserRequester userRequester;
 
     boolean isShowingFooterMenu;
-    private boolean isBelowUserProfile;
     private boolean goToConversationWithUser;
     private ZetaButton unblockButton;
     private ZetaButton cancelButton;
@@ -103,22 +100,7 @@ public class BlockedUserProfileFragment extends BaseFragment<BlockedUserProfileF
 
             // Fade out animation when starting conversation directly with this user when unblocking
             if (!goToConversationWithUser || enter) {
-                if (isBelowUserProfile) {
-                    if (LayoutSpec.isTablet(getActivity())) {
-                        animation = new ProfileTabletAnimation(enter,
-                                                               getResources().getInteger(R.integer.framework_animation_duration_long),
-                                                               -getResources().getDimensionPixelSize(R.dimen.participant_dialog__initial_width));
-                    } else {
-                        if (enter) {
-                            isBelowUserProfile = false;
-                            duration = getResources().getInteger(R.integer.reopen_profile_source__animation_duration);
-                            delay = getResources().getInteger(R.integer.reopen_profile_source__delay);
-                        } else {
-                            duration = getResources().getInteger(R.integer.reopen_profile_source__animation_duration);
-                        }
-                        animation = new ProfileSourceAnimation(enter, duration, delay, centerX, centerY);
-                    }
-                } else if (nextAnim != 0) {
+                if (nextAnim != 0) {
                     if (LayoutSpec.isTablet(getActivity())) {
                         animation = new ProfileTabletAnimation(enter,
                                                                getResources().getInteger(R.integer.framework_animation_duration_long),
@@ -243,17 +225,6 @@ public class BlockedUserProfileFragment extends BaseFragment<BlockedUserProfileF
         separatorLine = null;
         userDetailsView = null;
         super.onDestroyView();
-    }
-
-    //////////////////////////////////////////////////////////////////////////////////////////
-    //
-    //  UserProfile
-    //
-    //////////////////////////////////////////////////////////////////////////////////////////
-
-    @Override
-    public void isBelowUserProfile(boolean isBelow) {
-        isBelowUserProfile = isBelow;
     }
 
     //////////////////////////////////////////////////////////////////////////////////////////
