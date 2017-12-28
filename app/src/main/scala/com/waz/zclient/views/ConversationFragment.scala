@@ -236,7 +236,7 @@ class ConversationFragment extends BaseFragment[ConversationFragment.Container] 
               cf.getCallingController.startCall(true)
             case (Some(sf), Some(cf), ConversationChangeRequester.START_CONVERSATION_FOR_CALL) if !sf.isTornDown && !cf.isTornDown =>
               cf.getCallingController.startCall(false)
-            case (Some(sf), Some(cf), ConversationChangeRequester.START_CONVERSATION_FOR_CALL) if !sf.isTornDown && !cf.isTornDown =>
+            case (Some(sf), Some(cf), ConversationChangeRequester.START_CONVERSATION_FOR_CAMERA) if !sf.isTornDown && !cf.isTornDown =>
               cf.getCameraController.openCamera(CameraContext.MESSAGE)
             case _ =>
           }

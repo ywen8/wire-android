@@ -173,7 +173,9 @@ class CursorController(implicit inj: Injector, ctx: Context, evc: EventContext) 
       } else {
         permissions.requestAllPermissions(keyboardPermissions(tpe)).map {
           case true => cursorCallback.foreach(_.openExtendedCursor(tpe))
-          case _ => //TODO error message?
+          case _ =>
+            //TODO error message?
+            keyboard ! KeyboardState.Hidden
         } (Threading.Ui)
       }
   }
