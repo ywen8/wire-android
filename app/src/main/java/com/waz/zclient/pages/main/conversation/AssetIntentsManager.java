@@ -27,12 +27,10 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
-import android.support.v4.app.ActivityCompat;
 import com.waz.utils.wrappers.AndroidURI;
 import com.waz.utils.wrappers.AndroidURIUtil;
 import com.waz.utils.wrappers.URI;
 import com.waz.zclient.BuildConfig;
-import com.waz.zclient.utils.PermissionUtils;
 import timber.log.Timber;
 
 import java.io.File;
@@ -96,22 +94,14 @@ public class AssetIntentsManager {
         callback.openIntent(intent, IntentType.CAMERA);
     }
 
-    public void maybeCaptureVideo(Activity activity, IntentType type) {
-        if (PermissionUtils.hasSelfPermissions(activity, CAMERA_PERMISSIONS)) {
-            captureVideo(type);
-        } else {
-            ActivityCompat.requestPermissions(activity, CAMERA_PERMISSIONS, type.permissionCode);
-        }
-    }
-
-    private void captureVideo(IntentType type) {
+    public void captureVideo() {
         Intent intent = new Intent(MediaStore.ACTION_VIDEO_CAPTURE);
         pendingFileUri = getOutputMediaFileUri(IntentType.VIDEO);
         intent.putExtra(MediaStore.EXTRA_OUTPUT, AndroidURIUtil.unwrap(pendingFileUri));
         if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.JELLY_BEAN_MR1) {
             intent.putExtra(MediaStore.EXTRA_VIDEO_QUALITY, 0);
         }
-        callback.openIntent(intent, type);
+        callback.openIntent(intent, IntentType.VIDEO);
     }
 
     public void openGallery() {
@@ -148,7 +138,7 @@ public class AssetIntentsManager {
         if (pendingFileUri != null) {
             possibleFile = new File(pendingFileUri.getPath());
         }
-        if ((type == IntentType.CAMERA || type == IntentType.VIDEO || type == IntentType.VIDEO_CURSOR_BUTTON) &&
+        if ((type == IntentType.CAMERA || type == IntentType.VIDEO) &&
             possibleFile != null &&
             possibleFile.exists() &&
             possibleFile.length() > 0) {
@@ -194,7 +184,6 @@ public class AssetIntentsManager {
         String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(date.getTime());
 
         switch (type) {
-            case VIDEO_CURSOR_BUTTON:
             case VIDEO:
                 return new File(mediaStorageDir.getPath() + File.separator + "VID_" + timeStamp + ".mp4");
             case CAMERA:
@@ -203,40 +192,11 @@ public class AssetIntentsManager {
         return null;
     }
 
-    public boolean onRequestPermissionsResult(int requestCode, int[] grantResults) {
-        IntentType type = IntentType.getByPermissionCode(requestCode);
-
-        if (type == IntentType.UNKOWN) {
-            return false;
-        }
-
-        if (!PermissionUtils.verifyPermissions(grantResults)) {
-            callback.onPermissionFailed(type);
-            return true;
-        }
-
-        switch (type) {
-            case GALLERY:
-                return true;
-            case VIDEO_CURSOR_BUTTON:
-            case VIDEO:
-                captureVideo(type);
-                return true;
-            case CAMERA:
-                captureImage();
-                return true;
-            default:
-                return false;
-        }
-    }
-
-
     public enum IntentType {
         UNKOWN(-1, -1),
         GALLERY(9411, 8411),
         SKETCH_FROM_GALLERY(9416, 8416),
         VIDEO(9412, 8412),
-        VIDEO_CURSOR_BUTTON(9415, 8415),
         CAMERA(9413, 8413),
         FILE_SHARING(9414, 8414);
 
@@ -266,10 +226,6 @@ public class AssetIntentsManager {
                 return VIDEO;
             }
 
-            if (requestCode == VIDEO_CURSOR_BUTTON.requestCode) {
-                return VIDEO_CURSOR_BUTTON;
-            }
-
             if (requestCode == FILE_SHARING.requestCode) {
                 return FILE_SHARING;
             }
@@ -290,10 +246,6 @@ public class AssetIntentsManager {
 
             if (permissionCode == VIDEO.permissionCode) {
                 return VIDEO;
-            }
-
-            if (permissionCode == VIDEO_CURSOR_BUTTON.permissionCode) {
-                return VIDEO_CURSOR_BUTTON;
             }
 
             if (permissionCode == FILE_SHARING.permissionCode) {
@@ -318,7 +270,5 @@ public class AssetIntentsManager {
         void onFailed(IntentType type);
 
         void openIntent(Intent intent, AssetIntentsManager.IntentType intentType);
-
-        void onPermissionFailed(IntentType type);
     }
 }

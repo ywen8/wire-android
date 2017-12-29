@@ -43,7 +43,7 @@
             >
 
             <com.waz.zclient.ui.text.TypefaceTextView
-                android:id="@+id/ttv__audio_message_recording__hint"
+                android:id="@+id/controls_hint"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
                 android:layout_gravity="center_vertical|right"
@@ -72,14 +72,14 @@
             >
 
             <FrameLayout
-                android:id="@+id/fl__audio_message__recording__indicator_container"
+                android:id="@+id/recording_indicator_container"
                 android:layout_width="@dimen/new_cursor_menu_button_width"
                 android:layout_height="@dimen/new_cursor_menu_button_width"
                 android:layout_marginLeft="@dimen/cursor_toolbar_padding_horizontal_edge"
                 >
 
                 <FrameLayout
-                    android:id="@+id/fl__audio_message__recording__indicator_dot"
+                    android:id="@+id/recording_indicator_dot"
                     android:layout_width="@dimen/audio_message_recording__indicator_dot__radius"
                     android:layout_height="@dimen/audio_message_recording__indicator_dot__radius"
                     android:layout_gravity="center"
@@ -89,7 +89,7 @@
             </FrameLayout>
 
             <com.waz.zclient.ui.text.TypefaceTextView
-                android:id="@+id/ttv__audio_message__recording__duration"
+                android:id="@+id/recording__duration"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:gravity="center"
@@ -99,7 +99,7 @@
                 />
 
             <SeekBar
-                android:id="@+id/sb__voice_message__recording__seekbar"
+                android:id="@+id/recording__seekbar"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
@@ -110,7 +110,7 @@
     </LinearLayout>
 
     <FrameLayout
-        android:id="@+id/fl__audio_message__recording__slide_control_container"
+        android:id="@+id/slide_control_container"
         android:layout_width="@dimen/new_cursor_menu_button_width"
         android:layout_height="match_parent"
         android:layout_marginBottom="@dimen/wire__padding__8"
@@ -118,7 +118,7 @@
         >
 
         <FrameLayout
-            android:id="@+id/fl__audio_message__recording__slide_control"
+            android:id="@+id/slide_control"
             android:layout_width="@dimen/audio_message_recording__slide_control__width"
             android:layout_height="@dimen/audio_message_recording__slide_control__height"
             android:layout_gravity="bottom|center_horizontal"
@@ -128,17 +128,18 @@
 
             <!-- Send button -->
             <FrameLayout
-                android:id="@+id/fl__audio_message__recording__send_button_container"
+                android:id="@+id/send_button_container"
                 android:layout_width="@dimen/audio_message_recording__slide_control__width"
                 android:layout_height="@dimen/audio_message_recording__slide_control__width"
                 android:layout_gravity="top"
                 >
 
                 <com.waz.zclient.ui.text.GlyphTextView
-                    android:id="@+id/gtv__audio_message__recording__send_button"
+                    android:id="@+id/send_button"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/glyph__check"
+                    android:textColor="@color/accent_green"
                     android:layout_gravity="center"
                     android:gravity="center"
                     style="?attr/smallIconButton"
@@ -148,14 +149,14 @@
 
             <!-- Play / pause button -->
             <FrameLayout
-                android:id="@+id/fl__audio_message__recording__bottom_button_container"
+                android:id="@+id/bottom_button_container"
                 android:layout_width="@dimen/audio_message_recording__slide_control__width"
                 android:layout_height="@dimen/audio_message_recording__slide_control__width"
                 android:layout_gravity="bottom"
                 >
 
                 <com.waz.zclient.ui.text.GlyphTextView
-                    android:id="@+id/gtv__audido_message__recording__bottom_button"
+                    android:id="@+id/bottom_button"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
@@ -172,7 +173,7 @@
     </FrameLayout>
 
     <LinearLayout
-        android:id="@+id/ll__audio_message_recording__close_button_container"
+        android:id="@+id/close_button_container"
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
         android:orientation="vertical"
@@ -193,7 +194,7 @@
             />
 
         <FrameLayout
-            android:id="@+id/fl__audio_message__recording__cancel_button_container"
+            android:id="@+id/cancel_button_container"
             android:layout_width="@dimen/new_cursor_menu_button_width"
             android:layout_height="@dimen/new_cursor_menu_button_width"
             android:layout_marginRight="@dimen/cursor_toolbar_padding_horizontal_edge"

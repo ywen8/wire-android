@@ -17,6 +17,7 @@
  */
 package com.waz.zclient.messages.controllers
 
+import android.Manifest.permission.WRITE_EXTERNAL_STORAGE
 import android.app.{Activity, ProgressDialog}
 import android.content.DialogInterface.OnDismissListener
 import android.content._
@@ -28,10 +29,11 @@ import com.waz.api.Message
 import com.waz.model._
 import com.waz.service.ZMessaging
 import com.waz.service.messages.MessageAndLikes
+import com.waz.service.permissions.PermissionsService
+import com.waz.threading.Threading
 import com.waz.utils._
 import com.waz.utils.events.{EventContext, EventStream, Signal}
 import com.waz.utils.wrappers.{AndroidURIUtil, URI}
-import com.waz.zclient.common.controllers.{PermissionsController, WriteExternalStoragePermission}
 import com.waz.zclient.common.controllers.global.KeyboardController
 import com.waz.zclient.controllers.userpreferences.IUserPreferencesController
 import com.waz.zclient.messages.MessageBottomSheetDialog
@@ -49,7 +51,7 @@ class MessageActionsController(implicit injector: Injector, ctx: Context, ec: Ev
   private lazy val keyboardController   = inject[KeyboardController]
   private lazy val userPrefsController  = inject[IUserPreferencesController]
   private lazy val clipboardManager     = inject[ClipboardManager]
-  private lazy val permissions          = inject[PermissionsController]
+  private lazy val permissions          = inject[PermissionsService]
   private lazy val imageNotifications   = inject[ImageNotificationsController]
 
   private val zms = inject[Signal[ZMessaging]]
@@ -184,39 +186,41 @@ class MessageActionsController(implicit injector: Injector, ctx: Context, ec: Ev
   }
 
   private def saveMessage(message: MessageData) =
-    permissions.withPermissions(WriteExternalStoragePermission) {  // TODO: provide explanation dialog - use requiring with message str
-      if (message.msgType == Message.Type.ASSET) { // TODO: simplify once SE asset v3 is merged, we should be able to handle that without special conditions
+    permissions.requestAllPermissions(Set(WRITE_EXTERNAL_STORAGE)).map {  // TODO: provide explanation dialog - use requiring with message str
+      case true =>
+        if (message.msgType == Message.Type.ASSET) { // TODO: simplify once SE asset v3 is merged, we should be able to handle that without special conditions
 
-        val saveFuture = for {
-          z <- zms.head
-          asset <- z.assets.getAssetData(message.assetId) if asset.isDefined
-          uri <- z.imageLoader.saveImageToGallery(asset.get)
-        } yield uri
+          val saveFuture = for {
+            z <- zms.head
+            asset <- z.assets.getAssetData(message.assetId) if asset.isDefined
+            uri <- z.imageLoader.saveImageToGallery(asset.get)
+          } yield uri
 
-        saveFuture onComplete {
-          case Success(Some(uri)) =>
-            imageNotifications.showImageSavedNotification(message.assetId, uri)
-            Toast.makeText(context, R.string.message_bottom_menu_action_save_ok, Toast.LENGTH_SHORT).show()
-          case _ =>
-            Toast.makeText(context, com.waz.zclient.ui.R.string.content__file__action__save_error, Toast.LENGTH_SHORT).show()
+          saveFuture onComplete {
+            case Success(Some(uri)) =>
+              imageNotifications.showImageSavedNotification(message.assetId, uri)
+              Toast.makeText(context, R.string.message_bottom_menu_action_save_ok, Toast.LENGTH_SHORT).show()
+            case _ =>
+              Toast.makeText(context, com.waz.zclient.ui.R.string.content__file__action__save_error, Toast.LENGTH_SHORT).show()
+          }
+        } else {
+          val dialog = ProgressDialog.show(context, getString(R.string.conversation__action_mode__fwd__dialog__title), getString(R.string.conversation__action_mode__fwd__dialog__message), true, true, null)
+          zms.head.flatMap(_.assets.saveAssetToDownloads(message.assetId)) foreach {
+            case Some(file) =>
+              zms.head.flatMap(_.assets.getAssetData(message.assetId)) foreach {
+                case Some(data) => onAssetSaved ! data
+                case None => // should never happen
+              }
+              Toast.makeText(context, com.waz.zclient.ui.R.string.content__file__action__save_completed, Toast.LENGTH_SHORT).show()
+              context.sendBroadcast(returning(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE))(_.setData(AndroidURIUtil.unwrap(URI.fromFile(file)))))
+              dialog.dismiss()
+            case None =>
+              Toast.makeText(context, com.waz.zclient.ui.R.string.content__file__action__save_error, Toast.LENGTH_SHORT).show()
+              dialog.dismiss()
+          }
         }
-      } else {
-        val dialog = ProgressDialog.show(context, getString(R.string.conversation__action_mode__fwd__dialog__title), getString(R.string.conversation__action_mode__fwd__dialog__message), true, true, null)
-        zms.head.flatMap(_.assets.saveAssetToDownloads(message.assetId)) foreach {
-          case Some(file) =>
-            zms.head.flatMap(_.assets.getAssetData(message.assetId)) foreach {
-              case Some(data) => onAssetSaved ! data
-              case None => // should never happen
-            }
-            Toast.makeText(context, com.waz.zclient.ui.R.string.content__file__action__save_completed, Toast.LENGTH_SHORT).show()
-            context.sendBroadcast(returning(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE))(_.setData(AndroidURIUtil.unwrap(URI.fromFile(file)))))
-            dialog.dismiss()
-          case None =>
-            Toast.makeText(context, com.waz.zclient.ui.R.string.content__file__action__save_error, Toast.LENGTH_SHORT).show()
-            dialog.dismiss()
-        }
-      }
-    }
+      case false =>
+    } (Threading.Ui)
 
   private def revealMessageInConversation(message: MessageData) = {
     zms.head.flatMap(z => z.messagesStorage.get(message.id)).onComplete{

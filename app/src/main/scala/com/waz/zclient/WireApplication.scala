@@ -26,6 +26,7 @@ import com.waz.api._
 import com.waz.content.GlobalPreferences
 import com.waz.log.InternalLog
 import com.waz.model.ConversationData
+import com.waz.service.permissions.PermissionsService
 import com.waz.service.tracking.TrackingService
 import com.waz.service.{NetworkModeService, UiLifeCycle, ZMessaging}
 import com.waz.utils.events.{EventContext, Signal, Subscription}
@@ -82,6 +83,7 @@ object WireApplication {
     bind [NetworkModeService]          to ZMessaging.currentGlobal.network
     bind [UiLifeCycle]                 to ZMessaging.currentGlobal.lifecycle
     bind [TrackingService]             to ZMessaging.currentGlobal.trackingService
+    bind [PermissionsService]          to ZMessaging.currentGlobal.permissions
 
     // old controllers
     // TODO: remove controller factory, reimplement those controllers
@@ -159,8 +161,6 @@ object WireApplication {
     bind [AssetsController]          to new AssetsController()
     bind [BrowserController]         to new BrowserController()
     bind [MessageViewFactory]        to new MessageViewFactory()
-    bind [PermissionActivity]        to ctx.asInstanceOf[PermissionActivity]
-    bind [PermissionsController]     to new PermissionsController(new PermissionsWrapper)
     bind [UsersController]           to new UsersController()
     bind [ScreenController]          to new ScreenController()
     bind [MessageActionsController]  to new MessageActionsController()

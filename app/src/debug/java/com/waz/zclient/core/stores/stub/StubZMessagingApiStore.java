@@ -25,7 +25,6 @@ import com.waz.api.ErrorsList;
 import com.waz.api.Giphy;
 import com.waz.api.InitListener;
 import com.waz.api.Invitations;
-import com.waz.api.PermissionProvider;
 import com.waz.api.Self;
 import com.waz.api.User;
 import com.waz.api.Usernames;
@@ -78,16 +77,6 @@ public class StubZMessagingApiStore implements IZMessagingApiStore {
 
             @Override
             public void onInit(InitListener initListener) {
-
-            }
-
-            @Override
-            public void setPermissionProvider(PermissionProvider p) {
-
-            }
-
-            @Override
-            public void removePermissionProvider(PermissionProvider p) {
 
             }
 

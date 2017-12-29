@@ -17,35 +17,37 @@
  */
 package com.waz.zclient
 
-import java.util
-
 import android.content.pm.PackageManager
 import android.os.Bundle
-import android.support.annotation.NonNull
+import android.support.v4.app.ActivityCompat
+import android.support.v4.content.ContextCompat
 import android.support.v7.app.AppCompatActivity
 import android.view.View
-import com.waz.api.{Permission, PermissionProvider}
+import com.waz.ZLog.ImplicitTag._
+import com.waz.ZLog.verbose
 import com.waz.log.InternalLog
 import com.waz.service.UiLifeCycle
-import com.waz.zclient.common.controllers.{PermissionActivity, ThemeController}
+import com.waz.service.permissions.PermissionsService
+import com.waz.service.permissions.PermissionsService.{Permission, PermissionProvider}
+import com.waz.utils.returning
+import com.waz.zclient.common.controllers.ThemeController
 import com.waz.zclient.controllers.IControllerFactory
 import com.waz.zclient.core.stores.IStoreFactory
-import com.waz.zclient.permissions.PermissionRequest
 import com.waz.zclient.tracking.GlobalTrackingController
-import com.waz.zclient.utils.{PermissionUtils, ViewUtils}
-
-import scala.collection.JavaConverters._
+import com.waz.zclient.utils.ViewUtils
 
 class BaseActivity extends AppCompatActivity
   with ServiceContainer
-  with PermissionActivity
+  with ActivityHelper
   with PermissionProvider {
 
-  lazy val themeController = inject[ThemeController]
+  import BaseActivity._
+
+  lazy val themeController          = inject[ThemeController]
   lazy val globalTrackingController = inject[GlobalTrackingController]
+  lazy val permissions              = inject[PermissionsService]
 
   private var started: Boolean = false
-  private var permissionRequest = Option.empty[PermissionRequest]
 
   def injectJava[T](cls: Class[T]) = inject[T](reflect.Manifest.classType(cls), injector)
 
@@ -69,7 +71,7 @@ class BaseActivity extends AppCompatActivity
       getStoreFactory.zMessagingApiStore.getApi.onResume()
       inject[UiLifeCycle].acquireUi()
     }
-    getStoreFactory.zMessagingApiStore.getApi.setPermissionProvider(this)
+    permissions.registerProvider(this)
     val contentView: View = ViewUtils.getContentView(getWindow)
     if (contentView != null) getControllerFactory.setGlobalLayout(contentView)
   }
@@ -80,7 +82,7 @@ class BaseActivity extends AppCompatActivity
       inject[UiLifeCycle].releaseUi()
       started = false
     }
-    getStoreFactory.zMessagingApiStore.getApi.removePermissionProvider(this)
+    permissions.unregisterProvider(this)
     InternalLog.flush()
     super.onStop()
   }
@@ -104,40 +106,27 @@ class BaseActivity extends AppCompatActivity
 
   def getControllerFactory: IControllerFactory = ZApplication.from(this).getControllerFactory
 
-  override def onRequestPermissionsResult(requestCode: Int, @NonNull permissions: Array[String], @NonNull grantResults: Array[Int]): Unit = {
-    super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+  override def requestPermissions(ps: Set[Permission]) = {
+    verbose(s"requestPermissions: $ps")
+    ActivityCompat.requestPermissions(this, ps.map(_.key).toArray, PermissionsRequestId)
+  }
 
-    permissionRequest match {
-      case Some(req) if requestCode == PermissionRequest.SERequestId =>
-        if (grantResults.length < 0) {
-          req.cancel()
-          permissionRequest = None
-        }
-        else if (PermissionUtils.verifyPermissions(grantResults:_*)) {
-          req.grant()
-          permissionRequest = None
-        }
-        else Option(req.getTargetResponseHandler).foreach { handler =>
-
-          val resultMap = grantResults.zipWithIndex.map { case (result, i) =>
-            (Permission.forId(permissions(i)), if (result == PackageManager.PERMISSION_GRANTED) Permission.Status.GRANTED else Permission.Status.DENIED)
-          }.toMap.asJava
-
-          handler.handleResponse(resultMap)
-          permissionRequest = None
-        }
-
-      case _ => getControllerFactory.getRequestPermissionsController.onRequestPermissionsResult(requestCode, grantResults)
+  override def hasPermissions(ps: Set[Permission]) = ps.map { p =>
+    returning(p.copy(granted = ContextCompat.checkSelfPermission(this, p.key) == PackageManager.PERMISSION_GRANTED)) { p =>
+      verbose(s"hasPermission: $p")
     }
   }
 
-  def requestPermissions(ps: util.Set[Permission], callback: ResponseHandler) = {
-    val sePermissionRequest = PermissionRequest(this, callback, ps)
-    if (PermissionUtils.hasSelfPermissions(this, sePermissionRequest.getPermissionIds:_*)) sePermissionRequest.grant()
-    else {
-      // TODO: Maybe use {@link PermissionUtils.shouldShowRequestPermissionRationale(this, sePermissionRequest.getPermissionIds())} to explain why we need those permissions
-      permissionRequest = Some(sePermissionRequest)
-      sePermissionRequest.proceed()
+  override def onRequestPermissionsResult(requestCode: Int, keys: Array[String], grantResults: Array[Int]): Unit = {
+    verbose(s"onRequestPermissionsResult: $requestCode, ${keys.toSet}, ${grantResults.toSet.map((r: Int) => r == PackageManager.PERMISSION_GRANTED)}")
+    if (requestCode == PermissionsRequestId) {
+      val ps = hasPermissions(keys.map(Permission(_)).toSet)
+      //if we somehow call requestPermissions twice, ps will be empty - so don't send results back to PermissionsService, as it will probably be for the wrong request.
+      if (ps.nonEmpty) permissions.onPermissionsResult(ps)
     }
   }
+}
+
+object BaseActivity {
+  val PermissionsRequestId = 162
 }

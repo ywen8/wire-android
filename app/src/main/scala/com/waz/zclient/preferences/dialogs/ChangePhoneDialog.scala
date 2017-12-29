@@ -41,6 +41,7 @@ import android.widget.{EditText, TextView}
 import com.waz.api.impl.ErrorResponse
 import com.waz.model.PhoneNumber
 import com.waz.service.ZMessaging
+import com.waz.service.permissions.PermissionsService
 import com.waz.threading.Threading
 import com.waz.utils.events.{EventStream, Signal}
 import com.waz.utils.returning
@@ -49,7 +50,7 @@ import com.waz.zclient.appentry.{GenericRegisterPhoneError, PhoneExistsError}
 import com.waz.zclient.controllers.deviceuser.IDeviceUserController
 import com.waz.zclient.newreg.fragments.country.{Country, CountryController}
 import com.waz.zclient.ui.utils.{DrawableUtils, MathUtils}
-import com.waz.zclient.utils.{PermissionUtils, RichView, ViewUtils}
+import com.waz.zclient.utils.{RichView, ViewUtils}
 
 import scala.concurrent.Future
 import scala.util.Try
@@ -121,7 +122,7 @@ class ChangePhoneDialog extends DialogFragment with FragmentHelper with CountryC
 
   override def onStart() = {
     super.onStart()
-    if (currentPhone.isDefined && PermissionUtils.hasSelfPermissions(getActivity, READ_PHONE_STATE)) setSimPhoneNumber()
+    if (currentPhone.isDefined && inject[PermissionsService].checkPermission(READ_PHONE_STATE)) setSimPhoneNumber()
     Try(getDialog.asInstanceOf[AlertDialog]).toOption.foreach { dialog =>
       dialog.getButton(BUTTON_POSITIVE).setOnClickListener(new View.OnClickListener() {
         def onClick(v: View) = handleInput()

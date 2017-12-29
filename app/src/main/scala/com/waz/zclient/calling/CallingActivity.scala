@@ -30,10 +30,9 @@ import com.waz.threading.Threading
 import com.waz.zclient._
 import com.waz.zclient.calling.controllers.GlobalCallingController
 import com.waz.zclient.calling.views.VideoCallingView
-import com.waz.zclient.common.controllers.PermissionActivity
 import com.waz.zclient.utils.RichView
 
-class CallingActivity extends AppCompatActivity with ActivityHelper with PermissionActivity {
+class CallingActivity extends BaseActivity {
   import CallingActivity._
 
   private lazy val controller = inject[GlobalCallingController]

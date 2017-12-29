@@ -17,7 +17,6 @@
  */
 package com.waz.zclient.pages.main.conversation;
 
-import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -35,7 +34,6 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.provider.Settings;
 import android.support.annotation.Nullable;
-import android.support.v4.app.ActivityCompat;
 import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -60,23 +58,27 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.waz.api.MessageContent;
 import com.waz.model.ConversationData;
 import com.waz.service.ZMessaging;
+import com.waz.service.permissions.PermissionsService;
 import com.waz.service.tracking.ContributionEvent;
 import com.waz.zclient.BuildConfig;
 import com.waz.zclient.OnBackPressedListener;
 import com.waz.zclient.R;
 import com.waz.zclient.controllers.accentcolor.AccentColorObserver;
-import com.waz.zclient.controllers.permission.RequestPermissionsObserver;
 import com.waz.zclient.controllers.userpreferences.IUserPreferencesController;
 import com.waz.zclient.conversation.ConversationController;
 import com.waz.zclient.pages.BaseFragment;
 import com.waz.zclient.ui.text.GlyphTextView;
 import com.waz.zclient.ui.views.TouchRegisteringFrameLayout;
-
-import com.waz.zclient.utils.*;
+import com.waz.zclient.utils.Callback;
+import com.waz.zclient.utils.LayoutSpec;
+import com.waz.zclient.utils.StringUtils;
+import com.waz.zclient.utils.ViewUtils;
 import timber.log.Timber;
 
 import java.util.List;
 import java.util.Locale;
+
+import static android.Manifest.permission.ACCESS_FINE_LOCATION;
 
 @SuppressLint("All")
 public class LocationFragment extends BaseFragment<LocationFragment.Container> implements com.google.android.gms.location.LocationListener,
@@ -86,14 +88,12 @@ public class LocationFragment extends BaseFragment<LocationFragment.Container> i
                                                                                           GoogleApiClient.ConnectionCallbacks,
                                                                                           GoogleApiClient.OnConnectionFailedListener,
                                                                                           OnMapReadyCallback,
-                                                                                          RequestPermissionsObserver,
                                                                                           OnBackPressedListener,
                                                                                           AccentColorObserver,
                                                                                           View.OnClickListener {
 
     public static final String TAG = LocationFragment.class.getName();
 
-    private static final String[] LOCATION_PERMISSIONS = new String[] {Manifest.permission.ACCESS_FINE_LOCATION};
     private static final int LOCATION_PERMISSION_REQUEST_ID = 532;
     private static final float DEFAULT_MAP_ZOOM_LEVEL = 15F;
     private static final float DEFAULT_MIMIMUM_CAMERA_MOVEMENT = 2F;
@@ -282,15 +282,14 @@ public class LocationFragment extends BaseFragment<LocationFragment.Container> i
     public void onStart() {
         super.onStart();
         getControllerFactory().getAccentColorController().addAccentColorObserver(this);
-        getControllerFactory().getRequestPermissionsController().addObserver(this);
-        if (PermissionUtils.hasSelfPermissions(getActivity(), LOCATION_PERMISSIONS)) {
+        if (hasLocationPermission()) {
             updateLastKnownLocation();
             if (!isLocationServicesEnabled()) {
                 showLocationServicesDialog();
             }
             requestCurrentLocationButton.setVisibility(View.VISIBLE);
         } else {
-            ActivityCompat.requestPermissions(getActivity(), LOCATION_PERMISSIONS, LOCATION_PERMISSION_REQUEST_ID);
+            requestLocationPermission();
             checkIfLocationServicesEnabled = true;
             requestCurrentLocationButton.setVisibility(View.GONE);
         }
@@ -314,7 +313,7 @@ public class LocationFragment extends BaseFragment<LocationFragment.Container> i
             getControllerFactory().getUserPreferencesController().setPerformedAction(IUserPreferencesController.SEND_LOCATION_MESSAGE);
             Toast.makeText(getContext(), R.string.location_sharing__tip, Toast.LENGTH_LONG).show();
         }
-        if (PermissionUtils.hasSelfPermissions(getActivity(), LOCATION_PERMISSIONS)) {
+        if (hasLocationPermission()) {
             if (googleApiClient != null) {
                 googleApiClient.connect();
             } else if (locationManager != null) {
@@ -336,7 +335,6 @@ public class LocationFragment extends BaseFragment<LocationFragment.Container> i
 
     @Override
     public void onStop() {
-        getControllerFactory().getRequestPermissionsController().removeObserver(this);
         getControllerFactory().getAccentColorController().removeAccentColorObserver(this);
         inject(ConversationController.class).removeConvChangedCallback(callback);
         super.onStop();
@@ -378,7 +376,7 @@ public class LocationFragment extends BaseFragment<LocationFragment.Container> i
     @SuppressLint("MissingPermission")
     private void startLocationManagerListeningForCurrentLocation() {
         Timber.i("startLocationManagerListeningForCurrentLocation");
-        if (locationManager != null && PermissionUtils.hasSelfPermissions(getContext(), LOCATION_PERMISSIONS)) {
+        if (locationManager != null && hasLocationPermission()) {
             locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, this);
         }
     }
@@ -399,7 +397,7 @@ public class LocationFragment extends BaseFragment<LocationFragment.Container> i
     @SuppressLint("MissingPermission")
     private void stopLocationManagerListeningForCurrentLocation() {
         Timber.i("stopLocationManagerListeningForCurrentLocation");
-        if (locationManager != null && PermissionUtils.hasSelfPermissions(getContext(), LOCATION_PERMISSIONS)) {
+        if (locationManager != null && hasLocationPermission()) {
             locationManager.removeUpdates(this);
         }
     }
@@ -414,7 +412,7 @@ public class LocationFragment extends BaseFragment<LocationFragment.Container> i
     }
 
     private boolean isLocationServicesEnabled() {
-        if (!PermissionUtils.hasSelfPermissions(getContext(), LOCATION_PERMISSIONS)) {
+        if (!hasLocationPermission()) {
             return false;
         }
         // We are creating a local locationManager here, as it's not sure we already have one
@@ -493,10 +491,10 @@ public class LocationFragment extends BaseFragment<LocationFragment.Container> i
             case R.id.gtv__location__current__button:
                 animateTocurrentLocation = true;
                 zoom = true;
-                if (PermissionUtils.hasSelfPermissions(getActivity(), LOCATION_PERMISSIONS)) {
+                if (hasLocationPermission()) {
                     updateLastKnownLocation();
                 } else {
-                    ActivityCompat.requestPermissions(getActivity(), LOCATION_PERMISSIONS, LOCATION_PERMISSION_REQUEST_ID);
+                    requestLocationPermission();
                 }
                 break;
             case R.id.ttv__location_send_button:
@@ -651,35 +649,6 @@ public class LocationFragment extends BaseFragment<LocationFragment.Container> i
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, int[] grantResults) {
-        if (getActivity() == null) {
-            return;
-        }
-        switch (requestCode) {
-            case LOCATION_PERMISSION_REQUEST_ID:
-                if (PermissionUtils.verifyPermissions(grantResults)) {
-                    requestCurrentLocationButton.setVisibility(View.VISIBLE);
-                    zoom = true;
-                    updateLastKnownLocation();
-                    if (googleApiClient != null && googleApiClient.isConnected()) {
-                        startPlayServicesListeningForCurrentLocation();
-                    } else if (locationManager != null) {
-                        startLocationManagerListeningForCurrentLocation();
-                    }
-                    if (checkIfLocationServicesEnabled) {
-                        checkIfLocationServicesEnabled = false;
-                        if (!isLocationServicesEnabled()) {
-                            showLocationServicesDialog();
-                        }
-                    }
-                } else {
-                    Toast.makeText(getContext(), R.string.location_sharing__permission_error, Toast.LENGTH_SHORT).show();
-                }
-                break;
-        }
-    }
-
-    @Override
     public boolean onBackPressed() {
         if (getControllerFactory() == null || getControllerFactory().isTornDown()) {
             return false;
@@ -694,14 +663,17 @@ public class LocationFragment extends BaseFragment<LocationFragment.Container> i
         marker = null;
     }
 
+
+
     @Override
     public void onConnected(Bundle bundle) {
         Timber.i("onConnected");
-        if (PermissionUtils.hasSelfPermissions(getActivity(), LOCATION_PERMISSIONS)) {
+
+        if (hasLocationPermission()) {
             animateTocurrentLocation = true;
             startPlayServicesListeningForCurrentLocation();
         } else {
-            ActivityCompat.requestPermissions(getActivity(), LOCATION_PERMISSIONS, LOCATION_PERMISSION_REQUEST_ID);
+            requestLocationPermission();
         }
     }
 
@@ -719,11 +691,44 @@ public class LocationFragment extends BaseFragment<LocationFragment.Container> i
         googleApiClient.unregisterConnectionCallbacks(this);
         googleApiClient = null;
         locationManager = (LocationManager) getActivity().getSystemService(Context.LOCATION_SERVICE);
-        if (PermissionUtils.hasSelfPermissions(getActivity(), LOCATION_PERMISSIONS)) {
+        if (hasLocationPermission()) {
             startLocationManagerListeningForCurrentLocation();
         } else {
-            ActivityCompat.requestPermissions(getActivity(), LOCATION_PERMISSIONS, LOCATION_PERMISSION_REQUEST_ID);
+            requestLocationPermission();
         }
+    }
+
+    private boolean hasLocationPermission() {
+        return inject(PermissionsService.class).checkPermission(ACCESS_FINE_LOCATION);
+    }
+
+    private void requestLocationPermission() {
+        inject(PermissionsService.class).requestPermission(ACCESS_FINE_LOCATION, new PermissionsService.PermissionsCallback() {
+            @Override
+            public void onPermissionResult(boolean granted) {
+                if (getActivity() == null) {
+                    return;
+                }
+                if (granted) {
+                    requestCurrentLocationButton.setVisibility(View.VISIBLE);
+                    zoom = true;
+                    updateLastKnownLocation();
+                    if (googleApiClient != null && googleApiClient.isConnected()) {
+                        startPlayServicesListeningForCurrentLocation();
+                    } else if (locationManager != null) {
+                        startLocationManagerListeningForCurrentLocation();
+                    }
+                    if (checkIfLocationServicesEnabled) {
+                        checkIfLocationServicesEnabled = false;
+                        if (!isLocationServicesEnabled()) {
+                            showLocationServicesDialog();
+                        }
+                    }
+                } else {
+                    Toast.makeText(getContext(), R.string.location_sharing__permission_error, Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
     }
 
     public interface Container {

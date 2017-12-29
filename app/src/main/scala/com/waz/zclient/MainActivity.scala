@@ -42,7 +42,7 @@ import com.waz.zclient.appentry.controllers.AppEntryController.{DeviceLimitStage
 import com.waz.zclient.calling.CallingActivity
 import com.waz.zclient.calling.controllers.CallPermissionsController
 import com.waz.zclient.common.controllers.global.AccentColorController
-import com.waz.zclient.common.controllers.{PermissionsController, SharingController, UserAccountsController}
+import com.waz.zclient.common.controllers.{SharingController, UserAccountsController}
 import com.waz.zclient.controllers.accentcolor.AccentColorChangeRequester
 import com.waz.zclient.controllers.calling.CallingObserver
 import com.waz.zclient.controllers.navigation.{NavigationControllerObserver, Page}
@@ -84,7 +84,6 @@ class MainActivity extends BaseActivity
   lazy val sharingController        = inject[SharingController]
   lazy val accentColorController    = inject[AccentColorController]
   lazy val callPermissionController = inject[CallPermissionsController]
-  lazy val permissions              = inject[PermissionsController]
   lazy val conversationController   = inject[ConversationController]
   lazy val userAccountsController   = inject[UserAccountsController]
   lazy val appEntryController       = inject[AppEntryController]
@@ -157,7 +156,6 @@ class MainActivity extends BaseActivity
 
   override def onStart() = {
     info("onStart")
-
     getStoreFactory.profileStore.addProfileStoreObserver(this)
     getStoreFactory.connectStore.addConnectRequestObserver(this)
     getControllerFactory.getNavigationController.addNavigationControllerObserver(this)

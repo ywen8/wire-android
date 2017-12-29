@@ -22,12 +22,12 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.ShareCompat;
 import android.util.AttributeSet;
 import android.view.View;
 import com.waz.api.Self;
+import com.waz.service.permissions.PermissionsService;
 import com.waz.utils.wrappers.AndroidURI;
 import com.waz.utils.wrappers.AndroidURIUtil;
 import com.waz.utils.wrappers.URI;
@@ -35,10 +35,9 @@ import com.waz.zclient.common.controllers.SharingController;
 import com.waz.zclient.controllers.accentcolor.AccentColorObserver;
 import com.waz.zclient.controllers.confirmation.TwoButtonConfirmationCallback;
 import com.waz.zclient.controllers.sharing.SharedContentType;
-import com.waz.zclient.sharing.ShareToMultipleFragment;
 import com.waz.zclient.core.stores.api.ZMessagingApiStoreObserver;
+import com.waz.zclient.sharing.ShareToMultipleFragment;
 import com.waz.zclient.utils.AssetUtils;
-import com.waz.zclient.utils.PermissionUtils;
 import com.waz.zclient.utils.ViewUtils;
 import com.waz.zclient.views.menus.ConfirmationMenu;
 import timber.log.Timber;
@@ -49,13 +48,10 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import static android.Manifest.permission.READ_EXTERNAL_STORAGE;
+
 public class ShareActivity extends BaseActivity implements AccentColorObserver,
                                                            ZMessagingApiStoreObserver {
-
-    private static final String TAG = ShareActivity.class.getName();
-
-    private static final int EXTERNAL_STORAGE_PERMISSION_CODE = 1;
-    private static final String[] EXTERNAL_STORAGE_PERMISSIONS = {android.Manifest.permission.READ_EXTERNAL_STORAGE};
 
     private ConfirmationMenu confirmationMenu;
 
@@ -66,10 +62,17 @@ public class ShareActivity extends BaseActivity implements AccentColorObserver,
 
         confirmationMenu = ViewUtils.getView(this, R.id.cm__conversation_list__login_prompt);
 
-        if (!PermissionUtils.hasSelfPermissions(this, EXTERNAL_STORAGE_PERMISSIONS)) {
-            ActivityCompat.requestPermissions(this,
-                EXTERNAL_STORAGE_PERMISSIONS,
-                EXTERNAL_STORAGE_PERMISSION_CODE);
+        PermissionsService permissionsService = injectJava(PermissionsService.class);
+        if (!permissionsService.checkPermission(READ_EXTERNAL_STORAGE)) {
+            permissionsService.requestPermission(READ_EXTERNAL_STORAGE, new PermissionsService.PermissionsCallback() {
+                @Override
+                public void onPermissionResult(boolean granted) {
+                    ShareToMultipleFragment fragment = ((ShareToMultipleFragment) getSupportFragmentManager().findFragmentByTag(ShareToMultipleFragment.TAG()));
+                    if (fragment != null) {
+                        fragment.updatePreview();
+                    }
+                }
+            });
         }
 
         if (savedInstanceState == null) {
@@ -246,14 +249,5 @@ public class ShareActivity extends BaseActivity implements AccentColorObserver,
 
     private SharingController getSharingController() {
         return injectJava(SharingController.class);
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        ShareToMultipleFragment fragment = ((ShareToMultipleFragment) getSupportFragmentManager().findFragmentByTag(ShareToMultipleFragment.TAG()));
-        if (fragment != null) {
-            fragment.updatePreview();
-        }
     }
 }

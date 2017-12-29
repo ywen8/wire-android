@@ -128,7 +128,7 @@
 
     </LinearLayout>
 
-    <com.waz.zclient.ui.audiomessage.AudioMessageRecordingView
+    <com.waz.zclient.conversation.toolbar.AudioMessageRecordingView
         android:id="@+id/amrv_audio_message_recording"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
