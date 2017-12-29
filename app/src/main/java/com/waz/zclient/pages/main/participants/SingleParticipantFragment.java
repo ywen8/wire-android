@@ -46,7 +46,6 @@ import com.waz.zclient.core.stores.network.NetworkAction;
 import com.waz.zclient.core.stores.singleparticipants.SingleParticipantStoreObserver;
 import com.waz.zclient.common.controllers.SoundController;
 import com.waz.zclient.pages.BaseFragment;
-import com.waz.zclient.pages.main.connect.UserProfile;
 import com.waz.zclient.pages.main.connect.UserProfileContainer;
 import com.waz.zclient.pages.main.participants.dialog.DialogLaunchMode;
 import com.waz.zclient.ui.animation.fragment.FadeAnimation;
@@ -62,7 +61,6 @@ import com.waz.zclient.views.menus.FooterMenuCallback;
 import timber.log.Timber;
 
 public class SingleParticipantFragment extends BaseFragment<SingleParticipantFragment.Container> implements
-                                                                                                 UserProfile,
                                                                                                  SingleParticipantStoreObserver,
                                                                                                  OnBackPressedListener,
                                                                                                  TabbedParticipantBodyFragment.Container,
@@ -116,22 +114,7 @@ public class SingleParticipantFragment extends BaseFragment<SingleParticipantFra
                 duration = getResources().getInteger(R.integer.framework_animation_duration_medium);
                 animation = new FadeAnimation(duration, 1, 0);
             } else {
-                if (isBelowUserProfile) {
-                    if (LayoutSpec.isTablet(getActivity())) {
-                        animation = new ProfileTabletAnimation(enter,
-                                                               getResources().getInteger(R.integer.framework_animation_duration_long),
-                                                               -getResources().getDimensionPixelSize(R.dimen.participant_dialog__initial_width));
-                    } else {
-                        if (enter) {
-                            isBelowUserProfile = false;
-                            duration = getResources().getInteger(R.integer.reopen_profile_source__animation_duration);
-                            delay = getResources().getInteger(R.integer.reopen_profile_source__delay);
-                        } else {
-                            duration = getResources().getInteger(R.integer.reopen_profile_source__animation_duration);
-                        }
-                        animation = new ProfileSourceAnimation(enter, duration, delay, centerX, centerY);
-                    }
-                } else if (nextAnim != 0) {
+                if (nextAnim != 0) {
                     if (LayoutSpec.isTablet(getActivity())) {
                         animation = new ProfileTabletAnimation(enter,
                                                                getResources().getInteger(R.integer.framework_animation_duration_long),
@@ -259,17 +242,6 @@ public class SingleParticipantFragment extends BaseFragment<SingleParticipantFra
         header = null;
         footerMenu = null;
         super.onDestroyView();
-    }
-
-    //////////////////////////////////////////////////////////////////////////////////////////
-    //
-    //  UserProfile
-    //
-    //////////////////////////////////////////////////////////////////////////////////////////
-
-    @Override
-    public void isBelowUserProfile(boolean isBelow) {
-        isBelowUserProfile = isBelow;
     }
 
 

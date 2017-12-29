@@ -266,11 +266,6 @@ public class ParticipantBodyFragment extends BaseFragment<ParticipantBodyFragmen
     }
 
     @Override
-    public void onConversationLoaded() {
-
-    }
-
-    @Override
     public void onShowUser(User user) {
 
     }

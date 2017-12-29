@@ -39,22 +39,20 @@ import com.waz.zclient.core.stores.connect.ConnectStoreObserver;
 import com.waz.zclient.core.stores.connect.IConnectStore;
 import com.waz.zclient.pages.BaseFragment;
 import com.waz.zclient.pages.main.participants.ProfileAnimation;
-import com.waz.zclient.pages.main.participants.ProfileSourceAnimation;
 import com.waz.zclient.pages.main.participants.ProfileTabletAnimation;
 import com.waz.zclient.pages.main.participants.dialog.DialogLaunchMode;
 import com.waz.zclient.ui.theme.ThemeUtils;
 import com.waz.zclient.ui.utils.KeyboardUtils;
 import com.waz.zclient.ui.views.ZetaButton;
 import com.waz.zclient.utils.Callback;
+import com.waz.zclient.utils.ContextUtils;
 import com.waz.zclient.utils.LayoutSpec;
 import com.waz.zclient.utils.ViewUtils;
-import com.waz.zclient.utils.ContextUtils;
 import com.waz.zclient.views.images.ImageAssetImageView;
 import com.waz.zclient.views.menus.FooterMenu;
 import com.waz.zclient.views.menus.FooterMenuCallback;
 
-public class PendingConnectRequestFragment extends BaseFragment<PendingConnectRequestFragment.Container> implements UserProfile,
-                                                                                                                    ConnectStoreObserver,
+public class PendingConnectRequestFragment extends BaseFragment<PendingConnectRequestFragment.Container> implements ConnectStoreObserver,
                                                                                                                     AccentColorObserver,
                                                                                                                     UpdateListener {
 
@@ -73,7 +71,6 @@ public class PendingConnectRequestFragment extends BaseFragment<PendingConnectRe
 
     private boolean isShowingFooterMenu;
 
-    private boolean isBelowUserProfile;
     private UserDetailsView userDetailsView;
     private ZetaButton unblockButton;
     private FooterMenu footerMenu;
@@ -111,27 +108,12 @@ public class PendingConnectRequestFragment extends BaseFragment<PendingConnectRe
             getControllerFactory().getConversationScreenController().getPopoverLaunchMode() != DialogLaunchMode.COMMON_USER) {
             // No animation when request is shown in conversation list
             IConnectStore.UserRequester userRequester = IConnectStore.UserRequester.valueOf(getArguments().getString(ARGUMENT_USER_REQUESTER));
-            if (userRequester != IConnectStore.UserRequester.CONVERSATION || isBelowUserProfile) {
+            if (userRequester != IConnectStore.UserRequester.CONVERSATION) {
                 int centerX = ContextUtils.getOrientationIndependentDisplayWidth(getActivity()) / 2;
                 int centerY = ContextUtils.getOrientationIndependentDisplayHeight(getActivity()) / 2;
                 int duration;
                 int delay = 0;
-                if (isBelowUserProfile) {
-                    if (LayoutSpec.isTablet(getActivity())) {
-                        animation = new ProfileTabletAnimation(enter,
-                                                               getResources().getInteger(R.integer.framework_animation_duration_long),
-                                                               -getResources().getDimensionPixelSize(R.dimen.participant_dialog__initial_width));
-                    } else {
-                        if (enter) {
-                            isBelowUserProfile = false;
-                            duration = getResources().getInteger(R.integer.reopen_profile_source__animation_duration);
-                            delay = getResources().getInteger(R.integer.reopen_profile_source__delay);
-                        } else {
-                            duration = getResources().getInteger(R.integer.reopen_profile_source__animation_duration);
-                        }
-                        animation = new ProfileSourceAnimation(enter, duration, delay, centerX, centerY);
-                    }
-                } else if (nextAnim != 0) {
+                if (nextAnim != 0) {
                     if (LayoutSpec.isTablet(getActivity())) {
                         animation = new ProfileTabletAnimation(enter,
                                                                getResources().getInteger(R.integer.framework_animation_duration_long),
@@ -277,17 +259,6 @@ public class PendingConnectRequestFragment extends BaseFragment<PendingConnectRe
 
     //////////////////////////////////////////////////////////////////////////////////////////
     //
-    //  UserProfile
-    //
-    //////////////////////////////////////////////////////////////////////////////////////////
-
-    @Override
-    public void isBelowUserProfile(boolean isBelow) {
-        isBelowUserProfile = isBelow;
-    }
-
-    //////////////////////////////////////////////////////////////////////////////////////////
-    //
     //  UI
     //
     //////////////////////////////////////////////////////////////////////////////////////////
@@ -324,7 +295,7 @@ public class PendingConnectRequestFragment extends BaseFragment<PendingConnectRe
             @Override
             public void onLeftActionClicked() {
                 IConversation conversation = user.acceptConnection();
-                getContainer().onAcceptedConnectRequest(conversation);
+                getContainer().onAcceptedConnectRequest(new ConvId(conversation.getId()));
             }
 
             @Override
@@ -346,7 +317,7 @@ public class PendingConnectRequestFragment extends BaseFragment<PendingConnectRe
             @Override
             public void onLeftActionClicked() {
                 IConversation conversation = user.acceptConnection();
-                getContainer().onAcceptedConnectRequest(conversation);
+                getContainer().onAcceptedConnectRequest(new ConvId(conversation.getId()));
             }
 
             @Override
@@ -467,20 +438,16 @@ public class PendingConnectRequestFragment extends BaseFragment<PendingConnectRe
         }
     }
 
-    //////////////////////////////////////////////////////////////////////////////////////////
-    //
-    //  UpdateListener for Conversation
-    //
-    //////////////////////////////////////////////////////////////////////////////////////////
-
     @Override
     public void updated() {
-        getContainer().onConversationUpdated(conversation);
+        if (conversation != null && conversation.getType() == IConversation.Type.ONE_TO_ONE) {
+            getContainer().onConversationUpdated(new ConvId(conversation.getId()));
+        }
     }
 
     public interface Container extends UserProfileContainer {
-        void onAcceptedConnectRequest(IConversation conversation);
+        void onAcceptedConnectRequest(ConvId conversation);
 
-        void onConversationUpdated(IConversation conversation);
+        void onConversationUpdated(ConvId conversation);
     }
 }

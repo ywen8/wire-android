@@ -294,7 +294,7 @@ public class GiphySharingPreviewFragment extends BaseFragment<GiphySharingPrevie
         confirmationMenu.setConfirmEnabled(false);
         previewImageAssetView.setBitmapLoadedCallback(this);
         previewImageAssetView.setImageAsset(gifAsset);
-        loadingIndicator.show(LoadingIndicatorView.INFINITE_LOADING_BAR());
+        loadingIndicator.show(LoadingIndicatorView.InfiniteLoadingBar$.MODULE$);
         KeyboardUtils.closeKeyboardIfShown(getActivity());
         if (ThemeUtils.isDarkTheme(getContext())) {
             toolbar.setNavigationIcon(R.drawable.action_back_light);
@@ -347,7 +347,7 @@ public class GiphySharingPreviewFragment extends BaseFragment<GiphySharingPrevie
     private void updateGiphyResults() {
         errorView.setVisibility(View.GONE);
         previewImageAssetView.clearImage();
-        loadingIndicator.show(LoadingIndicatorView.INFINITE_LOADING_BAR());
+        loadingIndicator.show(LoadingIndicatorView.InfiniteLoadingBar$.MODULE$);
         if (TextUtils.isEmpty(searchTerm) || searchTerm == null) {
             giphyResults = getStoreFactory().zMessagingApiStore()
                                             .getApi()

@@ -21,7 +21,6 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import com.waz.api.IConversation;
 import com.waz.api.NetworkMode;
 import com.waz.api.User;
 import com.waz.model.ConvId;
@@ -143,10 +142,8 @@ public class PendingConnectRequestManagerFragment extends BaseFragment<PendingCo
     }
 
     @Override
-    public void onConversationUpdated(IConversation conversation) {
-        if (conversation != null && conversation.getType() == IConversation.Type.ONE_TO_ONE) {
-            getContainer().onAcceptedPendingOutgoingConnectRequest(conversation);
-        }
+    public void onConversationUpdated(ConvId conversation) {
+        getContainer().onAcceptedPendingOutgoingConnectRequest(conversation);
     }
 
     private void restoreCurrentPageAfterClosingOverlay() {
@@ -169,7 +166,7 @@ public class PendingConnectRequestManagerFragment extends BaseFragment<PendingCo
     //////////////////////////////////////////////////////////////////////////////////////////
 
     @Override
-    public void onAcceptedConnectRequest(IConversation conversation) {
+    public void onAcceptedConnectRequest(ConvId conversation) {
         getContainer().onAcceptedConnectRequest(conversation);
     }
 
@@ -273,9 +270,9 @@ public class PendingConnectRequestManagerFragment extends BaseFragment<PendingCo
     }
 
     public interface Container extends UserProfileContainer {
-        void onAcceptedConnectRequest(IConversation conversation);
+        void onAcceptedConnectRequest(ConvId conversation);
 
-        void onAcceptedPendingOutgoingConnectRequest(IConversation conversation);
+        void onAcceptedPendingOutgoingConnectRequest(ConvId conversation);
 
     }
 }

@@ -19,6 +19,7 @@ package com.waz.zclient.common.controllers
 
 import android.content.Context
 import com.waz.ZLog.ImplicitTag._
+import com.waz.ZLog._
 import com.waz.model._
 import com.waz.service.ZMessaging
 import com.waz.threading.Threading
@@ -26,8 +27,7 @@ import com.waz.utils.events.{EventContext, Signal}
 import com.waz.zclient.conversation.ConversationController
 import com.waz.zclient.core.stores.conversation.ConversationChangeRequester
 import com.waz.zclient.{BaseActivity, Injectable, Injector}
-import com.waz.ZLog._
-import com.waz.ZLog.ImplicitTag._
+
 import scala.concurrent.Future
 
 class UserAccountsController(implicit injector: Injector, context: Context, ec: EventContext) extends Injectable {
@@ -86,24 +86,26 @@ class UserAccountsController(implicit injector: Injector, context: Context, ec: 
     countMap <- Signal.sequence(zmsSet.map(z => z.convsStorage.convsSignal.map(c => z.accountId -> c.conversations.map(unreadCountForConv).sum)).toSeq:_*)
   } yield countMap.toMap
 
-  def createAndOpenConversation(users: Array[UserId], requester: ConversationChangeRequester,  activity: BaseActivity): Future[Unit] = {
-    val createConv = for {
-      z <- zms.head
-      user <- z.usersStorage.get(z.selfUserId)
-      conv <-
-        if (users.length == 1 && !isTeamAccount)
-          z.convsUi.getOrCreateOneToOneConversation(users.head)
-        else
-          z.convsUi.createGroupConversation(ConvId(), users, teamId)
-    } yield conv
+  def getConversation(users: Set[UserId]) = {
+    zms.head.flatMap { z =>
+      if (users.size == 1 && !isTeamAccount)
+        z.convsUi.getOrCreateOneToOneConversation(users.head)
+      else
+        z.convsUi.createGroupConversation(ConvId(), users.toSeq, teamId)
+    }
+  }
 
+  def getConversationId(users: Set[UserId]) = getConversation(users).map(_.id)
+
+  def createAndOpenConversation(users: Array[UserId], requester: ConversationChangeRequester,  activity: BaseActivity): Future[Unit] = {
+    val createConv = getConversation(users.toSet)
     createConv.flatMap { conv =>
       verbose(s"createAndOpenConversation ${conv.id}")
       inject[ConversationController].selectConv(conv.id, requester)
     } (Threading.Ui)
   }
 
-  zms.map(_.teamId) { case teamId => _teamId = teamId }
+  zms.map(_.teamId)(_teamId = _)
 
   def teamId = _teamId
   def isTeamAccount = _teamId.isDefined

@@ -28,29 +28,27 @@ import android.widget.TextView;
 import com.waz.api.IConversation;
 import com.waz.api.User;
 import com.waz.zclient.R;
-import com.waz.zclient.common.views.UserDetailsView;
 import com.waz.zclient.common.controllers.UserAccountsController;
+import com.waz.zclient.common.views.UserDetailsView;
 import com.waz.zclient.controllers.accentcolor.AccentColorObserver;
 import com.waz.zclient.conversation.ConversationController;
 import com.waz.zclient.core.stores.connect.ConnectStoreObserver;
 import com.waz.zclient.core.stores.connect.IConnectStore;
 import com.waz.zclient.pages.BaseFragment;
 import com.waz.zclient.pages.main.participants.ProfileAnimation;
-import com.waz.zclient.pages.main.participants.ProfileSourceAnimation;
 import com.waz.zclient.pages.main.participants.ProfileTabletAnimation;
 import com.waz.zclient.pages.main.participants.dialog.DialogLaunchMode;
 import com.waz.zclient.ui.theme.ThemeUtils;
 import com.waz.zclient.ui.utils.KeyboardUtils;
 import com.waz.zclient.ui.views.ZetaButton;
+import com.waz.zclient.utils.ContextUtils;
 import com.waz.zclient.utils.LayoutSpec;
 import com.waz.zclient.utils.ViewUtils;
-import com.waz.zclient.utils.ContextUtils;
 import com.waz.zclient.views.images.ImageAssetImageView;
 import com.waz.zclient.views.menus.FooterMenu;
 import com.waz.zclient.views.menus.FooterMenuCallback;
 
-public class SendConnectRequestFragment extends BaseFragment<SendConnectRequestFragment.Container> implements UserProfile,
-                                                                                                              ConnectStoreObserver,
+public class SendConnectRequestFragment extends BaseFragment<SendConnectRequestFragment.Container> implements ConnectStoreObserver,
                                                                                                               AccentColorObserver {
     public static final String TAG = SendConnectRequestFragment.class.getName();
     public static final String ARGUMENT_USER_ID = "ARGUMENT_USER_ID";
@@ -61,7 +59,6 @@ public class SendConnectRequestFragment extends BaseFragment<SendConnectRequestF
     private IConnectStore.UserRequester userRequester;
 
     // Flag true if layout has been set
-    private boolean isBelowUserProfile;
     private TextView displayNameTextView;
     private UserDetailsView userDetailsView;
     private ZetaButton connectButton;
@@ -96,22 +93,7 @@ public class SendConnectRequestFragment extends BaseFragment<SendConnectRequestF
             int duration;
             int delay = 0;
 
-            if (isBelowUserProfile) {
-                if (LayoutSpec.isTablet(getActivity())) {
-                    animation = new ProfileTabletAnimation(enter,
-                                                           getResources().getInteger(R.integer.framework_animation_duration_long),
-                                                           -getResources().getDimensionPixelSize(R.dimen.participant_dialog__initial_width));
-                } else {
-                    if (enter) {
-                        isBelowUserProfile = false;
-                        duration = getResources().getInteger(R.integer.reopen_profile_source__animation_duration);
-                        delay = getResources().getInteger(R.integer.reopen_profile_source__delay);
-                    } else {
-                        duration = getResources().getInteger(R.integer.reopen_profile_source__animation_duration);
-                    }
-                    animation = new ProfileSourceAnimation(enter, duration, delay, centerX, centerY);
-                }
-            } else if (nextAnim != 0) {
+            if (nextAnim != 0) {
                 if (LayoutSpec.isTablet(getActivity())) {
                     animation = new ProfileTabletAnimation(enter,
                                                            getResources().getInteger(R.integer.framework_animation_duration_long),
@@ -212,17 +194,6 @@ public class SendConnectRequestFragment extends BaseFragment<SendConnectRequestF
     public void onDestroyView() {
         imageAssetImageViewProfile = null;
         super.onDestroyView();
-    }
-
-    //////////////////////////////////////////////////////////////////////////////////////////
-    //
-    //  UserProfile
-    //
-    //////////////////////////////////////////////////////////////////////////////////////////
-
-    @Override
-    public void isBelowUserProfile(boolean isBelow) {
-        isBelowUserProfile = isBelow;
     }
 
     //////////////////////////////////////////////////////////////////////////////////////////

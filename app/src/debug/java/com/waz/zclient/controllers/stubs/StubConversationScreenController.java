@@ -88,11 +88,6 @@ public class StubConversationScreenController implements IConversationScreenCont
     }
 
     @Override
-    public boolean isConversationStreamUiInitialized() {
-        return false;
-    }
-
-    @Override
     public void setMemberOfConversation(boolean isMemberOfConversation) {
 
     }
@@ -144,11 +139,6 @@ public class StubConversationScreenController implements IConversationScreenCont
 
     @Override
     public void showOtrClient(OtrClient otrClient, User user) {
-
-    }
-
-    @Override
-    public void setConversationStreamUiReady(boolean ready) {
 
     }
 

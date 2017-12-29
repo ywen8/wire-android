@@ -343,8 +343,6 @@ class ConversationFragment extends BaseFragment[ConversationFragment.Container] 
 
     getControllerFactory.getSlidingPaneController.removeObserver(slidingPaneObserver)
 
-    getControllerFactory.getConversationScreenController.setConversationStreamUiReady(false)
-
     getControllerFactory.getNavigationController.removePagerControllerObserver(pagerControllerObserver)
     getControllerFactory.getNavigationController.removeNavigationControllerObserver(navigationControllerObserver)
 
@@ -357,7 +355,6 @@ class ConversationFragment extends BaseFragment[ConversationFragment.Container] 
     cursorView.enableMessageWriting()
 
     fromId.filter(_ != toConv.id).foreach { id =>
-      getControllerFactory.getConversationScreenController.setConversationStreamUiReady(false)
 
       cursorView.setVisible(toConv.isActive)
       draftMap.get(toConv.id).map { draftText =>

@@ -139,10 +139,4 @@ object LoadingIndicatorView {
   case object Spinner extends AnimationType
   case object SpinnerWithDimmedBackground extends AnimationType
   case object ProgressLoadingBar extends AnimationType
-
-  // for Java use
-  def INFINITE_LOADING_BAR(): AnimationType = InfiniteLoadingBar
-  def SPINNER(): AnimationType = Spinner
-  def SPINNER_WITH_DIMMED_BACKGROUND(): AnimationType = SpinnerWithDimmedBackground
-  // right now we don't use ProgressLoadingBar anywhere
 }

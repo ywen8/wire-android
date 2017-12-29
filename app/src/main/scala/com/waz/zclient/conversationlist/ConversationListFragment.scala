@@ -40,7 +40,6 @@ import com.waz.zclient.pages.main.conversationlist.ConversationListAnimation
 import com.waz.zclient.pages.main.conversationlist.views.ListActionsView
 import com.waz.zclient.pages.main.conversationlist.views.ListActionsView.Callback
 import com.waz.zclient.pages.main.conversationlist.views.listview.SwipeListView
-import com.waz.zclient.pages.main.pickuser.controller.IPickUserController
 import com.waz.zclient.preferences.PreferencesActivity
 import com.waz.zclient.ui.text.TypefaceTextView
 import com.waz.zclient.utils.ContextUtils._
@@ -48,6 +47,7 @@ import com.waz.zclient.utils.{RichView, ViewUtils}
 import com.waz.ZLog._
 import com.waz.ZLog.ImplicitTag._
 import com.waz.zclient.messages.UsersController
+import com.waz.zclient.pages.main.pickuser.controller.IPickUserController
 import com.waz.zclient.{FragmentHelper, OnBackPressedListener, R}
 
 abstract class ConversationListFragment extends BaseFragment[ConversationListFragment.Container] with FragmentHelper {
@@ -251,13 +251,11 @@ class NormalConversationFragment extends ConversationListFragment {
     }
 
     listActionsView.foreach(_.setCallback(new Callback {
-      override def onAvatarPress() = {
-        getControllerFactory.getPickUserController.showPickUser(IPickUserController.Destination.CONVERSATION_LIST, null)
-      }
+      override def onAvatarPress() =
+        getControllerFactory.getPickUserController.showPickUser(IPickUserController.Destination.CONVERSATION_LIST)
 
-      override def onArchivePress() = {
+      override def onArchivePress() =
         Option(getContainer).foreach(_.showArchive())
-      }
     }))
   }
 

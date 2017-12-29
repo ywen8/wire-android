@@ -56,7 +56,6 @@ import com.waz.zclient.conversation.ConversationController;
 import com.waz.zclient.core.stores.connect.IConnectStore;
 import com.waz.zclient.core.stores.conversation.ConversationChangeRequester;
 import com.waz.zclient.core.stores.participants.ParticipantsStoreObserver;
-import com.waz.zclient.usersearch.PickUserFragment;
 import com.waz.zclient.pages.BaseFragment;
 import com.waz.zclient.pages.main.connect.BlockedUserProfileFragment;
 import com.waz.zclient.pages.main.connect.ConnectRequestLoadMode;
@@ -73,13 +72,13 @@ import com.waz.zclient.ui.animation.HeightEvaluator;
 import com.waz.zclient.ui.animation.interpolators.penner.Quart;
 import com.waz.zclient.ui.utils.KeyboardUtils;
 import com.waz.zclient.ui.utils.MathUtils;
+import com.waz.zclient.usersearch.PickUserFragment;
 import com.waz.zclient.utils.Callback;
 import com.waz.zclient.utils.ContextUtils;
 import com.waz.zclient.utils.ViewUtils;
 import com.waz.zclient.views.LoadingIndicatorView;
 import com.waz.zclient.views.menus.ConfirmationMenu;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class ParticipantsDialogFragment extends BaseFragment<ParticipantsDialogFragment.Container> implements
@@ -134,26 +133,14 @@ public class ParticipantsDialogFragment extends BaseFragment<ParticipantsDialogF
         return participantsDialogFragment;
     }
 
-    public static Fragment newAvatarPopoverInstance(int x, int y, Rect rect, String userId) {
+    public static Fragment newAvatarPopoverInstance(int x, int y, Rect rect, UserId userId) {
         ParticipantsDialogFragment participantsDialogFragment = new ParticipantsDialogFragment();
         Bundle args = new Bundle();
         args.putInt(ARG_POS_X, x);
         args.putInt(ARG_POS_Y, y);
         args.putParcelable(ARG_ANCHOR_RECT, rect);
-        args.putString(ARG_USER_ID, userId);
+        args.putString(ARG_USER_ID, userId.str());
         args.putInt(ARG__FIRST__PAGE, TabbedParticipantBodyFragment.USER_PAGE);
-        participantsDialogFragment.setArguments(args);
-        return participantsDialogFragment;
-    }
-
-    public static Fragment newStartUiInstance(int x, int y, Rect rect, boolean groupConversation) {
-        ParticipantsDialogFragment participantsDialogFragment = new ParticipantsDialogFragment();
-        Bundle args = new Bundle();
-        args.putInt(ARG_POS_X, x);
-        args.putInt(ARG_POS_Y, y);
-        args.putParcelable(ARG_ANCHOR_RECT, rect);
-        args.putBoolean(ARG__ADD_TO_CONVERSATION, true);
-        args.putBoolean(ARG__GROUP_CONVERSATION, groupConversation);
         participantsDialogFragment.setArguments(args);
         return participantsDialogFragment;
     }
@@ -672,11 +659,6 @@ public class ParticipantsDialogFragment extends BaseFragment<ParticipantsDialogF
 
     }
 
-    @Override
-    public void onConversationLoaded() {
-
-    }
-
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //  ConversationActionObserver
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -910,7 +892,7 @@ public class ParticipantsDialogFragment extends BaseFragment<ParticipantsDialogF
     }
 
     @Override
-    public void onUnblockedUser(IConversation restoredConversationWithUser) {
+    public void onUnblockedUser(ConvId restoredConversationWithUser) {
         hide();
     }
 
@@ -970,17 +952,17 @@ public class ParticipantsDialogFragment extends BaseFragment<ParticipantsDialogF
     }
 
     @Override
-    public void onShowPickUser(IPickUserController.Destination destination, View anchorView) {
+    public void onShowPickUser(IPickUserController.Destination destination) {
 
     }
 
     @Override
-    public void onHidePickUser(IPickUserController.Destination destination, boolean closeWithoutSelectingPeople) {
+    public void onHidePickUser(IPickUserController.Destination destination) {
         dismissDialog();
     }
 
     @Override
-    public void onShowUserProfile(User user, View anchorView) {
+    public void onShowUserProfile(UserId userId, View anchorView) {
 
     }
 
@@ -1020,12 +1002,12 @@ public class ParticipantsDialogFragment extends BaseFragment<ParticipantsDialogF
     }
 
     @Override
-    public void onAcceptedConnectRequest(IConversation conversation) {
+    public void onAcceptedConnectRequest(ConvId conversation) {
 
     }
 
     @Override
-    public void onAcceptedPendingOutgoingConnectRequest(IConversation conversation) {
+    public void onAcceptedPendingOutgoingConnectRequest(ConvId conversation) {
 
     }
 
@@ -1036,21 +1018,16 @@ public class ParticipantsDialogFragment extends BaseFragment<ParticipantsDialogF
     //////////////////////////////////////////////////////////////////////////////////////////
 
     @Override
-    public void showIncomingPendingConnectRequest(IConversation conversation) {
+    public void showIncomingPendingConnectRequest(ConvId conversation) {
         // noop
     }
 
     @Override
-    public void onSelectedUsers(List<User> users, final ConversationChangeRequester requester) {
+    public void onSelectedUsers(final List<UserId> userIds, final ConversationChangeRequester requester) {
         // TODO https://wearezeta.atlassian.net/browse/AN-3730
-        getControllerFactory().getPickUserController().hidePickUser(getCurrentPickerDestination(), false);
+        getControllerFactory().getPickUserController().hidePickUser(getCurrentPickerDestination());
 
         final ConversationController ctrl = inject(ConversationController.class);
-
-        final List<UserId> userIds = new ArrayList<>(users.size());
-        for (User user: users) {
-            userIds.add(new UserId(user.getId()));
-        }
 
         ctrl.withCurrentConv(new Callback<ConversationData>() {
             @Override

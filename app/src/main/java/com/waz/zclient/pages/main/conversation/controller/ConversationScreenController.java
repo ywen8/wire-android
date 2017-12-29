@@ -34,7 +34,6 @@ public class ConversationScreenController implements IConversationScreenControll
     private boolean isSingleConversation;
     private boolean isMemberOfConversation;
     private boolean isShowingUser;
-    private boolean conversationStreamUiReady;
     private DialogLaunchMode launchMode;
     private User showDevicesTabForUser;
 
@@ -183,25 +182,6 @@ public class ConversationScreenController implements IConversationScreenControll
     public void tearDown() {
         conversationScreenControllerObservers.clear();
         conversationScreenControllerObservers = null;
-    }
-
-    @Override
-    public boolean isConversationStreamUiInitialized() {
-        return conversationStreamUiReady;
-    }
-
-    @Override
-    public void setConversationStreamUiReady(boolean conversationStreamUiReady) {
-        if (this.conversationStreamUiReady == conversationStreamUiReady) {
-            return;
-        }
-        this.conversationStreamUiReady = conversationStreamUiReady;
-        if (!conversationStreamUiReady) {
-            return;
-        }
-        for (ConversationScreenControllerObserver observer : conversationScreenControllerObservers) {
-            observer.onConversationLoaded();
-        }
     }
 
     @Override

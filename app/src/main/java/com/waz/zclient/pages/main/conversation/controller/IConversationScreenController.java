@@ -80,10 +80,6 @@ public interface IConversationScreenController {
 
     void tearDown();
 
-    boolean isConversationStreamUiInitialized();
-
-    void setConversationStreamUiReady(boolean ready);
-
     void setPopoverLaunchedMode(DialogLaunchMode launchedMode);
 
     void showConversationMenu(@ConversationMenuRequester int requester, ConvId convId, View anchorView);

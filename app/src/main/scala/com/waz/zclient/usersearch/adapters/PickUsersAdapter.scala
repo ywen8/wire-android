@@ -51,7 +51,6 @@ class PickUsersAdapter(topUsersOnItemTouchListener: SearchResultOnItemTouchListe
 
   private val contactsCallback = new ContactRowView.Callback {
     override def onContactListContactClicked(contactDetails: ContactDetails) = adapterCallback.onContactListContactClicked(contactDetails)
-    override def getDestination = adapterCallback.getDestination
     override def isUserSelected(user: User) = adapterCallback.getSelectedUsers.contains(UserId(user.getId))
     override def onContactListUserClicked(user: User) = adapterCallback.onContactListUserClicked(UserId(user.getId))
   }
@@ -260,7 +259,6 @@ object PickUsersAdapter {
     def getSelectedUsers: Set[UserId]
     def onContactListUserClicked(userId: UserId): Unit
     def onContactListContactClicked(contactDetails: ContactDetails): Unit
-    def getDestination: Int
   }
 
 }

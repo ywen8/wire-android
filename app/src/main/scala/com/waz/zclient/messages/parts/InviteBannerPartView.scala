@@ -43,7 +43,7 @@ class InviteBannerPartView(context: Context, attrs: AttributeSet, style: Int) ex
   lazy val showContactsButton: ZetaButton =
     returning(findById[ZetaButton](R.id.zb__conversation__invite_banner__show_contacts)) { button =>
       button.onClick {
-        pickUserController.showPickUser(IPickUserController.Destination.CURSOR, null)
+        pickUserController.showPickUser(IPickUserController.Destination.CURSOR)
       }
     }
 

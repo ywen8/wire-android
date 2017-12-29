@@ -26,7 +26,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
@@ -41,9 +40,12 @@ import com.waz.api.OtrClient;
 import com.waz.api.User;
 import com.waz.model.ConvId;
 import com.waz.model.MessageData;
+import com.waz.model.UserId;
 import com.waz.zclient.BaseActivity;
 import com.waz.zclient.OnBackPressedListener;
 import com.waz.zclient.R;
+import com.waz.zclient.collection.controllers.CollectionController;
+import com.waz.zclient.collection.fragments.CollectionFragment;
 import com.waz.zclient.connect.ConnectRequestFragment;
 import com.waz.zclient.controllers.collections.CollectionsObserver;
 import com.waz.zclient.controllers.drawing.DrawingController;
@@ -55,8 +57,7 @@ import com.waz.zclient.controllers.navigation.Page;
 import com.waz.zclient.controllers.navigation.PagerControllerObserver;
 import com.waz.zclient.controllers.usernames.UsernamesControllerObserver;
 import com.waz.zclient.conversation.ConversationController;
-import com.waz.zclient.collection.controllers.CollectionController;
-import com.waz.zclient.collection.fragments.CollectionFragment;
+import com.waz.zclient.conversationlist.ConversationListManagerFragment;
 import com.waz.zclient.core.api.scala.ModelObserver;
 import com.waz.zclient.core.stores.connect.IConnectStore;
 import com.waz.zclient.core.stores.conversation.ConversationChangeRequester;
@@ -66,7 +67,6 @@ import com.waz.zclient.pages.main.connect.PendingConnectRequestManagerFragment;
 import com.waz.zclient.pages.main.conversation.LocationFragment;
 import com.waz.zclient.pages.main.conversation.controller.ConversationScreenControllerObserver;
 import com.waz.zclient.pages.main.conversation.controller.IConversationScreenController;
-import com.waz.zclient.pages.main.conversationlist.ConversationListManagerFragment;
 import com.waz.zclient.pages.main.conversationpager.SlidingPaneLayout;
 import com.waz.zclient.pages.main.conversationpager.controller.SlidingPaneObserver;
 import com.waz.zclient.pages.main.drawing.DrawingFragment;
@@ -81,13 +81,11 @@ import com.waz.zclient.pages.main.profile.camera.CameraFragment;
 import com.waz.zclient.ui.animation.interpolators.penner.Quart;
 import com.waz.zclient.ui.utils.KeyboardUtils;
 import com.waz.zclient.ui.utils.MathUtils;
-import com.waz.zclient.utils.ContextUtils;
 import com.waz.zclient.utils.Callback;
+import com.waz.zclient.utils.ContextUtils;
 import com.waz.zclient.utils.LayoutSpec;
 import com.waz.zclient.utils.ViewUtils;
-
 import com.waz.zclient.views.ConversationFragment;
-
 import timber.log.Timber;
 
 public class RootFragment extends BaseFragment<RootFragment.Container> implements
@@ -106,7 +104,6 @@ public class RootFragment extends BaseFragment<RootFragment.Container> implement
                                                                        LocationObserver,
                                                                        UsernamesControllerObserver,
                                                                        ConversationFragment.Container,
-                                                                       ConversationListManagerFragment.Container,
                                                                        CollectionsObserver {
     public static final String TAG = RootFragment.class.getName();
     private static final Interpolator RIGHT_VIEW_ALPHA_INTERPOLATOR = new Quart.EaseOut();
@@ -154,7 +151,7 @@ public class RootFragment extends BaseFragment<RootFragment.Container> implement
             getChildFragmentManager().beginTransaction()
                                      .add(R.id.fl__root__left_view,
                                           ConversationListManagerFragment.newInstance(),
-                                          ConversationListManagerFragment.TAG)
+                                          ConversationListManagerFragment.Tag())
                                      .commit();
 
             getControllerFactory().getNavigationController().setLeftPage(Page.CONVERSATION_LIST,
@@ -625,38 +622,6 @@ public class RootFragment extends BaseFragment<RootFragment.Container> implement
     }
 
     @Override
-    public void onConversationLoaded() {
-        if (!conversationSwapInProgress) {
-            return;
-        }
-
-        int startDelay = getResources().getInteger(R.integer.framework_animation_delay_short);
-        rightView.animate()
-                 .alpha(1f)
-                 .setInterpolator(RIGHT_VIEW_ALPHA_INTERPOLATOR)
-                 .setDuration(getResources().getInteger(R.integer.framework_animation_duration_long))
-                 .withEndAction(new Runnable() {
-                     @Override
-                     public void run() {
-                         conversationSwapInProgress = false;
-                     }
-                 })
-                 .start();
-
-        slidingPaneLayout.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                FragmentActivity activity = getActivity();
-                if (activity == null || slidingPaneLayout == null || ContextUtils.isInLandscape(activity)) {
-                    return;
-                }
-
-                slidingPaneLayout.closePane();
-            }
-        }, startDelay);
-    }
-
-    @Override
     public void onShowUser(User user) {
 
     }
@@ -737,7 +702,7 @@ public class RootFragment extends BaseFragment<RootFragment.Container> implement
         }
 
         if (getControllerFactory().getPickUserController().isShowingPickUser(IPickUserController.Destination.CONVERSATION_LIST)) {
-            getControllerFactory().getPickUserController().hidePickUser(IPickUserController.Destination.CONVERSATION_LIST, true);
+            getControllerFactory().getPickUserController().hidePickUser(IPickUserController.Destination.CONVERSATION_LIST);
             return true;
         }
 
@@ -755,42 +720,16 @@ public class RootFragment extends BaseFragment<RootFragment.Container> implement
     }
 
     @Override
-    public void onShowPickUser(IPickUserController.Destination destination, View anchorView) {
-        if (LayoutSpec.isPhone(getActivity()) || anchorView == null || !destination.equals(IPickUserController.Destination.CURSOR)) {
-            return;
-        }
-
-        final Rect outRect = new Rect();
-        anchorView.getDrawingRect(outRect);
-        final Point locationOnScreen = ViewUtils.getLocationOnScreen(anchorView);
-        final Point rootViewLocation = ViewUtils.getLocationOnScreen(ViewUtils.getView(getActivity(), R.id.fl_main_content));
-
-        locationOnScreen.offset(-rootViewLocation.x, -rootViewLocation.y);
-
-        final int posX = locationOnScreen.x;
-        final int posY = locationOnScreen.y;
-        if (!groupConversation && otherUser != null) {
-            getControllerFactory().getPickUserController().addUser(otherUser);
-        }
-        getControllerFactory().getConversationScreenController().setPopoverLaunchedMode(DialogLaunchMode.PARTICIPANT_BUTTON);
-        getChildFragmentManager().beginTransaction()
-                                 .replace(R.id.fl__root__participant_container,
-                                          ParticipantsDialogFragment.newStartUiInstance(
-                                              posX,
-                                              posY,
-                                              outRect,
-                                              groupConversation),
-                                          ParticipantsDialogFragment.TAG)
-                                 .commit();
+    public void onShowPickUser(IPickUserController.Destination destination) {
     }
 
     @Override
-    public void onHidePickUser(IPickUserController.Destination destination, boolean closeWithoutSelectingPeople) {
+    public void onHidePickUser(IPickUserController.Destination destination) {
         getChildFragmentManager().popBackStack(ParticipantsDialogFragment.TAG, FragmentManager.POP_BACK_STACK_INCLUSIVE);
     }
 
     @Override
-    public void onShowUserProfile(User user, View anchorView) {
+    public void onShowUserProfile(UserId userId, View anchorView) {
         if (LayoutSpec.isPhone(getActivity())) {
             return;
         }
@@ -812,7 +751,7 @@ public class RootFragment extends BaseFragment<RootFragment.Container> implement
                                           ParticipantsDialogFragment.newAvatarPopoverInstance(posX,
                                                                                               posY,
                                                                                               outRect,
-                                                                                              user.getId()),
+                                                                                              userId),
                                           ParticipantsDialogFragment.TAG)
                                  .commit();
     }
@@ -823,12 +762,12 @@ public class RootFragment extends BaseFragment<RootFragment.Container> implement
     }
 
     @Override
-    public void onAcceptedConnectRequest(IConversation conversation) {
+    public void onAcceptedConnectRequest(ConvId conversation) {
 
     }
 
     @Override
-    public void onAcceptedPendingOutgoingConnectRequest(IConversation conversation) {
+    public void onAcceptedPendingOutgoingConnectRequest(ConvId conversation) {
 
     }
 

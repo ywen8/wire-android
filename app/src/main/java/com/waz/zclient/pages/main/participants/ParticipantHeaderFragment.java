@@ -450,11 +450,6 @@ public class ParticipantHeaderFragment extends BaseFragment<ParticipantHeaderFra
     }
 
     @Override
-    public void onConversationLoaded() {
-
-    }
-
-    @Override
     public void onShowUser(User user) {
 
     }
