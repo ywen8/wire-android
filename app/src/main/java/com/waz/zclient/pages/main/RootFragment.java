@@ -638,8 +638,7 @@ public class RootFragment extends BaseFragment<RootFragment.Container> implement
 
     @Override
     public void onShowConversationMenu(@IConversationScreenController.ConversationMenuRequester int requester,
-                                       ConvId convId,
-                                       View anchorView) {
+                                       ConvId convId) {
 
     }
 

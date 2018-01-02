@@ -282,8 +282,7 @@ public class ParticipantBodyFragment extends BaseFragment<ParticipantBodyFragmen
 
     @Override
     public void onShowConversationMenu(@IConversationScreenController.ConversationMenuRequester int requester,
-                                       ConvId convId,
-                                       View anchorView) {
+                                       ConvId convId) {
 
     }
 
@@ -376,8 +375,8 @@ public class ParticipantBodyFragment extends BaseFragment<ParticipantBodyFragmen
                         } else {
                             getControllerFactory().getConversationScreenController().showConversationMenu(
                                 IConversationScreenController.CONVERSATION_DETAILS,
-                                new ConvId(conversation.getId()),
-                                null);
+                                new ConvId(conversation.getId())
+                            );
                         }
                     }
 

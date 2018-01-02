@@ -471,7 +471,7 @@ class ConversationListManagerFragment extends Fragment
     }
   }
 
-  override def onShowConversationMenu(requester: Int, convId: ConvId, anchorView: View) = {
+  override def onShowConversationMenu(requester: Int, convId: ConvId): Unit = {
     import IConversationScreenController._
     requester match {
       case CONVERSATION_LIST_SWIPE | CONVERSATION_LIST_LONG_PRESS =>

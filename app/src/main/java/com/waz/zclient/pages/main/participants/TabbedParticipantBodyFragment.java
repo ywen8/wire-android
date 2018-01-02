@@ -331,8 +331,7 @@ public class TabbedParticipantBodyFragment extends BaseFragment<TabbedParticipan
 
     @Override
     public void onShowConversationMenu(@IConversationScreenController.ConversationMenuRequester int requester,
-                                       ConvId convId,
-                                       View anchorView) {
+                                       ConvId convId) {
 
     }
 
@@ -410,8 +409,7 @@ public class TabbedParticipantBodyFragment extends BaseFragment<TabbedParticipan
                     if (conv.convType() == IConversation.Type.ONE_TO_ONE) {
                         getControllerFactory().getConversationScreenController().showConversationMenu(
                             IConversationScreenController.CONVERSATION_DETAILS,
-                            conv.id(),
-                            null
+                            conv.id()
                         );
                     } else if (permissionToRemove) {
                         getContainer().showRemoveConfirmation(user);

@@ -82,7 +82,7 @@ public interface IConversationScreenController {
 
     void setPopoverLaunchedMode(DialogLaunchMode launchedMode);
 
-    void showConversationMenu(@ConversationMenuRequester int requester, ConvId convId, View anchorView);
+    void showConversationMenu(@ConversationMenuRequester int requester, ConvId convId);
 
     DialogLaunchMode getPopoverLaunchMode();
 
