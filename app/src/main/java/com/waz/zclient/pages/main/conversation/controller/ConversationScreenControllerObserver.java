@@ -41,7 +41,7 @@ public interface ConversationScreenControllerObserver {
 
     void onAddPeopleToConversation();
 
-    void onShowConversationMenu(@IConversationScreenController.ConversationMenuRequester int requester, ConvId convId, View anchorView);
+    void onShowConversationMenu(@IConversationScreenController.ConversationMenuRequester int requester, ConvId convId);
 
     void onShowOtrClient(OtrClient otrClient, User user);
 

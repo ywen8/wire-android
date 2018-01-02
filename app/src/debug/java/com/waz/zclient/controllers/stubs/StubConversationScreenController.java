@@ -53,7 +53,7 @@ public class StubConversationScreenController implements IConversationScreenCont
     }
 
     @Override
-    public void showConversationMenu(int requester, ConvId convId, View anchorView) {
+    public void showConversationMenu(int requester, ConvId convId) {
 
     }
 

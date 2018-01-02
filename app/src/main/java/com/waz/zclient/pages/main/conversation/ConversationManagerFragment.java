@@ -306,8 +306,7 @@ public class ConversationManagerFragment extends BaseFragment<ConversationManage
 
     @Override
     public void onShowConversationMenu(@IConversationScreenController.ConversationMenuRequester int requester,
-                                       ConvId convId,
-                                       View anchorView) {
+                                       ConvId convId) {
 
     }
 

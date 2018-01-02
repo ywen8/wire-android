@@ -71,9 +71,6 @@
 -keep class com.localytics.android.** { *; }
 -keepattributes JavascriptInterface
 
-# Required for attribution
--keep class com.google.android.gms.ads.** { *; }
-
 # Required for Google Play Services (see http://developer.android.com/google/play-services/setup.html)
 -keep class * extends java.util.ListResourceBundle {
     protected Object[][] getContents();

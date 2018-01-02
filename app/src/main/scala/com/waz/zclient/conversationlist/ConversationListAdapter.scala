@@ -17,7 +17,6 @@
  */
 package com.waz.zclient.conversationlist
 
-import android.content.Context
 import android.support.v7.widget.RecyclerView
 import android.view.View.OnLongClickListener
 import android.view.{View, ViewGroup}
@@ -28,7 +27,6 @@ import com.waz.api.IConversation
 import com.waz.model.ConversationData.ConversationType
 import com.waz.model._
 import com.waz.service.ZMessaging
-import com.waz.threading.Threading
 import com.waz.utils.events.{EventContext, EventStream, Signal}
 import com.waz.utils.returning
 import com.waz.zclient.common.controllers.UserAccountsController
@@ -37,7 +35,7 @@ import com.waz.zclient.conversationlist.views.{IncomingConversationListRow, Norm
 import com.waz.zclient.pages.main.conversationlist.views.ConversationCallback
 import com.waz.zclient.{Injectable, Injector, R, ViewHelper}
 
-class ConversationListAdapter(context: Context)(implicit injector: Injector, eventContext: EventContext) extends RecyclerView.Adapter[ConversationRowViewHolder] with Injectable {
+class ConversationListAdapter(implicit injector: Injector, eventContext: EventContext) extends RecyclerView.Adapter[ConversationRowViewHolder] with Injectable {
 
   setHasStableIds(true)
 
@@ -73,7 +71,7 @@ class ConversationListAdapter(context: Context)(implicit injector: Injector, eve
 
   var maxAlpha = 1.0f
 
-  conversationListData.on(Threading.Ui) {
+  conversationListData.onUi {
     case (currentAccount, convs, requests) =>
       _conversations = convs
       _incomingRequests = requests
@@ -82,9 +80,8 @@ class ConversationListAdapter(context: Context)(implicit injector: Injector, eve
       notifyDataSetChanged()
   }
 
-  private def getConversation(position: Int): Option[ConversationData] = {
+  private def getConversation(position: Int): Option[ConversationData] =
     _conversations.lift(position)
-  }
 
   private def getItem(position: Int): Option[ConversationData] =
     _incomingRequests._2 match {

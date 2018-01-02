@@ -655,8 +655,7 @@ public class ParticipantFragment extends BaseFragment<ParticipantFragment.Contai
 
     @Override
     public void onShowConversationMenu(@IConversationScreenController.ConversationMenuRequester int requester,
-                                       ConvId convId,
-                                       View anchorView) {
+                                       ConvId convId) {
         if (requester != IConversationScreenController.USER_PROFILE_PARTICIPANTS &&
             requester != IConversationScreenController.CONVERSATION_DETAILS) {
             return;
