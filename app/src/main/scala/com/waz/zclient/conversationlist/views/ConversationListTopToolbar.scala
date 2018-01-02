@@ -78,7 +78,7 @@ abstract class ConversationListTopToolbar(val context: Context, val attrs: Attri
   def setTitle(mode: ConversationListAdapter.ListMode, currentUser: Option[UserData]): Unit = (mode, currentUser) match {
     case (ConversationListAdapter.Normal, Some(user)) if user.teamId.nonEmpty =>
       title.setText(user.displayName)
-      AvailabilityView.displayLeftOfText(title, user.availability, title.getCurrentTextColor)
+      AvailabilityView.displayLeftOfText(title, user.availability, title.getCurrentTextColor, pushDown = true)
       title.onClick { AvailabilityView.showAvailabilityMenu(AvailabilityChanged.ListHeader) }
     case (ConversationListAdapter.Normal, Some(user)) =>
       title.setText(user.displayName)

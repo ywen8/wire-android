@@ -27,14 +27,12 @@ import com.waz.model.{Contact, UserData}
 import com.waz.service.ZMessaging
 import com.waz.threading.Threading
 import com.waz.utils.events.Signal
-import com.waz.zclient.usersearch.views.ContactListItemTextView._
 import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.utils.StringUtils
 import com.waz.zclient.{Injectable, R, ViewHelper}
 import ContactListItemTextView._
 import com.waz.zclient.messages.UsersController
 import com.waz.zclient.views.AvailabilityView
-
 
 object ContactListItemTextView {
   private val SEPARATOR_SYMBOL: String = " · "
@@ -112,8 +110,7 @@ class ContactListItemTextView(val context: Context, val attrs: AttributeSet, val
         subLabelView.setText(sublabel)
       }
       nameView.setText(userData.getDisplayName)
-      AvailabilityView.displayLeftOfText(nameView, userData.availability, nameView.getCurrentTextColor)
-
+      AvailabilityView.displayLeftOfText(nameView, userData.availability, nameView.getCurrentTextColor, pushDown = true)
     } { contact =>
       nameView.setGravity(Gravity.START | Gravity.CENTER_VERTICAL)
       nameView.setText(contact.name)

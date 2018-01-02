@@ -18,14 +18,13 @@
 package com.waz.zclient.views
 
 import android.content.Context
-import android.content.res.Resources
 import android.graphics.drawable.{BitmapDrawable, Drawable}
 import android.os.Bundle
 import android.support.design.widget.BottomSheetDialog
-import android.util.{AttributeSet, DisplayMetrics}
+import android.util.AttributeSet
 import android.view.View
 import android.view.View.OnClickListener
-import android.widget.{FrameLayout, ImageView, LinearLayout, TextView}
+import android.widget.{ImageView, LinearLayout, TextView}
 import com.waz.model.Availability
 import com.waz.zclient.messages.UsersController
 import com.waz.zclient.ui.text.{GlyphTextView, TextTransform, TypefaceTextView}
@@ -144,15 +143,22 @@ object AvailabilityView {
     Availability.Away      -> ViewData(R.string.availability_away,      R.string.availability_text_away,      AvailabilityIcons.drawAwayIcon)
   )
 
-  def displayLeftOfText(view: TextView, av: Availability, color: Int)(implicit ctx: Context): Unit = {
+  private val PUSH_DOWN_PX = 5
+
+  def displayLeftOfText(view: TextView, av: Availability, color: Int, pushDown: Boolean = false)(implicit ctx: Context): Unit = {
     val name = ContextUtils.getString(AvailabilityView.viewData(av).nameId)
+    val pd = if (pushDown) PUSH_DOWN_PX else 0
+    val drawable = AvailabilityView.drawable(av, color)
+    drawable.foreach(d => d.setBounds(0, pd, d.getIntrinsicWidth, d.getIntrinsicHeight + pd))
     view.setContentDescription(name)
-    view.setCompoundDrawablesRelativeWithIntrinsicBounds(
-      AvailabilityView.drawable(av, color).orNull, null, null, null
-    )
+    val oldDrawables = view.getCompoundDrawables
+    view.setCompoundDrawablesRelative(drawable.orNull, oldDrawables(1), oldDrawables(2), oldDrawables(3))
   }
 
-  def hideAvailabilityIcon(view: TextView): Unit = view.setCompoundDrawablesRelativeWithIntrinsicBounds(0, 0, 0, 0)
+  def hideAvailabilityIcon(view: TextView): Unit = {
+    val oldDrawables = view.getCompoundDrawables
+    view.setCompoundDrawablesRelative(null, oldDrawables(1), oldDrawables(2), oldDrawables(3))
+  }
 
   def showAvailabilityMenu(method: AvailabilityChanged.Method)(implicit ctx: Context): Unit = new AvailabilityMenu(ctx, method).show()
 
@@ -166,7 +172,6 @@ object AvailabilityView {
         val bmp = Bitmap.createBitmap(64, 64, Bitmap.Config.ARGB_8888)
         viewData(availability).drawIcon(new Canvas(bmp), fillColor)
         val px = ContextUtils.toPx(dpSize)
-        //val px = dpSize * (res.getDisplayMetrics.xdpi / DisplayMetrics.DENSITY_DEFAULT).round
         new BitmapDrawable(ctx.getResources, Bitmap.createScaledBitmap(bmp, px, px, true))
       })
       Option(drawable)

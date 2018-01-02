@@ -20,7 +20,7 @@ package com.waz.zclient.conversationlist.views
 import android.animation.ObjectAnimator
 import android.content.Context
 import android.util.AttributeSet
-import android.view.{Gravity, View, ViewGroup}
+import android.view.{View, ViewGroup}
 import android.widget.LinearLayout.LayoutParams
 import android.widget.{FrameLayout, LinearLayout}
 import com.waz.ZLog.verbose
@@ -162,7 +162,7 @@ class NormalConversationListRow(context: Context, attrs: AttributeSet, style: In
     av <- controller.availability(convId)
   } yield (name, av)).on(Threading.Ui) { case (name, av) =>
     title.setText(name)
-    AvailabilityView.displayLeftOfText(title, av, title.getCurrentTextColor)
+    AvailabilityView.displayLeftOfText(title, av, title.getCurrentTextColor, pushDown = true)
   }
 
   subtitleText.on(Threading.Ui) {
