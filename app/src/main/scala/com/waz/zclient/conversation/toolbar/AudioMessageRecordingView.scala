@@ -217,54 +217,55 @@ class AudioMessageRecordingView (val context: Context, val attrs: AttributeSet, 
   }
 
   def show() = {
-    if (permissions.checkPermission(RECORD_AUDIO)) { //TODO looks like we have a legitimate use case for checking permissions
-      setVisibility(VISIBLE)
-      slideControlState ! Recording
-      inject[SoundController].shortVibrate()
-    }
-    record()
+    permissions.permissions(Set(RECORD_AUDIO)).map(_.headOption.exists(_.granted)).head.map {
+      case true =>
+        setVisibility(VISIBLE)
+        slideControlState ! Recording
+        inject[SoundController].shortVibrate()
+        record()
+      case false =>
+        permissions.requestAllPermissions(Set(RECORD_AUDIO)).map {
+          case false =>
+            showToast(R.string.audio_message_error__missing_audio_permissions)
+          case _ =>
+        } (Threading.Ui)
+    } (Threading.Ui)
   }
 
   private def record() = {
-    permissions.requestAllPermissions(Set(RECORD_AUDIO)).map {
-      case true =>
-        val key = AssetMediaKey(AssetId())
-        currentAssetKey = Some(key)
-        recordingService.record(key, 25.minutes).flatMap { case (start, futureAsset) =>
-          startTime ! Some(start)
-          futureAsset.map {
-            case RecordingSuccessful(asset, lengthLimitReached) =>
-              if (lengthLimitReached) {
-                ViewUtils.showAlertDialog(
-                  getContext,
-                  R.string.audio_message__recording__limit_reached__title,
-                  R.string.audio_message__recording__limit_reached__message,
-                  R.string.audio_message__recording__limit_reached__confirmation,
-                  R.string.confirmation_menu__cancel,
-                  new DialogInterface.OnClickListener() {
-                    override def onClick(dialogInterface: DialogInterface, i: Int) = sendAudioAsset(asset)
-                  },
-                  null)
-              } else slideControlState.currentValue match {
-                case Some(SendFromRecording) =>
-                  sendAudioAsset(asset)
-                case _ =>
-                  currentAsset = Some(asset)
-                  playbackControls = Some(returning(asset.getPlaybackControls) { ctrls =>
-                    playbackControlsModelObserver.setAndUpdate(ctrls)
-                  })
-              }
-            case RecordingCancelled => throw new CancelException("Recording cancelled")
-          } (Threading.Ui)
-        }(Threading.Ui).onFailure {
-          case NonFatal(_) =>
-            playbackControlsModelObserver.clear()
-            playbackControls = None
+      val key = AssetMediaKey(AssetId())
+      currentAssetKey = Some(key)
+      recordingService.record(key, 25.minutes).flatMap { case (start, futureAsset) =>
+        startTime ! Some(start)
+        futureAsset.map {
+          case RecordingSuccessful(asset, lengthLimitReached) =>
+            if (lengthLimitReached) {
+              ViewUtils.showAlertDialog(
+                getContext,
+                R.string.audio_message__recording__limit_reached__title,
+                R.string.audio_message__recording__limit_reached__message,
+                R.string.audio_message__recording__limit_reached__confirmation,
+                R.string.confirmation_menu__cancel,
+                new DialogInterface.OnClickListener() {
+                  override def onClick(dialogInterface: DialogInterface, i: Int) = sendAudioAsset(asset)
+                },
+                null)
+            } else slideControlState.currentValue match {
+              case Some(SendFromRecording) =>
+                sendAudioAsset(asset)
+              case _ =>
+                currentAsset = Some(asset)
+                playbackControls = Some(returning(asset.getPlaybackControls) { ctrls =>
+                  playbackControlsModelObserver.setAndUpdate(ctrls)
+                })
+            }
+          case RecordingCancelled => throw new CancelException("Recording cancelled")
         } (Threading.Ui)
-
-      case false =>
-        showToast(R.string.audio_message_error__missing_audio_permissions)
-    }
+      }(Threading.Ui).onFailure {
+        case NonFatal(_) =>
+          playbackControlsModelObserver.clear()
+          playbackControls = None
+      } (Threading.Ui)
   }
 
   private def sendAudioAsset(asset: AudioAssetForUpload) = {
