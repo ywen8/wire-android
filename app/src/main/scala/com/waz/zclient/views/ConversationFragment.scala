@@ -642,7 +642,9 @@ class ConversationFragment extends BaseFragment[ConversationFragment.Container] 
     override def openFileSharing(): Unit = assetIntentsManager.foreach { _.openFileSharing() }
 
     override def onCursorButtonLongPressed(cursorMenuItem: CursorMenuItem): Unit = cursorMenuItem match {
-      case CursorMenuItem.AUDIO_MESSAGE => audioMessageRecordingView.show()
+      case CursorMenuItem.AUDIO_MESSAGE =>
+        extendedCursorContainer.close(true)
+        audioMessageRecordingView.show()
       case _ => //
     }
   }
