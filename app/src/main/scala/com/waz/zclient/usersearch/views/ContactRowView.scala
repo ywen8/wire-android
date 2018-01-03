@@ -28,7 +28,6 @@ import com.waz.threading.Threading
 import com.waz.zclient.common.controllers.global.AccentColorController
 import com.waz.zclient.common.views.ChatheadView
 import com.waz.zclient.core.api.scala.ModelObserver
-import com.waz.zclient.pages.main.pickuser.controller.IPickUserController
 import com.waz.zclient.ui.views.ZetaButton
 import com.waz.zclient.{Injectable, R, ViewHelper}
 
