@@ -26,7 +26,6 @@ import android.support.design.widget.TabLayout.OnTabSelectedListener
 import android.support.v4.content.ContextCompat
 import android.support.v7.app.AlertDialog
 import android.support.v7.widget.{LinearLayoutManager, RecyclerView, Toolbar}
-import android.text.TextUtils
 import android.view._
 import android.view.animation.Animation
 import android.view.inputmethod.EditorInfo
@@ -35,6 +34,7 @@ import android.widget._
 import com.waz.ZLog.ImplicitTag._
 import com.waz.ZLog._
 import com.waz.api._
+import com.waz.api.{ContactDetails, ContactMethod, NetworkMode}
 import com.waz.content.UserPreferences
 import com.waz.model.ConversationData.ConversationType
 import com.waz.model.UserData.ConnectionStatus
@@ -186,7 +186,6 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
   }
 
   private object PickableUser {
-    def apply(user: User): PickableUser = new PickableUser(UserId(user.getId), user.getDisplayName)
     def apply(userData: UserData): PickableUser = new PickableUser(userData.id, userData.getDisplayName)
   }
 
@@ -330,12 +329,10 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
       searchBoxView.setCursorColor(color)
     }
 
-    searchUserController.onSelectedUserAdded.on(Threading.Ui) { userId =>
-      onSelectedUserAdded(getSelectedUsersJava, getStoreFactory.pickUserStore.getUser(userId.str))
-    }
+    searchUserController.onSelectedUserAdded.on(Threading.Ui) { onSelectedUserAdded }
 
     searchUserController.onSelectedUserRemoved.on(Threading.Ui) { userId =>
-      onSelectedUserRemoved(getSelectedUsersJava, getStoreFactory.pickUserStore.getUser(userId.str))
+      onSelectedUserRemoved(userId)
       if (getSelectedUsers.isEmpty)
         onSearchBoxIsEmpty()
     }
@@ -563,25 +560,29 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
     }
   }
 
-  def onSelectedUserAdded(selectedUsers: java.util.List[User], addedUser: User): Unit = {
+  def onSelectedUserAdded(addedUser: UserId): Unit = {
     changeUserSelectedState(addedUser, selected = true)
     updateConversationButtonLabel()
     conversationQuickMenu.showVideoCallButton(shouldVideoCallButtonBeDisplayed)
-    searchBoxView.addElement(PickableUser(addedUser))
+    getUser(addedUser).collect {
+      case Some(userData) => searchBoxView.addElement(PickableUser(userData))
+    } (Threading.Ui)
   }
 
   private def shouldVideoCallButtonBeDisplayed: Boolean = {
     getSelectedUsers.size == 1 && DeviceDetector.isVideoCallingEnabled
   }
 
-  def onSelectedUserRemoved(selectedUsers: java.util.List[User], removedUser: User): Unit = {
+  def onSelectedUserRemoved(removedUser: UserId): Unit = {
     changeUserSelectedState(removedUser, selected = false)
     updateConversationButtonLabel()
     conversationQuickMenu.showVideoCallButton(shouldVideoCallButtonBeDisplayed)
-    searchBoxView.removeElement(PickableUser(removedUser))
+    getUser(removedUser).collect {
+      case Some(userData) => searchBoxView.removeElement(PickableUser(userData))
+    } (Threading.Ui)
   }
 
-  private def changeUserSelectedState(user: User, selected: Boolean): Unit = {
+  private def changeUserSelectedState(user: UserId, selected: Boolean): Unit = {
     changeUserSelectedState(searchResultRecyclerView, user, selected)
     if (!searchUserController.allDataSignal.currentValue.exists(_._1.isEmpty)) {
       (0 until searchResultRecyclerView.getChildCount).map(searchResultRecyclerView.getChildAt).foreach {
@@ -592,41 +593,41 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
     }
   }
 
-  private def changeUserSelectedState(rv: RecyclerView, user: User, selected: Boolean): Unit = {
+  private def changeUserSelectedState(rv: RecyclerView, user: UserId, selected: Boolean): Unit = {
     (0 until rv.getChildCount).map(rv.getChildAt).foreach{
-      case userRowView: UserRowView =>
-        if (userRowView.getUser != null && userRowView.getUser == user) {
-          userRowView.setSelected(selected)
-        }
+      case userRowView: UserRowView if userRowView.getUser.contains(user) =>
+        userRowView.setSelected(selected)
       case _ =>
     }
   }
 
-  private def getUser(id: UserId) = getStoreFactory.zMessagingApiStore.getApi.getUser(id.str)
+  private def getUser(id: UserId): Future[Option[UserData]] = zms.head.flatMap(_.usersStorage.get(id))(Threading.Background)
 
   override def onUserClicked(userId: UserId, position: Int, anchorView: View): Unit =
-    Option(getUser(userId)).filterNot(_.isMe).foreach { user =>
       UserSignal(userId).head.map { userData =>
         if (userData.connection == ConnectionStatus.Accepted || (isTeamAccount && userAccountsController.isTeamMember(userData.id))) {
           if (anchorView.isSelected) searchUserController.addUser(userId) else searchUserController.removeUser(userId)
           setConversationQuickMenuVisible(searchUserController.selectedUsers.nonEmpty)
         } else if (!anchorView.isInstanceOf[ContactRowView] || (userData.connection != ConnectionStatus.Unconnected)) {
-          showUser(user, anchorView)
+          showUser(userId, anchorView)
         }
       }(Threading.Ui)
-    }
 
   override def onUserDoubleClicked(userId: UserId, position: Int, anchorView: View): Future[Unit] =
     if (anchorView.isInstanceOf[ChatheadWithTextFooter] && searchUserController.selectedUsers.isEmpty) {
-
-    Option(getUser(userId)) match {
-      case Some(user) if !user.isMe && user.getConnectionStatus == User.ConnectionStatus.ACCEPTED =>
-       conversationController.getOrCreateConv(userId).flatMap { conv =>
-         verbose(s"onConversationClicked(${conv.id})")
-          conversationController.selectConv(Some(conv.id), ConversationChangeRequester.START_CONVERSATION)
-        }(Threading.Ui)
-      case _ => Future.successful({})
-    }
+      import Threading.Implicits.Ui
+      for {
+        self <- self.head
+        optUser <- getUser(userId)
+        res  <- optUser match {
+          case Some(user) if user.id != self.id && user.connection == UserData.ConnectionStatus.Accepted =>
+            conversationController.getOrCreateConv(userId).flatMap { conv =>
+              verbose(s"onConversationClicked(${conv.id})")
+              conversationController.selectConv(Some(conv.id), ConversationChangeRequester.START_CONVERSATION)
+            }
+          case _ => Future.successful({})
+        }
+      } yield res
   } else Future.successful({})
 
   override def onConversationClicked(conversationData: ConversationData, position: Int): Unit = {
@@ -640,15 +641,17 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
   def getSelectedAndExcluded: Set[UserId] = searchUserController.selectedUsers ++ searchUserController.excludedUsers.currentValue.getOrElse(Set[UserId]())
 
   override def onContactListUserClicked(userId: UserId): Unit = {
-    Option(getUser(userId)).foreach { user =>
-      user.getConnectionStatus match {
+    import Threading.Implicits.Ui
+      getUser(userId).collect{ case Some(u) => u }.flatMap { user =>
+        user.connection match {
         case ConnectionStatus.Unconnected =>
           self.head.map { self =>
             val myName: String = self.getDisplayName
-            val message: String = getString(R.string.connect__message, user.getName, myName)
-            user.connect(message)
-          }(Threading.Ui)
+            val message: String = getString(R.string.connect__message, user.getDisplayName, myName)
+            zms(_.connection.connectToUser(user.id, message, self.getDisplayName))
+          }
         case _ =>
+            Future.successful({})
       }
     }
   }
@@ -703,20 +706,17 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
   }
 
   private def sendSMSInvite(number: String): Unit = {
-    val me: User = getStoreFactory.profileStore.getSelfUser
-    if (me != null) {
-      var smsBody: String = null
-      val username: String = me.getUsername
-      if (TextUtils.isEmpty(username)) {
-        smsBody = getString(R.string.people_picker__invite__share_text__body, me.getName)
-      }
-      else {
-        smsBody = getString(R.string.people_picker__invite__share_text__body, StringUtils.formatHandle(username))
+    self.head.map { self =>
+      val smsBody = self.handle.map(_.string) match {
+        case Some(username) =>
+          getString(R.string.people_picker__invite__share_text__body, StringUtils.formatHandle(username))
+        case _ =>
+          getString(R.string.people_picker__invite__share_text__body, self.getDisplayName)
       }
       val intent: Intent = new Intent(Intent.ACTION_SENDTO, Uri.fromParts("sms", number, ""))
       intent.putExtra("sms_body", smsBody)
       startActivity(intent)
-    }
+    } (Threading.Ui)
   }
 
   private def showErrorMessage(): Unit =
@@ -738,18 +738,17 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
       }(Threading.Ui)
     }
 
-  private def showUser(user: User, anchorView: View): Unit = {
-    user.getConnectionStatus match {
+  private def showUser(user: UserId, anchorView: View): Unit = {
+    import Threading.Implicits.Ui
+    getUser(user).collect{ case Some(u) => u.connection }.map {
       case ConnectionStatus.Accepted =>
         if (isAddingToConversation) {
-          getContainer.onSelectedUsers(Seq(new UserId(user.getId)).asJava, ConversationChangeRequester.START_CONVERSATION)
+          getContainer.onSelectedUsers(Seq(user).asJava, ConversationChangeRequester.START_CONVERSATION)
         } else {
-          val convId = Option(user.getConversation).map(c => ConvId(c.getId))
-          if (convId != null) {
-            KeyboardUtils.hideKeyboard(getActivity)
-            verbose(s"showUser $convId")
-            conversationController.selectConv(convId, ConversationChangeRequester.START_CONVERSATION)
-          }
+          val convId = ConvId(user.str) //TODO: This way of getting the id should be defined in the AccountService or something
+          KeyboardUtils.hideKeyboard(getActivity)
+          verbose(s"showUser $convId")
+          conversationController.selectConv(convId, ConversationChangeRequester.START_CONVERSATION)
         }
       case ConnectionStatus.PendingFromUser |
            ConnectionStatus.Blocked |
@@ -758,10 +757,11 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
            ConnectionStatus.Unconnected =>
         KeyboardUtils.hideKeyboard(getActivity)
         convScreenController.setPopoverLaunchedMode(DialogLaunchMode.SEARCH)
-        pickUserController.showUserProfile(new UserId(user.getId), anchorView)
+        pickUserController.showUserProfile(user, anchorView)
       case ConnectionStatus.PendingFromOther =>
+        val convId = ConvId(user.str) //TODO: This way of getting the id should be defined in the AccountService or something
         KeyboardUtils.hideKeyboard(getActivity)
-        getContainer.showIncomingPendingConnectRequest(new ConvId(user.getConversation.getId))
+        getContainer.showIncomingPendingConnectRequest(convId)
       case _ =>
     }
   }
@@ -827,9 +827,6 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
     pickUserController.hidePickUser(getCurrentPickerDestination)
   }
 
-  private def getSelectedUsersJava: java.util.List[User] = {
-    searchUserController.selectedUsers.map(uid => getStoreFactory.pickUserStore.getUser(uid.str)).toList.asJava
-  }
 
   // XXX Only show contact sharing dialogs for PERSONAL START UI
   private def showShareContactsDialog(hasShareContactsEnabled: Boolean): Unit = {
