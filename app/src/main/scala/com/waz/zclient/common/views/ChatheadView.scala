@@ -25,11 +25,11 @@ import android.view.View
 import android.view.View.MeasureSpec
 import android.view.View.MeasureSpec.{EXACTLY, makeMeasureSpec}
 import com.waz.ZLog.ImplicitTag._
+import com.waz.api.{ContactDetails, User}
 import com.waz.api.User.ConnectionStatus
 import com.waz.api.User.ConnectionStatus._
 import com.waz.api.impl.AccentColor
-import com.waz.api.{ContactDetails, User}
-import com.waz.model._
+import com.waz.model.{AssetData, UserData, UserId, _}
 import com.waz.service.ZMessaging
 import com.waz.service.assets.AssetService.BitmapResult
 import com.waz.service.assets.AssetService.BitmapResult.BitmapLoaded
@@ -41,7 +41,6 @@ import com.waz.utils.{NameParts, returning}
 import com.waz.zclient.common.controllers.UserAccountsController
 import com.waz.zclient.ui.utils.TypefaceUtils
 import com.waz.zclient.utils.ContextUtils._
-import com.waz.zclient.utils.Offset
 import com.waz.zclient.{Injectable, Injector, R, ViewHelper}
 
 
