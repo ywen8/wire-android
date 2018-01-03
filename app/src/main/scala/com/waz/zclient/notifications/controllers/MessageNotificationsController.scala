@@ -39,7 +39,8 @@ import com.waz.service.push.NotificationService.NotificationInfo
 import com.waz.threading.{CancellableFuture, Threading}
 import com.waz.ui.MemoryImageCache.BitmapRequest
 import com.waz.utils.events.{EventContext, Signal}
-import com.waz.utils.returning
+import com.waz.utils.{returning, _}
+import com.waz.utils.wrappers.Bitmap
 import com.waz.zclient.Intents._
 import com.waz.zclient._
 import com.waz.zclient.common.controllers.SoundController
@@ -51,11 +52,9 @@ import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.utils.{RingtoneUtils, ViewUtils}
 import com.waz.zms.NotificationsAndroidService
 import org.threeten.bp.Instant
-import com.waz.utils._
-import com.waz.utils.wrappers.Bitmap
 
-import scala.concurrent.duration._
 import scala.concurrent.Future
+import scala.concurrent.duration._
 
 class MessageNotificationsController(implicit inj: Injector, cxt: Context, eventContext: EventContext) extends Injectable { self =>
 
@@ -87,29 +86,31 @@ class MessageNotificationsController(implicit inj: Injector, cxt: Context, event
 
   colors { accentColors = _ }
 
-  Signal.future(ZMessaging.globalModule).flatMap(_.notifications.groupedNotifications).onUi { notifications =>
-    notifications.toSeq.sortBy(_._1.str.hashCode).foreach {
-      case (account, (shouldBeSilent, nots)) =>
-        val teamName = for {
-          zms <- zms.head
-          accountData <- zms.accountsStorage.get(account)
-          team <- accountData.map(_.teamId) match {
-            case Some(Right(Some(teamId))) => zms.teamsStorage.get(teamId)
-            case _ => Future.successful(Option.empty[TeamData])
-          }
-        } yield team.map(_.name)
+  ZMessaging.globalModule.map { global =>
+    global.notifications.groupedNotifications.onUi { notifications =>
+      verbose(s"groupedNotifications received: ${notifications.map{ case (acc, (_, nots)) => acc -> nots.size }}")
+      notifications.toSeq.sortBy(_._1.str.hashCode).foreach {
+        case (account, (shouldBeSilent, nots)) =>
+          val teamName = for {
+            accountData <- global.accountsStorage.get(account)
+            team <- accountData.map(_.teamId) match {
+              case Some(Right(Some(teamId))) => global.teamsStorage.get(teamId)
+              case _ => Future.successful(Option.empty[TeamData])
+            }
+          } yield team.map(_.name)
 
-        teamName.map { teamName => createConvNotifications(account, shouldBeSilent, nots, teamName) } (Threading.Ui)
-    }
-    if (BundleEnabled) {
-      val currentBundles = notifications.keys.map(toNotificationGroupId).toSeq
-      val currentNotifications = notifications.toSeq.flatMap {
-        case (account, (_, nots)) => nots.map(_.convId).distinct.map(cId => toNotificationConvId(account, cId))
-      } ++ currentBundles
-      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
-        notManager.getActiveNotifications
-          .collect { case notification if !currentNotifications.contains(notification.getId) => notification.getId }
-          .foreach(notManager.cancel)
+          teamName.map { teamName => createConvNotifications(account, shouldBeSilent, nots, teamName) }(Threading.Ui)
+      }
+      if (BundleEnabled) {
+        val currentBundles = notifications.keys.map(toNotificationGroupId).toSeq
+        val currentNotifications = notifications.toSeq.flatMap {
+          case (account, (_, nots)) => nots.map(_.convId).distinct.map(cId => toNotificationConvId(account, cId))
+        } ++ currentBundles
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
+          notManager.getActiveNotifications
+            .collect { case notification if !currentNotifications.contains(notification.getId) => notification.getId }
+            .foreach(notManager.cancel)
+      }
     }
   }
 
