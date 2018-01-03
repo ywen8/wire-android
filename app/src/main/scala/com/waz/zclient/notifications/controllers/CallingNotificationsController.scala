@@ -81,7 +81,7 @@ class CallingNotificationsController(implicit cxt: WireContext, eventContext: Ev
       val message = getCallStateMessage(state, video)
       val title = if (group) getString(R.string.system_notification__group_call_title, callerName, conv.displayName) else conv.displayName
 
-      val builder = new NotificationCompat.Builder(cxt)
+      val builder = new NotificationCompat.Builder(cxt, com.waz.zclient.NotificationChannelId)
         .setSmallIcon(R.drawable.ic_menu_logo)
         .setLargeIcon(bmp.orNull)
         .setContentTitle(title)

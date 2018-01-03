@@ -18,7 +18,7 @@
 package com.waz.zclient.notifications.controllers
 
 import android.annotation.TargetApi
-import android.app.{Notification, NotificationManager}
+import android.app.{Notification, NotificationChannel, NotificationManager}
 import android.content.Context
 import android.graphics._
 import android.net.Uri
@@ -175,12 +175,12 @@ class MessageNotificationsController(implicit inj: Injector, cxt: Context, event
 
   private def createSummaryNotification(account: AccountId, silent: Boolean, nots: Seq[NotificationInfo], teamName: Option[String]): Unit =
     if (nots.isEmpty) notManager.cancel(toNotificationGroupId(account))
-    else if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.M || !notManager.getActiveNotifications.exists(_.getId == toNotificationGroupId(account))) {
+    else if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M || !notManager.getActiveNotifications.exists(_.getId == toNotificationGroupId(account))) {
       verbose(s"creating summary notification")
 
       val inboxStyle = new NotificationCompat.InboxStyle()
 
-      val builder = new NotificationCompat.Builder(cxt)
+      val builder = new NotificationCompat.Builder(cxt, com.waz.zclient.NotificationChannelId)
         .setWhen(nots.minBy(_.time).time.toEpochMilli)
         .setShowWhen(true)
         .setCategory(NotificationCompat.CATEGORY_MESSAGE)
@@ -294,7 +294,7 @@ class MessageNotificationsController(implicit inj: Injector, cxt: Context, event
   }
 
   private def commonBuilder(accountId: AccountId, title: CharSequence, displayTime: Instant, style: NotificationCompat.Style, silent: Boolean) = {
-    val builder = new NotificationCompat.Builder(cxt)
+    val builder = new NotificationCompat.Builder(cxt, com.waz.zclient.NotificationChannelId)
       .setShowWhen(true)
       .setCategory(NotificationCompat.CATEGORY_MESSAGE)
       .setPriority(NotificationCompat.PRIORITY_HIGH)
