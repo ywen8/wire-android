@@ -30,7 +30,7 @@
         android:layout_gravity="center"
         android:gravity="center"
         android:textColor="?wirePrimaryTextColor"
-        android:drawablePadding="@dimen/wire__padding__8"
+        android:drawablePadding="@dimen/wire__padding__6"
         android:textSize="@dimen/wire__text_size__smaller"
         style="?userFooterLabel"
         app:w_font="@string/wire__typeface__medium"

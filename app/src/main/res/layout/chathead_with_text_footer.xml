@@ -57,18 +57,33 @@
 
     </FrameLayout>
 
-    <com.waz.zclient.ui.text.TypefaceTextView
-        android:id="@+id/ttv__text_view"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+    <LinearLayout
         android:gravity="center"
-        android:lines="1"
-        android:ellipsize="end"
-        android:textColor="@color/text__primary_dark"
-        android:textSize="@dimen/wire__text_size__small"
-        android:drawablePadding="@dimen/wire__padding__4"
-        app:w_font="@string/wire__typeface__light"
-        />
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        >
 
+        <ImageView
+            android:id="@+id/iv__availability_icon"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:gravity="start|center_vertical"
+            android:visibility="gone"
+            />
+
+        <com.waz.zclient.ui.text.TypefaceTextView
+            android:id="@+id/ttv__text_view"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:lines="1"
+            android:ellipsize="end"
+            android:textColor="@color/text__primary_dark"
+            android:textSize="@dimen/wire__text_size__small"
+            android:paddingStart="@dimen/wire__padding__6"
+            app:w_font="@string/wire__typeface__light"
+            />
+
+    </LinearLayout>
 </merge>
 
