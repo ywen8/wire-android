@@ -31,6 +31,7 @@ import android.view.inputmethod.EditorInfo
 import android.widget.TextView.OnEditorActionListener
 import android.widget._
 import com.waz.ZLog._
+import com.waz.ZLog.ImplicitTag._
 import com.waz.api._
 import com.waz.content.UserPreferences
 import com.waz.model.UserData.ConnectionStatus
@@ -50,6 +51,7 @@ import com.waz.zclient.conversation.ConversationController
 import com.waz.zclient.core.stores.conversation.ConversationChangeRequester
 import com.waz.zclient.core.stores.network.DefaultNetworkAction
 import com.waz.zclient.pages.BaseFragment
+import com.waz.zclient.pages.main.conversation.controller.IConversationScreenController
 import com.waz.zclient.pages.main.participants.dialog.DialogLaunchMode
 import com.waz.zclient.pages.main.pickuser.controller.IPickUserController
 import com.waz.zclient.ui.animation.fragment.FadeAnimation
@@ -141,14 +143,17 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
   private var teamPermissions = Set[AccountData.Permission]()
 
   private implicit lazy val uiStorage = inject[UiStorage]
-  private implicit lazy val logTag = logTagFor[PickUserFragment]
-  private implicit lazy val context = getContext
-  private lazy val zms = inject[Signal[ZMessaging]]
-  private lazy val self = zms.flatMap(z => UserSignal(z.selfUserId))
+  private implicit lazy val context   = getContext
+
+  private lazy val zms                    = inject[Signal[ZMessaging]]
+  private lazy val self                   = zms.flatMap(z => UserSignal(z.selfUserId))
   private lazy val userAccountsController = inject[UserAccountsController]
-  private lazy val accentColor = inject[AccentColorController].accentColor.map(_.getColor())
-  private lazy val themeController = inject[ThemeController]
+  private lazy val accentColor            = inject[AccentColorController].accentColor.map(_.getColor())
+  private lazy val themeController        = inject[ThemeController]
   private lazy val conversationController = inject[ConversationController]
+
+  private lazy val pickUserController     = inject[IPickUserController]
+  private lazy val convScreenController   = inject[IConversationScreenController]
 
   private case class PickableUser(userId : UserId, userName: String) extends PickableElement {
     def id: String = userId.str
@@ -185,7 +190,7 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
   override def onCreateAnimation(transit: Int, enter: Boolean, nextAnim: Int): Animation = {
     if (nextAnim == 0 || getContainer == null || getControllerFactory.isTornDown)
       super.onCreateAnimation(transit, enter, nextAnim)
-    else if (getControllerFactory.getPickUserController.isHideWithoutAnimations)
+    else if (pickUserController.isHideWithoutAnimations)
       new DefaultPageTransitionAnimation(0, getOrientationIndependentDisplayHeight(getActivity), enter, 0, 0, 1f)
     else if (enter)  // Fade animation in participants dialog on tablet
       if (LayoutSpec.isTablet(getActivity) && isAddingToConversation)
@@ -413,8 +418,8 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
     if (isKeyboardVisible) {
       KeyboardUtils.hideKeyboard(getActivity)
       true
-    } else if (getControllerFactory.getPickUserController.isShowingUserProfile) {
-      getControllerFactory.getPickUserController.hideUserProfile()
+    } else if (pickUserController.isShowingUserProfile) {
+      pickUserController.hideUserProfile()
       true
     } else false
   }
@@ -438,7 +443,7 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
 
   private def createAndOpenConversation(users: Seq[UserId], requester: ConversationChangeRequester): Unit = {
     userAccountsController.createAndOpenConversation(users.toArray, requester, getActivity.asInstanceOf[BaseActivity])
-    getControllerFactory.getPickUserController.hidePickUser(getCurrentPickerDestination)
+    pickUserController.hidePickUser(getCurrentPickerDestination)
   }
 
   override def onConversationButtonClicked(): Unit = {
@@ -536,16 +541,14 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
 
   override def onUserClicked(userId: UserId, position: Int, anchorView: View): Unit =
     Option(getUser(userId)).filterNot(_.isMe).foreach { user =>
-      Option(getControllerFactory).filterNot(_.isTornDown).foreach { factory =>
-        UserSignal(userId).head.map { userData =>
-          if (userData.connection == ConnectionStatus.Accepted || (isTeamAccount && userAccountsController.isTeamMember(userData.id))) {
-            if (anchorView.isSelected) searchUserController.addUser(userId) else searchUserController.removeUser(userId)
-            setConversationQuickMenuVisible(searchUserController.selectedUsers.nonEmpty)
-          } else if (!anchorView.isInstanceOf[ContactRowView] || (userData.connection != ConnectionStatus.Unconnected)) {
-            showUser(user, anchorView)
-          }
-        }(Threading.Ui)
-      }
+      UserSignal(userId).head.map { userData =>
+        if (userData.connection == ConnectionStatus.Accepted || (isTeamAccount && userAccountsController.isTeamMember(userData.id))) {
+          if (anchorView.isSelected) searchUserController.addUser(userId) else searchUserController.removeUser(userId)
+          setConversationQuickMenuVisible(searchUserController.selectedUsers.nonEmpty)
+        } else if (!anchorView.isInstanceOf[ContactRowView] || (userData.connection != ConnectionStatus.Unconnected)) {
+          showUser(user, anchorView)
+        }
+      }(Threading.Ui)
     }
 
   override def onUserDoubleClicked(userId: UserId, position: Int, anchorView: View): Future[Unit] =
@@ -682,15 +685,13 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
     user.getConnectionStatus match {
       case ConnectionStatus.Accepted =>
         if (isAddingToConversation) {
-          val users: java.util.ArrayList[User] = new java.util.ArrayList[User]
-          users.add(user)
           getContainer.onSelectedUsers(Seq(new UserId(user.getId)).asJava, ConversationChangeRequester.START_CONVERSATION)
         } else {
-          val conversation: IConversation = user.getConversation
-          if (conversation != null) {
+          val convId = Option(user.getConversation).map(c => ConvId(c.getId))
+          if (convId != null) {
             KeyboardUtils.hideKeyboard(getActivity)
-            verbose(s"showUser ${conversation.getId}")
-            conversationController.selectConv(new ConvId(conversation.getId), ConversationChangeRequester.START_CONVERSATION)
+            verbose(s"showUser $convId")
+            conversationController.selectConv(convId, ConversationChangeRequester.START_CONVERSATION)
           }
         }
       case ConnectionStatus.PendingFromUser |
@@ -699,8 +700,8 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
            ConnectionStatus.Cancelled |
            ConnectionStatus.Unconnected =>
         KeyboardUtils.hideKeyboard(getActivity)
-        getControllerFactory.getConversationScreenController.setPopoverLaunchedMode(DialogLaunchMode.SEARCH)
-        getControllerFactory.getPickUserController.showUserProfile(new UserId(user.getId), anchorView)
+        convScreenController.setPopoverLaunchedMode(DialogLaunchMode.SEARCH)
+        pickUserController.showUserProfile(new UserId(user.getId), anchorView)
       case ConnectionStatus.PendingFromOther =>
         KeyboardUtils.hideKeyboard(getActivity)
         getContainer.showIncomingPendingConnectRequest(new ConvId(user.getConversation.getId))
@@ -763,7 +764,7 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
   private def closeStartUI(): Unit = {
     KeyboardUtils.hideKeyboard(getActivity)
     searchUserController.setFilter("")
-    getControllerFactory.getPickUserController.hidePickUser(getCurrentPickerDestination)
+    pickUserController.hidePickUser(getCurrentPickerDestination)
   }
 
   private def getSelectedUsersJava: java.util.List[User] = {

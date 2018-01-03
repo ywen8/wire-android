@@ -335,7 +335,6 @@ class ConversationListManagerFragment extends Fragment
   override def onHideUserProfile() = {
     // Profiles are handled in dialog on tablet
     if (LayoutSpec.isPhone(getActivity)) {
-      navController.setLeftPage(Page.PICK_USER, Tag)
       getChildFragmentManager.popBackStackImmediate
       togglePeoplePicker(true)
     }
