@@ -29,7 +29,7 @@
         android:layout_height="@dimen/app_entry_logo_height"
         android:src="@drawable/wire"
         android:tint="@color/teams_headline_text"
-        android:layout_marginTop="@dimen/wire__padding__large"/>
+        android:layout_marginTop="@dimen/wire__padding__huge"/>
 
     <com.waz.zclient.ui.text.TypefaceTextView
         android:layout_width="wrap_content"
@@ -40,7 +40,7 @@
         android:textColor="@color/teams_description_text"
         app:w_font="@string/wire__typeface__regular"
         android:text="@string/app_entry_slogan"
-        android:layout_marginTop="@dimen/wire__padding__small"/>
+        android:layout_marginTop="@dimen/wire__padding__regular"/>
 
     <View
         android:layout_width="match_parent"
@@ -62,8 +62,8 @@
         android:focusable="true">
 
         <com.waz.zclient.ui.text.GlyphTextView
-            android:layout_width="@dimen/app_entry_button_size_small"
-            android:layout_height="@dimen/app_entry_button_size_small"
+            android:layout_width="@dimen/app_entry_button_size"
+            android:layout_height="@dimen/app_entry_button_size"
             android:text="@string/glyph__profile"
             android:background="@drawable/app_entry_create_account"
             android:layout_gravity="center"
@@ -98,7 +98,7 @@
     <View
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="0.1"/>
+        android:layout_weight="0.2"/>
 
     <LinearLayout
         android:id="@+id/create_team_button"
@@ -110,13 +110,14 @@
         android:paddingBottom="@dimen/wire__padding__regular"
         android:paddingStart="@dimen/wire__padding__regular"
         android:paddingEnd="@dimen/wire__padding__regular"
+        android:layout_marginTop="@dimen/wire__padding__small"
         android:background="@drawable/app_entry_button_background"
         android:clickable="true"
         android:focusable="true">
 
         <com.waz.zclient.ui.text.GlyphTextView
-            android:layout_width="@dimen/app_entry_button_size_small"
-            android:layout_height="@dimen/app_entry_button_size_small"
+            android:layout_width="@dimen/app_entry_button_size"
+            android:layout_height="@dimen/app_entry_button_size"
             android:text="@string/glyph__manage_team"
             android:background="@drawable/app_entry_create_team"
             android:layout_gravity="center"
