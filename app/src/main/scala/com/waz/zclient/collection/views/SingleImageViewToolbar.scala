@@ -18,7 +18,6 @@
 package com.waz.zclient.collection.views
 
 import android.content.Context
-import android.support.v4.content.ContextCompat
 import android.util.AttributeSet
 import android.widget.LinearLayout
 import com.waz.model.Liking
@@ -26,10 +25,11 @@ import com.waz.service.ZMessaging
 import com.waz.threading.Threading
 import com.waz.utils.events.Signal
 import com.waz.zclient.collection.controllers.CollectionController
+import com.waz.zclient.common.views.GlyphButton
 import com.waz.zclient.messages.MessageBottomSheetDialog.MessageAction
 import com.waz.zclient.messages.controllers.MessageActionsController
+import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.utils.RichView
-import com.waz.zclient.common.views.GlyphButton
 import com.waz.zclient.{R, ViewHelper}
 
 class SingleImageViewToolbar(context: Context, attrs: AttributeSet, style: Int) extends LinearLayout(context, attrs, style) with ViewHelper {
@@ -44,11 +44,11 @@ class SingleImageViewToolbar(context: Context, attrs: AttributeSet, style: Int) 
   private lazy val messageActionsController = inject[MessageActionsController]
   private lazy val collectionController = inject[CollectionController]
 
-  private val likeButton: GlyphButton = findById(R.id.toolbar_like)
+  private val likeButton:     GlyphButton = findById(R.id.toolbar_like)
   private val downloadButton: GlyphButton = findById(R.id.toolbar_download)
-  private val shareButton: GlyphButton = findById(R.id.toolbar_share)
-  private val deleteButton: GlyphButton = findById(R.id.toolbar_delete)
-  private val viewButton: GlyphButton = findById(R.id.toolbar_view)
+  private val shareButton:    GlyphButton = findById(R.id.toolbar_share)
+  private val deleteButton:   GlyphButton = findById(R.id.toolbar_delete)
+  private val viewButton:     GlyphButton = findById(R.id.toolbar_view)
 
   val message = collectionController.focusedItem collect { case Some(msg) => msg }
 
@@ -59,7 +59,7 @@ class SingleImageViewToolbar(context: Context, attrs: AttributeSet, style: Int) 
     case None => Signal.const(false)
   }
 
-  likedBySelf.on(Threading.Ui){ updateLikeButton }
+  likedBySelf.map(if (_) R.string.glyph__liked else R.string.glyph__like).on(Threading.Ui)(likeButton.setText)
 
   messageActionsController.onDeleteConfirmed.on(Threading.Background){
     _ => collectionController.focusedItem ! None
@@ -74,7 +74,7 @@ class SingleImageViewToolbar(context: Context, attrs: AttributeSet, style: Int) 
   }
 
   Seq(likeButton, downloadButton, shareButton, deleteButton, viewButton)
-    .foreach(_.setPressedBackgroundColor(ContextCompat.getColor(getContext, R.color.light_graphite)))
+    .foreach(_.setPressedBackgroundColor(getColor(R.color.light_graphite)))
 
   likeButton.onClick( message.head.foreach(msg => messageActionsController.onMessageAction ! (MessageAction.Like, msg)))
   downloadButton.onClick( message.head.foreach(msg => messageActionsController.onMessageAction ! (MessageAction.Save, msg)))

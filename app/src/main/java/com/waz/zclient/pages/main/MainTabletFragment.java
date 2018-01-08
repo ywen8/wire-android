@@ -174,8 +174,8 @@ public class MainTabletFragment extends BaseFragment<MainTabletFragment.Containe
         getChildFragmentManager().beginTransaction()
                                  .add(R.id.fl__overlay_container,
                                       ImageFragment.newInstance(messageId),
-                                      ImageFragment.TAG())
-                                 .addToBackStack(ImageFragment.TAG())
+                                      ImageFragment.Tag())
+                                 .addToBackStack(ImageFragment.Tag())
                                  .commit();
         getControllerFactory().getNavigationController().setRightPage(Page.SINGLE_MESSAGE, TAG);
     }

@@ -194,11 +194,9 @@ object MessageBottomSheetDialog {
     case object Save extends MessageAction(R.id.message_bottom_menu_item_save, R.string.glyph__download, R.string.message_bottom_menu_action_save) {
       override def enabled(msg: MessageData, zms: ZMessaging, p: Params): Signal[Boolean] =
         msg.msgType match {
-          case ASSET if !msg.isEphemeral => Signal const true
-          case AUDIO_ASSET | VIDEO_ASSET if !msg.isEphemeral =>
-            isAssetDataReady(msg.assetId, zms)
-          case _ =>
-            Signal const false
+          case ASSET => Signal.const(zms.selfUserId == msg.userId || !msg.isEphemeral)
+          case AUDIO_ASSET | VIDEO_ASSET if zms.selfUserId == msg.userId || !msg.isEphemeral => isAssetDataReady(msg.assetId, zms)
+          case _ => Signal const false
         }
     }
 
@@ -214,7 +212,7 @@ object MessageBottomSheetDialog {
     }
 
     case object Reveal extends MessageAction(R.id.message_bottom_menu_item_reveal, R.string.glyph__view, R.string.message_bottom_menu_action_reveal) {
-      override def enabled(msg: MessageData, zms: ZMessaging, p: Params): Signal[Boolean] = Signal const p.collection
+      override def enabled(msg: MessageData, zms: ZMessaging, p: Params): Signal[Boolean] = Signal const (p.collection && !msg.isEphemeral)
     }
 
     case object Edit extends MessageAction(R.id.message_bottom_menu_item_edit, R.string.glyph__edit, R.string.message_bottom_menu_action_edit) {
