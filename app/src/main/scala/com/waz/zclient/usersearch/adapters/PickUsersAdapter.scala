@@ -22,16 +22,17 @@ import android.view.{LayoutInflater, View, ViewGroup}
 import com.waz.ZLog
 import com.waz.ZLog.ImplicitTag._
 import com.waz.ZLog.verbose
-import com.waz.api.{Contact, ContactDetails}
 import com.waz.model._
 import com.waz.threading.Threading
 import com.waz.utils.events.{EventContext, Signal}
 import com.waz.zclient._
 import com.waz.zclient.common.controllers.{IntegrationsController, SearchUserController, UserAccountsController}
+import com.waz.zclient.usersearch.ContactsController.ContactDetails
 import com.waz.zclient.usersearch.SearchResultOnItemTouchListener
 import com.waz.zclient.usersearch.adapters.PickUsersAdapter._
 import com.waz.zclient.usersearch.viewholders._
 
+import scala.collection.GenSeq
 import scala.concurrent.duration._
 
 class PickUsersAdapter(topUsersOnItemTouchListener: SearchResultOnItemTouchListener,
@@ -54,7 +55,7 @@ class PickUsersAdapter(topUsersOnItemTouchListener: SearchResultOnItemTouchListe
   private var topUsers = IndexedSeq.empty[UserData]
   private var localResults = IndexedSeq.empty[UserData]
   private var conversations = IndexedSeq.empty[ConversationData]
-  private var contacts = Seq.empty[Contact]
+  private var contacts = GenSeq.empty[ContactDetails]
   private var directoryResults = IndexedSeq.empty[UserData]
   private var integrations = IndexedSeq.empty[IntegrationData]
   private var currentUser = Option.empty[UserData]
@@ -65,6 +66,7 @@ class PickUsersAdapter(topUsersOnItemTouchListener: SearchResultOnItemTouchListe
 
   searchUserController.allDataSignal.throttle(500.millis).on(Threading.Ui) {
     case (newTopUsers, newLocalResults, newConversations, newContacts, newDirectoryResults) =>
+      ZLog.verbose(s"searchUserController.allDataSignal ${newTopUsers.map(_.size)} ${newLocalResults.map(_.size)} ${newConversations.map(_.size)} ${newContacts.size} ${newDirectoryResults.map(_.size)}")
       newTopUsers.foreach(topUsers = _)
       newLocalResults.foreach(localResults = _)
       newConversations.foreach(conversations = _)
@@ -103,8 +105,8 @@ class PickUsersAdapter(topUsersOnItemTouchListener: SearchResultOnItemTouchListe
         mergedResult = mergedResult ++ Seq(SearchResult(SectionHeader, ContactsSection, 0, teamName))
         var contactsSection = Seq[SearchResult]()
 
-        contactsSection = contactsSection ++ contacts.indices.map { i =>
-          val name = Option(contacts(i).getDetails).map(_.getDisplayName).getOrElse("")
+        contactsSection = contactsSection ++ (0 until contacts.size).map { i =>
+          val name = Option(contacts(i).contact.name).getOrElse("")
           SearchResult(AddressBookContact, ContactsSection, i, name)
         }
 

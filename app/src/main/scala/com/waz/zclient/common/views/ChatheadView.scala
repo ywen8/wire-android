@@ -25,7 +25,7 @@ import android.view.View
 import android.view.View.MeasureSpec
 import android.view.View.MeasureSpec.{EXACTLY, makeMeasureSpec}
 import com.waz.ZLog.ImplicitTag._
-import com.waz.api.{ContactDetails, User}
+import com.waz.api.User
 import com.waz.api.User.ConnectionStatus
 import com.waz.api.User.ConnectionStatus._
 import com.waz.api.impl.AccentColor
@@ -40,6 +40,7 @@ import com.waz.utils.events.{EventContext, Signal}
 import com.waz.utils.{NameParts, returning}
 import com.waz.zclient.common.controllers.UserAccountsController
 import com.waz.zclient.ui.utils.TypefaceUtils
+import com.waz.zclient.usersearch.ContactsController.ContactDetails
 import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.{Injectable, Injector, R, ViewHelper}
 
@@ -124,8 +125,6 @@ class ChatheadView(val context: Context, val attrs: AttributeSet, val defStyleAt
   }
 
   def clearUser(): Unit = ctrl.clearUser()
-
-  def setUser(user: User): Unit = ctrl.setUser(user)
 
   def setUserId(userId: UserId): Unit = ctrl.setUserId(userId)
 
@@ -277,8 +276,6 @@ protected class ChatheadController(val setSelectable:            Boolean        
 
   def clearUser(): Unit = assignInfo ! None
 
-  def setUser(user: User): Unit = Option(user).fold(throw new IllegalArgumentException("User should not be null"))(u => setUserId(UserId(u.getId)))
-
   def setUserId(userId: UserId): Unit = Option(userId).fold(throw new IllegalArgumentException("UserId should not be null"))(u => assignInfo ! Some(AssignDetails(u)))
 
   def setContactDetails(contactDetails: ContactDetails): Unit = Option(contactDetails).fold(throw new IllegalArgumentException("ContactDetails should not be null"))(c => assignInfo ! Some(AssignDetails(c)))
@@ -415,8 +412,8 @@ protected class ChatheadController(val setSelectable:            Boolean        
       val accentColor = contactBackgroundColor
       val connectionStatus = UNCONNECTED
       val teamMember = false
-      val hasBeenInvited = contactDetails.hasBeenInvited
-      val initials = contactDetails.getInitials
+      val hasBeenInvited = contactDetails.invited
+      val initials = contactDetails.contact.initials
       val knownUser = false
       val grayScale = false
       val assetId = None

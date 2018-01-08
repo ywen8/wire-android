@@ -63,8 +63,6 @@ object ContactListItemTextView {
   }
 }
 
-//TODO: the conversion from java got a bit messy due to the Contact model
-//TODO: listening to the model could be delegated to the view holder or the container view in this case
 class ContactListItemTextView(val context: Context, val attrs: AttributeSet, val defStyleAttr: Int) extends LinearLayout(context, attrs, defStyleAttr) with ViewHelper with Injectable {
   def this(context: Context, attrs: AttributeSet) = this(context, attrs, 0)
   def this(context: Context) = this(context, null)
@@ -118,11 +116,12 @@ class ContactListItemTextView(val context: Context, val attrs: AttributeSet, val
     }
   }
 
-  def setContact(contact: com.waz.api.Contact): Unit = {
-    Option(contact.getUser).fold{
-      nameView.setGravity(Gravity.START | Gravity.CENTER_VERTICAL)
-      Option(contact.getDetails).foreach(details => nameView.setText(details.getDisplayName))
-      subLabelView.setVisibility(View.GONE)
+  def setContact(contact: Contact): Unit = {
+    nameView.setGravity(Gravity.START | Gravity.CENTER_VERTICAL)
+    nameView.setText(contact.name)
+    subLabelView.setVisibility(View.GONE)
+    /*Option(contact.getUser).fold{
+
     }{ user =>
       val sublabel = getFormattedSubLabel(user.getDisplayName, user.getUsername, Option(contact.getDetails).map(_.getDisplayName).getOrElse(""), showContactDetails = true)
       if (TextUtils.isEmpty(sublabel)) {
@@ -134,7 +133,7 @@ class ContactListItemTextView(val context: Context, val attrs: AttributeSet, val
         subLabelView.setText(sublabel)
       }
       nameView.setText(user.getDisplayName)
-    }
+    }*/
   }
 
   def setIntegration(integrationData: IntegrationData): Unit = {
