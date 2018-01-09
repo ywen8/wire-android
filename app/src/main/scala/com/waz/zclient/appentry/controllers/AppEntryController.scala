@@ -117,7 +117,8 @@ class AppEntryController(implicit inj: Injector, eventContext: EventContext) ext
     ZLog.verbose(s"Current account and user: $account $user")
     (account, user) match {
       case (None, _) =>
-        NoAccountState(firstPageState)
+        InviteToTeam
+        //NoAccountState(firstPageState)
       case (Some(accountData), None) if accountData.pendingTeamName.isDefined && accountData.pendingEmail.isEmpty =>
         SetTeamEmail
       case (Some(accountData), None) if accountData.pendingTeamName.isDefined && accountData.code.isEmpty =>
@@ -392,5 +393,6 @@ object AppEntryController {
   object SetPasswordTeam         extends AppEntryStage { override val depth = 5 }
   object SetUsernameTeam         extends AppEntryStage { override val depth = 6 }
   object TeamSetPicture          extends AppEntryStage { override val depth = 6 }
+  object InviteToTeam            extends AppEntryStage { override val depth = 7 }
   case class NoAccountState(page: FirstStage) extends AppEntryStage { override val depth = page.depth }
 }

@@ -128,7 +128,7 @@ class AppEntryActivity extends BaseActivity
         onShowFirstLaunchPage()
       case NoAccountState(LoginScreen) =>
         onShowSignInPage()
-      case NoAccountState(_) | SetTeamEmail | VerifyTeamEmail | SetUsersNameTeam | SetPasswordTeam | SetUsernameTeam =>
+      case NoAccountState(_) | SetTeamEmail | VerifyTeamEmail | SetUsersNameTeam | SetPasswordTeam | SetUsernameTeam | InviteToTeam =>
         onShowCreateTeamFragment()
       case DeviceLimitStage =>
         onEnterApplication(false)
@@ -281,6 +281,10 @@ class AppEntryActivity extends BaseActivity
   def onShowPhoneNamePage(): Unit = {
     showFragment(PhoneSetNameFragment.newInstance, PhoneSetNameFragment.TAG)
     getControllerFactory.getNavigationController.setLeftPage(Page.PHONE_REGISTRATION_ADD_NAME, AppEntryActivity.TAG)
+  }
+
+  def onShowTeamInvitesPage(): Unit = {
+
   }
 
   def onEnterApplication(openSettings: Boolean): Unit = {

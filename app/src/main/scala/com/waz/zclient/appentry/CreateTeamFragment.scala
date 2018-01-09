@@ -58,6 +58,7 @@ class CreateTeamFragment extends BaseFragment[Container] with FragmentHelper wit
         case SetUsersNameTeam => SetNameViewHolder(inflator.inflate(R.layout.set_name_scene, null, false))(getContext, this, injector)
         case SetPasswordTeam => SetPasswordViewHolder(inflator.inflate(R.layout.set_password_scene, null, false))(getContext, this, injector)
         case SetUsernameTeam => SetUsernameViewHolder(inflator.inflate(R.layout.set_username_scene, null, false))(getContext, this, injector)
+        case InviteToTeam => InviteToTeamViewHolder(inflator.inflate(R.layout.invite_team_scene, null, false))(getContext, this, injector)
         case _ => EmptyViewHolder(new View(getContext))(getContext, this, injector)
       }
 
@@ -118,7 +119,7 @@ class CreateTeamFragment extends BaseFragment[Container] with FragmentHelper wit
             .setDuration(ContextUtils.getInt(R.integer.wire__animation__delay__short))
         } else {
           v.animate()
-            .translationY(screenHeight / 2 - v.getHeight / 2)
+            .translationY(if (screenHeight > v.getHeight) screenHeight / 2 - v.getHeight / 2 else screenHeight - v.getHeight)
             .setDuration(ContextUtils.getInt(R.integer.wire__animation__delay__short))
         }
       }

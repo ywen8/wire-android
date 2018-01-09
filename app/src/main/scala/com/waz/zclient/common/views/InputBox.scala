@@ -43,6 +43,8 @@ class InputBox(context: Context, attrs: AttributeSet, style: Int) extends Linear
   private val attributesArray: TypedArray =
     context.getTheme.obtainStyledAttributes(attrs, R.styleable.InputBox, 0, 0)
   private val hintAttr = Option(attributesArray.getString(R.styleable.InputBox_hint))
+  private var shouldDisableOnClick = true
+  private var removeTextOnClick = false
 
   val editText = findById[CursorEditText](R.id.edit_text)
   val hintText = findById[TypefaceTextView](R.id.hint_text)
@@ -82,7 +84,7 @@ class InputBox(context: Context, attrs: AttributeSet, style: Int) extends Linear
   confirmationButton.onClick {
     hideErrorMessage()
     progressBar.setVisible(true)
-    editText.setEnabled(false)
+    if (shouldDisableOnClick) editText.setEnabled(false)
     confirmationButton.setEnabled(false)
     val content =
       if (validator.forall(_.shouldTrim))
@@ -93,8 +95,12 @@ class InputBox(context: Context, attrs: AttributeSet, style: Int) extends Linear
     onClick(content).map { errorMessage =>
       errorMessage.foreach(t => showErrorMessage(Some(t)))
       progressBar.setVisible(false)
-      editText.setEnabled(true)
+      if (shouldDisableOnClick) editText.setEnabled(true)
       confirmationButton.setEnabled(true)
+      if(errorMessage.isEmpty && removeTextOnClick) {
+        editText.setText("")
+        validate("")
+      }
     } (Threading.Ui)
   }
 
@@ -124,6 +130,10 @@ class InputBox(context: Context, attrs: AttributeSet, style: Int) extends Linear
   }
 
   def setOnClick(f: (String) => Future[Option[String]]): Unit = onClick = f
+
+  def setShouldDisableOnClick(should: Boolean): Unit = shouldDisableOnClick = should
+
+  def setShouldClearTextOnClick(should: Boolean): Unit = removeTextOnClick = should
 }
 
 object InputBox {
