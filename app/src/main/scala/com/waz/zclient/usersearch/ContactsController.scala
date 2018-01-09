@@ -35,6 +35,15 @@ class ContactsController()(implicit injector: Injector, ec: EventContext) extend
 
   private val zms = inject[Signal[ZMessaging]]
 
+  def contacts(filter: String): Signal[GenSeq[ContactDetails]] = for {
+    zms <- zms
+    invited <- zms.invitations.invitedContacts
+    contacts <- zms.contacts.unifiedContacts()
+    onWire <- zms.contacts.contactsOnWire
+  } yield contacts.contacts.values.toSeq.map(c => ContactDetails(c, invited = invited.contains(c.id)))
+    .filterNot(c => onWire.containsRight(c.contact.id))
+    .filter(c => filter.isEmpty || c.contact.name.toLowerCase.contains(filter.toLowerCase))//TODO: proper filter
+
   val contacts: Signal[GenSeq[ContactDetails]] = for {
     zms <- zms
     invited <- zms.invitations.invitedContacts
