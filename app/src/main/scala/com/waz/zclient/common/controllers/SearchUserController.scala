@@ -80,13 +80,15 @@ class SearchUserController(initialState: SearchState)(implicit injector: Injecto
     excludedUsers                         <- excludedUsers
     SearchResults(top, local, convs, dir) <- z.userSearch.search(searchState, excludedUsers)
     contacts                              <- if (searchState.shouldShowAbContacts(z.teamId.isDefined))
-                                             contactsController.contacts.orElse(Signal.const(GenSeq.empty[ContactDetails]))
+                                             contactsController.contacts(searchState.filter).orElse(Signal.const(GenSeq.empty[ContactDetails]))
                                              else Signal(GenSeq.empty[ContactDetails])
   } yield (top, local.map(lr => moveToFront(lr, searchState)), convs, contacts, dir.map(dr => moveToFront(dr, searchState)))
 
   private def moveToFront(results: IndexedSeq[UserData], searchState: SearchState): IndexedSeq[UserData] = {
     val predicate: (UserData) => Int =
-      if (searchState.isHandle)
+      if (searchState.empty)
+        (_: UserData) => 0
+      else if (searchState.isHandle)
         (u: UserData) => if (u.handle.exists(_.exactMatchQuery(searchState.filter))) 0 else 1
       else (u: UserData) => {
         val userName = toLower(u.getDisplayName)
