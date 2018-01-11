@@ -276,7 +276,7 @@ class NormalConversationFragment extends ConversationListFragment {
       conversationListView.animate().alpha(1f).setDuration(500)
       listActionsView.animate().alpha(1f).setDuration(500)
       loadingListView.animate().alpha(0f).setDuration(500).withEndAction(new Runnable {
-        override def run() = loadingListView.setVisibility(GONE)
+        override def run() = loadingListView.view.foreach(_.setVisibility(GONE))
       })
     }
     topToolbar.setLoading(false)
