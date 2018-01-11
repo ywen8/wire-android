@@ -22,23 +22,27 @@ import android.support.v7.widget.RecyclerView.AdapterDataObserver
 import android.support.v7.widget.{LinearLayoutManager, RecyclerView}
 import android.text.InputType
 import android.view.View
+import android.view.View.OnLayoutChangeListener
 import com.waz.ZLog
 import com.waz.model.EmailAddress
 import com.waz.threading.Threading
 import com.waz.utils.events.EventContext
 import com.waz.utils.returning
-import com.waz.zclient.appentry.InvitesAdapter
+import com.waz.zclient.appentry.{AppEntryActivity, InvitesAdapter}
 import com.waz.zclient.appentry.controllers.InvitationsController
 import com.waz.zclient.common.views.InputBox
+import com.waz.zclient.ui.text.TypefaceTextView
 import com.waz.zclient.{Injectable, Injector, R}
+import com.waz.zclient.utils.RichView
 
 case class InviteToTeamViewHolder(root: View)(implicit val context: Context, eventContext: EventContext, injector: Injector) extends ViewHolder with Injectable {
 
   private lazy val invitesController = inject[InvitationsController]
 
-  lazy val adapter = new InvitesAdapter()
-  lazy val inputField = root.findViewById[InputBox](R.id.input_field)
-  lazy val sentInvitesList = root.findViewById[RecyclerView](R.id.sent_invites_list)
+  private lazy val adapter = new InvitesAdapter()
+  private lazy val inputField = root.findViewById[InputBox](R.id.input_field)
+  private lazy val sentInvitesList = root.findViewById[RecyclerView](R.id.sent_invites_list)
+  private lazy val addressBookButton = root.findViewById[TypefaceTextView](R.id.address_book_button)
 
   override def onCreate(): Unit = {
 
@@ -46,10 +50,12 @@ case class InviteToTeamViewHolder(root: View)(implicit val context: Context, eve
     sentInvitesList.setAdapter(adapter)
     sentInvitesList.setLayoutManager(layoutManager)
     adapter.registerAdapterDataObserver(new AdapterDataObserver {
-      override def onChanged(): Unit = {
-        //layoutManager.scrollToPosition(adapter.getItemCount - 1)
-        sentInvitesList.smoothScrollToPosition(adapter.getItemCount - 1)
-      }
+      override def onChanged(): Unit = layoutManager.scrollToPosition(adapter.getItemCount - 1)
+    })
+
+    sentInvitesList.addOnLayoutChangeListener(new OnLayoutChangeListener {
+      override def onLayoutChange(v: View, l: Int, t: Int, r: Int, b: Int, ol: Int, ot: Int, or: Int, ob: Int): Unit =
+        layoutManager.scrollToPosition(adapter.getItemCount - 1)
     })
 
     inputField.setShouldDisableOnClick(false)
@@ -63,6 +69,12 @@ case class InviteToTeamViewHolder(root: View)(implicit val context: Context, eve
         case Left(e) => Some(e.message)
         case _ => None
       } (Threading.Ui)
+    }
+
+    addressBookButton.setVisibility(View.INVISIBLE)
+    addressBookButton.onClick {
+      //TODO: ugly...
+      //context.asInstanceOf[AppEntryActivity].openAddressBook()
     }
   }
 }

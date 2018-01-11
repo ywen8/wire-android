@@ -20,24 +20,40 @@ package com.waz.zclient.appentry.controllers
 import android.content.Context
 import com.waz.api.impl.ErrorResponse
 import com.waz.model.EmailAddress
-import com.waz.utils.events.{EventContext, Signal, SourceSignal}
+import com.waz.service.ZMessaging
+import com.waz.sync.client.InvitationClient.ConfirmedTeamInvitation
+import com.waz.threading.CancellableFuture
+import com.waz.utils.events.{EventContext, Signal}
 import com.waz.zclient.appentry.controllers.InvitationsController._
 import com.waz.zclient.{Injectable, Injector}
 
-import scala.collection.immutable.ListMap
 import scala.concurrent.Future
 
 class InvitationsController(implicit inj: Injector, eventContext: EventContext, context: Context) extends Injectable {
 
-  //TODO: temporary
-  val invitations: SourceSignal[ListMap[EmailAddress, InvitationStatus]] = Signal(ListMap.empty[EmailAddress, InvitationStatus])
+  private val zms = inject[Signal[ZMessaging]]
 
+  val invitations = zms.flatMap(_.invitations.invitedToTeam).map(_.map {
+    case (inv, response) => inv.emailAddress -> InvitationStatus(response)
+  })
 
   def sendInvite(email: EmailAddress): Future[Either[ErrorResponse, Unit]] = {
-      if (invitations.mutate(_ + (email -> Sent)))
-        Future.successful(Right({}))
-      else
-        Future.successful(Left(ErrorResponse.internalError("Already sent")))
+    import com.waz.threading.Threading.Implicits.Background
+    for {
+      zms <- zms.head
+      account <- zms.accounts.getActiveAccount
+      alreadySent <- invitations.head
+      response <- if (alreadySent.keySet.contains(email))
+          CancellableFuture.successful(Left(ErrorResponse.internalError("Already sent")))
+        else
+          zms.invitations.inviteToTeam(email, account.flatMap(_.name))
+    } yield
+      response match {
+        case Left(e) =>
+          Left(ErrorResponse.internalError(e.message)) //TODO: other error messages
+        case Right(_) =>
+          Right(())
+      }
   }
 
   def inviteStatus(email: EmailAddress): Signal[InvitationStatus] = invitations.map(_.applyOrElse(email, (_: EmailAddress) => Failed))
@@ -50,4 +66,14 @@ object InvitationsController {
   object Sent extends InvitationStatus
   object Failed extends InvitationStatus
   object Accepted extends InvitationStatus
+
+  object InvitationStatus {
+    def apply(response: Option[Either[ErrorResponse, ConfirmedTeamInvitation]]): InvitationStatus = {
+      response match {
+        case Some(Left(_)) => Failed
+        case Some(Right(_)) => Sent
+        case None => Sending
+      }
+    }
+  }
 }

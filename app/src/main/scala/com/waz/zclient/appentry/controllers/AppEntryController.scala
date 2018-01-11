@@ -117,8 +117,7 @@ class AppEntryController(implicit inj: Injector, eventContext: EventContext) ext
     ZLog.verbose(s"Current account and user: $account $user")
     (account, user) match {
       case (None, _) =>
-        InviteToTeam
-        //NoAccountState(firstPageState)
+        NoAccountState(firstPageState)
       case (Some(accountData), None) if accountData.pendingTeamName.isDefined && accountData.pendingEmail.isEmpty =>
         SetTeamEmail
       case (Some(accountData), None) if accountData.pendingTeamName.isDefined && accountData.code.isEmpty =>
@@ -150,7 +149,8 @@ class AppEntryController(implicit inj: Injector, eventContext: EventContext) ext
       case (Some(accountData), Some(userData)) if accountData.firstLogin && accountData.clientRegState == ClientRegistrationState.REGISTERED =>
         FirstEnterAppStage
       case (Some(accountData), Some(userData)) if accountData.clientRegState == ClientRegistrationState.REGISTERED =>
-        EnterAppStage
+        InviteToTeam
+        //EnterAppStage
       case _ =>
         NoAccountState(firstPageState)
     }
