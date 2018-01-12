@@ -23,6 +23,7 @@ import com.waz.api.impl.ErrorResponse
 import com.waz.api.{ClientRegistrationState, ImageAsset, KindOfAccess}
 import com.waz.client.RegistrationClientImpl.ActivateResult
 import com.waz.client.RegistrationClientImpl.ActivateResult.{Failure, PasswordExists}
+import com.waz.content.UserPreferences
 import com.waz.model._
 import com.waz.service.ZMessaging
 import com.waz.service.tracking.TrackingService
@@ -39,7 +40,7 @@ import com.waz.zclient.tracking.{AddPhotoOnRegistrationEvent, GlobalTrackingCont
 import com.waz.zclient.{Injectable, Injector}
 
 import scala.concurrent.Future
-import scala.util.Random
+import com.waz.utils._
 
 class AppEntryController(implicit inj: Injector, eventContext: EventContext) extends Injectable {
 
@@ -90,7 +91,9 @@ class AppEntryController(implicit inj: Injector, eventContext: EventContext) ext
     account <- currentAccount
     user <- currentUser.orElse(Signal.const(None))
     firstPageState <- firstStage
-    state <- Signal.const(stateForAccountAndUser(account, user, firstPageState)).collect{ case s if s != Waiting => s }
+    optZms <- optZms
+    creatingTeam <- optZms.fold2(Signal.const(false), _.userPrefs.preference(UserPreferences.CreatingTeam).signal)
+    state <- Signal.const(stateForAccountAndUser(account, user, firstPageState, creatingTeam)).collect{ case s if s != Waiting => s }
   } yield state
 
   val autoConnectInvite = for {
@@ -113,7 +116,7 @@ class AppEntryController(implicit inj: Injector, eventContext: EventContext) ext
     case false =>
   }
 
-  def stateForAccountAndUser(account: Option[AccountData], user: Option[UserData], firstPageState: FirstStage): AppEntryStage = {
+  def stateForAccountAndUser(account: Option[AccountData], user: Option[UserData], firstPageState: FirstStage, creatingTeam: Boolean): AppEntryStage = {
     ZLog.verbose(s"Current account and user: $account $user")
     (account, user) match {
       case (None, _) =>
@@ -146,11 +149,12 @@ class AppEntryController(implicit inj: Injector, eventContext: EventContext) ext
         AddPictureStage
       case (Some(accountData), Some(userData)) if userData.handle.isEmpty && !(accountData.pendingTeamName.isDefined || accountData.teamId.fold(_ => false, _.isDefined)) =>
         AddHandleStage
+      case (Some(_), Some(_)) if creatingTeam =>
+        InviteToTeam
       case (Some(accountData), Some(userData)) if accountData.firstLogin && accountData.clientRegState == ClientRegistrationState.REGISTERED =>
         FirstEnterAppStage
       case (Some(accountData), Some(userData)) if accountData.clientRegState == ClientRegistrationState.REGISTERED =>
-        InviteToTeam
-        //EnterAppStage
+        EnterAppStage
       case _ =>
         NoAccountState(firstPageState)
     }
@@ -359,6 +363,8 @@ class AppEntryController(implicit inj: Injector, eventContext: EventContext) ext
       .flatMap(_.updateHandle(Handle(username)))
 
   var termsOfUseAB: Boolean = true //Random.nextBoolean()
+
+  def skipInvitations(): Unit = optZms.head.flatMap(_.fold2(Future.successful(()), _.userPrefs.preference(UserPreferences.CreatingTeam) := false))
 
 }
 

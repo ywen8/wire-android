@@ -26,14 +26,13 @@ import android.widget.CompoundButton
 import com.waz.ZLog
 import com.waz.model.EmailAddress
 import com.waz.utils.events._
-import com.waz.zclient.appentry.controllers.InvitationsController
+import com.waz.zclient.appentry.controllers.{ContactsController, InvitationsController}
 import com.waz.zclient.appentry.fragments.AddressBookAdapter.EmailViewHolder
 import com.waz.zclient.appentry.fragments.AddressBookPickDialog._
 import com.waz.zclient.appentry.fragments.CountryDialogFragment.Container
 import com.waz.zclient.common.views.{PickableElement, PickerSpannableEditText}
 import com.waz.zclient.pages.BaseDialogFragment
 import com.waz.zclient.ui.text.TypefaceTextView
-import com.waz.zclient.usersearch.ContactsController
 import com.waz.zclient.usersearch.views.SearchEditText
 import com.waz.zclient.{FragmentHelper, R}
 
@@ -52,8 +51,8 @@ class AddressBookPickDialog extends BaseDialogFragment[Container] with FragmentH
     contacts <- contactsController.contacts
     filter <- filter.map(_.toLowerCase)
   } yield contacts
-      .filter(c => c.contact.emailAddresses.nonEmpty && !c.contact.emailAddresses.exists(e => invitations.keySet.contains(e)))
-      .flatMap(c => c.contact.emailAddresses.map(e => Entry(c.contact.name, e)))
+      .filter(c => c.emailAddresses.nonEmpty && !c.emailAddresses.exists(e => invitations.keySet.contains(e)))
+      .flatMap(c => c.emailAddresses.map(e => Entry(c.name, e)))
       .filter(e => e.name.toLowerCase.contains(filter) || e.email.str.toLowerCase.contains(filter))
 
   override def onCreateDialog(savedInstanceState: Bundle): Dialog = {

@@ -91,7 +91,7 @@ class CreateTeamFragment extends BaseFragment[Container] with FragmentHelper wit
     }
 
     ZMessaging.currentAccounts.loggedInAccounts.map(_.nonEmpty).zip(appEntryController.entryStage).onUi {
-      case (true, state) if state != SetUsernameTeam && state != TeamSetPicture && state != InviteToTeam =>
+      case (true, state) if Set(SetUsernameTeam, TeamSetPicture, InviteToTeam, EnterAppStage).contains(state) =>
         closeButton.setVisibility(View.VISIBLE)
         skipButton.setVisibility(View.GONE)
       case (_, InviteToTeam) =>
@@ -107,7 +107,7 @@ class CreateTeamFragment extends BaseFragment[Container] with FragmentHelper wit
     }
 
     skipButton.onClick {
-
+      appEntryController.skipInvitations()
     }
   }
 
