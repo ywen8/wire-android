@@ -62,6 +62,7 @@ case class InviteToTeamViewHolder(root: View)(implicit val context: Context, eve
     inputField.setShouldClearTextOnClick(true)
     inputField.setValidator(InputBox.EmailValidator)
     inputField.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS | InputType.TYPE_TEXT_FLAG_AUTO_COMPLETE | InputType.TYPE_TEXT_FLAG_AUTO_CORRECT)
+    inputField.setButtonGlyph(R.string.glyph__send)
 
     inputField.setOnClick { text =>
       val email = EmailAddress(text)
@@ -73,7 +74,6 @@ case class InviteToTeamViewHolder(root: View)(implicit val context: Context, eve
 
     addressBookButton.setVisibility(View.INVISIBLE)
     addressBookButton.onClick {
-      //TODO: ugly...
       //context.asInstanceOf[AppEntryActivity].openAddressBook()
     }
   }

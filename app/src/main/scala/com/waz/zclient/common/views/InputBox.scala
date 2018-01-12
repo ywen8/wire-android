@@ -134,6 +134,9 @@ class InputBox(context: Context, attrs: AttributeSet, style: Int) extends Linear
   def setShouldDisableOnClick(should: Boolean): Unit = shouldDisableOnClick = should
 
   def setShouldClearTextOnClick(should: Boolean): Unit = removeTextOnClick = should
+
+  def setButtonGlyph(glyph: Int): Unit =
+    confirmationButton.setText(glyph)
 }
 
 object InputBox {

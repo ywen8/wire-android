@@ -32,6 +32,7 @@ import com.waz.zclient.ui.text.GlyphTextView
 import com.waz.zclient.ui.utils.KeyboardUtils
 import com.waz.zclient.utils.{ContextUtils, DefaultTransition}
 import com.waz.zclient.{FragmentHelper, OnBackPressedListener, R}
+import com.waz.zclient.utils.RichView
 
 class CreateTeamFragment extends BaseFragment[Container] with FragmentHelper with OnBackPressedListener {
 
@@ -47,6 +48,7 @@ class CreateTeamFragment extends BaseFragment[Container] with FragmentHelper wit
 
     val container = findById[FrameLayout](R.id.container)
     val closeButton = findById[GlyphTextView](R.id.close_button)
+    val skipButton = findById[GlyphTextView](R.id.skip_button)
 
     appEntryController.entryStage.onUi { state =>
       val inflator = LayoutInflater.from(getActivity)
@@ -89,13 +91,24 @@ class CreateTeamFragment extends BaseFragment[Container] with FragmentHelper wit
     }
 
     ZMessaging.currentAccounts.loggedInAccounts.map(_.nonEmpty).zip(appEntryController.entryStage).onUi {
-      case (true, state) if state != SetUsernameTeam && state != TeamSetPicture => closeButton.setVisibility(View.VISIBLE)
-      case _ => closeButton.setVisibility(View.GONE)
+      case (true, state) if state != SetUsernameTeam && state != TeamSetPicture && state != InviteToTeam =>
+        closeButton.setVisibility(View.VISIBLE)
+        skipButton.setVisibility(View.GONE)
+      case (_, InviteToTeam) =>
+        closeButton.setVisibility(View.GONE)
+        skipButton.setVisibility(View.VISIBLE)
+      case _ =>
+        closeButton.setVisibility(View.GONE)
+        skipButton.setVisibility(View.GONE)
     }
 
-    closeButton.setOnClickListener(new OnClickListener {
-      override def onClick(v: View): Unit = getContainer.abortAddAccount()
-    })
+    closeButton.onClick {
+      getContainer.abortAddAccount()
+    }
+
+    skipButton.onClick {
+
+    }
   }
 
   def setKeyboardAnimation(view: ViewGroup): Unit = {
