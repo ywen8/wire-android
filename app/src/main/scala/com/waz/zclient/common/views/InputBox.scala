@@ -28,6 +28,7 @@ import com.waz.threading.Threading
 import com.waz.zclient.common.views.InputBox._
 import com.waz.zclient.ui.cursor.CursorEditText
 import com.waz.zclient.ui.text.TypefaceTextView
+import com.waz.zclient.ui.utils.TextViewUtils
 import com.waz.zclient.utils._
 import com.waz.zclient.{R, ViewHelper}
 
@@ -55,6 +56,7 @@ class InputBox(context: Context, attrs: AttributeSet, style: Int) extends Linear
 
   private var validator = Option.empty[Validator]
   private var onClick = (_: String) => Future.successful(Option.empty[String])
+  private var linkifyError = Option.empty[() => Unit]
 
   confirmationButton.setBackgroundColors(ContextUtils.getColor(R.color.accent_blue), ContextUtils.getColor(R.color.teams_inactive_button))
   hintAttr.foreach(hintText.setText)
@@ -112,6 +114,11 @@ class InputBox(context: Context, attrs: AttributeSet, style: Int) extends Linear
 
   def showErrorMessage(text: Option[String] = None): Unit = {
     text.map(_.toUpperCase).foreach(errorText.setText)
+    linkifyError.foreach { errorCallback =>
+      TextViewUtils.linkifyText(errorText, errorText.getCurrentTextColor, true, false, new Runnable() {
+        override def run() = errorCallback()
+      })
+    }
     errorText.setVisible(true)
   }
 
@@ -137,6 +144,9 @@ class InputBox(context: Context, attrs: AttributeSet, style: Int) extends Linear
 
   def setButtonGlyph(glyph: Int): Unit =
     confirmationButton.setText(glyph)
+
+  def setErrorMessageCallback(callback: Option[() => Unit]): Unit =
+    linkifyError = callback
 }
 
 object InputBox {

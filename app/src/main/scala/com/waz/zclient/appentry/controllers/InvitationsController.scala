@@ -51,10 +51,8 @@ class InvitationsController(implicit inj: Injector, eventContext: EventContext, 
           zms.invitations.inviteToTeam(email, account.flatMap(_.name))
     } yield
       response match {
-        case Left(e) =>
-          Left(ErrorResponse.internalError(e.message)) //TODO: other error messages
-        case Right(_) =>
-          Right(())
+        case Left(e) => Left(e)
+        case Right(_) => Right(())
       }
   }
 

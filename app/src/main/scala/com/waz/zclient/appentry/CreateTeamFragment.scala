@@ -20,7 +20,7 @@ package com.waz.zclient.appentry
 import android.os.Bundle
 import android.view.View.{OnClickListener, OnLayoutChangeListener}
 import android.view.{LayoutInflater, View, ViewGroup}
-import android.widget.FrameLayout
+import android.widget.{FrameLayout, RelativeLayout}
 import com.waz.ZLog.ImplicitTag.implicitLogTag
 import com.waz.service.ZMessaging
 import com.waz.zclient.appentry.CreateTeamFragment._
@@ -50,6 +50,7 @@ class CreateTeamFragment extends BaseFragment[Container] with FragmentHelper wit
     val container = findById[FrameLayout](R.id.container)
     val closeButton = findById[GlyphTextView](R.id.close_button)
     val skipButton = findById[TypefaceTextView](R.id.skip_button)
+    val toolbar = findById[FrameLayout](R.id.teams_toolbar)
 
     appEntryController.entryStage.onUi { state =>
       val inflator = LayoutInflater.from(getActivity)
@@ -93,14 +94,17 @@ class CreateTeamFragment extends BaseFragment[Container] with FragmentHelper wit
 
     ZMessaging.currentAccounts.loggedInAccounts.map(_.nonEmpty).zip(appEntryController.entryStage).onUi {
       case (true, state) if !Set(SetUsernameTeam, TeamSetPicture, InviteToTeam, EnterAppStage).contains(state) =>
-        closeButton.setVisibility(View.VISIBLE)
-        skipButton.setVisibility(View.GONE)
+        closeButton.setVisible(true)
+        skipButton.setVisible(false)
+        toolbar.setVisible(false)
       case (_, InviteToTeam) =>
-        closeButton.setVisibility(View.GONE)
-        skipButton.setVisibility(View.VISIBLE)
+        closeButton.setVisible(false)
+        skipButton.setVisible(true)
+        toolbar.setVisible(true)
       case _ =>
-        closeButton.setVisibility(View.GONE)
-        skipButton.setVisibility(View.GONE)
+        closeButton.setVisible(false)
+        skipButton.setVisible(false)
+        toolbar.setVisible(false)
     }
 
     closeButton.onClick {

@@ -1276,10 +1276,12 @@
     <string name="teams_invitations_skip">SKIP</string>
     <string name="teams_invitations_done">DONE</string>
 
-    <string name="teams_invitations_error_too_many">Too many team invitations for this team.</string>
+    <string name="teams_invitations_error_too_many">The maximum number of invitations has been sent</string>
     <string name="teams_invitations_error_blacklisted_email">The given e-mail address has been blacklisted due to a permanent bounce or a complaint.</string>
-    <string name="teams_invitations_error_invalid_email">Invalid e-mail address.</string>
     <string name="teams_invitations_error_no_identity">The user has no verified identity (email or phone number).</string>
     <string name="teams_invitations_error_no_email">This operation requires the user to have a verified email address.</string>
-    <string name="teams_invitations_error_email_exists">The given e-mail address is in use.</string>
+    <string name="teams_invitations_error_generic">Something went wrong, please try again</string>
+
+    <string name="teams_invitations_error_invalid_email">PLEASE ENTER A VALID EMAIL ADDRESS</string>
+    <string name="teams_invitations_error_email_exists">THIS EMAIL ADDRESS IS ALREADY IN USE. _LEARN MORE_</string>
 </resources>

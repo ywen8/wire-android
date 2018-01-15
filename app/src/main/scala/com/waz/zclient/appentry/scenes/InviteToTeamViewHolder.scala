@@ -30,8 +30,10 @@ import com.waz.model.EmailAddress
 import com.waz.threading.Threading
 import com.waz.utils.events.EventContext
 import com.waz.utils.returning
+import com.waz.utils.wrappers.AndroidURIUtil
 import com.waz.zclient.appentry.{AppEntryActivity, InvitesAdapter}
 import com.waz.zclient.appentry.controllers.InvitationsController
+import com.waz.zclient.common.controllers.BrowserController
 import com.waz.zclient.common.views.InputBox
 import com.waz.zclient.ui.text.TypefaceTextView
 import com.waz.zclient.{Injectable, Injector, R}
@@ -40,6 +42,7 @@ import com.waz.zclient.utils.{RichTextView, RichView}
 case class InviteToTeamViewHolder(root: View)(implicit val context: Context, eventContext: EventContext, injector: Injector) extends ViewHolder with Injectable {
 
   private lazy val invitesController = inject[InvitationsController]
+  private lazy val browser = inject[BrowserController]
 
   private lazy val adapter = new InvitesAdapter()
   private lazy val inputField = root.findViewById[InputBox](R.id.input_field)
@@ -67,17 +70,15 @@ case class InviteToTeamViewHolder(root: View)(implicit val context: Context, eve
     inputField.setButtonGlyph(R.string.glyph__send)
     inputField.editText.setText(invitesController.inputEmail)
     inputField.editText.addTextListener(invitesController.inputEmail = _)
+    inputField.setErrorMessageCallback(Some(() => browser.openUrl(AndroidURIUtil.parse(context.getString(R.string.invalid_email_help)))))
 
     inputField.setOnClick { text =>
       val email = EmailAddress(text)
       invitesController.sendInvite(email).map {
-        case Left(ErrorResponse(Forbidden, "too-many-team-invitations", _)) => Some(context.getString(R.string.teams_invitations_error_too_many))
-        case Left(ErrorResponse(Forbidden, "blacklisted-email", _)) => Some(context.getString(R.string.teams_invitations_error_blacklisted_email))
-        case Left(ErrorResponse(400, "invalid-email", _)) => Some(context.getString(R.string.teams_invitations_error_invalid_email))
-        case Left(ErrorResponse(Forbidden, "no-identity", _)) => Some(context.getString(R.string.teams_invitations_error_no_identity))
-        case Left(ErrorResponse(Forbidden, "no-email", _)) => Some(context.getString(R.string.teams_invitations_error_no_email))
-        case Left(ErrorResponse(409, "email-exists", _)) => Some(context.getString(R.string.teams_invitations_error_email_exists))
-        case Left(e) => Some(e.message)
+        case Left(ErrorResponse(Forbidden, _, "too-many-team-invitations")) => Some(context.getString(R.string.teams_invitations_error_too_many))
+        case Left(ErrorResponse(400, _, "invalid-email")) => Some(context.getString(R.string.teams_invitations_error_invalid_email))
+        case Left(ErrorResponse(409, _, "email-exists")) => Some(context.getString(R.string.teams_invitations_error_email_exists))
+        case Left(_) => Some(context.getString(R.string.teams_invitations_error_generic))
         case _ => None
       } (Threading.Ui)
     }
