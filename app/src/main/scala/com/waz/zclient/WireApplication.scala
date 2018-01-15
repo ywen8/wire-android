@@ -169,6 +169,7 @@ object WireApplication {
     bind [BrowserController]         to new BrowserController()
     bind [MessageViewFactory]        to new MessageViewFactory()
     bind [UsersController]           to new UsersController()
+    bind [IntegrationsController]    to new IntegrationsController()
     bind [ScreenController]          to new ScreenController()
     bind [MessageActionsController]  to new MessageActionsController()
     bind [MessagesController]        to new MessagesController()

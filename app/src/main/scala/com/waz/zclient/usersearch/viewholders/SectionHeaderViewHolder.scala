@@ -36,6 +36,7 @@ class SectionHeaderViewHolder(val view: View) extends RecyclerView.ViewHolder(vi
       case GroupConversationsSection                      => getString(R.string.people_picker__search_result_team_conversations_header_title, teamName)
       case ContactsSection                                => getString(R.string.people_picker__search_result_connections_header_title)
       case DirectorySection                               => getString(R.string.people_picker__search_result_others_header_title)
+      case IntegrationsSection                            => getString(R.string.integrations_picker__section_title)
     }
     sectionHeaderView.setText(title)
   }
