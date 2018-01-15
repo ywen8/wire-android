@@ -24,18 +24,22 @@ import com.waz.ZLog.ImplicitTag._
 import com.waz.api.{Contact, ContactDetails, User}
 import com.waz.model._
 import com.waz.threading.Threading
-import com.waz.utils.events.EventContext
+import com.waz.utils.events.{EventContext, Signal}
 import com.waz.zclient._
-import com.waz.zclient.common.controllers.{SearchUserController, UserAccountsController}
+import com.waz.zclient.common.controllers.{IntegrationsController, SearchUserController, UserAccountsController}
 import com.waz.zclient.usersearch.SearchResultOnItemTouchListener
 import com.waz.zclient.usersearch.viewholders._
 import com.waz.zclient.usersearch.views.ContactRowView
 import PickUsersAdapter._
+
 import scala.concurrent.duration._
+import com.waz.ZLog.verbose
+import com.waz.ZLog.ImplicitTag._
 
 class PickUsersAdapter(topUsersOnItemTouchListener: SearchResultOnItemTouchListener,
                        adapterCallback: PickUsersAdapter.Callback,
                        searchUserController: SearchUserController,
+                       integrationsController: IntegrationsController,
                        darkTheme: Boolean)
                       (implicit injector: Injector) extends RecyclerView.Adapter[RecyclerView.ViewHolder] with Injectable {
 
@@ -60,7 +64,12 @@ class PickUsersAdapter(topUsersOnItemTouchListener: SearchResultOnItemTouchListe
   private var conversations = IndexedSeq.empty[ConversationData]
   private var contacts = Seq.empty[Contact]
   private var directoryResults = IndexedSeq.empty[UserData]
+  private var integrations = IndexedSeq.empty[IntegrationData]
   private var currentUser = Option.empty[UserData]
+
+  val peopleOrServices = Signal[Boolean]()
+
+  peopleOrServices.on(Threading.Ui) { _ => updateMergedResults() }
 
   searchUserController.allDataSignal.throttle(500.millis).on(Threading.Ui) {
     case (newTopUsers, newLocalResults, newConversations, newContacts, newDirectoryResults) =>
@@ -70,6 +79,14 @@ class PickUsersAdapter(topUsersOnItemTouchListener: SearchResultOnItemTouchListe
       contacts = newContacts
       newDirectoryResults.foreach(directoryResults = _)
       updateMergedResults()
+  }
+
+  integrationsController.searchIntegrations.throttle(500.millis).on(Threading.Ui) {
+    case Some(newIntegrations) =>
+      verbose(s"IN we're having some new integrations! ${newIntegrations.map(_.name)}")
+      integrations = newIntegrations
+      updateMergedResults()
+    case _ =>
   }
 
   userAccountsController.currentUser.on(Threading.Ui){ user =>
@@ -138,17 +155,32 @@ class PickUsersAdapter(topUsersOnItemTouchListener: SearchResultOnItemTouchListe
       }
     }
 
+    def addIntegrations(): Unit = {
+      if (integrations.nonEmpty) {
+        verbose(s"IN adding integrations: ${integrations.map(_.name)}")
+        mergedResult = mergedResult ++ Seq(SearchResult(SectionHeader, IntegrationsSection, 0))
+        mergedResult = mergedResult ++ integrations.indices.map { i =>
+          SearchResult(Integration, IntegrationsSection, i, integrations(i).id.str.hashCode)
+        }
+      }
+    }
+
     if (userAccountsController.isTeamAccount) {
-      addContacts()
-      addGroupConversations()
-    } else {
+      if (peopleOrServices.currentValue.contains(true)) {
+        addIntegrations()
+      } else {
+        addContacts()
+        addGroupConversations()
+        addConnections()
+      }
+    } else  {
       addTopPeople()
       addContacts()
       addGroupConversations()
+      addConnections()
     }
-    addConnections()
 
-    ZLog.debug(s"Merged contacts updated: ${mergedResult.size}")
+    ZLog.debug(s"IN Merged contacts updated: ${mergedResult.size}")
     notifyDataSetChanged()
   }
 
@@ -185,6 +217,10 @@ class PickUsersAdapter(topUsersOnItemTouchListener: SearchResultOnItemTouchListe
             if (item.section == ContactsSection) expandContacts() else expandGroups()
           }
         })
+      case Integration =>
+        val integration = integrations(item.index)
+        verbose(s"IN binding integration: ${integration.name}")
+        holder.asInstanceOf[IntegrationViewHolder].bind(integration)
       case _ =>
     }
   }
@@ -213,6 +249,9 @@ class PickUsersAdapter(topUsersOnItemTouchListener: SearchResultOnItemTouchListe
       case Expand =>
         val view = LayoutInflater.from(parent.getContext).inflate(R.layout.startui_section_expander, parent, false)
         new SectionExpanderViewHolder(view)
+      case Integration =>
+        val view = LayoutInflater.from(parent.getContext).inflate(R.layout.startui_integration, parent, false)
+        new IntegrationViewHolder(view, darkTheme)
     }
   }
 
@@ -244,12 +283,14 @@ object PickUsersAdapter {
   val GroupConversation: Int = 5
   val SectionHeader: Int = 6
   val Expand: Int = 7
+  val Integration: Int = 8
 
   //Sections
   val TopUsersSection = 0
   val GroupConversationsSection = 1
   val ContactsSection = 2
   val DirectorySection = 3
+  val IntegrationsSection = 4
 
   //Constants
   val CollapsedContacts = 5

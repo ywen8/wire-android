@@ -85,6 +85,49 @@
         app:hintText="@string/pick_user_search_hint"
         />
 
+    <LinearLayout
+        android:id="@+id/ttv__pickuser__people_or_services_tab"
+        android:layout_width="wrap_content"
+        android:layout_height="@dimen/wire__padding__20"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginBottom="@dimen/reg__signin_option__height_margin"
+        android:layout_marginTop="@dimen/reg__signin_option__height_margin"
+        android:visibility="gone"
+        >
+
+        <com.waz.zclient.ui.text.TypefaceTextView
+            android:id="@+id/ttv__pickuser__people_tab"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_gravity="right"
+            android:layout_marginRight="@dimen/wire__padding__16"
+            android:gravity="center_vertical"
+            android:paddingLeft="@dimen/wire__padding__16"
+            android:paddingRight="@dimen/wire__padding__16"
+            android:text="@string/people_picker__search_people"
+            android:textAllCaps="true"
+            android:textColor="@color/text__primary_dark_40"
+            android:textSize="@dimen/wire__text_size__small"
+            app:w_font="@string/wire__typeface__medium"
+            />
+
+        <com.waz.zclient.ui.text.TypefaceTextView
+            android:id="@+id/ttv__pickuser__services_tab"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_gravity="right"
+            android:gravity="center_vertical"
+            android:paddingLeft="@dimen/wire__padding__16"
+            android:paddingRight="@dimen/wire__padding__16"
+            android:text="@string/people_picker__search_services"
+            android:textAllCaps="true"
+            android:textColor="@color/text__primary_dark"
+            android:textSize="@dimen/wire__text_size__small"
+            app:w_font="@string/wire__typeface__medium"
+            android:background="@drawable/selector__reg__signin"
+            />
+    </LinearLayout>
+
     <RelativeLayout
         android:id="@+id/empty_list_button"
         android:layout_width="match_parent"

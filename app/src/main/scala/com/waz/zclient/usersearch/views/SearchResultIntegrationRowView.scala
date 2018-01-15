@@ -19,17 +19,12 @@ package com.waz.zclient.usersearch.views
 
 import android.content.Context
 import android.util.AttributeSet
-import android.view.View
 import android.widget.FrameLayout
-import com.waz.model.{UserData, UserId}
-import com.waz.service.ZMessaging
-import com.waz.threading.Threading
-import com.waz.utils.events.Signal
+import com.waz.model.IntegrationData
 import com.waz.zclient.common.views.ChatheadView
-import com.waz.zclient.ui.text.TypefaceTextView
 import com.waz.zclient.{R, ViewHelper}
 
-class SearchResultUserRowView(val context: Context, val attrs: AttributeSet, val defStyleAttr: Int) extends FrameLayout(context, attrs, defStyleAttr) with UserRowView with ViewHelper {
+class SearchResultIntegrationRowView(val context: Context, val attrs: AttributeSet, val defStyleAttr: Int) extends FrameLayout(context, attrs, defStyleAttr) with IntegrationRowView with ViewHelper {
   def this(context: Context, attrs: AttributeSet) = this(context, attrs, 0)
   def this(context: Context) = this(context, null)
 
@@ -37,31 +32,16 @@ class SearchResultUserRowView(val context: Context, val attrs: AttributeSet, val
 
   private val chathead = findById[ChatheadView](R.id.cv_pickuser__searchuser_chathead)
   private val contactListItemTextView = findById[ContactListItemTextView](R.id.clitv__contactlist__user__text_view)
-  private val guestLabel = findById[TypefaceTextView](R.id.guest_indicator)
-  private var showContactInfo: Boolean = false
-  private val userId = Signal[UserId]()
 
-  private val isGuest = for{
-    z <- inject[Signal[ZMessaging]]
-    uId <- userId
-    isGuest <- z.teams.isGuest(uId)
-    knownUsers <- z.users.acceptedOrBlockedUsers
-  } yield isGuest && knownUsers.contains(uId)
+  private var integrationData = Option.empty[IntegrationData]
 
-  private var userData = Option.empty[UserData]
-
-  def setUser(userData: UserData): Unit = {
-    this.userData = Some(userData)
-    userId ! userData.id
-    contactListItemTextView.setUser(userData, showContactInfo)
-    chathead.setUserId(userData.id)
+  def setIntegration(data: IntegrationData): Unit = {
+    this.integrationData = Some(data)
+    contactListItemTextView.setIntegration(data)
+    chathead.setIntegration(data)
   }
 
-  def setShowContactInfo(showContactInfo: Boolean): Unit = {
-    this.showContactInfo = showContactInfo
-  }
-
-  def getUser = userData.map(_.id)
+  def getIntegration = integrationData.orNull
 
   def onClicked(): Unit = {
     setSelected(!isSelected)
@@ -76,7 +56,4 @@ class SearchResultUserRowView(val context: Context, val attrs: AttributeSet, val
     contactListItemTextView.applyDarkTheme()
   }
 
-  isGuest.on(Threading.Ui) { guest =>
-    guestLabel.setVisibility(if (guest) View.VISIBLE else View.GONE)
-  }
 }
