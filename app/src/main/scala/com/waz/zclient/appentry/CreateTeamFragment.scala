@@ -24,11 +24,11 @@ import android.widget.FrameLayout
 import com.waz.ZLog.ImplicitTag.implicitLogTag
 import com.waz.service.ZMessaging
 import com.waz.zclient.appentry.CreateTeamFragment._
-import com.waz.zclient.appentry.controllers.AppEntryController
+import com.waz.zclient.appentry.controllers.{AppEntryController, InvitationsController}
 import com.waz.zclient.appentry.controllers.AppEntryController._
 import com.waz.zclient.appentry.scenes._
 import com.waz.zclient.pages.BaseFragment
-import com.waz.zclient.ui.text.GlyphTextView
+import com.waz.zclient.ui.text.{GlyphTextView, TypefaceTextView}
 import com.waz.zclient.ui.utils.KeyboardUtils
 import com.waz.zclient.utils.{ContextUtils, DefaultTransition}
 import com.waz.zclient.{FragmentHelper, OnBackPressedListener, R}
@@ -37,6 +37,7 @@ import com.waz.zclient.utils.RichView
 class CreateTeamFragment extends BaseFragment[Container] with FragmentHelper with OnBackPressedListener {
 
   private lazy val appEntryController = inject[AppEntryController]
+  private lazy val invitesController = inject[InvitationsController]
 
   private var previousStage = Option.empty[AppEntryStage]
   private var lastKeyboardHeight = 0
@@ -48,7 +49,7 @@ class CreateTeamFragment extends BaseFragment[Container] with FragmentHelper wit
 
     val container = findById[FrameLayout](R.id.container)
     val closeButton = findById[GlyphTextView](R.id.close_button)
-    val skipButton = findById[GlyphTextView](R.id.skip_button)
+    val skipButton = findById[TypefaceTextView](R.id.skip_button)
 
     appEntryController.entryStage.onUi { state =>
       val inflator = LayoutInflater.from(getActivity)
@@ -108,6 +109,11 @@ class CreateTeamFragment extends BaseFragment[Container] with FragmentHelper wit
 
     skipButton.onClick {
       appEntryController.skipInvitations()
+    }
+
+    invitesController.invitations.map(_.isEmpty).onUi {
+      case true => skipButton.setText(R.string.teams_invitations_skip)
+      case false => skipButton.setText(R.string.teams_invitations_done)
     }
   }
 

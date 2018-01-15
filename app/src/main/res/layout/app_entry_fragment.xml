@@ -42,7 +42,7 @@
         android:layout_marginTop="@dimen/wire__padding__small"
         android:layout_gravity="top|end"/>
 
-    <com.waz.zclient.ui.text.GlyphTextView
+    <com.waz.zclient.ui.text.TypefaceTextView
         android:id="@+id/skip_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
