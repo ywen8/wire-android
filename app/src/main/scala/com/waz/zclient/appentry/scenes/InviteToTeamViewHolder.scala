@@ -24,6 +24,8 @@ import android.text.InputType
 import android.view.View
 import android.view.View.OnLayoutChangeListener
 import com.waz.ZLog
+import com.waz.api.impl.ErrorResponse
+import com.waz.api.impl.ErrorResponse.Forbidden
 import com.waz.model.EmailAddress
 import com.waz.threading.Threading
 import com.waz.utils.events.EventContext
@@ -33,7 +35,7 @@ import com.waz.zclient.appentry.controllers.InvitationsController
 import com.waz.zclient.common.views.InputBox
 import com.waz.zclient.ui.text.TypefaceTextView
 import com.waz.zclient.{Injectable, Injector, R}
-import com.waz.zclient.utils.{RichView, RichTextView}
+import com.waz.zclient.utils.{RichTextView, RichView}
 
 case class InviteToTeamViewHolder(root: View)(implicit val context: Context, eventContext: EventContext, injector: Injector) extends ViewHolder with Injectable {
 
@@ -69,6 +71,12 @@ case class InviteToTeamViewHolder(root: View)(implicit val context: Context, eve
     inputField.setOnClick { text =>
       val email = EmailAddress(text)
       invitesController.sendInvite(email).map {
+        case Left(ErrorResponse(Forbidden, "too-many-team-invitations", _)) => Some(context.getString(R.string.teams_invitations_error_too_many))
+        case Left(ErrorResponse(Forbidden, "blacklisted-email", _)) => Some(context.getString(R.string.teams_invitations_error_blacklisted_email))
+        case Left(ErrorResponse(400, "invalid-email", _)) => Some(context.getString(R.string.teams_invitations_error_invalid_email))
+        case Left(ErrorResponse(Forbidden, "no-identity", _)) => Some(context.getString(R.string.teams_invitations_error_no_identity))
+        case Left(ErrorResponse(Forbidden, "no-email", _)) => Some(context.getString(R.string.teams_invitations_error_no_email))
+        case Left(ErrorResponse(409, "email-exists", _)) => Some(context.getString(R.string.teams_invitations_error_email_exists))
         case Left(e) => Some(e.message)
         case _ => None
       } (Threading.Ui)

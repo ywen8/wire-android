@@ -1275,4 +1275,11 @@
     <string name="pick_user_teams_invite">Invite people to join the team</string>
     <string name="teams_invitations_skip">SKIP</string>
     <string name="teams_invitations_done">DONE</string>
+
+    <string name="teams_invitations_error_too_many">Too many team invitations for this team.</string>
+    <string name="teams_invitations_error_blacklisted_email">The given e-mail address has been blacklisted due to a permanent bounce or a complaint.</string>
+    <string name="teams_invitations_error_invalid_email">Invalid e-mail address.</string>
+    <string name="teams_invitations_error_no_identity">The user has no verified identity (email or phone number).</string>
+    <string name="teams_invitations_error_no_email">This operation requires the user to have a verified email address.</string>
+    <string name="teams_invitations_error_email_exists">The given e-mail address is in use.</string>
 </resources>
