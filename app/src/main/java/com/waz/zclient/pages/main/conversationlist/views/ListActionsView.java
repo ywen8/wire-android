@@ -19,6 +19,7 @@ package com.waz.zclient.pages.main.conversationlist.views;
 
 import android.content.Context;
 import android.util.AttributeSet;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.FrameLayout;
@@ -81,6 +82,13 @@ public class ListActionsView extends FrameLayout implements View.OnClickListener
 
     public void setArchiveEnabled(boolean enabled) {
         archive.setVisibility(enabled ? VISIBLE : GONE);
+    }
+
+    public void setContactsCentered(boolean centered) {
+        LayoutParams params = ((LayoutParams) avatar.getLayoutParams());
+        params.gravity =
+            Gravity.CENTER_VERTICAL | (centered ? Gravity.CENTER_HORIZONTAL : Gravity.START);
+        invalidate();
     }
 
     public interface Callback {

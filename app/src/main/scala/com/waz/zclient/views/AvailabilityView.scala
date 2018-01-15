@@ -31,7 +31,7 @@ import com.waz.zclient.ui.text.{GlyphTextView, TextTransform, TypefaceTextView}
 import com.waz.zclient.{DialogHelper, R, ViewHelper}
 import com.waz.ZLog.ImplicitTag._
 import android.graphics.{Bitmap, Canvas, Color}
-import com.waz.zclient.paintcode.AvailabilityIcons
+import com.waz.zclient.paintcode.WireStyleKit
 import com.waz.zclient.tracking.AvailabilityChanged
 import com.waz.zclient.utils.ContextUtils
 
@@ -138,9 +138,9 @@ object AvailabilityView {
 
   val viewData: Map[Availability, ViewData] = Map(
     Availability.None      -> ViewData(R.string.availability_none,      0,                                    (_, _) => ()),
-    Availability.Available -> ViewData(R.string.availability_available, R.string.availability_text_available, AvailabilityIcons.drawAvailableIcon),
-    Availability.Busy      -> ViewData(R.string.availability_busy,      R.string.availability_text_busy,      AvailabilityIcons.drawBusyIcon),
-    Availability.Away      -> ViewData(R.string.availability_away,      R.string.availability_text_away,      AvailabilityIcons.drawAwayIcon)
+    Availability.Available -> ViewData(R.string.availability_available, R.string.availability_text_available, WireStyleKit.drawAvailableIcon),
+    Availability.Busy      -> ViewData(R.string.availability_busy,      R.string.availability_text_busy,      WireStyleKit.drawBusyIcon),
+    Availability.Away      -> ViewData(R.string.availability_away,      R.string.availability_text_away,      WireStyleKit.drawAwayIcon)
   )
 
   private val PUSH_DOWN_PX = 5

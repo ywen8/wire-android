@@ -18,11 +18,13 @@
 package com.waz.zclient.conversationlist
 
 import android.content.Intent
+import android.graphics.Color
 import android.os.Bundle
 import android.support.v7.widget.{LinearLayoutManager, RecyclerView}
-import android.view.View.{GONE, VISIBLE}
+import android.view.View.{GONE, OnClickListener, VISIBLE}
 import android.view.animation.Animation
 import android.view.{LayoutInflater, View, ViewGroup}
+import android.widget.{ImageView, LinearLayout}
 import com.waz.ZLog.ImplicitTag._
 import com.waz.ZLog._
 import com.waz.model.AccountId
@@ -176,8 +178,8 @@ class NormalConversationFragment extends ConversationListFragment {
     z <- zms
     convs <- z.convsStorage.convsSignal
   } yield {
-    (convs.conversations.exists(c => !c.archived && !c.hidden),
-    convs.conversations.exists(c => c.archived && !c.hidden))
+    (convs.conversations.exists(c => !c.archived && !c.hidden && !Set(ConversationType.Self, ConversationType.Unknown).contains(c.convType)),
+    convs.conversations.exists(c => c.archived && !c.hidden && !Set(ConversationType.Self, ConversationType.Unknown).contains(c.convType)))
   }
 
   lazy val archiveEnabled = hasConversationsAndArchive.map(_._2)
@@ -197,27 +199,30 @@ class NormalConversationFragment extends ConversationListFragment {
   }
 
   lazy val loadingListView = view[View](R.id.conversation_list_loading_indicator)
-  lazy val listActionsView = returning(view[ListActionsView](R.id.lav__conversation_list_actions)) { v =>
-    archiveEnabled.onUi(v.setArchiveEnabled)
+  lazy val listActionsView = returning(view[ListActionsView](R.id.lav__conversation_list_actions)){ v =>
+   archiveEnabled.onUi(v.setArchiveEnabled(_))
+    hasConversationsAndArchive.onUi{
+      case (false, false) => v.setContactsCentered(true)
+      case _ => v.setContactsCentered(false)
+    }
   }
 
   lazy val noConvsTitle = returning(view[TypefaceTextView](R.id.conversation_list_empty_title)) { v =>
     hasConversationsAndArchive.map {
       case (false, true) => Some(R.string.all_archived__header)
-      case (false, false) => Some(R.string.no_conversation_in_list__header)
       case _ => None
-    }.onUi(_.foreach(v.setText))
+    }.onUi(_.foreach(v.setText(_)))
     hasConversationsAndArchive.map {
-      case (false, _) => VISIBLE
+      case (false, true) => VISIBLE
       case _ => GONE
-    }.onUi(v.setVisibility)
+    }.onUi(v.setVisibility(_))
   }
 
-  lazy val noConvsSubtitle = returning(view[TypefaceTextView](R.id.conversation_list_empty_subtitle)) { v =>
+  private lazy val noConvsMessage = returning(view[LinearLayout](R.id.empty_list_message)) { v =>
     hasConversationsAndArchive.map {
       case (false, false) => VISIBLE
       case _ => GONE
-    }.onUi(v.setVisibility)
+    }.onUi(v.setVisibility(_))
   }
 
   lazy val listActionsScrollListener = new RecyclerView.OnScrollListener {
@@ -249,10 +254,24 @@ class NormalConversationFragment extends ConversationListFragment {
     subs += topToolbar.onRightButtonClick(_ => getActivity.startActivityForResult(PreferencesActivity.getDefaultIntent(getContext), PreferencesActivity.SwitchAccountCode))
 
     listActionsView.setCallback(listActionsCallback)
+    listActionsView.setScrolledToBottom(!conversationListView.canScrollVertically(1))
+
+    noConvsMessage.setOnClickListener(new OnClickListener {
+      override def onClick(v: View): Unit =
+        getControllerFactory.getPickUserController.showPickUser(IPickUserController.Destination.CONVERSATION_LIST)
+    })
+
     //initialise lazy vals
     loadingListView
     noConvsTitle
-    noConvsSubtitle
+
+
+    Option(findById[ImageView](v, R.id.empty_list_arrow)).foreach { v =>
+      val drawable = DownArrowDrawable()
+      v.setImageDrawable(drawable)
+      drawable.setColor(Color.WHITE)
+      drawable.setAlpha(192)
+    }
   }
 
   override def onDestroyView() = {
