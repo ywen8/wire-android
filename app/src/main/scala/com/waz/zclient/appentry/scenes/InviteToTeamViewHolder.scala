@@ -33,7 +33,7 @@ import com.waz.zclient.appentry.controllers.InvitationsController
 import com.waz.zclient.common.views.InputBox
 import com.waz.zclient.ui.text.TypefaceTextView
 import com.waz.zclient.{Injectable, Injector, R}
-import com.waz.zclient.utils.RichView
+import com.waz.zclient.utils.{RichView, RichTextView}
 
 case class InviteToTeamViewHolder(root: View)(implicit val context: Context, eventContext: EventContext, injector: Injector) extends ViewHolder with Injectable {
 
@@ -63,6 +63,8 @@ case class InviteToTeamViewHolder(root: View)(implicit val context: Context, eve
     inputField.setValidator(InputBox.EmailValidator)
     inputField.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS | InputType.TYPE_TEXT_FLAG_AUTO_COMPLETE | InputType.TYPE_TEXT_FLAG_AUTO_CORRECT)
     inputField.setButtonGlyph(R.string.glyph__send)
+    inputField.editText.setText(invitesController.inputEmail)
+    inputField.editText.addTextListener(invitesController.inputEmail = _)
 
     inputField.setOnClick { text =>
       val email = EmailAddress(text)

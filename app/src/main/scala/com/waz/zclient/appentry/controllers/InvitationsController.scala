@@ -33,6 +33,8 @@ class InvitationsController(implicit inj: Injector, eventContext: EventContext, 
 
   private val zms = inject[Signal[ZMessaging]]
 
+  var inputEmail = ""
+
   val invitations = zms.flatMap(_.invitations.invitedToTeam).map(_.map {
     case (inv, response) => inv.emailAddress -> InvitationStatus(response)
   })
