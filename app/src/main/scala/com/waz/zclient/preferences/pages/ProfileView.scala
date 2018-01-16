@@ -76,21 +76,21 @@ class ProfileViewImpl(context: Context, attrs: AttributeSet, style: Int) extends
   val userHandleText = findById[TypefaceTextView](R.id.profile_user_handle)
   val teamNameText = findById[TypefaceTextView](R.id.profile_user_team)
   val teamDivider = findById[View](R.id.settings_team_divider)
-  val teamButtom = findById[TextButton](R.id.settings_team)
-  val newTeamButtom = findById[TextButton](R.id.profile_new)
+  val teamButton = findById[TextButton](R.id.settings_team)
+  val newTeamButton = findById[TextButton](R.id.profile_new)
   val settingsButton = findById[TextButton](R.id.profile_settings)
 
   override val onDevicesDialogAccept = EventStream[Unit]()
-  override val onManageTeamClick: EventStream[Unit] = teamButtom.onClickEvent.map(_ => ())
+  override val onManageTeamClick: EventStream[Unit] = teamButton.onClickEvent.map(_ => ())
 
   private var deviceDialog = Option.empty[AlertDialog]
 
-  teamButtom.onClickEvent.on(Threading.Ui) { _ =>
+  teamButton.onClickEvent.on(Threading.Ui) { _ =>
     context.startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(context.getString(R.string.pref_manage_team_url)))) }
-  teamButtom.setVisible(false)
+  teamButton.setVisible(false)
   teamDivider.setVisible(false)
 
-  newTeamButtom.onClickEvent.on(Threading.Ui) { _ =>
+  newTeamButton.onClickEvent.on(Threading.Ui) { _ =>
     new ProfileBottomSheetDialog(context, R.style.message__bottom_sheet__base).show()
   }
 
@@ -127,8 +127,8 @@ class ProfileViewImpl(context: Context, attrs: AttributeSet, style: Int) extends
   }
 
   override def setManageTeamEnabled(enabled: Boolean): Unit = {
-    teamButtom.setEnabled(enabled)
-    teamButtom.setVisibility(if (enabled) View.VISIBLE else View.INVISIBLE)
+    teamButton.setEnabled(enabled)
+    teamButton.setVisibility(if (enabled) View.VISIBLE else View.INVISIBLE)
     teamDivider.setVisibility(if (enabled) View.VISIBLE else View.INVISIBLE)
   }
 
@@ -156,8 +156,8 @@ class ProfileViewImpl(context: Context, attrs: AttributeSet, style: Int) extends
   }
 
   override def setAddAccountEnabled(enabled: Boolean): Unit = {
-    newTeamButtom.setEnabled(enabled)
-    newTeamButtom.setAlpha(if (enabled) 1f else 0.5f)
+    newTeamButton.setEnabled(enabled)
+    newTeamButton.setAlpha(if (enabled) 1f else 0.5f)
   }
 
   private def getNewDevicesMessage(devices: Seq[Client]): String = {

@@ -271,8 +271,9 @@ protected class ChatheadController(val setSelectable:            Boolean        
   def setIntegration(integration: IntegrationData): Unit = Option(integration).fold(throw new IllegalArgumentException("ContactDetails should not be null"))(i => assignInfo ! Some(AssignDetails(i)))
 
   val chatheadInfo: Signal[Option[ChatheadDetails]] = zMessaging.zip(assignInfo).flatMap {
-    case (zms, Some(AssignDetails(Some(userId), None, None))) => zms.usersStorage.signal(userId).map(ud => Some(ChatheadDetails(ud)))
-    case (_, Some(AssignDetails(None, Some(contactDetails), None))) => Signal.const(Some(ChatheadDetails(contactDetails)))
+    case (zms, Some(AssignDetails(Some(userId), _, _))) => zms.usersStorage.signal(userId).map(ud => Some(ChatheadDetails(ud)))
+    case (_, Some(AssignDetails(_, Some(contactDetails), _))) => Signal.const(Some(ChatheadDetails(contactDetails)))
+    case (_, Some(AssignDetails(_, _, Some(integration)))) => Signal.const(Some(ChatheadDetails(integration)))
     case _ => Signal.const(None)
   }
 
@@ -394,6 +395,22 @@ protected class ChatheadController(val setSelectable:            Boolean        
       val grayScale = false
       val assetId = None
       val selectable = knownUser || teamMember
+      ChatheadDetails(
+        accentColor, connectionStatus, teamMember, hasBeenInvited,
+        initials, knownUser, grayScale, assetId, selectable
+      )
+    }
+
+    def apply(integration: IntegrationData): ChatheadDetails = {
+      val accentColor = contactBackgroundColor
+      val connectionStatus = UNCONNECTED
+      val teamMember = false
+      val hasBeenInvited = false
+      val initials = NameParts.parseFrom(integration.name).initials
+      val knownUser = false
+      val grayScale = false
+      val assetId = integration.assets.headOption.map(_.id)
+      val selectable = false
       ChatheadDetails(
         accentColor, connectionStatus, teamMember, hasBeenInvited,
         initials, knownUser, grayScale, assetId, selectable

@@ -43,15 +43,6 @@ class SearchResultIntegrationRowView(val context: Context, val attrs: AttributeS
 
   def getIntegration = integrationData.orNull
 
-  def onClicked(): Unit = {
-    setSelected(!isSelected)
-  }
-
-  override def setSelected(selected: Boolean): Unit = {
-    super.setSelected(selected)
-    chathead.setSelected(selected)
-  }
-
   def applyDarkTheme(): Unit = {
     contactListItemTextView.applyDarkTheme()
   }

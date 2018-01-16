@@ -23,7 +23,7 @@ import android.view.View
 import android.view.View.OnClickListener
 import android.widget.{FrameLayout, ImageView}
 import com.waz.ZLog
-import com.waz.model.{Availability, UserData}
+import com.waz.model.{Availability, IntegrationData, UserData}
 import com.waz.service.ZMessaging
 import com.waz.utils.NameParts
 import com.waz.utils.events.{EventStream, Signal}
@@ -48,7 +48,9 @@ abstract class ConversationListTopToolbar(val context: Context, val attrs: Attri
   val buttonContainer = findById[View](R.id.button_container)
   val bottomBorder = findById[View](R.id.conversation_list__border)
   val profileButton = findById[ImageView](R.id.conversation_list_settings)
+  val backButton = findById[GlyphButton](R.id.conversation_list_back)
   val closeButton = findById[GlyphButton](R.id.conversation_list_close)
+  val closeButtonEnd = findById[GlyphButton](R.id.conversation_list_close_end)
   val title = findById[TypefaceTextView](R.id.conversation_list_title)
   val settingsIndicator = findById[CircleView](R.id.conversation_list_settings_indicator)
 
@@ -88,6 +90,11 @@ abstract class ConversationListTopToolbar(val context: Context, val attrs: Attri
       title.setText(mode.nameId)
       AvailabilityView.displayLeftOfText(title, Availability.None, title.getCurrentTextColor)
       title.setOnClickListener(null)
+  }
+
+  def setTitle(integration: IntegrationData): Unit = {
+    title.setText(integration.name)
+    title.setOnClickListener(null)
   }
 
 }
@@ -146,6 +153,19 @@ class ArchiveTopToolbar(override val context: Context, override val attrs: Attri
 
   profileButton.setVisible(false)
   closeButton.setVisible(true)
+  settingsIndicator.setVisible(false)
+  title.setVisible(true)
+  separatorDrawable.setDuration(0)
+  separatorDrawable.animateExpand()
+}
+
+class IntegrationTopToolbar(override val context: Context, override val attrs: AttributeSet, override val defStyleAttr: Int)  extends ConversationListTopToolbar(context, attrs, defStyleAttr){
+  def this(context: Context, attrs: AttributeSet) = this(context, attrs, 0)
+  def this(context: Context) = this(context, null)
+
+  profileButton.setVisible(false)
+  backButton.setVisible(true)
+  closeButtonEnd.setVisible(true)
   settingsIndicator.setVisible(false)
   title.setVisible(true)
   separatorDrawable.setDuration(0)

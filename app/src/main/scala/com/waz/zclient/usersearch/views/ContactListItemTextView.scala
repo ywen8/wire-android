@@ -141,7 +141,7 @@ class ContactListItemTextView(val context: Context, val attrs: AttributeSet, val
     if (integrationData.description.nonEmpty) {
       nameView.setGravity(Gravity.START | Gravity.BOTTOM)
       subLabelView.setVisibility(View.VISIBLE)
-      subLabelView.setText(integrationData.description)
+      subLabelView.setText(integrationData.summary)
     } else {
       nameView.setGravity(Gravity.START | Gravity.CENTER_VERTICAL)
       subLabelView.setVisibility(View.GONE)

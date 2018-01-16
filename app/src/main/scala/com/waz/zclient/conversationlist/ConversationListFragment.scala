@@ -36,8 +36,9 @@ import com.waz.utils.events.{Signal, Subscription}
 import com.waz.utils.returning
 import com.waz.zclient.common.controllers.UserAccountsController
 import com.waz.zclient.common.controllers.global.AccentColorController
+import com.waz.zclient.common.views.PickableElement
 import com.waz.zclient.conversation.ConversationController
-import com.waz.zclient.conversationlist.views.{ArchiveTopToolbar, ConversationListTopToolbar, NormalTopToolbar}
+import com.waz.zclient.conversationlist.views.{ArchiveTopToolbar, ConversationListTopToolbar, IntegrationTopToolbar, NormalTopToolbar}
 import com.waz.zclient.core.stores.conversation.ConversationChangeRequester
 import com.waz.zclient.messages.UsersController
 import com.waz.zclient.pages.BaseFragment
@@ -49,6 +50,7 @@ import com.waz.zclient.pages.main.conversationlist.views.listview.SwipeListView
 import com.waz.zclient.pages.main.pickuser.controller.IPickUserController
 import com.waz.zclient.preferences.PreferencesActivity
 import com.waz.zclient.ui.text.TypefaceTextView
+import com.waz.zclient.usersearch.views.{SearchBoxView, SearchEditText}
 import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.utils.RichView
 import com.waz.zclient.{FragmentHelper, OnBackPressedListener, R, ViewHolder}
@@ -138,6 +140,7 @@ abstract class ConversationListFragment extends BaseFragment[ConversationListFra
 object ArchiveListFragment{
   val TAG = ArchiveListFragment.getClass.getSimpleName
 }
+
 class ArchiveListFragment extends ConversationListFragment with OnBackPressedListener {
 
   override val layoutId = R.layout.fragment_archive_list
@@ -155,9 +158,46 @@ class ArchiveListFragment extends ConversationListFragment with OnBackPressedLis
   }
 }
 
-object NormalConversationListFragment{
+class ChooseConversationFragment extends ConversationListFragment with OnBackPressedListener {
+  override val layoutId: Int = R.layout.fragment_choose_conversation
+  override lazy val topToolbar = view[IntegrationTopToolbar](R.id.integration_top_toolbar)
+
+  private var searchBoxView: SearchEditText = null
+
+  override def onViewCreated(view: View, savedInstanceState: Bundle) = {
+    super.onViewCreated(view, savedInstanceState)
+    adapter.currentMode ! ConversationListAdapter.Archive
+    subs += topToolbar.onRightButtonClick(_ => Option(getContainer).foreach(_.closeArchive()))
+  }
+
+  override def onBackPressed() = {
+    Option(getContainer).foreach(_.closeArchive())
+    true
+  }
+
+  final val searchBoxViewCallback: SearchBoxView.Callback = new SearchBoxView.Callback() {
+    override def onRemovedTokenSpan(element: PickableElement): Unit = {}
+
+    override def onFocusChange(hasFocus: Boolean): Unit = {}
+
+    override def onClearButton(): Unit = {}
+
+    override def afterTextChanged(s: String): Unit = {
+      val filter = searchBoxView.getSearchFilter
+      if (filter.isEmpty && searchBoxView.getElements.isEmpty){}
+    }
+
+  }
+}
+
+object ChooseConversationFragment {
+  val TAG = ChooseConversationFragment.getClass.getSimpleName
+}
+
+object NormalConversationListFragment {
   val TAG = NormalConversationListFragment.getClass.getSimpleName
 }
+
 class NormalConversationFragment extends ConversationListFragment {
 
   override val layoutId = R.layout.fragment_conversation_list
@@ -308,6 +348,7 @@ class NormalConversationFragment extends ConversationListFragment {
     }
   }
 }
+
 
 object ConversationListFragment {
   trait Container {
