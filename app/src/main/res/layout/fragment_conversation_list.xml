@@ -119,17 +119,18 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:gravity="center"
-            android:textSize="@dimen/wire__text_size__regular"
+            android:textSize="@dimen/wire__text_size__medium"
             android:text="@string/empty_list_onboarding"
             android:textColor="@color/white"
+            app:w_font="@string/wire__typeface__light"
             />
 
         <ImageView
             android:id="@+id/empty_list_arrow"
             android:layout_width="match_parent"
             android:layout_height="@dimen/empty_list_onboarding_arrow_height"
-            android:layout_marginTop="@dimen/wire__padding__regular"
-            android:layout_marginBottom="@dimen/wire__padding__small"
+            android:layout_marginTop="@dimen/wire__padding__big"
+            android:layout_marginBottom="@dimen/wire__padding__big"
             android:layout_gravity="center_horizontal"/>
 
     </LinearLayout>

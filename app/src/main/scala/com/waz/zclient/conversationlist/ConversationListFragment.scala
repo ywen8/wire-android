@@ -270,7 +270,7 @@ class NormalConversationFragment extends ConversationListFragment {
       val drawable = DownArrowDrawable()
       v.setImageDrawable(drawable)
       drawable.setColor(Color.WHITE)
-      drawable.setAlpha(192)
+      drawable.setAlpha(102)
     }
   }
 
