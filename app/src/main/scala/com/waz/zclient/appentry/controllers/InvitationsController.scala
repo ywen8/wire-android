@@ -46,7 +46,7 @@ class InvitationsController(implicit inj: Injector, eventContext: EventContext, 
       account <- zms.accounts.getActiveAccount
       alreadySent <- invitations.head
       response <- if (alreadySent.keySet.contains(email))
-          CancellableFuture.successful(Left(ErrorResponse.internalError("Already sent")))
+          CancellableFuture.successful(Left(ErrorResponse(ErrorResponse.InternalErrorCode, "Already sent", "already-sent")))
         else
           zms.invitations.inviteToTeam(email, account.flatMap(_.name))
     } yield

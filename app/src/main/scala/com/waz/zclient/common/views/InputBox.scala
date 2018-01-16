@@ -24,6 +24,7 @@ import android.view.KeyEvent
 import android.view.inputmethod.EditorInfo
 import android.widget.TextView.OnEditorActionListener
 import android.widget.{LinearLayout, ProgressBar, TextView}
+import com.waz.model.EmailAddress
 import com.waz.threading.Threading
 import com.waz.zclient.common.views.InputBox._
 import com.waz.zclient.ui.cursor.CursorEditText
@@ -179,7 +180,5 @@ object InputBox {
     }
   })
 
-  object EmailValidator extends Validator({ t =>
-    t.contains("@") && t.contains(".") && t.trim.length >= 3
-  })
+  object EmailValidator extends Validator({ t => EmailAddress.parse(t).nonEmpty })
 }

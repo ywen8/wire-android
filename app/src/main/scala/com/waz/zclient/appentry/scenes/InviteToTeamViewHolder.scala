@@ -25,7 +25,7 @@ import android.view.View
 import android.view.View.OnLayoutChangeListener
 import com.waz.ZLog
 import com.waz.api.impl.ErrorResponse
-import com.waz.api.impl.ErrorResponse.Forbidden
+import com.waz.api.impl.ErrorResponse.{Forbidden, InternalErrorCode}
 import com.waz.model.EmailAddress
 import com.waz.threading.Threading
 import com.waz.utils.events.EventContext
@@ -77,7 +77,9 @@ case class InviteToTeamViewHolder(root: View)(implicit val context: Context, eve
       invitesController.sendInvite(email).map {
         case Left(ErrorResponse(Forbidden, _, "too-many-team-invitations")) => Some(context.getString(R.string.teams_invitations_error_too_many))
         case Left(ErrorResponse(400, _, "invalid-email")) => Some(context.getString(R.string.teams_invitations_error_invalid_email))
+        case Left(ErrorResponse(400, _, "bad-request")) => Some(context.getString(R.string.teams_invitations_error_invalid_email))
         case Left(ErrorResponse(409, _, "email-exists")) => Some(context.getString(R.string.teams_invitations_error_email_exists))
+        case Left(ErrorResponse(InternalErrorCode, _, "already-sent")) => Some(context.getString(R.string.teams_invitations_error_already_sent))
         case Left(_) => Some(context.getString(R.string.teams_invitations_error_generic))
         case _ => None
       } (Threading.Ui)
