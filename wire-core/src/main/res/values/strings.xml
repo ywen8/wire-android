@@ -157,6 +157,7 @@
     <string name="people_picker__search_services">Services</string>
 
     <string name="integrations_picker__section_title">Services</string>
+    <string name="integrations_picker__add">Add Service</string>
 
     <!-- start ui / people picker, contacts sharing -->
     <string name="people_picker__share_contacts__title">Share Contacts</string>

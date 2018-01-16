@@ -175,15 +175,23 @@ object ConversationListAdapter {
     override val filter = (c: ConversationData) =>
       Set(ConversationType.OneToOne, ConversationType.Group, ConversationType.WaitForConnection).contains(c.convType) && !c.hidden && !c.archived
   }
+
   case object Archive extends ListMode {
     override lazy val nameId = R.string.conversation_list__header__archive_title
     override val filter = (c: ConversationData) =>
       Set(ConversationType.OneToOne, ConversationType.Group, ConversationType.Incoming, ConversationType.WaitForConnection).contains(c.convType) && !c.hidden && c.archived
   }
+
   case object Incoming extends ListMode {
     override lazy val nameId = R.string.conversation_list__header__archive_title
     override val filter = (c: ConversationData) =>
       c.convType == ConversationType.Incoming && !c.hidden
+  }
+
+  case object Integration extends ListMode {
+    override lazy val nameId = R.string.conversation_list__header__archive_title
+    override val filter = (c: ConversationData) =>
+      c.convType == ConversationType.Group && !c.hidden
   }
 
   trait ConversationRowViewHolder extends RecyclerView.ViewHolder

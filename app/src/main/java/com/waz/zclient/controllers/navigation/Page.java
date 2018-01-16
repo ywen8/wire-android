@@ -52,5 +52,6 @@ public enum Page {
     SHARE_LOCATION,
     MAIN_LANDSCAPE,
     COLLECTION,
-    ARCHIVE
+    ARCHIVE,
+    INTEGRATION_DETAILS
 }

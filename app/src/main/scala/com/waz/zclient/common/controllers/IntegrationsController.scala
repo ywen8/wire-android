@@ -18,28 +18,37 @@
 package com.waz.zclient.common.controllers
 
 import android.content.Context
-import com.waz.model.IntegrationData
+import com.waz.model.{IntegrationData, IntegrationId, ProviderId}
 import com.waz.service.ZMessaging
-import com.waz.threading.SerialDispatchQueue
+import com.waz.threading.Threading
 import com.waz.utils.events.Signal
 import com.waz.zclient.{Injectable, Injector}
-
 import com.waz.ZLog.verbose
 import com.waz.ZLog.ImplicitTag._
 
+import scala.concurrent.Future
 
 class IntegrationsController(implicit injector: Injector, context: Context) extends Injectable {
-  private implicit val dispatcher = new SerialDispatchQueue(name = "IntegrationsController")
-  private val zms = inject[Signal[ZMessaging]]
-  private val integrations = zms.map(_.integrations)
+
+  private lazy val integrations = inject[Signal[ZMessaging]].map(_.integrations)
 
   val searchQuery = Signal[String]("")
 
-  def searchIntegrations = for {
-    service <- integrations
-    startWith <- searchQuery
-    _ = verbose(s"IN looking for integration starting with $startWith")
-    data <- service.searchIntegrations(startWith).map(Option(_)).orElse(Signal.const(Option.empty[Seq[IntegrationData]]))
-    _ = verbose(s"IN found: ${data.map(_.map(b => (b.name, b.description, b.assets)))}")
-  } yield data.map(_.toIndexedSeq)
+//  def searchIntegrations =  for {
+//    zms       <- inject[Signal[ZMessaging]]
+//    startWith <- searchQuery
+//    _ = verbose(s"IN looking for integration starting with $startWith")
+//    data      <- zms.integrations.searchIntegrations(startWith).map(Option(_)).orElse(Signal.const(Option.empty[Seq[IntegrationData]]))
+//    _ = verbose(s"IN found: ${data.map(_.map(b => (b.name, b.description, b.assets)))}")
+//  } yield data.map(_.toIndexedSeq)
+
+  private val fakeIntegration = IntegrationData(name = "service 1", summary = "service summary", description = "service description")
+
+  def searchIntegrations = Signal.const(Option(IndexedSeq(fakeIntegration)))
+
+  def getIntegration(providerId: ProviderId, integrationId: IntegrationId): Signal[IntegrationData] =
+    if (integrationId == fakeIntegration.id) Signal.const(fakeIntegration)// Future.successful(fakeIntegration)
+    else Signal.empty[IntegrationData] //Future.failed(new Exception("no integration"))
+    //integrations.head.flatMap(_.getIntegration(providerId, integrationId))(Threading.Ui)
+
 }

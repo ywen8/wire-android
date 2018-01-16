@@ -48,11 +48,12 @@ import com.waz.zclient.common.controllers.{IntegrationsController, BrowserContro
 import com.waz.zclient.common.views.{ChatheadWithTextFooter, FlatWireButton, PickableElement}
 import com.waz.zclient.controllers.currentfocus.IFocusController
 import com.waz.zclient.controllers.globallayout.KeyboardVisibilityObserver
-import com.waz.zclient.controllers.navigation.NavigationController
+import com.waz.zclient.controllers.navigation.{NavigationController, Page}
 import com.waz.zclient.controllers.userpreferences.IUserPreferencesController
 import com.waz.zclient.conversation.ConversationController
 import com.waz.zclient.core.stores.conversation.ConversationChangeRequester
 import com.waz.zclient.core.stores.network.DefaultNetworkAction
+import com.waz.zclient.integrations.IntegrationDetailsFragment
 import com.waz.zclient.pages.BaseFragment
 import com.waz.zclient.pages.main.conversation.controller.IConversationScreenController
 import com.waz.zclient.pages.main.participants.dialog.DialogLaunchMode
@@ -479,7 +480,7 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
     super.onDestroyView()
   }
 
-  override def onBackPressed: Boolean = {
+  override def onBackPressed(): Boolean =
     if (isKeyboardVisible) {
       KeyboardUtils.hideKeyboard(getActivity)
       true
@@ -487,7 +488,6 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
       pickUserController.hideUserProfile()
       true
     } else false
-  }
 
   override def onKeyboardVisibilityChanged(keyboardIsVisible: Boolean, keyboardHeight: Int, currentFocus: View): Unit = {
     isKeyboardVisible = keyboardIsVisible
@@ -882,5 +882,18 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
 
   private def updateShareContacts(share: Boolean): Unit ={
     zms.head.flatMap(_.userPrefs.preference(UserPreferences.ShareContacts).update(share)) (Threading.Background)
+  }
+
+  override def onIntegrationClicked(data: IntegrationData): Unit = {
+    KeyboardUtils.hideKeyboard(getActivity)
+    verbose(s"onIntegrationClicked(${data.id})")
+
+    import IntegrationDetailsFragment._
+    getFragmentManager.beginTransaction
+      .replace(R.id.fl__conversation_list_main, newInstance(data.provider, data.id), Tag)
+      .addToBackStack(Tag)
+      .commit()
+
+    getControllerFactory.getNavigationController.setLeftPage(Page.INTEGRATION_DETAILS, PickUserFragment.TAG)
   }
 }

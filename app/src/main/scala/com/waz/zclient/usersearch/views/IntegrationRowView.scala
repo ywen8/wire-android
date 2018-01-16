@@ -21,5 +21,4 @@ import com.waz.model.IntegrationData
 
 trait IntegrationRowView {
   def getIntegration: IntegrationData
-  def onClicked(): Unit
 }

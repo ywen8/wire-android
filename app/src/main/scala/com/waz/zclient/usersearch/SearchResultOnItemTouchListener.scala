@@ -20,8 +20,11 @@ package com.waz.zclient.usersearch
 import android.content.Context
 import android.support.v7.widget.RecyclerView
 import android.view.{GestureDetector, MotionEvent, View}
-import com.waz.model.{ConversationData, UserId}
-import com.waz.zclient.usersearch.views.{ConversationRowView, UserRowView}
+import com.waz.model.{ConversationData, IntegrationData, UserId}
+import com.waz.zclient.usersearch.views.{ConversationRowView, IntegrationRowView, UserRowView}
+
+import com.waz.ZLog.verbose
+import com.waz.ZLog.ImplicitTag._
 
 import scala.concurrent.Future
 
@@ -31,6 +34,8 @@ object SearchResultOnItemTouchListener {
     def onUserClicked(userId: UserId, position: Int, anchorView: View): Unit
 
     def onConversationClicked(conversation: ConversationData, position: Int): Unit
+
+    def onIntegrationClicked(integration: IntegrationData): Unit
 
     def onUserDoubleClicked(userId: UserId, position: Int, anchorView: View): Future[Unit]
   }
@@ -56,10 +61,15 @@ class SearchResultOnItemTouchListener(val context: Context, var callback: Search
     override def onSingleTapConfirmed(e: MotionEvent): Boolean = {
       rowView match {
         case view: UserRowView =>
+          verbose(s"IN user clicked")
           view.onClicked()
           view.getUser.foreach(uid => callback.onUserClicked(uid, position, rowView))
         case view: ConversationRowView =>
+          verbose(s"IN conv clicked")
           callback.onConversationClicked(view.getConversation, position)
+        case view: IntegrationRowView =>
+          verbose(s"IN int clicked, integration is: ${Option(view.getIntegration).map(_.name)}")
+          callback.onIntegrationClicked(view.getIntegration)
         case _ =>
       }
       true

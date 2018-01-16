@@ -46,6 +46,7 @@ import com.waz.zclient.controllers.navigation.{INavigationController, Navigation
 import com.waz.zclient.conversation.ConversationController
 import com.waz.zclient.core.stores.connect.IConnectStore
 import com.waz.zclient.core.stores.conversation.ConversationChangeRequester
+import com.waz.zclient.integrations.IntegrationDetailsFragment
 import com.waz.zclient.messages.UsersController
 import com.waz.zclient.pages.main.connect.{BlockedUserProfileFragment, ConnectRequestLoadMode, PendingConnectRequestManagerFragment, SendConnectRequestFragment}
 import com.waz.zclient.pages.main.conversation.controller.{ConversationScreenControllerObserver, IConversationScreenController}
@@ -422,16 +423,14 @@ class ConversationListManagerFragment extends Fragment
   override def onBackPressed = {
     if (closeMenu) true
     else {
-      withFragmentOpt(PickUserFragment.TAG) {
-        case Some(f: PickUserFragment) if f.onBackPressed => true
-        case _ =>
-          withFragmentOpt(ArchiveListFragment.TAG) {
-            case Some(f: ArchiveListFragment) if f.onBackPressed() => true
-            case _ if pickUserController.isShowingPickUser(getCurrentPickerDestination) =>
-              pickUserController.hidePickUser(getCurrentPickerDestination)
-              true
-            case _ => false
-          }
+      withBackstackHead {
+        case Some(f: IntegrationDetailsFragment) if f.onBackPressed() => true
+        case Some(f: PickUserFragment) if f.onBackPressed() => true
+        case Some(f: ArchiveListFragment) if f.onBackPressed() => true
+        case _ if pickUserController.isShowingPickUser(getCurrentPickerDestination) =>
+          pickUserController.hidePickUser(getCurrentPickerDestination)
+          true
+        case _ => false
       }
     }
   }
