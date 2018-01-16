@@ -19,6 +19,7 @@ package com.waz.zclient.common.views
 
 import android.content.Context
 import android.content.res.{ColorStateList, TypedArray}
+import android.graphics.Color
 import android.util.AttributeSet
 import android.view.KeyEvent
 import android.view.inputmethod.EditorInfo
@@ -116,7 +117,7 @@ class InputBox(context: Context, attrs: AttributeSet, style: Int) extends Linear
   def showErrorMessage(text: Option[String] = None): Unit = {
     text.map(_.toUpperCase).foreach(errorText.setText)
     linkifyError.foreach { errorCallback =>
-      TextViewUtils.linkifyText(errorText, errorText.getCurrentTextColor, true, false, new Runnable() {
+      TextViewUtils.linkifyText(errorText, Color.BLACK, true, false, new Runnable() {
         override def run() = errorCallback()
       })
     }
@@ -181,4 +182,6 @@ object InputBox {
   })
 
   object EmailValidator extends Validator({ t => EmailAddress.parse(t).nonEmpty })
+
+  object SimpleValidator extends Validator({t => t.nonEmpty})
 }

@@ -189,7 +189,7 @@ public class TextViewUtils {
      * @param onClick
      */
     public static void linkifyText(TextView textView, final int highlightColor, boolean bold, final boolean underline, final Runnable onClick) {
-        linkifyText(textView, highlightColor, bold ? R.string.wire__typeface__medium : -1, true, onClick);
+        linkifyText(textView, highlightColor, bold ? R.string.wire__typeface__medium : -1, underline, onClick);
     }
 
     public static void linkifyText(TextView textView, final int highlightColor, int boldTypeface, final boolean underline, final Runnable onClick) {

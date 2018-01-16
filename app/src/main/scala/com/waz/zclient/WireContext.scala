@@ -18,7 +18,7 @@
 package com.waz.zclient
 
 import android.annotation.SuppressLint
-import android.app.{Activity, Dialog, Service}
+import android.app.{Dialog, Service}
 import android.content.{Context, ContextWrapper, DialogInterface}
 import android.support.v4.app.{Fragment, FragmentActivity}
 import android.support.v7.app.AppCompatActivity

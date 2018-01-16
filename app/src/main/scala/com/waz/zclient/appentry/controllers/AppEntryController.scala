@@ -91,9 +91,7 @@ class AppEntryController(implicit inj: Injector, eventContext: EventContext) ext
     account <- currentAccount
     user <- currentUser.orElse(Signal.const(None))
     firstPageState <- firstStage
-    optZms <- optZms
-    creatingTeam <- optZms.fold2(Signal.const(false), _.userPrefs.preference(UserPreferences.CreatingTeam).signal)
-    state <- Signal.const(stateForAccountAndUser(account, user, firstPageState, creatingTeam)).collect{ case s if s != Waiting => s }
+    state <- Signal.const(stateForAccountAndUser(account, user, firstPageState)).collect{ case s if s != Waiting => s }
   } yield state
 
   val autoConnectInvite = for {
@@ -116,16 +114,16 @@ class AppEntryController(implicit inj: Injector, eventContext: EventContext) ext
     case false =>
   }
 
-  def stateForAccountAndUser(account: Option[AccountData], user: Option[UserData], firstPageState: FirstStage, creatingTeam: Boolean): AppEntryStage = {
+  def stateForAccountAndUser(account: Option[AccountData], user: Option[UserData], firstPageState: FirstStage): AppEntryStage = {
     ZLog.verbose(s"Current account and user: $account $user")
     (account, user) match {
       case (None, _) =>
         NoAccountState(firstPageState)
-      case (Some(accountData), None) if accountData.pendingTeamName.isDefined && accountData.pendingEmail.isEmpty =>
+      case (Some(accountData), None) if accountData.pendingTeamName.isDefined && accountData.pendingEmail.isEmpty && accountData.password.isEmpty =>
         SetTeamEmail
-      case (Some(accountData), None) if accountData.pendingTeamName.isDefined && accountData.code.isEmpty =>
+      case (Some(accountData), None) if accountData.pendingTeamName.isDefined && accountData.code.isEmpty && accountData.password.isEmpty =>
         VerifyTeamEmail
-      case (Some(accountData), None) if accountData.pendingTeamName.isDefined && accountData.name.isEmpty =>
+      case (Some(accountData), None) if accountData.pendingTeamName.isDefined && accountData.name.isEmpty && accountData.password.isEmpty =>
         SetUsersNameTeam
       case (Some(accountData), None) if accountData.pendingTeamName.isDefined =>
         SetPasswordTeam
@@ -149,7 +147,7 @@ class AppEntryController(implicit inj: Injector, eventContext: EventContext) ext
         AddPictureStage
       case (Some(accountData), Some(userData)) if userData.handle.isEmpty && !(accountData.pendingTeamName.isDefined || accountData.teamId.fold(_ => false, _.isDefined)) =>
         AddHandleStage
-      case (Some(_), Some(_)) if creatingTeam =>
+      case (Some(accountData), Some(_)) if accountData.pendingTeamName.isDefined =>
         InviteToTeam
       case (Some(accountData), Some(userData)) if accountData.firstLogin && accountData.clientRegState == ClientRegistrationState.REGISTERED =>
         FirstEnterAppStage
@@ -364,7 +362,7 @@ class AppEntryController(implicit inj: Injector, eventContext: EventContext) ext
 
   var termsOfUseAB: Boolean = true //Random.nextBoolean()
 
-  def skipInvitations(): Unit = optZms.head.flatMap(_.fold2(Future.successful(()), _.userPrefs.preference(UserPreferences.CreatingTeam) := false))
+  def skipInvitations(): Unit = ZMessaging.accountsService.flatMap(_.updateCurrentAccount(_.copy(pendingTeamName = None)))
 
 }
 

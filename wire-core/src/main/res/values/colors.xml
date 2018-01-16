@@ -64,6 +64,7 @@
     <color name="graphite">#FF33373A</color>
     <color name="graphite_40">#6633373A</color>
     <color name="graphite_48">#7B33373A</color>
+    <color name="graphite_24">#3D33373A</color>
     <color name="graphite_16">#2833373A</color>
 
     <!-- Accent Colors-->

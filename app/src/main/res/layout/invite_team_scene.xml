@@ -29,21 +29,22 @@
         android:id="@+id/sent_invites_list"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1"/>
+        android:layout_weight="1"
+        android:paddingTop="@dimen/invites_list_top_padding"/>
 
     <com.waz.zclient.common.views.InputBox
         android:id="@+id/input_field"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:hint="@string/teams_set_email_hint"/>
+        app:hint="@string/teams_invite_email_hint"/>
 
     <com.waz.zclient.ui.text.TypefaceTextView
-        android:id="@+id/address_book_button"
+        android:id="@+id/about_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
         android:gravity="center_horizontal|top"
-        android:text="ADD FROM ADDRESSBOOK"
+        android:text="@string/teams_set_email_about"
         android:textSize="@dimen/wire__text_size__small"
         app:w_font="@string/wire__typeface__medium"
         android:textColor="@drawable/app_entry_text_button"
@@ -51,6 +52,7 @@
         android:focusable="true"
         android:paddingStart="@dimen/wire__padding__small"
         android:paddingEnd="@dimen/wire__padding__small"
-        android:paddingBottom="@dimen/wire__padding__regular"/>
+        android:paddingBottom="@dimen/wire__padding__regular"
+        android:visibility="invisible"/>
 
 </LinearLayout>

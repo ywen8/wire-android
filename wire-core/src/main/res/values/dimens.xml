@@ -927,4 +927,5 @@
 
     <dimen name="empty_list_onboarding_width">250dp</dimen>
     <dimen name="empty_list_onboarding_arrow_height">52dp</dimen>
+    <dimen name="invites_list_top_padding">64dp</dimen>
 </resources>

@@ -24,7 +24,7 @@ import com.waz.model.EmailAddress
 import com.waz.utils.events.EventContext
 import com.waz.zclient.appentry.InvitesAdapter._
 import com.waz.zclient.appentry.controllers.InvitationsController
-import com.waz.zclient.appentry.controllers.InvitationsController.{InvitationStatus, Sent}
+import com.waz.zclient.appentry.controllers.InvitationsController.Sent
 import com.waz.zclient.ui.text.{GlyphTextView, TypefaceTextView}
 import com.waz.zclient.utils.ViewUtils
 import com.waz.zclient.{Injectable, Injector, R}
