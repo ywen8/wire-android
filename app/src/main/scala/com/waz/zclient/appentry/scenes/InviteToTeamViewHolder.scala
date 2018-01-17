@@ -90,10 +90,7 @@ case class InviteToTeamViewHolder(root: View)(implicit val context: Context, eve
             Some(context.getString(R.string.teams_invitations_error_email_exists))
           case Left(ErrorResponse(InternalErrorCode, _, "already-sent")) => Some(context.getString(R.string.teams_invitations_error_already_sent))
           case Left(ErrorResponse(ConnectionErrorCode, _, _)) => Some(context.getString(R.string.teams_invitations_error_no_internet))
-          case Left(error) =>
-            import ZLog.ImplicitTag._
-            ZLog.verbose(s"$error")
-            Some(context.getString(R.string.teams_invitations_error_generic))
+          case Left(_) => Some(context.getString(R.string.teams_invitations_error_generic))
           case _ => None
         }(Threading.Ui)
         case _ =>
