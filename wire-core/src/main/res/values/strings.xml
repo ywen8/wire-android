@@ -1285,8 +1285,8 @@
 
     <string name="teams_invite_email_hint">COLLEAGUE@YOURCOMPANY.COM</string>
     <string name="teams_invitations_error_invalid_email">PLEASE ENTER A VALID EMAIL ADDRESS</string>
-    <string name="teams_invitations_error_email_exists">THIS EMAIL ADDRESS IS ALREADY IN USE.</string>
+    <string name="teams_invitations_error_email_exists">THIS EMAIL ADDRESS IS ALREADY IN USE</string>
     <string name="teams_invitations_error_email_exists_more">LEARN MORE</string>
-    <string name="teams_invitations_error_no_internet">NO INTERNET</string>
+    <string name="teams_invitations_error_no_internet">NO INTERNET CONNECTION</string>
     <string name="team_invitation_add_from_address_book">ADD FROM ADDRESSBOOK</string>
 </resources>

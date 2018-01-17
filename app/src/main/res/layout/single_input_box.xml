@@ -76,6 +76,13 @@
                 android:cursorVisible="true"
                 tools:ignore="RtlHardcoded,RtlSymmetry"/>
 
+            <ProgressBar
+                android:id="@+id/progress_bar"
+                android:layout_marginEnd="@dimen/wire__padding__regular"
+                android:layout_width="@dimen/app_entry_input_confirm_size"
+                android:layout_height="@dimen/app_entry_input_confirm_size"
+                android:layout_gravity="end|center_vertical"/>
+
             <com.waz.zclient.common.views.GlyphButton
                 android:id="@+id/confirmation_button"
                 android:layout_width="@dimen/app_entry_input_confirm_size"
@@ -95,13 +102,6 @@
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="@dimen/app_entry_input_box_aux_height">
-
-        <ProgressBar
-            android:id="@+id/progress_bar"
-            android:layout_marginTop="@dimen/wire__padding__8"
-            android:layout_width="@dimen/progress_spinner_size"
-            android:layout_height="@dimen/progress_spinner_size"
-            android:layout_gravity="center_horizontal|top"/>
 
         <com.waz.zclient.ui.text.TypefaceTextView
             android:id="@+id/error_text"

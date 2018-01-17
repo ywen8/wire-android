@@ -71,6 +71,7 @@ class InputBox(context: Context, attrs: AttributeSet, style: Int) extends Linear
   validate(editText.getText.toString)
   progressBar.setIndeterminate(true)
   progressBar.setVisible(false)
+  confirmationButton.setVisible(true)
   errorText.setVisible(false)
   progressBar.setIndeterminateTintList(ColorStateList.valueOf(ContextUtils.getColor(R.color.teams_inactive_button)))
   editText.setImeOptions(EditorInfo.IME_ACTION_DONE)
@@ -88,6 +89,7 @@ class InputBox(context: Context, attrs: AttributeSet, style: Int) extends Linear
   confirmationButton.onClick {
     hideErrorMessage()
     progressBar.setVisible(true)
+    confirmationButton.setVisible(false)
     if (shouldDisableOnClick) editText.setEnabled(false)
     confirmationButton.setEnabled(false)
     val content =
@@ -99,6 +101,7 @@ class InputBox(context: Context, attrs: AttributeSet, style: Int) extends Linear
     onClick(content).map { errorMessage =>
       errorMessage.foreach(t => showErrorMessage(Some(t)))
       progressBar.setVisible(false)
+      confirmationButton.setVisible(true)
       if (shouldDisableOnClick) editText.setEnabled(true)
       confirmationButton.setEnabled(true)
       if(errorMessage.isEmpty && removeTextOnClick) {

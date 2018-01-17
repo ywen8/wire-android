@@ -21,10 +21,12 @@ import android.content.Context
 import com.waz.api.impl.ErrorResponse
 import com.waz.model.EmailAddress
 import com.waz.service.ZMessaging
+import com.waz.service.tracking.TrackingService._
 import com.waz.sync.client.InvitationClient.ConfirmedTeamInvitation
 import com.waz.threading.CancellableFuture
 import com.waz.utils.events.{EventContext, Signal}
 import com.waz.zclient.appentry.controllers.InvitationsController._
+import com.waz.zclient.tracking.TeamInviteSent
 import com.waz.zclient.{Injectable, Injector}
 
 import scala.concurrent.Future
@@ -52,7 +54,9 @@ class InvitationsController(implicit inj: Injector, eventContext: EventContext, 
     } yield
       response match {
         case Left(e) => Left(e)
-        case Right(_) => Right(())
+        case Right(_) =>
+          track(TeamInviteSent(), account.map(_.id))
+          Right(())
       }
   }
 
