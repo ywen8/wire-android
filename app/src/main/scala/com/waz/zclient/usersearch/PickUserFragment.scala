@@ -163,14 +163,14 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
       zms <- zms
       permissions <- userAccountsController.permissions.orElse(Signal.const(Set.empty[AccountData.Permission]))
       members <- zms.teams.searchTeamMembers().orElse(Signal.const(Set.empty[UserData]))
-    } yield zms.teamId.nonEmpty && permissions(AccountData.Permission.AddTeamMember) && !members.exists(_.id != zms.selfUserId)).onUi {
+    } yield zms.teamId.nonEmpty && permissions(AccountData.Permission.AddTeamMember) && !members.exists(_.id != zms.selfUserId) && !isAddingToConversation).onUi {
       case true =>
         v.setVisibility(View.VISIBLE)
       case false =>
         v.setVisibility(View.GONE)
     }
     v.setOnClickListener(new OnClickListener {
-      override def onClick(v: View): Unit = browser.openUrl(AndroidURIUtil.parse(getString(R.string.pref_manage_team_url)))
+      override def onClick(v: View): Unit = browser.openUrl(AndroidURIUtil.parse(getString(R.string.pick_user_manage_team_url)))
     })
   }
 

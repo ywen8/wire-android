@@ -192,7 +192,7 @@ class NormalConversationFragment extends ConversationListFragment {
   } yield waitingAcc != adapterAccount
 
   override lazy val topToolbar = returning(view[NormalTopToolbar](R.id.conversation_list_top_toolbar)) { v =>
-    accentColor.map(_.getColor).onUi(v.setIndicatorColor)
+    accentColor.map(_.getColor).onUi(v.setIndicatorColor(_))
     Signal(unreadCount, incomingClients).onUi {
       case (count, clients) => v.setIndicatorVisible(clients.nonEmpty || count > 0)
     }
