@@ -21,9 +21,10 @@ import android.content.Context;
 import android.content.res.Resources;
 import android.support.annotation.DimenRes;
 import android.util.TypedValue;
+
+import com.waz.utils.crypto.SecureRandom;
 import com.waz.zclient.ui.R;
 
-import java.util.Random;
 
 public class ResourceUtils {
     public static final String TAG = ResourceUtils.class.getName();
@@ -44,19 +45,7 @@ public class ResourceUtils {
 
     public static int getRandomAccentColor(Context context) {
         int[] validAccentColors = context.getResources().getIntArray(R.array.selectable_accents_color);
-        int accentColorPos = randInt(0, validAccentColors.length - 1);
+        int accentColorPos = SecureRandom.nextInt(0, validAccentColors.length - 1);
         return validAccentColors[accentColorPos];
-    }
-
-    public static int randInt(int min, int max) {
-        // NOTE: Usually this should be a field rather than a method
-        // variable so that it is not re-seeded every call.
-        Random rand = new Random();
-
-        // nextInt is normally exclusive of the top value,
-        // so add 1 to make it inclusive
-        int randomNum = rand.nextInt((max - min) + 1) + min;
-
-        return randomNum;
     }
 }

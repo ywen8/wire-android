@@ -18,6 +18,8 @@
 package com.waz.zclient;
 
 import android.test.InstrumentationTestCase;
+
+import com.waz.utils.crypto.SecureRandom;
 import com.waz.zclient.ui.utils.ResourceUtils;
 
 public class RandomTest extends InstrumentationTestCase {
@@ -30,7 +32,7 @@ public class RandomTest extends InstrumentationTestCase {
 
 
         for (int i = 0; i < runs; i++) {
-            int rand = ResourceUtils.randInt(0, testnumber - 1);
+            int rand = SecureRandom.nextInt(0, testnumber - 1);
             if (rand >= testnumber) {
                 fail("Integer bigger than biggest number: " + rand);
             }

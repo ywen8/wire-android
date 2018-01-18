@@ -358,7 +358,7 @@ class AppEntryController(implicit inj: Injector, eventContext: EventContext) ext
       .collect { case Some(acc) => acc }
       .flatMap(_.updateHandle(Handle(username)))
 
-  var termsOfUseAB: Boolean = true //Random.nextBoolean()
+  var termsOfUseAB: Boolean = true
 
   def skipInvitations(): Unit = ZMessaging.accountsService.flatMap(_.updateCurrentAccount(_.copy(pendingTeamName = None)))
 
