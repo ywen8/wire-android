@@ -1272,6 +1272,5 @@
     <string name="app_entry_email_sent">Email sent</string>
     <string name="teams_set_username_subtitle">Usernames help people find you.</string>
 
-    <string name="empty_list_onboarding">Start a conversation or create a group.</string>
     <string name="pick_user_teams_invite">Invite people to join the team</string>
 </resources>

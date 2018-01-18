@@ -25,14 +25,13 @@ import android.support.v4.content.ContextCompat
 import android.support.v7.app.AlertDialog
 import android.support.v7.widget.{LinearLayoutManager, RecyclerView, Toolbar}
 import android.text.TextUtils
-import android.view.View.OnClickListener
 import android.view._
 import android.view.animation.Animation
 import android.view.inputmethod.EditorInfo
 import android.widget.TextView.OnEditorActionListener
 import android.widget._
-import com.waz.ZLog._
 import com.waz.ZLog.ImplicitTag._
+import com.waz.ZLog._
 import com.waz.api._
 import com.waz.content.UserPreferences
 import com.waz.model.UserData.ConnectionStatus
@@ -69,7 +68,7 @@ import com.waz.zclient.utils.device.DeviceDetector
 import com.waz.zclient.utils.{IntentUtils, LayoutSpec, StringUtils, UiStorage, UserSignal, ViewUtils}
 import com.waz.zclient.views._
 import com.waz.zclient.{BaseActivity, FragmentHelper, OnBackPressedListener, R}
-
+import com.waz.zclient.utils.RichView
 import scala.collection.JavaConverters._
 import scala.concurrent.Future
 
@@ -163,15 +162,14 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
       zms <- zms
       permissions <- userAccountsController.permissions.orElse(Signal.const(Set.empty[AccountData.Permission]))
       members <- zms.teams.searchTeamMembers().orElse(Signal.const(Set.empty[UserData]))
-    } yield zms.teamId.nonEmpty && permissions(AccountData.Permission.AddTeamMember) && !members.exists(_.id != zms.selfUserId) && !isAddingToConversation).onUi {
-      case true =>
-        v.setVisibility(View.VISIBLE)
-      case false =>
-        v.setVisibility(View.GONE)
-    }
-    v.setOnClickListener(new OnClickListener {
-      override def onClick(v: View): Unit = browser.openUrl(AndroidURIUtil.parse(getString(R.string.pick_user_manage_team_url)))
-    })
+    } yield
+      if (zms.teamId.nonEmpty && permissions(AccountData.Permission.AddTeamMember) && !members.exists(_.id != zms.selfUserId) && !isAddingToConversation)
+        View.VISIBLE
+      else
+        View.GONE)
+      .onUi(v.setVisibility(_))
+
+    v.foreach(_.onClick(browser.openUrl(AndroidURIUtil.parse(getString(R.string.pick_user_manage_team_url)))))
   }
 
   private case class PickableUser(userId : UserId, userName: String) extends PickableElement {

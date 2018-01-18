@@ -120,7 +120,7 @@
             android:layout_height="wrap_content"
             android:gravity="center"
             android:textSize="@dimen/wire__text_size__medium"
-            android:text="@string/empty_list_onboarding"
+            android:text="@string/no_conversation_in_list__message"
             android:textColor="@color/white"
             app:w_font="@string/wire__typeface__light"
             />

@@ -21,7 +21,7 @@ import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
 import android.support.v7.widget.{LinearLayoutManager, RecyclerView}
-import android.view.View.{GONE, OnClickListener, VISIBLE}
+import android.view.View.{GONE, VISIBLE}
 import android.view.animation.Animation
 import android.view.{LayoutInflater, View, ViewGroup}
 import android.widget.{ImageView, LinearLayout}
@@ -50,6 +50,7 @@ import com.waz.zclient.pages.main.pickuser.controller.IPickUserController
 import com.waz.zclient.preferences.PreferencesActivity
 import com.waz.zclient.ui.text.TypefaceTextView
 import com.waz.zclient.utils.ContextUtils._
+import com.waz.zclient.utils.RichView
 import com.waz.zclient.{FragmentHelper, OnBackPressedListener, R, ViewHolder}
 
 /**
@@ -201,10 +202,10 @@ class NormalConversationFragment extends ConversationListFragment {
   lazy val loadingListView = view[View](R.id.conversation_list_loading_indicator)
   lazy val listActionsView = returning(view[ListActionsView](R.id.lav__conversation_list_actions)){ v =>
    archiveEnabled.onUi(v.setArchiveEnabled(_))
-    hasConversationsAndArchive.onUi{
-      case (false, false) => v.setContactsCentered(true)
-      case _ => v.setContactsCentered(false)
-    }
+    hasConversationsAndArchive.map {
+      case (false, false) => true
+      case _ => false
+    }.onUi(v.setContactsCentered(_))
   }
 
   lazy val noConvsTitle = returning(view[TypefaceTextView](R.id.conversation_list_empty_title)) { v =>
@@ -256,10 +257,9 @@ class NormalConversationFragment extends ConversationListFragment {
     listActionsView.setCallback(listActionsCallback)
     listActionsView.setScrolledToBottom(!conversationListView.canScrollVertically(1))
 
-    noConvsMessage.setOnClickListener(new OnClickListener {
-      override def onClick(v: View): Unit =
-        getControllerFactory.getPickUserController.showPickUser(IPickUserController.Destination.CONVERSATION_LIST)
-    })
+    noConvsMessage.foreach(_.onClick(
+      inject[IPickUserController].showPickUser(IPickUserController.Destination.CONVERSATION_LIST)
+    ))
 
     //initialise lazy vals
     loadingListView
