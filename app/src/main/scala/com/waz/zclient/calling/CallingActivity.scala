@@ -19,7 +19,6 @@ package com.waz.zclient.calling
 
 import android.content.{Context, Intent}
 import android.os.Bundle
-import android.support.v7.app.AppCompatActivity
 import android.view.ViewGroup.LayoutParams
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.view.WindowManager
