@@ -20,6 +20,7 @@ package com.waz.zclient.common.views
 import android.app.Activity
 import android.content.{ClipData, ClipboardManager, Context}
 import android.content.res.ColorStateList
+import android.os.Build
 import android.text.{Editable, TextWatcher}
 import android.util.AttributeSet
 import android.view.View.OnTouchListener
@@ -53,7 +54,8 @@ class NumberCodeInput(context: Context, attrs: AttributeSet, style: Int) extends
   progressBar.setIndeterminate(true)
   progressBar.setVisible(false)
   errorText.setVisible(false)
-  progressBar.setIndeterminateTintList(ColorStateList.valueOf(ContextUtils.getColor(R.color.teams_inactive_button)))
+  if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
+    progressBar.setIndeterminateTintList(ColorStateList.valueOf(ContextUtils.getColor(R.color.teams_inactive_button)))
   setupInputs()
   codeText.onUi {
     case (code, copyPaste) =>

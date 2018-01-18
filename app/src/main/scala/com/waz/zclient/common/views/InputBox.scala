@@ -20,6 +20,7 @@ package com.waz.zclient.common.views
 import android.content.Context
 import android.content.res.{ColorStateList, TypedArray}
 import android.graphics.Color
+import android.os.Build
 import android.util.AttributeSet
 import android.view.KeyEvent
 import android.view.inputmethod.EditorInfo
@@ -73,7 +74,8 @@ class InputBox(context: Context, attrs: AttributeSet, style: Int) extends Linear
   progressBar.setVisible(false)
   confirmationButton.setVisible(true)
   errorText.setVisible(false)
-  progressBar.setIndeterminateTintList(ColorStateList.valueOf(ContextUtils.getColor(R.color.teams_inactive_button)))
+  if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
+    progressBar.setIndeterminateTintList(ColorStateList.valueOf(ContextUtils.getColor(R.color.teams_inactive_button)))
   editText.setImeOptions(EditorInfo.IME_ACTION_DONE)
 
   editText.setOnEditorActionListener(new OnEditorActionListener {
