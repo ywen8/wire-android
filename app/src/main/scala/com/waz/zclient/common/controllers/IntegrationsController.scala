@@ -18,37 +18,31 @@
 package com.waz.zclient.common.controllers
 
 import android.content.Context
-import com.waz.model.{IntegrationData, IntegrationId, ProviderId}
+import com.waz.model.{ConvId, IntegrationData, IntegrationId, ProviderId}
 import com.waz.service.ZMessaging
 import com.waz.threading.Threading
 import com.waz.utils.events.Signal
 import com.waz.zclient.{Injectable, Injector}
-import com.waz.ZLog.verbose
-import com.waz.ZLog.ImplicitTag._
 
 import scala.concurrent.Future
 
 class IntegrationsController(implicit injector: Injector, context: Context) extends Injectable {
+  import Threading.Implicits.Background
 
   private lazy val integrations = inject[Signal[ZMessaging]].map(_.integrations)
 
   val searchQuery = Signal[String]("")
 
-//  def searchIntegrations =  for {
-//    zms       <- inject[Signal[ZMessaging]]
-//    startWith <- searchQuery
-//    _ = verbose(s"IN looking for integration starting with $startWith")
-//    data      <- zms.integrations.searchIntegrations(startWith).map(Option(_)).orElse(Signal.const(Option.empty[Seq[IntegrationData]]))
-//    _ = verbose(s"IN found: ${data.map(_.map(b => (b.name, b.description, b.assets)))}")
-//  } yield data.map(_.toIndexedSeq)
+  def searchIntegrations = for {
+    in        <- integrations
+    startWith <- searchQuery
+    data      <- in.searchIntegrations(startWith).map(Option(_)).orElse(Signal.const(Option.empty[Seq[IntegrationData]]))
+  } yield data.map(_.toIndexedSeq)
 
-  private val fakeIntegration = IntegrationData(name = "service 1", summary = "service summary", description = "service description")
+  def getIntegration(pId: ProviderId, iId: IntegrationId): Future[IntegrationData] =
+    integrations.head.flatMap(_.getIntegration(pId, iId))
 
-  def searchIntegrations = Signal.const(Option(IndexedSeq(fakeIntegration)))
-
-  def getIntegration(providerId: ProviderId, integrationId: IntegrationId): Signal[IntegrationData] =
-    if (integrationId == fakeIntegration.id) Signal.const(fakeIntegration)// Future.successful(fakeIntegration)
-    else Signal.empty[IntegrationData] //Future.failed(new Exception("no integration"))
-    //integrations.head.flatMap(_.getIntegration(providerId, integrationId))(Threading.Ui)
-
+  def addBot(cId: ConvId, pId: ProviderId, iId: IntegrationId): Future[Unit] =
+    integrations.head.flatMap(_.addBot(cId, pId, iId))
 }
+

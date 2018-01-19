@@ -24,12 +24,11 @@ import android.support.v4.app.FragmentManager
 import android.view.View.OnClickListener
 import android.view.{LayoutInflater, View, ViewGroup}
 import android.widget.ImageView
-import com.waz.model.{AssetId, IntegrationData, IntegrationId, ProviderId}
+import com.waz.model.{AssetId, IntegrationId, ProviderId}
 import com.waz.utils.events.Signal
 import com.waz.zclient.common.views.ImageAssetDrawable
 import com.waz.zclient.common.views.ImageAssetDrawable.{RequestBuilder, ScaleType}
 import com.waz.zclient.common.views.ImageController.{ImageSource, WireImage}
-import com.waz.zclient.pages.BaseFragment
 import com.waz.zclient.ui.text.TypefaceTextView
 import com.waz.zclient.utils.ContextUtils
 import com.waz.zclient.{FragmentHelper, OnBackPressedListener, R, ViewHolder}
@@ -38,7 +37,7 @@ import com.waz.ZLog.ImplicitTag._
 import com.waz.utils.returning
 import com.waz.zclient.common.controllers.IntegrationsController
 import com.waz.zclient.controllers.navigation.{INavigationController, Page}
-import com.waz.zclient.conversationlist.views.{ConversationListTopToolbar, IntegrationTopToolbar}
+import com.waz.zclient.conversationlist.views.IntegrationTopToolbar
 import com.waz.zclient.preferences.views.TextButton
 import com.waz.zclient.usersearch.PickUserFragment
 import com.waz.zclient.utils.RichView
@@ -90,17 +89,21 @@ class IntegrationDetailsFragment extends FragmentHelper with OnBackPressedListen
       override def onClick(v: View): Unit = {
         verbose(s"adding a service ${integration.currentValue.map(_.name)}")
 
+        import com.waz.zclient.conversationlist.ChooseConversationFragment._
+        getFragmentManager.beginTransaction
+          .replace(R.id.fl__conversation_list_main, newInstance(providerId, integrationId), Tag)
+          .addToBackStack(Tag)
+          .commit()
+
+        inject[INavigationController].setLeftPage(Page.INTEGRATION_DETAILS, PickUserFragment.TAG)
+
       }
     })
   }
 
   private val integrationsIds = Signal[(ProviderId, IntegrationId)]()
   private val integration = integrationsIds.flatMap {
-    case (pId, iId) => controller.getIntegration(pId, iId)
-  }
-
-  integration.onUi{ data =>
-    verbose(s"IN got integration: ${data.name} ")
+    case (pId, iId) => Signal.future(controller.getIntegration(pId, iId))
   }
 
   integration.map(_.assets.headOption).onUi {
@@ -119,6 +122,7 @@ class IntegrationDetailsFragment extends FragmentHelper with OnBackPressedListen
 
   def goBack(): Boolean = {
     getFragmentManager.popBackStack()
+    // not necessary for the actual transition, but it may be used to trigger some listeners waiting for it
     inject[INavigationController].setLeftPage(Page.PICK_USER, IntegrationDetailsFragment.Tag)
     true
   }
@@ -126,7 +130,7 @@ class IntegrationDetailsFragment extends FragmentHelper with OnBackPressedListen
   def close(): Boolean = {
     getFragmentManager.popBackStack()
     getFragmentManager.popBackStack()
-    inject[INavigationController].setLeftPage(Page.CONVERSATION_LIST, IntegrationDetailsFragment.Tag)
+     inject[INavigationController].setLeftPage(Page.CONVERSATION_LIST, IntegrationDetailsFragment.Tag)
     true
   }
 }

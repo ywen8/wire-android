@@ -424,6 +424,7 @@ class ConversationListManagerFragment extends Fragment
     if (closeMenu) true
     else {
       withBackstackHead {
+        case Some(f: ChooseConversationFragment) if f.onBackPressed() => true
         case Some(f: IntegrationDetailsFragment) if f.onBackPressed() => true
         case Some(f: PickUserFragment) if f.onBackPressed() => true
         case Some(f: ArchiveListFragment) if f.onBackPressed() => true

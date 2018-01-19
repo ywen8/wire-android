@@ -25,18 +25,20 @@ import android.view.View.{GONE, VISIBLE}
 import android.view.animation.Animation
 import android.view.{LayoutInflater, View, ViewGroup}
 import android.widget.{ImageView, LinearLayout}
+import android.widget.ImageView
 import com.waz.ZLog.ImplicitTag._
 import com.waz.ZLog._
-import com.waz.model.AccountId
+import com.waz.model._
 import com.waz.model.ConversationData.ConversationType
 import com.waz.model.otr.Client
 import com.waz.service.ZMessaging
 import com.waz.threading.Threading
 import com.waz.utils.events.{Signal, Subscription}
 import com.waz.utils.returning
-import com.waz.zclient.common.controllers.UserAccountsController
+import com.waz.zclient.common.controllers.{IntegrationsController, UserAccountsController}
 import com.waz.zclient.common.controllers.global.AccentColorController
 import com.waz.zclient.common.views.PickableElement
+import com.waz.zclient.controllers.navigation.{INavigationController, Page}
 import com.waz.zclient.conversation.ConversationController
 import com.waz.zclient.conversationlist.views.{ArchiveTopToolbar, ConversationListTopToolbar, IntegrationTopToolbar, NormalTopToolbar}
 import com.waz.zclient.core.stores.conversation.ConversationChangeRequester
@@ -51,9 +53,11 @@ import com.waz.zclient.pages.main.pickuser.controller.IPickUserController
 import com.waz.zclient.preferences.PreferencesActivity
 import com.waz.zclient.ui.text.TypefaceTextView
 import com.waz.zclient.usersearch.views.{SearchBoxView, SearchEditText}
+import com.waz.zclient.utils.ContextUtils
 import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.utils.RichView
 import com.waz.zclient.{FragmentHelper, OnBackPressedListener, R, ViewHolder}
+import com.waz.zclient.utils.RichView
 
 /**
   * Due to how we use the NormalConversationListFragment - it gets replaced by the ArchiveConversationListFragment or
@@ -83,18 +87,21 @@ abstract class ConversationListFragment extends BaseFragment[ConversationListFra
       case (mode,user) => topToolbar.get.setTitle(mode, user)
     }
 
-    a.onConversationClick { conv =>
-      verbose(s"handleItemClick, switching conv to ${conv.id}")
-      conversationController.selectConv(Option(conv.id), ConversationChangeRequester.CONVERSATION_LIST)
-    }
-    a.onConversationLongClick { conv =>
-      if (conv.convType != ConversationType.Group &&
-        conv.convType != ConversationType.OneToOne &&
-        conv.convType != ConversationType.WaitForConnection) {
-      } else
-        screenController.showConversationMenu(IConversationScreenController.CONVERSATION_LIST_LONG_PRESS, conv.id)
-    }
+    a.onConversationClick { conv => conversationClicked(conv) }
+    a.onConversationLongClick { conv => conversationLongClicked(conv) }
   }
+
+  def conversationClicked(conv: ConversationData): Unit = {
+    verbose(s"handleItemClick, switching conv to ${conv.id}")
+    conversationController.selectConv(Option(conv.id), ConversationChangeRequester.CONVERSATION_LIST)
+  }
+
+  def conversationLongClicked(conv: ConversationData): Unit =
+    if (conv.convType != ConversationType.Group &&
+      conv.convType != ConversationType.OneToOne &&
+      conv.convType != ConversationType.WaitForConnection) {
+    } else
+      screenController.showConversationMenu(IConversationScreenController.CONVERSATION_LIST_LONG_PRESS, conv.id)
 
   lazy val conversationListView = returning(view[SwipeListView](R.id.conversation_list_view)) { rv =>
     userAccountsController.currentUser.onChanged.onUi(_ => rv.scrollToPosition(0))
@@ -159,20 +166,53 @@ class ArchiveListFragment extends ConversationListFragment with OnBackPressedLis
 }
 
 class ChooseConversationFragment extends ConversationListFragment with OnBackPressedListener {
+  private lazy val providerId = ProviderId(getArguments.getString(ChooseConversationFragment.ProviderId))
+  private lazy val integrationId = IntegrationId(getArguments.getString(ChooseConversationFragment.IntegrationId))
+
+  private lazy val integrationsController = inject[IntegrationsController]
+
   override val layoutId: Int = R.layout.fragment_choose_conversation
-  override lazy val topToolbar = view[IntegrationTopToolbar](R.id.integration_top_toolbar)
 
   private var searchBoxView: SearchEditText = null
+  private var pictureView: ViewHolder[ImageView] = _
 
-  override def onViewCreated(view: View, savedInstanceState: Bundle) = {
-    super.onViewCreated(view, savedInstanceState)
-    adapter.currentMode ! ConversationListAdapter.Archive
-    subs += topToolbar.onRightButtonClick(_ => Option(getContainer).foreach(_.closeArchive()))
+  override def onViewCreated(v: View, savedInstanceState: Bundle) = {
+    super.onViewCreated(v, savedInstanceState)
+    adapter.currentMode ! ConversationListAdapter.Integration
+
+    val nameView = returning(view[TypefaceTextView](R.id.integration_name)){ nv =>
+      integration.map(_.name).onUi { name =>nv.foreach(_.setText(name)) }
+    }
+
+    val summaryView = returning(view[TypefaceTextView](R.id.integration_summary)){ sv =>
+      integration.map(_.summary).onUi { summary => sv.foreach(_.setText(summary)) }
+    }
+
+    val descriptionView = returning(view[TypefaceTextView](R.id.integration_description)){ dv =>
+      integration.map(_.description).onUi { description => dv.foreach(_.setText(description)) }
+    }
+
+    pictureView = returning(view[ImageView](R.id.integration_picture)){ pv =>
+      pv.foreach(_.setImageDrawable(ContextUtils.getDrawable(R.drawable.services)))
+    }
+
+    integrationsIds ! (providerId, integrationId)
   }
 
-  override def onBackPressed() = {
-    Option(getContainer).foreach(_.closeArchive())
-    true
+  override lazy val topToolbar = returning(view[IntegrationTopToolbar](R.id.integration_top_toolbar)){ t =>
+    t.foreach(_.closeButtonEnd.onClick(close()))
+    t.foreach(_.backButton.onClick(goBack()))
+    integration.onUi { data => t.foreach(_.setTitle(data)) }
+  }
+
+  override def onBackPressed() = goBack()
+
+  override def conversationClicked(conv: ConversationData): Unit = {
+    import Threading.Implicits.Ui
+    integrationsController.addBot(conv.id, providerId, integrationId).map { _ =>
+      close()
+      conversationController.selectConv(Option(conv.id), ConversationChangeRequester.CONVERSATION_LIST)
+    }
   }
 
   final val searchBoxViewCallback: SearchBoxView.Callback = new SearchBoxView.Callback() {
@@ -188,10 +228,39 @@ class ChooseConversationFragment extends ConversationListFragment with OnBackPre
     }
 
   }
+
+  def goBack(): Boolean = {
+    getFragmentManager.popBackStack()
+    // not necessary for the actual transition, but it may be used to trigger some listeners waiting for it
+    inject[INavigationController].setLeftPage(Page.PICK_USER, ChooseConversationFragment.Tag)
+    true
+  }
+
+  def close(): Boolean = {
+    getFragmentManager.popBackStack()
+    getFragmentManager.popBackStack()
+    inject[INavigationController].setLeftPage(Page.CONVERSATION_LIST, ChooseConversationFragment.Tag)
+    true
+  }
+
+  private val integrationsIds = Signal[(ProviderId, IntegrationId)]()
+  private val integration = integrationsIds.flatMap {
+    case (pId, iId) => Signal.future(integrationsController.getIntegration(pId, iId))
+  }
 }
 
 object ChooseConversationFragment {
-  val TAG = ChooseConversationFragment.getClass.getSimpleName
+  val Tag = classOf[ChooseConversationFragment].getName
+  val IntegrationId = "ARG_INTEGRATION_ID"
+  val ProviderId = "ARG_PROVIDER_ID"
+
+  def newInstance(providerId: ProviderId, integrationId: IntegrationId): ChooseConversationFragment =
+    returning(new ChooseConversationFragment) {
+      _.setArguments(returning(new Bundle) { b =>
+        b.putString(ProviderId, providerId.str)
+        b.putString(IntegrationId, integrationId.str)
+      })
+    }
 }
 
 object NormalConversationListFragment {

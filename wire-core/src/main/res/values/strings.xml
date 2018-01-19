@@ -128,6 +128,7 @@
     <string name="pick_user_search_focus">\u0020 SEARCH BY NAME OR USERNAME</string>
     <string name="pick_user_search_hint">SEARCH BY NAME OR USERNAME</string>
     <string name="pick_user_search__add_to_conversation">\u0020 SEARCH BY NAME</string>
+    <string name="choose_conversation">SEARCH</string>
     <string name="people_picker__top_users_header_title">Top people</string>
     <string name="people_picker__address_book_matches_title">Connect</string>
     <string name="people_picker__search_result_conversations_header_title">Groups</string>
