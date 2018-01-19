@@ -105,4 +105,34 @@
         android:layout_marginTop="?attr/actionBarSize"
         />
 
+    <LinearLayout
+        android:id="@+id/empty_list_message"
+        android:layout_width="@dimen/empty_list_onboarding_width"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_gravity="center_horizontal|bottom"
+        android:layout_marginBottom="@dimen/conversation_list__action_view__height"
+        android:visibility="gone"
+        >
+
+        <com.waz.zclient.ui.text.TypefaceTextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:textSize="@dimen/wire__text_size__medium"
+            android:text="@string/no_conversation_in_list__message"
+            android:textColor="@color/white"
+            app:w_font="@string/wire__typeface__light"
+            />
+
+        <ImageView
+            android:id="@+id/empty_list_arrow"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/empty_list_onboarding_arrow_height"
+            android:layout_marginTop="@dimen/wire__padding__big"
+            android:layout_marginBottom="@dimen/wire__padding__big"
+            android:layout_gravity="center_horizontal"/>
+
+    </LinearLayout>
+
 </FrameLayout>

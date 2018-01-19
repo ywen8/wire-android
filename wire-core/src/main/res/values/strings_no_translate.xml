@@ -165,7 +165,9 @@
     <string translatable="false" name="pref_dev_category_sign_in_account_title">Sign into account</string>
     <string translatable="false" name="pref_dev_category_sign_in_account_summary">Sign into another account and switch to that one</string>
 
-    <string translatable="false" name="pref_manage_team_url">https://teams.wire.com/login/?pk_campaign=client&amp;pk_kwd=android</string>
+    <string translatable="false" name="pref_manage_team_url">https://teams.wire.com/login/?utm_source=client_settings&amp;utm_term=android</string>
+
+    <string translatable="false" name="pick_user_manage_team_url">https://teams.wire.com/login/?utm_source=client_landing&amp;utm_term=android</string>
 
 </resources>
 
