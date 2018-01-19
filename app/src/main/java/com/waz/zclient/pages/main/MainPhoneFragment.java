@@ -161,7 +161,7 @@ public class MainPhoneFragment extends BaseFragment<MainPhoneFragment.Container>
                 return ((ConfirmationFragment) topFragment).onBackPressed();
             } else if (topFragment instanceof ImageFragment) {
                 if (!((ImageFragment) topFragment).onBackPressed()) {
-                    getChildFragmentManager().popBackStackImmediate(ImageFragment.TAG(),
+                    getChildFragmentManager().popBackStackImmediate(ImageFragment.Tag(),
                         FragmentManager.POP_BACK_STACK_INCLUSIVE);
                 }
                 return true;
@@ -197,8 +197,8 @@ public class MainPhoneFragment extends BaseFragment<MainPhoneFragment.Container>
         getChildFragmentManager().beginTransaction()
                                  .add(R.id.fl__overlay_container,
                                      ImageFragment.newInstance(messageId),
-                                     ImageFragment.TAG())
-                                 .addToBackStack(ImageFragment.TAG())
+                                     ImageFragment.Tag())
+                                 .addToBackStack(ImageFragment.Tag())
                                  .commit();
         getControllerFactory().getNavigationController().setRightPage(Page.SINGLE_MESSAGE, TAG);
     }
