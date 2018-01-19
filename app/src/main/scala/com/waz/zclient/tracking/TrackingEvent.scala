@@ -27,6 +27,9 @@ import com.waz.utils._
 import com.waz.zclient.tracking.AddPhotoOnRegistrationEvent.Source
 import com.waz.zclient.tracking.AvailabilityChanged.Method
 import com.waz.zclient.tracking.TeamAcceptedTerms.Occurrence
+import org.json
+
+import scala.util.Try
 
 //TODO - handle generic invitation tokens
 case class EnteredCredentialsEvent(method: SignInMethod, error: Option[(Int, String)], invitation: Option[PersonalToken]) extends TrackingEvent {
@@ -248,11 +251,13 @@ case class TeamInviteSent() extends TrackingEvent {
   })
 }
 
-//TODO: get metrics json from avs
-case class AvsMetrics(callSetupQuality: Int, callQuality: Int) extends TrackingEvent {
+case class CallQualityInfo(callSetupQuality: Int, callQuality: Int, metrics: JSONObject) extends TrackingEvent {
   override val name: String = "calling.avs_metrics_ended_call"
-  override val props: Option[JSONObject] = Some(returning(new JSONObject()) { o =>
-    o.put("score1", callSetupQuality)
-    o.put("score2", callQuality)
-  })
+
+  override val props: Option[JSONObject] = returning(Some(metrics)){
+    case Some(o) =>
+      o.put("score1", callSetupQuality)
+      o.put("score2", callQuality)
+    case _ =>
+  }
 }

@@ -23,7 +23,7 @@
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/white">
+    android:background="@color/teams_background">
 
     <com.waz.zclient.ui.text.TypefaceTextView
         android:layout_width="match_parent"
@@ -55,20 +55,21 @@
         android:paddingEnd="@dimen/wire__padding__regular"/>
 
     <LinearLayout
-        android:paddingStart="@dimen/wire__padding__regular"
-        android:paddingEnd="@dimen/wire__padding__regular"
+        android:paddingStart="32dp"
+        android:paddingEnd="32dp"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal">
 
         <TextView
             android:id="@+id/call_quality_button_1"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
             android:text="1"
             android:gravity="center"
             android:background="@drawable/call_quality_button_background"
-            android:textSize="@dimen/wire__text_size__regular"/>
+            android:textSize="@dimen/wire__text_size__regular"
+            android:textColor="@color/black"/>
 
         <View
             android:layout_width="0dp"
@@ -77,8 +78,8 @@
 
         <TextView
             android:id="@+id/call_quality_button_2"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
             android:text="2"
             android:gravity="center"
             android:background="@drawable/call_quality_button_background"
@@ -91,8 +92,8 @@
 
         <TextView
             android:id="@+id/call_quality_button_3"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
             android:text="3"
             android:gravity="center"
             android:background="@drawable/call_quality_button_background"
@@ -105,8 +106,8 @@
 
         <TextView
             android:id="@+id/call_quality_button_4"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
             android:text="4"
             android:gravity="center"
             android:background="@drawable/call_quality_button_background"
@@ -119,8 +120,8 @@
 
         <TextView
             android:id="@+id/call_quality_button_5"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
             android:text="5"
             android:gravity="center"
             android:background="@drawable/call_quality_button_background"

@@ -19,12 +19,16 @@ package com.waz.zclient.callquality
 
 import com.waz.service.ZMessaging
 import com.waz.service.call.CallInfo
+import com.waz.service.tracking.AVSMetricsEvent
 import com.waz.service.tracking.TrackingService.track
 import com.waz.threading.Threading
 import com.waz.utils.events.{EventContext, EventStream, Signal, SourceStream}
 import com.waz.zclient.calling.controllers.GlobalCallingController
-import com.waz.zclient.tracking.{AvsMetrics, GlobalTrackingController}
+import com.waz.zclient.tracking.{CallQualityInfo, GlobalTrackingController}
 import com.waz.zclient.{Injectable, Injector}
+import org.json.JSONObject
+
+import scala.util.Try
 
 class CallQualityController(implicit inj: Injector, eventContext: EventContext) extends Injectable {
 
@@ -33,17 +37,31 @@ class CallQualityController(implicit inj: Injector, eventContext: EventContext) 
   val tracking = inject[GlobalTrackingController]
 
   val callToReport = Signal(Option.empty[CallInfo])
+  val metricsToReport = Signal(Option.empty[JSONObject])
   val callQualityShouldOpen: SourceStream[Unit] = EventStream[Unit]()
 
   var setupQuality: Int = 0
   var callQuality: Int = 0
 
+  (for {
+   zms <- zms
+   (_, metrics) <- Signal.wrap(zms.calling.metricsStream)
+  } yield Try(new JSONObject(metrics)).toOption).onUi { metricsJson =>
+    metricsJson.foreach { metrics =>
+      if (metrics.getBoolean("answered"))
+        metricsToReport ! Some(metrics)
+      else
+        track(AVSMetricsEvent(metrics.toString()))
+    }
+  }
+
   zms.flatMap(_.calling.previousCall).on(Threading.Background) { call =>
-    callToReport ! call
+    //callToReport ! call
   }
 
   def sendEvent(): Unit = {
-    track(AvsMetrics(setupQuality, callQuality))
+    metricsToReport.head.map(_.foreach( metrics => track(CallQualityInfo(setupQuality, callQuality, metrics))))(Threading.Background)
     callToReport ! None
+    metricsToReport ! None
   }
 }

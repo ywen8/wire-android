@@ -269,6 +269,7 @@ class AppEntryController(implicit inj: Injector, eventContext: EventContext) ext
 
     ZMessaging.currentAccounts.getActiveAccount.flatMap {
       case Some(account) if account.pendingPhone.isDefined =>
+        val kindOfAccess = if (account.regWaiting) KindOfAccess.REGISTRATION else KindOfAccess.LOGIN_IF_NO_PASSWD
         requestCode(account, kindOfAccess).map {
           case Failure(error) =>
             Left(EntryError(error.code, error.label, SignInMethod(Register, Phone)))

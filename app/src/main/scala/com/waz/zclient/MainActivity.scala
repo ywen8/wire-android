@@ -148,8 +148,8 @@ class MainActivity extends BaseActivity
       appEntryController.invitationToken ! None
     }
 
-    callQualityController.callToReport.onUi {
-      case Some(call) if call.estabTime.isDefined =>
+    callQualityController.metricsToReport.onUi {
+      case Some(_) =>
         if (getSupportFragmentManager.findFragmentByTag(CallQualityFragment.Tag) == null)
           getSupportFragmentManager
             .beginTransaction
