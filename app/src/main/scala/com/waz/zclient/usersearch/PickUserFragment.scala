@@ -162,8 +162,9 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
       zms <- zms
       permissions <- userAccountsController.permissions.orElse(Signal.const(Set.empty[AccountData.Permission]))
       members <- zms.teams.searchTeamMembers().orElse(Signal.const(Set.empty[UserData]))
+      searching <- Option(searchUserController).fold(Signal.const(false))(_.searchState.map(!_.empty))
     } yield
-      if (zms.teamId.nonEmpty && permissions(AccountData.Permission.AddTeamMember) && !members.exists(_.id != zms.selfUserId) && !isAddingToConversation)
+      if (zms.teamId.nonEmpty && permissions(AccountData.Permission.AddTeamMember) && !members.exists(_.id != zms.selfUserId) && !isAddingToConversation && !searching)
         View.VISIBLE
       else
         View.GONE)
