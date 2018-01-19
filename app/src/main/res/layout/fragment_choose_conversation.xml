@@ -84,7 +84,7 @@
         android:layout_width="match_parent"
         android:layout_height="@dimen/collections__multi_share_search_height"
         android:layout_margin="@dimen/wire__padding__8"
-        app:hintText="@string/pick_user_search_hint"
+        app:hintText="@string/choose_conversation"
         />
 
     <com.waz.zclient.pages.main.conversationlist.views.listview.SwipeListView
