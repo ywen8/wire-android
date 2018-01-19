@@ -169,5 +169,7 @@
 
     <string translatable="false" name="pick_user_manage_team_url">https://teams.wire.com/login/?utm_source=client_landing&amp;utm_term=android</string>
 
+    <string translatable="false" name="invalid_email_help">https://support.wire.com/hc/en-us/articles/115004082129-My-email-address-is-already-in-use-and-I-cannot-create-an-account-What-can-I-do-</string>
+
 </resources>
 

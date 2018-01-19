@@ -61,6 +61,11 @@ class SearchEditText(context: Context, attrs: AttributeSet, style: Int) extends 
     updateInternal()
   }
 
+  def removeAllElements(): Unit = {
+    searchBox.getElements.foreach(searchBox.removeElement)
+    updateInternal()
+  }
+
   def setCallback(callback: PickerSpannableEditText.Callback) = this.callback = Option(callback)
 
   private def updateInternal(): Unit = {

@@ -31,7 +31,7 @@ import com.waz.service.tracking.TrackingService
 import com.waz.service.{NetworkModeService, UiLifeCycle, ZMessaging}
 import com.waz.utils.events.{EventContext, Signal, Subscription}
 import com.waz.zclient.api.scala.ScalaStoreFactory
-import com.waz.zclient.appentry.controllers.{AppEntryController, SignInController}
+import com.waz.zclient.appentry.controllers.{AppEntryController, InvitationsController, SignInController}
 import com.waz.zclient.calling.controllers.{CallPermissionsController, CurrentCallController, GlobalCallingController}
 import com.waz.zclient.camera.controllers.{AndroidCameraFactory, GlobalCameraController}
 import com.waz.zclient.collection.controllers.CollectionController
@@ -136,6 +136,7 @@ object WireApplication {
     bind [NavigationController]      to new NavigationController()
     bind [AppEntryController]        to new AppEntryController()
     bind [SignInController]          to new SignInController()
+    bind [InvitationsController]     to new InvitationsController()
 
 
     // current conversation data

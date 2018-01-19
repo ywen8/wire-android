@@ -240,3 +240,10 @@ object AvailabilityChanged {
   object Settings extends Method("settings")
   object ListHeader extends Method("list_header")
 }
+
+case class TeamInviteSent() extends TrackingEvent {
+  override val name: String = "team.sent_invite"
+  override val props = Some(returning(new JSONObject()) { o =>
+    o.put("method", "team_creation")
+  })
+}

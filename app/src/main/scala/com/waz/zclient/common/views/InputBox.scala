@@ -19,15 +19,19 @@ package com.waz.zclient.common.views
 
 import android.content.Context
 import android.content.res.{ColorStateList, TypedArray}
+import android.graphics.Color
+import android.os.Build
 import android.util.AttributeSet
 import android.view.KeyEvent
 import android.view.inputmethod.EditorInfo
 import android.widget.TextView.OnEditorActionListener
 import android.widget.{LinearLayout, ProgressBar, TextView}
+import com.waz.model.EmailAddress
 import com.waz.threading.Threading
 import com.waz.zclient.common.views.InputBox._
 import com.waz.zclient.ui.cursor.CursorEditText
 import com.waz.zclient.ui.text.TypefaceTextView
+import com.waz.zclient.ui.utils.TextViewUtils
 import com.waz.zclient.utils._
 import com.waz.zclient.{R, ViewHelper}
 
@@ -43,6 +47,8 @@ class InputBox(context: Context, attrs: AttributeSet, style: Int) extends Linear
   private val attributesArray: TypedArray =
     context.getTheme.obtainStyledAttributes(attrs, R.styleable.InputBox, 0, 0)
   private val hintAttr = Option(attributesArray.getString(R.styleable.InputBox_hint))
+  private var shouldDisableOnClick = true
+  private var removeTextOnClick = false
 
   val editText = findById[CursorEditText](R.id.edit_text)
   val hintText = findById[TypefaceTextView](R.id.hint_text)
@@ -53,6 +59,7 @@ class InputBox(context: Context, attrs: AttributeSet, style: Int) extends Linear
 
   private var validator = Option.empty[Validator]
   private var onClick = (_: String) => Future.successful(Option.empty[String])
+  private var linkifyError = Option.empty[() => Unit]
 
   confirmationButton.setBackgroundColors(ContextUtils.getColor(R.color.accent_blue), ContextUtils.getColor(R.color.teams_inactive_button))
   hintAttr.foreach(hintText.setText)
@@ -65,8 +72,10 @@ class InputBox(context: Context, attrs: AttributeSet, style: Int) extends Linear
   validate(editText.getText.toString)
   progressBar.setIndeterminate(true)
   progressBar.setVisible(false)
+  confirmationButton.setVisible(true)
   errorText.setVisible(false)
-  progressBar.setIndeterminateTintList(ColorStateList.valueOf(ContextUtils.getColor(R.color.teams_inactive_button)))
+  if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
+    progressBar.setIndeterminateTintList(ColorStateList.valueOf(ContextUtils.getColor(R.color.teams_inactive_button)))
   editText.setImeOptions(EditorInfo.IME_ACTION_DONE)
 
   editText.setOnEditorActionListener(new OnEditorActionListener {
@@ -82,7 +91,8 @@ class InputBox(context: Context, attrs: AttributeSet, style: Int) extends Linear
   confirmationButton.onClick {
     hideErrorMessage()
     progressBar.setVisible(true)
-    editText.setEnabled(false)
+    confirmationButton.setVisible(false)
+    if (shouldDisableOnClick) editText.setEnabled(false)
     confirmationButton.setEnabled(false)
     val content =
       if (validator.forall(_.shouldTrim))
@@ -93,8 +103,13 @@ class InputBox(context: Context, attrs: AttributeSet, style: Int) extends Linear
     onClick(content).map { errorMessage =>
       errorMessage.foreach(t => showErrorMessage(Some(t)))
       progressBar.setVisible(false)
-      editText.setEnabled(true)
+      confirmationButton.setVisible(true)
+      if (shouldDisableOnClick) editText.setEnabled(true)
       confirmationButton.setEnabled(true)
+      if(errorMessage.isEmpty && removeTextOnClick) {
+        editText.setText("")
+        validate("")
+      }
     } (Threading.Ui)
   }
 
@@ -106,6 +121,11 @@ class InputBox(context: Context, attrs: AttributeSet, style: Int) extends Linear
 
   def showErrorMessage(text: Option[String] = None): Unit = {
     text.map(_.toUpperCase).foreach(errorText.setText)
+    linkifyError.foreach { errorCallback =>
+      TextViewUtils.linkifyText(errorText, Color.BLACK, true, false, new Runnable() {
+        override def run() = errorCallback()
+      })
+    }
     errorText.setVisible(true)
   }
 
@@ -124,6 +144,16 @@ class InputBox(context: Context, attrs: AttributeSet, style: Int) extends Linear
   }
 
   def setOnClick(f: (String) => Future[Option[String]]): Unit = onClick = f
+
+  def setShouldDisableOnClick(should: Boolean): Unit = shouldDisableOnClick = should
+
+  def setShouldClearTextOnClick(should: Boolean): Unit = removeTextOnClick = should
+
+  def setButtonGlyph(glyph: Int): Unit =
+    confirmationButton.setText(glyph)
+
+  def setErrorMessageCallback(callback: Option[() => Unit]): Unit =
+    linkifyError = callback
 }
 
 object InputBox {
@@ -156,7 +186,7 @@ object InputBox {
     }
   })
 
-  object EmailValidator extends Validator({ t =>
-    t.contains("@") && t.contains(".") && t.trim.length >= 3
-  })
+  object EmailValidator extends Validator({ t => EmailAddress.parse(t).nonEmpty })
+
+  object SimpleValidator extends Validator({t => t.nonEmpty})
 }

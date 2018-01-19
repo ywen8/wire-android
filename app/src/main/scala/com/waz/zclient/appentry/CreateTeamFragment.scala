@@ -17,25 +17,27 @@
   */
 package com.waz.zclient.appentry
 
+import android.content.Context
 import android.os.Bundle
-import android.view.View.{OnClickListener, OnLayoutChangeListener}
+import android.view.View.OnLayoutChangeListener
 import android.view.{LayoutInflater, View, ViewGroup}
 import android.widget.FrameLayout
 import com.waz.ZLog.ImplicitTag.implicitLogTag
 import com.waz.service.ZMessaging
 import com.waz.zclient.appentry.CreateTeamFragment._
-import com.waz.zclient.appentry.controllers.AppEntryController
 import com.waz.zclient.appentry.controllers.AppEntryController._
+import com.waz.zclient.appentry.controllers.{AppEntryController, InvitationsController}
 import com.waz.zclient.appentry.scenes._
 import com.waz.zclient.pages.BaseFragment
-import com.waz.zclient.ui.text.GlyphTextView
+import com.waz.zclient.ui.text.{GlyphTextView, TypefaceTextView}
 import com.waz.zclient.ui.utils.KeyboardUtils
-import com.waz.zclient.utils.{ContextUtils, DefaultTransition}
+import com.waz.zclient.utils.{ContextUtils, DefaultTransition, RichView}
 import com.waz.zclient.{FragmentHelper, OnBackPressedListener, R}
 
 class CreateTeamFragment extends BaseFragment[Container] with FragmentHelper with OnBackPressedListener {
 
   private lazy val appEntryController = inject[AppEntryController]
+  private lazy val invitesController = inject[InvitationsController]
 
   private var previousStage = Option.empty[AppEntryStage]
   private var lastKeyboardHeight = 0
@@ -47,18 +49,23 @@ class CreateTeamFragment extends BaseFragment[Container] with FragmentHelper wit
 
     val container = findById[FrameLayout](R.id.container)
     val closeButton = findById[GlyphTextView](R.id.close_button)
+    val skipButton = findById[TypefaceTextView](R.id.skip_button)
+    val toolbar = findById[FrameLayout](R.id.teams_toolbar)
 
     appEntryController.entryStage.onUi { state =>
       val inflator = LayoutInflater.from(getActivity)
+      implicit val ctx: Context = getContext
+
       val viewHolder = state match {
-        case NoAccountState(FirstScreen) => FirstScreenViewHolder(inflator.inflate(R.layout.app_entry_scene, null, false))(getContext, this, injector)
-        case NoAccountState(RegisterTeamScreen) => TeamNameViewHolder(inflator.inflate(R.layout.create_team_name_scene, null, false))(getContext, this, injector)
-        case SetTeamEmail => SetEmailViewHolder(inflator.inflate(R.layout.set_email_scene, null, false))(getContext, this, injector)
-        case VerifyTeamEmail => VerifyEmailViewHolder(inflator.inflate(R.layout.verify_email_scene, null, false))(getContext, this, injector)
-        case SetUsersNameTeam => SetNameViewHolder(inflator.inflate(R.layout.set_name_scene, null, false))(getContext, this, injector)
-        case SetPasswordTeam => SetPasswordViewHolder(inflator.inflate(R.layout.set_password_scene, null, false))(getContext, this, injector)
-        case SetUsernameTeam => SetUsernameViewHolder(inflator.inflate(R.layout.set_username_scene, null, false))(getContext, this, injector)
-        case _ => EmptyViewHolder(new View(getContext))(getContext, this, injector)
+        case NoAccountState(FirstScreen) => FirstScreenViewHolder(inflator.inflate(R.layout.app_entry_scene, null))
+        case NoAccountState(RegisterTeamScreen) => TeamNameViewHolder(inflator.inflate(R.layout.create_team_name_scene, null))
+        case SetTeamEmail => SetEmailViewHolder(inflator.inflate(R.layout.set_email_scene, null))
+        case VerifyTeamEmail => VerifyEmailViewHolder(inflator.inflate(R.layout.verify_email_scene, null))
+        case SetUsersNameTeam => SetNameViewHolder(inflator.inflate(R.layout.set_name_scene, null))
+        case SetPasswordTeam => SetPasswordViewHolder(inflator.inflate(R.layout.set_password_scene, null))
+        case SetUsernameTeam => SetUsernameViewHolder(inflator.inflate(R.layout.set_username_scene, null))
+        case InviteToTeam => InviteToTeamViewHolder(inflator.inflate(R.layout.invite_team_scene, null))
+        case _ => EmptyViewHolder(new View(getContext))
       }
 
       val forward = previousStage.fold(true)(_.depth < state.depth)
@@ -87,14 +94,30 @@ class CreateTeamFragment extends BaseFragment[Container] with FragmentHelper wit
       }
     }
 
-    ZMessaging.currentAccounts.loggedInAccounts.map(_.nonEmpty).zip(appEntryController.entryStage).onUi {
-      case (true, state) if state != SetUsernameTeam && state != TeamSetPicture => closeButton.setVisibility(View.VISIBLE)
-      case _ => closeButton.setVisibility(View.GONE)
+    ZMessaging.currentAccounts.loggedInAccounts.map(_.nonEmpty).zip(appEntryController.entryStage).map {
+      case (loggedIn, state) => loggedIn && !Set(SetUsernameTeam, TeamSetPicture, InviteToTeam, EnterAppStage).contains(state)
+    }.onUi(closeButton.setVisible(_))
+
+    appEntryController.entryStage.map {
+      case InviteToTeam => true
+      case _ => false
+    }.onUi { visible =>
+      Set(skipButton, toolbar).foreach(_.setVisible(visible))
     }
 
-    closeButton.setOnClickListener(new OnClickListener {
-      override def onClick(v: View): Unit = getContainer.abortAddAccount()
-    })
+    closeButton.onClick {
+      getContainer.abortAddAccount()
+    }
+
+    skipButton.onClick {
+      appEntryController.skipInvitations()
+    }
+
+    invitesController.invitations.map(_.isEmpty).map {
+      case true => R.string.teams_invitations_skip
+      case false => R.string.teams_invitations_done
+    }.onUi(skipButton.setText)
+
   }
 
   def setKeyboardAnimation(view: ViewGroup): Unit = {
@@ -118,7 +141,7 @@ class CreateTeamFragment extends BaseFragment[Container] with FragmentHelper wit
             .setDuration(ContextUtils.getInt(R.integer.wire__animation__delay__short))
         } else {
           v.animate()
-            .translationY(screenHeight / 2 - v.getHeight / 2)
+            .translationY(if (screenHeight > v.getHeight) screenHeight / 2 - v.getHeight / 2 else screenHeight - v.getHeight)
             .setDuration(ContextUtils.getInt(R.integer.wire__animation__delay__short))
         }
       }
