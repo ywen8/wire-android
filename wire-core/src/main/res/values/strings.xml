@@ -1289,4 +1289,6 @@
     <string name="teams_invitations_error_email_exists_more">LEARN MORE</string>
     <string name="teams_invitations_error_no_internet">NO INTERNET CONNECTION</string>
     <string name="team_invitation_add_from_address_book">ADD FROM ADDRESSBOOK</string>
+    <string name="invitation_screen_title">Build your team</string>
+    <string name="invitation_screen_subtitle">Invite your colleagues to join.</string>
 </resources>

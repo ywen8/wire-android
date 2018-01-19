@@ -32,7 +32,7 @@
         <com.waz.zclient.usersearch.views.SearchEditText
             android:id="@+id/search_box"
             android:layout_width="match_parent"
-            android:layout_height="56dp"
+            android:layout_height="@dimen/search__edit_text__height"
             app:hintText="@string/multi_share_search_hint"/>
 
         <android.support.v7.widget.RecyclerView

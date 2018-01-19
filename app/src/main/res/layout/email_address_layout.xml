@@ -20,7 +20,7 @@
 -->
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
                 android:layout_width="match_parent"
-                android:layout_height="48dp"
+                android:layout_height="@dimen/email_invite_height"
                 xmlns:tools="http://schemas.android.com/tools"
                 android:paddingStart="@dimen/wire__padding__regular"
                 android:paddingEnd="@dimen/wire__padding__regular">
