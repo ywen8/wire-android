@@ -49,10 +49,8 @@ class InvitesAdapter()(implicit inj: Injector, eventContext: EventContext, conte
   override def getItemCount: Int = _invitations.size + 1
 
   override def onCreateViewHolder(parent: ViewGroup, viewType: Int): InviteViewHolder = {
-    if (viewType == 0)
-      InviteViewHolder(LayoutInflater.from(parent.getContext).inflate(R.layout.invite_list_header, parent, false))
-    else
-      InviteViewHolder(LayoutInflater.from(parent.getContext).inflate(R.layout.sent_invite_layout, parent, false))
+    val viewId = if (viewType == 0) R.layout.invite_list_header else R.layout.sent_invite_layout
+    InviteViewHolder(LayoutInflater.from(parent.getContext).inflate(viewId, parent, false))
   }
 
   override def onBindViewHolder(holder: InviteViewHolder, position: Int): Unit =
@@ -71,11 +69,7 @@ object InvitesAdapter {
 
     def bind(email: EmailAddress, status: InvitationsController.InvitationStatus): Unit = {
       emailText.setText(email.str)
-      val statusGlyph = status match {
-        case Sent => R.string.glyph__check
-        case _ => R.string.empty_string
-      }
-      statusIcon.setText(statusGlyph)
+      statusIcon.setText(if (status == Sent) R.string.glyph__check else R.string.empty_string)
     }
   }
 }

@@ -25,7 +25,7 @@ import android.view.View
 import android.view.View.OnLayoutChangeListener
 import com.waz.ZLog
 import com.waz.api.impl.ErrorResponse
-import com.waz.api.impl.ErrorResponse.{Forbidden, InternalErrorCode, ConnectionErrorCode}
+import com.waz.api.impl.ErrorResponse.{ConnectionErrorCode, Forbidden, InternalErrorCode}
 import com.waz.model.EmailAddress
 import com.waz.threading.Threading
 import com.waz.utils.events.EventContext
@@ -37,7 +37,7 @@ import com.waz.zclient.common.controllers.BrowserController
 import com.waz.zclient.common.views.InputBox
 import com.waz.zclient.ui.text.TypefaceTextView
 import com.waz.zclient.{Injectable, Injector, R}
-import com.waz.zclient.utils.{RichTextView, RichView}
+import com.waz.zclient.utils.{ContextUtils, RichTextView, RichView}
 
 import scala.concurrent.Future
 
@@ -47,9 +47,22 @@ case class InviteToTeamViewHolder(root: View)(implicit val context: Context, eve
   private lazy val browser = inject[BrowserController]
 
   private lazy val adapter = new InvitesAdapter()
-  private lazy val inputField = root.findViewById[InputBox](R.id.input_field)
   private lazy val sentInvitesList = root.findViewById[RecyclerView](R.id.sent_invites_list)
-  private lazy val learnMoreButton = root.findViewById[TypefaceTextView](R.id.about_button)
+  private lazy val learnMoreButton = returning(root.findViewById[TypefaceTextView](R.id.about_button)) {
+    _.onClick(browser.openUrl(AndroidURIUtil.parse(context.getString(R.string.invalid_email_help))))
+  }
+  private lazy val inputField = returning(root.findViewById[InputBox](R.id.input_field)) { inputField =>
+    inputField.setShouldDisableOnClick(false)
+    inputField.setShouldClearTextOnClick(true)
+    inputField.setValidator(InputBox.SimpleValidator)
+    inputField.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS | InputType.TYPE_TEXT_FLAG_AUTO_COMPLETE | InputType.TYPE_TEXT_FLAG_AUTO_CORRECT)
+    inputField.setButtonGlyph(R.string.glyph__send)
+    inputField.editText.setText(invitesController.inputEmail)
+    inputField.editText.addTextListener{ text =>
+      learnMoreButton.setVisibility(View.INVISIBLE)
+      invitesController.inputEmail = text
+    }
+  }
 
   override def onCreate(): Unit = {
 
@@ -67,39 +80,29 @@ case class InviteToTeamViewHolder(root: View)(implicit val context: Context, eve
         layoutManager.scrollToPosition(adapter.getItemCount - 1)
     })
 
-    inputField.setShouldDisableOnClick(false)
-    inputField.setShouldClearTextOnClick(true)
-    inputField.setValidator(InputBox.SimpleValidator)
-    inputField.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS | InputType.TYPE_TEXT_FLAG_AUTO_COMPLETE | InputType.TYPE_TEXT_FLAG_AUTO_CORRECT)
-    inputField.setButtonGlyph(R.string.glyph__send)
-    inputField.editText.setText(invitesController.inputEmail)
-    inputField.editText.addTextListener{ text =>
-      learnMoreButton.setVisibility(View.INVISIBLE)
-      invitesController.inputEmail = text
-    }
-
+    import Threading.Implicits.Ui
     inputField.setOnClick { text =>
       val email = EmailAddress.parse(text)
       email match {
-        case Some(e) => invitesController.sendInvite(e).map {
-          case Left(ErrorResponse(Forbidden, _, "too-many-team-invitations")) => Some(context.getString(R.string.teams_invitations_error_too_many))
-          case Left(ErrorResponse(400, _, "invalid-email")) => Some(context.getString(R.string.teams_invitations_error_invalid_email))
-          case Left(ErrorResponse(400, _, "bad-request")) => Some(context.getString(R.string.teams_invitations_error_invalid_email))
-          case Left(ErrorResponse(409, _, "email-exists")) =>
-            learnMoreButton.setVisible(true)
-            Some(context.getString(R.string.teams_invitations_error_email_exists))
-          case Left(ErrorResponse(InternalErrorCode, _, "already-sent")) => Some(context.getString(R.string.teams_invitations_error_already_sent))
-          case Left(ErrorResponse(ConnectionErrorCode, _, _)) => Some(context.getString(R.string.teams_invitations_error_no_internet))
-          case Left(_) => Some(context.getString(R.string.teams_invitations_error_generic))
-          case _ => None
-        }(Threading.Ui)
+        case Some(e) =>
+          invitesController.sendInvite(e).map {
+            case Left(ErrorResponse(Forbidden, _, "too-many-team-invitations")) => Some(R.string.teams_invitations_error_too_many)
+            case Left(ErrorResponse(400, _, "invalid-email")) => Some(R.string.teams_invitations_error_invalid_email)
+            case Left(ErrorResponse(400, _, "bad-request")) => Some(R.string.teams_invitations_error_invalid_email)
+            case Left(ErrorResponse(409, _, "email-exists")) =>
+              learnMoreButton.setVisible(true)
+              Some(R.string.teams_invitations_error_email_exists)
+            case Left(ErrorResponse(InternalErrorCode, _, "already-sent")) => Some(R.string.teams_invitations_error_already_sent)
+            case Left(ErrorResponse(ConnectionErrorCode, _, _)) => Some(R.string.teams_invitations_error_no_internet)
+            case Left(_) => Some(R.string.teams_invitations_error_generic)
+            case _ => None
+          }.map(_.map(ContextUtils.getString))
         case _ =>
           Future.successful(Some(context.getString(R.string.teams_invitations_error_invalid_email)))
       }
     }
-    learnMoreButton.onClick {
-      browser.openUrl(AndroidURIUtil.parse(context.getString(R.string.invalid_email_help)))
-    }
+
+    learnMoreButton
   }
 }
 

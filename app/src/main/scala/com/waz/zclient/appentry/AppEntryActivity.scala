@@ -17,7 +17,6 @@
  */
 package com.waz.zclient.appentry
 
-import android.Manifest.permission.READ_CONTACTS
 import android.content.res.Configuration
 import android.content.{DialogInterface, Intent}
 import android.graphics.Bitmap
@@ -29,7 +28,6 @@ import com.waz.ZLog._
 import com.waz.ZLog.ImplicitTag._
 import com.waz.api._
 import com.waz.service.ZMessaging
-import com.waz.service.permissions.PermissionsService
 import com.waz.threading.Threading
 import com.waz.utils.returning
 import com.waz.utils.wrappers.AndroidURIUtil
@@ -285,10 +283,6 @@ class AppEntryActivity extends BaseActivity
     getControllerFactory.getNavigationController.setLeftPage(Page.PHONE_REGISTRATION_ADD_NAME, AppEntryActivity.TAG)
   }
 
-  def onShowTeamInvitesPage(): Unit = {
-
-  }
-
   def onEnterApplication(openSettings: Boolean): Unit = {
     getControllerFactory.getVerificationController.finishVerification()
     startActivity(Intents.EnterAppIntent(openSettings)(this))
@@ -308,22 +302,6 @@ class AppEntryActivity extends BaseActivity
       .addToBackStack(CountryDialogFragment.TAG)
       .commit
     KeyboardUtils.hideKeyboard(this)
-  }
-
-  def openAddressBook(): Unit = {
-    KeyboardUtils.hideKeyboard(this)
-    inject[PermissionsService].requestAllPermissions(Set(READ_CONTACTS)).map {
-      case true =>
-        getSupportFragmentManager
-          .beginTransaction
-          .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
-          .add(new AddressBookPickDialog, AddressBookPickDialog.Tag)
-          .addToBackStack(AddressBookPickDialog.Tag)
-          .commit
-      case false =>
-        //TODO: message?
-        Toast.makeText(this, "Permission to access the address book required", Toast.LENGTH_LONG)
-    } (Threading.Ui)
   }
 
   def onOpenUrlInApp(url: String, withCloseButton: Boolean): Unit = {

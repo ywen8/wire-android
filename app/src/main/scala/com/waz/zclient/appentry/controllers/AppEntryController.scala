@@ -23,7 +23,6 @@ import com.waz.api.impl.ErrorResponse
 import com.waz.api.{ClientRegistrationState, ImageAsset, KindOfAccess}
 import com.waz.client.RegistrationClientImpl.ActivateResult
 import com.waz.client.RegistrationClientImpl.ActivateResult.{Failure, PasswordExists}
-import com.waz.content.UserPreferences
 import com.waz.model._
 import com.waz.service.ZMessaging
 import com.waz.service.tracking.TrackingService
@@ -40,7 +39,6 @@ import com.waz.zclient.tracking.{AddPhotoOnRegistrationEvent, GlobalTrackingCont
 import com.waz.zclient.{Injectable, Injector}
 
 import scala.concurrent.Future
-import com.waz.utils._
 
 class AppEntryController(implicit inj: Injector, eventContext: EventContext) extends Injectable {
 
