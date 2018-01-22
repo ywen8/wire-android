@@ -890,6 +890,11 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
 
     import IntegrationDetailsFragment._
     getFragmentManager.beginTransaction
+      .setCustomAnimations(
+        R.anim.slide_in_from_bottom_pick_user,
+        R.anim.open_new_conversation__thread_list_out,
+        R.anim.open_new_conversation__thread_list_in,
+        R.anim.slide_out_to_bottom_pick_user)
       .replace(R.id.fl__conversation_list_main, newInstance(data.provider, data.id), Tag)
       .addToBackStack(Tag)
       .commit()

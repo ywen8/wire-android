@@ -43,46 +43,48 @@ import com.waz.zclient.{FragmentHelper, OnBackPressedListener, R, ViewHelper}
 
 import scala.concurrent.Future
 
-class IntegrationConversationSearchList extends Fragment with FragmentHelper with OnBackPressedListener {
+class IntegrationConversationSearchFragment extends Fragment with FragmentHelper {
+  import Threading.Implicits.Ui
 
   private lazy val zms = inject[Signal[ZMessaging]]
   private lazy val integrationsController = inject[IntegrationsController]
   private lazy val conversationController = inject[ConversationController]
-
-  private lazy val providerId = ProviderId(getArguments.getString(IntegrationConversationSearchList.ProviderId))
-  private lazy val integrationId = IntegrationId(getArguments.getString(IntegrationConversationSearchList.IntegrationId))
+  private lazy val integrationDetailsController = inject[IntegrationDetailsController]
 
   private lazy val searchBox = view[SearchEditText](R.id.search_box)
   private lazy val listView = view[RecyclerView](R.id.conv_recycler_view)
   private lazy val convsAdapter = returning(new IntegrationConversationsAdapter(getContext)) { adapter =>
     adapter.conversationClicked.onUi { conv =>
-      integrationsController.addBot(conv.id, providerId, integrationId).flatMap {
-        case Left(e) =>
-          Toast.makeText(getContext, s"Bot error: $e", Toast.LENGTH_SHORT).show()
-          Future.successful(())
-        case Right(_) =>
-          close()
-          conversationController.selectConv(conv.id, ConversationChangeRequester.CONVERSATION_LIST)
-      } (Threading.Ui)
+      integrationDetailsController.currentIntegrationId.head.flatMap {
+        case (providerId, integrationId) =>
+          integrationsController.addBot(conv.id, providerId, integrationId).flatMap {
+            case Left(e) =>
+              Toast.makeText(getContext, s"Bot error: $e", Toast.LENGTH_SHORT).show()
+              Future.successful(())
+            case Right(_) =>
+              close()
+              conversationController.selectConv(conv.id, ConversationChangeRequester.CONVERSATION_LIST)
+          }
+      }
     }
     adapter.createConvClicked.onUi { _ =>
-      integrationsController.createConvWithBot(providerId, integrationId).flatMap {
-        case Left(e) =>
-          Toast.makeText(getContext, s"Bot error: $e", Toast.LENGTH_SHORT).show()
-          Future.successful(())
-        case Right(conv) =>
-          close()
-          conversationController.selectConv(conv.id, ConversationChangeRequester.CONVERSATION_LIST)
-      } (Threading.Ui)
+      integrationDetailsController.currentIntegrationId.head.flatMap {
+        case (providerId, integrationId) =>
+          integrationsController.createConvWithBot(providerId, integrationId).flatMap {
+            case Left(e) =>
+              Toast.makeText(getContext, s"Bot error: $e", Toast.LENGTH_SHORT).show()
+              Future.successful(())
+            case Right(conv) =>
+              close()
+              conversationController.selectConv(conv.id, ConversationChangeRequester.CONVERSATION_LIST)
+          }
+      }
     }
   }
 
-  //TODO: persist in controller
-  private lazy val searchFilter = Signal("")
-
   private lazy val convsData = for {
     zms <- zms
-    filter <- searchFilter
+    filter <- integrationDetailsController.searchFilter
     convs <- Signal.future(zms.convsUi.findGroupConversations(SearchKey(filter), Int.MaxValue, handleOnly = false))
   } yield convs.distinct
 
@@ -93,33 +95,28 @@ class IntegrationConversationSearchList extends Fragment with FragmentHelper wit
     listView.setLayoutManager(new LinearLayoutManager(getContext))
     listView.setAdapter(convsAdapter)
     searchBox.setCallback(new PickerSpannableEditText.Callback {
-      override def afterTextChanged(s: String): Unit = searchFilter ! s
+      override def afterTextChanged(s: String): Unit = integrationDetailsController.searchFilter ! s
       override def onRemovedTokenSpan(element: PickableElement): Unit = {}
     })
   }
 
   override def onCreate(savedInstanceState: Bundle): Unit = {
     super.onCreate(savedInstanceState)
+    integrationDetailsController.searchFilter ! ""
     convsData.onUi(convsAdapter.setData)
   }
 
-  override def onBackPressed(): Boolean = {
-    getFragmentManager.popBackStack()
-    true
-  }
-
-  def close(): Unit ={
-    getFragmentManager.popBackStack(NormalConversationListFragment.TAG, 0)
-  }
+  def close(): Unit =
+    getParentFragment.getFragmentManager.popBackStack(NormalConversationListFragment.TAG, 0)
 }
 
-object IntegrationConversationSearchList {
+object IntegrationConversationSearchFragment {
   val Tag: String = ZLog.ImplicitTag.implicitLogTag
   val IntegrationId = "ARG_INTEGRATION_ID"
   val ProviderId = "ARG_PROVIDER_ID"
 
-  def newInstance(providerId: ProviderId, integrationId: IntegrationId): IntegrationConversationSearchList =
-    returning(new IntegrationConversationSearchList) {
+  def newInstance(providerId: ProviderId, integrationId: IntegrationId): IntegrationConversationSearchFragment =
+    returning(new IntegrationConversationSearchFragment) {
       _.setArguments(returning(new Bundle) { b =>
         b.putString(ProviderId, providerId.str)
         b.putString(IntegrationId, integrationId.str)
