@@ -31,7 +31,7 @@ import com.waz.api.{AudioAssetForUpload, MessageContent, NetworkMode, PlaybackCo
 import com.waz.model.AssetId
 import com.waz.service.ZMessaging
 import com.waz.service.assets.GlobalRecordAndPlayService.{AssetMediaKey, RecordingCancelled, RecordingSuccessful}
-import com.waz.service.permissions.PermissionsService
+import com.waz.permissions.PermissionsService
 import com.waz.threading.CancellableFuture.CancelException
 import com.waz.threading.Threading
 import com.waz.utils.events.{ClockSignal, Signal}

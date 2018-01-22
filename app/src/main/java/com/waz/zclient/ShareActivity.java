@@ -27,7 +27,7 @@ import android.support.v4.app.ShareCompat;
 import android.util.AttributeSet;
 import android.view.View;
 import com.waz.api.Self;
-import com.waz.service.permissions.PermissionsService;
+import com.waz.permissions.PermissionsService;
 import com.waz.utils.wrappers.AndroidURI;
 import com.waz.utils.wrappers.AndroidURIUtil;
 import com.waz.utils.wrappers.URI;

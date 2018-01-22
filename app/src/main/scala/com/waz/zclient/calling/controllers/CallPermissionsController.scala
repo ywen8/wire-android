@@ -24,7 +24,7 @@ import android.provider.Settings
 import com.waz.content.GlobalPreferences.AutoAnswerCallPrefKey
 import com.waz.model.ConvId
 import com.waz.service.call.CallInfo.CallState.OtherCalling
-import com.waz.service.permissions.PermissionsService
+import com.waz.permissions.PermissionsService
 import com.waz.threading.Threading
 import com.waz.utils.returning
 import com.waz.zclient._

@@ -29,7 +29,7 @@ import com.waz.api.Message
 import com.waz.model._
 import com.waz.service.ZMessaging
 import com.waz.service.messages.MessageAndLikes
-import com.waz.service.permissions.PermissionsService
+import com.waz.permissions.PermissionsService
 import com.waz.threading.Threading
 import com.waz.utils._
 import com.waz.utils.events.{EventContext, EventStream, Signal}

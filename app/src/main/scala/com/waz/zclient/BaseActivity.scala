@@ -17,18 +17,18 @@
  */
 package com.waz.zclient
 
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.support.v4.app.ActivityCompat
 import android.support.v4.content.ContextCompat
 import android.support.v7.app.AppCompatActivity
-import android.view.View
 import com.waz.ZLog.ImplicitTag._
 import com.waz.ZLog.verbose
 import com.waz.log.InternalLog
 import com.waz.service.UiLifeCycle
-import com.waz.service.permissions.PermissionsService
-import com.waz.service.permissions.PermissionsService.{Permission, PermissionProvider}
+import com.waz.permissions.PermissionsService
+import com.waz.permissions.PermissionsService.{Permission, PermissionProvider}
 import com.waz.utils.returning
 import com.waz.zclient.common.controllers.ThemeController
 import com.waz.zclient.controllers.IControllerFactory
@@ -63,6 +63,11 @@ class BaseActivity extends AppCompatActivity
 
   def getBaseTheme: Int = themeController.forceLoadDarkTheme
 
+  override protected def onActivityResult(requestCode: Int, resultCode: Int, data: Intent) = {
+    super.onActivityResult(requestCode, resultCode, data)
+    permissions.registerProvider(this)
+  }
+
   def onBaseActivityStart() = {
     getApplication.asInstanceOf[ZApplication].ensureInitialized()
     getControllerFactory.setActivity(this)
@@ -71,9 +76,8 @@ class BaseActivity extends AppCompatActivity
       getStoreFactory.zMessagingApiStore.getApi.onResume()
       inject[UiLifeCycle].acquireUi()
     }
-    permissions.registerProvider(this)
-    val contentView: View = ViewUtils.getContentView(getWindow)
-    if (contentView != null) getControllerFactory.setGlobalLayout(contentView)
+    if (!this.isInstanceOf[LaunchActivity]) permissions.registerProvider(this)
+    Option(ViewUtils.getContentView(getWindow)).foreach(getControllerFactory.setGlobalLayout)
   }
 
   override def onStop() = {
@@ -82,7 +86,6 @@ class BaseActivity extends AppCompatActivity
       inject[UiLifeCycle].releaseUi()
       started = false
     }
-    permissions.unregisterProvider(this)
     InternalLog.flush()
     super.onStop()
   }
@@ -99,6 +102,7 @@ class BaseActivity extends AppCompatActivity
 
   override def onDestroy() = {
     globalTrackingController.flushEvents()
+    permissions.unregisterProvider(this)
     super.onDestroy()
   }
 

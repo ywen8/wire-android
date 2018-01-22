@@ -26,7 +26,7 @@ import android.util.AttributeSet
 import android.view._
 import com.waz.ZLog
 import com.waz.api.ImageAssetFactory
-import com.waz.service.permissions.PermissionsService
+import com.waz.permissions.PermissionsService
 import com.waz.threading.CancellableFuture.CancelException
 import com.waz.threading.Threading
 import com.waz.utils.returning
