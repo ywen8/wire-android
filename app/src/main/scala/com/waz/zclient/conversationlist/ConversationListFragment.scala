@@ -188,10 +188,6 @@ class ChooseConversationFragment extends ConversationListFragment with OnBackPre
       integration.map(_.summary).onUi { summary => sv.foreach(_.setText(summary)) }
     }
 
-    val descriptionView = returning(view[TypefaceTextView](R.id.integration_description)){ dv =>
-      integration.map(_.description).onUi { description => dv.foreach(_.setText(description)) }
-    }
-
     pictureView = returning(view[ImageView](R.id.integration_picture)){ pv =>
       pv.foreach(_.setImageDrawable(ContextUtils.getDrawable(R.drawable.services)))
     }

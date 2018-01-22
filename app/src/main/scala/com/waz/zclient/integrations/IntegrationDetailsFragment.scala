@@ -20,116 +20,111 @@ package com.waz.zclient.integrations
 import android.content.Context
 import android.os.Bundle
 import android.support.annotation.Nullable
-import android.support.v4.app.FragmentManager
-import android.view.View.OnClickListener
-import android.view.{LayoutInflater, View, ViewGroup}
+import android.support.v4.app.{Fragment, FragmentManager, FragmentPagerAdapter}
+import android.support.v4.view.ViewPager
+import android.util.AttributeSet
+import android.view.animation.Animation
+import android.view.{LayoutInflater, MotionEvent, View, ViewGroup}
 import android.widget.ImageView
-import com.waz.model.{AssetId, IntegrationId, ProviderId}
+import com.waz.model.{IntegrationId, ProviderId}
 import com.waz.utils.events.Signal
+import com.waz.utils.returning
 import com.waz.zclient.common.views.ImageAssetDrawable
 import com.waz.zclient.common.views.ImageAssetDrawable.{RequestBuilder, ScaleType}
 import com.waz.zclient.common.views.ImageController.{ImageSource, WireImage}
-import com.waz.zclient.ui.text.TypefaceTextView
-import com.waz.zclient.utils.ContextUtils
-import com.waz.zclient.{FragmentHelper, OnBackPressedListener, R, ViewHolder}
-import com.waz.ZLog._
-import com.waz.ZLog.ImplicitTag._
-import com.waz.utils.returning
-import com.waz.zclient.common.controllers.IntegrationsController
 import com.waz.zclient.controllers.navigation.{INavigationController, Page}
-import com.waz.zclient.conversationlist.views.IntegrationTopToolbar
-import com.waz.zclient.preferences.views.TextButton
-import com.waz.zclient.usersearch.PickUserFragment
-import com.waz.zclient.utils.RichView
+import com.waz.zclient.integrations.IntegrationDetailsViewPager._
+import com.waz.zclient.ui.text.{GlyphTextView, TypefaceTextView}
+import com.waz.zclient.utils.ContextUtils.{getDimenPx, getInt}
+import com.waz.zclient.utils.{ContextUtils, RichView}
+import com.waz.zclient.views.DefaultPageTransitionAnimation
+import com.waz.zclient.{FragmentHelper, OnBackPressedListener, R, ViewHelper}
 
 class IntegrationDetailsFragment extends FragmentHelper with OnBackPressedListener {
   implicit def ctx: Context = getActivity
 
-  private lazy val controller = inject[IntegrationsController]
+  private lazy val integrationDetailsController = inject[IntegrationDetailsController]
 
   private lazy val providerId = ProviderId(getArguments.getString(IntegrationDetailsFragment.ProviderId))
   private lazy val integrationId = IntegrationId(getArguments.getString(IntegrationDetailsFragment.IntegrationId))
 
-  private var pictureView: ViewHolder[ImageView] = _
+  private lazy val pictureAssetId = integrationDetailsController.currentIntegration.map(_.assets.headOption.map(_.id))
+  private lazy val picture: Signal[ImageSource] = pictureAssetId.collect{ case Some(pic) => WireImage(pic) }
+  private lazy val drawable = new ImageAssetDrawable(picture, scaleType = ScaleType.CenterInside, request = RequestBuilder.Regular, background = Some(ContextUtils.getDrawable(R.drawable.services)))
 
-  override def onCreateView(inflater: LayoutInflater, viewContainer: ViewGroup, savedInstanceState: Bundle): View = {
-    inflater.inflate(R.layout.fragment_integration_details, viewContainer, false)
+  private lazy val viewPager = view[IntegrationDetailsViewPager](R.id.view_pager)
+
+  private lazy val nameView = returning(view[TypefaceTextView](R.id.integration_name)){ nv =>
+    integrationDetailsController.currentIntegration.map(_.name).onUi { name => nv.foreach(_.setText(name)) }
   }
+  private lazy val summaryView = returning(view[TypefaceTextView](R.id.integration_summary)){ sv =>
+    integrationDetailsController.currentIntegration.map(_.summary).onUi { summary => sv.foreach(_.setText(summary)) }
+  }
+  private lazy val title = returning(view[TypefaceTextView](R.id.integration_title)) { title =>
+    integrationDetailsController.currentIntegration.onUi { data => title.foreach(_.setText(data.name.toUpperCase)) }
+  }
+
+  override def onCreateAnimation(transit: Int, enter: Boolean, nextAnim: Int): Animation = {
+    if (nextAnim == 0)
+      super.onCreateAnimation(transit, enter, nextAnim)
+    else if (enter)
+      new DefaultPageTransitionAnimation(0,
+        getDimenPx(R.dimen.open_new_conversation__thread_list__max_top_distance),
+        enter,
+        getInt(R.integer.framework_animation_duration_long),
+        getInt(R.integer.framework_animation_duration_medium),
+        1f)
+    else
+      new DefaultPageTransitionAnimation(
+        0,
+        getDimenPx(R.dimen.open_new_conversation__thread_list__max_top_distance),
+        enter,
+        getInt(R.integer.framework_animation_duration_medium),
+        0,
+        1f)
+  }
+
+  override def onCreate(savedInstanceState: Bundle): Unit = {
+    super.onCreate(savedInstanceState)
+    integrationDetailsController.currentIntegrationId ! (providerId, integrationId)
+    integrationDetailsController.onAddServiceClick { _ =>
+      viewPager.foreach(_.goToConversations)
+    }
+  }
+
+  override def onCreateView(inflater: LayoutInflater, viewContainer: ViewGroup, savedInstanceState: Bundle): View =
+    inflater.inflate(R.layout.fragment_integration_details, viewContainer, false)
 
   override def onViewCreated(v: View, @Nullable savedInstanceState: Bundle): Unit = {
     super.onViewCreated(v, savedInstanceState)
 
-    val nameView = returning(view[TypefaceTextView](R.id.integration_name)){ nv =>
-      integration.map(_.name).onUi { name =>nv.foreach(_.setText(name)) }
-    }
+    view[GlyphTextView](R.id.integration_close).foreach { _.onClick(close()) }
+    view[GlyphTextView](R.id.integration_back).foreach { _.onClick(goBack()) }
+    view[ImageView](R.id.integration_picture).foreach { _.setImageDrawable(drawable) }
 
-    val summaryView = returning(view[TypefaceTextView](R.id.integration_summary)){ sv =>
-      integration.map(_.summary).onUi { summary => sv.foreach(_.setText(summary)) }
-    }
+    title
+    summaryView
+    nameView
 
-    val descriptionView = returning(view[TypefaceTextView](R.id.integration_description)){ dv =>
-      integration.map(_.description).onUi { description => dv.foreach(_.setText(description)) }
-    }
-
-    val topToolbar = returning(view[IntegrationTopToolbar](R.id.integration_top_toolbar)){ t =>
-      t.foreach(_.closeButtonEnd.onClick(close()))
-      t.foreach(_.backButton.onClick(goBack()))
-      integration.onUi { data => t.foreach(_.setTitle(data)) }
-    }
-
-    pictureView = returning(view[ImageView](R.id.integration_picture)){ pv =>
-      pv.foreach(_.setImageDrawable(ContextUtils.getDrawable(R.drawable.services)))
-    }
-
-    val addButton = findById[TextButton](R.id.integration_add_button)
-
-    integrationsIds ! (providerId, integrationId)
-
-    addButton.setOnClickListener(new OnClickListener {
-      override def onClick(v: View): Unit = {
-        verbose(s"adding a service ${integration.currentValue.map(_.name)}")
-
-        getFragmentManager.beginTransaction
-          .replace(R.id.fl__conversation_list_main, IntegrationConversationSearchList.newInstance(providerId, integrationId), IntegrationConversationSearchList.Tag)
-          .addToBackStack(IntegrationConversationSearchList.Tag)
-          .commit()
-
-        inject[INavigationController].setLeftPage(Page.INTEGRATION_DETAILS, PickUserFragment.TAG)
-
-      }
-    })
+    viewPager.setAdapter(IntegrationDetailsAdapter(getChildFragmentManager, providerId, integrationId))
   }
-
-  private val integrationsIds = Signal[(ProviderId, IntegrationId)]()
-  private val integration = integrationsIds.flatMap {
-    case (pId, iId) => Signal.future(controller.getIntegration(pId, iId))
-  }
-
-  integration.map(_.assets.headOption).onUi {
-    case Some(asset) =>
-      pictureAssetId ! asset.id // TODO: check the asset type for the profile pic
-      pictureView.setImageDrawable(drawable)
-    case None =>
-
-  }
-
-  private val pictureAssetId = Signal[AssetId]()
-  private val picture: Signal[ImageSource] = pictureAssetId.collect{ case pic => WireImage(pic) }
-  private lazy val drawable = new ImageAssetDrawable(picture, scaleType = ScaleType.CenterInside, request = RequestBuilder.Regular)
 
   override def onBackPressed(): Boolean = goBack()
 
   def goBack(): Boolean = {
-    getFragmentManager.popBackStack()
-    // not necessary for the actual transition, but it may be used to trigger some listeners waiting for it
-    inject[INavigationController].setLeftPage(Page.PICK_USER, IntegrationDetailsFragment.Tag)
+    viewPager.getCurrentItem match {
+      case IntegrationDetailsViewPager.ConvListPage =>
+        viewPager.goToDetails
+      case _ =>
+        getFragmentManager.popBackStack()
+        inject[INavigationController].setLeftPage(Page.PICK_USER, IntegrationDetailsFragment.Tag)
+    }
     true
   }
 
   def close(): Boolean = {
     getFragmentManager.popBackStack()
-    getFragmentManager.popBackStack()
-     inject[INavigationController].setLeftPage(Page.CONVERSATION_LIST, IntegrationDetailsFragment.Tag)
+    inject[INavigationController].setLeftPage(Page.CONVERSATION_LIST, IntegrationDetailsFragment.Tag)
     true
   }
 }
@@ -146,5 +141,33 @@ object IntegrationDetailsFragment {
       b.putString(IntegrationId, integrationId.str)
     })
   }
+}
 
+object IntegrationDetailsViewPager {
+  val DetailsPage = 0
+  val ConvListPage = 1
+}
+
+case class IntegrationDetailsViewPager (context: Context, attrs: AttributeSet) extends ViewPager(context, attrs) with ViewHelper {
+  def this(context: Context) = this(context, null)
+
+  def goToDetails = setCurrentItem(DetailsPage)
+  def goToConversations = setCurrentItem(ConvListPage)
+
+  override def onInterceptTouchEvent(ev: MotionEvent): Boolean = false
+  override def onTouchEvent(ev: MotionEvent): Boolean = false
+}
+
+case class IntegrationDetailsAdapter(fm: FragmentManager, providerId: ProviderId, integrationId: IntegrationId) extends FragmentPagerAdapter(fm) {
+
+  override def getItem(position: Int): Fragment = {
+    position match {
+      case DetailsPage =>
+        new IntegrationDetailsSummaryFragment()
+      case ConvListPage =>
+        IntegrationConversationSearchFragment.newInstance(providerId, integrationId)
+    }
+  }
+
+  override def getCount: Int = 2
 }

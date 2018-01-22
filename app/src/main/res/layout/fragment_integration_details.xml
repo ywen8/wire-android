@@ -19,103 +19,100 @@
 
 -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-xmlns:app="http://schemas.android.com/apk/res-auto"
-android:orientation="vertical"
-android:layout_width="match_parent"
-android:layout_height="match_parent">
+              xmlns:app="http://schemas.android.com/apk/res-auto"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"
+              android:orientation="vertical">
 
-    <com.waz.zclient.conversationlist.views.IntegrationTopToolbar
+    <RelativeLayout
         android:id="@+id/integration_top_toolbar"
-        android:layout_gravity="top"
         android:layout_width="match_parent"
-        android:layout_height="?attr/actionBarSize"
-        />
+        android:layout_height="?attr/actionBarSize">
+
+        <com.waz.zclient.ui.text.GlyphTextView
+            android:id="@+id/integration_back"
+            android:layout_width="@dimen/conversation_list__action_icon__size"
+            android:layout_height="@dimen/conversation_list__action_icon__size"
+            android:layout_alignParentStart="true"
+            android:layout_centerVertical="true"
+            android:layout_marginStart="@dimen/wire__padding__small"
+            android:text="@string/glyph__previous"
+            android:textSize="@dimen/wire__icon_button__text_size"
+            android:textColor="@color/text__primary_dark"
+            android:gravity="center"
+            />
+
+        <com.waz.zclient.ui.text.TypefaceTextView
+            android:id="@+id/integration_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:layout_centerInParent="true"
+            android:textColor="@color/text__primary_dark"
+            android:textSize="@dimen/wire__text_size__small"
+            app:w_font="@string/wire__typeface__light"/>
+
+        <com.waz.zclient.ui.text.GlyphTextView
+            android:id="@+id/integration_close"
+            android:layout_width="@dimen/conversation_list__action_icon__size"
+            android:layout_height="@dimen/conversation_list__action_icon__size"
+            android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true"
+            android:layout_marginEnd="@dimen/wire__padding__small"
+            android:text="@string/glyph__close"
+            android:textSize="@dimen/wire__icon_button__text_size"
+            android:textColor="@color/text__primary_dark"
+            android:gravity="center"
+            />
+
+    </RelativeLayout>
 
 
-<LinearLayout
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:layout_gravity="center_horizontal"
-    android:orientation="horizontal"
-    >
-
-    <ImageView
-        android:id="@+id/integration_picture"
-        android:layout_width="64dp"
-        android:layout_height="64dp"
-        android:layout_gravity="center"
-        android:layout_marginEnd="@dimen/conversation_list__avatar__outer_margin"
-        android:layout_marginStart="@dimen/conversation_list__avatar__outer_margin"
-        />
-
-    <LinearLayout
-        android:id="@+id/integration_name_container"
-        android:layout_width="wrap_content"
+    <RelativeLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
+        android:layout_gravity="center_horizontal"
         >
+
+        <ImageView
+            android:id="@+id/integration_picture"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:layout_gravity="center"
+            android:layout_margin="@dimen/wire__padding__regular"
+            android:src="@drawable/ic_action_close_dark"
+            />
+
         <com.waz.zclient.ui.text.TypefaceTextView
             android:id="@+id/integration_name"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:gravity="start"
+            android:layout_toEndOf="@id/integration_picture"
+            android:layout_marginTop="@dimen/wire__padding__regular"
+            android:layout_marginEnd="@dimen/wire__padding__regular"
+            android:textColor="@color/text__primary_dark"
             android:textSize="@dimen/wire__text_size__medium"
             app:w_font="@string/wire__typeface__light"
-            android:textColor="@color/text__primary_dark"
             />
 
         <com.waz.zclient.ui.text.TypefaceTextView
             android:id="@+id/integration_summary"
             android:layout_width="match_parent"
-            android:gravity="start"
-            android:textSize="@dimen/wire__text_size__small"
             android:layout_height="wrap_content"
-            app:w_font="@string/wire__typeface__light"
-            android:textColor="@color/text__primary_dark"
-            android:layout_marginTop="@dimen/wire__padding__4"
-            />
+            android:layout_below="@+id/integration_name"
+            android:layout_toEndOf="@+id/integration_picture"
+            android:layout_marginEnd="@dimen/wire__padding__regular"
+            android:textColor="@color/text__secondary_dark"
+            android:textSize="@dimen/wire__text_size__small"
+            app:w_font="@string/wire__typeface__light"/>
 
+    </RelativeLayout>
 
-    </LinearLayout>
-
-</LinearLayout>
-
-    <FrameLayout
+    <com.waz.zclient.integrations.IntegrationDetailsViewPager
+        android:id="@+id/view_pager"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1"
-        android:layout_marginTop="@dimen/wire__padding__32"
-        android:layout_marginBottom="@dimen/wire__margin__20"
-        android:layout_gravity="center_horizontal"
-        >
-
-        <com.waz.zclient.ui.text.TypefaceTextView
-            android:id="@+id/integration_description"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:gravity="center|top"
-            android:textSize="@dimen/wire__text_size__small"
-            app:w_font="@string/wire__typeface__light"
-            android:textColor="@color/text__primary_dark"
-            android:layout_marginTop="@dimen/wire__padding__4"
-            />
-
-    </FrameLayout>
-
-
-    <FrameLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal"
-        >
-        <com.waz.zclient.preferences.views.TextButton
-            android:id="@+id/integration_add_button"
-            android:layout_width="match_parent"
-            android:layout_height="@dimen/preference_button_height"
-            app:title="@string/integrations_picker__add"
-            android:gravity="center"
-            />
-    </FrameLayout>
+        android:layout_weight="1" />
 
 
 </LinearLayout>
