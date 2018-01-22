@@ -18,10 +18,12 @@
 package com.waz.zclient.common.controllers
 
 import android.content.Context
-import com.waz.model.{ConvId, IntegrationData, IntegrationId, ProviderId}
+import com.waz.api.impl.ErrorResponse
+import com.waz.model._
 import com.waz.service.ZMessaging
 import com.waz.threading.Threading
 import com.waz.utils.events.Signal
+import com.waz.zclient.conversation.ConversationController
 import com.waz.zclient.{Injectable, Injector}
 
 import scala.concurrent.Future
@@ -30,6 +32,7 @@ class IntegrationsController(implicit injector: Injector, context: Context) exte
   import Threading.Implicits.Background
 
   private lazy val integrations = inject[Signal[ZMessaging]].map(_.integrations)
+  private lazy val conversationController = inject[ConversationController]
 
   val searchQuery = Signal[String]("")
 
@@ -42,7 +45,16 @@ class IntegrationsController(implicit injector: Injector, context: Context) exte
   def getIntegration(pId: ProviderId, iId: IntegrationId): Future[IntegrationData] =
     integrations.head.flatMap(_.getIntegration(pId, iId))
 
-  def addBot(cId: ConvId, pId: ProviderId, iId: IntegrationId): Future[Unit] =
+  def addBot(cId: ConvId, pId: ProviderId, iId: IntegrationId): Future[Either[ErrorResponse, Unit]] =
     integrations.head.flatMap(_.addBot(cId, pId, iId))
+
+  def createConvWithBot(pId: ProviderId, iId: IntegrationId): Future[Either[ErrorResponse, ConversationData]] =
+    conversationController.createGroupConversation(Seq()).flatMap { conv =>
+      integrations.head.flatMap(_.addBot(conv.id, pId, iId)).map {
+        case Left(e) => Left(e)
+        case Right(_) => Right(conv)
+      }
+    }
+
 }
 

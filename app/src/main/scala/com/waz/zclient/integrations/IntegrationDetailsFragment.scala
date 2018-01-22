@@ -89,10 +89,9 @@ class IntegrationDetailsFragment extends FragmentHelper with OnBackPressedListen
       override def onClick(v: View): Unit = {
         verbose(s"adding a service ${integration.currentValue.map(_.name)}")
 
-        import com.waz.zclient.conversationlist.ChooseConversationFragment._
         getFragmentManager.beginTransaction
-          .replace(R.id.fl__conversation_list_main, newInstance(providerId, integrationId), Tag)
-          .addToBackStack(Tag)
+          .replace(R.id.fl__conversation_list_main, IntegrationConversationSearchList.newInstance(providerId, integrationId), IntegrationConversationSearchList.Tag)
+          .addToBackStack(IntegrationConversationSearchList.Tag)
           .commit()
 
         inject[INavigationController].setLeftPage(Page.INTEGRATION_DETAILS, PickUserFragment.TAG)

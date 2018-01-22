@@ -172,6 +172,7 @@ class ConversationListManagerFragment extends Fragment
         }
         fm.beginTransaction
           .add(R.id.fl__conversation_list_main, ConversationListFragment.newNormalInstance(), NormalConversationListFragment.TAG)
+          .addToBackStack(NormalConversationListFragment.TAG)
           .add(R.id.fl__conversation_list__settings_box, OptionsMenuFragment.newInstance(true), OptionsMenuFragment.TAG)
           .commit
       }
