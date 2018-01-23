@@ -154,8 +154,8 @@
     <string name="people_picker__toolbar_header__one_to_one">Create group</string>
     <string name="people_picker__search_result__expander_title">Show all %1$s ↓</string>
     <string name="people_picker__guest_label">Guest</string>
-    <string name="people_picker__search_people">People</string>
-    <string name="people_picker__search_services">Services</string>
+    <string name="people_picker__search_people">PEOPLE</string>
+    <string name="people_picker__search_services">SERVICES</string>
 
     <string name="integrations_picker__section_title">Services</string>
     <string name="integrations_picker__add">Add Service</string>

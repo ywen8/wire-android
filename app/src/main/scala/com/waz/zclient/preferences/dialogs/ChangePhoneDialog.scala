@@ -41,7 +41,7 @@ import android.widget.{EditText, TextView}
 import com.waz.api.impl.ErrorResponse
 import com.waz.model.PhoneNumber
 import com.waz.service.ZMessaging
-import com.waz.service.permissions.PermissionsService
+import com.waz.permissions.PermissionsService
 import com.waz.threading.Threading
 import com.waz.utils.events.{EventStream, Signal}
 import com.waz.utils.returning

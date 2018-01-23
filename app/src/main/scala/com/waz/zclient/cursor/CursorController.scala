@@ -29,7 +29,7 @@ import com.waz.api._
 import com.waz.content.UserPreferences
 import com.waz.model.{ConversationData, MessageData}
 import com.waz.service.ZMessaging
-import com.waz.service.permissions.PermissionsService
+import com.waz.permissions.PermissionsService
 import com.waz.threading.{CancellableFuture, Threading}
 import com.waz.utils.events.{EventContext, EventStream, Signal}
 import com.waz.zclient.common.controllers._

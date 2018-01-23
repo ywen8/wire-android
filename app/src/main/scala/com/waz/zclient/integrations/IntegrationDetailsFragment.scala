@@ -34,7 +34,10 @@ import com.waz.zclient.common.views.ImageAssetDrawable.{RequestBuilder, ScaleTyp
 import com.waz.zclient.common.views.ImageController.{ImageSource, WireImage}
 import com.waz.zclient.controllers.navigation.{INavigationController, Page}
 import com.waz.zclient.integrations.IntegrationDetailsViewPager._
+import com.waz.zclient.pages.main.pickuser.controller.IPickUserController
+import com.waz.zclient.pages.main.pickuser.controller.IPickUserController.Destination
 import com.waz.zclient.ui.text.{GlyphTextView, TypefaceTextView}
+import com.waz.zclient.usersearch.PickUserFragment
 import com.waz.zclient.utils.ContextUtils.{getDimenPx, getInt}
 import com.waz.zclient.utils.{ContextUtils, RichView}
 import com.waz.zclient.views.DefaultPageTransitionAnimation
@@ -123,7 +126,8 @@ class IntegrationDetailsFragment extends FragmentHelper with OnBackPressedListen
   }
 
   def close(): Boolean = {
-    getFragmentManager.popBackStack()
+    getFragmentManager.popBackStack(PickUserFragment.TAG, FragmentManager.POP_BACK_STACK_INCLUSIVE)
+    inject[IPickUserController].hidePickUser(Destination.CONVERSATION_LIST)
     inject[INavigationController].setLeftPage(Page.CONVERSATION_LIST, IntegrationDetailsFragment.Tag)
     true
   }
@@ -165,7 +169,7 @@ case class IntegrationDetailsAdapter(fm: FragmentManager, providerId: ProviderId
       case DetailsPage =>
         new IntegrationDetailsSummaryFragment()
       case ConvListPage =>
-        IntegrationConversationSearchFragment.newInstance(providerId, integrationId)
+        new IntegrationConversationSearchFragment()
     }
   }
 

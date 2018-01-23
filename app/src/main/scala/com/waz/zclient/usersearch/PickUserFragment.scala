@@ -21,6 +21,8 @@ import android.Manifest.permission.READ_CONTACTS
 import android.content.{DialogInterface, Intent}
 import android.net.Uri
 import android.os.{Bundle, Handler}
+import android.support.design.widget.TabLayout
+import android.support.design.widget.TabLayout.OnTabSelectedListener
 import android.support.v4.content.ContextCompat
 import android.support.v7.app.AlertDialog
 import android.support.v7.widget.{LinearLayoutManager, RecyclerView, Toolbar}
@@ -37,14 +39,14 @@ import com.waz.api._
 import com.waz.content.UserPreferences
 import com.waz.model.UserData.ConnectionStatus
 import com.waz.model._
-import com.waz.service.permissions.PermissionsService
+import com.waz.permissions.PermissionsService
 import com.waz.service.{SearchState, ZMessaging}
 import com.waz.threading.Threading
 import com.waz.utils.events.Signal
 import com.waz.utils.returning
 import com.waz.utils.wrappers.AndroidURIUtil
 import com.waz.zclient.common.controllers.global.AccentColorController
-import com.waz.zclient.common.controllers.{IntegrationsController, BrowserController, SearchUserController, ThemeController, UserAccountsController}
+import com.waz.zclient.common.controllers.{BrowserController, IntegrationsController, SearchUserController, ThemeController, UserAccountsController}
 import com.waz.zclient.common.views.{ChatheadWithTextFooter, FlatWireButton, PickableElement}
 import com.waz.zclient.controllers.currentfocus.IFocusController
 import com.waz.zclient.controllers.globallayout.KeyboardVisibilityObserver
@@ -71,6 +73,7 @@ import com.waz.zclient.utils.{IntentUtils, LayoutSpec, StringUtils, UiStorage, U
 import com.waz.zclient.views._
 import com.waz.zclient.{BaseActivity, FragmentHelper, OnBackPressedListener, R}
 import com.waz.zclient.utils.RichView
+
 import scala.collection.JavaConverters._
 import scala.concurrent.Future
 
@@ -120,7 +123,13 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
   with SearchResultOnItemTouchListener.Callback
   with PickUsersAdapter.Callback {
 
-  private var searchResultAdapter: PickUsersAdapter = null
+  private lazy val searchResultAdapter: PickUsersAdapter = new PickUsersAdapter(
+    new SearchResultOnItemTouchListener(getActivity, this),
+    this,
+    searchUserController,
+    integrationsController,
+    themeController.isDarkTheme || !isAddingToConversation
+  )
   // Saves user from which a pending connect request is loaded
   private var isKeyboardVisible: Boolean = false
   private var searchBoxIsEmpty: Boolean = true
@@ -133,7 +142,6 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
   private var conversationToolbar: Toolbar = null
   private var startUiToolbar: Toolbar = null
   private var toolbarHeader: TextView = null
-  private var divider: View = null
   private var errorMessageViewHeader: TypefaceTextView = null
   private var errorMessageViewSendInvite: LinearLayout = null
   private var errorMessageViewBody: TypefaceTextView = null
@@ -237,7 +245,6 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
 
   override def onCreateView(inflater: LayoutInflater, viewContainer: ViewGroup, savedInstanceState: Bundle): View = {
     val rootView: View = inflater.inflate(R.layout.fragment_pick_user, viewContainer, false)
-    divider = ViewUtils.getView(rootView, R.id.v__pickuser__divider)
     startUiToolbar = ViewUtils.getView(rootView, R.id.pickuser_toolbar)
     toolbarHeader = ViewUtils.getView(rootView, R.id.ttv__pickuser__add_header)
     conversationToolbar = ViewUtils.getView(rootView, R.id.t_pickuser_toolbar)
@@ -250,13 +257,6 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
     searchUserController = new SearchUserController(SearchState("", hasSelectedUsers = false, addingToConversation = addingToConversation))
     searchUserController.setContacts(getStoreFactory.zMessagingApiStore.getApi.getContacts)
 
-    searchResultAdapter = new PickUsersAdapter(
-      new SearchResultOnItemTouchListener(getActivity, this),
-      this,
-      searchUserController,
-      integrationsController,
-      themeController.isDarkTheme || !isAddingToConversation
-    )
     searchResultRecyclerView = ViewUtils.getView(rootView, R.id.rv__pickuser__header_list_view)
     searchResultRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity))
     searchResultRecyclerView.setAdapter(searchResultAdapter)
@@ -291,7 +291,6 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
     showLoadingBarDelay = getResources.getInteger(R.integer.people_picker__loading_bar__show_delay)
     if (isAddingToConversation) {
       inviteButton.setVisibility(View.GONE)
-      divider.setVisibility(View.VISIBLE)
       conversationToolbar.setVisibility(View.VISIBLE)
       startUiToolbar.setVisibility(View.GONE)
       toolbarHeader.setText(if (getArguments.getBoolean(PickUserFragment.ARGUMENT_GROUP_CONVERSATION)) getString(R.string.people_picker__toolbar_header__group)
@@ -312,7 +311,6 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
       errorMessageSublabel.setTextColor(textColor)
       conversationToolbar.setVisibility(View.GONE)
       startUiToolbar.setVisibility(View.VISIBLE)
-      divider.setVisibility(View.GONE)
       toolbarTitle = ViewUtils.getView(rootView, R.id.pickuser_title)
       searchBoxView.applyDarkTheme(true)
       startUiToolbar.inflateMenu(R.menu.toolbar_close_white)
@@ -371,33 +369,41 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
       teamPermissions = accountData.selfPermissions
     }
 
-    val peopleOrServicesViewContainer: LinearLayout = ViewUtils.getView(rootView, R.id.ttv__pickuser__people_or_services_tab)
-    if (userAccountsController.isTeamAccount) {
-      val peopleButton = findById[TypefaceTextView](rootView, R.id.ttv__pickuser__people_tab)
-      val servicesButton = findById[TypefaceTextView](rootView, R.id.ttv__pickuser__services_tab)
+    val tabs = findById[TabLayout](rootView, R.id.pick_user_tabs)
+    import Threading.Implicits.Ui
+    searchResultAdapter.peopleOrServices.head.map {
+      case false => 0
+      case true  => 1
+    }.foreach(tabs.getTabAt(_).select())
 
-      peopleButton.setOnClickListener(new OnClickListener {
-        override def onClick(v: View): Unit = searchResultAdapter.peopleOrServices ! false
-      })
-
-      servicesButton.setOnClickListener(new OnClickListener {
-        override def onClick(v: View): Unit = searchResultAdapter.peopleOrServices ! true
-      })
-
-      searchResultAdapter.peopleOrServices.onUi { shouldShowServices =>
-        val (onButton, offButton) = if (shouldShowServices) (servicesButton, peopleButton) else (peopleButton, servicesButton)
-          verbose(s"IN people or services is $shouldShowServices")
-          onButton.setBackground(ContextCompat.getDrawable(getContext, R.drawable.selector__reg__signin))
-          onButton.setTextColor(ContextCompat.getColor(getContext, R.color.white))
-          offButton.setBackground(null)
-          offButton.setTextColor(ContextCompat.getColor(getContext, R.color.white_40))
-
+    tabs.addOnTabSelectedListener(new OnTabSelectedListener {
+      override def onTabSelected(tab: TabLayout.Tab): Unit = {
+        tab.getPosition match {
+          case 0 => searchResultAdapter.peopleOrServices ! false
+          case 1 => searchResultAdapter.peopleOrServices ! true
+        }
       }
+      override def onTabUnselected(tab: TabLayout.Tab): Unit = {
+      }
+      override def onTabReselected(tab: TabLayout.Tab): Unit = {}
+    })
 
-      peopleOrServicesViewContainer.setVisibility(View.VISIBLE)
+    if (userAccountsController.isTeamAccount) {
+      tabs.setVisibility(View.VISIBLE)
     } else {
-      peopleOrServicesViewContainer.setVisibility(View.GONE)
+      tabs.setVisibility(View.GONE)
     }
+
+    if (isAddingToConversation) {
+      tabs.setSelectedTabIndicatorColor(getColor(R.color.light_graphite))
+      (0 until tabs.getTabCount).map(tabs.getTabAt)
+        .foreach(_.getCustomView.findViewById[TextView](android.R.id.text1)
+          .setTextColor(getColorStateList(R.color.tab_text_color_dark)))
+      findById[LinearLayout](rootView, R.id.top_background_layout).setBackgroundColor(getColor(R.color.white))
+    }
+
+    searchUserController.setFilter("")
+    integrationsController.searchQuery ! ""
 
     rootView
   }
@@ -421,9 +427,7 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
       })
     }
     else {
-      searchUserController.setFilter("")
-      integrationsController.searchQuery ! ""
-      searchResultAdapter.peopleOrServices ! false
+
     }
     if (!isAddingToConversation && isPrivateAccount){
       implicit val ec = Threading.Ui

@@ -25,7 +25,7 @@ import android.view.{LayoutInflater, View, ViewGroup}
 import android.widget.{RelativeLayout, Toast}
 import com.waz.ZLog
 import com.waz.ZLog.ImplicitTag._
-import com.waz.model.{ConversationData, IntegrationId, ProviderId}
+import com.waz.model.ConversationData
 import com.waz.service.{SearchKey, ZMessaging}
 import com.waz.threading.Threading
 import com.waz.utils.events.{EventStream, Signal, SourceStream}
@@ -39,7 +39,7 @@ import com.waz.zclient.core.stores.conversation.ConversationChangeRequester
 import com.waz.zclient.integrations.IntegrationConversationsAdapter._
 import com.waz.zclient.usersearch.views.SearchEditText
 import com.waz.zclient.utils.RichView
-import com.waz.zclient.{FragmentHelper, OnBackPressedListener, R, ViewHelper}
+import com.waz.zclient.{FragmentHelper, R, ViewHelper}
 
 import scala.concurrent.Future
 
@@ -112,16 +112,6 @@ class IntegrationConversationSearchFragment extends Fragment with FragmentHelper
 
 object IntegrationConversationSearchFragment {
   val Tag: String = ZLog.ImplicitTag.implicitLogTag
-  val IntegrationId = "ARG_INTEGRATION_ID"
-  val ProviderId = "ARG_PROVIDER_ID"
-
-  def newInstance(providerId: ProviderId, integrationId: IntegrationId): IntegrationConversationSearchFragment =
-    returning(new IntegrationConversationSearchFragment) {
-      _.setArguments(returning(new Bundle) { b =>
-        b.putString(ProviderId, providerId.str)
-        b.putString(IntegrationId, integrationId.str)
-      })
-    }
 }
 
 case class IntegrationConversationsAdapter(context: Context) extends RecyclerView.Adapter[IntegrationViewHolder] {

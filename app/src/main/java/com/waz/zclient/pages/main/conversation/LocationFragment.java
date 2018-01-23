@@ -58,7 +58,7 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.waz.api.MessageContent;
 import com.waz.model.ConversationData;
 import com.waz.service.ZMessaging;
-import com.waz.service.permissions.PermissionsService;
+import com.waz.permissions.PermissionsService;
 import com.waz.service.tracking.ContributionEvent;
 import com.waz.zclient.BuildConfig;
 import com.waz.zclient.OnBackPressedListener;

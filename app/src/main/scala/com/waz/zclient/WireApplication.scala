@@ -26,7 +26,7 @@ import com.waz.api._
 import com.waz.content.GlobalPreferences
 import com.waz.log.InternalLog
 import com.waz.model.ConversationData
-import com.waz.service.permissions.PermissionsService
+import com.waz.permissions.PermissionsService
 import com.waz.service.tracking.TrackingService
 import com.waz.service.{NetworkModeService, UiLifeCycle, ZMessaging}
 import com.waz.utils.events.{EventContext, Signal, Subscription}

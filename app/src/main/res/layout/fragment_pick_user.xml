@@ -25,107 +25,91 @@
               android:orientation="vertical"
     >
 
-    <android.support.v7.widget.Toolbar
-        android:id="@+id/t_pickuser_toolbar"
+    <LinearLayout
+        android:id="@+id/top_background_layout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="@dimen/toolbar__padding__right"
-        android:clickable="false"
-        app:contentInsetStart="@dimen/content__padding_left"
-        style="?startUiToolbar"
-        android:visibility="gone"
-        >
+        android:orientation="vertical"
+        android:background="@color/light_graphite_8">
 
-        <com.waz.zclient.ui.text.TypefaceTextView
-            android:id="@+id/ttv__pickuser__add_header"
-            android:layout_width="wrap_content"
+        <android.support.v7.widget.Toolbar
+            android:id="@+id/t_pickuser_toolbar"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_gravity="start|center_vertical"
-            android:layout_marginEnd="@dimen/wire__padding__regular"
-            android:maxLines="1"
-            android:ellipsize="end"
+            android:layout_marginEnd="@dimen/toolbar__padding__right"
+            android:clickable="false"
+            app:contentInsetStart="@dimen/content__padding_left"
             style="?startUiToolbar"
+            android:visibility="gone"
+            >
+
+            <com.waz.zclient.ui.text.TypefaceTextView
+                android:id="@+id/ttv__pickuser__add_header"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="start|center_vertical"
+                android:layout_marginEnd="@dimen/wire__padding__regular"
+                android:maxLines="1"
+                android:ellipsize="end"
+                style="?startUiToolbar"
+                />
+        </android.support.v7.widget.Toolbar>
+
+        <android.support.v7.widget.Toolbar
+            android:id="@+id/pickuser_toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:clickable="false"
+            app:contentInsetStart="0dp"
+            android:visibility="gone">
+
+            <com.waz.zclient.ui.text.TypefaceTextView
+                android:id="@+id/pickuser_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginEnd="@dimen/wire__padding__regular"
+                android:maxLines="1"
+                android:ellipsize="end"
+                android:textColor="@color/white"
+                />
+
+        </android.support.v7.widget.Toolbar>
+
+        <com.waz.zclient.usersearch.views.SearchEditText
+            android:id="@+id/sbv__search_box"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/collections__multi_share_search_height"
+            android:layout_margin="@dimen/wire__padding__8"
+            app:hintText="@string/pick_user_search_hint"
             />
-    </android.support.v7.widget.Toolbar>
 
-    <android.support.v7.widget.Toolbar
-        android:id="@+id/pickuser_toolbar"
-        android:layout_width="match_parent"
-        android:layout_height="?attr/actionBarSize"
-        android:background="@color/transparent"
-        android:clickable="false"
-        app:contentInsetStart="0dp"
-        android:visibility="gone">
-
-        <com.waz.zclient.ui.text.TypefaceTextView
-            android:id="@+id/pickuser_title"
-            android:layout_width="wrap_content"
+        <android.support.design.widget.TabLayout
+            android:id="@+id/pick_user_tabs"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_gravity="center"
+            android:layout_marginStart="@dimen/wire__padding__regular"
             android:layout_marginEnd="@dimen/wire__padding__regular"
-            android:maxLines="1"
-            android:ellipsize="end"
-            android:textColor="@color/white"
-            />
+            app:tabIndicatorColor="@color/white_72"
+            app:tabTextColor="@color/white_32"
+            app:tabMode="fixed"
+            app:tabSelectedTextColor="@color/white"
+            >
 
-    </android.support.v7.widget.Toolbar>
+            <android.support.design.widget.TabItem
+                android:text="@string/people_picker__search_people"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout="@layout/tab_layout"/>
 
-    <View
-        android:id="@+id/v__pickuser__divider"
-        android:layout_width="match_parent"
-        android:layout_height="@dimen/wire__divider__height__thin"
-        style="?wireDivider"
-        />
+            <android.support.design.widget.TabItem
+                android:text="@string/people_picker__search_services"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout="@layout/tab_layout"/>
 
-    <com.waz.zclient.usersearch.views.SearchEditText
-        android:id="@+id/sbv__search_box"
-        android:layout_width="match_parent"
-        android:layout_height="@dimen/collections__multi_share_search_height"
-        android:layout_margin="@dimen/wire__padding__8"
-        app:hintText="@string/pick_user_search_hint"
-        />
+        </android.support.design.widget.TabLayout>
 
-    <LinearLayout
-        android:id="@+id/ttv__pickuser__people_or_services_tab"
-        android:layout_width="wrap_content"
-        android:layout_height="@dimen/wire__padding__20"
-        android:layout_gravity="center_horizontal"
-        android:layout_marginBottom="@dimen/reg__signin_option__height_margin"
-        android:layout_marginTop="@dimen/reg__signin_option__height_margin"
-        android:visibility="gone"
-        >
-
-        <com.waz.zclient.ui.text.TypefaceTextView
-            android:id="@+id/ttv__pickuser__people_tab"
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:layout_gravity="right"
-            android:layout_marginRight="@dimen/wire__padding__16"
-            android:gravity="center_vertical"
-            android:paddingLeft="@dimen/wire__padding__16"
-            android:paddingRight="@dimen/wire__padding__16"
-            android:text="@string/people_picker__search_people"
-            android:textAllCaps="true"
-            android:textColor="@color/text__primary_dark_40"
-            android:textSize="@dimen/wire__text_size__small"
-            app:w_font="@string/wire__typeface__medium"
-            />
-
-        <com.waz.zclient.ui.text.TypefaceTextView
-            android:id="@+id/ttv__pickuser__services_tab"
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:layout_gravity="right"
-            android:gravity="center_vertical"
-            android:paddingLeft="@dimen/wire__padding__16"
-            android:paddingRight="@dimen/wire__padding__16"
-            android:text="@string/people_picker__search_services"
-            android:textAllCaps="true"
-            android:textColor="@color/text__primary_dark"
-            android:textSize="@dimen/wire__text_size__small"
-            app:w_font="@string/wire__typeface__medium"
-            android:background="@drawable/selector__reg__signin"
-            />
     </LinearLayout>
 
     <RelativeLayout

@@ -67,7 +67,7 @@ class PickUsersAdapter(topUsersOnItemTouchListener: SearchResultOnItemTouchListe
   private var integrations = IndexedSeq.empty[IntegrationData]
   private var currentUser = Option.empty[UserData]
 
-  val peopleOrServices = Signal[Boolean]()
+  val peopleOrServices = Signal[Boolean](false)
 
   peopleOrServices.on(Threading.Ui) { _ => updateMergedResults() }
 
