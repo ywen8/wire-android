@@ -38,7 +38,7 @@
             android:layout_marginStart="@dimen/wire__padding__small"
             android:text="@string/glyph__previous"
             android:textSize="@dimen/wire__icon_button__text_size"
-            android:textColor="@color/text__primary_dark"
+            android:textColor="?wirePrimaryTextColor"
             android:gravity="center"
             />
 
@@ -48,7 +48,7 @@
             android:layout_height="wrap_content"
             android:gravity="center"
             android:layout_centerInParent="true"
-            android:textColor="@color/text__primary_dark"
+            android:textColor="?wirePrimaryTextColor"
             android:textSize="@dimen/wire__text_size__small"
             app:w_font="@string/wire__typeface__light"/>
 
@@ -61,7 +61,7 @@
             android:layout_marginEnd="@dimen/wire__padding__small"
             android:text="@string/glyph__close"
             android:textSize="@dimen/wire__icon_button__text_size"
-            android:textColor="@color/text__primary_dark"
+            android:textColor="?wirePrimaryTextColor"
             android:gravity="center"
             />
 
@@ -90,7 +90,7 @@
             android:layout_toEndOf="@id/integration_picture"
             android:layout_marginTop="@dimen/wire__padding__regular"
             android:layout_marginEnd="@dimen/wire__padding__regular"
-            android:textColor="@color/text__primary_dark"
+            android:textColor="?wirePrimaryTextColor"
             android:textSize="@dimen/wire__text_size__medium"
             app:w_font="@string/wire__typeface__light"
             />
@@ -102,7 +102,7 @@
             android:layout_below="@+id/integration_name"
             android:layout_toEndOf="@+id/integration_picture"
             android:layout_marginEnd="@dimen/wire__padding__regular"
-            android:textColor="@color/text__secondary_dark"
+            android:textColor="?wireSecondaryTextColor"
             android:textSize="@dimen/wire__text_size__small"
             app:w_font="@string/wire__typeface__light"/>
 

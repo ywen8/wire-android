@@ -44,6 +44,8 @@ import com.waz.api.User;
 import com.waz.api.UsersList;
 import com.waz.model.ConvId;
 import com.waz.model.ConversationData;
+import com.waz.model.IntegrationId;
+import com.waz.model.ProviderId;
 import com.waz.model.UserId;
 import com.waz.zclient.OnBackPressedListener;
 import com.waz.zclient.R;
@@ -690,6 +692,11 @@ public class ParticipantsDialogFragment extends BaseFragment<ParticipantsDialogF
 
     @Override
     public void onShowLikesList(Message message) {
+
+    }
+
+    @Override
+    public void onShowIntegrationDetails(ProviderId providerId, IntegrationId integrationId) {
 
     }
 

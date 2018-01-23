@@ -22,6 +22,8 @@ import com.waz.api.Message;
 import com.waz.api.OtrClient;
 import com.waz.api.User;
 import com.waz.model.ConvId;
+import com.waz.model.IntegrationId;
+import com.waz.model.ProviderId;
 import com.waz.zclient.pages.main.conversation.controller.ConversationScreenControllerObserver;
 import com.waz.zclient.pages.main.conversation.controller.IConversationScreenController;
 import com.waz.zclient.pages.main.participants.dialog.DialogLaunchMode;
@@ -160,5 +162,10 @@ public class StubConversationScreenController implements IConversationScreenCont
     @Override
     public boolean isSingleConversation() {
         return false;
+    }
+
+    @Override
+    public void showIntegrationDetails(ProviderId providerId, IntegrationId integrationId) {
+
     }
 }

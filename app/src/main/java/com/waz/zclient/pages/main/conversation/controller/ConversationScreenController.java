@@ -22,6 +22,8 @@ import com.waz.api.Message;
 import com.waz.api.OtrClient;
 import com.waz.api.User;
 import com.waz.model.ConvId;
+import com.waz.model.IntegrationId;
+import com.waz.model.ProviderId;
 import com.waz.zclient.pages.main.participants.dialog.DialogLaunchMode;
 
 import java.util.HashSet;
@@ -226,6 +228,13 @@ public class ConversationScreenController implements IConversationScreenControll
     public void showLikesList(Message message) {
         for (ConversationScreenControllerObserver observer : conversationScreenControllerObservers) {
             observer.onShowLikesList(message);
+        }
+    }
+
+    @Override
+    public void showIntegrationDetails(ProviderId providerId, IntegrationId integrationId) {
+        for (ConversationScreenControllerObserver observer : conversationScreenControllerObservers) {
+            observer.onShowIntegrationDetails(providerId, integrationId);
         }
     }
 }

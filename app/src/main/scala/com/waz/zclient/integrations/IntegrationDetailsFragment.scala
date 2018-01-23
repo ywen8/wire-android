@@ -24,11 +24,13 @@ import android.support.v4.app.{Fragment, FragmentManager, FragmentPagerAdapter}
 import android.support.v4.view.ViewPager
 import android.util.AttributeSet
 import android.view.animation.Animation
-import android.view.{LayoutInflater, MotionEvent, View, ViewGroup}
-import android.widget.ImageView
+import android.view._
+import android.widget.{ImageView, Toast}
 import com.waz.model.{IntegrationId, ProviderId}
+import com.waz.threading.Threading
 import com.waz.utils.events.Signal
 import com.waz.utils.returning
+import com.waz.zclient.common.controllers.IntegrationsController
 import com.waz.zclient.common.views.ImageAssetDrawable
 import com.waz.zclient.common.views.ImageAssetDrawable.{RequestBuilder, ScaleType}
 import com.waz.zclient.common.views.ImageController.{ImageSource, WireImage}
@@ -47,6 +49,7 @@ class IntegrationDetailsFragment extends FragmentHelper with OnBackPressedListen
   implicit def ctx: Context = getActivity
 
   private lazy val integrationDetailsController = inject[IntegrationDetailsController]
+  private lazy val integrationsController = inject[IntegrationsController]
 
   private lazy val providerId = ProviderId(getArguments.getString(IntegrationDetailsFragment.ProviderId))
   private lazy val integrationId = IntegrationId(getArguments.getString(IntegrationDetailsFragment.IntegrationId))
@@ -91,12 +94,30 @@ class IntegrationDetailsFragment extends FragmentHelper with OnBackPressedListen
     super.onCreate(savedInstanceState)
     integrationDetailsController.currentIntegrationId ! (providerId, integrationId)
     integrationDetailsController.onAddServiceClick { _ =>
-      viewPager.foreach(_.goToConversations)
+
+      integrationDetailsController.addingToConversation.fold{
+        viewPager.foreach(_.goToConversations)
+      } { conv =>
+        integrationsController.addBot(conv, providerId, integrationId).map {
+          case Left(e) =>
+            Toast.makeText(getContext, s"Bot error: $e", Toast.LENGTH_SHORT).show()
+            close()
+          case Right(_) =>
+            close()
+        } (Threading.Ui)
+      }
     }
   }
 
-  override def onCreateView(inflater: LayoutInflater, viewContainer: ViewGroup, savedInstanceState: Bundle): View =
-    inflater.inflate(R.layout.fragment_integration_details, viewContainer, false)
+  override def onCreateView(inflater: LayoutInflater, viewContainer: ViewGroup, savedInstanceState: Bundle): View = {
+    val localInflater =
+      if (integrationDetailsController.addingToConversation.isEmpty)
+        inflater.cloneInContext(new ContextThemeWrapper(getActivity, R.style.Theme_Dark))
+      else
+        inflater
+
+    localInflater.inflate(R.layout.fragment_integration_details, viewContainer, false)
+  }
 
   override def onViewCreated(v: View, @Nullable savedInstanceState: Bundle): Unit = {
     super.onViewCreated(v, savedInstanceState)
@@ -120,15 +141,24 @@ class IntegrationDetailsFragment extends FragmentHelper with OnBackPressedListen
         viewPager.goToDetails
       case _ =>
         getFragmentManager.popBackStack()
-        inject[INavigationController].setLeftPage(Page.PICK_USER, IntegrationDetailsFragment.Tag)
+        if (integrationDetailsController.addingToConversation.nonEmpty) {
+          inject[INavigationController].setRightPage(Page.PICK_USER, IntegrationDetailsFragment.Tag)
+        } else {
+          inject[INavigationController].setLeftPage(Page.PICK_USER, IntegrationDetailsFragment.Tag)
+        }
     }
     true
   }
 
   def close(): Boolean = {
     getFragmentManager.popBackStack(PickUserFragment.TAG, FragmentManager.POP_BACK_STACK_INCLUSIVE)
-    inject[IPickUserController].hidePickUser(Destination.CONVERSATION_LIST)
-    inject[INavigationController].setLeftPage(Page.CONVERSATION_LIST, IntegrationDetailsFragment.Tag)
+    if (integrationDetailsController.addingToConversation.nonEmpty) {
+      inject[IPickUserController].hidePickUser(Destination.PARTICIPANTS)
+      inject[INavigationController].setRightPage(Page.PARTICIPANT, IntegrationDetailsFragment.Tag)
+    } else {
+      inject[IPickUserController].hidePickUser(Destination.CONVERSATION_LIST)
+      inject[INavigationController].setLeftPage(Page.CONVERSATION_LIST, IntegrationDetailsFragment.Tag)
+    }
     true
   }
 }

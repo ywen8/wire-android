@@ -41,6 +41,8 @@ import com.waz.api.User;
 import com.waz.api.UsersList;
 import com.waz.api.Verification;
 import com.waz.model.ConvId;
+import com.waz.model.IntegrationId;
+import com.waz.model.ProviderId;
 import com.waz.zclient.BaseActivity;
 import com.waz.zclient.R;
 import com.waz.zclient.common.views.UserDetailsView;
@@ -487,6 +489,11 @@ public class ParticipantHeaderFragment extends BaseFragment<ParticipantHeaderFra
 
     @Override
     public void onShowLikesList(Message message) {
+
+    }
+
+    @Override
+    public void onShowIntegrationDetails(ProviderId providerId, IntegrationId integrationId) {
 
     }
 

@@ -23,6 +23,8 @@ import com.waz.api.Message;
 import com.waz.api.OtrClient;
 import com.waz.api.User;
 import com.waz.model.ConvId;
+import com.waz.model.IntegrationId;
+import com.waz.model.ProviderId;
 import com.waz.zclient.pages.main.participants.dialog.DialogLaunchMode;
 
 public interface IConversationScreenController {
@@ -93,4 +95,6 @@ public interface IConversationScreenController {
     void hideOtrClient();
 
     void showLikesList(Message message);
+
+    void showIntegrationDetails(ProviderId providerId, IntegrationId integrationId);
 }

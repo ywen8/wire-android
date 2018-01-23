@@ -19,7 +19,7 @@ package com.waz.zclient.integrations
 
 import android.os.Bundle
 import android.support.v4.app.Fragment
-import android.view.{LayoutInflater, View, ViewGroup}
+import android.view.{ContextThemeWrapper, LayoutInflater, View, ViewGroup}
 import android.widget.RelativeLayout
 import com.waz.utils.returning
 import com.waz.zclient.ui.text.TypefaceTextView
@@ -36,8 +36,16 @@ class IntegrationDetailsSummaryFragment extends Fragment with FragmentHelper {
     }
   }
 
-  override def onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState: Bundle): View =
-    inflater.inflate(R.layout.fragment_integration_details_summary, container, false)
+  override def onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState: Bundle): View ={
+    val localInflater =
+      if (integrationDetailsViewController.addingToConversation.isEmpty)
+        inflater.cloneInContext(new ContextThemeWrapper(getActivity, R.style.Theme_Dark))
+      else
+        inflater
+
+    localInflater.inflate(R.layout.fragment_integration_details_summary, container, false)
+  }
+
 
   override def onViewCreated(view: View, savedInstanceState: Bundle): Unit = {
     findById[RelativeLayout](R.id.add_service_button).onClick(integrationDetailsViewController.onAddServiceClick ! (()))

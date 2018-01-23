@@ -27,7 +27,6 @@ import android.support.v4.content.ContextCompat
 import android.support.v7.app.AlertDialog
 import android.support.v7.widget.{LinearLayoutManager, RecyclerView, Toolbar}
 import android.text.TextUtils
-import android.view.View.OnClickListener
 import android.view._
 import android.view.animation.Animation
 import android.view.inputmethod.EditorInfo
@@ -46,7 +45,7 @@ import com.waz.utils.events.Signal
 import com.waz.utils.returning
 import com.waz.utils.wrappers.AndroidURIUtil
 import com.waz.zclient.common.controllers.global.AccentColorController
-import com.waz.zclient.common.controllers.{BrowserController, IntegrationsController, SearchUserController, ThemeController, UserAccountsController}
+import com.waz.zclient.common.controllers._
 import com.waz.zclient.common.views.{ChatheadWithTextFooter, FlatWireButton, PickableElement}
 import com.waz.zclient.controllers.currentfocus.IFocusController
 import com.waz.zclient.controllers.globallayout.KeyboardVisibilityObserver
@@ -55,7 +54,7 @@ import com.waz.zclient.controllers.userpreferences.IUserPreferencesController
 import com.waz.zclient.conversation.ConversationController
 import com.waz.zclient.core.stores.conversation.ConversationChangeRequester
 import com.waz.zclient.core.stores.network.DefaultNetworkAction
-import com.waz.zclient.integrations.IntegrationDetailsFragment
+import com.waz.zclient.integrations.{IntegrationDetailsController, IntegrationDetailsFragment}
 import com.waz.zclient.pages.BaseFragment
 import com.waz.zclient.pages.main.conversation.controller.IConversationScreenController
 import com.waz.zclient.pages.main.participants.dialog.DialogLaunchMode
@@ -69,10 +68,9 @@ import com.waz.zclient.usersearch.adapters.PickUsersAdapter
 import com.waz.zclient.usersearch.views.{ContactRowView, SearchBoxView, SearchEditText, UserRowView}
 import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.utils.device.DeviceDetector
-import com.waz.zclient.utils.{IntentUtils, LayoutSpec, StringUtils, UiStorage, UserSignal, ViewUtils}
+import com.waz.zclient.utils.{IntentUtils, LayoutSpec, RichView, StringUtils, UiStorage, UserSignal, ViewUtils}
 import com.waz.zclient.views._
 import com.waz.zclient.{BaseActivity, FragmentHelper, OnBackPressedListener, R}
-import com.waz.zclient.utils.RichView
 
 import scala.collection.JavaConverters._
 import scala.concurrent.Future
@@ -293,9 +291,9 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
       inviteButton.setVisibility(View.GONE)
       conversationToolbar.setVisibility(View.VISIBLE)
       startUiToolbar.setVisibility(View.GONE)
-      toolbarHeader.setText(if (getArguments.getBoolean(PickUserFragment.ARGUMENT_GROUP_CONVERSATION)) getString(R.string.people_picker__toolbar_header__group)
+      toolbarHeader.setText(if (isGroupConversation) getString(R.string.people_picker__toolbar_header__group)
       else getString(R.string.people_picker__toolbar_header__one_to_one))
-      userSelectionConfirmationButton.setText(if (getArguments.getBoolean(PickUserFragment.ARGUMENT_GROUP_CONVERSATION)) R.string.people_picker__confirm_button_title__add_to_conversation
+      userSelectionConfirmationButton.setText(if (isGroupConversation) R.string.people_picker__confirm_button_title__add_to_conversation
       else R.string.people_picker__confirm_button_title__create_conversation)
       ViewUtils.setHeight(searchBoxView, getResources.getDimensionPixelSize(R.dimen.searchbox__height__with_toolbar))
       searchBoxView.applyDarkTheme(ThemeUtils.isDarkTheme(getContext))
@@ -394,7 +392,7 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
       tabs.setVisibility(View.GONE)
     }
 
-    if (isAddingToConversation) {
+    if (isAddingToConversation && !themeController.isDarkTheme) {
       tabs.setSelectedTabIndicatorColor(getColor(R.color.light_graphite))
       (0 until tabs.getTabCount).map(tabs.getTabAt)
         .foreach(_.getCustomView.findViewById[TextView](android.R.id.text1)
@@ -417,7 +415,7 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
   override def onStart(): Unit = {
     super.onStart()
     getControllerFactory.getGlobalLayoutController.addKeyboardVisibilityObserver(this)
-    if (isAddingToConversation && !getArguments.getBoolean(PickUserFragment.ARGUMENT_GROUP_CONVERSATION)) {
+    if (isAddingToConversation && !isGroupConversation) {
       new Handler().post(new Runnable() {
         def run(): Unit = {
           searchUserController.selectedUsers.map(UserSignal(_)).foreach{ userSignal =>
@@ -425,9 +423,6 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
           }
         }
       })
-    }
-    else {
-
     }
     if (!isAddingToConversation && isPrivateAccount){
       implicit val ec = Threading.Ui
@@ -557,7 +552,7 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
     lastInputIsKeyboardDoneAction = true
     val users = searchUserController.selectedUsers
     val minUsers =
-    if (isAddingToConversation && !getArguments.getBoolean(PickUserFragment.ARGUMENT_GROUP_CONVERSATION)) 2 else 1
+    if (isAddingToConversation && !isGroupConversation) 2 else 1
     if (users.size >= minUsers) {
       KeyboardUtils.hideKeyboard(getActivity)
       getContainer.onSelectedUsers(users.toSeq.asJava, ConversationChangeRequester.START_CONVERSATION)
@@ -802,7 +797,7 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
     view.getId match {
       case R.id.confirmation_button =>
         KeyboardUtils.hideKeyboard(getActivity)
-        val users = if (getArguments.getBoolean(PickUserFragment.ARGUMENT_GROUP_CONVERSATION)) searchUserController.selectedUsers else getSelectedAndExcluded
+        val users = if (isGroupConversation) searchUserController.selectedUsers else getSelectedAndExcluded
         getContainer.onSelectedUsers(users.toSeq.asJava, ConversationChangeRequester.START_CONVERSATION)
       case R.id.invite_button =>
         sendGenericInvite(false)
@@ -818,6 +813,9 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
         getControllerFactory.getFocusController.setFocus(IFocusController.CONVERSATION_LIST_SEARCHBOX)
       else if (getCurrentPickerDestination == IPickUserController.Destination.PARTICIPANTS)
         getControllerFactory.getFocusController.setFocus(IFocusController.PARTICIPANTS_SEARCHBOX)
+
+  private def isGroupConversation: Boolean =
+    getArguments.getBoolean(PickUserFragment.ARGUMENT_GROUP_CONVERSATION)
 
   private def isAddingToConversation: Boolean = {
     getArguments.getBoolean(PickUserFragment.ARGUMENT_ADD_TO_CONVERSATION)
@@ -892,17 +890,22 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
     KeyboardUtils.hideKeyboard(getActivity)
     verbose(s"onIntegrationClicked(${data.id})")
 
-    import IntegrationDetailsFragment._
-    getFragmentManager.beginTransaction
-      .setCustomAnimations(
-        R.anim.slide_in_from_bottom_pick_user,
-        R.anim.open_new_conversation__thread_list_out,
-        R.anim.open_new_conversation__thread_list_in,
-        R.anim.slide_out_to_bottom_pick_user)
-      .replace(R.id.fl__conversation_list_main, newInstance(data.provider, data.id), Tag)
-      .addToBackStack(Tag)
-      .commit()
+    inject[IntegrationDetailsController].addingToConversation = addingToConversation
+    if (isAddingToConversation) {
+      convScreenController.showIntegrationDetails(data.provider, data.id)
+    } else {
+      import IntegrationDetailsFragment._
+      getFragmentManager.beginTransaction
+        .setCustomAnimations(
+          R.anim.slide_in_from_bottom_pick_user,
+          R.anim.open_new_conversation__thread_list_out,
+          R.anim.open_new_conversation__thread_list_in,
+          R.anim.slide_out_to_bottom_pick_user)
+        .replace(R.id.fl__conversation_list_main, newInstance(data.provider, data.id), Tag)
+        .addToBackStack(Tag)
+        .commit()
 
-    getControllerFactory.getNavigationController.setLeftPage(Page.INTEGRATION_DETAILS, PickUserFragment.TAG)
+      getControllerFactory.getNavigationController.setLeftPage(Page.INTEGRATION_DETAILS, PickUserFragment.TAG)
+    }
   }
 }

@@ -18,7 +18,7 @@
 package com.waz.zclient.integrations
 
 import android.content.Context
-import com.waz.model.{IntegrationId, ProviderId}
+import com.waz.model.{ConvId, IntegrationId, ProviderId}
 import com.waz.utils.events.{EventStream, Signal, SourceSignal, SourceStream}
 import com.waz.zclient.{Injectable, Injector}
 import com.waz.zclient.common.controllers.IntegrationsController
@@ -31,6 +31,8 @@ class IntegrationDetailsController(implicit injector: Injector, context: Context
   val currentIntegration = currentIntegrationId.flatMap {
     case (pId, iId) => Signal.future(integrationsController.getIntegration(pId, iId))
   }
+
+  var addingToConversation = Option.empty[ConvId]
 
   val onAddServiceClick: SourceStream[Unit] = EventStream()
   val searchFilter: SourceSignal[String] = Signal("")

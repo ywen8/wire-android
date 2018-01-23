@@ -39,7 +39,9 @@ import com.waz.api.MessageContent;
 import com.waz.api.OtrClient;
 import com.waz.api.User;
 import com.waz.model.ConvId;
+import com.waz.model.IntegrationId;
 import com.waz.model.MessageData;
+import com.waz.model.ProviderId;
 import com.waz.model.UserId;
 import com.waz.zclient.BaseActivity;
 import com.waz.zclient.OnBackPressedListener;
@@ -659,6 +661,11 @@ public class RootFragment extends BaseFragment<RootFragment.Container> implement
 
     @Override
     public void onShowLikesList(Message message) {
+
+    }
+
+    @Override
+    public void onShowIntegrationDetails(ProviderId providerId, IntegrationId integrationId) {
 
     }
 

@@ -30,7 +30,7 @@ import com.waz.ZLog.ImplicitTag._
 import com.waz.api._
 import com.waz.model.ConversationData.ConversationType
 import com.waz.model.sync.SyncCommand._
-import com.waz.model.{ConvId, ConversationData, UserId}
+import com.waz.model._
 import com.waz.service.ZMessaging
 import com.waz.sync.SyncRequestServiceImpl.SyncMatcher
 import com.waz.threading.{CancellableFuture, Threading}
@@ -660,6 +660,8 @@ class ConversationListManagerFragment extends Fragment
   override def showRemoveConfirmation(user: User) = {}
 
   override def onOpenUrl(url: String) = {}
+
+  override def onShowIntegrationDetails(providerId: ProviderId, integrationId: IntegrationId): Unit = {}
 }
 
 object ConversationListManagerFragment {
