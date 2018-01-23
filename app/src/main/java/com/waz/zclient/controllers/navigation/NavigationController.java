@@ -221,6 +221,7 @@ public class NavigationController implements INavigationController {
             case PENDING_CONNECT_REQUEST:
             case BLOCK_USER:
             case PICK_USER_ADD_TO_CONVERSATION:
+            case INTEGRATION_DETAILS:
                 if (isPhone) {
                     setPagerEnabled(false);
                 }
