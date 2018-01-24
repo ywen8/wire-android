@@ -22,12 +22,15 @@ import android.content.{Context, Intent}
 import android.net.Uri
 import android.os.Bundle
 import android.util.AttributeSet
+import com.waz.ZLog.ImplicitTag._
 import android.view.View
 import android.widget.{LinearLayout, Toast}
 import com.waz.zclient.preferences.views.TextButton
 import com.waz.zclient.utils.{BackStackKey, DebugUtils}
 import com.waz.zclient.{R, ViewHelper}
 import AboutView._
+import com.waz.service.ZMessaging
+import com.waz.utils.events.Signal
 
 class AboutView(context: Context, attrs: AttributeSet, style: Int) extends LinearLayout(context, attrs, style) with ViewHelper {
   def this(context: Context, attrs: AttributeSet) = this(context, attrs, 0)
@@ -36,20 +39,21 @@ class AboutView(context: Context, attrs: AttributeSet, style: Int) extends Linea
   inflate(R.layout.preferences_about_layout)
 
   private var versionClickCounter: Int = 0
-  private var copyrightClickCounter: Int = 0
 
-  val websiteButton = findById[TextButton](R.id.preferences_about_website)
-  val termsButton = findById[TextButton](R.id.preferences_about_terms)
+  val websiteButton       = findById[TextButton](R.id.preferences_about_website)
+  val termsButton         = findById[TextButton](R.id.preferences_about_terms)
   val privacyPolicyButton = findById[TextButton](R.id.preferences_about_privacy)
-  val licenseButton = findById[TextButton](R.id.preferences_about_license)
+  val licenseButton       = findById[TextButton](R.id.preferences_about_license)
 
   val versionTextButton = findById[TextButton](R.id.preferences_about_version)
   val copyrightButton = findById[TextButton](R.id.preferences_about_copyright)
 
-  websiteButton.onClickEvent{ _ => openUrl(R.string.pref_about_website_url) }
-  termsButton.onClickEvent{ _ => openUrl(R.string.url_terms_of_service) }
-  privacyPolicyButton.onClickEvent{ _ => openUrl(R.string.url_privacy_policy) }
-  licenseButton.onClickEvent{ _ => openUrl(R.string.pref_about_licenses_url) }
+  websiteButton.onClickEvent(_ => openUrl(R.string.pref_about_website_url))
+  termsButton.onClickEvent { _ =>
+    openUrl(if (inject[Signal[Option[ZMessaging]]].map(_.flatMap(_.teamId)).currentValue.flatten.isDefined) R.string.url_terms_of_service_teams else R.string.url_terms_of_service_personal)
+  }
+  privacyPolicyButton.onClickEvent(_ => openUrl(R.string.url_privacy_policy))
+  licenseButton.onClickEvent(_ => openUrl(R.string.pref_about_licenses_url))
 
   versionTextButton.onClickEvent{ _ =>
     versionClickCounter += 1
@@ -76,12 +80,12 @@ case class AboutBackStackKey(args: Bundle = new Bundle()) extends BackStackKey(a
   override def layoutId = R.layout.preferences_about
 
   override def onViewAttached(v: View) = {
-    Option(v.asInstanceOf[AboutView]).foreach{ view =>
+    Option(v.asInstanceOf[AboutView]).foreach { view =>
       val version =
         try {
           view.wContext.getPackageManager.getPackageInfo(view.wContext.getPackageName, 0).versionName
         } catch {
-          case e: PackageManager.NameNotFoundException => ""
+          case _: PackageManager.NameNotFoundException => ""
         }
       view.setVersion(version)
     }

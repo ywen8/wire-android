@@ -108,9 +108,9 @@ class SignInFragment extends BaseFragment[Container] with FragmentHelper with Vi
       field.addTextListener(signInController.phone ! _)
     }
 
-    termsOfService.foreach{ text =>
+    termsOfService.foreach { text =>
       TextViewUtils.linkifyText(text, ContextCompat.getColor(getContext, R.color.white), true, new Runnable {
-        override def run() = getContainer.onOpenUrlInApp(getString(R.string.url_terms_of_service), withCloseButton = true)
+        override def run() = getContainer.onOpenUrlInApp(getString(R.string.url_terms_of_service_personal), withCloseButton = true)
       })
     }
     countryButton.foreach(_.setOnClickListener(this))

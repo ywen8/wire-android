@@ -40,7 +40,7 @@ object AppEntryDialogs {
       })
       .setNeutralButton(R.string.app_entry_dialog_view, new DialogInterface.OnClickListener {
         override def onClick(dialog: DialogInterface, which: Int): Unit = {
-          onOpenUrl(context, context.getString(R.string.url_terms_of_service))
+          onOpenUrl(context, context.getString(R.string.url_terms_of_service_teams))
           dialogResult.trySuccess(false)
         }
       })
