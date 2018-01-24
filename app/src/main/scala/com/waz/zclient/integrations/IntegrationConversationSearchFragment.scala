@@ -38,7 +38,7 @@ import com.waz.zclient.conversationlist.views.NormalConversationListRow
 import com.waz.zclient.core.stores.conversation.ConversationChangeRequester
 import com.waz.zclient.integrations.IntegrationConversationsAdapter._
 import com.waz.zclient.usersearch.views.SearchEditText
-import com.waz.zclient.utils.RichView
+import com.waz.zclient.utils.{ConversationMembersSignal, RichView, UiStorage}
 import com.waz.zclient.{FragmentHelper, R, ViewHelper}
 
 import scala.concurrent.Future
@@ -50,6 +50,7 @@ class IntegrationConversationSearchFragment extends Fragment with FragmentHelper
   private lazy val integrationsController = inject[IntegrationsController]
   private lazy val conversationController = inject[ConversationController]
   private lazy val integrationDetailsController = inject[IntegrationDetailsController]
+  implicit private lazy val uiStorage = inject[UiStorage]
 
   private lazy val searchBox = view[SearchEditText](R.id.search_box)
   private lazy val listView = view[RecyclerView](R.id.conv_recycler_view)
@@ -86,7 +87,12 @@ class IntegrationConversationSearchFragment extends Fragment with FragmentHelper
     zms <- zms
     filter <- integrationDetailsController.searchFilter
     convs <- Signal.future(zms.convsUi.findGroupConversations(SearchKey(filter), Int.MaxValue, handleOnly = false))
-  } yield convs.distinct
+    groups <- Signal.sequence(convs.distinct.map(conv => ConversationMembersSignal(conv.id).map(m => (conv, m.size > 2))):_*)
+      .map(_.collect {
+        case (conv, true) => conv
+        case (conv, false) if conv.name.nonEmpty => conv
+      })
+  } yield groups
 
   override def onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState: Bundle): View =
     inflater.inflate(R.layout.fragment_integrations_pick_conv, container, false)
