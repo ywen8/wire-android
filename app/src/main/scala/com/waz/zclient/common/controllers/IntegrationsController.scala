@@ -46,15 +46,10 @@ class IntegrationsController(implicit injector: Injector, context: Context) exte
     integrations.head.flatMap(_.getIntegration(pId, iId))
 
   def addBot(cId: ConvId, pId: ProviderId, iId: IntegrationId): Future[Either[ErrorResponse, Unit]] =
-    integrations.head.flatMap(_.addBot(cId, pId, iId))
+    integrations.head.flatMap(_.addBotToConversation(cId, pId, iId))
 
-  def createConvWithBot(pId: ProviderId, iId: IntegrationId): Future[Either[ErrorResponse, ConversationData]] =
-    conversationController.createGroupConversation(Seq()).flatMap { conv =>
-      integrations.head.flatMap(_.addBot(conv.id, pId, iId)).map {
-        case Left(e) => Left(e)
-        case Right(_) => Right(conv)
-      }
-    }
+  def createConvWithBot(pId: ProviderId, iId: IntegrationId): Future[Either[ErrorResponse, ConvId]] =
+    integrations.head.flatMap(_.createConversationWithBot(pId, iId))
 
 }
 

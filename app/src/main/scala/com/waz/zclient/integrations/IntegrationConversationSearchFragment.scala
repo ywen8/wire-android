@@ -75,9 +75,9 @@ class IntegrationConversationSearchFragment extends Fragment with FragmentHelper
             case Left(e) =>
               Toast.makeText(getContext, s"Bot error: $e", Toast.LENGTH_SHORT).show()
               Future.successful(())
-            case Right(conv) =>
+            case Right(convId) =>
               close()
-              conversationController.selectConv(conv.id, ConversationChangeRequester.CONVERSATION_LIST)
+              conversationController.selectConv(convId, ConversationChangeRequester.CONVERSATION_LIST)
           }
       }
     }
