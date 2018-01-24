@@ -496,8 +496,8 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
       else
         accentColor.currentValue.getOrElse(0)
 
-    getContainer.getLoadingViewIndicator.setColor(color)
     if (!isAddingToConversation) {
+      getContainer.getLoadingViewIndicator.setColor(color)
       val inviteVisibility =
         if (keyboardIsVisible || searchUserController.selectedUsers.nonEmpty || isTeamAccount) View.GONE
         else View.VISIBLE
@@ -505,10 +505,8 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
     }
   }
 
-  private def createAndOpenConversation(users: Seq[UserId], requester: ConversationChangeRequester): Unit = {
+  private def createAndOpenConversation(users: Seq[UserId], requester: ConversationChangeRequester): Unit =
     userAccountsController.createAndOpenConversation(users.toArray, requester, getActivity.asInstanceOf[BaseActivity])
-    pickUserController.hidePickUser(getCurrentPickerDestination)
-  }
 
   override def onConversationButtonClicked(): Unit = {
     KeyboardUtils.hideKeyboard(getActivity)
