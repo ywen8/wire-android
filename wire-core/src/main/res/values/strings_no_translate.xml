@@ -175,6 +175,7 @@
     <string translatable="false" name="url_home">https://wire.com</string>
     <string translatable="false" name="url_terms_of_service_personal">https://wire.com/legal/terms/personal/</string>
     <string translatable="false" name="url_terms_of_service_teams">https://wire.com/legal/terms/teams/</string>
+    <string translatable="false" name="url_privacy_policy">https://wire.com/legal/privacy/embed/</string>
     <string translatable="false" name="url__help">https://support.wire.com</string>
     <string translatable="false" name="url_password_reset">https://account.wire.com/forgot/</string>
     <string translatable="false" name="url_third_party_licences">https://wire.com/legal/#licenses</string>
