@@ -408,7 +408,7 @@ protected class ChatheadController(val setSelectable:            Boolean        
       val initials = NameParts.parseFrom(integration.name).initials
       val knownUser = false
       val grayScale = false
-      val assetId = integration.assets.headOption.map(_.id)
+      val assetId = integration.asset
       val selectable = false
       ChatheadDetails(
         accentColor, connectionStatus, teamMember, hasBeenInvited,
