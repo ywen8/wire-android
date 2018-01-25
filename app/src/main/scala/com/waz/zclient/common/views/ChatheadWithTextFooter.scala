@@ -35,6 +35,7 @@ import com.waz.zclient.views.AvailabilityView
 import com.waz.zclient.{R, ViewHelper}
 import ContextUtils._
 
+
 class ChatheadWithTextFooter(val context: Context, val attrs: AttributeSet, val defStyleAttr: Int) extends LinearLayout(context, attrs, defStyleAttr) with ViewHelper with UserRowView {
   def this(context: Context, attrs: AttributeSet) = this(context, attrs, 0)
   def this(context: Context) = this(context, null)
@@ -59,7 +60,7 @@ class ChatheadWithTextFooter(val context: Context, val attrs: AttributeSet, val 
     z <- inject[Signal[ZMessaging]]
     uId <- userId
     data <- z.usersStorage.signal(uId)
-    isGuest <- z.teams.isGuest(uId)
+    isGuest <- if (data.isWireBot) Signal.const(false) else z.teams.isGuest(uId)
   } yield (data, isGuest) // true means guest status
 
   setOrientation(LinearLayout.VERTICAL)

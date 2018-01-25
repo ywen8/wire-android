@@ -25,21 +25,15 @@
               android:orientation="horizontal"
     >
 
-    <com.waz.zclient.views.e2ee.ShieldView
-        android:layout_width="@dimen/wire__otr__shield__small_width"
-        android:layout_height="@dimen/wire__otr__shield__small_height"
-        android:layout_gravity="center_vertical"
-        app:shieldVerified="true"
-        />
-
     <com.waz.zclient.ui.text.TypefaceTextView
+        android:id="@+id/separator_title"
         style="?userChatHeadLabel"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center_vertical"
-        android:layout_marginLeft="@dimen/wire__padding__regular"
-        android:text="@string/pref_devices_device_verified"
-        app:w_font="@string/wire__typeface__light"
+        android:textColor="@color/light_graphite"
+        android:textSize="@dimen/wire__text_size__small"
+        app:w_font="@string/wire__typeface__medium"
         />
 
     <View

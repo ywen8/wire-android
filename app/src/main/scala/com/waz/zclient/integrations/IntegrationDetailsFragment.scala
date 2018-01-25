@@ -55,7 +55,7 @@ class IntegrationDetailsFragment extends FragmentHelper with OnBackPressedListen
   private lazy val integrationId = IntegrationId(getArguments.getString(IntegrationDetailsFragment.IntegrationId))
 
   private lazy val pictureAssetId = integrationDetailsController.currentIntegration.map(_.assets.headOption.map(_.id))
-  private lazy val picture: Signal[ImageSource] = pictureAssetId.collect{ case Some(pic) => WireImage(pic) }
+  private lazy val picture: Signal[ImageSource] = Signal.empty[ImageSource] //pictureAssetId.collect{ case Some(pic) => WireImage(pic) }
   private lazy val drawable = new ImageAssetDrawable(picture, scaleType = ScaleType.CenterInside, request = RequestBuilder.Regular, background = Some(ContextUtils.getDrawable(R.drawable.services)))
 
   private lazy val viewPager = view[IntegrationDetailsViewPager](R.id.view_pager)

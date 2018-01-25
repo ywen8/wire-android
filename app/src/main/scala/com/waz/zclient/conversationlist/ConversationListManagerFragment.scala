@@ -253,7 +253,7 @@ class ConversationListManagerFragment extends Fragment
         case SEND_CONNECT_REQUEST | BLOCK_USER | PENDING_CONNECT_REQUEST =>
           pickUserController.hideUserProfile()
           hide()
-        case PICK_USER => hide()
+        case PICK_USER | INTEGRATION_DETAILS => hide()
         case _ => //
       }
 

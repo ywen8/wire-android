@@ -57,7 +57,8 @@ class ParticipantDetailsTab(val context: Context, val attrs: AttributeSet, val d
   private val isGuest = for{
     z <- inject[Signal[ZMessaging]]
     uId <- userId
-    isGuest <- z.teams.isGuest(uId)
+    data <- z.users.userSignal(uId)
+    isGuest <- if (data.isWireBot) Signal.const(false) else z.teams.isGuest(uId)
   } yield isGuest
 
   isGuest.on(Threading.Ui) {

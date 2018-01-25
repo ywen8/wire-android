@@ -24,11 +24,13 @@
                 android:layout_height="match_parent"
     >
 
-    <com.waz.zclient.pages.main.participants.views.ParticipantsGridView
+    <android.support.v7.widget.RecyclerView
         android:id="@+id/pgv__participants"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_above="@+id/ll__participants__footer_wrapper"
+        android:paddingStart="@dimen/participants__left_margin"
+        android:paddingEnd="@dimen/participants__right_margin"
         />
 
     <LinearLayout
