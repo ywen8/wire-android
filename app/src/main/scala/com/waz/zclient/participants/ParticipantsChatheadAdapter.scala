@@ -72,7 +72,7 @@ class ParticipantsChatheadAdapter(numOfColumns: Int)(implicit context: Context, 
   }
 
   override def onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder = viewType match {
-    case t if t == CHATHEAD =>
+    case CHATHEAD =>
       val view = LayoutInflater.from(parent.getContext).inflate(R.layout.participants_grid_chathead, parent, false)
       new ChatheadViewHolder(view.asInstanceOf[ChatheadWithTextFooter], onClick)
     case _ => new SeparatorViewHolder(getSeparatorView(parent))
@@ -86,13 +86,18 @@ class ParticipantsChatheadAdapter(numOfColumns: Int)(implicit context: Context, 
   }
 
   def getSpanSize(position: Int): Int = getItemViewType(position) match {
-    case t if t == SEPARATOR_VERIFIED || t == SEPARATOR_BOTS => numOfColumns
-    case _                                                   => 1
+    case SEPARATOR_VERIFIED | SEPARATOR_BOTS => numOfColumns
+    case _                                   => 1
   }
 
   override def getItemCount: Int = items.size
 
-  override def getItemId(position: Int): Long = position
+  override def getItemId(position: Int): Long = items(position) match {
+    case Left(userId)   => userId.hashCode()
+    case Right(sepType) => sepType
+  }
+
+  setHasStableIds(true)
 
   override def getItemViewType(position: Int): Int = items(position) match {
     case Right(sepType) => sepType
@@ -133,7 +138,7 @@ object ParticipantsChatheadAdapter {
   class SeparatorViewHolder(separator: View) extends ViewHolder(separator) {
 
     def setTitle(title: Int): Unit =
-      ViewUtils.getView(separator, R.id.separator_title).asInstanceOf[TextView].setText(title)
+      ViewUtils.getView[TextView](separator, R.id.separator_title).setText(title)
   }
 
 }
