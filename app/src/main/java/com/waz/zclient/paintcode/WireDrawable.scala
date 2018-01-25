@@ -18,7 +18,9 @@
 package com.waz.zclient.paintcode
 
 import android.graphics.drawable.Drawable
-import android.graphics.{ColorFilter, Paint}
+import android.graphics._
+import com.waz.utils.returning
+import com.waz.zclient.paintcode.WireStyleKit.{ResizingBehavior, drawDownArrow, drawServiceIcon}
 
 trait WireDrawable extends Drawable {
 
@@ -31,4 +33,38 @@ trait WireDrawable extends Drawable {
   override def setAlpha(alpha: Int): Unit = paint.setAlpha(alpha)
 
   def setColor(color: Int): Unit = paint.setColor(color)
+}
+
+case class DownArrowDrawable() extends WireDrawable {
+  override def draw(canvas: Canvas): Unit =
+    drawDownArrow(canvas, new RectF(canvas.getClipBounds), ResizingBehavior.AspectFit, paint.getColor)
+}
+
+case class ServicePlaceholderDrawable(cornerRadius: Float = 0, backgroundColor: Int = Color.WHITE) extends WireDrawable {
+  import ServicePlaceholderDrawable._
+
+  val bgPaint = returning(new Paint())(_.setColor(backgroundColor))
+  paint.setAlpha(8)
+
+  override def draw(canvas: Canvas): Unit = {
+    val b = canvas.getClipBounds
+    val rect = new RectF(b)
+
+    val w: Float = b.right - b.left
+    val h: Float = b.bottom - b.top
+
+    val wi = w * InnerSizeFactor
+    val hi = h * InnerSizeFactor
+
+    val li = w * (1f - InnerSizeFactor) / 2f
+    val ti = h * (1f - InnerSizeFactor) / 2f
+    val rectInner = new RectF(li, ti, li + wi, ti + hi)
+
+    canvas.drawRoundRect(rect, cornerRadius, cornerRadius, bgPaint)
+    drawServiceIcon(canvas, rectInner, ResizingBehavior.AspectFit, paint.getColor)
+  }
+}
+
+object ServicePlaceholderDrawable {
+  val InnerSizeFactor = 0.5f
 }

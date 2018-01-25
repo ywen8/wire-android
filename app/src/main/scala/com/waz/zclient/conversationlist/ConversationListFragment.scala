@@ -24,22 +24,20 @@ import android.support.v7.widget.{LinearLayoutManager, RecyclerView}
 import android.view.View.{GONE, VISIBLE}
 import android.view.animation.Animation
 import android.view.{LayoutInflater, View, ViewGroup}
-import android.widget.{ImageView, Toast, LinearLayout}
+import android.widget.{ImageView, LinearLayout}
 import com.waz.ZLog.ImplicitTag._
 import com.waz.ZLog._
-import com.waz.model._
 import com.waz.model.ConversationData.ConversationType
+import com.waz.model._
 import com.waz.model.otr.Client
 import com.waz.service.ZMessaging
 import com.waz.threading.Threading
 import com.waz.utils.events.{Signal, Subscription}
 import com.waz.utils.returning
-import com.waz.zclient.common.controllers.{IntegrationsController, UserAccountsController}
+import com.waz.zclient.common.controllers.UserAccountsController
 import com.waz.zclient.common.controllers.global.AccentColorController
-import com.waz.zclient.common.views.PickableElement
-import com.waz.zclient.controllers.navigation.{INavigationController, Page}
 import com.waz.zclient.conversation.ConversationController
-import com.waz.zclient.conversationlist.views.{ArchiveTopToolbar, ConversationListTopToolbar, IntegrationTopToolbar, NormalTopToolbar}
+import com.waz.zclient.conversationlist.views.{ArchiveTopToolbar, ConversationListTopToolbar, NormalTopToolbar}
 import com.waz.zclient.core.stores.conversation.ConversationChangeRequester
 import com.waz.zclient.cursor.CursorController
 import com.waz.zclient.messages.UsersController
@@ -50,12 +48,12 @@ import com.waz.zclient.pages.main.conversationlist.views.ListActionsView
 import com.waz.zclient.pages.main.conversationlist.views.ListActionsView.Callback
 import com.waz.zclient.pages.main.conversationlist.views.listview.SwipeListView
 import com.waz.zclient.pages.main.pickuser.controller.IPickUserController
+import com.waz.zclient.paintcode.DownArrowDrawable
 import com.waz.zclient.preferences.PreferencesActivity
 import com.waz.zclient.ui.text.TypefaceTextView
 import com.waz.zclient.usersearch.views.{SearchBoxView, SearchEditText}
 import com.waz.zclient.utils.{ContextUtils, RichView, ViewUtils}
 import com.waz.zclient.utils.ContextUtils._
-import com.waz.zclient.utils.RichView
 import com.waz.zclient.{FragmentHelper, OnBackPressedListener, R, ViewHolder}
 
 /**

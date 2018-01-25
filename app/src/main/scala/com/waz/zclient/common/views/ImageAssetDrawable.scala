@@ -33,9 +33,9 @@ import com.waz.threading.Threading
 import com.waz.ui.MemoryImageCache.BitmapRequest
 import com.waz.utils.events.{EventContext, Signal}
 import com.waz.utils.wrappers.URI
-import com.waz.zclient.utils.Offset
 import com.waz.zclient.common.views.ImageAssetDrawable.{RequestBuilder, ScaleType, State}
 import com.waz.zclient.common.views.ImageController._
+import com.waz.zclient.utils.Offset
 import com.waz.zclient.{Injectable, Injector}
 
 //TODO could merge with logic from the ChatheadView to make a very general drawable for our app

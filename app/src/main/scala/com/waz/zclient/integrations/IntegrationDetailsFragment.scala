@@ -23,24 +23,25 @@ import android.support.annotation.Nullable
 import android.support.v4.app.{Fragment, FragmentManager, FragmentPagerAdapter}
 import android.support.v4.view.ViewPager
 import android.util.AttributeSet
-import android.view.animation.Animation
 import android.view._
+import android.view.animation.Animation
 import android.widget.{ImageView, Toast}
 import com.waz.model.{IntegrationId, ProviderId}
 import com.waz.threading.Threading
 import com.waz.utils.events.Signal
 import com.waz.utils.returning
 import com.waz.zclient.common.controllers.IntegrationsController
-import com.waz.zclient.common.views.ImageAssetDrawable
 import com.waz.zclient.common.views.ImageAssetDrawable.{RequestBuilder, ScaleType}
-import com.waz.zclient.common.views.ImageController.{ImageSource, WireImage}
+import com.waz.zclient.common.views.ImageController.{ImageSource, NoImage, WireImage}
+import com.waz.zclient.common.views.RoundedImageAssetDrawable
 import com.waz.zclient.controllers.navigation.{INavigationController, Page}
 import com.waz.zclient.integrations.IntegrationDetailsViewPager._
 import com.waz.zclient.pages.main.pickuser.controller.IPickUserController
 import com.waz.zclient.pages.main.pickuser.controller.IPickUserController.Destination
+import com.waz.zclient.paintcode.ServicePlaceholderDrawable
 import com.waz.zclient.ui.text.{GlyphTextView, TypefaceTextView}
 import com.waz.zclient.usersearch.PickUserFragment
-import com.waz.zclient.utils.ContextUtils.{getDimenPx, getInt}
+import com.waz.zclient.utils.ContextUtils.{getDimenPx, getDrawable, getInt}
 import com.waz.zclient.utils.{ContextUtils, RichView}
 import com.waz.zclient.views.DefaultPageTransitionAnimation
 import com.waz.zclient.{FragmentHelper, OnBackPressedListener, R, ViewHelper}
@@ -55,8 +56,16 @@ class IntegrationDetailsFragment extends FragmentHelper with OnBackPressedListen
   private lazy val integrationId = IntegrationId(getArguments.getString(IntegrationDetailsFragment.IntegrationId))
 
   private lazy val pictureAssetId = integrationDetailsController.currentIntegration.map(_.asset)
-  private lazy val picture: Signal[ImageSource] = pictureAssetId.collect{ case Some(pic) => WireImage(pic) }
-  private lazy val drawable = new ImageAssetDrawable(picture, scaleType = ScaleType.CenterInside, request = RequestBuilder.Regular, background = Some(ContextUtils.getDrawable(R.drawable.services)))
+  private lazy val picture: Signal[ImageSource] = pictureAssetId.map(_.map(WireImage).getOrElse(NoImage()))
+
+  private lazy val drawable = new RoundedImageAssetDrawable(
+    src          = picture,
+    scaleType    = ScaleType.CenterInside,
+    request      = RequestBuilder.Regular,
+    background   = Some(ServicePlaceholderDrawable(ImageCornerRadius.toFloat)),
+    animate      = true,
+    cornerRadius = ImageCornerRadius
+  )
 
   private lazy val viewPager = view[IntegrationDetailsViewPager](R.id.view_pager)
 
@@ -180,6 +189,7 @@ object IntegrationDetailsFragment {
 object IntegrationDetailsViewPager {
   val DetailsPage = 0
   val ConvListPage = 1
+  val ImageCornerRadius = 16
 }
 
 case class IntegrationDetailsViewPager (context: Context, attrs: AttributeSet) extends ViewPager(context, attrs) with ViewHelper {
