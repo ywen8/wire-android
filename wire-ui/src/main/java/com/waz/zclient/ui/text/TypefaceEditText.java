@@ -23,9 +23,6 @@ import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.view.KeyEvent;
 import android.view.View;
-import android.view.inputmethod.EditorInfo;
-import android.view.inputmethod.InputConnection;
-import android.view.inputmethod.InputConnectionWrapper;
 
 import com.waz.zclient.ui.R;
 import com.waz.zclient.ui.utils.TypefaceUtils;
@@ -33,7 +30,6 @@ import com.waz.zclient.ui.utils.TypefaceUtils;
 public class TypefaceEditText extends AccentColorEditText {
 
     private View.OnKeyListener keyPreImeListener = null;
-    private View.OnKeyListener onKeyDownListener = null;
 
     public TypefaceEditText(Context context) {
         super(context);
@@ -76,38 +72,5 @@ public class TypefaceEditText extends AccentColorEditText {
 
     public void setOnKeyPreImeListener(View.OnKeyListener listener) {
         keyPreImeListener = listener;
-    }
-
-    public void setOnKeyDownListener(View.OnKeyListener onKeyDownListener) {
-        this.onKeyDownListener = onKeyDownListener;
-    }
-
-    @Override
-    public InputConnection onCreateInputConnection(EditorInfo outAttrs) {
-        return new CustomInputConnection(super.onCreateInputConnection(outAttrs), true);
-    }
-
-    private class CustomInputConnection extends InputConnectionWrapper {
-
-        CustomInputConnection(InputConnection target, boolean mutable) {
-            super(target, mutable);
-        }
-
-        @Override
-        public boolean sendKeyEvent(KeyEvent event) {
-            if (onKeyDownListener != null && event.getAction() == KeyEvent.ACTION_DOWN) {
-                onKeyDownListener.onKey(TypefaceEditText.this, event.getKeyCode(), event);
-            }
-            return super.sendKeyEvent(event);
-        }
-
-        @Override
-        public boolean deleteSurroundingText(int beforeLength, int afterLength) {
-            if (beforeLength == 1 && afterLength == 0) {
-                return sendKeyEvent(new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_DEL))
-                    && sendKeyEvent(new KeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_DEL));
-            }
-            return super.deleteSurroundingText(beforeLength, afterLength);
-        }
     }
 }
