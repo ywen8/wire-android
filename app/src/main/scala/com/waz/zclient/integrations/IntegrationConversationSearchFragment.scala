@@ -26,6 +26,7 @@ import android.widget.{RelativeLayout, Toast}
 import com.waz.ZLog
 import com.waz.ZLog.ImplicitTag._
 import com.waz.model.ConversationData
+import com.waz.service.tracking.{IntegrationAdded, TrackingService}
 import com.waz.service.{SearchKey, ZMessaging}
 import com.waz.threading.Threading
 import com.waz.utils.events.{EventStream, Signal, SourceStream}
@@ -51,6 +52,7 @@ class IntegrationConversationSearchFragment extends Fragment with FragmentHelper
   private lazy val integrationsController = inject[IntegrationsController]
   private lazy val conversationController = inject[ConversationController]
   private lazy val integrationDetailsController = inject[IntegrationDetailsController]
+  private lazy val tracking = inject[TrackingService]
   implicit private lazy val uiStorage = inject[UiStorage]
 
   private lazy val searchBox = view[SearchEditText](R.id.search_box)
@@ -65,6 +67,7 @@ class IntegrationConversationSearchFragment extends Fragment with FragmentHelper
               Future.successful(())
             case Right(_) =>
               close()
+              tracking.integrationAdded(integrationId, conv.id, IntegrationAdded.StartUi)
               conversationController.selectConv(conv.id, ConversationChangeRequester.CONVERSATION_LIST)
           }
       }
@@ -78,6 +81,7 @@ class IntegrationConversationSearchFragment extends Fragment with FragmentHelper
               Future.successful(())
             case Right(convId) =>
               close()
+              tracking.integrationAdded(integrationId, convId, IntegrationAdded.StartUi)
               conversationController.selectConv(convId, ConversationChangeRequester.CONVERSATION_LIST)
           }
       }
