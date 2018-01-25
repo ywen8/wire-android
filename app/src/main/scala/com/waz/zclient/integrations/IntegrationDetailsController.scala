@@ -18,7 +18,7 @@
 package com.waz.zclient.integrations
 
 import android.content.Context
-import com.waz.model.{ConvId, IntegrationId, ProviderId}
+import com.waz.model.{ConvId, IntegrationId, ProviderId, UserId}
 import com.waz.utils.events.{EventStream, Signal, SourceSignal, SourceStream}
 import com.waz.zclient.{Injectable, Injector}
 import com.waz.zclient.common.controllers.IntegrationsController
@@ -33,6 +33,22 @@ class IntegrationDetailsController(implicit injector: Injector, context: Context
   }
 
   var addingToConversation = Option.empty[ConvId]
+  var removingFromConversation = Option.empty[(ConvId, UserId)]
+
+  def setRemoving(convId: ConvId, userId: UserId): Unit = {
+    addingToConversation = None
+    removingFromConversation = Some((convId, userId))
+  }
+
+  def setAdding(convId: ConvId): Unit = {
+    addingToConversation = Some(convId)
+    removingFromConversation = None
+  }
+
+  def setPicking(): Unit = {
+    addingToConversation = None
+    removingFromConversation = None
+  }
 
   val onAddServiceClick: SourceStream[Unit] = EventStream()
   val searchFilter: SourceSignal[String] = Signal("")

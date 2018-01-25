@@ -37,7 +37,7 @@
 
     <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="40dp"
+        android:layout_height="@dimen/add_remove_service_button_height"
         android:background="@drawable/blue_button"
         android:layout_margin="@dimen/wire__padding__regular"
         android:layout_alignParentBottom="true"
@@ -47,8 +47,28 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:text="Add Service"
+            android:text="@string/add_service_button_text"
             android:textColor="@color/white"
+            android:textAllCaps="true"
+            app:w_font="@string/wire__typeface__light"/>
+
+    </FrameLayout>
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/add_remove_service_button_height"
+        android:background="@drawable/red_button"
+        android:layout_margin="@dimen/wire__padding__regular"
+        android:layout_alignParentBottom="true"
+        android:id="@+id/remove_service_button">
+
+        <com.waz.zclient.ui.text.TypefaceTextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:text="@string/remove_service_button_text"
+            android:textColor="@color/white"
+            android:textAllCaps="true"
             app:w_font="@string/wire__typeface__light"/>
 
     </FrameLayout>

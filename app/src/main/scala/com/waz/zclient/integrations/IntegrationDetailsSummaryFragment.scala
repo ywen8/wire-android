@@ -20,20 +20,37 @@ package com.waz.zclient.integrations
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.view.{ContextThemeWrapper, LayoutInflater, View, ViewGroup}
-import android.widget.RelativeLayout
+import android.widget.{FrameLayout, Toast}
 import com.waz.utils.returning
 import com.waz.zclient.ui.text.TypefaceTextView
-import com.waz.zclient.utils.RichView
+import com.waz.zclient.utils.{RichView, ViewUtils}
 import com.waz.zclient.{FragmentHelper, R}
+import android.view.animation.Animation
+import android.view.animation.AlphaAnimation
+import com.waz.api.impl.ErrorResponse
+import com.waz.threading.Threading
+import com.waz.zclient.common.controllers.IntegrationsController
+
+import scala.concurrent.Future
 
 class IntegrationDetailsSummaryFragment extends Fragment with FragmentHelper {
 
   private lazy val integrationDetailsViewController = inject[IntegrationDetailsController]
+  private lazy val integrationsController = inject[IntegrationsController]
 
   private lazy val descriptionText = returning(view[TypefaceTextView](R.id.integration_description)) { summaryText =>
     integrationDetailsViewController.currentIntegration.onUi { integrationData =>
       summaryText.foreach(_.setText(integrationData.description))
     }
+  }
+
+  override def onCreateAnimation(transit: Int, enter: Boolean, nextAnim: Int): Animation = {
+    val parent = getParentFragment
+    if (!enter && parent != null && parent.isRemoving) {
+      returning(new AlphaAnimation(1, 1)) {
+        _.setDuration(ViewUtils.getNextAnimationDuration(parent))
+      }
+    } else super.onCreateAnimation(transit, enter, nextAnim)
   }
 
   override def onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState: Bundle): View ={
@@ -48,7 +65,31 @@ class IntegrationDetailsSummaryFragment extends Fragment with FragmentHelper {
 
 
   override def onViewCreated(view: View, savedInstanceState: Bundle): Unit = {
-    findById[RelativeLayout](R.id.add_service_button).onClick(integrationDetailsViewController.onAddServiceClick ! (()))
+    val addButton = findById[FrameLayout](R.id.add_service_button)
+    val removeButton = findById[FrameLayout](R.id.remove_service_button)
+
+    if (integrationDetailsViewController.removingFromConversation.nonEmpty) {
+      addButton.setVisibility(View.GONE)
+      removeButton.setVisibility(View.VISIBLE)
+      removeButton.onClick {
+        (integrationDetailsViewController.removingFromConversation match {
+          case Some((cId, uId)) =>
+            integrationsController.removeBot(cId, uId)
+          case _ =>
+            Future.successful(Left(ErrorResponse.internalError("Invalid conversation or bot")))
+        }).map {
+          case Left(e) =>
+            Toast.makeText(getContext, s"Bot error: $e", Toast.LENGTH_SHORT).show()
+            Future.successful(())
+          case Right(_) =>
+            getParentFragment.getFragmentManager.popBackStack()
+        } (Threading.Ui)
+      }
+    } else {
+      addButton.setVisibility(View.VISIBLE)
+      removeButton.setVisibility(View.GONE)
+      addButton.onClick(integrationDetailsViewController.onAddServiceClick ! (()))
+    }
     descriptionText
   }
 }

@@ -51,5 +51,7 @@ class IntegrationsController(implicit injector: Injector, context: Context) exte
   def createConvWithBot(pId: ProviderId, iId: IntegrationId): Future[Either[ErrorResponse, ConvId]] =
     integrations.head.flatMap(_.createConversationWithBot(pId, iId))
 
+  def removeBot(cId: ConvId, userId: UserId): Future[Either[ErrorResponse, Unit]] =
+    integrations.head.flatMap(_.removeBotFromConversation(cId, userId))
 }
 

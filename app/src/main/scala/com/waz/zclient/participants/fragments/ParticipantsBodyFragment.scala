@@ -20,12 +20,14 @@ package com.waz.zclient.participants.fragments
 
 import android.os.Bundle
 import android.support.v7.widget.{GridLayoutManager, RecyclerView}
-import android.view.{LayoutInflater, View, ViewGroup}
 import android.view.animation.{AlphaAnimation, Animation}
+import android.view.{LayoutInflater, View, ViewGroup}
 import android.widget.LinearLayout
 import com.waz.api.{IConversation, NetworkMode, User, UsersList}
 import com.waz.model.ConvId
+import com.waz.service.ZMessaging
 import com.waz.threading.Threading
+import com.waz.utils.events.Signal
 import com.waz.utils.returning
 import com.waz.zclient.common.controllers.{SoundController, ThemeController, UserAccountsController}
 import com.waz.zclient.controllers.accentcolor.AccentColorObserver
@@ -35,6 +37,7 @@ import com.waz.zclient.core.stores.connect.{ConnectStoreObserver, IConnectStore}
 import com.waz.zclient.core.stores.conversation.ConversationChangeRequester
 import com.waz.zclient.core.stores.network.NetworkAction
 import com.waz.zclient.core.stores.participants.ParticipantsStoreObserver
+import com.waz.zclient.integrations.IntegrationDetailsController
 import com.waz.zclient.pages.BaseFragment
 import com.waz.zclient.pages.main.conversation.controller.IConversationScreenController
 import com.waz.zclient.pages.main.pickuser.controller.IPickUserController
@@ -44,6 +47,9 @@ import com.waz.zclient.utils.{LayoutSpec, ViewUtils}
 import com.waz.zclient.views.images.ImageAssetImageView
 import com.waz.zclient.views.menus.{FooterMenu, FooterMenuCallback}
 import com.waz.zclient.{FragmentHelper, R}
+
+import scala.concurrent.Future
+
 
 class ParticipantBodyFragment extends BaseFragment[ParticipantBodyFragment.Container] with FragmentHelper
   with ParticipantsStoreObserver with AccentColorObserver with ConnectStoreObserver {
@@ -56,12 +62,14 @@ class ParticipantBodyFragment extends BaseFragment[ParticipantBodyFragment.Conta
   private var userRequester: IConnectStore.UserRequester = _
   private var imageAssetImageView: ImageAssetImageView = _
 
+  private lazy val zms = inject[Signal[ZMessaging]]
   private lazy val convController = inject[ConversationController]
   private lazy val convScreenController = inject[IConversationScreenController]
   private lazy val userAccountsController = inject[UserAccountsController]
   private lazy val pickUserController = inject[IPickUserController]
   private lazy val themeController = inject[ThemeController]
   private lazy val confirmationController = inject[IConfirmationController]
+  private lazy val integrationDetailsController = inject[IntegrationDetailsController]
 
   override def onCreateAnimation(transit: Int, enter: Boolean, nextAnim: Int): Animation = {
     val parent = getParentFragment
@@ -98,9 +106,24 @@ class ParticipantBodyFragment extends BaseFragment[ParticipantBodyFragment.Conta
 
     participantsView.setAdapter(participantsAdapter)
 
+    import Threading.Implicits.Ui
     participantsAdapter.onClick.onUi { userId =>
-      val user = getStoreFactory.pickUserStore.getUser(userId.str)
-      getControllerFactory.getConversationScreenController.showUser(user)
+      zms.map(_.usersStorage).head.flatMap(_.get(userId)).flatMap {
+        case Some(userData) =>
+          (userData.providerId, userData.integrationId) match {
+            case (Some(pId), Some(iId)) =>
+              convController.currentConv.head.map { conv =>
+                integrationDetailsController.setRemoving(conv.id, userId)
+                getControllerFactory.getConversationScreenController.showIntegrationDetails(pId, iId)
+              }
+            case _ =>
+              val user = getStoreFactory.pickUserStore.getUser(userId.str)
+              getControllerFactory.getConversationScreenController.showUser(user)
+              Future.successful(())
+          }
+        case _ =>
+          Future.successful(())
+      }
     }
 
     val layoutManager = new GridLayoutManager(ctx, numberOfColumns)

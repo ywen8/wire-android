@@ -888,7 +888,8 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
     KeyboardUtils.hideKeyboard(getActivity)
     verbose(s"onIntegrationClicked(${data.id})")
 
-    inject[IntegrationDetailsController].addingToConversation = addingToConversation
+    val detailsController = inject[IntegrationDetailsController]
+    addingToConversation.fold(detailsController.setPicking())(detailsController.setAdding)
     if (isAddingToConversation) {
       convScreenController.showIntegrationDetails(data.provider, data.id)
     } else {
