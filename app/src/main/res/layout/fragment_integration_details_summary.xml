@@ -30,7 +30,8 @@
         android:layout_height="match_parent"
         android:layout_above="@+id/add_service_button"
         android:layout_alignParentStart="true"
-        android:padding="@dimen/wire__padding__regular"
+        android:paddingStart="@dimen/wire__padding__regular"
+        android:paddingEnd="@dimen/wire__padding__regular"
         android:textColor="?wirePrimaryTextColor"
         app:w_font="@string/wire__typeface__light"
         />
@@ -39,7 +40,7 @@
         android:layout_width="match_parent"
         android:layout_height="@dimen/add_remove_service_button_height"
         android:background="@drawable/blue_button"
-        android:layout_margin="@dimen/wire__padding__regular"
+        android:layout_margin="@dimen/wire__padding__big"
         android:layout_alignParentBottom="true"
         android:id="@+id/add_service_button">
 

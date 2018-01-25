@@ -69,14 +69,18 @@ class IntegrationDetailsFragment extends FragmentHelper with OnBackPressedListen
 
   private lazy val viewPager = view[IntegrationDetailsViewPager](R.id.view_pager)
 
-  private lazy val nameView = returning(view[TypefaceTextView](R.id.integration_name)){ nv =>
-    integrationDetailsController.currentIntegration.map(_.name).onUi { name => nv.foreach(_.setText(name)) }
+  lazy val name = integrationDetailsController.currentIntegration.map(_.name)
+
+  private lazy val title = returning(view[TypefaceTextView](R.id.integration_title)) { title =>
+    name.map(_.toUpperCase).onUi { name => title.foreach(_.setText(name)) }
   }
+
+  private lazy val nameView = returning(view[TypefaceTextView](R.id.integration_name)){ nv =>
+    name.onUi { name => nv.foreach(_.setText(name)) }
+  }
+
   private lazy val summaryView = returning(view[TypefaceTextView](R.id.integration_summary)){ sv =>
     integrationDetailsController.currentIntegration.map(_.summary).onUi { summary => sv.foreach(_.setText(summary)) }
-  }
-  private lazy val title = returning(view[TypefaceTextView](R.id.integration_title)) { title =>
-    integrationDetailsController.currentIntegration.onUi { data => title.foreach(_.setText(data.name.toUpperCase)) }
   }
 
   override def onCreateAnimation(transit: Int, enter: Boolean, nextAnim: Int): Animation = {

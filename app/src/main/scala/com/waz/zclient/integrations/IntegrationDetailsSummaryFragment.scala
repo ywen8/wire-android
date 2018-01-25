@@ -39,9 +39,7 @@ class IntegrationDetailsSummaryFragment extends Fragment with FragmentHelper {
   private lazy val integrationsController = inject[IntegrationsController]
 
   private lazy val descriptionText = returning(view[TypefaceTextView](R.id.integration_description)) { summaryText =>
-    integrationDetailsViewController.currentIntegration.onUi { integrationData =>
-      summaryText.foreach(_.setText(integrationData.description))
-    }
+    integrationDetailsViewController.currentIntegration.map(_.description).onUi(d => summaryText.foreach(_.setText(d)))
   }
 
   override def onCreateAnimation(transit: Int, enter: Boolean, nextAnim: Int): Animation = {
