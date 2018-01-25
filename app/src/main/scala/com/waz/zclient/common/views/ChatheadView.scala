@@ -258,7 +258,7 @@ protected class ChatheadController(val setSelectable:            Boolean        
   val zMessaging = inject[Signal[ZMessaging]]
   val teamsAndUserController = inject[UserAccountsController]
 
-  val assignInfo = Signal[Option[AssignDetails]]
+  val assignInfo = Signal[Option[AssignDetails]]()
 
   def clearUser(): Unit = assignInfo ! None
 
@@ -321,7 +321,6 @@ protected class ChatheadController(val setSelectable:            Boolean        
     case (isKnownUser, isTeamMember) => isKnownUser || isTeamMember
   }
 
-
   val requestSelected = Signal(false)
 
   val selected = selectable.zip(requestSelected).map {
@@ -336,11 +335,11 @@ protected class ChatheadController(val setSelectable:            Boolean        
 
   val bitmapResult = Signal(zMessaging, assetId, viewWidth, borderWidth, accentColor).flatMap[BitmapResult] {
     case (zms, Some(id), width, bWidth, bColor) if width > 0 => zms.assetsStorage.signal(id).flatMap {
-      case data@AssetData.IsImage() if isRound => verbose(s"CHA assetId (1): $id"); BitmapSignal(zms, data, Round(width, bWidth, bColor.value))
-      case data@AssetData.IsImage() => verbose(s"CHA assetId (2): $id"); BitmapSignal(zms, data, Single(width))
-      case _ => verbose(s"CHA assetId (3): $id"); Signal.empty[BitmapResult]
+      case data@AssetData.IsImage() if isRound => BitmapSignal(zms, data, Round(width, bWidth, bColor.value))
+      case data@AssetData.IsImage() => BitmapSignal(zms, data, Single(width))
+      case _ => Signal.empty[BitmapResult]
     }
-    case (_, aid, width, _, _) => verbose(s"CHA assetId (4): aid=$aid, width=$width"); Signal.const(BitmapResult.Empty)
+    case (_, aid, width, _, _) => Signal.const(BitmapResult.Empty)
   }
 
   val bitmap = bitmapResult.flatMap[Option[Bitmap]] {
@@ -413,7 +412,7 @@ protected class ChatheadController(val setSelectable:            Boolean        
       val selectable = false
       ChatheadDetails(
         accentColor, connectionStatus, teamMember, hasBeenInvited,
-        initials, knownUser, grayScale, assetId, selectable
+        initials, knownUser, grayScale, None /*assetId*/, selectable
       )
     }
 

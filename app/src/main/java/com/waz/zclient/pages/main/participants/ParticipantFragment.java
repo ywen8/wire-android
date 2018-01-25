@@ -70,6 +70,7 @@ import com.waz.zclient.pages.main.conversation.controller.IConversationScreenCon
 import com.waz.zclient.pages.main.participants.dialog.DialogLaunchMode;
 import com.waz.zclient.pages.main.pickuser.controller.IPickUserController;
 import com.waz.zclient.pages.main.pickuser.controller.PickUserControllerScreenObserver;
+import com.waz.zclient.participants.fragments.ParticipantBodyFragment;
 import com.waz.zclient.ui.animation.interpolators.penner.Expo;
 import com.waz.zclient.ui.animation.interpolators.penner.Linear;
 import com.waz.zclient.ui.animation.interpolators.penner.Quart;
@@ -230,7 +231,7 @@ public class ParticipantFragment extends BaseFragment<ParticipantFragment.Contai
                             fragmentManager.beginTransaction()
                                 .replace(R.id.fl__participant__container,
                                     ParticipantBodyFragment.newInstance(userRequester),
-                                    ParticipantBodyFragment.TAG)
+                                    ParticipantBodyFragment.TAG())
                                 .commit();
                         }
                     }
