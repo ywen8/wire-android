@@ -25,7 +25,10 @@ import android.support.v4.view.ViewPager
 import android.util.AttributeSet
 import android.view._
 import android.view.animation.Animation
-import android.widget.{ImageView, Toast}
+import android.widget.ImageView
+import com.waz.ZLog.ImplicitTag._
+import com.waz.ZLog.warn
+import com.waz.api.impl.ErrorResponse
 import com.waz.model.{IntegrationId, ProviderId}
 import com.waz.threading.Threading
 import com.waz.utils.events.Signal
@@ -41,12 +44,13 @@ import com.waz.zclient.pages.main.pickuser.controller.IPickUserController.Destin
 import com.waz.zclient.paintcode.ServicePlaceholderDrawable
 import com.waz.zclient.ui.text.{GlyphTextView, TypefaceTextView}
 import com.waz.zclient.usersearch.PickUserFragment
-import com.waz.zclient.utils.ContextUtils.{getDimenPx, getDrawable, getInt}
-import com.waz.zclient.utils.{ContextUtils, RichView}
+import com.waz.zclient.utils.ContextUtils._
+import com.waz.zclient.utils.RichView
 import com.waz.zclient.views.DefaultPageTransitionAnimation
 import com.waz.zclient.{FragmentHelper, OnBackPressedListener, R, ViewHelper}
 
 class IntegrationDetailsFragment extends FragmentHelper with OnBackPressedListener {
+
   implicit def ctx: Context = getActivity
 
   private lazy val integrationDetailsController = inject[IntegrationDetailsController]
@@ -108,12 +112,13 @@ class IntegrationDetailsFragment extends FragmentHelper with OnBackPressedListen
     integrationDetailsController.currentIntegrationId ! (providerId, integrationId)
     integrationDetailsController.onAddServiceClick { _ =>
 
-      integrationDetailsController.addingToConversation.fold{
+      integrationDetailsController.addingToConversation.fold {
         viewPager.foreach(_.goToConversations)
       } { conv =>
         integrationsController.addBot(conv, providerId, integrationId).map {
           case Left(e) =>
-            Toast.makeText(getContext, s"Bot error: $e", Toast.LENGTH_SHORT).show()
+            warn(s"Failed to add bot to conversation: $e")
+            showToast(errorMessage(e))
             close()
           case Right(_) =>
             close()
@@ -194,6 +199,14 @@ object IntegrationDetailsViewPager {
   val DetailsPage = 0
   val ConvListPage = 1
   val ImageCornerRadius = 16
+
+  def errorMessage(e: ErrorResponse)(implicit context: Context): String =
+    getString((e.code, e.label) match {
+      case (409, "too-many-bots") => R.string.integrations_errors_add_service
+        //TODO which errors should correspond to which error messages?
+//      case (419, _)               => R.string.integrations_errors_bot_already_joined
+      case (_, _)                 => R.string.integrations_errors_service_unavailable
+    })
 }
 
 case class IntegrationDetailsViewPager (context: Context, attrs: AttributeSet) extends ViewPager(context, attrs) with ViewHelper {
