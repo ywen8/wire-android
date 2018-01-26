@@ -48,7 +48,7 @@ import com.waz.zclient.controllers.confirmation.{ConfirmationCallback, Confirmat
 import com.waz.zclient.controllers.currentfocus.IFocusController
 import com.waz.zclient.controllers.drawing.IDrawingController
 import com.waz.zclient.controllers.giphy.GiphyObserver
-import com.waz.zclient.controllers.globallayout.{IGlobalLayoutController, KeyboardVisibilityObserver}
+import com.waz.zclient.controllers.globallayout.KeyboardVisibilityObserver
 import com.waz.zclient.controllers.navigation.{NavigationControllerObserver, Page, PagerControllerObserver}
 import com.waz.zclient.controllers.orientation.OrientationControllerObserver
 import com.waz.zclient.controllers.singleimage.SingleImageObserver

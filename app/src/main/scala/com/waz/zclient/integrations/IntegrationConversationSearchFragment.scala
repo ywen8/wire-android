@@ -22,7 +22,7 @@ import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.support.v7.widget.{LinearLayoutManager, RecyclerView}
 import android.view.{LayoutInflater, View, ViewGroup}
-import android.widget.{RelativeLayout, Toast}
+import android.widget.RelativeLayout
 import com.waz.ZLog
 import com.waz.ZLog.ImplicitTag._
 import com.waz.model.ConversationData

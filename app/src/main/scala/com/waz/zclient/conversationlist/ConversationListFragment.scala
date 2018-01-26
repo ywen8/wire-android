@@ -39,7 +39,6 @@ import com.waz.zclient.common.controllers.global.AccentColorController
 import com.waz.zclient.conversation.ConversationController
 import com.waz.zclient.conversationlist.views.{ArchiveTopToolbar, ConversationListTopToolbar, NormalTopToolbar}
 import com.waz.zclient.core.stores.conversation.ConversationChangeRequester
-import com.waz.zclient.cursor.CursorController
 import com.waz.zclient.messages.UsersController
 import com.waz.zclient.pages.BaseFragment
 import com.waz.zclient.pages.main.conversation.controller.IConversationScreenController
@@ -51,8 +50,7 @@ import com.waz.zclient.pages.main.pickuser.controller.IPickUserController
 import com.waz.zclient.paintcode.DownArrowDrawable
 import com.waz.zclient.preferences.PreferencesActivity
 import com.waz.zclient.ui.text.TypefaceTextView
-import com.waz.zclient.usersearch.views.{SearchBoxView, SearchEditText}
-import com.waz.zclient.utils.{ContextUtils, RichView, ViewUtils}
+import com.waz.zclient.utils.RichView
 import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.{FragmentHelper, OnBackPressedListener, R, ViewHolder}
 

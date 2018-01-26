@@ -28,7 +28,6 @@ import android.view.animation.Animation
 import android.widget.ImageView
 import com.waz.ZLog.warn
 import com.waz.ZLog.ImplicitTag._
-import com.waz.api.impl.ErrorResponse
 import com.waz.model.{IntegrationId, ProviderId}
 import com.waz.service.tracking.{IntegrationAdded, TrackingService}
 import com.waz.threading.Threading

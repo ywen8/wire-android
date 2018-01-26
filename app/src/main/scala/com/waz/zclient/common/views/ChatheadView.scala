@@ -25,7 +25,6 @@ import android.view.View
 import android.view.View.MeasureSpec
 import android.view.View.MeasureSpec.{EXACTLY, makeMeasureSpec}
 import com.waz.ZLog.ImplicitTag._
-import com.waz.ZLog.verbose
 import com.waz.api.User.ConnectionStatus
 import com.waz.api.User.ConnectionStatus._
 import com.waz.api.impl.AccentColor

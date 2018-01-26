@@ -24,7 +24,6 @@ import android.os.Bundle
 import android.support.v4.app.{Fragment, FragmentManager}
 import android.view.{LayoutInflater, View, ViewGroup}
 import android.widget.FrameLayout
-import com.waz.ZLog
 import com.waz.ZLog.{verbose, warn}
 import com.waz.ZLog.ImplicitTag._
 import com.waz.api._

@@ -23,7 +23,7 @@ import android.util.AttributeSet
 import android.view.View
 import android.widget.LinearLayout
 import com.waz.api.User
-import com.waz.model.{Availability, UserId}
+import com.waz.model.UserId
 import com.waz.service.ZMessaging
 import com.waz.threading.Threading
 import com.waz.utils.events.Signal
