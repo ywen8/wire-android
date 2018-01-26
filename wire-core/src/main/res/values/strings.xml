@@ -164,8 +164,7 @@
     <string name="integrations_chathead__section_title">Services</string>
 
     <string name="integrations_errors_add_service">Adding service not possible</string>
-    <string name="integrations_errors_service_unavailable">The service is unavailable a the moment</string>
-    <string name="integrations_errors_bot_already_joined">The bot is already part of this conversation</string>
+    <string name="integrations_errors_service_unavailable">The service is unavailable at the moment</string>
 
     <!-- start ui / people picker, contacts sharing -->
     <string name="people_picker__share_contacts__title">Share Contacts</string>
