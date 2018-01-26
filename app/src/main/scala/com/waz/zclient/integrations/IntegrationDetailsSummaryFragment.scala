@@ -28,6 +28,7 @@ import com.waz.zclient.{FragmentHelper, R}
 import android.view.animation.Animation
 import android.view.animation.AlphaAnimation
 import com.waz.api.impl.ErrorResponse
+import com.waz.service.tracking.TrackingService
 import com.waz.threading.Threading
 import com.waz.zclient.common.controllers.IntegrationsController
 import com.waz.zclient.utils.ContextUtils.showToast
@@ -40,6 +41,7 @@ class IntegrationDetailsSummaryFragment extends Fragment with FragmentHelper {
 
   private lazy val integrationDetailsViewController = inject[IntegrationDetailsController]
   private lazy val integrationsController = inject[IntegrationsController]
+  private lazy val tracking = inject[TrackingService]
 
   private lazy val descriptionText = returning(view[TypefaceTextView](R.id.integration_description)) { summaryText =>
     integrationDetailsViewController.currentIntegration.map(_.description).onUi(d => summaryText.foreach(_.setText(d)))
@@ -83,6 +85,9 @@ class IntegrationDetailsSummaryFragment extends Fragment with FragmentHelper {
             showToast(integrationsController.errorMessage(e))
             Future.successful(())
           case Right(_) =>
+            integrationDetailsViewController.currentIntegrationId.currentValue.foreach {
+              case (_, iId) => tracking.integrationRemoved(iId)
+            }
             getParentFragment.getFragmentManager.popBackStack()
         } (Threading.Ui)
       }

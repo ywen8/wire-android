@@ -26,10 +26,11 @@ import android.util.AttributeSet
 import android.view._
 import android.view.animation.Animation
 import android.widget.ImageView
-import com.waz.ZLog.ImplicitTag._
 import com.waz.ZLog.warn
+import com.waz.ZLog.ImplicitTag._
 import com.waz.api.impl.ErrorResponse
 import com.waz.model.{IntegrationId, ProviderId}
+import com.waz.service.tracking.{IntegrationAdded, TrackingService}
 import com.waz.threading.Threading
 import com.waz.utils.events.Signal
 import com.waz.utils.returning
@@ -55,6 +56,7 @@ class IntegrationDetailsFragment extends FragmentHelper with OnBackPressedListen
 
   private lazy val integrationDetailsController = inject[IntegrationDetailsController]
   private lazy val integrationsController = inject[IntegrationsController]
+  private lazy val tracking = inject[TrackingService]
 
   private lazy val providerId = ProviderId(getArguments.getString(IntegrationDetailsFragment.ProviderId))
   private lazy val integrationId = IntegrationId(getArguments.getString(IntegrationDetailsFragment.IntegrationId))
@@ -114,13 +116,14 @@ class IntegrationDetailsFragment extends FragmentHelper with OnBackPressedListen
 
       integrationDetailsController.addingToConversation.fold {
         viewPager.foreach(_.goToConversations)
-      } { conv =>
-        integrationsController.addBot(conv, providerId, integrationId).map {
+      } { convId =>
+        integrationsController.addBot(convId, providerId, integrationId).map {
           case Left(e) =>
             warn(s"Failed to add bot to conversation: $e")
             showToast(integrationsController.errorMessage(e))
             close()
           case Right(_) =>
+            tracking.integrationAdded(integrationId, convId, IntegrationAdded.ConversationDetails)
             close()
         } (Threading.Ui)
       }
