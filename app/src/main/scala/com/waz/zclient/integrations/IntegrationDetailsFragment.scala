@@ -118,7 +118,7 @@ class IntegrationDetailsFragment extends FragmentHelper with OnBackPressedListen
         integrationsController.addBot(conv, providerId, integrationId).map {
           case Left(e) =>
             warn(s"Failed to add bot to conversation: $e")
-            showToast(errorMessage(e))
+            showToast(integrationsController.errorMessage(e))
             close()
           case Right(_) =>
             close()
@@ -199,14 +199,6 @@ object IntegrationDetailsViewPager {
   val DetailsPage = 0
   val ConvListPage = 1
   val ImageCornerRadius = 16
-
-  def errorMessage(e: ErrorResponse)(implicit context: Context): String =
-    getString((e.code, e.label) match {
-      case (409, "too-many-bots") => R.string.integrations_errors_add_service
-        //TODO which errors should correspond to which error messages?
-//      case (419, _)               => R.string.integrations_errors_bot_already_joined
-      case (_, _)                 => R.string.integrations_errors_service_unavailable
-    })
 }
 
 case class IntegrationDetailsViewPager (context: Context, attrs: AttributeSet) extends ViewPager(context, attrs) with ViewHelper {

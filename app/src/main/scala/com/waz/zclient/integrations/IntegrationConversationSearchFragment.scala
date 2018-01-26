@@ -39,6 +39,7 @@ import com.waz.zclient.integrations.IntegrationConversationsAdapter._
 import com.waz.zclient.pages.main.pickuser.controller.IPickUserController
 import com.waz.zclient.pages.main.pickuser.controller.IPickUserController.Destination
 import com.waz.zclient.usersearch.views.SearchEditText
+import com.waz.zclient.utils.ContextUtils.showToast
 import com.waz.zclient.utils.{ConversationMembersSignal, RichView, UiStorage}
 import com.waz.zclient.{FragmentHelper, R, ViewHelper}
 
@@ -46,6 +47,8 @@ import scala.concurrent.Future
 
 class IntegrationConversationSearchFragment extends Fragment with FragmentHelper {
   import Threading.Implicits.Ui
+
+  implicit private def ctx = getContext
 
   private lazy val zms = inject[Signal[ZMessaging]]
   private lazy val integrationsController = inject[IntegrationsController]
@@ -61,7 +64,7 @@ class IntegrationConversationSearchFragment extends Fragment with FragmentHelper
         case (providerId, integrationId) =>
           integrationsController.addBot(conv.id, providerId, integrationId).flatMap {
             case Left(e) =>
-              Toast.makeText(getContext, s"Bot error: $e", Toast.LENGTH_SHORT).show()
+              showToast(integrationsController.errorMessage(e))
               Future.successful(())
             case Right(_) =>
               close()
@@ -74,7 +77,7 @@ class IntegrationConversationSearchFragment extends Fragment with FragmentHelper
         case (providerId, integrationId) =>
           integrationsController.createConvWithBot(providerId, integrationId).flatMap {
             case Left(e) =>
-              Toast.makeText(getContext, s"Bot error: $e", Toast.LENGTH_SHORT).show()
+              showToast(integrationsController.errorMessage(e))
               Future.successful(())
             case Right(convId) =>
               close()

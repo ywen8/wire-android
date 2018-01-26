@@ -30,10 +30,13 @@ import android.view.animation.AlphaAnimation
 import com.waz.api.impl.ErrorResponse
 import com.waz.threading.Threading
 import com.waz.zclient.common.controllers.IntegrationsController
+import com.waz.zclient.utils.ContextUtils.showToast
 
 import scala.concurrent.Future
 
 class IntegrationDetailsSummaryFragment extends Fragment with FragmentHelper {
+
+  implicit private def ctx = getContext
 
   private lazy val integrationDetailsViewController = inject[IntegrationDetailsController]
   private lazy val integrationsController = inject[IntegrationsController]
@@ -77,7 +80,7 @@ class IntegrationDetailsSummaryFragment extends Fragment with FragmentHelper {
             Future.successful(Left(ErrorResponse.internalError("Invalid conversation or bot")))
         }).map {
           case Left(e) =>
-            Toast.makeText(getContext, s"Bot error: $e", Toast.LENGTH_SHORT).show()
+            showToast(integrationsController.errorMessage(e))
             Future.successful(())
           case Right(_) =>
             getParentFragment.getFragmentManager.popBackStack()
