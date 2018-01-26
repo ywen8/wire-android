@@ -31,7 +31,6 @@
         app:w_font="@string/wire__typeface__regular"
         android:layout_gravity="center"
         android:textColor="@color/tab_text_color"
-        android:text="shit."
         />
 
 </FrameLayout>

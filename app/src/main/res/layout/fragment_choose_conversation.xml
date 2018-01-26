@@ -40,8 +40,8 @@
 
         <ImageView
             android:id="@+id/integration_picture"
-            android:layout_width="64dp"
-            android:layout_height="64dp"
+            android:layout_width="@dimen/integration_details_picture_size"
+            android:layout_height="@dimen/integration_details_picture_size"
             android:layout_gravity="center"
             android:layout_marginEnd="@dimen/conversation_list__avatar__outer_margin"
             android:layout_marginStart="@dimen/conversation_list__avatar__outer_margin"

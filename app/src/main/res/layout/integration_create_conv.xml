@@ -45,7 +45,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerVertical="true"
-        android:text="Create a new conversation"
+        android:text="@string/integrations_create_conversation"
         android:layout_toEndOf="@id/glyph"
         android:textColor="@color/white"
         android:textSize="@dimen/wire__text_size__regular"

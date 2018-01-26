@@ -17,19 +17,6 @@
  */
 package com.waz.zclient.pages.main.participants.views;
 
-import com.waz.api.User;
-import com.waz.api.Verification;
-
-import com.waz.zclient.testutils.MockCoreList;
-import junit.framework.Assert;
-
-import org.junit.Test;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 // TODO: Let's rewrite them for the new Scala ParticipantChatheadAdapter later on
 
