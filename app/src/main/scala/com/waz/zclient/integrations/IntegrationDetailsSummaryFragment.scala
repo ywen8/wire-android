@@ -53,7 +53,7 @@ class IntegrationDetailsSummaryFragment extends Fragment with FragmentHelper {
 
   override def onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState: Bundle): View ={
     val localInflater =
-      if (integrationDetailsViewController.addingToConversation.isEmpty)
+      if (integrationDetailsViewController.addingToConversation.isEmpty && integrationDetailsViewController.removingFromConversation.isEmpty)
         inflater.cloneInContext(new ContextThemeWrapper(getActivity, R.style.Theme_Dark))
       else
         inflater

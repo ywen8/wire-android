@@ -129,7 +129,7 @@ class IntegrationDetailsFragment extends FragmentHelper with OnBackPressedListen
 
   override def onCreateView(inflater: LayoutInflater, viewContainer: ViewGroup, savedInstanceState: Bundle): View = {
     val localInflater =
-      if (integrationDetailsController.addingToConversation.isEmpty)
+      if (integrationDetailsController.addingToConversation.isEmpty && integrationDetailsController.removingFromConversation.isEmpty)
         inflater.cloneInContext(new ContextThemeWrapper(getActivity, R.style.Theme_Dark))
       else
         inflater
