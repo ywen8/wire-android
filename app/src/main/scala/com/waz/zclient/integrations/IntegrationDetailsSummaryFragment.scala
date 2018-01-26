@@ -34,6 +34,7 @@ import com.waz.zclient.common.controllers.IntegrationsController
 import com.waz.zclient.utils.ContextUtils.showToast
 
 import scala.concurrent.Future
+import com.waz.ZLog.ImplicitTag._
 
 class IntegrationDetailsSummaryFragment extends Fragment with FragmentHelper {
 
@@ -56,7 +57,7 @@ class IntegrationDetailsSummaryFragment extends Fragment with FragmentHelper {
     } else super.onCreateAnimation(transit, enter, nextAnim)
   }
 
-  override def onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState: Bundle): View ={
+  override def onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState: Bundle): View = {
     val localInflater =
       if (integrationDetailsViewController.addingToConversation.isEmpty && integrationDetailsViewController.removingFromConversation.isEmpty)
         inflater.cloneInContext(new ContextThemeWrapper(getActivity, R.style.Theme_Dark))
