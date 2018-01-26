@@ -44,7 +44,7 @@ case class ServicePlaceholderDrawable(cornerRadius: Float = 0, backgroundColor: 
   import ServicePlaceholderDrawable._
 
   val bgPaint = returning(new Paint())(_.setColor(backgroundColor))
-  paint.setAlpha(8)
+  paint.setAlpha(20)
 
   override def draw(canvas: Canvas): Unit = {
     val b = canvas.getClipBounds
@@ -62,6 +62,11 @@ case class ServicePlaceholderDrawable(cornerRadius: Float = 0, backgroundColor: 
 
     canvas.drawRoundRect(rect, cornerRadius, cornerRadius, bgPaint)
     drawServiceIcon(canvas, rectInner, ResizingBehavior.AspectFit, paint.getColor)
+  }
+
+  override def setAlpha(alpha: Int): Unit = {
+    paint.setAlpha((0.08 * alpha).toInt)
+    bgPaint.setAlpha(alpha)
   }
 }
 

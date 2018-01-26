@@ -21,6 +21,7 @@ import android.animation.ValueAnimator
 import android.animation.ValueAnimator.AnimatorUpdateListener
 import android.graphics._
 import android.graphics.drawable.Drawable
+import com.waz.ZLog
 import com.waz.ZLog.ImplicitTag._
 import com.waz.content.UserPreferences
 import com.waz.model.AssetData.{IsImage, IsVideo}
@@ -65,6 +66,7 @@ class ImageAssetDrawable(
       if (animate) {
         val alpha = (animation.getAnimatedFraction * 255).toInt
         bitmapPaint.setAlpha(alpha)
+        background.foreach(_.setAlpha(255 - alpha))
         invalidateSelf()
       }
     }
@@ -109,8 +111,10 @@ class ImageAssetDrawable(
     // will only use fadeIn if we previously displayed an empty bitmap
     // this way we can avoid animating if view was recycled
     def resetAnimation(state: State) = {
-      animator.end()
-      if (state.bmp.nonEmpty && prev.exists(_.bmp.isEmpty)) animator.start()
+      animator.cancel()
+      if (state.bmp.nonEmpty && prev.exists(_.bmp.isEmpty)) {
+        animator.start()
+      }
     }
 
     def updateMatrix(b: Bitmap) = {
