@@ -20,7 +20,7 @@ package com.waz.zclient.integrations
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.view.{ContextThemeWrapper, LayoutInflater, View, ViewGroup}
-import android.widget.{FrameLayout, Toast}
+import android.widget.FrameLayout
 import com.waz.utils.returning
 import com.waz.zclient.ui.text.TypefaceTextView
 import com.waz.zclient.utils.{RichView, ViewUtils}
@@ -68,6 +68,7 @@ class IntegrationDetailsSummaryFragment extends Fragment with FragmentHelper {
 
 
   override def onViewCreated(view: View, savedInstanceState: Bundle): Unit = {
+    implicit val ec = Threading.Implicits.Ui
     val addButton = findById[FrameLayout](R.id.add_service_button)
     val removeButton = findById[FrameLayout](R.id.remove_service_button)
 
@@ -80,16 +81,16 @@ class IntegrationDetailsSummaryFragment extends Fragment with FragmentHelper {
             integrationsController.removeBot(cId, uId)
           case _ =>
             Future.successful(Left(ErrorResponse.internalError("Invalid conversation or bot")))
-        }).map {
+        }).flatMap {
           case Left(e) =>
             showToast(integrationsController.errorMessage(e))
             Future.successful(())
           case Right(_) =>
-            integrationDetailsViewController.currentIntegrationId.currentValue.foreach {
+            getParentFragment.getFragmentManager.popBackStack()
+            integrationDetailsViewController.currentIntegrationId.head.map {
               case (_, iId) => tracking.integrationRemoved(iId)
             }
-            getParentFragment.getFragmentManager.popBackStack()
-        } (Threading.Ui)
+        }
       }
     } else {
       addButton.setVisibility(View.VISIBLE)
