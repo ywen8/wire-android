@@ -165,6 +165,7 @@
 
     <string name="integrations_errors_add_service">Adding service not possible</string>
     <string name="integrations_errors_service_unavailable">The service is unavailable at the moment</string>
+    <string name="conversation_errors_full">The conversation is full</string>
 
     <!-- start ui / people picker, contacts sharing -->
     <string name="people_picker__share_contacts__title">Share Contacts</string>
