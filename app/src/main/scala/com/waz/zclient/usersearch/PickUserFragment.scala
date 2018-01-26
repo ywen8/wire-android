@@ -381,6 +381,7 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
           case 0 => searchResultAdapter.peopleOrServices ! false
           case 1 => searchResultAdapter.peopleOrServices ! true
         }
+        searchBoxView.removeAllElements()
       }
       override def onTabUnselected(tab: TabLayout.Tab): Unit = {
       }
