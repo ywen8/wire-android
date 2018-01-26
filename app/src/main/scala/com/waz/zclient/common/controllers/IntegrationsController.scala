@@ -24,7 +24,8 @@ import com.waz.service.ZMessaging
 import com.waz.threading.Threading
 import com.waz.utils.events.Signal
 import com.waz.zclient.conversation.ConversationController
-import com.waz.zclient.{Injectable, Injector}
+import com.waz.zclient.utils.ContextUtils.getString
+import com.waz.zclient.{Injectable, Injector, R}
 
 import scala.concurrent.Future
 
@@ -53,5 +54,12 @@ class IntegrationsController(implicit injector: Injector, context: Context) exte
 
   def removeBot(cId: ConvId, userId: UserId): Future[Either[ErrorResponse, Unit]] =
     integrations.head.flatMap(_.removeBotFromConversation(cId, userId))
+
+  def errorMessage(e: ErrorResponse): String =
+    getString((e.code, e.label) match {
+      case (403, "too-many-members") => R.string.in_app_notification__sync_error__create_group_convo__title //TODO this error message is not very appropriate
+      case (419, "too-many-bots")    => R.string.integrations_errors_add_service
+      case (_, _)                    => R.string.integrations_errors_service_unavailable
+    })
 }
 

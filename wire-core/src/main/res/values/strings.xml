@@ -125,9 +125,9 @@
     <string name="invitation__email__failed">Unable to register with this invitation.</string>
 
     <!-- People picker/start UI -->
-    <string name="pick_user_search_focus">\u0020 SEARCH BY NAME OR USERNAME</string>
-    <string name="pick_user_search_hint">SEARCH BY NAME OR USERNAME</string>
-    <string name="pick_user_search__add_to_conversation">\u0020 SEARCH BY NAME</string>
+    <string name="pick_user_search_focus">\u0020 SEARCH</string>
+    <string name="pick_user_search_hint">SEARCH</string>
+    <string name="pick_user_search__add_to_conversation">\u0020 SEARCH</string>
     <string name="choose_conversation">SEARCH</string>
     <string name="people_picker__top_users_header_title">Top people</string>
     <string name="people_picker__address_book_matches_title">Connect</string>
@@ -164,8 +164,7 @@
     <string name="integrations_chathead__section_title">Services</string>
 
     <string name="integrations_errors_add_service">Adding service not possible</string>
-    <string name="integrations_errors_service_unavailable">The service is unavailable a the moment</string>
-    <string name="integrations_errors_bot_already_joined">The bot is already part of this conversation</string>
+    <string name="integrations_errors_service_unavailable">The service is unavailable at the moment</string>
 
     <!-- start ui / people picker, contacts sharing -->
     <string name="people_picker__share_contacts__title">Share Contacts</string>

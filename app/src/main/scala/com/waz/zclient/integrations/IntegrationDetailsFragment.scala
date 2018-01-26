@@ -120,7 +120,7 @@ class IntegrationDetailsFragment extends FragmentHelper with OnBackPressedListen
         integrationsController.addBot(convId, providerId, integrationId).map {
           case Left(e) =>
             warn(s"Failed to add bot to conversation: $e")
-            showToast(errorMessage(e))
+            showToast(integrationsController.errorMessage(e))
             close()
           case Right(_) =>
             tracking.integrationAdded(integrationId, convId, IntegrationAdded.ConversationDetails)
@@ -132,7 +132,7 @@ class IntegrationDetailsFragment extends FragmentHelper with OnBackPressedListen
 
   override def onCreateView(inflater: LayoutInflater, viewContainer: ViewGroup, savedInstanceState: Bundle): View = {
     val localInflater =
-      if (integrationDetailsController.addingToConversation.isEmpty)
+      if (integrationDetailsController.addingToConversation.isEmpty && integrationDetailsController.removingFromConversation.isEmpty)
         inflater.cloneInContext(new ContextThemeWrapper(getActivity, R.style.Theme_Dark))
       else
         inflater
@@ -202,14 +202,6 @@ object IntegrationDetailsViewPager {
   val DetailsPage = 0
   val ConvListPage = 1
   val ImageCornerRadius = 16
-
-  def errorMessage(e: ErrorResponse)(implicit context: Context): String =
-    getString((e.code, e.label) match {
-      case (409, "too-many-bots") => R.string.integrations_errors_add_service
-      //TODO which errors should correspond to which error messages?
-      //      case (419, _)               => R.string.integrations_errors_bot_already_joined
-      case (_, _)                 => R.string.integrations_errors_service_unavailable
-    })
 }
 
 case class IntegrationDetailsViewPager (context: Context, attrs: AttributeSet) extends ViewPager(context, attrs) with ViewHelper {

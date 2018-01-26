@@ -206,9 +206,14 @@ class ConversationFragment extends BaseFragment[ConversationFragment.Container] 
     convController.currentConv.onUi {
       case conv if conv.isActive =>
         inflateCollectionIcon()
-        convController.isGroup(conv).foreach { isGroup =>
-          toolbar.getMenu.clear()
-          toolbar.inflateMenu(if (isGroup) R.menu.conversation_header_menu_audio else R.menu.conversation_header_menu_video)
+        convController.isOneToOneBot(conv).map {
+          case false =>
+            convController.isGroup(conv).foreach { isGroup =>
+              toolbar.getMenu.clear()
+              toolbar.inflateMenu(if (isGroup) R.menu.conversation_header_menu_audio else R.menu.conversation_header_menu_video)
+            }(Threading.Ui)
+          case _ =>
+            toolbar.getMenu.clear()
         }(Threading.Ui)
       case _ =>
     }

@@ -36,6 +36,7 @@ import com.waz.ZLog.ImplicitTag._
 import com.waz.ZLog._
 import com.waz.api._
 import com.waz.content.UserPreferences
+import com.waz.model.ConversationData.ConversationType
 import com.waz.model.UserData.ConnectionStatus
 import com.waz.model._
 import com.waz.permissions.PermissionsService
@@ -70,7 +71,7 @@ import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.utils.device.DeviceDetector
 import com.waz.zclient.utils.{IntentUtils, LayoutSpec, RichView, StringUtils, UiStorage, UserSignal, ViewUtils}
 import com.waz.zclient.views._
-import com.waz.zclient.{BaseActivity, FragmentHelper, OnBackPressedListener, R}
+import com.waz.zclient._
 
 import scala.collection.JavaConverters._
 import scala.concurrent.Future
@@ -380,17 +381,28 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
           case 0 => searchResultAdapter.peopleOrServices ! false
           case 1 => searchResultAdapter.peopleOrServices ! true
         }
+        searchBoxView.removeAllElements()
       }
       override def onTabUnselected(tab: TabLayout.Tab): Unit = {
       }
       override def onTabReselected(tab: TabLayout.Tab): Unit = {}
     })
 
-    if (userAccountsController.isTeamAccount) {
-      tabs.setVisibility(View.VISIBLE)
-    } else {
-      tabs.setVisibility(View.GONE)
+    val internalVersion = BuildConfig.APPLICATION_ID match {
+      case "com.wire.internal" | "com.waz.zclient.dev" | "com.wire.x" | "com.wire.qa" => true
+      case _ => false
     }
+
+    val shouldShowTabs = for {
+      zms <- zms.head
+      conv <- addingToConversation.fold(Future.successful(Option.empty[ConversationData]))(zms.convsStorage.get)
+      members <- addingToConversation.fold(Future.successful(Option.empty[Int]))(cId => zms.membersStorage.getActiveUsers(cId).map(m => Some(m.size)))
+    } yield zms.teamId.nonEmpty && internalVersion && conv.forall(_.convType == ConversationType.Group) && members.forall(_ > 2)
+
+    shouldShowTabs.map {
+      case true => tabs.setVisibility(View.VISIBLE)
+      case _ => tabs.setVisibility(View.GONE)
+    } (Threading.Ui)
 
     if (isAddingToConversation && !themeController.isDarkTheme) {
       tabs.setSelectedTabIndicatorColor(getColor(R.color.light_graphite))

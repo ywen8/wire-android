@@ -242,11 +242,16 @@ class RoundedImageAssetDrawable (
                                 )(implicit inj: Injector, eventContext: EventContext) extends ImageAssetDrawable(src, scaleType, request, background, animate) {
 
   override protected def drawBitmap(canvas: Canvas, bm: Bitmap, matrix: Matrix, bitmapPaint: Paint): Unit = {
-    val shader = new BitmapShader(bm, Shader.TileMode.CLAMP, Shader.TileMode.CLAMP)
-    shader.setLocalMatrix(matrix)
-    val rect = new RectF(0.0f, 0.0f, getBounds.width, getBounds.height)
+    val tempBm = Bitmap.createBitmap(getBounds.width, getBounds.height, Bitmap.Config.ARGB_8888)
+    val tempCanvas = new Canvas(tempBm)
+
+    tempCanvas.drawBitmap(bm, matrix, null)
+
+    val shader = new BitmapShader(tempBm, Shader.TileMode.CLAMP, Shader.TileMode.CLAMP)
+    val boundsRect = new RectF(0.0f, 0.0f, getBounds.width, getBounds.height)
+
     bitmapPaint.setShader(shader)
-    canvas.drawRoundRect(rect, cornerRadius, cornerRadius, bitmapPaint)
+    canvas.drawRoundRect(boundsRect, cornerRadius, cornerRadius, bitmapPaint)
   }
 }
 
