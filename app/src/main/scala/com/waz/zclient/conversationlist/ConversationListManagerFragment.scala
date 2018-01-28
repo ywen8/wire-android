@@ -73,7 +73,6 @@ class ConversationListManagerFragment extends Fragment
   with PickUserFragment.Container
   with NavigationControllerObserver
   with ConversationListFragment.Container
-  with CameraFragment.Container
   with ConversationScreenControllerObserver
   with ConfirmationObserver
   with OnBackPressedListener
@@ -387,7 +386,6 @@ class ConversationListManagerFragment extends Fragment
 
   override def onStart() = {
     super.onStart()
-    cameraController.addCameraActionObserver(this)
     pickUserController.addPickUserScreenControllerObserver(this)
     convScreenController.addConversationControllerObservers(this)
     navController.addNavigationControllerObserver(this)
@@ -395,7 +393,6 @@ class ConversationListManagerFragment extends Fragment
   }
 
   override def onStop() = {
-    cameraController. removeCameraActionObserver(this)
     pickUserController.removePickUserScreenControllerObserver(this)
     convScreenController.removeConversationControllerObservers(this)
     navController.removeNavigationControllerObserver(this)
@@ -498,14 +495,6 @@ class ConversationListManagerFragment extends Fragment
   override def onHideOtrClient() = {}
 
   override def onShowLikesList(message: Message) = {}
-
-  override def onBitmapSelected(imageAsset: ImageAsset, imageFromCamera: Boolean, cameraContext: CameraContext) = {}
-
-  override def onCameraNotAvailable() = {}
-
-  override def onOpenCamera(cameraContext: CameraContext) = {}
-
-  override def onCloseCamera(cameraContext: CameraContext) = {}
 
   override def showRemoveConfirmation(user: User) = {}
 
