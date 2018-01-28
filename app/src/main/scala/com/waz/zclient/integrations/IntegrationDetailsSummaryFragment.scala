@@ -19,19 +19,17 @@ package com.waz.zclient.integrations
 
 import android.os.Bundle
 import android.support.v4.app.Fragment
+import android.view.animation.{AlphaAnimation, Animation}
 import android.view.{ContextThemeWrapper, LayoutInflater, View, ViewGroup}
-import android.widget.FrameLayout
-import com.waz.utils.returning
-import com.waz.zclient.ui.text.TypefaceTextView
-import com.waz.zclient.utils.{RichView, ViewUtils}
-import com.waz.zclient.{FragmentHelper, R}
-import android.view.animation.Animation
-import android.view.animation.AlphaAnimation
-import com.waz.api.impl.ErrorResponse
+import android.widget.{FrameLayout, TextView}
 import com.waz.service.tracking.TrackingService
 import com.waz.threading.Threading
+import com.waz.utils.returning
 import com.waz.zclient.common.controllers.IntegrationsController
-import com.waz.zclient.utils.ContextUtils.showToast
+import com.waz.zclient.ui.text.TypefaceTextView
+import com.waz.zclient.utils.ContextUtils.{getDrawable, showToast}
+import com.waz.zclient.utils.{RichView, ViewUtils}
+import com.waz.zclient.{FragmentHelper, R}
 
 import scala.concurrent.Future
 
@@ -66,37 +64,32 @@ class IntegrationDetailsSummaryFragment extends Fragment with FragmentHelper {
     localInflater.inflate(R.layout.fragment_integration_details_summary, container, false)
   }
 
-
   override def onViewCreated(view: View, savedInstanceState: Bundle): Unit = {
     implicit val ec = Threading.Implicits.Ui
-    val addButton = findById[FrameLayout](R.id.add_service_button)
-    val removeButton = findById[FrameLayout](R.id.remove_service_button)
 
-    if (integrationDetailsViewController.removingFromConversation.nonEmpty) {
-      addButton.setVisibility(View.GONE)
-      removeButton.setVisibility(View.VISIBLE)
-      removeButton.onClick {
-        (integrationDetailsViewController.removingFromConversation match {
-          case Some((cId, uId)) =>
-            integrationsController.removeBot(cId, uId)
-          case _ =>
-            Future.successful(Left(ErrorResponse.internalError("Invalid conversation or bot")))
-        }).flatMap {
-          case Left(e) =>
-            showToast(integrationsController.errorMessage(e))
-            Future.successful(())
-          case Right(_) =>
-            getParentFragment.getFragmentManager.popBackStack()
-            integrationDetailsViewController.currentIntegrationId.head.map {
-              case (_, iId) => tracking.integrationRemoved(iId)
-            }
-        }
+    val button     = findById[FrameLayout](R.id.add_remove_service_button)
+    val buttonText = findById[TextView](R.id.button_text)
+
+    val removing = integrationDetailsViewController.removingFromConversation
+    button.setBackground(getDrawable(if (removing.nonEmpty) R.drawable.red_button else R.drawable.blue_button))
+    buttonText.setText(if (removing.nonEmpty) R.string.remove_service_button_text else R.string.add_service_button_text)
+    button.onClick {
+      removing match {
+        case Some((cId, uId)) =>
+          integrationsController.removeBot(cId, uId).flatMap {
+            case Left(e) =>
+              Future.successful(showToast(integrationsController.errorMessage(e)))
+            case Right(_) =>
+              getParentFragment.getFragmentManager.popBackStack()
+              integrationDetailsViewController.currentIntegrationId.head.map {
+                case (_, iId) => tracking.integrationRemoved(iId)
+              }
+          }
+        case _ =>
+          integrationDetailsViewController.onAddServiceClick ! {}
       }
-    } else {
-      addButton.setVisibility(View.VISIBLE)
-      removeButton.setVisibility(View.GONE)
-      addButton.onClick(integrationDetailsViewController.onAddServiceClick ! (()))
     }
+
     descriptionText
   }
 }
