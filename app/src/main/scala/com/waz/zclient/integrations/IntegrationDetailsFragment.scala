@@ -142,9 +142,9 @@ class IntegrationDetailsFragment extends FragmentHelper with OnBackPressedListen
   override def onViewCreated(v: View, @Nullable savedInstanceState: Bundle): Unit = {
     super.onViewCreated(v, savedInstanceState)
 
-    view[GlyphTextView](R.id.integration_close).foreach { _.onClick(close()) }
-    view[GlyphTextView](R.id.integration_back).foreach { _.onClick(goBack()) }
-    view[ImageView](R.id.integration_picture).foreach { _.setImageDrawable(drawable) }
+    returning(findById[GlyphTextView](R.id.integration_close))(_.onClick(close()))
+    returning(findById[GlyphTextView](R.id.integration_back))(_.onClick(goBack()))
+    returning(findById[ImageView](R.id.integration_picture))(_.setImageDrawable(drawable))
 
     title
     summaryView
