@@ -38,6 +38,7 @@ import com.waz.zclient.common.controllers.global.PasswordController
 import com.waz.zclient.pages.main.profile.validator.{EmailValidator, PasswordValidator}
 import com.waz.zclient.utils.RichView
 import com.waz.zclient.{FragmentHelper, R}
+import com.waz.ZLog.ImplicitTag._
 
 import scala.concurrent.Future
 import scala.util.Try

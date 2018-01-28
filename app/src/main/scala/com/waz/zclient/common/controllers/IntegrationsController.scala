@@ -26,6 +26,7 @@ import com.waz.utils.events.Signal
 import com.waz.zclient.conversation.ConversationController
 import com.waz.zclient.utils.ContextUtils.getString
 import com.waz.zclient.{Injectable, Injector, R}
+import com.waz.ZLog.ImplicitTag._
 
 import scala.concurrent.Future
 

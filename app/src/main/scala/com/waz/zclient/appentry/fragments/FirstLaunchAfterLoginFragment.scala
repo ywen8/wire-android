@@ -29,6 +29,7 @@ import com.waz.zclient.appentry.controllers.AppEntryController
 import com.waz.zclient.pages.BaseFragment
 import com.waz.zclient.ui.views.ZetaButton
 import com.waz.zclient.{FragmentHelper, R}
+import com.waz.ZLog.ImplicitTag._
 
 object FirstLaunchAfterLoginFragment {
   val TAG: String = classOf[FirstLaunchAfterLoginFragment].getName

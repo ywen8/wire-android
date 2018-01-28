@@ -43,6 +43,7 @@ import com.waz.zclient.ViewHelper
 import com.waz.zclient.R
 import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.utils._
+import com.waz.ZLog.ImplicitTag._
 
 class EditCursorToolbar(val context: Context, val attrs: AttributeSet, val defStyleAttr: Int)
     extends FrameLayout(context, attrs, defStyleAttr) with ViewHelper {

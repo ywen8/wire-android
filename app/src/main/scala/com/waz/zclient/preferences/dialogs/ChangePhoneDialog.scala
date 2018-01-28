@@ -51,6 +51,7 @@ import com.waz.zclient.controllers.deviceuser.IDeviceUserController
 import com.waz.zclient.newreg.fragments.country.{Country, CountryController}
 import com.waz.zclient.ui.utils.{DrawableUtils, MathUtils}
 import com.waz.zclient.utils.{RichView, ViewUtils}
+import com.waz.ZLog.ImplicitTag._
 
 import scala.concurrent.Future
 import scala.util.Try

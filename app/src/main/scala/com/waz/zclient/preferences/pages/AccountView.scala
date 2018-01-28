@@ -45,6 +45,7 @@ import com.waz.zclient.ui.utils.TextViewUtils._
 import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.utils.ViewUtils._
 import com.waz.zclient.utils.{BackStackKey, BackStackNavigator, RichView, StringUtils, UiStorage, UserSignal}
+import com.waz.ZLog.ImplicitTag._
 
 trait AccountView {
   val onNameClick:          EventStream[Unit]

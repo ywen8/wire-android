@@ -18,16 +18,14 @@
 package com.waz.zclient.messages
 
 import android.content.Context
-import com.waz.api.IConversation
+import com.waz.ZLog.ImplicitTag._
 import com.waz.api.impl.AccentColor
-import com.waz.model.ConversationData.ConversationType
 import com.waz.model.ConversationData.ConversationType.isOneToOne
 import com.waz.model._
 import com.waz.service.ZMessaging
 import com.waz.service.tracking.TrackingService
 import com.waz.threading.Threading
 import com.waz.utils.events.Signal
-import com.waz.zclient.conversation.ConversationController
 import com.waz.zclient.messages.UsersController.DisplayName
 import com.waz.zclient.messages.UsersController.DisplayName.{Me, Other}
 import com.waz.zclient.tracking.AvailabilityChanged

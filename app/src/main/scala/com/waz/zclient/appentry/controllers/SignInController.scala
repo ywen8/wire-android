@@ -30,6 +30,7 @@ import com.waz.zclient.newreg.fragments.country.{Country, CountryController}
 import com.waz.zclient.pages.main.profile.validator.{EmailValidator, NameValidator, PasswordValidator}
 import com.waz.zclient.tracking.GlobalTrackingController
 import com.waz.zclient.{Injectable, Injector}
+import com.waz.ZLog.ImplicitTag._
 
 import scala.concurrent.Future
 
