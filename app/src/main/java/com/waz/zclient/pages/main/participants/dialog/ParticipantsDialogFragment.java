@@ -747,18 +747,7 @@ public class ParticipantsDialogFragment extends BaseFragment<ParticipantsDialogF
     }
 
     @Override
-    public void onShowConversationMenu(@IConversationScreenController.ConversationMenuRequester int requester, ConvId convId) {
-        if (requester != IConversationScreenController.USER_PROFILE_PARTICIPANTS &&
-            requester != IConversationScreenController.CONVERSATION_DETAILS) {
-            return;
-        }
-        Fragment fragment = getChildFragmentManager().findFragmentByTag(ParticipantFragment.TAG);
-        if (fragment instanceof ConversationScreenControllerObserver) {
-            ((ConversationScreenControllerObserver) fragment).onShowConversationMenu(requester,
-                convId
-            );
-        }
-    }
+    public void onShowConversationMenu(boolean inConvList, ConvId convId) {}
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //

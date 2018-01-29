@@ -68,7 +68,6 @@ import com.waz.zclient.pages.main.connect.ConnectRequestLoadMode;
 import com.waz.zclient.pages.main.connect.PendingConnectRequestManagerFragment;
 import com.waz.zclient.pages.main.conversation.LocationFragment;
 import com.waz.zclient.pages.main.conversation.controller.ConversationScreenControllerObserver;
-import com.waz.zclient.pages.main.conversation.controller.IConversationScreenController;
 import com.waz.zclient.pages.main.conversationpager.SlidingPaneLayout;
 import com.waz.zclient.pages.main.conversationpager.controller.SlidingPaneObserver;
 import com.waz.zclient.pages.main.drawing.DrawingFragment;
@@ -639,8 +638,7 @@ public class RootFragment extends BaseFragment<RootFragment.Container> implement
     }
 
     @Override
-    public void onShowConversationMenu(@IConversationScreenController.ConversationMenuRequester int requester,
-                                       ConvId convId) {
+    public void onShowConversationMenu(boolean inConvList, ConvId convId) {
 
     }
 

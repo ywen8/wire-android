@@ -18,42 +18,268 @@
 package com.waz.zclient.participants
 
 import android.content.Context
-import com.waz.model.{ConvId, ConversationData}
-import com.waz.threading.Threading
-import com.waz.utils.events.{EventContext, Signal}
+import com.waz.ZLog.ImplicitTag._
+import com.waz.ZLog.verbose
+import com.waz.model.ConversationData.ConversationType.isOneToOne
+import com.waz.model.{ConvId, ConversationData, UserData, UserId}
+import com.waz.service.ZMessaging
+import com.waz.threading.{CancellableFuture, Threading}
+import com.waz.utils.events.{EventContext, EventStream, EventStreamWithAuxSignal, Signal}
+import com.waz.utils.returning
+import com.waz.zclient.common.controllers.{SoundController, ThemeController, UserAccountsController}
+import com.waz.zclient.controllers.calling.ICallingController
+import com.waz.zclient.controllers.camera.ICameraController
+import com.waz.zclient.controllers.confirmation.{ConfirmationRequest, IConfirmationController, TwoButtonConfirmationCallback}
+import com.waz.zclient.controllers.navigation.{INavigationController, Page}
 import com.waz.zclient.conversation.ConversationController
-import com.waz.zclient.utils.Callback
-import com.waz.zclient.{Injectable, Injector}
+import com.waz.zclient.core.stores.conversation.ConversationChangeRequester
+import com.waz.zclient.messages.UsersController
+import com.waz.zclient.pages.main.conversation.controller.IConversationScreenController
+import com.waz.zclient.pages.main.pickuser.controller.IPickUserController
+import com.waz.zclient.pages.main.profile.camera.CameraContext
+import com.waz.zclient.participants.OptionsMenu.{AnimState, Closed, Opening}
+import com.waz.zclient.ui.optionsmenu.OptionsMenuItem
+import com.waz.zclient.ui.optionsmenu.OptionsMenuItem._
+import com.waz.zclient.utils.ContextUtils._
+import com.waz.zclient.utils.LayoutSpec
+import com.waz.zclient.{Injectable, Injector, R}
+
+import scala.concurrent.Future
+import scala.concurrent.duration._
 
 class OptionsMenuController(implicit injector: Injector, context: Context, ec: EventContext) extends Injectable {
   import Threading.Implicits.Ui
 
+  val zMessaging             = inject[Signal[ZMessaging]]
+  val convController         = inject[ConversationController]
+  val navController          = inject[INavigationController]
+  val confirmationController = inject[IConfirmationController]
+  val themes                 = inject[ThemeController]
+  val sounds                 = inject[SoundController]
+  val userAccounts           = inject[UserAccountsController]
+  val users                  = inject[UsersController]
+  val callingController      = inject[ICallingController]
+  val cameraController       = inject[ICameraController]
+  val screenController       = inject[IConversationScreenController]
+  val pickUserController     = inject[IPickUserController]
+
   val convId = Signal(Option.empty[ConvId])
 
-  private val convController = inject[ConversationController]
+  val onMenuItemClicked = EventStream[OptionsMenuItem]()
+  val animationState    = Signal[AnimState](Closed)
 
-  private var convChangedCallback = Option.empty[Callback[ConversationData]]
+  val inConversationList = Signal(false)
+  private def inConvList = inConversationList.currentValue.getOrElse(false)
+  inConversationList(v => verbose(s"inConversationList: $v"))
+  def tag = if (inConvList) "OptionsMenu_ConvList" else "OptionsMenu_Participants"
 
-  def onMenuConversationHasChanged(callback: Callback[ConversationData]): Unit = convChangedCallback = Option(callback)
+  val optionsTheme = inConversationList.flatMap {
+    case true => Signal.const(themes.optionsDarkTheme)
+    case _    => themes.darkThemePref.flatMap(_.signal).map {
+      case true => themes.optionsDarkTheme
+      case _    => themes.optionsLightTheme
+    }
+  }
 
-  convId.flatMap {
+  private def currentTheme = optionsTheme.currentValue.getOrElse(themes.optionsDarkTheme)
+
+  val conv = convId.flatMap {
     case Some(id)   => convController.conversationData(id)
     case _          => Signal.const(Option.empty[ConversationData])
-  }.onUi {
-    case Some(conv) => convChangedCallback.foreach(_.callback(conv))
-    case _          =>
   }
 
-  def setConvId(convId: ConvId): Unit = this.convId ! Option(convId)
+  //returns Signal(None) if the selected convId is a group
+  val otherUser: Signal[Option[UserData]] = (for {
+    zms          <- zMessaging
+    Some(convId) <- convId
+    id <- zms.teamId.isDefined match {
+      case true => zms.membersStorage.activeMembers(convId).filter(us => us.size == 2).map(_.find(_ != zms.selfUserId))
+      case _    => zms.convsStorage.signal(convId).collect {
+        case c if isOneToOne(c.convType) => Some(UserId(c.id.str))
+      }
+    }
+    user <- id.fold(Signal.const(Option.empty[UserData]))(zms.users.userSignal(_).map(Some(_)))
+  } yield user)
+    .orElse(Signal.const(Option.empty[UserData]))
+  otherUser (v => verbose(s"otherUser: $v"))
 
-  def withConvId(callback: Callback[ConvId]): Unit = convId.head.foreach {
-    case Some(id) => callback.callback(id)
-    case _        => callback.callback(null)
+  val isGroup = otherUser.map(_.isEmpty)
+
+  val optionItems = for {
+    zms           <- zMessaging
+    Some(conv)    <- conv
+    isGroup       <- isGroup
+    connectStatus <- otherUser.map(_.map(_.connection))
+    teamMember    <- otherUser.map(_.exists(u => u.teamId.nonEmpty && u.teamId == zms.teamId))
+    inConvList    <- inConversationList
+  } yield {
+    import OptionsMenuItem._
+    import com.waz.api.User.ConnectionStatus._
+
+    val builder = Set.newBuilder[OptionsMenuItem]
+
+    builder += (if (conv.archived) UNARCHIVE else ARCHIVE)
+    isGroup match {
+      case false =>
+        if (teamMember || connectStatus.contains(ACCEPTED)) {
+          builder += (if (conv.muted) UNSILENCE else SILENCE)
+          builder += DELETE
+          if (inConvList) builder ++= Set(CALL, PICTURE)
+          if (!teamMember && connectStatus.contains(ACCEPTED)) builder ++= Set(BLOCK)
+        }
+        else if (connectStatus.contains(PENDING_FROM_USER)) builder += BLOCK
+      case true =>
+        if (conv.isActive) {
+          builder +=  (if (conv.muted) UNSILENCE else SILENCE)
+          builder ++= (if (inConvList) Set(CALL, PICTURE) else Set(RENAME))
+          builder +=  LEAVE
+        }
+        builder += (if (conv.archived) UNARCHIVE else ARCHIVE)
+        builder += DELETE
+    }
+    builder.result().toSeq.sortWith { case (l, r) => l.compareTo(r) < 0 }
   }
 
-  def withConv(callback: Callback[ConversationData]): Unit = convId.head.foreach {
-    case Some(id) => convController.withConvLoaded(id, callback)
-    case _        =>
+  (for {
+    inConvList <- inConversationList
+    animState  <- animationState
+  } yield (inConvList, animState)).onChanged.collect { case (true, state) => state } .onUi {
+    case Opening if LayoutSpec.isPhone(context) =>
+      navController.setLeftPage(Page.CONVERSATION_MENU_OVER_CONVERSATION_LIST, tag)
+    case Closed if LayoutSpec.isPhone(context) =>
+      navController.setLeftPage(Page.CONVERSATION_LIST, tag)
+    case _ => //
   }
 
+  val convState = for {
+    cId <- convId
+    other <- otherUser
+  } yield (cId, other)
+
+  (new EventStreamWithAuxSignal(onMenuItemClicked, convState)) {
+    case (item, Some((Some(cId), user))) =>
+      verbose(s"onMenuItemClicked: item: $item, conv: $cId, user: $user")
+      item match {
+        case ARCHIVE   =>
+          convController.archive(cId, archive = true)
+          if (!inConvList) CancellableFuture.delay(getInt(R.integer.framework_animation_duration_medium).millis).map { _ =>
+            navController.setVisiblePage(Page.CONVERSATION_LIST, tag)
+            screenController.hideParticipants(false, true)
+          }
+
+        case UNARCHIVE => convController.archive(cId, archive = false)
+        case SILENCE   => convController.setMuted(cId, muted = true)
+        case UNSILENCE => convController.setMuted(cId, muted = false)
+        case LEAVE     => leaveConversation(cId)
+        case DELETE    => deleteConversation(cId)
+        case BLOCK     => user.map(_.id).foreach(showBlockConfirmation(cId, _))
+        case UNBLOCK   => zMessaging.head.flatMap { zms =>
+          user.map(_.id) match {
+            case Some(uId) => zms.connection.unblockConnection(uId)
+            case _         => Future.successful({})
+          }
+        }
+        case CALL      => callConversation(cId)
+        case PICTURE   => takePictureInConversation(cId)
+        case RENAME    => screenController.editConversationName(true)
+        case _ =>
+      }
+    case _ =>
+  }
+
+  private def leaveConversation(convId: ConvId) =
+    requestConfirmation(
+      header  = getString(R.string.confirmation_menu__meta_remove),
+      text    = getString(R.string.confirmation_menu__meta_remove_text),
+      confirm = getString(R.string.confirmation_menu__confirm_leave),
+      cancel  = getString(R.string.confirmation_menu__cancel),
+      onPositiveClick = _ => {
+        convController.leave(convId)
+        if (!inConvList && LayoutSpec.isTablet(context)) screenController.hideParticipants(false, true)
+      }
+    )
+
+  def deleteConversation(convId: ConvId) =
+    isGroup.head.map { isGroup =>
+      requestConfirmation(
+        header  = getString(R.string.confirmation_menu__meta_delete),
+        text    = getString(R.string.confirmation_menu__meta_delete_text),
+        confirm = getString(R.string.confirmation_menu__confirm_delete),
+        cancel  = getString(R.string.confirmation_menu__cancel),
+        checkBoxLabel = if (isGroup) getString(R.string.confirmation_menu__delete_conversation__checkbox__label) else "",
+        onHideAnimEnd = (confirmed, _, checkboxIsSelected) => {
+          if (confirmed) convController.delete(convId, checkboxIsSelected)
+          if (!inConvList && LayoutSpec.isTablet(context)) screenController.hideParticipants(false, true)
+        }
+      )
+    } (Threading.Ui)
+
+  private def showBlockConfirmation(convId: ConvId, userId: UserId) =
+    (for {
+      curConvId <- convController.currentConvId.head
+      displayName <- users.displayNameString(userId).head
+    } yield (curConvId, displayName)).map {
+      case (curConvId, displayName) =>
+        requestConfirmation(
+          header  = getString(R.string.confirmation_menu__block_header),
+          text    = getString(R.string.confirmation_menu__block_text_with_name, displayName),
+          confirm = getString(R.string.confirmation_menu__confirm_block),
+          cancel  = getString(R.string.confirmation_menu__cancel),
+          onPositiveClick = _ => {
+            zMessaging.head.flatMap(_.connection.blockConnection(userId)).map { _ =>
+              if (!inConvList || convId == curConvId)
+                  convController.setCurrentConversationToNext(ConversationChangeRequester.BLOCK_USER)
+
+              if (!inConvList) {
+                screenController.hideUser()
+                if (LayoutSpec.isTablet(context)) screenController.hideParticipants(false, true)
+              }
+            }(Threading.Ui)
+          }
+        )
+    }(Threading.Ui)
+
+  private def requestConfirmation(header:  String,
+                                  text:    String,
+                                  confirm: String,
+                                  cancel:  String,
+                                  checkBoxLabel: String = "",
+                                  onPositiveClick: Boolean => Unit = _ => {},
+                                  onHideAnimEnd:   (Boolean, Boolean, Boolean) => Unit = (_, _, _) => {},
+                                  checkBoxSelected: Boolean = false) = {
+    val callback = new TwoButtonConfirmationCallback() {
+      override def positiveButtonClicked(checkboxIsSelected: Boolean) = onPositiveClick(checkboxIsSelected)
+      override def negativeButtonClicked() = {}
+      override def onHideAnimationEnd(confirmed: Boolean, canceled: Boolean, checkboxIsSelected: Boolean) = onHideAnimEnd(confirmed, canceled, checkboxIsSelected)
+    }
+    val request = returning(new ConfirmationRequest.Builder()) { r =>
+      r.withHeader(header)
+        .withMessage(text)
+        .withPositiveButton(confirm)
+        .withNegativeButton(cancel)
+        .withConfirmationCallback(callback)
+        .withCheckboxLabel(checkBoxLabel)
+        .withWireTheme(currentTheme)
+
+      if (checkBoxSelected) r.withCheckboxSelectedByDefault()
+
+    }.build()
+
+    confirmationController.requestConfirmation(request, if (inConvList) IConfirmationController.CONVERSATION_LIST else IConfirmationController.PARTICIPANTS)
+    sounds.playAlert()
+  }
+
+  private def callConversation(convId: ConvId) = {
+    verbose(s"callConversation $convId")
+    convController.selectConv(convId, ConversationChangeRequester.CONVERSATION_LIST).map { _ =>
+      callingController.startCall(false)
+    }
+  }
+
+  private def takePictureInConversation(convId: ConvId) = {
+    verbose(s"sendPictureToConversation $convId")
+    convController.selectConv(convId, ConversationChangeRequester.CONVERSATION_LIST).map { _ =>
+      cameraController.openCamera(CameraContext.MESSAGE)
+    }
+  }
 }

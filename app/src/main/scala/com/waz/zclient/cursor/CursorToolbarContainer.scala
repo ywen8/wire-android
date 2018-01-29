@@ -45,6 +45,7 @@ import com.waz.zclient.ViewHelper
 import com.waz.zclient.R
 import com.waz.zclient.ui.animation.interpolators.penner.Expo
 import com.waz.zclient.utils._
+import com.waz.ZLog.ImplicitTag._
 
 class CursorToolbarContainer(context: Context, attrs: AttributeSet, defStyleAttr: Int)
     extends FrameLayout(context, attrs, defStyleAttr) with ViewHelper {

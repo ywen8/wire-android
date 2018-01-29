@@ -23,17 +23,17 @@ import android.content.DialogInterface
 import android.content.DialogInterface.OnShowListener
 import android.os.Bundle
 import android.text.TextUtils
-import com.waz.ZLog
+import com.waz.ZLog.ImplicitTag._
 import com.waz.service.ZMessaging
 import com.waz.threading.Threading
 import com.waz.utils.events.Signal
 import com.waz.utils.returning
 import com.waz.zclient.pages.BaseDialogFragment
+import com.waz.zclient.preferences.views.EditNameDialog._
 import com.waz.zclient.ui.text.TypefaceEditText
 import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.utils.ViewUtils._
 import com.waz.zclient.{FragmentHelper, R}
-import EditNameDialog._
 
 class EditNameDialog extends BaseDialogFragment[Container] with FragmentHelper {
 
@@ -92,7 +92,7 @@ class EditNameDialog extends BaseDialogFragment[Container] with FragmentHelper {
 }
 
 object EditNameDialog {
-  val Tag = ZLog.ImplicitTag.implicitLogTag
+  val Tag = implicitLogTag
   trait Container
 
   private val NameArg = "NameArg"

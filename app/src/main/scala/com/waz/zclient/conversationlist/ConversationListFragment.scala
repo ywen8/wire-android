@@ -57,7 +57,7 @@ import com.waz.zclient.{FragmentHelper, OnBackPressedListener, R, ViewHolder}
 /**
   * Due to how we use the NormalConversationListFragment - it gets replaced by the ArchiveConversationListFragment or
   * PickUserFragment, thus destroying its views - we have to be careful about when assigning listeners to signals and
-  * trying to instantiate things in onViewCreated - be careful to tare them down again.
+  * trying to instantiate things in onViewCreated - be careful to tear them down again.
   */
 abstract class ConversationListFragment extends BaseFragment[ConversationListFragment.Container] with FragmentHelper {
 
@@ -69,6 +69,7 @@ abstract class ConversationListFragment extends BaseFragment[ConversationListFra
   lazy val usersController        = inject[UsersController]
   lazy val screenController       = inject[IConversationScreenController]
   lazy val pickUserController     = inject[IPickUserController]
+  lazy val convScreenController   = inject[IConversationScreenController]
 
   protected var subs = Set.empty[Subscription]
 
@@ -82,21 +83,19 @@ abstract class ConversationListFragment extends BaseFragment[ConversationListFra
       case (mode,user) => topToolbar.get.setTitle(mode, user)
     }
 
-    a.onConversationClick { conv => conversationClicked(conv) }
-    a.onConversationLongClick { conv => conversationLongClicked(conv) }
-  }
+    a.onConversationClick { conv =>
+      verbose(s"handleItemClick, switching conv to ${conv.id}")
+      conversationController.selectConv(Option(conv.id), ConversationChangeRequester.CONVERSATION_LIST)
+    }
 
-  def conversationClicked(conv: ConversationData): Unit = {
-    verbose(s"handleItemClick, switching conv to ${conv.id}")
-    conversationController.selectConv(Option(conv.id), ConversationChangeRequester.CONVERSATION_LIST)
+    a.onConversationLongClick { conv =>
+      if (conv.convType != ConversationType.Group &&
+        conv.convType != ConversationType.OneToOne &&
+        conv.convType != ConversationType.WaitForConnection) {
+      } else
+        screenController.showConversationMenu(true, conv.id)
+    }
   }
-
-  def conversationLongClicked(conv: ConversationData): Unit =
-    if (conv.convType != ConversationType.Group &&
-      conv.convType != ConversationType.OneToOne &&
-      conv.convType != ConversationType.WaitForConnection) {
-    } else
-      screenController.showConversationMenu(IConversationScreenController.CONVERSATION_LIST_LONG_PRESS, conv.id)
 
   lazy val conversationListView = returning(view[SwipeListView](R.id.conversation_list_view)) { rv =>
     userAccountsController.currentUser.onChanged.onUi(_ => rv.scrollToPosition(0))

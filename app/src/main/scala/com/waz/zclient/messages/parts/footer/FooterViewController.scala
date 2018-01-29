@@ -35,6 +35,7 @@ import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.utils.ZTimeFormatter
 import com.waz.zclient.{Injectable, Injector, R}
 import org.threeten.bp.{DateTimeUtils, Instant}
+import com.waz.ZLog.ImplicitTag._
 
 import scala.concurrent.duration._
 

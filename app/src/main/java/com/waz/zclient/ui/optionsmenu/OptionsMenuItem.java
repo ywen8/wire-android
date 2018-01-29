@@ -39,19 +39,10 @@ public enum OptionsMenuItem {
     UNSILENCE(R.string.conversation__action__unsilence, R.string.glyph__silence),
     RENAME(R.string.conversation__action__rename, R.string.glyph__edit),
     PICTURE(R.string.conversation__action__picture, R.string.glyph__camera),
-    CALL(R.string.conversation__action__call, R.string.glyph__call),
+    CALL(R.string.conversation__action__call, R.string.glyph__call);
 
-    /**
-     * OptionsMenuItems for settings
-     */
-    HELP(R.string.menu_help, R.string.glyph__info),
-    SETTINGS(R.string.menu_settings, R.string.glyph__settings),
-    AVS_SETTINGS(R.string.menu_avs_settings, R.string.glyph__settings),
-    ABOUT(R.string.menu_about, R.string.glyph__wire);
-
-
-    final int resTextId;
-    final int resGlyphId;
+    public final int resTextId;
+    public final int resGlyphId;
 
     OptionsMenuItem(int resTextId, int resGlyphId) {
         this.resTextId = resTextId;

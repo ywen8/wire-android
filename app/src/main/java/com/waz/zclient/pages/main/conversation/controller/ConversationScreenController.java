@@ -192,9 +192,9 @@ public class ConversationScreenController implements IConversationScreenControll
     }
 
     @Override
-    public void showConversationMenu(@ConversationMenuRequester int requester, ConvId convId) {
+    public void showConversationMenu(boolean inConvList, ConvId convId) {
         for (ConversationScreenControllerObserver observer : conversationScreenControllerObservers) {
-            observer.onShowConversationMenu(requester, convId);
+            observer.onShowConversationMenu(inConvList, convId);
         }
     }
 

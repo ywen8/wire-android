@@ -22,6 +22,7 @@ import android.support.v4.app.Fragment
 import android.view.animation.{AlphaAnimation, Animation}
 import android.view.{ContextThemeWrapper, LayoutInflater, View, ViewGroup}
 import android.widget.{FrameLayout, TextView}
+import com.waz.ZLog.ImplicitTag._
 import com.waz.service.tracking.TrackingService
 import com.waz.threading.Threading
 import com.waz.utils.returning

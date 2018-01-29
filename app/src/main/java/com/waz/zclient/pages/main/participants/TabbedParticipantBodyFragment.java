@@ -43,19 +43,18 @@ import com.waz.zclient.common.controllers.ThemeController;
 import com.waz.zclient.common.controllers.UserAccountsController;
 import com.waz.zclient.controllers.accentcolor.AccentColorObserver;
 import com.waz.zclient.conversation.ConversationController;
+import com.waz.zclient.conversation.ParticipantDetailsTab;
 import com.waz.zclient.core.api.scala.ModelObserver;
 import com.waz.zclient.core.stores.conversation.ConversationChangeRequester;
 import com.waz.zclient.core.stores.participants.ParticipantsStoreObserver;
 import com.waz.zclient.pages.BaseFragment;
 import com.waz.zclient.pages.main.conversation.controller.ConversationScreenControllerObserver;
-import com.waz.zclient.pages.main.conversation.controller.IConversationScreenController;
-import com.waz.zclient.utils.Callback;
 import com.waz.zclient.pages.main.participants.views.ParticipantOtrDeviceAdapter;
 import com.waz.zclient.pages.main.participants.views.TabbedParticipantPagerAdapter;
 import com.waz.zclient.ui.views.tab.TabIndicatorLayout;
+import com.waz.zclient.utils.Callback;
 import com.waz.zclient.utils.ContextUtils;
 import com.waz.zclient.utils.ViewUtils;
-import com.waz.zclient.conversation.ParticipantDetailsTab;
 import com.waz.zclient.views.menus.FooterMenuCallback;
 
 public class TabbedParticipantBodyFragment extends BaseFragment<TabbedParticipantBodyFragment.Container> implements
@@ -332,8 +331,7 @@ public class TabbedParticipantBodyFragment extends BaseFragment<TabbedParticipan
     }
 
     @Override
-    public void onShowConversationMenu(@IConversationScreenController.ConversationMenuRequester int requester,
-                                       ConvId convId) {
+    public void onShowConversationMenu(boolean inConvList, ConvId convId) {
 
     }
 
@@ -414,10 +412,7 @@ public class TabbedParticipantBodyFragment extends BaseFragment<TabbedParticipan
                 @Override
                 public void callback(ConversationData conv) {
                     if (conv.convType() == IConversation.Type.ONE_TO_ONE) {
-                        getControllerFactory().getConversationScreenController().showConversationMenu(
-                            IConversationScreenController.CONVERSATION_DETAILS,
-                            conv.id()
-                        );
+                        getControllerFactory().getConversationScreenController().showConversationMenu(false, conv.id());
                     } else if (permissionToRemove) {
                         getContainer().showRemoveConfirmation(user);
                     }

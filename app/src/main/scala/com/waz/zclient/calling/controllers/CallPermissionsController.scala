@@ -29,6 +29,7 @@ import com.waz.threading.Threading
 import com.waz.utils.returning
 import com.waz.zclient._
 import com.waz.zclient.utils.ViewUtils
+import com.waz.ZLog.ImplicitTag._
 
 /**
   * This class is intended to be a relatively small controller that every PermissionsActivity can have access to in order

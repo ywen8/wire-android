@@ -31,6 +31,7 @@ import com.waz.zclient.preferences.views.DeviceButton
 import com.waz.zclient.ui.text.TypefaceTextView
 import com.waz.zclient.utils.{BackStackKey, BackStackNavigator}
 import com.waz.zclient.{Injectable, Injector, R, ViewHelper}
+import com.waz.ZLog.ImplicitTag._
 
 trait DevicesView {
   def setSelfDevice(device: Option[Client]): Unit

@@ -47,6 +47,7 @@ import com.waz.zclient.utils.{LayoutSpec, ViewUtils}
 import com.waz.zclient.views.images.ImageAssetImageView
 import com.waz.zclient.views.menus.{FooterMenu, FooterMenuCallback}
 import com.waz.zclient.{FragmentHelper, R}
+import com.waz.ZLog.ImplicitTag._
 
 import scala.concurrent.Future
 
@@ -221,7 +222,7 @@ class ParticipantBodyFragment extends BaseFragment[ParticipantBodyFragment.Conta
           if (userRequester == IConnectStore.UserRequester.POPOVER) {
             val otherUser = conv.getOtherParticipant
             getContainer.toggleBlockUser(otherUser, otherUser.getConnectionStatus != User.ConnectionStatus.BLOCKED)
-          } else convScreenController.showConversationMenu(IConversationScreenController.CONVERSATION_DETAILS, new ConvId(conv.getId))
+          } else convScreenController.showConversationMenu(false, new ConvId(conv.getId))
         }
 
         override def onNoNetwork(): Unit = ViewUtils.showAlertDialog(getActivity,
