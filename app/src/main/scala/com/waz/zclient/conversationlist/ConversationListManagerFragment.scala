@@ -53,7 +53,6 @@ import com.waz.zclient.pages.main.participants.dialog.ParticipantsDialogFragment
 import com.waz.zclient.pages.main.pickuser.controller.IPickUserController.Destination
 import com.waz.zclient.pages.main.pickuser.controller.IPickUserController.Destination._
 import com.waz.zclient.pages.main.pickuser.controller.{IPickUserController, PickUserControllerScreenObserver}
-import com.waz.zclient.pages.main.profile.camera.{CameraContext, CameraFragment}
 import com.waz.zclient.participants.OptionsMenuFragment
 import com.waz.zclient.ui.animation.interpolators.penner.{Expo, Quart}
 import com.waz.zclient.ui.utils.KeyboardUtils
@@ -328,8 +327,7 @@ class ConversationListManagerFragment extends Fragment
   }
 
   override def onHideUserProfile() = {
-    // Profiles are handled in dialog on tablet
-    if (LayoutSpec.isPhone(getActivity)) {
+    if (pickUserController.isShowingUserProfile) {
       getChildFragmentManager.popBackStackImmediate
       togglePeoplePicker(true)
     }
