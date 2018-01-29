@@ -142,7 +142,12 @@ class IntegrationDetailsFragment extends FragmentHelper with OnBackPressedListen
   override def onViewCreated(v: View, @Nullable savedInstanceState: Bundle): Unit = {
     super.onViewCreated(v, savedInstanceState)
 
-    returning(findById[GlyphTextView](R.id.integration_close))(_.onClick(close()))
+    returning(findById[GlyphTextView](R.id.integration_close)) { closeButton =>
+      if (integrationDetailsController.removingFromConversation.isDefined || integrationDetailsController.addingToConversation.isDefined)
+        closeButton.setVisibility(View.GONE)
+      else
+        closeButton.onClick(close())
+    }
     returning(findById[GlyphTextView](R.id.integration_back))(_.onClick(goBack()))
     returning(findById[ImageView](R.id.integration_picture))(_.setImageDrawable(drawable))
 
@@ -163,7 +168,7 @@ class IntegrationDetailsFragment extends FragmentHelper with OnBackPressedListen
         getFragmentManager.popBackStack()
         if (integrationDetailsController.addingToConversation.nonEmpty) {
           inject[INavigationController].setRightPage(Page.PICK_USER, IntegrationDetailsFragment.Tag)
-        } else {
+        } else if (integrationDetailsController.removingFromConversation.isEmpty) {
           inject[INavigationController].setLeftPage(Page.PICK_USER, IntegrationDetailsFragment.Tag)
         }
     }
