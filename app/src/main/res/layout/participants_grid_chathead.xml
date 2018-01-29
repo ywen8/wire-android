@@ -21,9 +21,10 @@
 <com.waz.zclient.common.views.ChatheadWithTextFooter
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:layout_width="@dimen/participants__chathead__width"
+    android:layout_width="match_parent"
     android:layout_height="wrap_content"
     app:chathead_size="@dimen/participants__chathead__width"
     android:orientation="horizontal"
     android:layout_marginBottom="@dimen/participants__chathead__vertical_spacing"
+    android:layout_marginTop="@dimen/participants__chathead__vertical_spacing"
     />

@@ -104,14 +104,8 @@ class ParticipantsChatheadAdapter(numOfColumns: Int)(implicit context: Context, 
     case _              => CHATHEAD
   }
 
-  private def getSeparatorView(parent: ViewGroup): View = {
-    returning(LayoutInflater.from(parent.getContext).inflate(R.layout.participants_separator_row, parent, false)) {
-      _.setLayoutParams(new AbsListView.LayoutParams(
-        parent.getMeasuredWidth,
-        parent.getResources.getDimensionPixelSize(R.dimen.participants__verified_row__height)
-      ))
-    }
-  }
+  private def getSeparatorView(parent: ViewGroup): View =
+    LayoutInflater.from(parent.getContext).inflate(R.layout.participants_separator_row, parent, false)
 
 }
 

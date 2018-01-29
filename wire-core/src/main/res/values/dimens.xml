@@ -651,7 +651,7 @@
     <dimen name="participants__glyph_text_size">18dp</dimen>
     <dimen name="participants__header_margin_glyph">8dp</dimen>
     <dimen name="participants__chathead__width">88dp</dimen>
-    <dimen name="participants__chathead__vertical_spacing">16dp</dimen>
+    <dimen name="participants__chathead__vertical_spacing">8dp</dimen>
     <dimen name="participants__header__top_margin">24dp</dimen>
     <dimen name="participants__header__bottom_margin">16dp</dimen>
     <dimen name="send_connect_request__participants__header__bottom_margin">24dp</dimen>
