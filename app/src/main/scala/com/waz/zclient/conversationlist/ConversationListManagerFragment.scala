@@ -470,7 +470,7 @@ class ConversationListManagerFragment extends Fragment
 
   override def onScrollParticipantsList(verticalOffset: Int, scrolledToBottom: Boolean) = {}
 
-  override def onShowUser(user: User) = {}
+  override def onShowUser(userId: UserId): Unit = {}
 
   override def onHideUser() = {}
 
@@ -484,7 +484,7 @@ class ConversationListManagerFragment extends Fragment
 
   override def onShowLikesList(message: Message) = {}
 
-  override def showRemoveConfirmation(user: User) = {}
+  override def showRemoveConfirmation(userId: UserId) = {}
 
   override def onOpenUrl(url: String) = {}
 

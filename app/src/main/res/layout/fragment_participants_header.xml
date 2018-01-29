@@ -42,6 +42,7 @@
             android:layout_height="match_parent"
             android:orientation="horizontal"
             android:gravity="start|center_vertical"
+            android:layout_weight="1"
             >
 
             <com.waz.zclient.views.e2ee.ShieldView

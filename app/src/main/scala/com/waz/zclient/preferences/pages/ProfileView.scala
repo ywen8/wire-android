@@ -246,7 +246,6 @@ class ProfileViewController(view: ProfileView)(implicit inj: Injector, ec: Event
 
   team.on(Threading.Ui) { team => view.setTeamName(team.map(_.name)) }
 
-
   incomingClients.onUi { clients => view.showNewDevicesDialog(clients) }
 
   view.onDevicesDialogAccept.on(Threading.Background) { _ =>

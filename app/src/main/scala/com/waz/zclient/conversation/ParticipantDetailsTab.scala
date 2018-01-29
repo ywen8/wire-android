@@ -18,82 +18,106 @@
 package com.waz.zclient.conversation
 
 import android.content.Context
-import android.support.annotation.StringRes
-import android.util.AttributeSet
-import android.view.View
-import android.widget.LinearLayout
-import com.waz.api.User
-import com.waz.model.UserId
+import android.widget.{ImageView, LinearLayout}
+import com.waz.ZLog.ImplicitTag._
 import com.waz.service.ZMessaging
-import com.waz.threading.Threading
 import com.waz.utils.events.Signal
+import com.waz.utils.returning
+import com.waz.zclient.common.controllers.UserAccountsController
+import com.waz.zclient.common.views.ImageAssetDrawable
+import com.waz.zclient.common.views.ImageAssetDrawable.{RequestBuilder, ScaleType}
+import com.waz.zclient.common.views.ImageController.{ImageSource, WireImage}
 import com.waz.zclient.messages.UsersController
+import com.waz.zclient.participants.ParticipantsController
 import com.waz.zclient.ui.text.TypefaceTextView
-import com.waz.zclient.utils.UiStorage
+import com.waz.zclient.utils.ContextUtils._
+import com.waz.zclient.utils.{RichView, UiStorage}
 import com.waz.zclient.views.ShowAvailabilityView
-import com.waz.zclient.views.images.ImageAssetImageView
 import com.waz.zclient.views.menus.{FooterMenu, FooterMenuCallback}
 import com.waz.zclient.{R, ViewHelper}
 
-class ParticipantDetailsTab(val context: Context, val attrs: AttributeSet, val defStyleAttr: Int) extends LinearLayout(context, attrs, defStyleAttr) with ViewHelper {
-  def this(context: Context, attrs: AttributeSet) = this(context, attrs, 0)
-  def this(context: Context) = this(context, null)
+class ParticipantDetailsTab(val context: Context, callback: FooterMenuCallback) extends LinearLayout(context, null, 0) with ViewHelper {
 
   inflate(R.layout.single_participant_tab_details)
-
-  private implicit val uiStorage = inject[UiStorage]
-  private lazy val usersController = inject[UsersController]
-
-  private val imageAssetImageView = findById[ImageAssetImageView ](R.id.iaiv__single_participant)
-  private val footerMenu = findById[FooterMenu](R.id.fm__footer)
-  private val guestIndicationText = findById[TypefaceTextView](R.id.participant_guest_indicator)
-  private lazy val userAvailability = findById[ShowAvailabilityView](R.id.participant_availability)
-
-  imageAssetImageView.setDisplayType(ImageAssetImageView.DisplayType.CIRCLE)
   setOrientation(LinearLayout.VERTICAL)
 
-  private val userId = Signal[UserId]()
+  private implicit val uiStorage     = inject[UiStorage]
+  private val zms                    = inject[Signal[ZMessaging]]
+  private val usersController        = inject[UsersController]
+  private val participantsController = inject[ParticipantsController]
+  private val userAccountsController = inject[UserAccountsController]
 
-  private val isGuest = for{
-    z <- inject[Signal[ZMessaging]]
-    uId <- userId
-    data <- z.users.userSignal(uId)
-    isGuest <- if (data.isWireBot) Signal.const(false) else z.teams.isGuest(uId)
+  private val imageView = findById[ImageView](R.id.iaiv__single_participant)
+
+  private val footerMenu = returning(findById[FooterMenu](R.id.fm__footer)) {
+    _.setCallback(callback)
+  }
+
+  private lazy val guestIndicationText = findById[TypefaceTextView](R.id.participant_guest_indicator)
+  private lazy val userAvailability    = findById[ShowAvailabilityView](R.id.participant_availability)
+
+  private val otherUser = for {
+    z         <- zms
+    Some(uId) <- participantsController.otherParticipant
+    user      <- z.users.userSignal(uId)
+  } yield user
+
+  private val picture: Signal[ImageSource] =
+    otherUser.map(_.picture).collect { case Some(pic) => WireImage(pic) }
+
+  private val otherUserIsGuest = for {
+    z       <- zms
+    user    <- otherUser
+    isGuest <- if (user.isWireBot) Signal.const(false) else z.teams.isGuest(user.id)
   } yield isGuest
 
-  isGuest.on(Threading.Ui) {
-    case true =>
-      guestIndicationText.setVisibility(View.VISIBLE)
-      guestIndicationText.setText(getResources.getString(R.string.participant_tab_guest_indicator_label))
-    case _ =>
-      guestIndicationText.setVisibility(View.GONE)
-      guestIndicationText.setText("")
+  otherUserIsGuest.onUi {
+    guestIndicationText.setVisible
   }
 
-  private val avStatus = usersController.availabilityVisible.zip(userId.flatMap(usersController.availability))
-
-  avStatus.on(Threading.Ui) {
-    case (false, _) => userAvailability.setVisibility(View.GONE)
-    case (true, av) =>
-      userAvailability.setVisibility(View.VISIBLE)
-      userAvailability.set(av)
+  otherUserIsGuest.map {
+    case true  => getString(R.string.participant_tab_guest_indicator_label)
+    case false => ""
+  }.onUi {
+    guestIndicationText.setText
   }
 
-  def setUser(user: User): Unit = {
-    Option(user).fold{
-      imageAssetImageView.resetBackground()
-    }{ user =>
-      imageAssetImageView.connectImageAsset(user.getPicture)
-    }
-    userId ! UserId(user.getId)
+  imageView.setImageDrawable(new ImageAssetDrawable(picture, scaleType = ScaleType.CenterInside, request = RequestBuilder.Round))
+
+  usersController.availabilityVisible.onUi { userAvailability.setVisible }
+
+  (for {
+    Some(uId) <- participantsController.otherParticipant
+    av        <- usersController.availability(uId)
+  } yield av).onUi {
+    userAvailability.set
   }
 
-  def updateFooterMenu(@StringRes leftAction: Int, @StringRes leftActionLabel: Int, @StringRes rightAction: Int, @StringRes rightActionLabel: Int, callback: FooterMenuCallback): Unit =
-    Option(footerMenu).foreach { v =>
-      v.setLeftActionText(getContext.getString(leftAction))
-      v.setLeftActionLabelText(getContext.getString(leftActionLabel))
-      v.setRightActionText(getContext.getString(rightAction))
-      v.setRightActionLabelText(getContext.getString(rightActionLabel))
-      v.setCallback(callback)
-    }
+  participantsController.isGroupOrBot.map {
+    case false if userAccountsController.hasCreateConversationPermission => R.string.glyph__add_people
+    case _                                                               => R.string.glyph__conversation
+  }.onUi { id =>
+    footerMenu.setLeftActionText(getString(id))
+  }
+
+  participantsController.isGroupOrBot.map {
+    case false if userAccountsController.hasCreateConversationPermission => R.string.conversation__action__create_group
+    case _                                                               => R.string.empty_string
+  }.onUi { id =>
+    footerMenu.setLeftActionLabelText(getString(id))
+  }
+
+  (for {
+    convId     <- participantsController.conv.map(_.id)
+    groupOrBot <- participantsController.isGroupOrBot
+  } yield (groupOrBot, convId)).map {
+    case (false, _)     if userAccountsController.hasCreateConversationPermission               => R.string.glyph__more
+    case (true, convId) if userAccountsController.hasRemoveConversationMemberPermission(convId) => R.string.glyph__minus
+    case _ => R.string.empty_string
+  }.onUi { id =>
+    footerMenu.setRightActionText(getString(id))
+  }
+
 }
+
+

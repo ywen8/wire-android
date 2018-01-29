@@ -125,7 +125,7 @@ class ConversationController(implicit injector: Injector, context: Context, ec: 
 
   def loadMembers(convId: ConvId): Future[Seq[UserData]] = for {
     z <- zms.head
-    userIds <- z.membersStorage.activeMembers(convId).head
+    userIds <- z.membersStorage.activeMembers(convId).head // TODO: maybe switch to ConversationsMembersSignal
     users <- z.users.getUsers(userIds.toSeq)
   } yield users
 
@@ -154,6 +154,9 @@ class ConversationController(implicit injector: Injector, context: Context, ec: 
   } yield z.convsUi.setConversationName(convId, name)
 
   def addMembers(id: ConvId, users: Set[UserId]): Future[Unit] = zms.head.map { _.convsUi.addConversationMembers(id, users.toSeq) }
+
+  def addMembersToCurrentConv(users: Set[UserId]): Future[Unit] =
+    currentConvId.head.flatMap { convId => addMembers(convId, users) }
 
   def removeMember(user: UserId): Future[Unit] = for {
     z <- zms.head
@@ -212,9 +215,14 @@ class ConversationController(implicit injector: Injector, context: Context, ec: 
 
   def withMembers(convId: ConvId, callback: Callback[java.util.Collection[UserData]]): Unit =
     loadMembers(convId).foreach { users => callback.callback(users.asJavaCollection) }(Threading.Ui)
+
   def withCurrentConvMembers(callback: Callback[java.util.Collection[UserData]]): Unit =
     currentConvId.head.foreach { id => withMembers(id, callback) }(Threading.Ui)
+
   def addMembers(id: ConvId, users: java.util.List[UserId]): Unit = addMembers(id, users.asScala.toSet)
+
+  def addMembersToCurrentConv(users: java.util.List[UserId]): Unit =
+    addMembersToCurrentConv(users.asScala.toSet)
 
   def createGroupConversation(users: java.util.List[UserId], conversationChangerSender: ConversationChangeRequester): Unit =
     createGroupConversation(users.asScala, None).map { data =>
@@ -225,6 +233,7 @@ class ConversationController(implicit injector: Injector, context: Context, ec: 
         else conversationChangerSender
       )
     }
+
 
   object messages {
 
