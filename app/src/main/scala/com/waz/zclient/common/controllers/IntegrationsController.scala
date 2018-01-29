@@ -27,14 +27,16 @@ import com.waz.zclient.conversation.ConversationController
 import com.waz.zclient.utils.ContextUtils.getString
 import com.waz.zclient.{Injectable, Injector, R}
 import com.waz.ZLog.ImplicitTag._
+import com.waz.zclient.utils.ContextUtils.showToast
+import com.waz.sync.SyncResult
 
 import scala.concurrent.Future
 
 class IntegrationsController(implicit injector: Injector, context: Context) extends Injectable {
   import Threading.Implicits.Background
 
+  private lazy val zms = inject[Signal[ZMessaging]]
   private lazy val integrations = inject[Signal[ZMessaging]].map(_.integrations)
-  private lazy val conversationController = inject[ConversationController]
 
   val searchQuery = Signal[String]("")
 
@@ -50,11 +52,25 @@ class IntegrationsController(implicit injector: Injector, context: Context) exte
   def addBot(cId: ConvId, pId: ProviderId, iId: IntegrationId): Future[Either[ErrorResponse, Unit]] =
     integrations.head.flatMap(_.addBotToConversation(cId, pId, iId))
 
-  def createConvWithBot(pId: ProviderId, iId: IntegrationId): Future[Either[ErrorResponse, ConvId]] =
-    integrations.head.flatMap(_.createConversationWithBot(pId, iId))
+  def createConvWithBot(pId: ProviderId, iId: IntegrationId): Future[ConvId] = {
+    for {
+      zms <- zms.head
+      (conv, syncId) <- zms.convsUi.createAndPostConversation(ConvId(), Seq.empty, zms.teamId)
+      _ = zms.syncRequests.scheduler.await(syncId).map {
+        case SyncResult.Success =>
+          addBot(conv.id, pId, iId).collect {
+            case Left(error) => showToastError(error)
+          }
+        case result =>
+          showToastError(result.error.getOrElse(ErrorResponse.InternalError))
+      } (Threading.Ui)
+    } yield conv.id
+  }
 
   def removeBot(cId: ConvId, userId: UserId): Future[Either[ErrorResponse, Unit]] =
     integrations.head.flatMap(_.removeBotFromConversation(cId, userId))
+
+  def showToastError(error: ErrorResponse): Unit = showToast(errorMessage(error))(context)
 
   def errorMessage(e: ErrorResponse): String =
     getString((e.code, e.label) match {

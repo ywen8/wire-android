@@ -78,14 +78,10 @@ class IntegrationConversationSearchFragment extends Fragment with FragmentHelper
     adapter.createConvClicked.onUi { _ =>
       integrationDetailsController.currentIntegrationId.head.flatMap {
         case (providerId, integrationId) =>
-          integrationsController.createConvWithBot(providerId, integrationId).flatMap {
-            case Left(e) =>
-              showToast(integrationsController.errorMessage(e))
-              Future.successful(())
-            case Right(convId) =>
-              close()
-              tracking.integrationAdded(integrationId, convId, IntegrationAdded.StartUi)
-              conversationController.selectConv(convId, ConversationChangeRequester.CONVERSATION_LIST)
+          integrationsController.createConvWithBot(providerId, integrationId).flatMap { convId =>
+            close()
+            tracking.integrationAdded(integrationId, convId, IntegrationAdded.StartUi)
+            conversationController.selectConv(convId, ConversationChangeRequester.CONVERSATION_LIST)
           }
       }
     }
