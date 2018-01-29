@@ -35,7 +35,7 @@
             android:layout_height="@dimen/profile__image__height"
             >
 
-        <com.waz.zclient.views.images.ImageAssetImageView
+        <ImageView
             android:id="@+id/iaiv__single_participant"
             android:layout_width="match_parent"
             android:layout_height="match_parent"

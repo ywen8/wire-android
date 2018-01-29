@@ -21,7 +21,6 @@ import android.support.v7.widget.RecyclerView
 import android.view.{LayoutInflater, View, ViewGroup}
 import com.waz.ZLog.ImplicitTag._
 import com.waz.ZLog.verbose
-import com.waz.api.ContactDetails
 import com.waz.model._
 import com.waz.service.ContactResult
 import com.waz.threading.Threading

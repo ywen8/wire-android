@@ -61,9 +61,9 @@ import com.waz.zclient.pages.main.connect.UserProfileContainer
 import com.waz.zclient.pages.main.conversation.ConversationManagerFragment._
 import com.waz.zclient.pages.main.conversation.controller.{ConversationScreenControllerObserver, IConversationScreenController}
 import com.waz.zclient.pages.main.drawing.DrawingFragment
-import com.waz.zclient.pages.main.participants.{ParticipantFragment, TabbedParticipantBodyFragment}
 import com.waz.zclient.pages.main.pickuser.controller.{IPickUserController, PickUserControllerScreenObserver}
 import com.waz.zclient.pages.main.profile.camera.{CameraContext, CameraFragment}
+import com.waz.zclient.participants.fragments.{ParticipantFragment, TabbedParticipantBodyFragment}
 import com.waz.zclient.ui.utils.KeyboardUtils
 import com.waz.zclient.utils.LayoutSpec
 import com.waz.zclient.views.{ConversationFragment, LoadingIndicatorView}
@@ -197,7 +197,7 @@ class ConversationManagerFragment extends BaseFragment[Container] with FragmentH
     getChildFragmentManager.popBackStack(ParticipantFragment.TAG, FragmentManager.POP_BACK_STACK_INCLUSIVE)
   }
 
-  override def onShowUser(user: User): Unit = if (LayoutSpec.isPhone(getContext)) KeyboardUtils.hideKeyboard(getActivity)
+  override def onShowUser(userId: UserId): Unit = if (LayoutSpec.isPhone(getContext)) KeyboardUtils.hideKeyboard(getActivity)
 
   override def onShowLikesList(message: Message): Unit = showFragment(LikesListFragment.newInstance(message), LikesListFragment.TAG)
 
@@ -336,7 +336,7 @@ class ConversationManagerFragment extends BaseFragment[Container] with FragmentH
 
   override def onHideOtrClient(): Unit = {}
 
-  override def showRemoveConfirmation(user: User): Unit = {}
+  override def showRemoveConfirmation(userId: UserId): Unit = {}
 
   override def onCameraNotAvailable(): Unit = {}
 

@@ -28,7 +28,9 @@ import android.widget.TextView;
 import com.waz.api.IConversation;
 import com.waz.api.User;
 import com.waz.model.ConvId;
+import com.waz.model.UserId;
 import com.waz.zclient.R;
+import com.waz.zclient.common.controllers.ThemeController;
 import com.waz.zclient.common.views.UserDetailsView;
 import com.waz.zclient.controllers.accentcolor.AccentColorObserver;
 import com.waz.zclient.controllers.navigation.NavigationController;
@@ -165,11 +167,14 @@ public class BlockedUserProfileFragment extends BaseFragment<BlockedUserProfileF
         cancelButton.setText(getString(R.string.confirmation_menu__cancel));
         smallUnblockButton.setText(getString(R.string.connect_request__unblock__button__text));
 
+        int unblockButtonColor = inject(ThemeController.class).optionsDarkTheme().getTextColorPrimary();
+        unblockButton.setTextColor(unblockButtonColor);
+        smallUnblockButton.setTextColor(unblockButtonColor);
+
         // Hide some views irrelevant for blocking
         footerMenu.setVisibility(View.GONE);
         unblockButton.setVisibility(View.GONE);
         separatorLine.setVisibility(View.GONE);
-        unblockButton.setVisibility(View.GONE);
 
         View backgroundContainer = ViewUtils.getView(view, R.id.fl__blocked_user__background_container);
         if ((LayoutSpec.isPhone(getActivity()) && getControllerFactory().getNavigationController().getPagerPosition() == NavigationController.FIRST_PAGE) ||
@@ -261,12 +266,14 @@ public class BlockedUserProfileFragment extends BaseFragment<BlockedUserProfileF
 
     @Override
     public void onAccentColorHasChanged(Object sender, int color) {
+        unblockButton.setIsFilled(true);
         unblockButton.setAccentColor(color);
 
         // Split Unblock / Cancel menu when opened from group conversation
         cancelButton.setIsFilled(false);
         cancelButton.setAccentColor(color);
 
+        smallUnblockButton.setIsFilled(true);
         smallUnblockButton.setAccentColor(color);
     }
 
@@ -306,6 +313,7 @@ public class BlockedUserProfileFragment extends BaseFragment<BlockedUserProfileF
 
         // Hook up callbacks
         footerMenu.setLeftActionLabelText(getString(R.string.connect_request__footer__blocked_label));
+        footerMenu.setLeftActionText(getString(R.string.glyph__block));
         footerMenu.setRightActionText(getString(R.string.glyph__minus));
         footerMenu.setCallback(new FooterMenuCallback() {
             @Override
@@ -315,7 +323,7 @@ public class BlockedUserProfileFragment extends BaseFragment<BlockedUserProfileF
 
             @Override
             public void onRightActionClicked() {
-                getContainer().showRemoveConfirmation(user);
+                getContainer().showRemoveConfirmation(new UserId(user.getId()));
             }
         });
 

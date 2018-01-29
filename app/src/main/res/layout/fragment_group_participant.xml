@@ -59,19 +59,6 @@
     </LinearLayout>
 
 
-    <FrameLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        >
-        <com.waz.zclient.views.images.ImageAssetImageView
-            android:id="@+id/iaiv__participant_body"
-            android:layout_width="@dimen/profile__image__width"
-            android:layout_height="@dimen/profile__image__height"
-            android:layout_gravity="center"
-            android:layout_marginTop="@dimen/participant__image_shift"
-            />
-    </FrameLayout>
-
     <!-- Unblock button for blocked users -->
     <com.waz.zclient.ui.views.ZetaButton
         android:id="@+id/zb__single_user_participants__unblock_button"
@@ -85,6 +72,7 @@
         android:textAllCaps="true"
         android:textSize="@dimen/wire__text_size__small"
         android:textColor="@color/text__primary_light"
+        android:visibility="gone"
         />
 
 

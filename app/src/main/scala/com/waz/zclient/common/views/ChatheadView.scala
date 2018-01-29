@@ -43,7 +43,6 @@ import com.waz.zclient.ui.utils.TypefaceUtils
 import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.{Injectable, Injector, R, ViewHelper}
 
-
 class ChatheadView(val context: Context, val attrs: AttributeSet, val defStyleAttr: Int) extends View(context, attrs, defStyleAttr) with ViewHelper {
 
   import ChatheadView._
@@ -385,60 +384,47 @@ protected class ChatheadController(val setSelectable:            Boolean        
     def apply(integration: IntegrationData): AssignDetails = AssignDetails(None, None, Some(integration))
   }
 
-  case class ChatheadDetails(accentColor: ColorVal, connectionStatus: User.ConnectionStatus,
-                             teamMember: Boolean, hasBeenInvited: Boolean, initials: String,
-                             knownUser: Boolean, grayScale: Boolean, assetId: Option[AssetId],
-                             selectable: Boolean, isBot: Boolean)
+  case class ChatheadDetails(accentColor: ColorVal = contactBackgroundColor,
+                             connectionStatus: User.ConnectionStatus = UNCONNECTED,
+                             teamMember: Boolean = false,
+                             hasBeenInvited: Boolean = false,
+                             initials: String,
+                             knownUser: Boolean = false,
+                             grayScale: Boolean = false,
+                             assetId: Option[AssetId] = None,
+                             selectable: Boolean = false,
+                             isBot: Boolean = false
+                            )
 
   object ChatheadDetails {
     def apply(user: UserData): ChatheadDetails = {
-      val accentColor = ColorVal(AccentColor(user.accent).getColor())
-      val connectionStatus = user.connection
       val teamMember = teamsAndUserController.isTeamMember(user.id)
-      val hasBeenInvited = false
-      val initials = NameParts.parseFrom(user.name).initials
       val knownUser = user.isConnected || user.isSelf
-      val grayScale = !(user.isConnected || user.isSelf || teamMember || user.isWireBot)
-      val assetId = user.picture
-      val selectable = knownUser || teamMember
+
       ChatheadDetails(
-        accentColor, connectionStatus, teamMember, hasBeenInvited,
-        initials, knownUser, grayScale, assetId, selectable, user.isWireBot
+        accentColor = ColorVal(AccentColor(user.accent).getColor()),
+        connectionStatus = user.connection,
+        teamMember = teamMember,
+        initials = NameParts.parseFrom(user.name).initials,
+        knownUser = knownUser,
+        grayScale = !(user.isConnected || user.isSelf || teamMember),
+        assetId = user.picture,
+        selectable = knownUser || teamMember,
+        isBot = user.isWireBot
       )
     }
 
-    def apply(contactDetails: ContactResult): ChatheadDetails = {
-      val accentColor = contactBackgroundColor
-      val connectionStatus = UNCONNECTED
-      val teamMember = false
-      val hasBeenInvited = contactDetails.invited
-      val initials = contactDetails.contact.initials
-      val knownUser = false
-      val grayScale = false
-      val assetId = None
-      val selectable = knownUser || teamMember
+    def apply(contactDetails: ContactResult): ChatheadDetails =
       ChatheadDetails(
-        accentColor, connectionStatus, teamMember, hasBeenInvited,
-        initials, knownUser, grayScale, assetId, selectable, isBot = false
+        hasBeenInvited = contactDetails.invited,
+        initials = contactDetails.contact.initials
       )
-    }
 
-    def apply(integration: IntegrationData): ChatheadDetails = {
-      val accentColor = contactBackgroundColor
-      val connectionStatus = UNCONNECTED
-      val teamMember = false
-      val hasBeenInvited = false
-      val initials = NameParts.parseFrom(integration.name).initials
-      val knownUser = false
-      val grayScale = false
-      val assetId = integration.asset
-      val selectable = false
+    def apply(integration: IntegrationData): ChatheadDetails =
       ChatheadDetails(
-        accentColor, connectionStatus, teamMember, hasBeenInvited,
-        initials, knownUser, grayScale, assetId, selectable, isBot = true
+        initials = NameParts.parseFrom(integration.name).initials,
+        isBot = true
       )
-    }
-
   }
 }
 

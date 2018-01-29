@@ -17,8 +17,6 @@
  */
 package com.waz.zclient.preferences.views
 
-import java.util.Locale
-
 import android.content.Context
 import android.graphics.drawable.Drawable
 import android.support.v4.content.ContextCompat
@@ -29,6 +27,7 @@ import com.waz.zclient.R
 import com.waz.zclient.ui.utils.TextViewUtils
 import com.waz.zclient.utils.ZTimeFormatter
 import org.threeten.bp.{LocalDateTime, ZoneId}
+import com.waz.zclient.utils.RichClient
 
 class DeviceButton(context: Context, attrs: AttributeSet, style: Int) extends PictureTextButton(context, attrs, style) {
   def this(context: Context, attrs: AttributeSet) = this(context, attrs, 0)
@@ -51,11 +50,6 @@ class DeviceButton(context: Context, attrs: AttributeSet, style: Int) extends Pi
   }
 
   private def displayId(client: Client): String = {
-    val id = f"${client.id.str.toUpperCase(Locale.ENGLISH)}%16s" replace (' ', '0') grouped 4 map { group =>
-      val (bold, normal) = group.splitAt(2)
-      s"[[$bold]] $normal"
-    } mkString " "
-
     val date = client.regTime match {
       case Some(regTime) =>
         val now = LocalDateTime.now(ZoneId.systemDefault)
@@ -64,6 +58,7 @@ class DeviceButton(context: Context, attrs: AttributeSet, style: Int) extends Pi
       case _ =>
         ""
     }
-    s"ID: $id\n$date"
+    s"ID: ${client.displayId}\n$date"
   }
+
 }
