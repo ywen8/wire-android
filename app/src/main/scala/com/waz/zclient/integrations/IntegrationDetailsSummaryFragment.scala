@@ -91,6 +91,15 @@ class IntegrationDetailsSummaryFragment extends Fragment with FragmentHelper {
       }
     }
 
+    removing.foreach {
+      case (cId, _) => integrationsController.hasPermissionToRemoveBot(cId).map {
+        case true =>
+          button.setVisibility(View.VISIBLE)
+        case _ =>
+          button.setVisibility(View.GONE)
+      }
+    }
+
     descriptionText
   }
 }

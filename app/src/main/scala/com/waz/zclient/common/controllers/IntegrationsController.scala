@@ -23,12 +23,12 @@ import com.waz.model._
 import com.waz.service.ZMessaging
 import com.waz.threading.Threading
 import com.waz.utils.events.Signal
-import com.waz.zclient.conversation.ConversationController
 import com.waz.zclient.utils.ContextUtils.getString
 import com.waz.zclient.{Injectable, Injector, R}
 import com.waz.ZLog.ImplicitTag._
 import com.waz.zclient.utils.ContextUtils.showToast
 import com.waz.sync.SyncResult
+import com.waz.zclient.utils.{ConversationSignal, UiStorage, UserSignal}
 
 import scala.concurrent.Future
 
@@ -37,6 +37,7 @@ class IntegrationsController(implicit injector: Injector, context: Context) exte
 
   private lazy val zms = inject[Signal[ZMessaging]]
   private lazy val integrations = inject[Signal[ZMessaging]].map(_.integrations)
+  private implicit lazy val uiStorage = inject[UiStorage]
 
   val searchQuery = Signal[String]("")
 
@@ -71,6 +72,14 @@ class IntegrationsController(implicit injector: Injector, context: Context) exte
     integrations.head.flatMap(_.removeBotFromConversation(cId, userId))
 
   def showToastError(error: ErrorResponse): Unit = showToast(errorMessage(error))(context)
+
+  def hasPermissionToRemoveBot(cId: ConvId): Future[Boolean] = {
+    for {
+      zms <- zms.head
+      account <- zms.account.accountData.head
+      conv <- ConversationSignal(cId).head
+    } yield zms.teamId == conv.team && account.selfPermissions.contains(AccountData.Permission.RemoveConversationMember)
+  }
 
   def errorMessage(e: ErrorResponse): String =
     getString((e.code, e.label) match {
