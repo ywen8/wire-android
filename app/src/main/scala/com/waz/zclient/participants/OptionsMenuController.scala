@@ -105,6 +105,12 @@ class OptionsMenuController(implicit injector: Injector, context: Context, ec: E
 
   val isGroup = otherUser.map(_.isEmpty)
 
+  val isMember = for {
+    zms <- zMessaging
+    conv <- conv
+    members <- conv.fold(Signal.const(Set.empty[UserId]))(cd => zms.membersStorage.activeMembers(cd.id))
+  } yield members.contains(zms.selfUserId)
+
   val optionItems = for {
     zms           <- zMessaging
     Some(conv)    <- conv
@@ -200,20 +206,24 @@ class OptionsMenuController(implicit injector: Injector, context: Context, ec: E
       }
     )
 
-  def deleteConversation(convId: ConvId) =
-    isGroup.head.map { isGroup =>
-      requestConfirmation(
-        header  = getString(R.string.confirmation_menu__meta_delete),
-        text    = getString(R.string.confirmation_menu__meta_delete_text),
-        confirm = getString(R.string.confirmation_menu__confirm_delete),
-        cancel  = getString(R.string.confirmation_menu__cancel),
-        checkBoxLabel = if (isGroup) getString(R.string.confirmation_menu__delete_conversation__checkbox__label) else "",
-        onHideAnimEnd = (confirmed, _, checkboxIsSelected) => {
-          if (confirmed) convController.delete(convId, checkboxIsSelected)
-          if (!inConvList && LayoutSpec.isTablet(context)) screenController.hideParticipants(false, true)
-        }
-      )
-    } (Threading.Ui)
+  def deleteConversation(convId: ConvId) = {
+    import Threading.Implicits.Ui
+    isGroup.head.flatMap { isGroup =>
+      isMember.head.map { isMember =>
+        requestConfirmation(
+          header  = getString(R.string.confirmation_menu__meta_delete),
+          text    = getString(R.string.confirmation_menu__meta_delete_text),
+          confirm = getString(R.string.confirmation_menu__confirm_delete),
+          cancel  = getString(R.string.confirmation_menu__cancel),
+          checkBoxLabel = if (isGroup && isMember) getString(R.string.confirmation_menu__delete_conversation__checkbox__label) else "",
+          onHideAnimEnd = (confirmed, _, checkboxIsSelected) => {
+            if (confirmed) convController.delete(convId, checkboxIsSelected)
+            if (!inConvList && LayoutSpec.isTablet(context)) screenController.hideParticipants(false, true)
+          }
+        )
+      }
+    }
+  }
 
   private def showBlockConfirmation(convId: ConvId, userId: UserId) =
     (for {
