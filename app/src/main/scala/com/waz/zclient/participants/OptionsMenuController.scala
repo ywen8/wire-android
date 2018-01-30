@@ -111,6 +111,7 @@ class OptionsMenuController(implicit injector: Injector, context: Context, ec: E
     isGroup       <- isGroup
     connectStatus <- otherUser.map(_.map(_.connection))
     teamMember    <- otherUser.map(_.exists(u => u.teamId.nonEmpty && u.teamId == zms.teamId))
+    isBot         <- otherUser.map(_.exists(_.isWireBot))
     inConvList    <- inConversationList
   } yield {
     import OptionsMenuItem._
@@ -121,7 +122,7 @@ class OptionsMenuController(implicit injector: Injector, context: Context, ec: E
     builder += (if (conv.archived) UNARCHIVE else ARCHIVE)
     isGroup match {
       case false =>
-        if (teamMember || connectStatus.contains(ACCEPTED)) {
+        if (teamMember || connectStatus.contains(ACCEPTED) || isBot) {
           builder += (if (conv.muted) UNSILENCE else SILENCE)
           builder += DELETE
           if (inConvList) builder ++= Set(CALL, PICTURE)
