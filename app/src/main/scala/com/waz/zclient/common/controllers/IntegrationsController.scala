@@ -28,7 +28,7 @@ import com.waz.zclient.{Injectable, Injector, R}
 import com.waz.ZLog.ImplicitTag._
 import com.waz.zclient.utils.ContextUtils.showToast
 import com.waz.sync.SyncResult
-import com.waz.zclient.utils.{ConversationSignal, UiStorage, UserSignal}
+import com.waz.zclient.utils.{ConversationSignal, UiStorage}
 
 import scala.concurrent.Future
 
@@ -61,7 +61,7 @@ class IntegrationsController(implicit injector: Injector, context: Context) exte
         case SyncResult.Success =>
           addBot(conv.id, pId, iId).collect {
             case Left(error) => showToastError(error)
-          }
+          } (Threading.Ui)
         case result =>
           showToastError(result.error.getOrElse(ErrorResponse.InternalError))
       } (Threading.Ui)
