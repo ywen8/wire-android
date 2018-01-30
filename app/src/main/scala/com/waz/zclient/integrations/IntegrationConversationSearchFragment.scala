@@ -91,12 +91,8 @@ class IntegrationConversationSearchFragment extends Fragment with FragmentHelper
     zms <- zms
     filter <- integrationDetailsController.searchFilter
     convs <- Signal.future(zms.convsUi.findGroupConversations(SearchKey(filter), Int.MaxValue, handleOnly = false))
-    groups <- Signal.sequence(convs.distinct.map(conv => ConversationMembersSignal(conv.id).map(m => (conv, m.size > 2))):_*)
-      .map(_.collect {
-        case (conv, true) => conv
-        case (conv, false) if conv.name.nonEmpty => conv
-      })
-  } yield groups
+    groups<- Signal.future(Future.sequence(convs.distinct.map(conv => conversationController.isGroup(conv).map(if (_) Some(conv) else None))))
+  } yield groups.flatten.filter(_.team == zms.teamId)
 
   override def onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState: Bundle): View =
     inflater.inflate(R.layout.fragment_integrations_pick_conv, container, false)
