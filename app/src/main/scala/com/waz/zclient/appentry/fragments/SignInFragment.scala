@@ -110,7 +110,7 @@ class SignInFragment extends BaseFragment[Container] with FragmentHelper with Vi
 
     termsOfService.foreach { text =>
       TextViewUtils.linkifyText(text, ContextCompat.getColor(getContext, R.color.white), true, new Runnable {
-        override def run() = getContainer.onOpenUrlInApp(getString(R.string.url_terms_of_service_personal), withCloseButton = true)
+        override def run() = getContainer.onOpenUrl(getString(R.string.url_terms_of_service_personal))
       })
     }
     countryButton.foreach(_.setOnClickListener(this))
@@ -294,7 +294,6 @@ object SignInFragment {
   val Tag = logTagFor[SignInFragment]
   trait Container {
     def abortAddAccount(): Unit
-    def onOpenUrlInApp(url: String, withCloseButton: Boolean): Unit
     def onOpenUrl(url: String): Unit
   }
 }

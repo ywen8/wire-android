@@ -35,7 +35,6 @@ public class AppEntryTestActivity extends TestActivity implements VerifyPhoneFra
                                                                        PhoneSetNameFragment.Container,
                                                                        PhoneAddEmailFragment.Container,
                                                                        SignUpPhotoFragment.Container,
-                                                                       InAppWebViewFragment.Container,
                                                                        CountryDialogFragment.Container,
                                                                        ZMessagingApiStoreObserver {
     @Override
@@ -71,11 +70,6 @@ public class AppEntryTestActivity extends TestActivity implements VerifyPhoneFra
 
     @Override
     public void onForceClientUpdate() {
-
-    }
-
-    @Override
-    public void dismissInAppWebView() {
 
     }
 
