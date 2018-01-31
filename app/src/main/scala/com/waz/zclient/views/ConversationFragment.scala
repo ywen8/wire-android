@@ -734,7 +734,7 @@ class ConversationFragment extends BaseFragment[ConversationFragment.Container] 
     }
 
     private def onErrorCanNotSentMessageToUnverifiedConversation(errorDescription: ErrorsList.ErrorDescription) =
-      if (getControllerFactory.getNavigationController.getCurrentPage != Page.MESSAGE_STREAM) {
+      if (getControllerFactory.getNavigationController.getCurrentPage == Page.MESSAGE_STREAM) {
         KeyboardUtils.hideKeyboard(getActivity)
 
         (for {
