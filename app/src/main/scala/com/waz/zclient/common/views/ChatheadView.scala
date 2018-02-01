@@ -374,7 +374,7 @@ protected class ChatheadController(val setSelectable:            Boolean        
       val hasBeenInvited = false
       val initials = NameParts.parseFrom(user.name).initials
       val knownUser = user.isConnected || user.isSelf
-      val grayScale = !(user.isConnected || user.isSelf || teamMember)
+      val grayScale = !(user.isConnected || user.isSelf || teamMember || user.isWireBot)
       val assetId = user.picture
       val selectable = knownUser || teamMember
       ChatheadDetails(
@@ -411,7 +411,7 @@ protected class ChatheadController(val setSelectable:            Boolean        
       val selectable = false
       ChatheadDetails(
         accentColor, connectionStatus, teamMember, hasBeenInvited,
-        initials, knownUser, grayScale, None /*assetId*/, selectable
+        initials, knownUser, grayScale, assetId, selectable
       )
     }
 
