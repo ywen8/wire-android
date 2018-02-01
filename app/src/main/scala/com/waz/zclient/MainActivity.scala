@@ -265,24 +265,20 @@ class MainActivity extends BaseActivity
     getControllerFactory.getNavigationController.setIsLandscape(ContextUtils.isInLandscape(this))
   }
 
-  ///////////////////////////////////////////////////////////////////////////////////////////////////////////
-  //
-  //  Navigation
-  //
-  ///////////////////////////////////////////////////////////////////////////////////////////////////////////
-  private def enterApplication(self: Self): Unit = {
-    error("Entering application")
-    // step 1 - check if app was started via password reset intent
+  private def enterApplication(): Unit = {
+    verbose("Entering application")
     if (IntentUtils.isPasswordResetIntent(getIntent)) {
-      error("Password was reset")
+      verbose("Password was reset")
       onPasswordWasReset()
     }
   }
 
-  private def onPasswordWasReset() = {
-    getStoreFactory.zMessagingApiStore.getApi.logout()
-    openSignUpPage()
-  }
+  private def onPasswordWasReset() =
+    for {
+      Some(am) <- ZMessaging.currentAccounts.getActiveAccountManager
+      token    <- ZMessaging.currentAccounts.getActiveAccount.map(_.flatMap(_.accessToken))
+      _        <- am.auth.checkLoggedIn(token)
+    } yield {}
 
   private def onUserLoggedInAndVerified(self: Self) = {
     verbose("onUserLoggedInAndVerified")
@@ -446,7 +442,7 @@ class MainActivity extends BaseActivity
 
   def dismissOtrDeviceLimitFragment() = getSupportFragmentManager.popBackStackImmediate
 
-  def onInitialized(self: Self) = enterApplication(self)
+  def onInitialized(self: Self) = enterApplication()
 
   def onStartCall(withVideo: Boolean) = conversationController.currentConv.head.map { conv =>
     handleOnStartCall(withVideo, conv)
