@@ -141,10 +141,7 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
   private var conversationToolbar: Toolbar = null
   private var startUiToolbar: Toolbar = null
   private var toolbarHeader: TextView = null
-  private var errorMessageViewHeader: TypefaceTextView = null
-  private var errorMessageViewSendInvite: LinearLayout = null
-  private var errorMessageViewBody: TypefaceTextView = null
-  private var errorMessageViewContainer: LinearLayout = null
+  private var errorMessageView: TypefaceTextView = null
   private var conversationQuickMenu: ConversationQuickMenu = null
   private var userSelectionConfirmationButton: FlatWireButton = null
   private var inviteButton: FlatWireButton = null
@@ -282,11 +279,8 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
     inviteButton.setText(R.string.pref_invite_title)
     inviteButton.setGlyph(R.string.glyph__invite)
     // Error message
-    errorMessageViewContainer = ViewUtils.getView(rootView, R.id.fl_pickuser__error_message_container)
-    errorMessageViewContainer.setVisibility(View.GONE)
-    errorMessageViewHeader = ViewUtils.getView(rootView, R.id.ttv_pickuser__error_header)
-    errorMessageViewBody = ViewUtils.getView(rootView, R.id.ttv_pickuser__error_body)
-    errorMessageViewSendInvite = ViewUtils.getView(rootView, R.id.ll_pickuser__error_invite)
+    errorMessageView = ViewUtils.getView(rootView, R.id.pickuser__error_text)
+    errorMessageView.setVisibility(View.GONE)
     showLoadingBarDelay = getResources.getInteger(R.integer.people_picker__loading_bar__show_delay)
     if (isAddingToConversation) {
       inviteButton.setVisibility(View.GONE)
@@ -302,12 +296,6 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
       inviteButton.setVisibility(if (isPrivateAccount) View.VISIBLE else View.GONE)
       // Use constant style for left side start ui
       val textColor: Int = ContextCompat.getColor(getContext, R.color.text__primary_dark)
-      errorMessageViewHeader.setTextColor(textColor)
-      errorMessageViewBody.setTextColor(textColor)
-      val errorMessageIcon: TextView = ViewUtils.getView(rootView, R.id.gtv_pickuser__error_icon)
-      errorMessageIcon.setTextColor(textColor)
-      val errorMessageSublabel: TextView = ViewUtils.getView(rootView, R.id.ttv_pickuser__error_sublabel)
-      errorMessageSublabel.setTextColor(textColor)
       conversationToolbar.setVisibility(View.GONE)
       startUiToolbar.setVisibility(View.VISIBLE)
       toolbarTitle = ViewUtils.getView(rootView, R.id.pickuser_title)
@@ -415,6 +403,17 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
     searchUserController.setFilter("")
     integrationsController.searchQuery ! ""
 
+    (for {
+      integrationTab <- searchResultAdapter.peopleOrServices
+      hasSearch <- integrationsController.searchQuery.map(_.nonEmpty)
+      hasResults <- integrationsController.searchIntegrations.map(_.forall(_.nonEmpty))
+    } yield integrationTab && hasSearch && !hasResults).onUi {
+      case true =>
+        showErrorMessage()
+      case false =>
+        hideErrorMessage()
+    }
+
     rootView
   }
 
@@ -446,7 +445,6 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
     super.onResume()
     inviteButton.setOnClickListener(this)
     userSelectionConfirmationButton.setOnClickListener(this)
-    errorMessageViewSendInvite.setOnClickListener(this)
     if (!isAddingToConversation) {
       new Handler().postDelayed(new Runnable() {
         def run(): Unit =
@@ -466,7 +464,6 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
   override def onPause(): Unit = {
     inviteButton.setOnClickListener(null)
     userSelectionConfirmationButton.setOnClickListener(null)
-    errorMessageViewSendInvite.setOnClickListener(null)
     super.onPause()
   }
 
@@ -477,10 +474,7 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
   }
 
   override def onDestroyView(): Unit = {
-    errorMessageViewHeader = null
-    errorMessageViewSendInvite = null
-    errorMessageViewBody = null
-    errorMessageViewContainer = null
+    errorMessageView = null
     searchResultRecyclerView = null
     conversationQuickMenu = null
     userSelectionConfirmationButton = null
@@ -566,9 +560,6 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
     if (users.size >= minUsers) {
       KeyboardUtils.hideKeyboard(getActivity)
       getContainer.onSelectedUsers(users.toSeq.asJava, ConversationChangeRequester.START_CONVERSATION)
-    }
-    if (searchResultRecyclerView != null && searchResultRecyclerView.getVisibility != View.VISIBLE && errorMessageViewContainer.getVisibility != View.VISIBLE) {
-      showErrorMessage()
     }
   }
 
@@ -728,19 +719,11 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
     }
   }
 
-  private def showErrorMessage(): Unit = {
-    errorMessageViewContainer.setVisibility(View.VISIBLE)
-    // Set isClickable as ListView continues to receive click events with GONE visibility
-    searchResultRecyclerView.setClickable(false)
-    searchResultRecyclerView.setVisibility(View.GONE)
-  }
+  private def showErrorMessage(): Unit =
+    errorMessageView.setVisibility(View.VISIBLE)
 
-  private def hideErrorMessage(): Unit = {
-    errorMessageViewContainer.setVisibility(View.GONE)
-    searchResultRecyclerView.setClickable(true)
-    searchResultRecyclerView.setVisibility(View.VISIBLE)
-    errorMessageViewHeader.setText("")
-  }
+  private def hideErrorMessage(): Unit =
+    errorMessageView.setVisibility(View.GONE)
 
   private def getCurrentPickerDestination: IPickUserController.Destination = {
     getContainer.getCurrentPickerDestination
@@ -811,8 +794,6 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
         getContainer.onSelectedUsers(users.toSeq.asJava, ConversationChangeRequester.START_CONVERSATION)
       case R.id.invite_button =>
         sendGenericInvite(false)
-      case R.id.ll_pickuser__error_invite =>
-        sendGenericInvite(true)
     }
   }
 

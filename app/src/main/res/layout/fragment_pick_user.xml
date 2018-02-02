@@ -155,85 +155,30 @@
 
     </RelativeLayout>
 
-    <android.support.v7.widget.RecyclerView
-        android:id="@+id/rv__pickuser__header_list_view"
+    <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1"/>
+        android:layout_weight="1">
 
-    <!-- Error messages -->
-    <LinearLayout
-        android:id="@+id/fl_pickuser__error_message_container"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:clickable="true"
-        android:orientation="vertical"
-        android:gravity="center"
-        android:paddingStart="@dimen/framework__general__left_padding"
-        android:paddingEnd="@dimen/framework__general__right_padding"
-        >
-
-        <!-- Error message -->
-        <com.waz.zclient.ui.text.TypefaceTextView
-            android:id="@+id/ttv_pickuser__error_header"
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/rv__pickuser__header_list_view"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center"
-            app:w_font="@string/wire__typeface__medium"
-            style="?startUiErrorLabel"
-            />
+            android:layout_height="match_parent"/>
 
-        <!-- Error message -->
         <com.waz.zclient.ui.text.TypefaceTextView
-            android:id="@+id/ttv_pickuser__error_body"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center"
-            app:w_font="@string/wire__typeface__light"
-            style="?startUiErrorLabel"
-            />
-
-        <!-- send invite -->
-        <LinearLayout
-            android:id="@+id/ll_pickuser__error_invite"
+            android:id="@+id/pickuser__error_text"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:gravity="center"
-            android:orientation="vertical"
-            android:padding="@dimen/people_picker__error_icon__padding"
-            >
+            app:w_font="@string/wire__typeface__medium"
+            android:text="@string/no_matches_found"
+            android:textColor="@color/white"
+            android:textSize="@dimen/wire__text_size__regular"
+            android:visibility="gone"
+            />
 
-            <FrameLayout
-                android:layout_width="@dimen/people_picker__chathead__width"
-                android:layout_height="@dimen/people_picker__chathead__width"
-                android:background="@drawable/member_counter__background"
-                >
-
-                <com.waz.zclient.ui.text.GlyphTextView
-                    android:id="@+id/gtv_pickuser__error_icon"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center"
-                    android:text="@string/glyph__envelope"
-                    style="?startUiErrorIcon"
-                    />
-            </FrameLayout>
-
-            <com.waz.zclient.ui.text.TypefaceTextView
-                android:id="@+id/ttv_pickuser__error_sublabel"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:gravity="center"
-                android:paddingTop="@dimen/people_picker__error_icon_text__top_padding"
-                android:text="@string/people_picker__error_message__no_results__send_invite"
-                app:w_font="@string/wire__typeface__light"
-                style="?startUiErrorSubLabel"
-                />
-        </LinearLayout>
-
-    </LinearLayout>
+    </FrameLayout>
 
     <com.waz.zclient.ui.startui.ConversationQuickMenu
         android:id="@+id/cqm__pickuser__quick_menu"
