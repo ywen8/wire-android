@@ -43,12 +43,18 @@ case class DownArrowDrawable() extends WireDrawable {
 case class ServicePlaceholderDrawable(cornerRadius: Float = 0, backgroundColor: Int = Color.WHITE) extends WireDrawable {
   import ServicePlaceholderDrawable._
 
-  val bgPaint = returning(new Paint())(_.setColor(backgroundColor))
+  private val StrokeWidth = 2f
+  private val bgPaint = returning(new Paint())(_.setColor(backgroundColor))
+  private val strokePaint = returning(new Paint(Paint.ANTI_ALIAS_FLAG)){ paint =>
+    paint.setStyle(Paint.Style.STROKE)
+    paint.setColor(Color.BLACK)
+    paint.setAlpha(20)
+    paint.setStrokeWidth(StrokeWidth)
+  }
   paint.setAlpha(20)
 
   override def draw(canvas: Canvas): Unit = {
     val b = canvas.getClipBounds
-    val rect = new RectF(b)
 
     val w: Float = b.right - b.left
     val h: Float = b.bottom - b.top
@@ -60,11 +66,16 @@ case class ServicePlaceholderDrawable(cornerRadius: Float = 0, backgroundColor: 
     val ti = h * (1f - InnerSizeFactor) / 2f
     val rectInner = new RectF(li, ti, li + wi, ti + hi)
 
-    canvas.drawRoundRect(rect, cornerRadius, cornerRadius, bgPaint)
+    val strokeRect = new RectF(StrokeWidth, StrokeWidth, getBounds.width - StrokeWidth, getBounds.height - StrokeWidth)
+    val bgRect = new RectF(StrokeWidth * 2, StrokeWidth * 2, getBounds.width - StrokeWidth * 2, getBounds.height - StrokeWidth * 2)
+
+    canvas.drawRoundRect(bgRect, cornerRadius, cornerRadius, bgPaint)
+    canvas.drawRoundRect(strokeRect, cornerRadius, cornerRadius, strokePaint)
     drawServiceIcon(canvas, rectInner, ResizingBehavior.AspectFit, paint.getColor)
   }
 
   override def setAlpha(alpha: Int): Unit = {
+    strokePaint.setAlpha((0.08 * alpha).toInt)
     paint.setAlpha((0.08 * alpha).toInt)
     bgPaint.setAlpha(alpha)
   }

@@ -41,6 +41,7 @@ import com.waz.utils.{NameParts, returning}
 import com.waz.zclient.common.controllers.UserAccountsController
 import com.waz.zclient.ui.utils.TypefaceUtils
 import com.waz.zclient.utils.ContextUtils._
+import com.waz.zclient.utils.Offset
 import com.waz.zclient.{Injectable, Injector, R, ViewHelper}
 
 
@@ -95,6 +96,10 @@ class ChatheadView(val context: Context, val attrs: AttributeSet, val defStyleAt
   private val glyphOverlayPaint = returning(new Paint(Paint.ANTI_ALIAS_FLAG))(_.setColor(iconOverlayColor))
 
   private val grayScaleColorMatrix = new ColorMatrix()
+
+  private lazy val matrix = new Matrix()
+  private lazy val bitmapPaint = new Paint(Paint.ANTI_ALIAS_FLAG)
+  private lazy val integrationDrawHelper = IntegrationSquareDrawHelper()
 
   ctrl.invalidate.on(Threading.Ui)(_ => invalidate())
 
@@ -174,7 +179,7 @@ class ChatheadView(val context: Context, val attrs: AttributeSet, val defStyleAt
 
       bitmap.fold {
         if (backgroundPaint.getColor != Color.TRANSPARENT) {
-          drawBackgroundAndBorder(canvas, x, y, radius, borderWidth)
+          drawBackgroundAndBorder(canvas, x, y, radius, borderWidth, new RectF(x, y, x + size, y + size))
         }
         ctrl.initials.currentValue.foreach { initials =>
           var fontSize: Float = initialsFontSize
@@ -186,7 +191,15 @@ class ChatheadView(val context: Context, val attrs: AttributeSet, val defStyleAt
         }
       } { bitmap =>
 
-        canvas.drawBitmap(bitmap, null, new RectF(x, y, x + size, y + size), backgroundPaint)
+        if (ctrl.chatheadInfo.currentValue.flatten.exists(_.isBot)) {
+          val bounds = new Rect(0, 0, getWidth, getHeight)
+          ImageAssetDrawable.ScaleType.CenterInside(matrix, bitmap.getWidth, bitmap.getHeight, Dim2(bounds.width(), bounds.height()))
+          matrix.postTranslate(bounds.left, bounds.top)
+          integrationDrawHelper.draw(canvas, bitmap, bounds, matrix, bitmapPaint)
+
+        } else {
+          canvas.drawBitmap(bitmap, null, new RectF(x, y, x + size, y + size), backgroundPaint)
+        }
       }
 
       // Cut out
@@ -197,8 +210,12 @@ class ChatheadView(val context: Context, val attrs: AttributeSet, val defStyleAt
     }
   }
 
-  private def drawBackgroundAndBorder(canvas: Canvas, xOffset: Float, yOffset: Float, radius: Float, borderWidthPx: Int) = {
-    if (swapBackgroundAndInitialsColors) {
+  private def drawBackgroundAndBorder(canvas: Canvas, xOffset: Float, yOffset: Float, radius: Float, borderWidthPx: Int, rect: RectF) = {
+    if (ctrl.isBot.currentValue.getOrElse(false)) {
+      val radius = integrationDrawHelper.cornerRadius(rect.width())
+      canvas.drawRoundRect(rect, radius, radius, backgroundPaint)
+    }
+    else if (swapBackgroundAndInitialsColors) {
       if (ctrl.isRound) {
         canvas.drawCircle(radius + xOffset, radius + yOffset, radius, initialsTextPaint)
         canvas.drawCircle(radius + xOffset, radius + yOffset, radius - borderWidthPx, backgroundPaint)
@@ -332,13 +349,25 @@ protected class ChatheadController(val setSelectable:            Boolean        
     case (viewWidth, isKnownUser) => if (showBorder && isKnownUser) border.fold(0)(_.getWidth(viewWidth)) else 0
   }
 
-  val bitmapResult = Signal(zMessaging, assetId, viewWidth, borderWidth, accentColor).flatMap[BitmapResult] {
-    case (zms, Some(id), width, bWidth, bColor) if width > 0 => zms.assetsStorage.signal(id).flatMap {
-      case data@AssetData.IsImage() if isRound => BitmapSignal(zms, data, Round(width, bWidth, bColor.value))
+  val isBot =  chatheadInfo.map {
+    case Some(info) => info.isBot
+    case _ => false
+  }
+
+  val bitmapResult = (for {
+    zMessaging <- zMessaging
+    assetId <- assetId
+    viewWidth <- viewWidth
+    borderWidth <- borderWidth
+    accentColor <- accentColor
+    isBot <- isBot
+  } yield (zMessaging, assetId, viewWidth, borderWidth, accentColor, isBot)).flatMap[BitmapResult] {
+    case (zms, Some(id), width, bWidth, bColor, bot) if width > 0 => zms.assetsStorage.signal(id).flatMap {
+      case data@AssetData.IsImage() if isRound && !bot => BitmapSignal(zms, data, Round(width, bWidth, bColor.value))
       case data@AssetData.IsImage() => BitmapSignal(zms, data, Single(width))
       case _ => Signal.empty[BitmapResult]
     }
-    case (_, aid, width, _, _) => Signal.const(BitmapResult.Empty)
+    case (_, aid, width, _, _, _) => Signal.const(BitmapResult.Empty)
   }
 
   val bitmap = bitmapResult.flatMap[Option[Bitmap]] {
@@ -364,7 +393,7 @@ protected class ChatheadController(val setSelectable:            Boolean        
   case class ChatheadDetails(accentColor: ColorVal, connectionStatus: User.ConnectionStatus,
                              teamMember: Boolean, hasBeenInvited: Boolean, initials: String,
                              knownUser: Boolean, grayScale: Boolean, assetId: Option[AssetId],
-                             selectable: Boolean)
+                             selectable: Boolean, isBot: Boolean)
 
   object ChatheadDetails {
     def apply(user: UserData): ChatheadDetails = {
@@ -379,7 +408,7 @@ protected class ChatheadController(val setSelectable:            Boolean        
       val selectable = knownUser || teamMember
       ChatheadDetails(
         accentColor, connectionStatus, teamMember, hasBeenInvited,
-        initials, knownUser, grayScale, assetId, selectable
+        initials, knownUser, grayScale, assetId, selectable, user.isWireBot
       )
     }
 
@@ -395,7 +424,7 @@ protected class ChatheadController(val setSelectable:            Boolean        
       val selectable = knownUser || teamMember
       ChatheadDetails(
         accentColor, connectionStatus, teamMember, hasBeenInvited,
-        initials, knownUser, grayScale, assetId, selectable
+        initials, knownUser, grayScale, assetId, selectable, isBot = false
       )
     }
 
@@ -411,7 +440,7 @@ protected class ChatheadController(val setSelectable:            Boolean        
       val selectable = false
       ChatheadDetails(
         accentColor, connectionStatus, teamMember, hasBeenInvited,
-        initials, knownUser, grayScale, assetId, selectable
+        initials, knownUser, grayScale, assetId, selectable, isBot = true
       )
     }
 

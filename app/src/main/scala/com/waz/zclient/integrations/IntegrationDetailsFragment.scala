@@ -36,7 +36,7 @@ import com.waz.utils.returning
 import com.waz.zclient.common.controllers.IntegrationsController
 import com.waz.zclient.common.views.ImageAssetDrawable.{RequestBuilder, ScaleType}
 import com.waz.zclient.common.views.ImageController.{ImageSource, NoImage, WireImage}
-import com.waz.zclient.common.views.RoundedImageAssetDrawable
+import com.waz.zclient.common.views.IntegrationAssetDrawable
 import com.waz.zclient.controllers.navigation.{INavigationController, Page}
 import com.waz.zclient.integrations.IntegrationDetailsViewPager._
 import com.waz.zclient.pages.main.pickuser.controller.IPickUserController
@@ -63,13 +63,12 @@ class IntegrationDetailsFragment extends FragmentHelper with OnBackPressedListen
   private lazy val pictureAssetId = integrationDetailsController.currentIntegration.map(_.asset)
   private lazy val picture: Signal[ImageSource] = pictureAssetId.map(_.map(WireImage).getOrElse(NoImage()))
 
-  private lazy val drawable = new RoundedImageAssetDrawable(
+  private lazy val drawable = new IntegrationAssetDrawable(
     src          = picture,
     scaleType    = ScaleType.CenterInside,
     request      = RequestBuilder.Regular,
-    background   = Some(ServicePlaceholderDrawable(ImageCornerRadius.toFloat)),
-    animate      = true,
-    cornerRadius = ImageCornerRadius
+    background   = Some(ServicePlaceholderDrawable(getDimenPx(R.dimen.wire__padding__regular))),
+    animate      = true
   )
 
   private lazy val viewPager = view[IntegrationDetailsViewPager](R.id.view_pager)
@@ -205,7 +204,6 @@ object IntegrationDetailsFragment {
 object IntegrationDetailsViewPager {
   val DetailsPage = 0
   val ConvListPage = 1
-  val ImageCornerRadius = 16
 }
 
 case class IntegrationDetailsViewPager (context: Context, attrs: AttributeSet) extends ViewPager(context, attrs) with ViewHelper {

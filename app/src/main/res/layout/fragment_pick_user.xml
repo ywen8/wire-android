@@ -94,6 +94,7 @@
             app:tabTextColor="@color/white_32"
             app:tabMode="fixed"
             app:tabSelectedTextColor="@color/white"
+            app:tabIndicatorHeight="@dimen/wire__divider__height"
             >
 
             <android.support.design.widget.TabItem
