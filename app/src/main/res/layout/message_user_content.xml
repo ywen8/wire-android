@@ -47,12 +47,13 @@
         android:layout_height="wrap_content"
         android:text="@string/integrations_conv_bot"
         android:layout_gravity="center_vertical"
-        android:padding="@dimen/wire__padding__4"
         android:textColor="@color/light_graphite"
         android:textSize="@dimen/wire__text_size__small"
-        app:w_font="@string/wire__typeface__medium"
+        app:w_font="@string/wire__typeface__light"
         android:textAllCaps="true"
+        android:includeFontPadding="false"
         android:visibility="gone"
+        android:layout_marginStart="@dimen/wire__padding__4"
         />
 
     <com.waz.zclient.ui.text.GlyphTextView
