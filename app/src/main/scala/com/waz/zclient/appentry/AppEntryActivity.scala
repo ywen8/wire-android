@@ -61,7 +61,6 @@ class AppEntryActivity extends BaseActivity
   with PhoneSetNameFragment.Container
   with SignUpPhotoFragment.Container
   with EmailVerifyEmailFragment.Container
-  with InAppWebViewFragment.Container
   with CountryDialogFragment.Container
   with FirstLaunchAfterLoginFragment.Container
   with SignInFragment.Container
@@ -89,14 +88,11 @@ class AppEntryActivity extends BaseActivity
   override def onBackPressed(): Unit = {
 
     val topFragment = getSupportFragmentManager.getFragments.asScala.find {
-      case _: InAppWebViewFragment => true
       case f: OnBackPressedListener if f.onBackPressed() => true
       case _ => false
     }
 
     topFragment match {
-      case Some(_: InAppWebViewFragment) =>
-        getSupportFragmentManager.popBackStackImmediate
       case Some(f: OnBackPressedListener) if f.onBackPressed() => //
       case _ => abortAddAccount()
     }
@@ -303,22 +299,6 @@ class AppEntryActivity extends BaseActivity
       .commit
     KeyboardUtils.hideKeyboard(this)
   }
-
-  def onOpenUrlInApp(url: String, withCloseButton: Boolean): Unit = {
-    val prefixedUrl =
-      if (!url.startsWith(AppEntryActivity.HTTP_PREFIX) && !url.startsWith(AppEntryActivity.HTTPS_PREFIX))
-        AppEntryActivity.HTTP_PREFIX + url
-      else
-        url
-    val transaction = getSupportFragmentManager.beginTransaction
-    transaction.setCustomAnimations(R.anim.new_reg_in, R.anim.new_reg_out)
-    transaction.add(R.id.fl_main_web_view, InAppWebViewFragment.newInstance(prefixedUrl, withCloseButton), InAppWebViewFragment.TAG)
-    transaction.addToBackStack(InAppWebViewFragment.TAG)
-    transaction.commit
-    KeyboardUtils.hideKeyboard(this)
-  }
-
-  def dismissInAppWebView(): Unit = getSupportFragmentManager.popBackStackImmediate
 
   def getCountryController: CountryController = countryController
 
