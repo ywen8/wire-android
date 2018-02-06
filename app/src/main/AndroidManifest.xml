@@ -190,24 +190,6 @@
 
         </activity>
 
-        <activity android:name="com.waz.zclient.SMSCodeReceiverActivity"
-                  android:noHistory="true"
-                  android:theme="@style/Theme.Light"
-                  android:launchMode="singleTask"
-            >
-            <intent-filter>
-                <data android:host="verify-phone"
-                      android:scheme="wire" />
-
-                <action android:name="android.intent.action.VIEW" />
-
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-                <category android:name="android.intent.category.VIEW" />
-            </intent-filter>
-
-        </activity>
-
         <activity
             android:name=".appentry.AppEntryActivity"
             android:label="@string/app_name"
