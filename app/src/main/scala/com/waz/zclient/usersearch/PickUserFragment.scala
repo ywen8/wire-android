@@ -128,6 +128,7 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
   private var searchBoxIsEmpty: Boolean = true
   private var showLoadingBarDelay: Long = 0L
   private var lastInputIsKeyboardDoneAction: Boolean = false
+
   private lazy val searchUserController: SearchUserController = new SearchUserController(SearchState("", hasSelectedUsers = false, addingToConversation = addingToConversation))
 
   private lazy val searchResultRecyclerView        = view[RecyclerView](R.id.rv__pickuser__header_list_view)
