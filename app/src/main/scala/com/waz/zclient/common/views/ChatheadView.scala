@@ -138,7 +138,7 @@ class ChatheadView(val context: Context, val attrs: AttributeSet, val defStyleAt
     ctrl.selected.currentValue.getOrElse(false)
   }
 
-  override def setSelected(selected: Boolean) = {
+  def requestSelected(selected: Boolean) = {
     ctrl.requestSelected ! selected
   }
 

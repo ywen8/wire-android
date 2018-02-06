@@ -61,14 +61,12 @@ import com.waz.zclient.pages.main.conversation.controller.IConversationScreenCon
 import com.waz.zclient.pages.main.participants.dialog.DialogLaunchMode
 import com.waz.zclient.pages.main.pickuser.controller.IPickUserController
 import com.waz.zclient.ui.animation.fragment.FadeAnimation
-import com.waz.zclient.ui.startui.{ConversationQuickMenu, ConversationQuickMenuCallback}
 import com.waz.zclient.ui.text.TypefaceTextView
 import com.waz.zclient.ui.theme.ThemeUtils
 import com.waz.zclient.ui.utils.KeyboardUtils
 import com.waz.zclient.usersearch.adapters.PickUsersAdapter
 import com.waz.zclient.usersearch.views.{ContactRowView, SearchBoxView, SearchEditText, UserRowView}
 import com.waz.zclient.utils.ContextUtils._
-import com.waz.zclient.utils.device.DeviceDetector
 import com.waz.zclient.utils.{IntentUtils, LayoutSpec, RichView, StringUtils, UiStorage, UserSignal, ViewUtils}
 import com.waz.zclient.views._
 import com.waz.zclient._
@@ -117,7 +115,6 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
   with FragmentHelper
   with View.OnClickListener
   with KeyboardVisibilityObserver
-  with ConversationQuickMenuCallback
   with OnBackPressedListener
   with SearchResultOnItemTouchListener.Callback
   with PickUsersAdapter.Callback {
@@ -142,7 +139,6 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
   private var startUiToolbar: Toolbar = null
   private var toolbarHeader: TextView = null
   private var errorMessageView: TypefaceTextView = null
-  private var conversationQuickMenu: ConversationQuickMenu = null
   private var userSelectionConfirmationButton: FlatWireButton = null
   private var inviteButton: FlatWireButton = null
   private var searchBoxView: SearchEditText = null
@@ -269,9 +265,6 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
 
     searchBoxView = ViewUtils.getView(rootView, R.id.sbv__search_box)
     searchBoxView.setCallback(searchBoxViewCallback)
-    conversationQuickMenu = ViewUtils.getView(rootView, R.id.cqm__pickuser__quick_menu)
-    conversationQuickMenu.setCallback(this)
-    conversationQuickMenu.setVisibility(View.GONE)
     userSelectionConfirmationButton = ViewUtils.getView(rootView, R.id.confirmation_button)
     userSelectionConfirmationButton.setGlyph(R.string.glyph__add_people)
     userSelectionConfirmationButton.setVisibility(View.GONE)
@@ -326,7 +319,6 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
     }
 
     accentColor.on(Threading.Ui) { color =>
-      conversationQuickMenu.setAccentColor(color)
       searchBoxView.setCursorColor(color)
     }
 
@@ -476,7 +468,6 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
   override def onDestroyView(): Unit = {
     errorMessageView = null
     searchResultRecyclerView = null
-    conversationQuickMenu = null
     userSelectionConfirmationButton = null
     inviteButton = null
     searchBoxView = null
@@ -514,33 +505,6 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
   private def createAndOpenConversation(users: Seq[UserId], requester: ConversationChangeRequester): Unit =
     userAccountsController.createAndOpenConversation(users.toArray, requester, getActivity.asInstanceOf[BaseActivity])
 
-  override def onConversationButtonClicked(): Unit = {
-    KeyboardUtils.hideKeyboard(getActivity)
-    val users = if (isAddingToConversation) getSelectedAndExcluded else getSelectedUsers
-    createAndOpenConversation(users.toSeq, ConversationChangeRequester.START_CONVERSATION)
-  }
-
-  override def onVideoCallButtonClicked(): Unit = {
-    KeyboardUtils.hideKeyboard(getActivity)
-    val users = if (isAddingToConversation) getSelectedAndExcluded else getSelectedUsers
-    if (users.size > 1) {
-      throw new IllegalStateException("A video call cannot be started with more than one user. The button should not be visible " + "if multiple users are selected.")
-    }
-    createAndOpenConversation(users.toSeq, ConversationChangeRequester.START_CONVERSATION_FOR_VIDEO_CALL)
-  }
-
-  override def onCallButtonClicked(): Unit = {
-    KeyboardUtils.hideKeyboard(getActivity)
-    val users = if (isAddingToConversation) getSelectedAndExcluded else getSelectedUsers
-    createAndOpenConversation(users.toSeq, ConversationChangeRequester.START_CONVERSATION_FOR_CALL)
-  }
-
-  override def onCameraButtonClicked(): Unit = {
-    KeyboardUtils.hideKeyboard(getActivity)
-    val users = if (isAddingToConversation) getSelectedAndExcluded else getSelectedUsers
-    createAndOpenConversation(users.toSeq, ConversationChangeRequester.START_CONVERSATION_FOR_CAMERA)
-  }
-
   def onSearchBoxIsEmpty(): Unit = {
     searchBoxIsEmpty = true
     lastInputIsKeyboardDoneAction = false
@@ -565,19 +529,11 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
 
   def onSelectedUserAdded(selectedUsers: java.util.List[User], addedUser: User): Unit = {
     changeUserSelectedState(addedUser, selected = true)
-    updateConversationButtonLabel()
-    conversationQuickMenu.showVideoCallButton(shouldVideoCallButtonBeDisplayed)
     searchBoxView.addElement(PickableUser(addedUser))
-  }
-
-  private def shouldVideoCallButtonBeDisplayed: Boolean = {
-    getSelectedUsers.size == 1 && DeviceDetector.isVideoCallingEnabled
   }
 
   def onSelectedUserRemoved(selectedUsers: java.util.List[User], removedUser: User): Unit = {
     changeUserSelectedState(removedUser, selected = false)
-    updateConversationButtonLabel()
-    conversationQuickMenu.showVideoCallButton(shouldVideoCallButtonBeDisplayed)
     searchBoxView.removeElement(PickableUser(removedUser))
   }
 
@@ -607,7 +563,7 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
   override def onUserClicked(userId: UserId, position: Int, anchorView: View): Unit =
     Option(getUser(userId)).filterNot(_.isMe).foreach { user =>
       UserSignal(userId).head.map { userData =>
-        if (userData.connection == ConnectionStatus.Accepted || (isTeamAccount && userAccountsController.isTeamMember(userData.id))) {
+        if ((userData.connection == ConnectionStatus.Accepted || (isTeamAccount && userAccountsController.isTeamMember(userData.id))) && isAddingToConversation) {
           if (anchorView.isSelected) searchUserController.addUser(userId) else searchUserController.removeUser(userId)
           setConversationQuickMenuVisible(searchUserController.selectedUsers.nonEmpty)
         } else if (!anchorView.isInstanceOf[ContactRowView] || (userData.connection != ConnectionStatus.Unconnected)) {
@@ -772,18 +728,9 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
         userSelectionConfirmationButton.setVisibility(if (getSelectedUsers.nonEmpty) View.VISIBLE else View.GONE)
       } else {
         val visible: Boolean = show || searchUserController.selectedUsers.nonEmpty
-        conversationQuickMenu.setVisibility(if (visible) View.VISIBLE else View.GONE)
         inviteButton.setVisibility(if (visible || isKeyboardVisible || isTeamAccount) View.GONE else View.VISIBLE)
       }
     }
-  }
-
-  private def updateConversationButtonLabel(): Unit = {
-    val label: String = if (searchUserController.selectedUsers.size > 1) getString(R.string.conversation_quick_menu__conversation_button__group_label)
-    else getString(R.string.conversation_quick_menu__conversation_button__single_label)
-    conversationQuickMenu.setConversationButtonText(label)
-    val hasPermissions = isPrivateAccount || searchUserController.selectedUsers.size == 1 || teamPermissions.contains(AccountData.Permission.CreateConversation)
-    conversationQuickMenu.setVisibility(if (hasPermissions && !isAddingToConversation) View.VISIBLE else View.GONE)
   }
 
   override def onClick(view: View): Unit = {
