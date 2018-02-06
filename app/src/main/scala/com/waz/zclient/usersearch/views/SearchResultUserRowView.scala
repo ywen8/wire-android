@@ -30,6 +30,7 @@ import com.waz.utils.events.Signal
 import com.waz.utils.returning
 import com.waz.zclient.common.views.ChatheadView
 import com.waz.zclient.ui.text.TypefaceTextView
+import com.waz.zclient.utils.ContextUtils
 import com.waz.zclient.{R, ViewHelper}
 
 class SearchResultUserRowView(val context: Context, val attrs: AttributeSet, val defStyleAttr: Int) extends FrameLayout(context, attrs, defStyleAttr) with UserRowView with ViewHelper {
@@ -49,6 +50,8 @@ class SearchResultUserRowView(val context: Context, val attrs: AttributeSet, val
     btn.setLevel(1)
     checkbox.setButtonDrawable(btn)
   }
+  setClickable(true)
+  setFocusable(true)
 
   private val isGuest = for{
     z <- inject[Signal[ZMessaging]]
@@ -73,15 +76,12 @@ class SearchResultUserRowView(val context: Context, val attrs: AttributeSet, val
   def getUser = userData.map(_.id)
 
   def onClicked(): Unit = {
-    setSelected(!isSelected)
+    setSelected(!isSelected && showCheckbox)
   }
 
   override def setSelected(selected: Boolean): Unit = {
     super.setSelected(selected)
-    if (showCheckbox) {
-      chathead.setSelected(false)
-      checkbox.setChecked(selected)
-    }
+    checkbox.setChecked(selected)
   }
 
   def applyDarkTheme(): Unit = {
@@ -95,6 +95,7 @@ class SearchResultUserRowView(val context: Context, val attrs: AttributeSet, val
   def setIsAddingPeople(adding: Boolean): Unit = {
     showCheckbox = adding
     checkbox.setVisibility(if (adding) View.VISIBLE else View.GONE)
+    setBackground(if (adding) null else ContextUtils.getDrawable(R.drawable.selector__transparent_button)(context))
   }
 
   isGuest.on(Threading.Ui) { guest =>

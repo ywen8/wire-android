@@ -180,13 +180,6 @@
 
     </FrameLayout>
 
-    <com.waz.zclient.ui.startui.ConversationQuickMenu
-        android:id="@+id/cqm__pickuser__quick_menu"
-        android:layout_width="match_parent"
-        android:layout_height="@dimen/conversation_quick_menu__height"
-        android:layout_gravity="bottom"
-        />
-
     <com.waz.zclient.common.views.FlatWireButton
         android:id="@+id/confirmation_button"
         android:layout_width="match_parent"
