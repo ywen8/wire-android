@@ -233,7 +233,7 @@ class PickUsersAdapter(topUsersOnItemTouchListener: SearchResultOnItemTouchListe
         new com.waz.zclient.usersearch.viewholders.TopUsersViewHolder(view, topUserAdapter, parent.getContext)
       case ConnectedUser | UnconnectedUser =>
         val view = LayoutInflater.from(parent.getContext).inflate(R.layout.startui_user, parent, false)
-        new UserViewHolder(view, true, darkTheme)
+        new UserViewHolder(view, true, darkTheme, searchUserController.searchState.currentValue.exists(_.addingToConversation.nonEmpty))
       case GroupConversation =>
         val view = LayoutInflater.from(parent.getContext).inflate(R.layout.startui_conversation, parent, false)
         new ConversationViewHolder(view, darkTheme)
