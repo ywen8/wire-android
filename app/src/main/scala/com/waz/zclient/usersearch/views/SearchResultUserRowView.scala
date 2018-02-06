@@ -18,6 +18,8 @@
 package com.waz.zclient.usersearch.views
 
 import android.content.Context
+import android.support.v4.content.ContextCompat
+import android.support.v7.widget.AppCompatCheckBox
 import android.util.AttributeSet
 import android.view.View
 import android.widget.FrameLayout
@@ -25,6 +27,7 @@ import com.waz.model.{UserData, UserId}
 import com.waz.service.ZMessaging
 import com.waz.threading.Threading
 import com.waz.utils.events.Signal
+import com.waz.utils.returning
 import com.waz.zclient.common.views.ChatheadView
 import com.waz.zclient.ui.text.TypefaceTextView
 import com.waz.zclient.{R, ViewHelper}
@@ -33,13 +36,19 @@ class SearchResultUserRowView(val context: Context, val attrs: AttributeSet, val
   def this(context: Context, attrs: AttributeSet) = this(context, attrs, 0)
   def this(context: Context) = this(context, null)
 
-  inflate(R.layout.list_row_pickuser_searchuser, this, addToParent = true)
+  inflate(R.layout.list_row_pickuser_searchuser, this)
 
   private val chathead = findById[ChatheadView](R.id.cv_pickuser__searchuser_chathead)
   private val contactListItemTextView = findById[ContactListItemTextView](R.id.clitv__contactlist__user__text_view)
   private val guestLabel = findById[TypefaceTextView](R.id.guest_indicator)
   private var showContactInfo: Boolean = false
+  private var showCheckbox: Boolean = false
   private val userId = Signal[UserId]()
+  private val checkbox = findById[AppCompatCheckBox](R.id.pick_user_checkbox)
+  returning(ContextCompat.getDrawable(getContext, R.drawable.checkbox_black)){ btn =>
+    btn.setLevel(1)
+    checkbox.setButtonDrawable(btn)
+  }
 
   private val isGuest = for{
     z <- inject[Signal[ZMessaging]]
@@ -69,11 +78,23 @@ class SearchResultUserRowView(val context: Context, val attrs: AttributeSet, val
 
   override def setSelected(selected: Boolean): Unit = {
     super.setSelected(selected)
-    chathead.setSelected(selected)
+    if (showCheckbox) {
+      chathead.setSelected(false)
+      checkbox.setChecked(selected)
+    }
   }
 
   def applyDarkTheme(): Unit = {
     contactListItemTextView.applyDarkTheme()
+    returning(ContextCompat.getDrawable(getContext, R.drawable.checkbox)){ btn =>
+      btn.setLevel(1)
+      checkbox.setButtonDrawable(btn)
+    }
+  }
+
+  def setIsAddingPeople(adding: Boolean): Unit = {
+    showCheckbox = adding
+    checkbox.setVisibility(if (adding) View.VISIBLE else View.GONE)
   }
 
   isGuest.on(Threading.Ui) { guest =>
