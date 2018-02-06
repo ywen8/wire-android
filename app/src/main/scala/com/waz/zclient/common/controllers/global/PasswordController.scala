@@ -19,6 +19,7 @@ package com.waz.zclient.common.controllers.global
 
 import com.waz.service.ZMessaging
 import com.waz.threading.Threading
+import com.waz.ZLog.ImplicitTag._
 import com.waz.zclient.{Injectable, Injector}
 
 class PasswordController(implicit inj: Injector) extends Injectable {

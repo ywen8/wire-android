@@ -27,8 +27,8 @@ import android.view.{LayoutInflater, View, ViewGroup}
 import android.widget.{ImageView, LinearLayout}
 import com.waz.ZLog.ImplicitTag._
 import com.waz.ZLog._
-import com.waz.model.AccountId
 import com.waz.model.ConversationData.ConversationType
+import com.waz.model._
 import com.waz.model.otr.Client
 import com.waz.service.ZMessaging
 import com.waz.threading.Threading
@@ -47,16 +47,17 @@ import com.waz.zclient.pages.main.conversationlist.views.ListActionsView
 import com.waz.zclient.pages.main.conversationlist.views.ListActionsView.Callback
 import com.waz.zclient.pages.main.conversationlist.views.listview.SwipeListView
 import com.waz.zclient.pages.main.pickuser.controller.IPickUserController
+import com.waz.zclient.paintcode.DownArrowDrawable
 import com.waz.zclient.preferences.PreferencesActivity
 import com.waz.zclient.ui.text.TypefaceTextView
-import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.utils.RichView
+import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.{FragmentHelper, OnBackPressedListener, R, ViewHolder}
 
 /**
   * Due to how we use the NormalConversationListFragment - it gets replaced by the ArchiveConversationListFragment or
   * PickUserFragment, thus destroying its views - we have to be careful about when assigning listeners to signals and
-  * trying to instantiate things in onViewCreated - be careful to tare them down again.
+  * trying to instantiate things in onViewCreated - be careful to tear them down again.
   */
 abstract class ConversationListFragment extends BaseFragment[ConversationListFragment.Container] with FragmentHelper {
 
@@ -68,6 +69,7 @@ abstract class ConversationListFragment extends BaseFragment[ConversationListFra
   lazy val usersController        = inject[UsersController]
   lazy val screenController       = inject[IConversationScreenController]
   lazy val pickUserController     = inject[IPickUserController]
+  lazy val convScreenController   = inject[IConversationScreenController]
 
   protected var subs = Set.empty[Subscription]
 
@@ -85,12 +87,13 @@ abstract class ConversationListFragment extends BaseFragment[ConversationListFra
       verbose(s"handleItemClick, switching conv to ${conv.id}")
       conversationController.selectConv(Option(conv.id), ConversationChangeRequester.CONVERSATION_LIST)
     }
+
     a.onConversationLongClick { conv =>
       if (conv.convType != ConversationType.Group &&
         conv.convType != ConversationType.OneToOne &&
         conv.convType != ConversationType.WaitForConnection) {
       } else
-        screenController.showConversationMenu(IConversationScreenController.CONVERSATION_LIST_LONG_PRESS, conv.id)
+        screenController.showConversationMenu(true, conv.id)
     }
   }
 
@@ -138,6 +141,7 @@ abstract class ConversationListFragment extends BaseFragment[ConversationListFra
 object ArchiveListFragment{
   val TAG = ArchiveListFragment.getClass.getSimpleName
 }
+
 class ArchiveListFragment extends ConversationListFragment with OnBackPressedListener {
 
   override val layoutId = R.layout.fragment_archive_list
@@ -155,9 +159,10 @@ class ArchiveListFragment extends ConversationListFragment with OnBackPressedLis
   }
 }
 
-object NormalConversationListFragment{
+object NormalConversationListFragment {
   val TAG = NormalConversationListFragment.getClass.getSimpleName
 }
+
 class NormalConversationFragment extends ConversationListFragment {
 
   override val layoutId = R.layout.fragment_conversation_list
@@ -308,6 +313,7 @@ class NormalConversationFragment extends ConversationListFragment {
     }
   }
 }
+
 
 object ConversationListFragment {
   trait Container {

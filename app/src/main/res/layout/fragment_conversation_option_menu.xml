@@ -23,7 +23,7 @@
              android:layout_height="match_parent"
     >
 
-    <com.waz.zclient.ui.optionsmenu.OptionsMenu
+    <com.waz.zclient.participants.OptionsMenu
         android:id="@+id/om__participant"
         android:layout_width="match_parent"
         android:layout_height="match_parent"

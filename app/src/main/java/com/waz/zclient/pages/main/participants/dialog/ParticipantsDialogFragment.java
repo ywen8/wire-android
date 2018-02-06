@@ -44,6 +44,8 @@ import com.waz.api.User;
 import com.waz.api.UsersList;
 import com.waz.model.ConvId;
 import com.waz.model.ConversationData;
+import com.waz.model.IntegrationId;
+import com.waz.model.ProviderId;
 import com.waz.model.UserId;
 import com.waz.zclient.OnBackPressedListener;
 import com.waz.zclient.R;
@@ -694,6 +696,11 @@ public class ParticipantsDialogFragment extends BaseFragment<ParticipantsDialogF
     }
 
     @Override
+    public void onShowIntegrationDetails(ProviderId providerId, IntegrationId integrationId) {
+
+    }
+
+    @Override
     public void onShowUser(User user) {
         Fragment fragment = getChildFragmentManager().findFragmentByTag(ParticipantFragment.TAG);
         if (fragment instanceof ConversationScreenControllerObserver) {
@@ -740,18 +747,7 @@ public class ParticipantsDialogFragment extends BaseFragment<ParticipantsDialogF
     }
 
     @Override
-    public void onShowConversationMenu(@IConversationScreenController.ConversationMenuRequester int requester, ConvId convId) {
-        if (requester != IConversationScreenController.USER_PROFILE_PARTICIPANTS &&
-            requester != IConversationScreenController.CONVERSATION_DETAILS) {
-            return;
-        }
-        Fragment fragment = getChildFragmentManager().findFragmentByTag(ParticipantFragment.TAG);
-        if (fragment instanceof ConversationScreenControllerObserver) {
-            ((ConversationScreenControllerObserver) fragment).onShowConversationMenu(requester,
-                convId
-            );
-        }
-    }
+    public void onShowConversationMenu(boolean inConvList, ConvId convId) {}
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////
     //

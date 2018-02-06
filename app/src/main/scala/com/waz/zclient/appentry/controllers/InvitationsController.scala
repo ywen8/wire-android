@@ -28,6 +28,7 @@ import com.waz.utils.events.{EventContext, Signal}
 import com.waz.zclient.appentry.controllers.InvitationsController._
 import com.waz.zclient.tracking.TeamInviteSent
 import com.waz.zclient.{Injectable, Injector}
+import com.waz.ZLog.ImplicitTag._
 
 import scala.concurrent.Future
 

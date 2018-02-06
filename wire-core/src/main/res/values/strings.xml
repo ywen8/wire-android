@@ -125,9 +125,10 @@
     <string name="invitation__email__failed">Unable to register with this invitation.</string>
 
     <!-- People picker/start UI -->
-    <string name="pick_user_search_focus">\u0020 SEARCH BY NAME OR USERNAME</string>
-    <string name="pick_user_search_hint">SEARCH BY NAME OR USERNAME</string>
-    <string name="pick_user_search__add_to_conversation">\u0020 SEARCH BY NAME</string>
+    <string name="pick_user_search_focus">\u0020 SEARCH</string>
+    <string name="pick_user_search_hint">SEARCH</string>
+    <string name="pick_user_search__add_to_conversation">\u0020 SEARCH</string>
+    <string name="choose_conversation">SEARCH</string>
     <string name="people_picker__top_users_header_title">Top people</string>
     <string name="people_picker__address_book_matches_title">Connect</string>
     <string name="people_picker__search_result_conversations_header_title">Groups</string>
@@ -153,6 +154,18 @@
     <string name="people_picker__toolbar_header__one_to_one">Create group</string>
     <string name="people_picker__search_result__expander_title">Show all %1$s ↓</string>
     <string name="people_picker__guest_label">Guest</string>
+    <string name="people_picker__search_people">PEOPLE</string>
+    <string name="people_picker__search_services">SERVICES</string>
+
+    <!-- Bots / Integrations / Services -->
+    <string name="integrations_picker__section_title">Services</string>
+    <string name="integrations_picker__add">Add Service</string>
+    <string name="integrations_conv_bot">Bot</string>
+    <string name="integrations_chathead__section_title">Services</string>
+
+    <string name="integrations_errors_add_service">Adding service not possible</string>
+    <string name="integrations_errors_service_unavailable">The service is unavailable at the moment</string>
+    <string name="conversation_errors_full">The conversation is full</string>
 
     <!-- start ui / people picker, contacts sharing -->
     <string name="people_picker__share_contacts__title">Share Contacts</string>
@@ -1274,4 +1287,9 @@
     <string name="team_invitation_add_from_address_book">ADD FROM ADDRESSBOOK</string>
     <string name="invitation_screen_title">Build your team</string>
     <string name="invitation_screen_subtitle">Invite your colleagues to join.</string>
+    <string name="add_service_button_text">Add Service</string>
+    <string name="remove_service_button_text">Remove Service</string>
+    <string name="integrations_create_conversation">Create a new conversation</string>
+
+    <string name="no_matches_found">No matches found</string>
 </resources>

@@ -15,13 +15,10 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package com.waz.zclient.conversationlist
+package com.waz.zclient.usersearch.views
 
-import android.graphics.{Canvas, Color, RectF}
-import com.waz.zclient.paintcode.WireStyleKit.ResizingBehavior
-import com.waz.zclient.paintcode.{WireDrawable, WireStyleKit}
+import com.waz.model.IntegrationData
 
-case class DownArrowDrawable() extends WireDrawable {
-  override def draw(canvas: Canvas): Unit =
-    WireStyleKit.drawDownArrow(canvas, new RectF(canvas.getClipBounds), ResizingBehavior.AspectFit, paint.getColor)
+trait IntegrationRowView {
+  def getIntegration: IntegrationData
 }

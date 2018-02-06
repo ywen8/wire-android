@@ -24,29 +24,18 @@ import android.view.ViewGroup;
 import com.waz.api.NetworkMode;
 import com.waz.api.User;
 import com.waz.model.ConvId;
-import com.waz.zclient.BaseActivity;
+import com.waz.zclient.OnBackPressedListener;
 import com.waz.zclient.R;
-import com.waz.zclient.common.controllers.SoundController;
-import com.waz.zclient.common.controllers.ThemeController;
-import com.waz.zclient.controllers.confirmation.ConfirmationCallback;
-import com.waz.zclient.controllers.confirmation.ConfirmationRequest;
-import com.waz.zclient.controllers.confirmation.IConfirmationController;
-import com.waz.zclient.controllers.confirmation.TwoButtonConfirmationCallback;
 import com.waz.zclient.controllers.navigation.Page;
-import com.waz.zclient.conversation.ConversationController;
 import com.waz.zclient.core.stores.connect.IConnectStore;
-import com.waz.zclient.core.stores.conversation.ConversationChangeRequester;
 import com.waz.zclient.core.stores.network.NetworkAction;
 import com.waz.zclient.pages.BaseFragment;
-import com.waz.zclient.pages.main.participants.OptionsMenuControl;
-import com.waz.zclient.pages.main.participants.OptionsMenuFragment;
-import com.waz.zclient.ui.optionsmenu.OptionsMenu;
-import com.waz.zclient.ui.optionsmenu.OptionsMenuItem;
+import com.waz.zclient.participants.OptionsMenuFragment;
 import com.waz.zclient.utils.LayoutSpec;
 import com.waz.zclient.utils.ViewUtils;
 
 public class PendingConnectRequestManagerFragment extends BaseFragment<PendingConnectRequestManagerFragment.Container> implements PendingConnectRequestFragment.Container,
-                                                                                                                                  OptionsMenuFragment.Container {
+                                                                                                                                  OnBackPressedListener {
 
     public static final String TAG = PendingConnectRequestManagerFragment.class.getName();
     public static final String ARGUMENT_USER_ID = "ARGUMENT_USER_ID";
@@ -55,7 +44,6 @@ public class PendingConnectRequestManagerFragment extends BaseFragment<PendingCo
     public static final String ARGUMENT_USER_REQUESTER = "ARGUMENT_USER_REQUESTER";
 
     private IConnectStore.UserRequester userRequester;
-    private OptionsMenuControl optionsMenuControl;
 
     public static PendingConnectRequestManagerFragment newInstance(String userId, String conversationId, ConnectRequestLoadMode loadMode, IConnectStore.UserRequester userRequester) {
         PendingConnectRequestManagerFragment newFragment = new PendingConnectRequestManagerFragment();
@@ -80,7 +68,6 @@ public class PendingConnectRequestManagerFragment extends BaseFragment<PendingCo
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_connect_request_pending_manager, container, false);
 
-        optionsMenuControl = new OptionsMenuControl();
         if (savedInstanceState == null) {
             String userId = getArguments().getString(ARGUMENT_USER_ID);
             String conversationId = getArguments().getString(ARGUMENT_CONVERSATION_ID);
@@ -95,7 +82,7 @@ public class PendingConnectRequestManagerFragment extends BaseFragment<PendingCo
             getChildFragmentManager().beginTransaction()
                                      .add(R.id.fl__pending_connect_request__settings_box,
                                           OptionsMenuFragment.newInstance(false),
-                                          OptionsMenuFragment.TAG)
+                                          OptionsMenuFragment.Tag())
                                      .commit();
         }
 
@@ -168,100 +155,6 @@ public class PendingConnectRequestManagerFragment extends BaseFragment<PendingCo
     @Override
     public void onAcceptedConnectRequest(ConvId conversation) {
         getContainer().onAcceptedConnectRequest(conversation);
-    }
-
-    //////////////////////////////////////////////////////////////////////////////////////////
-    //
-    //  OptionsMenuFragment.Container
-    //
-    //////////////////////////////////////////////////////////////////////////////////////////
-
-    @Override
-    public OptionsMenuControl getOptionsMenuControl() {
-        return optionsMenuControl;
-    }
-
-    @Override
-    public void onOptionMenuStateHasChanged(OptionsMenu.State state) {
-
-    }
-
-    @Override
-    public void onOptionsItemClicked(final ConvId convId, User user, OptionsMenuItem item) {
-        switch (item) {
-            case BLOCK:
-                showBlockUserConfirmation(user);
-                break;
-            case UNBLOCK:
-                user.unblock();
-                break;
-            case ARCHIVE:
-                inject(ConversationController.class).archive(convId, true);
-                break;
-            case UNARCHIVE:
-                inject(ConversationController.class).archive(convId, false);
-                break;
-            case SILENCE:
-                inject(ConversationController.class).setMuted(convId, true);
-                break;
-            case UNSILENCE:
-                inject(ConversationController.class).setMuted(convId, false);
-                break;
-        }
-
-        optionsMenuControl.close();
-    }
-
-    private void showBlockUserConfirmation(final User user) {
-        getControllerFactory().getNavigationController().setRightPage(Page.CONFIRMATION_DIALOG, TAG);
-
-        ConfirmationCallback callback = new TwoButtonConfirmationCallback() {
-            @Override
-            public void positiveButtonClicked(boolean checkboxIsSelected) {
-
-                getStoreFactory().connectStore().blockUser(user);
-
-                final IConnectStore.UserRequester userRequester = IConnectStore.UserRequester.valueOf(getArguments().getString(ARGUMENT_USER_REQUESTER));
-                getStoreFactory().connectStore().blockUser(user);
-                switch (userRequester) {
-                    case CONVERSATION:
-                        inject(ConversationController.class).setCurrentConversationToNext(ConversationChangeRequester.BLOCK_USER);
-                        break;
-                    case SEARCH:
-                    case POPOVER:
-                        getControllerFactory().getPickUserController().hideUserProfile();
-                        break;
-                }
-            }
-            @Override
-            public void negativeButtonClicked() {
-            }
-
-            @Override
-            public void onHideAnimationEnd(boolean confirmed, boolean canceled, boolean checkboxIsSelected) {
-                restoreCurrentPageAfterClosingOverlay();
-            }
-        };
-        String header = getString(R.string.confirmation_menu__block_header);
-        String text = getString(R.string.confirmation_menu__block_text_with_name, user.getDisplayName());
-        String confirm = getString(R.string.confirmation_menu__confirm_block);
-        String cancel = getString(R.string.confirmation_menu__cancel);
-
-        ConfirmationRequest request = new ConfirmationRequest.Builder()
-            .withHeader(header)
-            .withMessage(text)
-            .withPositiveButton(confirm)
-            .withNegativeButton(cancel)
-            .withConfirmationCallback(callback)
-            .withWireTheme(((BaseActivity) getActivity()).injectJava(ThemeController.class).getThemeDependentOptionsTheme())
-            .build();
-
-        getControllerFactory().getConfirmationController().requestConfirmation(request, IConfirmationController.USER_PROFILE);
-
-        SoundController ctrl = inject(SoundController.class);
-        if (ctrl != null) {
-            ctrl.playAlert();
-        }
     }
 
     @Override

@@ -129,6 +129,11 @@ trait FragmentHelper extends Fragment with ViewFinder with Injectable with Event
     else getActivity.findViewById(id).asInstanceOf[V]
   }
 
+  def withBackstackHead[A](f: Option[Fragment] => A): A = {
+    import scala.collection.JavaConverters._
+    f(this.asInstanceOf[Fragment].getChildFragmentManager.getFragments.asScala.toList.flatMap(Option(_)).lastOption)
+  }
+
   def withFragmentOpt[A](tag: String)(f: Option[Fragment] => A): A =
     f(Option(this.asInstanceOf[Fragment].getChildFragmentManager.findFragmentByTag(tag)))
 

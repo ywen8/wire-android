@@ -27,7 +27,6 @@ import com.waz.zclient.utils.{UiStorage, UserSignal}
 import com.waz.zclient.{Injectable, Injector}
 import com.waz.utils._
 import com.waz.ZLog.ImplicitTag._
-import com.waz.ZLog.verbose
 import com.waz.zclient.common.controllers.UserAccountsController
 
 import scala.collection.mutable

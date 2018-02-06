@@ -104,7 +104,13 @@ class ConversationController(implicit injector: Injector, context: Context, ec: 
 
   def isGroup(conv: ConversationData): Future[Boolean] =
     if (conv.team.isEmpty) Future.successful(conv.convType == ConversationType.Group)
-    else zms.map(_.membersStorage).head.flatMap(_.getByConv(conv.id)).map { _.size > 2 } // maybe this could be changed to activeMembers
+    else zms.map(_.conversations).head.flatMap(_.isGroupConversation(conv.id))
+
+  def isOneToOneBot(conv: ConversationData): Future[Boolean] =
+    isGroup(conv).flatMap {
+      case false => loadMembers(conv.id).map(_.exists(_.isWireBot))
+      case _ => Future.successful(false)
+    }
 
   def setEphemeralExpiration(expiration: EphemeralExpiration): Future[Unit] = for {
     z <- zms.head
@@ -150,7 +156,7 @@ class ConversationController(implicit injector: Injector, context: Context, ec: 
   } yield z.convsUi.removeConversationMember(id, user)
 
   def leave(convId: ConvId): CancellableFuture[Option[ConversationData]] =
-    returning (Serialized("Conversations", convId) { CancellableFuture.lift( zms.head.flatMap { _.convsUi.leaveConversation(convId) } ) } ) { _ =>
+    returning (Serialized("Conversations", convId)(CancellableFuture.lift(zms.head.flatMap(_.convsUi.leaveConversation(convId))))) { _ =>
       currentConvId.head.map { id => if (id == convId) setCurrentConversationToNext(ConversationChangeRequester.LEAVE_CONVERSATION) }
     }
 

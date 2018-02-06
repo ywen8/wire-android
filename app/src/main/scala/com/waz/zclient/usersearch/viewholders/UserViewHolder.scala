@@ -27,7 +27,7 @@ import com.waz.zclient.utils.ViewUtils
 class UserViewHolder(val view: View, val showContactInfo: Boolean, darkTheme: Boolean) extends RecyclerView.ViewHolder(view) {
   private val userRow: SearchResultUserRowView = ViewUtils.getView(view, R.id.srurv_startui_user)
 
-  userRow.setShowContatctInfo(showContactInfo)
+  userRow.setShowContactInfo(showContactInfo)
   if (darkTheme) userRow.applyDarkTheme()
 
   def bind(userData: UserData, isSelected: Boolean): Unit = {

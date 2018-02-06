@@ -23,7 +23,7 @@ import android.util.AttributeSet
 import android.view.View
 import android.widget.LinearLayout
 import com.waz.api.User
-import com.waz.model.{Availability, UserId}
+import com.waz.model.UserId
 import com.waz.service.ZMessaging
 import com.waz.threading.Threading
 import com.waz.utils.events.Signal
@@ -57,7 +57,8 @@ class ParticipantDetailsTab(val context: Context, val attrs: AttributeSet, val d
   private val isGuest = for{
     z <- inject[Signal[ZMessaging]]
     uId <- userId
-    isGuest <- z.teams.isGuest(uId)
+    data <- z.users.userSignal(uId)
+    isGuest <- if (data.isWireBot) Signal.const(false) else z.teams.isGuest(uId)
   } yield isGuest
 
   isGuest.on(Threading.Ui) {

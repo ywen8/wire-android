@@ -24,13 +24,12 @@ import android.os.Bundle
 import android.support.v4.app.{Fragment, FragmentManager}
 import android.view.{LayoutInflater, View, ViewGroup}
 import android.widget.FrameLayout
-import com.waz.ZLog
-import com.waz.ZLog.{verbose, warn}
 import com.waz.ZLog.ImplicitTag._
+import com.waz.ZLog._
 import com.waz.api._
 import com.waz.model.ConversationData.ConversationType
 import com.waz.model.sync.SyncCommand._
-import com.waz.model.{ConvId, ConversationData, UserId}
+import com.waz.model._
 import com.waz.service.ZMessaging
 import com.waz.sync.SyncRequestServiceImpl.SyncMatcher
 import com.waz.threading.{CancellableFuture, Threading}
@@ -46,17 +45,16 @@ import com.waz.zclient.controllers.navigation.{INavigationController, Navigation
 import com.waz.zclient.conversation.ConversationController
 import com.waz.zclient.core.stores.connect.IConnectStore
 import com.waz.zclient.core.stores.conversation.ConversationChangeRequester
+import com.waz.zclient.integrations.IntegrationDetailsFragment
 import com.waz.zclient.messages.UsersController
 import com.waz.zclient.pages.main.connect.{BlockedUserProfileFragment, ConnectRequestLoadMode, PendingConnectRequestManagerFragment, SendConnectRequestFragment}
 import com.waz.zclient.pages.main.conversation.controller.{ConversationScreenControllerObserver, IConversationScreenController}
 import com.waz.zclient.pages.main.participants.dialog.ParticipantsDialogFragment
-import com.waz.zclient.pages.main.participants.{OptionsMenuControl, OptionsMenuFragment}
 import com.waz.zclient.pages.main.pickuser.controller.IPickUserController.Destination
 import com.waz.zclient.pages.main.pickuser.controller.IPickUserController.Destination._
 import com.waz.zclient.pages.main.pickuser.controller.{IPickUserController, PickUserControllerScreenObserver}
-import com.waz.zclient.pages.main.profile.camera.{CameraContext, CameraFragment}
+import com.waz.zclient.participants.OptionsMenuFragment
 import com.waz.zclient.ui.animation.interpolators.penner.{Expo, Quart}
-import com.waz.zclient.ui.optionsmenu.{OptionsMenu, OptionsMenuItem}
 import com.waz.zclient.ui.utils.KeyboardUtils
 import com.waz.zclient.usersearch.PickUserFragment
 import com.waz.zclient.utils.ContextUtils._
@@ -66,7 +64,6 @@ import com.waz.zclient.views.menus.ConfirmationMenu
 import com.waz.zclient.{FragmentHelper, OnBackPressedListener, R}
 
 import scala.collection.JavaConverters._
-import scala.concurrent.Future
 import scala.concurrent.duration._
 
 class ConversationListManagerFragment extends Fragment
@@ -75,11 +72,9 @@ class ConversationListManagerFragment extends Fragment
   with PickUserFragment.Container
   with NavigationControllerObserver
   with ConversationListFragment.Container
-  with CameraFragment.Container
   with ConversationScreenControllerObserver
   with ConfirmationObserver
   with OnBackPressedListener
-  with OptionsMenuFragment.Container
   with SendConnectRequestFragment.Container
   with BlockedUserProfileFragment.Container
   with ParticipantsDialogFragment.Container
@@ -109,7 +104,6 @@ class ConversationListManagerFragment extends Fragment
   private var startUiLoadingIndicator: LoadingIndicatorView = _
   private var listLoadingIndicator   : LoadingIndicatorView = _
   private var mainContainer          : FrameLayout          = _
-  private var optionsMenuControl     : OptionsMenuControl   = _
   private var confirmationMenu       : ConfirmationMenu     = _
 
   lazy val hasConvs = for {
@@ -156,8 +150,6 @@ class ConversationListManagerFragment extends Fragment
         v.resetFullScreenPadding()
       }
 
-      optionsMenuControl = new OptionsMenuControl
-
       if (savedInstanceState == null) {
         val fm = getChildFragmentManager
         import pickUserController._
@@ -169,9 +161,11 @@ class ConversationListManagerFragment extends Fragment
             fm.popBackStack(PickUserFragment.TAG, FragmentManager.POP_BACK_STACK_INCLUSIVE)
           }
         }
+
         fm.beginTransaction
           .add(R.id.fl__conversation_list_main, ConversationListFragment.newNormalInstance(), NormalConversationListFragment.TAG)
-          .add(R.id.fl__conversation_list__settings_box, OptionsMenuFragment.newInstance(true), OptionsMenuFragment.TAG)
+          .addToBackStack(NormalConversationListFragment.TAG)
+          .add(R.id.fl__conversation_list__settings_box, OptionsMenuFragment.newInstance(inConvList = true), OptionsMenuFragment.Tag)
           .commit
       }
 
@@ -251,7 +245,7 @@ class ConversationListManagerFragment extends Fragment
         case SEND_CONNECT_REQUEST | BLOCK_USER | PENDING_CONNECT_REQUEST =>
           pickUserController.hideUserProfile()
           hide()
-        case PICK_USER => hide()
+        case PICK_USER | INTEGRATION_DETAILS => hide()
         case _ => //
       }
 
@@ -333,8 +327,7 @@ class ConversationListManagerFragment extends Fragment
   }
 
   override def onHideUserProfile() = {
-    // Profiles are handled in dialog on tablet
-    if (LayoutSpec.isPhone(getActivity)) {
+    if (pickUserController.isShowingUserProfile) {
       getChildFragmentManager.popBackStackImmediate
       togglePeoplePicker(true)
     }
@@ -391,7 +384,6 @@ class ConversationListManagerFragment extends Fragment
 
   override def onStart() = {
     super.onStart()
-    cameraController.addCameraActionObserver(this)
     pickUserController.addPickUserScreenControllerObserver(this)
     convScreenController.addConversationControllerObservers(this)
     navController.addNavigationControllerObserver(this)
@@ -399,7 +391,6 @@ class ConversationListManagerFragment extends Fragment
   }
 
   override def onStop() = {
-    cameraController. removeCameraActionObserver(this)
     pickUserController.removePickUserScreenControllerObserver(this)
     convScreenController.removeConversationControllerObservers(this)
     navController.removeNavigationControllerObserver(this)
@@ -422,22 +413,19 @@ class ConversationListManagerFragment extends Fragment
   override def onBackPressed = {
     if (closeMenu) true
     else {
-      withFragmentOpt(PickUserFragment.TAG) {
-        case Some(f: PickUserFragment) if f.onBackPressed => true
-        case _ =>
-          withFragmentOpt(ArchiveListFragment.TAG) {
-            case Some(f: ArchiveListFragment) if f.onBackPressed() => true
-            case _ if pickUserController.isShowingPickUser(getCurrentPickerDestination) =>
-              pickUserController.hidePickUser(getCurrentPickerDestination)
-              true
-            case _ => false
-          }
+      withBackstackHead {
+        case Some(f: IntegrationDetailsFragment) if f.onBackPressed() => true
+        case Some(f: PickUserFragment) if f.onBackPressed() => true
+        case Some(f: ArchiveListFragment) if f.onBackPressed() => true
+        case _ if pickUserController.isShowingPickUser(getCurrentPickerDestination) =>
+          pickUserController.hidePickUser(getCurrentPickerDestination)
+          true
+        case _ => false
       }
     }
   }
 
-  private def closeMenu =
-    optionsMenuControl.close
+  private def closeMenu = withOptionsMenu(_.close(), false)
 
   override def onRequestConfirmation(confirmationRequest: ConfirmationRequest, requester: Int) =
     if (LayoutSpec.isTablet(getActivity) && requester == IConfirmationController.CONVERSATION_LIST)
@@ -459,51 +447,14 @@ class ConversationListManagerFragment extends Fragment
     convController.selectConv(restoredConversationWithUser, ConversationChangeRequester.START_CONVERSATION)
   }
 
-  override def onOptionMenuStateHasChanged(state: OptionsMenu.State) = {
-    import OptionsMenu.State._
-    state match {
-      case OPENING if LayoutSpec.isPhone(getActivity) =>
-        navController.setLeftPage(Page.CONVERSATION_MENU_OVER_CONVERSATION_LIST, Tag)
-      case CLOSED if LayoutSpec.isPhone(getActivity) =>
-        navController.setLeftPage(Page.CONVERSATION_LIST, Tag)
-      case _ => //
-    }
-  }
+  override def onShowConversationMenu(inConvList: Boolean, convId: ConvId): Unit =
+    if (inConvList) withOptionsMenu(_.open(convId), {})
 
-  override def onShowConversationMenu(requester: Int, convId: ConvId): Unit = {
-    import IConversationScreenController._
-    requester match {
-      case CONVERSATION_LIST_SWIPE | CONVERSATION_LIST_LONG_PRESS =>
-        optionsMenuControl.createMenu(convId, requester, themes.optionsDarkTheme)
-        optionsMenuControl.open()
-      case _ => //
+  private def withOptionsMenu[A](f: OptionsMenuFragment => A, default: A): A =
+    withFragmentOpt(OptionsMenuFragment.Tag) {
+      case Some(frag: OptionsMenuFragment) => f(frag)
+      case _ => warn("OptionsMenuFragment not attached"); default
     }
-  }
-
-  override def onOptionsItemClicked(convId: ConvId, user: User, item: OptionsMenuItem) = {
-    val userId = Option(user).map(_.getId).map(new UserId(_))
-    if (userId.isEmpty) warn(s"onOptionsItemClicked with null user, convId: $convId")
-    import OptionsMenuItem._
-    item match {
-      case ARCHIVE   => convController.archive(convId, archive = true)
-      case UNARCHIVE => convController.archive(convId, archive = false)
-      case SILENCE   => convController.setMuted(convId, muted = true)
-      case UNSILENCE => convController.setMuted(convId, muted = false)
-      case LEAVE     => leaveConversation(convId)
-      case DELETE    => deleteConversation(convId)
-      case BLOCK     => userId.foreach(showBlockConfirmation)
-      case UNBLOCK   => zms.head.flatMap { zms =>
-        userId match {
-          case Some(uId) => zms.connection.unblockConnection(uId)
-          case _         => Future.successful({})
-        }
-      }
-      case CALL      => callConversation(convId)
-      case PICTURE   => sendPictureToConversation(convId)
-      case _ =>
-    }
-    closeMenu
-  }
 
   override def dismissUserProfile() =
     pickUserController.hideUserProfile()
@@ -513,110 +464,6 @@ class ConversationListManagerFragment extends Fragment
 
   override def dismissSingleUserProfile() =
     dismissUserProfile()
-
-  private def leaveConversation(convId: ConvId) = {
-    closeMenu
-    val callback = new TwoButtonConfirmationCallback() {
-      override def positiveButtonClicked(checkboxIsSelected: Boolean) = convController.leave(convId)
-      override def negativeButtonClicked() = {}
-      override def onHideAnimationEnd(confirmed: Boolean, canceled: Boolean, checkboxIsSelected: Boolean) = {}
-    }
-    val header = getString(R.string.confirmation_menu__meta_remove)
-    val text    = getString(R.string.confirmation_menu__meta_remove_text)
-    val confirm = getString(R.string.confirmation_menu__confirm_leave)
-    val cancel  = getString(R.string.confirmation_menu__cancel)
-    val request = new ConfirmationRequest.Builder()
-      .withHeader(header)
-      .withMessage(text)
-      .withPositiveButton(confirm)
-      .withNegativeButton(cancel)
-      .withConfirmationCallback(callback)
-      .withWireTheme(themes.optionsDarkTheme)
-      .build
-    confirmationController.requestConfirmation(request, IConfirmationController.CONVERSATION_LIST)
-    sounds.playAlert()
-  }
-
-  def deleteConversation(convId: ConvId) = {
-    closeMenu
-
-    convController.loadConv(convId).map {
-      case Some(conv) =>
-        val callback = new TwoButtonConfirmationCallback() {
-          override def positiveButtonClicked(checkboxIsSelected: Boolean) = {}
-          override def negativeButtonClicked() = {}
-          override def onHideAnimationEnd(confirmed: Boolean, canceled: Boolean, checkboxIsSelected: Boolean) = {
-            if (confirmed) convController.delete(convId, checkboxIsSelected)
-          }
-        }
-
-        val header  = getString(R.string.confirmation_menu__meta_delete)
-        val text    = getString(R.string.confirmation_menu__meta_delete_text)
-        val confirm = getString(R.string.confirmation_menu__confirm_delete)
-        val cancel  = getString(R.string.confirmation_menu__cancel)
-        val checkboxLabel = if (conv.convType == IConversation.Type.GROUP)
-          getString(R.string.confirmation_menu__delete_conversation__checkbox__label)
-        else ""
-        val request = new ConfirmationRequest.Builder()
-          .withHeader(header)
-          .withMessage(text)
-          .withPositiveButton(confirm)
-          .withNegativeButton(cancel)
-          .withConfirmationCallback(callback)
-          .withCheckboxLabel(checkboxLabel)
-          .withWireTheme(themes.optionsDarkTheme)
-          .build
-        confirmationController.requestConfirmation(request, IConfirmationController.CONVERSATION_LIST)
-        sounds.playAlert()
-      case _ => //
-    } (Threading.Ui)
-  }
-
-  private def showBlockConfirmation(userId: UserId) = {
-    (for {
-      convId      <- userAccounts.getConversationId(Set(userId))
-      curConvId   <- convController.currentConvId.head
-      displayName <- users.displayNameString(userId).head
-    } yield (convId, curConvId, displayName)).map {
-      case (convId, curConvId, displayName) =>
-        val callback = new TwoButtonConfirmationCallback() {
-          override def positiveButtonClicked(checkboxIsSelected: Boolean) = {
-            zms.head.flatMap(_.connection.blockConnection(userId)).map { _ =>
-              if (convId == curConvId)
-                convController.setCurrentConversationToNext(ConversationChangeRequester.BLOCK_USER)
-            } (Threading.Ui)
-          }
-          override def negativeButtonClicked() = {}
-          override def onHideAnimationEnd(confirmed: Boolean, canceled: Boolean, checkboxIsSelected: Boolean) = {}
-        }
-        val header  = getString(R.string.confirmation_menu__block_header)
-        val text    = getString(R.string.confirmation_menu__block_text_with_name, displayName)
-        val confirm = getString(R.string.confirmation_menu__confirm_block)
-        val cancel  = getString(R.string.confirmation_menu__cancel)
-        val request = new ConfirmationRequest.Builder()
-          .withHeader(header)
-          .withMessage(text)
-          .withPositiveButton(confirm)
-          .withNegativeButton(cancel)
-          .withConfirmationCallback(callback)
-          .withWireTheme(themes.optionsDarkTheme)
-          .build
-        confirmationController.requestConfirmation(request, IConfirmationController.CONVERSATION_LIST)
-        sounds.playAlert()
-    } (Threading.Ui)
-  }
-
-  private def callConversation(convId: ConvId) = {
-    verbose(s"callConversation $convId")
-    convController.selectConv(convId, ConversationChangeRequester.CONVERSATION_LIST)
-    callingController.startCall(false)
-  }
-
-  private def sendPictureToConversation(convId: ConvId) = {
-    verbose(s"endPictureToConversation $convId")
-    convController.selectConv(convId, ConversationChangeRequester.CONVERSATION_LIST)
-    cameraController.openCamera(CameraContext.MESSAGE)
-  }
 
   override def onShowParticipants(anchorView:             View,
                                   isSingleConversation:   Boolean,
@@ -647,23 +494,14 @@ class ConversationListManagerFragment extends Fragment
 
   override def onShowLikesList(message: Message) = {}
 
-  override def onBitmapSelected(imageAsset: ImageAsset, imageFromCamera: Boolean, cameraContext: CameraContext) = {}
-
-  override def onCameraNotAvailable() = {}
-
-  override def onOpenCamera(cameraContext: CameraContext) = {}
-
-  override def onCloseCamera(cameraContext: CameraContext) = {}
-
-  override def getOptionsMenuControl = optionsMenuControl
-
   override def showRemoveConfirmation(user: User) = {}
 
   override def onOpenUrl(url: String) = {}
+
+  override def onShowIntegrationDetails(providerId: ProviderId, integrationId: IntegrationId): Unit = {}
 }
 
 object ConversationListManagerFragment {
-
 
   //TODO make a conversationsList controller or something
   lazy val SyncMatchers = Seq(SyncConversations, SyncSelf, SyncConnections).map(SyncMatcher(_, None))

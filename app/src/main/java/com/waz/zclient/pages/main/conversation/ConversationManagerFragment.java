@@ -32,7 +32,9 @@ import com.waz.api.OtrClient;
 import com.waz.api.User;
 import com.waz.model.ConvId;
 import com.waz.model.ConversationData;
+import com.waz.model.IntegrationId;
 import com.waz.model.MessageData;
+import com.waz.model.ProviderId;
 import com.waz.model.UserId;
 import com.waz.zclient.OnBackPressedListener;
 import com.waz.zclient.R;
@@ -48,9 +50,9 @@ import com.waz.zclient.conversation.ConversationController;
 import com.waz.zclient.core.api.scala.ModelObserver;
 import com.waz.zclient.core.stores.connect.IConnectStore;
 import com.waz.zclient.core.stores.conversation.ConversationChangeRequester;
+import com.waz.zclient.integrations.IntegrationDetailsFragment;
 import com.waz.zclient.pages.BaseFragment;
 import com.waz.zclient.pages.main.conversation.controller.ConversationScreenControllerObserver;
-import com.waz.zclient.pages.main.conversation.controller.IConversationScreenController;
 import com.waz.zclient.pages.main.drawing.DrawingFragment;
 import com.waz.zclient.pages.main.participants.ParticipantFragment;
 import com.waz.zclient.pages.main.participants.SingleParticipantFragment;
@@ -305,8 +307,7 @@ public class ConversationManagerFragment extends BaseFragment<ConversationManage
     }
 
     @Override
-    public void onShowConversationMenu(@IConversationScreenController.ConversationMenuRequester int requester,
-                                       ConvId convId) {
+    public void onShowConversationMenu(boolean inConvList, ConvId convId) {
 
     }
 
@@ -340,6 +341,22 @@ public class ConversationManagerFragment extends BaseFragment<ConversationManage
             .commit();
     }
 
+    @Override
+    public void onShowIntegrationDetails(ProviderId providerId, IntegrationId integrationId) {
+        this.getControllerFactory().getNavigationController().setRightPage(Page.INTEGRATION_DETAILS, TAG);
+
+        getChildFragmentManager()
+            .beginTransaction()
+            .setCustomAnimations(R.anim.slide_in_from_bottom_pick_user,
+                R.anim.open_new_conversation__thread_list_out,
+                R.anim.open_new_conversation__thread_list_in,
+                R.anim.slide_out_to_bottom_pick_user)
+            .replace(R.id.fl__conversation_manager__message_list_container,
+                IntegrationDetailsFragment.newInstance(providerId, integrationId),
+                IntegrationDetailsFragment.Tag())
+            .addToBackStack(IntegrationDetailsFragment.Tag())
+            .commit();
+    }
 
     //////////////////////////////////////////////////////////////////////////////////////////
     //

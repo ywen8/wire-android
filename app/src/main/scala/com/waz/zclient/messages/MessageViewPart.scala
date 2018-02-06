@@ -44,7 +44,6 @@ import com.waz.zclient.utils._
 import com.waz.zclient.{R, ViewHelper}
 import org.threeten.bp.{Instant, LocalDateTime, ZoneId}
 
-
 trait MessageViewPart extends View {
   val tpe: MsgPart
   protected val messageAndLikes = Signal[MessageAndLikes]()
@@ -163,6 +162,7 @@ class UserPartView(context: Context, attrs: AttributeSet, style: Int) extends Li
 
   private val chathead: ChatheadView = findById(R.id.chathead)
   private val tvName: TypefaceTextView = findById(R.id.tvName)
+  private val isBot: TypefaceTextView = findById(R.id.is_bot)
   private val tvStateGlyph: GlyphTextView = findById(R.id.gtvStateGlyph)
 
   private val zms = inject[Signal[ZMessaging]]
@@ -181,6 +181,7 @@ class UserPartView(context: Context, attrs: AttributeSet, style: Int) extends Li
   userId(chathead.setUserId)
 
   user.map(_.getDisplayName).on(Threading.Ui)(tvName.setTransformedText)
+  user.map(_.isWireBot).on(Threading.Ui) { isBot.setVisible }
 
   user.map(_.accent).on(Threading.Ui) { a =>
     tvName.setTextColor(getNameColor(a))

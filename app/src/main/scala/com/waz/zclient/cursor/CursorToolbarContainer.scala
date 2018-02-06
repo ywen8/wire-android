@@ -39,13 +39,13 @@ import android.util.AttributeSet
 import android.view.View
 import android.widget.FrameLayout
 import android.animation.{Animator, AnimatorListenerAdapter, ValueAnimator}
-import com.waz.ZLog.ImplicitTag._
 import com.waz.threading.Threading
 import com.waz.utils.returning
 import com.waz.zclient.ViewHelper
 import com.waz.zclient.R
 import com.waz.zclient.ui.animation.interpolators.penner.Expo
 import com.waz.zclient.utils._
+import com.waz.ZLog.ImplicitTag._
 
 class CursorToolbarContainer(context: Context, attrs: AttributeSet, defStyleAttr: Int)
     extends FrameLayout(context, attrs, defStyleAttr) with ViewHelper {

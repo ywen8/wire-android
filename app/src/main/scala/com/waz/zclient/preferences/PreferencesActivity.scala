@@ -38,6 +38,7 @@ import com.waz.utils.events.Signal
 import com.waz.utils.returning
 import com.waz.zclient.Intents._
 import com.waz.zclient.common.controllers.global.AccentColorController
+import com.waz.ZLog.ImplicitTag._
 import com.waz.zclient.common.views.AccountTabsView
 import com.waz.zclient.controllers.accentcolor.AccentColorChangeRequester
 import com.waz.zclient.pages.main.profile.camera.{CameraContext, CameraFragment}

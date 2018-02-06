@@ -23,7 +23,7 @@ import android.text.TextUtils
 import android.util.AttributeSet
 import android.view.{Gravity, View}
 import android.widget.{LinearLayout, TextView}
-import com.waz.model.{Contact, UserData}
+import com.waz.model.{Contact, IntegrationData, UserData}
 import com.waz.service.ZMessaging
 import com.waz.threading.Threading
 import com.waz.utils.events.Signal
@@ -135,6 +135,18 @@ class ContactListItemTextView(val context: Context, val attrs: AttributeSet, val
       }
       nameView.setText(user.getDisplayName)
     }
+  }
+
+  def setIntegration(integrationData: IntegrationData): Unit = {
+    if (integrationData.description.nonEmpty) {
+      nameView.setGravity(Gravity.START | Gravity.BOTTOM)
+      subLabelView.setVisibility(View.VISIBLE)
+      subLabelView.setText(integrationData.summary)
+    } else {
+      nameView.setGravity(Gravity.START | Gravity.CENTER_VERTICAL)
+      subLabelView.setVisibility(View.GONE)
+    }
+    nameView.setText(integrationData.name)
   }
 
   def recycle(): Unit = {

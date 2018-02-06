@@ -22,6 +22,8 @@ import com.waz.api.Message;
 import com.waz.api.OtrClient;
 import com.waz.api.User;
 import com.waz.model.ConvId;
+import com.waz.model.IntegrationId;
+import com.waz.model.ProviderId;
 
 public interface ConversationScreenControllerObserver {
 
@@ -41,7 +43,7 @@ public interface ConversationScreenControllerObserver {
 
     void onAddPeopleToConversation();
 
-    void onShowConversationMenu(@IConversationScreenController.ConversationMenuRequester int requester, ConvId convId);
+    void onShowConversationMenu(boolean inConvList, ConvId convId);
 
     void onShowOtrClient(OtrClient otrClient, User user);
 
@@ -50,4 +52,6 @@ public interface ConversationScreenControllerObserver {
     void onHideOtrClient();
 
     void onShowLikesList(Message message);
+
+    void onShowIntegrationDetails(ProviderId providerId, IntegrationId integrationId);
 }

@@ -38,7 +38,7 @@ class UserDetailsView(val context: Context, val attrs: AttributeSet, val defStyl
   inflate(R.layout.user__details, this, addToParent = true)
 
   val users = inject[UsersController]
-  val userId = Signal[UserId]
+  val userId = Signal[UserId]()
 
   userId.flatMap(users.userHandle).map {
     case Some(h) => StringUtils.formatHandle(h.string)

@@ -29,6 +29,7 @@ import com.waz.zclient.controllers.userpreferences.UserPreferencesController
 import com.waz.zclient.controllers.userpreferences.UserPreferencesController._
 import com.waz.zclient.tracking.GlobalTrackingController
 import com.waz.zclient.{BuildConfig, WireApplication}
+import com.waz.ZLog.ImplicitTag._
 
 trait AbstractPreferenceReceiver extends BroadcastReceiver {
 

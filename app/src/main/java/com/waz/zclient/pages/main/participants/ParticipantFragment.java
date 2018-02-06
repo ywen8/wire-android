@@ -39,6 +39,8 @@ import com.waz.api.User;
 import com.waz.api.UsersList;
 import com.waz.model.ConvId;
 import com.waz.model.ConversationData;
+import com.waz.model.IntegrationId;
+import com.waz.model.ProviderId;
 import com.waz.model.UserData;
 import com.waz.model.UserId;
 import com.waz.zclient.BaseActivity;
@@ -64,16 +66,14 @@ import com.waz.zclient.pages.main.connect.ConnectRequestLoadMode;
 import com.waz.zclient.pages.main.connect.PendingConnectRequestFragment;
 import com.waz.zclient.pages.main.connect.SendConnectRequestFragment;
 import com.waz.zclient.pages.main.conversation.controller.ConversationScreenControllerObserver;
-import com.waz.zclient.pages.main.conversation.controller.IConversationScreenController;
 import com.waz.zclient.pages.main.participants.dialog.DialogLaunchMode;
 import com.waz.zclient.pages.main.pickuser.controller.IPickUserController;
 import com.waz.zclient.pages.main.pickuser.controller.PickUserControllerScreenObserver;
+import com.waz.zclient.participants.fragments.ParticipantBodyFragment;
+import com.waz.zclient.participants.OptionsMenuFragment;
 import com.waz.zclient.ui.animation.interpolators.penner.Expo;
 import com.waz.zclient.ui.animation.interpolators.penner.Linear;
 import com.waz.zclient.ui.animation.interpolators.penner.Quart;
-import com.waz.zclient.ui.optionsmenu.OptionsMenu;
-import com.waz.zclient.ui.optionsmenu.OptionsMenuItem;
-import com.waz.zclient.ui.theme.OptionsTheme;
 import com.waz.zclient.usersearch.PickUserFragment;
 import com.waz.zclient.utils.Callback;
 import com.waz.zclient.utils.ContextUtils;
@@ -95,7 +95,6 @@ public class ParticipantFragment extends BaseFragment<ParticipantFragment.Contai
                                                                                      SendConnectRequestFragment.Container,
                                                                                      BlockedUserProfileFragment.Container,
                                                                                      PendingConnectRequestFragment.Container,
-                                                                                     OptionsMenuFragment.Container,
                                                                                      PickUserFragment.Container,
                                                                                      ConversationScreenControllerObserver,
                                                                                      OnBackPressedListener,
@@ -112,7 +111,6 @@ public class ParticipantFragment extends BaseFragment<ParticipantFragment.Contai
 
     private View conversationSettingsOverlayLayout;
     private IConnectStore.UserRequester userRequester;
-    private OptionsMenuControl optionsMenuControl;
 
     private boolean groupConversation;
 
@@ -177,7 +175,6 @@ public class ParticipantFragment extends BaseFragment<ParticipantFragment.Contai
         View view = inflater.inflate(R.layout.fragment_participant, container, false);
 
         final FragmentManager fragmentManager = getChildFragmentManager();
-        optionsMenuControl = new OptionsMenuControl();
 
         Fragment overlayFragment = fragmentManager.findFragmentById(R.id.fl__participant__overlay);
         if (overlayFragment != null) {
@@ -228,7 +225,7 @@ public class ParticipantFragment extends BaseFragment<ParticipantFragment.Contai
                             fragmentManager.beginTransaction()
                                 .replace(R.id.fl__participant__container,
                                     ParticipantBodyFragment.newInstance(userRequester),
-                                    ParticipantBodyFragment.TAG)
+                                    ParticipantBodyFragment.TAG())
                                 .commit();
                         }
                     }
@@ -238,7 +235,7 @@ public class ParticipantFragment extends BaseFragment<ParticipantFragment.Contai
             getChildFragmentManager().beginTransaction()
                 .replace(R.id.fl__participant__settings_box,
                     OptionsMenuFragment.newInstance(false),
-                    OptionsMenuFragment.TAG)
+                    OptionsMenuFragment.Tag())
                 .commit();
 
         }
@@ -339,178 +336,6 @@ public class ParticipantFragment extends BaseFragment<ParticipantFragment.Contai
 
     @Override
     public void otherUserUpdated(User otherUser) {
-    }
-
-    //////////////////////////////////////////////////////////////////////////////////////////
-    //
-    // ConversationSettingBox.Container
-    //
-    //////////////////////////////////////////////////////////////////////////////////////////
-
-
-    @Override
-    public void onOptionMenuStateHasChanged(OptionsMenu.State state) {
-
-    }
-
-    @Override
-    public void onOptionsItemClicked(ConvId convId, User user, OptionsMenuItem item) {
-        switch (item) {
-            case ARCHIVE:
-                toggleArchiveConversation(convId, true);
-                break;
-            case UNARCHIVE:
-                toggleArchiveConversation(convId, false);
-                break;
-            case SILENCE:
-                convController.setMuted(convId,true);
-                break;
-            case UNSILENCE:
-                convController.setMuted(convId,false);
-                break;
-            case LEAVE:
-                showLeaveConfirmation(convId);
-                break;
-            case RENAME:
-                getControllerFactory().getConversationScreenController().editConversationName(true);
-                break;
-            case DELETE:
-                deleteConversation(convId);
-                break;
-            case BLOCK:
-                showBlockUserConfirmation(user);
-                break;
-            case UNBLOCK:
-                user.unblock();
-                break;
-        }
-
-        closeMenu();
-    }
-
-    private void showBlockUserConfirmation(final User user) {
-        ConfirmationCallback callback = new TwoButtonConfirmationCallback() {
-            @Override
-            public void positiveButtonClicked(boolean checkboxIsSelected) {
-                convController.setCurrentConversationToNext(ConversationChangeRequester.BLOCK_USER);
-                getStoreFactory().connectStore().blockUser(user);
-                getControllerFactory().getConversationScreenController().hideUser();
-                if (LayoutSpec.isTablet(getActivity())) {
-                    getControllerFactory().getConversationScreenController().hideParticipants(false, true);
-                }
-            }
-
-            @Override
-            public void negativeButtonClicked() { }
-
-            @Override
-            public void onHideAnimationEnd(boolean confirmed, boolean canceled, boolean checkboxIsSelected) {
-
-            }
-        };
-
-        String header = getString(R.string.confirmation_menu__block_header);
-        String text = getString(R.string.confirmation_menu__block_text_with_name, user.getDisplayName());
-        String confirm = getString(R.string.confirmation_menu__confirm_block);
-        String cancel = getString(R.string.confirmation_menu__cancel);
-        OptionsTheme optionsTheme = ((BaseActivity) getActivity()).injectJava(ThemeController.class).getThemeDependentOptionsTheme();
-
-        ConfirmationRequest request = new ConfirmationRequest.Builder()
-            .withHeader(header)
-            .withMessage(text)
-            .withPositiveButton(confirm)
-            .withNegativeButton(cancel)
-            .withConfirmationCallback(callback)
-            .withWireTheme(optionsTheme)
-            .build();
-
-        getControllerFactory().getConfirmationController().requestConfirmation(request, IConfirmationController.PARTICIPANTS);
-
-        SoundController ctrl = inject(SoundController.class);
-        if (ctrl != null) {
-            ctrl.playAlert();
-        }
-    }
-
-    public void deleteConversation(final ConvId convId) {
-
-        convController.withCurrentConvType(new Callback<IConversation.Type>() {
-            @Override
-            public void callback(final IConversation.Type convType) {
-                ConfirmationCallback callback = new TwoButtonConfirmationCallback() {
-                    @Override
-                    public void positiveButtonClicked(boolean checkboxIsSelected) {
-                    }
-
-                    @Override
-                    public void negativeButtonClicked() {
-                    }
-
-                    @Override
-                    public void onHideAnimationEnd(boolean confirmed, boolean canceled, boolean checkboxIsSelected) {
-                        if (getStoreFactory() == null || getStoreFactory().isTornDown() || getControllerFactory() == null || getControllerFactory().isTornDown()) {
-                            return;
-                        }
-
-                        if (!confirmed) {
-                            return;
-                        }
-
-                        convController.delete(convId, checkboxIsSelected);
-
-                        if (LayoutSpec.isTablet(getActivity())) {
-                            getControllerFactory().getConversationScreenController().hideParticipants(false, true);
-                        }
-                    }
-                };
-
-                String header = getString(R.string.confirmation_menu__meta_delete);
-                String text = getString(R.string.confirmation_menu__meta_delete_text);
-                String confirm = getString(R.string.confirmation_menu__confirm_delete);
-                String cancel = getString(R.string.confirmation_menu__cancel);
-
-                ConfirmationRequest.Builder builder = new ConfirmationRequest.Builder()
-                    .withHeader(header)
-                    .withMessage(text)
-                    .withPositiveButton(confirm)
-                    .withNegativeButton(cancel)
-                    .withConfirmationCallback(callback)
-                    .withWireTheme(((BaseActivity) getActivity()).injectJava(ThemeController.class).getThemeDependentOptionsTheme());
-
-                if (convType == IConversation.Type.GROUP) {
-                    builder = builder
-                        .withCheckboxLabel(getString(R.string.confirmation_menu__delete_conversation__checkbox__label))
-                        .withCheckboxSelectedByDefault();
-                }
-
-                getControllerFactory().getConfirmationController().requestConfirmation(builder.build(), IConfirmationController.PARTICIPANTS);
-
-            }
-
-        });
-
-        SoundController ctrl = inject(SoundController.class);
-        if (ctrl != null) {
-            ctrl.playAlert();
-        }
-    }
-
-    public void toggleArchiveConversation(final ConvId convId, final boolean archive) {
-
-        new Handler().postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                if (getContainer() == null) {
-                    return;
-                }
-
-                convController.archive(convId, archive);
-                if (archive) {
-                    getControllerFactory().getNavigationController().setVisiblePage(Page.CONVERSATION_LIST, TAG);
-                    getControllerFactory().getConversationScreenController().hideParticipants(false, true);
-                }
-            }
-        }, getResources().getInteger(R.integer.framework_animation_duration_medium));
     }
 
     @Override
@@ -654,17 +479,15 @@ public class ParticipantFragment extends BaseFragment<ParticipantFragment.Contai
 
 
     @Override
-    public void onShowConversationMenu(@IConversationScreenController.ConversationMenuRequester int requester,
-                                       ConvId convId) {
-        if (requester != IConversationScreenController.USER_PROFILE_PARTICIPANTS &&
-            requester != IConversationScreenController.CONVERSATION_DETAILS) {
+    public void onShowConversationMenu(boolean inConvList, ConvId convId) {
+        if (inConvList) {
             return;
         }
 
-        optionsMenuControl.createMenu(convId,
-                                      requester,
-                                      ((BaseActivity) getActivity()).injectJava(ThemeController.class).getThemeDependentOptionsTheme());
-        optionsMenuControl.open();
+        Fragment fragment = getChildFragmentManager().findFragmentByTag(OptionsMenuFragment.Tag());
+        if (fragment instanceof OptionsMenuFragment) {
+            ((OptionsMenuFragment) fragment).open(convId);
+        }
     }
 
     @Override
@@ -706,12 +529,13 @@ public class ParticipantFragment extends BaseFragment<ParticipantFragment.Contai
     }
 
     @Override
-    public OptionsMenuControl getOptionsMenuControl() {
-        return optionsMenuControl;
+    public void onShowIntegrationDetails(ProviderId providerId, IntegrationId integrationId) {
+
     }
 
     private boolean closeMenu() {
-        return optionsMenuControl.close();
+        Fragment fragment = getChildFragmentManager().findFragmentByTag(OptionsMenuFragment.Tag());
+        return fragment instanceof OptionsMenuFragment && ((OptionsMenuFragment) fragment).close();
     }
 
     @Override
@@ -1142,52 +966,6 @@ public class ParticipantFragment extends BaseFragment<ParticipantFragment.Contai
 
     @Override
     public void onHideUserProfile() { }
-
-    //////////////////////////////////////////////////////////////////////////////////////////
-    //
-    //  Confirmation overlays
-    //
-    //////////////////////////////////////////////////////////////////////////////////////////
-
-    private void showLeaveConfirmation(final ConvId convId) {
-        ConfirmationCallback callback = new TwoButtonConfirmationCallback() {
-
-            @Override
-            public void positiveButtonClicked(boolean checkboxIsSelected) {
-                convController.leave(convId);
-                if (LayoutSpec.isTablet(getActivity())) {
-                    getControllerFactory().getConversationScreenController().hideParticipants(false, true);
-                }
-            }
-
-            @Override
-            public void negativeButtonClicked() { }
-
-
-            @Override public void onHideAnimationEnd(boolean confirmed, boolean canceled, boolean checkboxIsSelected) { }
-        };
-
-        String header = getString(R.string.confirmation_menu__meta_remove);
-        String text = getString(R.string.confirmation_menu__meta_remove_text);
-        String confirm = getString(R.string.confirmation_menu__confirm_leave);
-        String cancel = getString(R.string.confirmation_menu__cancel);
-
-        ConfirmationRequest request = new ConfirmationRequest.Builder()
-            .withHeader(header)
-            .withMessage(text)
-            .withPositiveButton(confirm)
-            .withNegativeButton(cancel)
-            .withConfirmationCallback(callback)
-            .withWireTheme(((BaseActivity) getActivity()).injectJava(ThemeController.class).getThemeDependentOptionsTheme())
-            .build();
-
-        getControllerFactory().getConfirmationController().requestConfirmation(request, IConfirmationController.PARTICIPANTS);
-
-        SoundController ctrl = inject(SoundController.class);
-        if (ctrl != null) {
-            ctrl.playAlert();
-        }
-    }
 
     public interface Container {
         void onOpenUrl(String url);

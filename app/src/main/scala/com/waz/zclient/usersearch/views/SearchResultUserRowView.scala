@@ -48,7 +48,7 @@ class SearchResultUserRowView(val context: Context, val attrs: AttributeSet, val
     knownUsers <- z.users.acceptedOrBlockedUsers
   } yield isGuest && knownUsers.contains(uId)
 
-  var userData = Option.empty[UserData]
+  private var userData = Option.empty[UserData]
 
   def setUser(userData: UserData): Unit = {
     this.userData = Some(userData)
@@ -57,7 +57,7 @@ class SearchResultUserRowView(val context: Context, val attrs: AttributeSet, val
     chathead.setUserId(userData.id)
   }
 
-  def setShowContatctInfo(showContactInfo: Boolean): Unit = {
+  def setShowContactInfo(showContactInfo: Boolean): Unit = {
     this.showContactInfo = showContactInfo
   }
 

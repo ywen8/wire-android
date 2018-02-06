@@ -651,7 +651,7 @@
     <dimen name="participants__glyph_text_size">18dp</dimen>
     <dimen name="participants__header_margin_glyph">8dp</dimen>
     <dimen name="participants__chathead__width">88dp</dimen>
-    <dimen name="participants__chathead__vertical_spacing">16dp</dimen>
+    <dimen name="participants__chathead__vertical_spacing">8dp</dimen>
     <dimen name="participants__header__top_margin">24dp</dimen>
     <dimen name="participants__header__bottom_margin">16dp</dimen>
     <dimen name="send_connect_request__participants__header__bottom_margin">24dp</dimen>
@@ -930,4 +930,6 @@
     <dimen name="invites_list_top_padding">64dp</dimen>
     <dimen name="invitations_button_height">48dp</dimen>
     <dimen name="invitation_list_item_height">48dp</dimen>
+    <dimen name="add_remove_service_button_height">40dp</dimen>
+    <dimen name="integration_details_picture_size">64dp</dimen>
 </resources>
