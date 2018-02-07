@@ -53,12 +53,13 @@ class MemberChangePartView(context: Context, attrs: AttributeSet, style: Int) ex
 
   val iconGlyph = message map { msg =>
     msg.msgType match {
-      case Message.Type.MEMBER_JOIN => R.string.glyph__plus
-      case _ =>                        R.string.glyph__minus
+      case Message.Type.MEMBER_JOIN if msg.firstMessage => R.string.glyph__conversation
+      case Message.Type.MEMBER_JOIN =>                     R.string.glyph__plus
+      case _ =>                                            R.string.glyph__minus
     }
   }
 
-  val memberNames = users.memberDisplayNames(message)
+  val memberNames = users.memberDisplayNames(message, boldNames = true)
 
   val senderName = message.map(_.userId).flatMap(users.displayName)
 
