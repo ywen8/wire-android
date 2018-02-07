@@ -182,8 +182,8 @@ class ConversationController(implicit injector: Injector, context: Context, ec: 
 
   def knock(id: ConvId): Unit = zms(_.convsUi.knock(id))
 
-  def createGroupConversation(users: Seq[UserId], localId: ConvId = ConvId()): Future[ConversationData] =
-    zms.head.flatMap { _.convsUi.createGroupConversation(localId, users) }
+  def createGroupConversation(users: Seq[UserId], name: Option[String], localId: ConvId = ConvId()): Future[ConversationData] =
+    zms.head.flatMap { _.convsUi.createGroupConversation(localId, name, users) }
 
   // TODO: remove when not used anymore
   def iConv(id: ConvId): IConversation = convStore.getConversation(id.str)
@@ -212,7 +212,7 @@ class ConversationController(implicit injector: Injector, context: Context, ec: 
   def addMembers(id: ConvId, users: java.util.List[UserId]): Unit = addMembers(id, users.asScala.toSet)
 
   def createGroupConversation(users: java.util.List[UserId], conversationChangerSender: ConversationChangeRequester): Unit =
-    createGroupConversation(users.asScala).map { data =>
+    createGroupConversation(users.asScala, None).map { data =>
       selectConv(Some(data.id),
         if (conversationChangerSender != ConversationChangeRequester.START_CONVERSATION_FOR_CALL &&
           conversationChangerSender != ConversationChangeRequester.START_CONVERSATION_FOR_VIDEO_CALL &&

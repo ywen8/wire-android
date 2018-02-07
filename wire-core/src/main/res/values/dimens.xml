@@ -272,7 +272,6 @@
     <dimen name="content__missed_call__space_between_image_and_text">8dp</dimen>
     <dimen name="cursor__list_view_footer__height">16dp</dimen>
     <dimen name="cursor__list_view_footer_no_cursor__height">40dp</dimen>
-    <dimen name="content__invite_banner__padding_bottom">32dp</dimen>
     <dimen name="content__invite_banner__icon__size">40dp</dimen>
     <dimen name="toolbar__padding__right">4dp</dimen>
     <dimen name="content__video_message__bottom_bar__height">56dp</dimen>

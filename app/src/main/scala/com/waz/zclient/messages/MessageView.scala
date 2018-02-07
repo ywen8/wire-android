@@ -84,13 +84,13 @@ class MessageView(context: Context, attrs: AttributeSet, style: Int)
     val contentParts = {
       if (msg.msgType == Message.Type.RICH_MEDIA){
         if (msg.content.size > 1){
-          Seq(PartDesc(MsgPart(Message.Type.TEXT, isOneToOne))) ++ (msg.content map { content => PartDesc(MsgPart(content.tpe), Some(content)) }).filter(_.tpe == WebLink)
+          Seq(PartDesc(MsgPart(Message.Type.TEXT, isOneToOne, opts.position == 0))) ++ (msg.content map { content => PartDesc(MsgPart(content.tpe), Some(content)) }).filter(_.tpe == WebLink)
         } else {
           msg.content map { content => PartDesc(MsgPart(content.tpe), Some(content)) }
         }
       }
       else
-        Seq(PartDesc(MsgPart(msg.msgType, isOneToOne)))
+        Seq(PartDesc(MsgPart(msg.msgType, isOneToOne, opts.position == 0)))
     } .filter(_.tpe != MsgPart.Empty)
 
     val parts =
@@ -103,9 +103,6 @@ class MessageView(context: Context, attrs: AttributeSet, style: Int)
         if (shouldShowChathead(msg, prev))
           builder += PartDesc(MsgPart.User)
 
-        if (shouldShowInviteBanner(msg, opts)) {
-          builder += PartDesc(MsgPart.InviteBanner)
-        }
         builder ++= contentParts
 
         if (msg.isEphemeral) {
@@ -168,9 +165,6 @@ class MessageView(context: Context, attrs: AttributeSet, style: Int)
     !knock && !systemMessage(msg) && (recalled || edited || userChanged)
   }
 
-  private def shouldShowInviteBanner(msg: MessageData, opts: MsgBindOptions) =
-    opts.position == 0 && msg.msgType == Message.Type.MEMBER_JOIN && opts.convType == ConversationType.Group
-
   private def shouldShowFooter(mAndL: MessageAndLikes, opts: MsgBindOptions): Boolean = {
     mAndL.likes.nonEmpty ||
       selection.isFocused(mAndL.message.id) ||
@@ -222,7 +216,7 @@ object MessageView {
   case object Other extends MarginRule
 
   object MarginRule {
-    def apply(tpe: Message.Type, isOneToOne: Boolean): MarginRule = apply(MsgPart(tpe, isOneToOne))
+    def apply(tpe: Message.Type, isOneToOne: Boolean, isFirst: Boolean): MarginRule = apply(MsgPart(tpe, isOneToOne, isFirst))
 
     def apply(tpe: MsgPart): MarginRule = {
       tpe match {
@@ -255,7 +249,7 @@ object MessageView {
           case _ => 0
         }
       else {
-        (MarginRule(prevTpe.get, isOneToOne), MarginRule(topPart)) match {
+        (MarginRule(prevTpe.get, isOneToOne, prevTpe.isEmpty), MarginRule(topPart)) match {
           case (TextLike, TextLike)         => 8
           case (TextLike, FileLike)         => 16
           case (FileLike, FileLike)         => 10

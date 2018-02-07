@@ -91,7 +91,7 @@ class UserAccountsController(implicit injector: Injector, context: Context, ec: 
       if (users.size == 1 && !isTeamAccount)
         z.convsUi.getOrCreateOneToOneConversation(users.head)
       else
-        z.convsUi.createGroupConversation(ConvId(), users.toSeq, teamId)
+        z.convsUi.createGroupConversation(ConvId(), None, users.toSeq, teamId)
     }
   }
 

@@ -216,14 +216,14 @@
     <string name="content__system__other_added_you">[[%1$s]] added you</string>
     <string name="content__system__other_started_you">[[%1$s]] started a conversation with you</string>
     <string name="content__system__you_added_participant">[[You]] added %2$s</string>
-    <string name="content__system__you_started_participant">[[You]] started a conversation with %2$s</string>
+    <string name="content__system__you_started_participant">with %2$s</string>
     <string name="content__system__other_left">[[%1$s]] left</string>
     <string name="content__system__you_left">[[You]] left</string>
     <string name="content__system__other_removed_other">[[%1$s]] removed %2$s</string>
     <string name="content__system__other_removed_you">[[%1$s]] removed you</string>
     <string name="content__system__you_removed_other">[[You]] removed %2$s</string>
-    <string name="content__system__other_renamed_conv">[[%1$s]] RENAMED THE CONVERSATION</string>
-    <string name="content__system__you_renamed_conv">[[YOU]] RENAMED THE CONVERSATION</string>
+    <string name="content__system__other_renamed_conv">[[%1$s]] renamed the conversation</string>
+    <string name="content__system__you_renamed_conv">[[YOU]] renamed the conversation</string>
     <string name="content__system__message_deleted">This message has been removed</string>
     <string name="content_system_message_timestamp_failure">Unsent message.</string>
     <string name="content_system_message_timestamp_pending">Sending\u2026</string>
