@@ -20,6 +20,7 @@ package com.waz.zclient.usersearch
 import java.util.Locale
 
 import com.waz.model
+import com.waz.ZLog.ImplicitTag._
 import com.waz.model.{Contact, EmailAddress, PhoneNumber}
 import com.waz.service.ZMessaging
 import com.waz.threading.Threading
