@@ -17,9 +17,6 @@
  */
 package com.waz.zclient.common.views
 
-/**
-  * Created by joaoponte on 06.11.17.
-  */
 trait PickableElement {
   def id: String
   def name: String

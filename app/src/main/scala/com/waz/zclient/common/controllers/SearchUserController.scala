@@ -17,15 +17,17 @@
  */
 package com.waz.zclient.common.controllers
 
-import com.waz.api.{Contact, Contacts, UpdateListener}
 import com.waz.model._
 import com.waz.service.{SearchResults, SearchState, ZMessaging}
 import com.waz.threading.{CancellableFuture, Threading}
 import com.waz.utils.Locales
 import com.waz.utils.events.{EventContext, EventStream, RefreshingSignal, Signal}
+import com.waz.zclient.usersearch.ContactsController
+import com.waz.zclient.usersearch.ContactsController.ContactDetails
 import com.waz.zclient.utils.{ConversationMembersSignal, UiStorage}
 import com.waz.zclient.{Injectable, Injector}
 
+import scala.collection.GenSeq
 import scala.collection.immutable.Set
 import scala.concurrent.duration._
 import scala.language.postfixOps
@@ -34,6 +36,7 @@ class SearchUserController(initialState: SearchState)(implicit injector: Injecto
   implicit private val uiStorage = inject[UiStorage]
 
   private val zms = inject[Signal[ZMessaging]]
+  private val contactsController = inject[ContactsController]
 
   val searchState = Signal(initialState)
   private val throttledSearchState = searchState.throttle(500 millis)
@@ -66,24 +69,10 @@ class SearchUserController(initialState: SearchState)(implicit injector: Injecto
 
   private def setHasSelectedUsers(hasSelectedUsers: Boolean) = searchState.mutate(_.copy(hasSelectedUsers = hasSelectedUsers))
 
-  //TODO: remove this old api....
-  val contactsSignal = Signal[Seq[Contact]]()
-  var uiContacts: Option[Contacts] = None
-  throttledSearchState.zip(zms.map(_.teamId)).on(Threading.Ui) {
-    case (SearchState(filter , false, None), None) => uiContacts.foreach(_.search(filter))
-    case _ =>
-  }
-
-  private val contactsUpdateListener: UpdateListener = new UpdateListener() {
-    def updated(): Unit = uiContacts.foreach(contacts =>  contactsSignal ! (0 until contacts.size()).map(contacts.get).filter(c => c.getUser == null))
-  }
-
-  def setContacts(contacts: Contacts): Unit = {
-    uiContacts.foreach(_.removeUpdateListener(contactsUpdateListener))
-    uiContacts = Some(contacts)
-    uiContacts.foreach(_.addUpdateListener(contactsUpdateListener))
-    contactsUpdateListener.updated()
-  }
+  val contactsSignal = for {
+    zms <- zms
+    contacts <- zms.contacts.unifiedContacts()
+  } yield contacts.contacts.values.toSeq
 
   val allDataSignal = for {
     z                                     <- zms
@@ -91,13 +80,15 @@ class SearchUserController(initialState: SearchState)(implicit injector: Injecto
     excludedUsers                         <- excludedUsers
     SearchResults(top, local, convs, dir) <- z.userSearch.search(searchState, excludedUsers)
     contacts                              <- if (searchState.shouldShowAbContacts(z.teamId.isDefined))
-                                              contactsSignal.orElse(Signal.const(Seq.empty[Contact]))
-                                             else Signal(Seq.empty[Contact])
+                                             contactsController.contacts(searchState.filter).orElse(Signal.const(GenSeq.empty[ContactDetails]))
+                                             else Signal(GenSeq.empty[ContactDetails])
   } yield (top, local.map(lr => moveToFront(lr, searchState)), convs, contacts, dir.map(dr => moveToFront(dr, searchState)))
 
   private def moveToFront(results: IndexedSeq[UserData], searchState: SearchState): IndexedSeq[UserData] = {
     val predicate: (UserData) => Int =
-      if (searchState.isHandle)
+      if (searchState.empty)
+        (_: UserData) => 0
+      else if (searchState.isHandle)
         (u: UserData) => if (u.handle.exists(_.exactMatchQuery(searchState.filter))) 0 else 1
       else (u: UserData) => {
         val userName = toLower(u.getDisplayName)

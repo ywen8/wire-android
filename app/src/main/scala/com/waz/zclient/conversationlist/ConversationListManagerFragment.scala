@@ -24,9 +24,11 @@ import android.os.Bundle
 import android.support.v4.app.{Fragment, FragmentManager}
 import android.view.{LayoutInflater, View, ViewGroup}
 import android.widget.FrameLayout
+import com.waz.ZLog.{verbose, warn}
 import com.waz.ZLog.ImplicitTag._
 import com.waz.ZLog._
 import com.waz.api._
+import com.waz.api.SyncState._
 import com.waz.model.ConversationData.ConversationType
 import com.waz.model.sync.SyncCommand._
 import com.waz.model._
@@ -174,7 +176,6 @@ class ConversationListManagerFragment extends Fragment
         syncSate <- z.syncRequests.syncState(SyncMatchers).map(_.state)
         animType <- animationType
       } yield (syncSate, animType)).onUi { case (state, animType) =>
-        import SyncState._
         state match {
           case SYNCING | WAITING => listLoadingIndicator.show(animType)
           case _                 => listLoadingIndicator.hide()
