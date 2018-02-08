@@ -223,7 +223,7 @@ class ConversationListManagerFragment extends Fragment
                   R.anim.open_new_conversation__thread_list_out,
                   R.anim.open_new_conversation__thread_list_in,
                   R.anim.slide_out_to_bottom_pick_user)
-                .replace(R.id.fl__conversation_list_main, PickUserFragment.newInstance(addToConversation = false, null), PickUserFragment.TAG)
+                .replace(R.id.fl__conversation_list_main, PickUserFragment.newInstance(), PickUserFragment.TAG)
                 .addToBackStack(PickUserFragment.TAG)
                 .commit
           }
@@ -338,13 +338,6 @@ class ConversationListManagerFragment extends Fragment
     verbose(s"showIncomingPendingConnectRequest $conv")
     pickUserController.hidePickUser(getCurrentPickerDestination)
     convController.selectConv(conv, ConversationChangeRequester.INBOX)
-  }
-
-  override def onSelectedUsers(us: util.List[UserId], requester: ConversationChangeRequester) = {
-    pickUserController.hidePickUser(getCurrentPickerDestination)
-    userAccounts.getConversationId(us.asScala.toSet).flatMap { conv =>
-      convController.selectConv(conv, requester)
-    }
   }
 
   override def getLoadingViewIndicator =
