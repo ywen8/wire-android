@@ -591,6 +591,10 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
     conversationController.selectConv(Some(conversationData.id), ConversationChangeRequester.START_CONVERSATION)
   }
 
+  override def onCreateConvClicked(): Unit = {
+
+  }
+
   override def getSelectedUsers: Set[UserId] = searchUserController.selectedUsers
 
   def getSelectedAndExcluded: Set[UserId] = searchUserController.selectedUsers ++ searchUserController.excludedUsers.currentValue.getOrElse(Set[UserId]())

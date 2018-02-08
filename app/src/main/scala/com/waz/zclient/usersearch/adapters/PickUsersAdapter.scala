@@ -35,6 +35,7 @@ import PickUsersAdapter._
 import scala.concurrent.duration._
 import com.waz.ZLog.verbose
 import com.waz.ZLog.ImplicitTag._
+import com.waz.zclient.utils.RichView
 
 class PickUsersAdapter(topUsersOnItemTouchListener: SearchResultOnItemTouchListener,
                        adapterCallback: PickUsersAdapter.Callback,
@@ -165,6 +166,10 @@ class PickUsersAdapter(topUsersOnItemTouchListener: SearchResultOnItemTouchListe
       }
     }
 
+    if (searchUserController.searchState.currentValue.exists(_.filter.isEmpty)) {
+      mergedResult = mergedResult ++ Seq(SearchResult(NewConversation, TopUsersSection, 0))
+    }
+
     if (userAccountsController.isTeamAccount) {
       if (peopleOrServices.currentValue.contains(true)) {
         addIntegrations()
@@ -252,6 +257,10 @@ class PickUsersAdapter(topUsersOnItemTouchListener: SearchResultOnItemTouchListe
       case Integration =>
         val view = LayoutInflater.from(parent.getContext).inflate(R.layout.startui_integration, parent, false)
         new IntegrationViewHolder(view, darkTheme)
+      case NewConversation =>
+        val view = LayoutInflater.from(parent.getContext).inflate(R.layout.startui_create_conv, parent, false)
+        view.onClick(adapterCallback.onCreateConvClicked())
+        new CreateConvViewHolder(view, darkTheme)
     }
   }
 
@@ -284,6 +293,7 @@ object PickUsersAdapter {
   val SectionHeader: Int = 6
   val Expand: Int = 7
   val Integration: Int = 8
+  val NewConversation: Int = 9
 
   //Sections
   val TopUsersSection = 0
@@ -300,6 +310,7 @@ object PickUsersAdapter {
     def getSelectedUsers: Set[UserId]
     def onContactListUserClicked(userId: UserId): Unit
     def onContactListContactClicked(contactDetails: ContactDetails): Unit
+    def onCreateConvClicked(): Unit
   }
 
 }

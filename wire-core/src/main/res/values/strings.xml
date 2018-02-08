@@ -212,7 +212,7 @@
 
     <!-- Conversation: System messages -->
     <string name="content__system__other_added_participant">[[%1$s]] added %2$s</string>
-    <string name="content__system__other_started_participant">[[%1$s]] started a conversation with %2$s</string>
+    <string name="content__system__other_started_participant">with %2$s</string>
     <string name="content__system__other_added_you">[[%1$s]] added you</string>
     <string name="content__system__other_started_you">[[%1$s]] started a conversation with you</string>
     <string name="content__system__you_added_participant">[[You]] added %2$s</string>
