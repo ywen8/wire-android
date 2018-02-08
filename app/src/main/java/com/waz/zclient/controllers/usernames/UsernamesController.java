@@ -22,6 +22,7 @@ import com.waz.api.Self;
 import com.waz.api.UsernameValidation;
 import com.waz.api.Usernames;
 import com.waz.api.ValidatedUsernames;
+import com.waz.utils.crypto.SecureRandom;
 import com.waz.zclient.ZApplication;
 import com.waz.zclient.core.api.scala.ModelObserver;
 import com.waz.zclient.utils.StringUtils;
@@ -29,7 +30,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
-import java.util.Random;
 import java.util.Set;
 import java.util.WeakHashMap;
 
@@ -41,7 +41,6 @@ public class UsernamesController implements IUsernamesController {
     private static final int MAX_RANDOM_TRAILLING_NUMBER = 1000;
 
     private ZApplication application = null;
-    private Random randomGenerator;
     private Set<UsernamesControllerObserver> usernamesControllerObservers = Collections.newSetFromMap(
         new WeakHashMap<UsernamesControllerObserver, Boolean>());
 
@@ -102,7 +101,6 @@ public class UsernamesController implements IUsernamesController {
     };
 
     public UsernamesController() {
-        randomGenerator = new Random();
     }
 
     @Override
@@ -200,7 +198,7 @@ public class UsernamesController implements IUsernamesController {
 
     private String getTrailingNumber(int attempt) {
         if (attempt > 0) {
-            return String.format(Locale.getDefault(), "%d", randomGenerator.nextInt(MAX_RANDOM_TRAILLING_NUMBER * 10 ^ (attempt / 10)));
+            return String.format(Locale.getDefault(), "%d", SecureRandom.nextInt(0, MAX_RANDOM_TRAILLING_NUMBER * 10 ^ (attempt / 10)));
         }
         return "";
     }
