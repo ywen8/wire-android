@@ -31,7 +31,6 @@ import com.waz.api.MessageContent;
 import com.waz.api.OtrClient;
 import com.waz.api.User;
 import com.waz.model.ConvId;
-import com.waz.model.ConversationData;
 import com.waz.model.IntegrationId;
 import com.waz.model.ProviderId;
 import com.waz.model.UserId;
@@ -67,8 +66,6 @@ import com.waz.zclient.utils.LayoutSpec;
 import com.waz.zclient.utils.ViewUtils;
 import com.waz.zclient.views.ConversationFragment;
 import com.waz.zclient.views.LoadingIndicatorView;
-
-import java.util.List;
 
 public class ConversationManagerFragment extends BaseFragment<ConversationManagerFragment.Container> implements ParticipantFragment.Container,
                                                                                                                 LikesListFragment.Container,
