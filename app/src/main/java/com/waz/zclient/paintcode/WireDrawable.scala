@@ -17,10 +17,12 @@
  */
 package com.waz.zclient.paintcode
 
+import android.content.Context
 import android.graphics.drawable.Drawable
 import android.graphics._
 import com.waz.utils.returning
-import com.waz.zclient.paintcode.WireStyleKit.{ResizingBehavior, drawDownArrow, drawServiceIcon}
+import com.waz.zclient.paintcode.WireStyleKit.{ResizingBehavior, drawDownArrow, drawGroupIcon, drawServiceIcon}
+import com.waz.zclient.utils.ContextUtils._
 
 trait WireDrawable extends Drawable {
 
@@ -83,4 +85,9 @@ case class ServicePlaceholderDrawable(cornerRadius: Float = 0, backgroundColor: 
 
 object ServicePlaceholderDrawable {
   val InnerSizeFactor = 0.5f
+}
+
+case class CreateGroupIcon(colorRes: Int)(implicit context: Context) extends WireDrawable {
+  setColor(getColor(colorRes))
+  override def draw(canvas: Canvas) = drawGroupIcon(canvas, new RectF(canvas.getClipBounds), ResizingBehavior.AspectFit, paint.getColor)
 }

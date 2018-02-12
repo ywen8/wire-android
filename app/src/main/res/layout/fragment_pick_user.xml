@@ -99,7 +99,7 @@
         android:focusable="true">
 
         <com.waz.zclient.ui.text.GlyphTextView
-            android:id="@+id/glyphTextView"
+            android:id="@+id/icon"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="@dimen/wire__padding__regular"
@@ -114,7 +114,7 @@
             android:layout_height="wrap_content"
             android:layout_centerVertical="true"
             android:layout_gravity="center_vertical"
-            android:layout_toEndOf="@+id/glyphTextView"
+            android:layout_toEndOf="@+id/icon"
             android:paddingEnd="@dimen/wire__padding__regular"
             android:paddingStart="@dimen/wire__padding__regular"
             android:text="@string/pick_user_teams_invite"
@@ -126,7 +126,7 @@
             android:layout_width="match_parent"
             android:layout_height="@dimen/wire__divider__height__thin"
             android:layout_alignParentBottom="true"
-            android:layout_toEndOf="@+id/glyphTextView"
+            android:layout_toEndOf="@+id/icon"
             android:layout_marginStart="@dimen/wire__padding__regular"
             android:background="@color/light_graphite_40"/>
 

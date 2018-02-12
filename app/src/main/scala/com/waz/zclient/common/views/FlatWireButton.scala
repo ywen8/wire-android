@@ -36,7 +36,7 @@ class FlatWireButton(context: Context, attrs: AttributeSet, style: Int) extends 
   inflate(R.layout.flat_wire_button)
   setLayoutParams(new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, context.getResources.getDimensionPixelSize(R.dimen.flat_wire_button_height)))
 
-  val glyph = findById[GlyphTextView](R.id.glyph)
+  val glyph = findById[GlyphTextView](R.id.icon)
   val text = findById[TypefaceTextView](R.id.text)
   val accentColor = inject[AccentColorController].accentColor
 

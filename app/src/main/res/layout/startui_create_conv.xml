@@ -28,23 +28,20 @@
     android:focusable="true"
     android:id="@+id/create_group_button">
 
-    <com.waz.zclient.ui.text.GlyphTextView
-        android:id="@+id/glyphTextView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+    <View
+        android:id="@+id/icon"
+        android:layout_width="@dimen/wire__icon_button__text_size"
+        android:layout_height="@dimen/wire__icon_button__text_size"
         android:layout_alignParentStart="true"
         android:layout_centerVertical="true"
-        android:layout_marginStart="@dimen/wire__padding__regular"
-        android:text="@string/glyph__ping"
-        android:textColor="@color/white"
-        android:textSize="@dimen/wire__text_size__regular"/>
+        android:layout_marginStart="@dimen/wire__padding__regular"/>
 
     <com.waz.zclient.ui.text.TypefaceTextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerVertical="true"
         android:layout_gravity="center_vertical"
-        android:layout_toEndOf="@+id/glyphTextView"
+        android:layout_toEndOf="@+id/icon"
         android:paddingEnd="@dimen/wire__padding__regular"
         android:paddingStart="@dimen/wire__padding__regular"
         android:text="@string/people_picker__create_group_conversation"
@@ -57,7 +54,7 @@
         android:layout_height="@dimen/wire__divider__height__thin"
         android:layout_alignParentBottom="true"
         android:layout_marginStart="@dimen/wire__padding__regular"
-        android:layout_toEndOf="@+id/glyphTextView"
+        android:layout_toEndOf="@+id/icon"
         android:background="@color/light_graphite_40"/>
 
 </RelativeLayout>

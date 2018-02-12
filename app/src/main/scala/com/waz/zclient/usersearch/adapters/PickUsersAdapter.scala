@@ -26,8 +26,11 @@ import com.waz.model._
 import com.waz.service.ContactResult
 import com.waz.threading.Threading
 import com.waz.utils.events.{EventContext, Signal}
+import com.waz.utils.returning
 import com.waz.zclient._
 import com.waz.zclient.common.controllers.{IntegrationsController, SearchUserController, UserAccountsController}
+import com.waz.zclient.paintcode.CreateGroupIcon
+import com.waz.zclient.ui.text.GlyphTextView
 import com.waz.zclient.usersearch.SearchResultOnItemTouchListener
 import com.waz.zclient.usersearch.adapters.PickUsersAdapter._
 import com.waz.zclient.usersearch.viewholders._
@@ -157,20 +160,24 @@ class PickUsersAdapter(topUsersOnItemTouchListener: SearchResultOnItemTouchListe
       }
     }
 
-    if (searchUserController.filter.currentValue.exists(_.isEmpty) && searchUserController.toConv.isEmpty) {
-      mergedResult = mergedResult ++ Seq(SearchResult(NewConversation, TopUsersSection, 0))
-    }
+    def addGroupCreationButton(): Unit =
+      if (searchUserController.filter.currentValue.exists(_.isEmpty) && searchUserController.toConv.isEmpty) {
+        mergedResult = mergedResult ++ Seq(SearchResult(NewConversation, TopUsersSection, 0))
+      }
+
 
     if (userAccountsController.isTeamAccount) {
       if (peopleOrServices.currentValue.contains(true)) {
         addIntegrations()
       } else {
+        addGroupCreationButton()
         addContacts()
         addGroupConversations()
         addConnections()
       }
     } else  {
       addTopPeople()
+      addGroupCreationButton()
       addContacts()
       addGroupConversations()
       addConnections()
@@ -247,8 +254,10 @@ class PickUsersAdapter(topUsersOnItemTouchListener: SearchResultOnItemTouchListe
         val view = LayoutInflater.from(parent.getContext).inflate(R.layout.startui_integration, parent, false)
         new IntegrationViewHolder(view, darkTheme)
       case NewConversation =>
-        val view = LayoutInflater.from(parent.getContext).inflate(R.layout.startui_create_conv, parent, false)
-        view.onClick(adapterCallback.onCreateConvClicked())
+        val view = returning(LayoutInflater.from(parent.getContext).inflate(R.layout.startui_create_conv, parent, false)) { l =>
+          l.findViewById[GlyphTextView](R.id.icon).setBackground(CreateGroupIcon(R.color.white)(parent.getContext))
+          l.onClick(adapterCallback.onCreateConvClicked())
+        }
         new CreateConvViewHolder(view, darkTheme)
     }
   }
