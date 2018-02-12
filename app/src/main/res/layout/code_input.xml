@@ -191,7 +191,7 @@
             android:layout_gravity="center_horizontal|top"/>
 
         <com.waz.zclient.ui.text.TypefaceTextView
-            android:id="@+id/error_text"
+            android:id="@+id/empty_search_message"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/wire__padding__8"

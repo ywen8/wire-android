@@ -55,7 +55,7 @@ class InputBox(context: Context, attrs: AttributeSet, style: Int) extends Linear
   val editText = findById[CursorEditText](R.id.edit_text)
   val hintText = findById[TypefaceTextView](R.id.hint_text)
   val confirmationButton = findById[GlyphButton](R.id.confirmation_button)
-  val errorText = findById[TypefaceTextView](R.id.error_text)
+  val errorText = findById[TypefaceTextView](R.id.empty_search_message)
   val progressBar = findById[ProgressBar](R.id.progress_bar)
   val startText = findById[TypefaceTextView](R.id.start_text)
 

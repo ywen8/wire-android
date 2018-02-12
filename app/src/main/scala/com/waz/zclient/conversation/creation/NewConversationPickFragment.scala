@@ -80,6 +80,24 @@ class NewConversationPickFragment extends Fragment with FragmentHelper {
     }
   }
 
+  private val errorTextState = for {
+    searchFilter <- searchFilter
+    results <- searchResults
+  } yield (results.isEmpty, searchFilter.isEmpty) match {
+    case (true, true) => (true, R.string.new_conv_no_contacts)
+    case (true, false) => (true, R.string.new_conv_no_results)
+    case _ => (false, R.string.empty_string)
+  }
+
+  private lazy val errorText = returning(view[TypefaceTextView](R.id.empty_search_message)) { vh =>
+    errorTextState.onUi { case (visible, text) =>
+      vh.foreach { errorText =>
+        errorText.setVisible(visible)
+        errorText.setText(text)
+      }
+    }
+  }
+
   override def onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState: Bundle): View =
     inflater.cloneInContext(new ContextThemeWrapper(getActivity, R.style.Theme_Light))
       .inflate(R.layout.create_conv_pick_fragment, container, false)
@@ -107,6 +125,13 @@ class NewConversationPickFragment extends Fragment with FragmentHelper {
         override def afterTextChanged(s: String): Unit =
           searchFilter ! s
       })
+    }
+
+    errorText.foreach { errorText =>
+      errorTextState.currentValue.foreach{ case (visible, text) =>
+        errorText.setVisible(visible)
+        errorText.setText(text)
+      }
     }
   }
 }

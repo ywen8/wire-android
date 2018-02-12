@@ -43,7 +43,7 @@ class NumberCodeInput(context: Context, attrs: AttributeSet, style: Int) extends
   inflate(R.layout.code_input)
 
   val inputCount = 6
-  val errorText = findById[TypefaceTextView](R.id.error_text)
+  val errorText = findById[TypefaceTextView](R.id.empty_search_message)
   val progressBar = findById[ProgressBar](R.id.progress_bar)
   val editText = findById[CursorEditText](R.id.code_edit_text)
   val texts = Seq(R.id.t1, R.id.t2, R.id.t3, R.id.t4, R.id.t5, R.id.t6).map(findById[TypefaceTextView])
