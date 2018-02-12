@@ -45,9 +45,6 @@ import com.waz.zclient.controllers.drawing.IDrawingController;
 import com.waz.zclient.controllers.location.LocationObserver;
 import com.waz.zclient.controllers.navigation.Page;
 import com.waz.zclient.conversation.ConversationController;
-import com.waz.zclient.conversation.creation.NewConversationController;
-import com.waz.zclient.conversation.creation.NewConversationFragment;
-import com.waz.zclient.conversation.creation.NewConversationPickFragment;
 import com.waz.zclient.core.api.scala.ModelObserver;
 import com.waz.zclient.core.stores.connect.IConnectStore;
 import com.waz.zclient.core.stores.conversation.ConversationChangeRequester;
@@ -71,7 +68,6 @@ import com.waz.zclient.utils.ViewUtils;
 import com.waz.zclient.views.ConversationFragment;
 import com.waz.zclient.views.LoadingIndicatorView;
 
-import scala.collection.immutable.Set;
 
 public class ConversationManagerFragment extends BaseFragment<ConversationManagerFragment.Container> implements ParticipantFragment.Container,
                                                                                                                 LikesListFragment.Container,
