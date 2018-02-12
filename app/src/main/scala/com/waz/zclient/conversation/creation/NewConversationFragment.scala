@@ -28,6 +28,7 @@ import com.waz.ZLog
 import com.waz.ZLog.ImplicitTag._
 import com.waz.threading.Threading
 import com.waz.utils.events.{Signal, SourceSignal}
+import com.waz.utils.returning
 import com.waz.zclient.conversation.ConversationController
 import com.waz.zclient.conversation.creation.NewConversationFragment._
 import com.waz.zclient.core.stores.conversation.ConversationChangeRequester
@@ -39,37 +40,49 @@ import com.waz.zclient.utils.RichView
 import com.waz.zclient.views.DefaultPageTransitionAnimation
 import com.waz.zclient.{FragmentHelper, OnBackPressedListener, R}
 
-class NewConversationFragment extends Fragment with FragmentHelper with OnBackPressedListener {
+class NewConversationFragment extends FragmentHelper with OnBackPressedListener {
 
   implicit private def ctx = getContext
 
   private lazy val newConvController = inject[NewConversationController]
   private lazy val conversationController = inject[ConversationController]
 
-  private lazy val nextButton = view[TypefaceTextView](R.id.confirmation_button)
-  private lazy val toolbar = view[Toolbar](R.id.toolbar)
-  private lazy val header = view[TypefaceTextView](R.id.header)
-
   private lazy val currentPage: SourceSignal[Int] = Signal()
 
   private lazy val buttonState = for {
     currentPage <- currentPage
-    name <- newConvController.name
-    users <- newConvController.users
+    name        <- newConvController.name
+    users       <- newConvController.users
   } yield currentPage match {
-    case SettingsPage if name.trim.nonEmpty => (true, R.string.next_button)
-    case SettingsPage => (false, R.string.next_button)
-    case PickerPage if users.nonEmpty => (true, R.string.done_button)
-    case PickerPage => (true, R.string.skip_button)
+    case SettingsPage if name.trim.nonEmpty => (true,  R.string.next_button)
+    case SettingsPage                       => (false, R.string.next_button)
+    case PickerPage   if users.nonEmpty     => (true,  R.string.done_button)
+    case PickerPage                         => (true,  R.string.skip_button)
   }
 
   private lazy val headerText = for {
     currentPage <- currentPage
-    userCount <- newConvController.users.map(_.size)
+    userCount   <- newConvController.users.map(_.size)
   } yield currentPage match {
-    case SettingsPage => getString(R.string.new_group_header)
+    case SettingsPage                 => getString(R.string.new_group_header)
     case PickerPage if userCount == 0 => getString(R.string.add_people_empty_header)
-    case PickerPage => getString(R.string.add_people_count_header, userCount.toString)
+    case PickerPage                   => getString(R.string.add_people_count_header, userCount.toString)
+  }
+
+  private lazy val toolbar = view[Toolbar](R.id.toolbar)
+
+  private lazy val nextButton = returning(view[TypefaceTextView](R.id.confirmation_button)) { vh =>
+    buttonState.onUi {
+      case (enabled, textId) =>
+        vh.foreach { v =>
+          v.setEnabled(enabled)
+          v.setText(textId)
+        }
+    }
+  }
+
+  private lazy val header = returning(view[TypefaceTextView](R.id.header)) { vh =>
+    headerText.onUi(txt => vh.foreach(_.setText(txt)))
   }
 
   override def onCreateAnimation(transit: Int, enter: Boolean, nextAnim: Int): Animation = {
@@ -96,15 +109,6 @@ class NewConversationFragment extends Fragment with FragmentHelper with OnBackPr
   override def onCreate(savedInstanceState: Bundle): Unit = {
     super.onCreate(savedInstanceState)
     newConvController.setCreateConversation()
-
-    buttonState.onUi{ case (enabled, textId) =>
-      nextButton.foreach { btn =>
-        btn.setEnabled(enabled)
-        btn.setText(textId)
-      }
-    }
-
-    headerText.onUi(txt => header.foreach(_.setText(txt)))
 
     getChildFragmentManager.addOnBackStackChangedListener(new OnBackStackChangedListener {
       override def onBackStackChanged(): Unit =
@@ -149,15 +153,13 @@ class NewConversationFragment extends Fragment with FragmentHelper with OnBackPr
         }
     }))
 
-    buttonState.currentValue.foreach { case (enabled, textId) =>
-      nextButton.foreach { btn =>
-        btn.setEnabled(enabled)
-        btn.setText(textId)
-      }
-    }
+    //lazy init
+    header
+  }
 
-    headerText.currentValue.foreach(txt => header.foreach(_.setText(txt)))
-
+  override def onDestroyView() = {
+    toolbar.foreach(_.setNavigationOnClickListener(null))
+    super.onDestroyView()
   }
 
   private def openFragment(fragment: Fragment, tag: String): Unit = {

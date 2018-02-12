@@ -25,16 +25,19 @@ import android.view.{ContextThemeWrapper, LayoutInflater, View, ViewGroup}
 import com.waz.ZLog.ImplicitTag._
 import com.waz.model.{UserData, UserId}
 import com.waz.service.ZMessaging
-import com.waz.threading.Threading
+import com.waz.threading.{CancellableFuture, Threading}
 import com.waz.utils.events._
 import com.waz.utils.returning
 import com.waz.zclient.common.views.PickableElement
 import com.waz.zclient.ui.text.TypefaceTextView
+import com.waz.zclient.ui.utils.KeyboardUtils
 import com.waz.zclient.usersearch.views.{PickerSpannableEditText, SearchEditText, SearchResultUserRowView}
+import com.waz.zclient.utils.ContextUtils.getInt
 import com.waz.zclient.utils.RichView
 import com.waz.zclient.{FragmentHelper, R, ViewHelper}
 
 import scala.collection.immutable.Set
+import scala.concurrent.duration._
 
 class NewConversationPickFragment extends Fragment with FragmentHelper {
 
@@ -134,9 +137,25 @@ class NewConversationPickFragment extends Fragment with FragmentHelper {
       }
     }
   }
+
+  override def onResume() = {
+    super.onResume()
+    CancellableFuture.delay(getInt(R.integer.people_picker__keyboard__show_delay).millis).map { _ =>
+      searchResults.head.map(_.size > ShowKeyboardThreshold).map {
+        case true =>
+          searchBox.foreach { v =>
+            v.setFocus()
+            KeyboardUtils.showKeyboard(getActivity)
+          }
+        case _ =>
+      } (Threading.Ui)
+    }
+  }
 }
 
 object NewConversationPickFragment {
+
+  val ShowKeyboardThreshold = 10
   val Tag = implicitLogTag
 
   private case class PickableUser(userId : UserId, userName: String) extends PickableElement {
@@ -156,21 +175,30 @@ case class NewConvUserViewHolder(v: SearchResultUserRowView) extends RecyclerVie
 case class NewConvAdapter(searchResults: Signal[IndexedSeq[UserData]], selectedUsers: SourceSignal[Set[UserId]])(implicit context: Context, eventContext: EventContext) extends RecyclerView.Adapter[NewConvUserViewHolder] {
   private implicit val ctx = context
 
-  private var users  = Seq.empty[UserData]
-  private var selected = Set.empty[UserId]
-
+  private var users = Seq.empty[(UserData, /*isSelected: */ Boolean)]
 
   val onUserSelectionChanged = EventStream[(UserId, Boolean)]()
+
+  setHasStableIds(true)
 
   (for {
     res <- searchResults
     sel <- selectedUsers
-  } yield (res, sel)).onUi {
-    case (res, sel) =>
-      this.users = res
-      this.selected = sel
-      notifyDataSetChanged()
-  }
+  } yield (res, sel))
+    .onUi {
+      case (res, sel) =>
+        if (users.map(_._1).toSet == res.toSet) {
+          val changedPositions = users.map {
+            case (user, selected) =>
+              if (selected && !sel.contains(user.id) || !selected && sel.contains(user.id)) users.map(_._1).indexOf(user) else -1
+          }
+          this.users = res.map(u => (u, sel.contains(u.id)))
+          changedPositions.filterNot(_ == -1).foreach(notifyItemChanged)
+        } else {
+          this.users = res.map(u => (u, sel.contains(u.id)))
+          notifyDataSetChanged()
+        }
+    }
 
   override def getItemCount: Int = users.size
 
@@ -189,8 +217,11 @@ case class NewConvAdapter(searchResults: Signal[IndexedSeq[UserData]], selectedU
     NewConvUserViewHolder(view)
   }
 
+
+  override def getItemId(position: Int) = users(position)._1.id.str.hashCode
+
   override def onBindViewHolder(holder: NewConvUserViewHolder, position: Int): Unit = {
-    val user = users(position)
-    holder.bind(user, selected.contains(user.id))
+    val (user, selected) = users(position)
+    holder.bind(user, selected)
   }
 }
