@@ -46,6 +46,7 @@ class NewConversationFragment extends Fragment with FragmentHelper with OnBackPr
 
   private lazy val nextButton = view[TypefaceTextView](R.id.confirmation_button)
   private lazy val toolbar = view[Toolbar](R.id.toolbar)
+  private lazy val header = view[TypefaceTextView](R.id.header)
 
   private lazy val currentPage: SourceSignal[Int] = Signal()
 
@@ -58,6 +59,15 @@ class NewConversationFragment extends Fragment with FragmentHelper with OnBackPr
     case SettingsPage => (false, R.string.next_button)
     case PickerPage if users.nonEmpty => (true, R.string.done_button)
     case PickerPage => (true, R.string.skip_button)
+  }
+
+  private lazy val headerText = for {
+    currentPage <- currentPage
+    userCount <- newConvController.users.map(_.size)
+  } yield currentPage match {
+    case SettingsPage => getString(R.string.new_group_header)
+    case PickerPage if userCount == 0 => getString(R.string.add_people_empty_header)
+    case PickerPage => getString(R.string.add_people_count_header, userCount.toString)
   }
 
   override def onCreateAnimation(transit: Int, enter: Boolean, nextAnim: Int): Animation = {
@@ -91,6 +101,8 @@ class NewConversationFragment extends Fragment with FragmentHelper with OnBackPr
         btn.setText(textId)
       }
     }
+
+    headerText.onUi(txt => header.foreach(_.setText(txt)))
 
     getChildFragmentManager.addOnBackStackChangedListener(new OnBackStackChangedListener {
       override def onBackStackChanged(): Unit =
@@ -141,6 +153,8 @@ class NewConversationFragment extends Fragment with FragmentHelper with OnBackPr
         btn.setText(textId)
       }
     }
+
+    headerText.currentValue.foreach(txt => header.foreach(_.setText(txt)))
 
   }
 
