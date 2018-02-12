@@ -220,7 +220,7 @@ public class SecondPageFragment extends BaseFragment<SecondPageFragment.Containe
             case MESSAGE_STREAM:
                 getControllerFactory().getNavigationController().setRightPage(Page.MESSAGE_STREAM, TAG);
                 pageFragment = ConversationManagerFragment.newInstance();
-                tag = ConversationManagerFragment.TAG;
+                tag = ConversationManagerFragment.Tag();
                 break;
             case NONE:
             default:

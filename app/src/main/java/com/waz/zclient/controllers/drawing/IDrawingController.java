@@ -37,11 +37,11 @@ public interface IDrawingController {
 
     void removeDrawingObserver(DrawingObserver drawingObserver);
 
-    void showDrawing(ImageAsset image, DrawingController.DrawingDestination drawingDestination);
+    void showDrawing(ImageAsset image, IDrawingController.DrawingDestination drawingDestination);
 
-    void showDrawing(ImageAsset image, DrawingController.DrawingDestination drawingDestination, DrawingMethod method);
+    void showDrawing(ImageAsset image, IDrawingController.DrawingDestination drawingDestination, DrawingMethod method);
 
-    void hideDrawing(DrawingController.DrawingDestination drawingDestination, boolean imageSent);
+    void hideDrawing(IDrawingController.DrawingDestination drawingDestination, boolean imageSent);
 
     void tearDown();
 }

@@ -452,7 +452,7 @@ public class RootFragment extends BaseFragment<RootFragment.Container> implement
     }
 
     @Override
-    public void onShowDrawing(ImageAsset image, DrawingController.DrawingDestination drawingDestination, IDrawingController.DrawingMethod method) {
+    public void onShowDrawing(ImageAsset image, IDrawingController.DrawingDestination drawingDestination, IDrawingController.DrawingMethod method) {
         slidingPaneLayout.setVisibility(View.GONE);
         getControllerFactory().getCameraController().closeCamera(CameraContext.MESSAGE);
         getChildFragmentManager().beginTransaction()
@@ -464,7 +464,7 @@ public class RootFragment extends BaseFragment<RootFragment.Container> implement
     }
 
     @Override
-    public void onHideDrawing(DrawingController.DrawingDestination drawingDestination, boolean imageSent) {
+    public void onHideDrawing(IDrawingController.DrawingDestination drawingDestination, boolean imageSent) {
         if (LayoutSpec.isTablet(getActivity())) {
             ViewUtils.unlockOrientation(getActivity());
         }

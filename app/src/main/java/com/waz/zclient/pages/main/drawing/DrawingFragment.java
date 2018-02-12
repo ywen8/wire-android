@@ -193,11 +193,11 @@ public class DrawingFragment extends BaseFragment<DrawingFragment.Container> imp
         }
     };
 
-    public static DrawingFragment newInstance(ImageAsset backgroundAsset, DrawingController.DrawingDestination drawingDestination) {
+    public static DrawingFragment newInstance(ImageAsset backgroundAsset, IDrawingController.DrawingDestination drawingDestination) {
         return DrawingFragment.newInstance(backgroundAsset, drawingDestination, IDrawingController.DrawingMethod.DRAW);
     }
 
-    public static DrawingFragment newInstance(ImageAsset backgroundAsset, DrawingController.DrawingDestination drawingDestination, DrawingController.DrawingMethod method) {
+    public static DrawingFragment newInstance(ImageAsset backgroundAsset, IDrawingController.DrawingDestination drawingDestination, IDrawingController.DrawingMethod method) {
         DrawingFragment fragment = new DrawingFragment();
         Bundle bundle = new Bundle();
         bundle.putParcelable(ARGUMENT_BACKGROUND_IMAGE, backgroundAsset);

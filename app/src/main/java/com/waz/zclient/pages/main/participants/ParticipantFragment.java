@@ -43,9 +43,11 @@ import com.waz.model.IntegrationId;
 import com.waz.model.ProviderId;
 import com.waz.model.UserData;
 import com.waz.model.UserId;
+import com.waz.utils.wrappers.AndroidURIUtil;
 import com.waz.zclient.BaseActivity;
 import com.waz.zclient.OnBackPressedListener;
 import com.waz.zclient.R;
+import com.waz.zclient.common.controllers.BrowserController;
 import com.waz.zclient.common.controllers.SoundController;
 import com.waz.zclient.common.controllers.ThemeController;
 import com.waz.zclient.common.controllers.UserAccountsController;
@@ -738,7 +740,7 @@ public class ParticipantFragment extends BaseFragment<ParticipantFragment.Contai
 
     @Override
     public void onOpenUrl(String url) {
-        getContainer().onOpenUrl(url);
+        inject(BrowserController.class).openUrl(AndroidURIUtil.parse(url));
     }
 
     @Override

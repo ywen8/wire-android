@@ -29,9 +29,11 @@ import com.waz.api.NetworkMode;
 import com.waz.api.User;
 import com.waz.api.Verification;
 import com.waz.model.ConvId;
+import com.waz.utils.wrappers.AndroidURIUtil;
 import com.waz.zclient.BaseActivity;
 import com.waz.zclient.OnBackPressedListener;
 import com.waz.zclient.R;
+import com.waz.zclient.common.controllers.BrowserController;
 import com.waz.zclient.common.views.UserDetailsView;
 import com.waz.zclient.common.controllers.ThemeController;
 import com.waz.zclient.controllers.confirmation.ConfirmationCallback;
@@ -374,7 +376,7 @@ public class SingleParticipantFragment extends BaseFragment<SingleParticipantFra
 
     @Override
     public void onOpenUrl(String url) {
-        getContainer().onOpenUrl(url);
+        inject(BrowserController.class).openUrl(AndroidURIUtil.parse(url));
     }
 
     public interface Container extends UserProfileContainer {
