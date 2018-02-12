@@ -39,8 +39,6 @@ import java.util.Locale;
 public class AssetIntentsManager {
     private static final String SAVED_STATE_PENDING_URI = "SAVED_STATE_PENDING_URI";
 
-    private static final String[] CAMERA_PERMISSIONS = new String[] {Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE};
-
     private static final String INTENT_GALLERY_TYPE = "image/*";
     private final PackageManager pm;
 
@@ -86,13 +84,6 @@ public class AssetIntentsManager {
         openDocument("*/*", IntentType.FILE_SHARING);
     }
 
-    private void captureImage(Context context) {
-        Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-        pendingFileUri = getOutputMediaFileUri(context, IntentType.CAMERA);
-        intent.putExtra(MediaStore.EXTRA_OUTPUT, AndroidURIUtil.unwrap(pendingFileUri));
-        callback.openIntent(intent, IntentType.CAMERA);
-    }
-
     public void captureVideo(Context context) {
         Intent intent = new Intent(MediaStore.ACTION_VIDEO_CAPTURE);
         pendingFileUri = getOutputMediaFileUri(context, IntentType.VIDEO);
@@ -119,7 +110,7 @@ public class AssetIntentsManager {
 
         IntentType type = IntentType.get(requestCode);
 
-        if (type == IntentType.UNKOWN) {
+        if (type == IntentType.UNKNOWN) {
             return false;
         }
 
@@ -192,19 +183,17 @@ public class AssetIntentsManager {
     }
 
     public enum IntentType {
-        UNKOWN(-1, -1),
-        GALLERY(9411, 8411),
-        SKETCH_FROM_GALLERY(9416, 8416),
-        VIDEO(9412, 8412),
-        CAMERA(9413, 8413),
-        FILE_SHARING(9414, 8414);
+        UNKNOWN(-1),
+        GALLERY(9411),
+        SKETCH_FROM_GALLERY(9416),
+        VIDEO(9412),
+        CAMERA(9413),
+        FILE_SHARING(9414);
 
         public int requestCode;
-        private int permissionCode;
 
-        IntentType(int requestCode, int permissionCode) {
+        IntentType(int requestCode) {
             this.requestCode = requestCode;
-            this.permissionCode = permissionCode;
         }
 
         public static IntentType get(int requestCode) {
@@ -229,29 +218,7 @@ public class AssetIntentsManager {
                 return FILE_SHARING;
             }
 
-            return UNKOWN;
-        }
-
-
-        public static IntentType getByPermissionCode(int permissionCode) {
-
-            if (permissionCode == GALLERY.permissionCode) {
-                return GALLERY;
-            }
-
-            if (permissionCode == CAMERA.permissionCode) {
-                return CAMERA;
-            }
-
-            if (permissionCode == VIDEO.permissionCode) {
-                return VIDEO;
-            }
-
-            if (permissionCode == FILE_SHARING.permissionCode) {
-                return FILE_SHARING;
-            }
-
-            return UNKOWN;
+            return UNKNOWN;
         }
     }
 
