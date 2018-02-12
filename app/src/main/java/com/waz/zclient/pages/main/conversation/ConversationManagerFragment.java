@@ -26,6 +26,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import com.waz.api.IConversation;
 import com.waz.api.ImageAsset;
+import com.waz.api.MembersList;
 import com.waz.api.Message;
 import com.waz.api.MessageContent;
 import com.waz.api.OtrClient;
@@ -45,6 +46,9 @@ import com.waz.zclient.controllers.drawing.IDrawingController;
 import com.waz.zclient.controllers.location.LocationObserver;
 import com.waz.zclient.controllers.navigation.Page;
 import com.waz.zclient.conversation.ConversationController;
+import com.waz.zclient.conversation.creation.NewConversationController;
+import com.waz.zclient.conversation.creation.NewConversationFragment;
+import com.waz.zclient.conversation.creation.NewConversationPickFragment;
 import com.waz.zclient.core.api.scala.ModelObserver;
 import com.waz.zclient.core.stores.connect.IConnectStore;
 import com.waz.zclient.core.stores.conversation.ConversationChangeRequester;
@@ -62,11 +66,13 @@ import com.waz.zclient.pages.main.profile.camera.CameraFragment;
 import com.waz.zclient.ui.utils.KeyboardUtils;
 import com.waz.zclient.usersearch.PickUserFragment;
 import com.waz.zclient.utils.Callback;
-import com.waz.zclient.utils.ContextUtils;
 import com.waz.zclient.utils.LayoutSpec;
 import com.waz.zclient.utils.ViewUtils;
 import com.waz.zclient.views.ConversationFragment;
 import com.waz.zclient.views.LoadingIndicatorView;
+
+
+import scala.collection.immutable.Set;
 
 
 public class ConversationManagerFragment extends BaseFragment<ConversationManagerFragment.Container> implements ParticipantFragment.Container,
@@ -87,12 +93,14 @@ public class ConversationManagerFragment extends BaseFragment<ConversationManage
 
     // doesn't need to be restored
     private boolean groupConversation;
+    private MembersList members;
     private IPickUserController.Destination pickUserDestination;
 
     private final ModelObserver<IConversation> conversationModelObserver = new ModelObserver<IConversation>() {
         @Override
         public void updated(IConversation model) {
             groupConversation = model.getType() == IConversation.Type.GROUP;
+            members = model.getUsers();
         }
     };
 
@@ -222,7 +230,8 @@ public class ConversationManagerFragment extends BaseFragment<ConversationManage
             return true;
         }
 
-        if (fragment instanceof PickUserFragment) {
+        if (fragment instanceof NewConversationPickFragment ||
+            fragment instanceof NewConversationFragment) {
             getControllerFactory().getPickUserController().hidePickUser(getCurrentPickerDestination());
             return true;
         }
@@ -510,34 +519,36 @@ public class ConversationManagerFragment extends BaseFragment<ConversationManage
             KeyboardUtils.hideKeyboard(getActivity());
         }
 
-        ContextUtils.showToast("Under construction", getContext());
+        getControllerFactory().getNavigationController().setRightPage(Page.PICK_USER_ADD_TO_CONVERSATION, TAG);
+        if (groupConversation ) {
+            inject(NewConversationController.class).setAddToConversation(inject(ConversationController.class).getCurrentConvId());
+            getChildFragmentManager()
+                .beginTransaction()
+                .setCustomAnimations(R.anim.slide_in_from_bottom_pick_user,
+                    R.anim.open_new_conversation__thread_list_out,
+                    R.anim.open_new_conversation__thread_list_in,
+                    R.anim.slide_out_to_bottom_pick_user)
+                .replace(R.id.fl__conversation_manager__message_list_container,
+                    new NewConversationPickFragment(), NewConversationPickFragment.Tag())
+                .addToBackStack(NewConversationFragment.Tag())
+                .commit();
+        } else {
+            String otherId = "";
+            if (members != null && members.size() > 0)
+                otherId = members.get(0).getId();
+            inject(NewConversationController.class).setCreateConversation(new Set.Set1<>(new UserId(otherId)));
 
-//        getControllerFactory().getNavigationController().setRightPage(Page.PICK_USER_ADD_TO_CONVERSATION, TAG);
-//        if (groupConversation) {
-//            inject(NewConversationController.class).setAddToConversation(inject(ConversationController.class).getCurrentConvId());
-//            getChildFragmentManager()
-//                .beginTransaction()
-//                .setCustomAnimations(R.anim.slide_in_from_bottom_pick_user,
-//                    R.anim.open_new_conversation__thread_list_out,
-//                    R.anim.open_new_conversation__thread_list_in,
-//                    R.anim.slide_out_to_bottom_pick_user)
-//                .replace(R.id.fl__conversation_manager__message_list_container,
-//                    new NewConversationPickFragment(), NewConversationPickFragment.Tag())
-//                .addToBackStack(PickUserFragment.TAG())
-//                .commit();
-//        } else {
-//            inject(NewConversationController.class).setCreateConversation(new Set.Set1<>(new UserId("")));
-//            getChildFragmentManager()
-//                .beginTransaction()
-//                .setCustomAnimations(R.anim.slide_in_from_bottom_pick_user,
-//                    R.anim.open_new_conversation__thread_list_out,
-//                    R.anim.open_new_conversation__thread_list_in,
-//                    R.anim.slide_out_to_bottom_pick_user)
-//                .replace(R.id.fl__conversation_manager__message_list_container,
-//                    new NewConversationFragment(), NewConversationFragment.Tag())
-//                .addToBackStack(PickUserFragment.TAG())
-//                .commit();
-//        }
+            getChildFragmentManager()
+                .beginTransaction()
+                .setCustomAnimations(R.anim.slide_in_from_bottom_pick_user,
+                    R.anim.open_new_conversation__thread_list_out,
+                    R.anim.open_new_conversation__thread_list_in,
+                    R.anim.slide_out_to_bottom_pick_user)
+                .replace(R.id.fl__conversation_manager__message_list_container,
+                    new NewConversationFragment(), NewConversationFragment.Tag())
+                .addToBackStack(NewConversationFragment.Tag())
+                .commit();
+        }
     }
 
     @Override

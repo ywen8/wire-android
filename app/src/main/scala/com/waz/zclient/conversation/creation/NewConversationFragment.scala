@@ -31,6 +31,8 @@ import com.waz.utils.events.{Signal, SourceSignal}
 import com.waz.zclient.conversation.ConversationController
 import com.waz.zclient.conversation.creation.NewConversationFragment._
 import com.waz.zclient.core.stores.conversation.ConversationChangeRequester
+import com.waz.zclient.pages.main.pickuser.controller.IPickUserController
+import com.waz.zclient.pages.main.pickuser.controller.IPickUserController.Destination
 import com.waz.zclient.ui.text.TypefaceTextView
 import com.waz.zclient.utils.ContextUtils.{getDimenPx, getInt}
 import com.waz.zclient.utils.RichView
@@ -170,7 +172,9 @@ class NewConversationFragment extends Fragment with FragmentHelper with OnBackPr
       .commit()
   }
 
-  private def close() = getFragmentManager.popBackStack()
+  private def close() =
+    if (!inject[IPickUserController].hidePickUser(Destination.PARTICIPANTS))
+      getFragmentManager.popBackStack()
 
   private def back(): Unit = getChildFragmentManager.popBackStack()
 

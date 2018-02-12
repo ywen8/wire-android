@@ -56,6 +56,7 @@ import com.waz.zclient.controllers.confirmation.TwoButtonConfirmationCallback;
 import com.waz.zclient.controllers.navigation.NavigationController;
 import com.waz.zclient.controllers.navigation.Page;
 import com.waz.zclient.conversation.ConversationController;
+import com.waz.zclient.conversation.creation.NewConversationPickFragment;
 import com.waz.zclient.core.api.scala.ModelObserver;
 import com.waz.zclient.core.stores.connect.IConnectStore;
 import com.waz.zclient.core.stores.conversation.ConversationChangeRequester;
@@ -820,14 +821,14 @@ public class ParticipantFragment extends BaseFragment<ParticipantFragment.Contai
         int pickUserAnimation =
             LayoutSpec.isTablet(getActivity()) ? R.anim.fade_in : R.anim.slide_in_from_bottom_pick_user;
 
-//        fragmentManager
-//            .beginTransaction()
-//            .setCustomAnimations(pickUserAnimation, R.anim.fade_out)
-//            .add(R.id.fl__add_to_conversation__pickuser__container,
-//                 PickUserFragment.newInstance(true, groupConversation, convController.getCurrentConvId().str()),
-//                 PickUserFragment.TAG())
-//            .addToBackStack(PickUserFragment.TAG())
-//            .commit();
+        fragmentManager
+            .beginTransaction()
+            .setCustomAnimations(pickUserAnimation, R.anim.fade_out)
+            .add(R.id.fl__add_to_conversation__pickuser__container,
+                new NewConversationPickFragment(),
+                NewConversationPickFragment.Tag())
+            .addToBackStack(PickUserFragment.TAG())
+            .commit();
 
         if (LayoutSpec.isPhone(getActivity())) {
             getControllerFactory().getNavigationController().setRightPage(Page.PICK_USER_ADD_TO_CONVERSATION, TAG);
