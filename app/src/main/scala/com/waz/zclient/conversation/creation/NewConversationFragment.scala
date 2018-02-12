@@ -49,7 +49,7 @@ class NewConversationFragment extends FragmentHelper with OnBackPressedListener 
 
   private lazy val currentPage: SourceSignal[Int] = Signal()
 
-  private lazy val buttonState = for {
+  private lazy val confButtonState = for {
     currentPage <- currentPage
     name        <- newConvController.name
     users       <- newConvController.users
@@ -69,10 +69,15 @@ class NewConversationFragment extends FragmentHelper with OnBackPressedListener 
     case PickerPage                   => getString(R.string.add_people_count_header, userCount.toString)
   }
 
-  private lazy val toolbar = view[Toolbar](R.id.toolbar)
+  private lazy val toolbar = returning(view[Toolbar](R.id.toolbar)) { vh =>
+    currentPage.map {
+      case PickerPage   => R.drawable.action_back_dark
+      case SettingsPage => R.drawable.ic_action_close_dark
+    }.onUi(dr => vh.foreach(_.setNavigationIcon(dr)))
+  }
 
-  private lazy val nextButton = returning(view[TypefaceTextView](R.id.confirmation_button)) { vh =>
-    buttonState.onUi {
+  private lazy val confButton = returning(view[TypefaceTextView](R.id.confirmation_button)) { vh =>
+    confButtonState.onUi {
       case (enabled, textId) =>
         vh.foreach { v =>
           v.setEnabled(enabled)
@@ -129,7 +134,7 @@ class NewConversationFragment extends FragmentHelper with OnBackPressedListener 
   override def onViewCreated(v: View, savedInstanceState: Bundle): Unit = {
     openFragment(new NewConversationSettingsFragment, NewConversationSettingsFragment.Tag)
 
-    nextButton.foreach(_.onClick {
+    confButton.foreach(_.onClick {
       currentPage.currentValue.foreach {
         case SettingsPage =>
           openFragment(new NewConversationPickFragment, NewConversationPickFragment.Tag)
