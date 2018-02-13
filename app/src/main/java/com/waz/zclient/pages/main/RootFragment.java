@@ -49,7 +49,6 @@ import com.waz.zclient.collection.controllers.CollectionController;
 import com.waz.zclient.collection.fragments.CollectionFragment;
 import com.waz.zclient.connect.ConnectRequestFragment;
 import com.waz.zclient.controllers.collections.CollectionsObserver;
-import com.waz.zclient.controllers.drawing.DrawingController;
 import com.waz.zclient.controllers.drawing.DrawingObserver;
 import com.waz.zclient.controllers.drawing.IDrawingController;
 import com.waz.zclient.controllers.giphy.GiphyObserver;
