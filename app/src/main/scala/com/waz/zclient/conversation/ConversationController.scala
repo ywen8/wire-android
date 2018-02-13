@@ -106,6 +106,12 @@ class ConversationController(implicit injector: Injector, context: Context, ec: 
     if (conv.team.isEmpty) Future.successful(conv.convType == ConversationType.Group)
     else zms.map(_.conversations).head.flatMap(_.isGroupConversation(conv.id))
 
+  def hasOtherParticipants(conv: ConvId): Future[Boolean] =
+    for {
+      z  <- zms.head
+      ms <- z.membersStorage.getActiveUsers(conv)
+    } yield ms.size > 1
+
   def isOneToOneBot(conv: ConversationData): Future[Boolean] =
     isGroup(conv).flatMap {
       case false => loadMembers(conv.id).map(_.exists(_.isWireBot))
