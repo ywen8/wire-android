@@ -88,10 +88,10 @@ class IntegrationConversationSearchFragment extends Fragment with FragmentHelper
   }
 
   private lazy val convsData = for {
-    zms <- zms
+    zms    <- zms
     filter <- integrationDetailsController.searchFilter
-    convs <- Signal.future(zms.convsUi.findGroupConversations(SearchKey(filter), Int.MaxValue, handleOnly = false))
-    groups<- Signal.future(Future.sequence(convs.distinct.map(conv => conversationController.isGroup(conv).map(if (_) Some(conv) else None))))
+    convs  <- Signal.future(zms.convsUi.findGroupConversations(SearchKey(filter), Int.MaxValue, handleOnly = false))
+    groups <- Signal.future(Future.sequence(convs.distinct.map(conv => conversationController.isGroup(conv.id).map(if (_) Some(conv) else None))))
   } yield groups.flatten.filter(_.team == zms.teamId)
 
   override def onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState: Bundle): View =

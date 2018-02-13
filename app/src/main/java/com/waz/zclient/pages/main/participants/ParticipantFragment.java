@@ -97,7 +97,6 @@ public class ParticipantFragment extends BaseFragment<ParticipantFragment.Contai
                                                                                      SendConnectRequestFragment.Container,
                                                                                      BlockedUserProfileFragment.Container,
                                                                                      PendingConnectRequestFragment.Container,
-                                                                                     PickUserFragment.Container,
                                                                                      ConversationScreenControllerObserver,
                                                                                      OnBackPressedListener,
                                                                                      PickUserControllerScreenObserver,
@@ -789,9 +788,6 @@ public class ParticipantFragment extends BaseFragment<ParticipantFragment.Contai
     public void onConnectRequestWasSentToUser() {
         getControllerFactory().getConversationScreenController().hideUser();
     }
-
-    @Override
-    public void showIncomingPendingConnectRequest(ConvId conv) { }
 
     @Override
     public LoadingIndicatorView getLoadingViewIndicator() {

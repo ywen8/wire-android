@@ -35,9 +35,11 @@ class NewConversationController(implicit inj: Injector) extends Injectable {
   private lazy val conversationController = inject[ConversationController]
   private implicit lazy val uiStorage = inject[UiStorage]
 
-  val convId: SourceSignal[Option[ConvId]] = Signal(None)
-  val name: SourceSignal[String] = Signal("")
-  val users: SourceSignal[Set[UserId]] = Signal(Set.empty[UserId])
+  val convId = Signal(Option.empty[ConvId])
+  val name   = Signal("")
+  val users  = Signal(Set.empty[UserId])
+
+  val isLeftPage = Signal[Boolean]()
 
   def setCreateConversation(preSelectedUsers: Set[UserId] = Set()): Unit = {
     name ! ""

@@ -39,14 +39,14 @@ import com.waz.permissions.PermissionsService
 import com.waz.service.ContactResult.ContactMethod
 import com.waz.service.{ContactResult, NetworkModeService, ZMessaging}
 import com.waz.threading.{CancellableFuture, Threading}
-import com.waz.utils.events.Signal
+import com.waz.utils.events.{Signal, Subscription}
 import com.waz.utils.returning
 import com.waz.utils.wrappers.AndroidURIUtil
 import com.waz.zclient._
 import com.waz.zclient.common.controllers._
-import com.waz.zclient.common.controllers.global.AccentColorController
+import com.waz.zclient.common.controllers.global.{AccentColorController, KeyboardController}
 import com.waz.zclient.common.views.{FlatWireButton, PickableElement}
-import com.waz.zclient.controllers.globallayout.{IGlobalLayoutController, KeyboardVisibilityObserver}
+import com.waz.zclient.controllers.globallayout.IGlobalLayoutController
 import com.waz.zclient.controllers.navigation.{INavigationController, Page}
 import com.waz.zclient.conversation.ConversationController
 import com.waz.zclient.conversation.creation.{NewConversationController, NewConversationFragment}
@@ -58,7 +58,6 @@ import com.waz.zclient.pages.main.conversation.controller.IConversationScreenCon
 import com.waz.zclient.pages.main.participants.dialog.DialogLaunchMode
 import com.waz.zclient.pages.main.pickuser.controller.IPickUserController
 import com.waz.zclient.ui.text.TypefaceTextView
-import com.waz.zclient.ui.utils.KeyboardUtils
 import com.waz.zclient.usersearch.adapters.PickUsersAdapter
 import com.waz.zclient.usersearch.views.{ContactRowView, SearchEditText}
 import com.waz.zclient.utils.ContextUtils._
@@ -70,7 +69,6 @@ import scala.concurrent.duration._
 
 class PickUserFragment extends BaseFragment[PickUserFragment.Container]
   with FragmentHelper
-  with KeyboardVisibilityObserver
   with OnBackPressedListener
   with SearchResultOnItemTouchListener.Callback
   with PickUsersAdapter.Callback {
@@ -89,6 +87,7 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
   private lazy val browser                = inject[BrowserController]
   private lazy val integrationsController = inject[IntegrationsController]
   private lazy val convListController     = inject[ConversationListController]
+  private lazy val keyboard               = inject[KeyboardController]
 
   private lazy val pickUserController     = inject[IPickUserController]
   private lazy val convScreenController   = inject[IConversationScreenController]
@@ -106,7 +105,6 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
     darkTheme = true
   )
   // Saves user from which a pending connect request is loaded
-  private var isKeyboardVisible: Boolean = false
   private var searchBoxIsEmpty: Boolean = true
   private var showLoadingBarDelay: Long = 0L
   private var lastInputIsKeyboardDoneAction: Boolean = false
@@ -115,7 +113,13 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
 
   private lazy val searchResultRecyclerView = view[RecyclerView](R.id.rv__pickuser__header_list_view)
   private lazy val startUiToolbar           = view[Toolbar](R.id.pickuser_toolbar)
-  private lazy val inviteButton             = view[FlatWireButton](R.id.invite_button)
+  private lazy val inviteButton = returning(view[FlatWireButton](R.id.invite_button)) { vh =>
+    (for {
+      kb  <- keyboard.keyboardVisibility
+      sel <- searchUserController.selectedUsers
+    } yield if (kb || sel.nonEmpty || isTeamAccount) View.GONE else View.VISIBLE)
+      .onUi(vis => vh.foreach(_.setVisibility(vis)))
+  }
 
   private lazy val searchBoxView = returning(view[SearchEditText](R.id.sbv__search_box)) { vh =>
     accentColor.onUi(color => vh.foreach(_.setCursorColor(color)))
@@ -160,14 +164,16 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
     override def onClearButton(): Unit = closeStartUI()
 
     override def afterTextChanged(s: String): Unit = {
-      val filter = searchBoxView.getSearchFilter
-      searchUserController.filter ! filter
-      integrationsController.searchQuery ! filter
-      searchBoxIsEmpty = filter.isEmpty
-      lastInputIsKeyboardDoneAction = false
-      if (filter.isEmpty) {
-        searchBoxIsEmpty = true
-        setConversationQuickMenuVisible(false)
+      searchBoxView.foreach { v =>
+        val filter = v.getSearchFilter
+        searchUserController.filter ! filter
+        integrationsController.searchQuery ! filter
+        searchBoxIsEmpty = filter.isEmpty
+        lastInputIsKeyboardDoneAction = false
+        if (filter.isEmpty) {
+          searchBoxIsEmpty = true
+          setConversationQuickMenuVisible(false)
+        }
       }
     }
   }
@@ -197,6 +203,8 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
   override def onCreateView(inflater: LayoutInflater, viewContainer: ViewGroup, savedInstanceState: Bundle): View =
     inflater.inflate(R.layout.fragment_pick_user, viewContainer, false)
 
+
+  private var containerSub = Option.empty[Subscription]//TODO remove subscription...
   override def onViewCreated(rootView: View, savedInstanceState: Bundle): Unit = {
 
     searchResultRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity))
@@ -261,11 +269,16 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
 
     searchUserController.filter ! ""
     integrationsController.searchQuery ! ""
+    
+    containerSub = Some((for {
+      kb <- keyboard.keyboardVisibility
+      ac <- accentColor
+    } yield if (kb || !searchBoxIsEmpty) getColor(R.color.people_picker__loading__color) else ac)
+      .onUi(getContainer.getLoadingViewIndicator.setColor))
   }
 
   override def onStart(): Unit = {
     super.onStart()
-    globalLayoutController.addKeyboardVisibilityObserver(this)
     if (isPrivateAccount) showShareContactsDialog()
   }
 
@@ -278,7 +291,7 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
         case true =>
           searchBoxView.foreach { v =>
             v.setFocus()
-            KeyboardUtils.showKeyboard(getActivity)
+            keyboard.showKeyboardIfHidden()
           }
         case _ =>
       } (Threading.Ui)
@@ -292,38 +305,30 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
 
   override def onStop(): Unit = {
     //getContainer.getLoadingViewIndicator.hide()
-    globalLayoutController.removeKeyboardVisibilityObserver(this)
     super.onStop()
   }
 
-  override def onBackPressed: Boolean =
-    if (isKeyboardVisible) {
-      KeyboardUtils.hideKeyboard(getActivity)
-      true
-    } else if (pickUserController.isShowingUserProfile) {
-      pickUserController.hideUserProfile()
-      true
-    } else false
 
-  override def onKeyboardVisibilityChanged(keyboardIsVisible: Boolean, keyboardHeight: Int, currentFocus: View): Unit = {
-    isKeyboardVisible = keyboardIsVisible
-
-    getContainer
-      .getLoadingViewIndicator
-      .setColor(if (keyboardIsVisible || !searchBoxIsEmpty) getColor(R.color.people_picker__loading__color) else accentColor.currentValue.getOrElse(0))
-
-    val inviteVisibility =
-      if (keyboardIsVisible || searchUserController.selectedUsers.currentValue.exists(_.nonEmpty) || isTeamAccount) View.GONE
-      else View.VISIBLE
-    inviteButton.foreach(_.setVisibility(inviteVisibility))
+  override def onDestroyView() = {
+    containerSub.foreach(_.destroy())
+    containerSub = None
+    super.onDestroyView()
   }
+
+  override def onBackPressed: Boolean =
+    keyboard.hideKeyboardIfVisible() || {
+      if (pickUserController.isShowingUserProfile) {
+        pickUserController.hideUserProfile()
+        true
+      } else false
+    }
 
   override def onUserClicked(userId: UserId, anchorView: View): Unit = {
     zms.head.flatMap { z =>
       z.usersStorage.get(userId).map {
         case Some(user) =>
           import ConnectionStatus._
-          KeyboardUtils.hideKeyboard(getActivity)
+          keyboard.hideKeyboardIfVisible()
           if (z.teamId.isDefined || user.connection == Accepted)
             userAccountsController.getConversation(Set(userId)).map(_.id).map { convId =>
               conversationController.selectConv(convId, ConversationChangeRequester.START_CONVERSATION)
@@ -344,12 +349,13 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
   }
 
   override def onConversationClicked(conversationData: ConversationData): Unit = {
-    KeyboardUtils.hideKeyboard(getActivity)
+    keyboard.hideKeyboardIfVisible()
     verbose(s"onConversationClicked(${conversationData.id})")
     conversationController.selectConv(Some(conversationData.id), ConversationChangeRequester.START_CONVERSATION)
   }
 
   override def onCreateConvClicked(): Unit = {
+    keyboard.hideKeyboardIfVisible()
     inject[NewConversationController].setCreateConversation()
     getFragmentManager.beginTransaction
       .setCustomAnimations(
@@ -429,8 +435,8 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
     }(Threading.Ui)
 
   private def setConversationQuickMenuVisible(show: Boolean): Unit = {
-    val visible = show || searchUserController.selectedUsers.currentValue.exists(_.nonEmpty)
-    inviteButton.foreach(_.setVisibility(if (visible || isKeyboardVisible || isTeamAccount) View.GONE else View.VISIBLE))
+    val visible = show || searchUserController.selectedUsers.currentValue.exists(_.nonEmpty) || keyboard.isVisible || isTeamAccount
+    inviteButton.foreach(_.setVisibility(if (visible) View.GONE else View.VISIBLE))
   }
 
   private def isPrivateAccount: Boolean = !isTeamAccount
@@ -438,7 +444,7 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
   private def isTeamAccount: Boolean = userAccountsController.isTeamAccount
 
   private def closeStartUI(): Unit = {
-    KeyboardUtils.hideKeyboard(getActivity)
+    keyboard.hideKeyboardIfVisible()
     searchUserController.filter ! ""
     integrationsController.searchQuery ! ""
     searchResultAdapter.peopleOrServices ! false
@@ -483,7 +489,7 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
   }
 
   override def onIntegrationClicked(data: IntegrationData): Unit = {
-    KeyboardUtils.hideKeyboard(getActivity)
+    keyboard.hideKeyboardIfVisible()
     verbose(s"onIntegrationClicked(${data.id})")
 
     val detailsController = inject[IntegrationDetailsController]

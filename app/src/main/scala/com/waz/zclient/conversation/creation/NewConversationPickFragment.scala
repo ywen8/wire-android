@@ -21,25 +21,26 @@ import android.content.Context
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.support.v7.widget.{LinearLayoutManager, RecyclerView, Toolbar}
+import android.view.View.OnClickListener
 import android.view.{ContextThemeWrapper, LayoutInflater, View, ViewGroup}
 import com.waz.ZLog.ImplicitTag._
 import com.waz.model.{UserData, UserId}
 import com.waz.service.ZMessaging
-import com.waz.threading.{CancellableFuture, Threading}
+import com.waz.threading.Threading
 import com.waz.utils.events._
 import com.waz.utils.returning
+import com.waz.zclient.common.controllers.global.KeyboardController
 import com.waz.zclient.common.views.PickableElement
+import com.waz.zclient.pages.main.pickuser.controller.IPickUserController
+import com.waz.zclient.pages.main.pickuser.controller.IPickUserController.Destination
 import com.waz.zclient.ui.text.TypefaceTextView
-import com.waz.zclient.ui.utils.KeyboardUtils
 import com.waz.zclient.usersearch.views.{PickerSpannableEditText, SearchEditText, SearchResultUserRowView}
-import com.waz.zclient.utils.ContextUtils.getInt
 import com.waz.zclient.utils.RichView
-import com.waz.zclient.{FragmentHelper, R, ViewHelper}
+import com.waz.zclient.{FragmentHelper, OnBackPressedListener, R, ViewHelper}
 
 import scala.collection.immutable.Set
-import scala.concurrent.duration._
 
-class NewConversationPickFragment extends Fragment with FragmentHelper {
+class NewConversationPickFragment extends Fragment with FragmentHelper with OnBackPressedListener {
 
   import NewConversationPickFragment._
   import Threading.Implicits.Background
@@ -47,6 +48,7 @@ class NewConversationPickFragment extends Fragment with FragmentHelper {
 
   private lazy val zms               = inject[Signal[ZMessaging]]
   private lazy val newConvController = inject[NewConversationController]
+  private lazy val keyboard          = inject[KeyboardController]
 
   private lazy val searchFilter = Signal("")
 
@@ -65,7 +67,7 @@ class NewConversationPickFragment extends Fragment with FragmentHelper {
     }
   }
 
-  private lazy val nextButton = returning(view[TypefaceTextView](R.id.confirmation_button)) { vh =>
+  private lazy val confButton = returning(view[TypefaceTextView](R.id.confirmation_button)) { vh =>
     newConvController.users.map(_.nonEmpty).onUi { hasUsers =>
       vh.foreach(_.setEnabled(hasUsers))
     }
@@ -85,11 +87,11 @@ class NewConversationPickFragment extends Fragment with FragmentHelper {
 
   private val errorTextState = for {
     searchFilter <- searchFilter
-    results <- searchResults
+    results      <- searchResults
   } yield (results.isEmpty, searchFilter.isEmpty) match {
-    case (true, true) => (true, R.string.new_conv_no_contacts)
+    case (true, true)  => (true, R.string.new_conv_no_contacts)
     case (true, false) => (true, R.string.new_conv_no_results)
-    case _ => (false, R.string.empty_string)
+    case _             => (false, R.string.empty_string)
   }
 
   private lazy val errorText = returning(view[TypefaceTextView](R.id.empty_search_message)) { vh =>
@@ -110,12 +112,11 @@ class NewConversationPickFragment extends Fragment with FragmentHelper {
     recyclerView.setLayoutManager(new LinearLayoutManager(getContext))
     recyclerView.setAdapter(adapter)
 
-    toolbar.foreach(_.setVisibility(if (newConvController.convId.currentValue.flatten.nonEmpty) View.VISIBLE else View.GONE))
 
-    nextButton.foreach { v =>
+    confButton.foreach { v =>
       v.onClick {
         newConvController.addUsersToConversation()
-        getFragmentManager.popBackStack()
+        close()
       }
       v.setEnabled(newConvController.users.currentValue.exists(_.nonEmpty))
     }
@@ -130,27 +131,21 @@ class NewConversationPickFragment extends Fragment with FragmentHelper {
       })
     }
 
-    errorText.foreach { errorText =>
-      errorTextState.currentValue.foreach{ case (visible, text) =>
-        errorText.setVisible(visible)
-        errorText.setText(text)
-      }
-    }
+    toolbar.foreach(_.setNavigationOnClickListener(new OnClickListener() {
+      override def onClick(v: View): Unit = close()
+    }))
+
+    //lazy init
+    errorText
   }
 
-  override def onResume() = {
-    super.onResume()
-    CancellableFuture.delay(getInt(R.integer.people_picker__keyboard__show_delay).millis).map { _ =>
-      searchResults.head.map(_.size > ShowKeyboardThreshold).map {
-        case true =>
-          searchBox.foreach { v =>
-            v.setFocus()
-            KeyboardUtils.showKeyboard(getActivity)
-          }
-        case _ =>
-      } (Threading.Ui)
-    }
+  private def close() = {
+    keyboard.hideKeyboardIfVisible()
+    inject[IPickUserController].hidePickUser(Destination.PARTICIPANTS)
   }
+
+  override def onBackPressed() =
+    keyboard.hideKeyboardIfVisible() ||  { close(); true }
 }
 
 object NewConversationPickFragment {

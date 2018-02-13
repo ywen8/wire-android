@@ -63,9 +63,15 @@ class ConversationController(implicit injector: Injector, context: Context, ec: 
   } yield conv
 
   val currentConvType: Signal[ConversationType] = currentConv.map(_.convType).disableAutowiring()
-  val currentConvName: Signal[String] = currentConv.map { _.displayName } // the name of the current conversation can be edited (without switching)
-  val currentConvIsVerified: Signal[Boolean] = currentConv.map { _.verified == Verification.VERIFIED }
-  val currentConvIsGroup: Signal[Boolean] = currentConv.flatMap { conv => Signal.future(isGroup(conv)) }
+  val currentConvName: Signal[String] = currentConv.map(_.displayName) // the name of the current conversation can be edited (without switching)
+  val currentConvIsVerified: Signal[Boolean] = currentConv.map(_.verified == Verification.VERIFIED)
+  val currentConvIsGroup: Signal[Boolean] = currentConvId.flatMap(id => Signal.future(isGroup(id)))
+
+  lazy val currentConvMembers = for {
+    zms  <- zms
+    conv <- currentConvId
+    members <- zms.membersStorage.activeMembers(conv)
+  } yield members.filter(_ != zms.selfUserId)
 
   currentConvId { convId =>
     zms(_.conversations.forceNameUpdate(convId))
@@ -102,21 +108,14 @@ class ConversationController(implicit injector: Injector, context: Context, ec: 
     conv <- z.convsUi.getOrCreateOneToOneConversation(userId)
   } yield conv
 
-  def isGroup(conv: ConversationData): Future[Boolean] =
-    if (conv.team.isEmpty) Future.successful(conv.convType == ConversationType.Group)
-    else zms.map(_.conversations).head.flatMap(_.isGroupConversation(conv.id))
+  def isGroup(id: ConvId): Future[Boolean] =
+    zms.map(_.conversations).head.flatMap(_.isGroupConversation(id))
 
   def hasOtherParticipants(conv: ConvId): Future[Boolean] =
     for {
       z  <- zms.head
       ms <- z.membersStorage.getActiveUsers(conv)
     } yield ms.size > 1
-
-  def isOneToOneBot(conv: ConversationData): Future[Boolean] =
-    isGroup(conv).flatMap {
-      case false => loadMembers(conv.id).map(_.exists(_.isWireBot))
-      case _ => Future.successful(false)
-    }
 
   def setEphemeralExpiration(expiration: EphemeralExpiration): Future[Unit] = for {
     z <- zms.head

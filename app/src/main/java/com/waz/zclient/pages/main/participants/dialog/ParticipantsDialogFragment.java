@@ -54,8 +54,6 @@ import com.waz.zclient.controllers.confirmation.ConfirmationRequest;
 import com.waz.zclient.controllers.confirmation.IConfirmationController;
 import com.waz.zclient.controllers.globallayout.KeyboardHeightObserver;
 import com.waz.zclient.conversation.ConversationController;
-import com.waz.zclient.conversation.creation.NewConversationController;
-import com.waz.zclient.conversation.creation.NewConversationPickFragment;
 import com.waz.zclient.core.stores.connect.IConnectStore;
 import com.waz.zclient.core.stores.participants.ParticipantsStoreObserver;
 import com.waz.zclient.pages.BaseFragment;
@@ -74,12 +72,11 @@ import com.waz.zclient.ui.animation.HeightEvaluator;
 import com.waz.zclient.ui.animation.interpolators.penner.Quart;
 import com.waz.zclient.ui.utils.KeyboardUtils;
 import com.waz.zclient.ui.utils.MathUtils;
-import com.waz.zclient.usersearch.PickUserFragment;
 import com.waz.zclient.utils.Callback;
 import com.waz.zclient.utils.ContextUtils;
 import com.waz.zclient.utils.ViewUtils;
-import com.waz.zclient.views.LoadingIndicatorView;
 import com.waz.zclient.views.menus.ConfirmationMenu;
+import timber.log.Timber;
 
 public class ParticipantsDialogFragment extends BaseFragment<ParticipantsDialogFragment.Container> implements
                                                                                                    ParticipantsStoreObserver,
@@ -91,7 +88,6 @@ public class ParticipantsDialogFragment extends BaseFragment<ParticipantsDialogF
                                                                                                    SendConnectRequestFragment.Container,
                                                                                                    PendingConnectRequestManagerFragment.Container,
                                                                                                    BlockedUserProfileFragment.Container,
-                                                                                                   PickUserFragment.Container,
                                                                                                    PickUserControllerScreenObserver,
                                                                                                    ConfirmationObserver,
                                                                                                    AccentColorObserver {
@@ -363,10 +359,11 @@ public class ParticipantsDialogFragment extends BaseFragment<ParticipantsDialogF
                 }
             }
             if (getArguments().getBoolean(ARG__ADD_TO_CONVERSATION)) {
-                inject(NewConversationController.class).setAddToConversation(inject(ConversationController.class).getCurrentConvId());
-                transaction.replace(R.id.fl__participant_dialog__main__container,
-                    new NewConversationPickFragment(),
-                    NewConversationPickFragment.Tag());
+                Timber.v("Tablets not supported");
+//                inject(NewConversationController.class).setAddToConversation(inject(ConversationController.class).getCurrentConvId());
+//                transaction.replace(R.id.fl__participant_dialog__main__container,
+//                    new NewConversationPickFragment(),
+//                    NewConversationPickFragment.Tag());
 
             } else if (getControllerFactory().getConversationScreenController().getPopoverLaunchMode() == DialogLaunchMode.PARTICIPANT_BUTTON ||
                 getControllerFactory().getConversationScreenController().getPopoverLaunchMode() == DialogLaunchMode.CONVERSATION_TOOLBAR) {
@@ -1002,27 +999,6 @@ public class ParticipantsDialogFragment extends BaseFragment<ParticipantsDialogF
     @Override
     public void onAcceptedPendingOutgoingConnectRequest(ConvId conversation) {
 
-    }
-
-    //////////////////////////////////////////////////////////////////////////////////////////
-    //
-    //  PickUserFragment.Container
-    //
-    //////////////////////////////////////////////////////////////////////////////////////////
-
-    @Override
-    public void showIncomingPendingConnectRequest(ConvId conversation) {
-        // noop
-    }
-
-    @Override
-    public LoadingIndicatorView getLoadingViewIndicator() {
-        return ViewUtils.getView(getView(), R.id.lbv__conversation__loading_indicator);
-    }
-
-    @Override
-    public IPickUserController.Destination getCurrentPickerDestination() {
-        return IPickUserController.Destination.CURSOR;
     }
 
     public interface Container {

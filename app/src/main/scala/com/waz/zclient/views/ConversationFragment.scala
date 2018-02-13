@@ -207,7 +207,7 @@ class ConversationFragment extends BaseFragment[ConversationFragment.Container] 
       case conv if conv.isActive =>
         inflateCollectionIcon()
         convController.hasOtherParticipants(conv.id).flatMap {
-          case true => convController.isGroup(conv).map(isGroup => Some(if (isGroup) R.menu.conversation_header_menu_audio else R.menu.conversation_header_menu_video))
+          case true => convController.isGroup(conv.id).map(isGroup => Some(if (isGroup) R.menu.conversation_header_menu_audio else R.menu.conversation_header_menu_video))
           case false => Future.successful(None)
         }.foreach { id =>
           toolbar.getMenu.clear()

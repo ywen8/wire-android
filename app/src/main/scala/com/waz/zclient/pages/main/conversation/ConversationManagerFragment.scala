@@ -64,21 +64,9 @@ import com.waz.zclient.pages.main.participants.{ParticipantFragment, TabbedParti
 import com.waz.zclient.pages.main.pickuser.controller.{IPickUserController, PickUserControllerScreenObserver}
 import com.waz.zclient.pages.main.profile.camera.{CameraContext, CameraFragment}
 import com.waz.zclient.ui.utils.KeyboardUtils
-import com.waz.zclient.usersearch.PickUserFragment
 import com.waz.zclient.utils.LayoutSpec
 import com.waz.zclient.views.{ConversationFragment, LoadingIndicatorView}
 import com.waz.zclient.{FragmentHelper, OnBackPressedListener, R}
-
-object ConversationManagerFragment {
-  val Tag: String = classOf[ConversationManagerFragment].getName
-
-  def newInstance = new ConversationManagerFragment
-
-  trait Container {
-    def onOpenUrl(url: String): Unit
-  }
-
-}
 
 class ConversationManagerFragment extends BaseFragment[Container] with FragmentHelper
   with LikesListFragment.Container
@@ -87,14 +75,13 @@ class ConversationManagerFragment extends BaseFragment[Container] with FragmentH
   with DrawingObserver
   with DrawingFragment.Container
   with CameraFragment.Container
-  with PickUserFragment.Container
   with PickUserControllerScreenObserver
   with LocationObserver
   with CollectionsObserver
   with UserProfileContainer {
 
   private lazy val zms                    = inject[Signal[ZMessaging]]
-  private lazy val conversationController = inject[ConversationController]
+  private lazy val convController         = inject[ConversationController]
   private lazy val collectionController   = inject[CollectionController]
   private lazy val navigationController   = inject[INavigationController]
   private lazy val cameraController       = inject[ICameraController]
@@ -103,18 +90,6 @@ class ConversationManagerFragment extends BaseFragment[Container] with FragmentH
   private lazy val locationController     = inject[ILocationController]
   private lazy val pickUserController     = inject[IPickUserController]
 
-  private lazy val currentConvMembers = for {
-    zms <- zms
-    conv <- conversationController.currentConvId
-    members <- zms.membersStorage.activeMembers(conv)
-  } yield members.filter(_ != zms.selfUserId)
-
-  private lazy val isGroupConv = for {
-    zms <- zms
-    conv <- conversationController.currentConvId
-    isGroup <- Signal.future(zms.conversations.isGroupConversation(conv))
-  } yield isGroup
-
   private lazy val loadingIndicatorView = view[LoadingIndicatorView](R.id.liv__conversation_manager__loading_indicator)
 
   private var pickUserDestination: IPickUserController.Destination = null
@@ -122,20 +97,21 @@ class ConversationManagerFragment extends BaseFragment[Container] with FragmentH
   override def onCreate(savedInstanceState: Bundle): Unit = {
     super.onCreate(savedInstanceState)
 
-    conversationController.convChanged.onUi { change =>
-      if ((change.requester == ConversationChangeRequester.START_CONVERSATION) ||
-        (change.requester == ConversationChangeRequester.INCOMING_CALL) ||
-        (change.requester == ConversationChangeRequester.LEAVE_CONVERSATION) ||
-        (change.requester == ConversationChangeRequester.DELETE_CONVERSATION) ||
-        (change.requester == ConversationChangeRequester.BLOCK_USER)) {
+    import ConversationChangeRequester._
+    convController.convChanged.onUi { change =>
+      if ((change.requester == START_CONVERSATION) ||
+        (change.requester == INCOMING_CALL) ||
+        (change.requester == LEAVE_CONVERSATION) ||
+        (change.requester == DELETE_CONVERSATION) ||
+        (change.requester == BLOCK_USER)) {
 
         if ((navigationController.getCurrentRightPage == Page.CAMERA) && !change.noChange)
           cameraController.closeCamera(CameraContext.MESSAGE)
 
-        screenController.hideParticipants(false, change.requester == ConversationChangeRequester.START_CONVERSATION)
+        screenController.hideParticipants(false, change.requester == START_CONVERSATION)
         closeLikesList()
       } else if (change.toConvId != null) {
-        val iConv = conversationController.iConv(change.toConvId)
+        val iConv = convController.iConv(change.toConvId)
         getStoreFactory.participantsStore.setCurrentConversation(iConv)
       } else if (!change.noChange) {
         collectionController.closeCollection()
@@ -160,7 +136,7 @@ class ConversationManagerFragment extends BaseFragment[Container] with FragmentH
     pickUserController.addPickUserScreenControllerObserver(this)
     locationController.addObserver(this)
     collectionController.addObserver(this)
-    val curConv = conversationController.iCurrentConv
+    val curConv = convController.iCurrentConv
     if (curConv != null)
       getStoreFactory.participantsStore.setCurrentConversation(curConv)
   }
@@ -188,11 +164,13 @@ class ConversationManagerFragment extends BaseFragment[Container] with FragmentH
       case _: ParticipantFragment =>
         screenController.hideParticipants(true, false)
         true
-      case _: NewConversationPickFragment =>
-        pickUserController.hidePickUser(getCurrentPickerDestination)
+      case f: NewConversationPickFragment =>
+        f.onBackPressed()
+        pickUserController.hidePickUser(pickUserDestination)
         true
-      case _: NewConversationFragment =>
-        pickUserController.hidePickUser(getCurrentPickerDestination)
+      case f: NewConversationFragment =>
+        f.onBackPressed()
+        pickUserController.hidePickUser(pickUserDestination)
         true
       case _: LikesListFragment =>
         getChildFragmentManager.popBackStack(LikesListFragment.TAG, FragmentManager.POP_BACK_STACK_INCLUSIVE)
@@ -218,34 +196,7 @@ class ConversationManagerFragment extends BaseFragment[Container] with FragmentH
     getChildFragmentManager.popBackStack(ParticipantFragment.TAG, FragmentManager.POP_BACK_STACK_INCLUSIVE)
   }
 
-  override def onShowEditConversationName(show: Boolean): Unit = {
-  }
-
-  override def onHeaderViewMeasured(participantHeaderHeight: Int): Unit = {
-  }
-
-  override def onScrollParticipantsList(verticalOffset: Int, scrolledToBottom: Boolean): Unit = {
-  }
-
   override def onShowUser(user: User): Unit = if (LayoutSpec.isPhone(getContext)) KeyboardUtils.hideKeyboard(getActivity)
-
-  override def onHideUser(): Unit = {
-  }
-
-  override def onAddPeopleToConversation(): Unit = {
-  }
-
-  override def onShowConversationMenu(inConvList: Boolean, convId: ConvId): Unit = {
-  }
-
-  override def onShowOtrClient(otrClient: OtrClient, user: User): Unit = {
-  }
-
-  override def onShowCurrentOtrClient(): Unit = {
-  }
-
-  override def onHideOtrClient(): Unit = {
-  }
 
   override def onShowLikesList(message: Message): Unit = showFragment(LikesListFragment.newInstance(message), LikesListFragment.TAG)
 
@@ -279,14 +230,6 @@ class ConversationManagerFragment extends BaseFragment[Container] with FragmentH
     navigationController.setRightPage(Page.MESSAGE_STREAM, ConversationManagerFragment.Tag)
   }
 
-  override def shareCollectionItem(messageData: MessageData): Unit = {}
-
-  override def closeCollectionShare(): Unit = {}
-
-  override def nextItemRequested(): Unit = {}
-
-  override def previousItemRequested(): Unit = {}
-
   override def dismissUserProfile(): Unit = dismissSingleUserProfile()
 
   override def dismissSingleUserProfile(): Unit = {
@@ -294,17 +237,11 @@ class ConversationManagerFragment extends BaseFragment[Container] with FragmentH
     navigationController.setRightPage(Page.MESSAGE_STREAM, ConversationManagerFragment.Tag)
   }
 
-  override def showRemoveConfirmation(user: User): Unit = {
-  }
-
   override def onBitmapSelected(imageAsset: ImageAsset, imageFromCamera: Boolean, cameraContext: CameraContext): Unit = {
     if (cameraContext ne CameraContext.MESSAGE) return
     inject[ConversationController].sendMessage(imageAsset)
     getStoreFactory.networkStore.doIfHasInternetOrNotifyUser(null)
     cameraController.closeCamera(CameraContext.MESSAGE)
-  }
-
-  override def onCameraNotAvailable(): Unit = {
   }
 
   override def onOpenCamera(cameraContext: CameraContext): Unit = {
@@ -321,13 +258,6 @@ class ConversationManagerFragment extends BaseFragment[Container] with FragmentH
     }
   }
 
-
-  override def showIncomingPendingConnectRequest(conv: ConvId): Unit = {}
-
-  override def getLoadingViewIndicator: LoadingIndicatorView = loadingIndicatorView
-
-  override def getCurrentPickerDestination: IPickUserController.Destination = pickUserDestination
-
   override def onShowPickUser(destination: IPickUserController.Destination): Unit =
     if (destination == IPickUserController.Destination.CURSOR || destination == IPickUserController.Destination.PARTICIPANTS) {
       pickUserDestination = destination
@@ -335,33 +265,27 @@ class ConversationManagerFragment extends BaseFragment[Container] with FragmentH
       navigationController.setRightPage(Page.PICK_USER_ADD_TO_CONVERSATION, ConversationManagerFragment.Tag)
 
       import com.waz.threading.Threading.Implicits.Ui
-      isGroupConv.head.flatMap {
+      convController.currentConvIsGroup.head.flatMap {
         case true =>
-          conversationController.currentConvId.head.map { cId =>
+          convController.currentConvId.head.map { cId =>
             inject[NewConversationController].setAddToConversation(cId)
-            showFragment(new NewConversationPickFragment, NewConversationPickFragment.Tag)
+            showFragment(new NewConversationPickFragment, AddOrCreateTag)
           }
         case false =>
-          currentConvMembers.head.map { members =>
+          convController.currentConvMembers.head.map { members =>
             inject[NewConversationController].setCreateConversation(members)
-            showFragment(new NewConversationFragment, NewConversationFragment.Tag)
+            showFragment(new NewConversationFragment, AddOrCreateTag)
           }
       }
     }
 
   override def onHidePickUser(destination: IPickUserController.Destination): Unit = {
-    if (destination == getCurrentPickerDestination) {
-      if (IPickUserController.Destination.CURSOR == getCurrentPickerDestination)
-        navigationController.setRightPage(Page.MESSAGE_STREAM, ConversationManagerFragment.Tag)
-      else
-        navigationController.setRightPage(Page.PARTICIPANT, ConversationManagerFragment.Tag)
-      getChildFragmentManager.popBackStack(PickUserFragment.TAG, FragmentManager.POP_BACK_STACK_INCLUSIVE)
+    if (destination == pickUserDestination) {
+      val page = if (IPickUserController.Destination.CURSOR == pickUserDestination) Page.MESSAGE_STREAM else Page.PARTICIPANT
+      navigationController.setRightPage(page, ConversationManagerFragment.Tag)
+      getChildFragmentManager.popBackStack(AddOrCreateTag, FragmentManager.POP_BACK_STACK_INCLUSIVE)
     }
   }
-
-  override def onShowUserProfile(userId: UserId, anchorView: View): Unit = {}
-
-  override def onHideUserProfile(): Unit = {}
 
   override def onShowShareLocation(): Unit = {
     showFragment(LocationFragment.newInstance, LocationFragment.TAG)
@@ -370,7 +294,7 @@ class ConversationManagerFragment extends BaseFragment[Container] with FragmentH
 
   override def onHideShareLocation(location: MessageContent.Location): Unit = {
     if (location != null)
-      conversationController.sendMessage(location)
+      convController.sendMessage(location)
     navigationController.setRightPage(Page.MESSAGE_STREAM, ConversationManagerFragment.Tag)
     getChildFragmentManager.popBackStack(LocationFragment.TAG, FragmentManager.POP_BACK_STACK_INCLUSIVE)
   }
@@ -392,4 +316,52 @@ class ConversationManagerFragment extends BaseFragment[Container] with FragmentH
       .addToBackStack(tag)
       .commit
   }
+
+  override def onShowEditConversationName(show: Boolean): Unit = {}
+
+  override def onHeaderViewMeasured(participantHeaderHeight: Int): Unit = {}
+
+  override def onScrollParticipantsList(verticalOffset: Int, scrolledToBottom: Boolean): Unit = {}
+
+  override def onHideUser(): Unit = {}
+
+  override def onAddPeopleToConversation(): Unit = {}
+
+  override def onShowConversationMenu(inConvList: Boolean, convId: ConvId): Unit = {}
+
+  override def onShowOtrClient(otrClient: OtrClient, user: User): Unit = {}
+
+  override def onShowCurrentOtrClient(): Unit = {}
+
+  override def onHideOtrClient(): Unit = {}
+
+  override def shareCollectionItem(messageData: MessageData): Unit = {}
+
+  override def closeCollectionShare(): Unit = {}
+
+  override def nextItemRequested(): Unit = {}
+
+  override def previousItemRequested(): Unit = {}
+
+  override def showRemoveConfirmation(user: User): Unit = {}
+
+  override def onCameraNotAvailable(): Unit = {}
+
+  override def onShowUserProfile(userId: UserId, anchorView: View): Unit = {}
+
+  override def onHideUserProfile(): Unit = {}
+}
+
+object ConversationManagerFragment {
+
+  val AddOrCreateTag = "AddingToOrCreatingConversation"
+
+  val Tag: String = classOf[ConversationManagerFragment].getName
+
+  def newInstance = new ConversationManagerFragment
+
+  trait Container {
+    def onOpenUrl(url: String): Unit
+  }
+
 }

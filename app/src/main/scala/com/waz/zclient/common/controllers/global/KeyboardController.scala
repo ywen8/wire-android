@@ -21,22 +21,20 @@ import android.app.Activity
 import android.content.Context
 import android.graphics.Rect
 import android.view.{View, ViewTreeObserver}
-import com.waz.threading.CancellableFuture
-import com.waz.utils.events.Signal
-import com.waz.zclient.{Injectable, Injector}
+import com.waz.ZLog.ImplicitTag._
+import com.waz.ZLog.verbose
+import com.waz.utils.events.{EventContext, Signal}
 import com.waz.zclient.ui.utils.KeyboardUtils
 import com.waz.zclient.utils.ContextUtils._
+import com.waz.zclient.{Injectable, Injector}
 
-import scala.concurrent.Future
-import scala.concurrent.duration._
-
-class KeyboardController(implicit inj: Injector) extends ViewTreeObserver.OnGlobalLayoutListener with Injectable {
-  import KeyboardController._
-  import com.waz.threading.Threading.Implicits.Ui
+class KeyboardController(implicit inj: Injector, ec: EventContext) extends ViewTreeObserver.OnGlobalLayoutListener with Injectable {
 
   private val cxt = inject[Context]
 
   val keyboardVisibility = Signal(false)
+  keyboardVisibility(v => verbose(s"Keyboard visible: $v"))
+
   val keyboardHeight = Signal(0)
 
   private val rootLayout = cxt match {
@@ -56,16 +54,25 @@ class KeyboardController(implicit inj: Injector) extends ViewTreeObserver.OnGlob
       keyboardHeight ! kbHeight
   }
 
-  def hideKeyboardIfVisible(): Future[Unit] =
-    if (KeyboardUtils.isKeyboardVisible(cxt)) {
+  def isVisible = keyboardVisibility.currentValue.getOrElse(false)
+
+  //Returns true if keyboard state was changed
+  def hideKeyboardIfVisible(): Boolean = {
+    if (isVisible) {
       KeyboardUtils.hideKeyboard(inject[Activity])
-      CancellableFuture.delayed(HideDelay) {}
-    } else
-      Future.successful(())
+      true
+    } else false
+  }
+
+  //Returns true if keyboard state was changed
+  def showKeyboardIfHidden(): Boolean = {
+    if (!isVisible) {
+      KeyboardUtils.showKeyboard(inject[Activity])
+      true
+    } else false
+
+  }
 
   rootLayout.foreach (rootLayout => rootLayout.getViewTreeObserver.addOnGlobalLayoutListener(this))
 }
 
-object KeyboardController {
-  private val HideDelay = 200.millis
-}

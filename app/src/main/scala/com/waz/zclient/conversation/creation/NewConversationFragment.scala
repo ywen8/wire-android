@@ -29,6 +29,7 @@ import com.waz.ZLog.ImplicitTag._
 import com.waz.threading.Threading
 import com.waz.utils.events.{Signal, SourceSignal}
 import com.waz.utils.returning
+import com.waz.zclient.common.controllers.global.KeyboardController
 import com.waz.zclient.conversation.ConversationController
 import com.waz.zclient.conversation.creation.NewConversationFragment._
 import com.waz.zclient.core.stores.conversation.ConversationChangeRequester
@@ -46,6 +47,8 @@ class NewConversationFragment extends FragmentHelper with OnBackPressedListener 
 
   private lazy val newConvController = inject[NewConversationController]
   private lazy val conversationController = inject[ConversationController]
+  private lazy val keyboard               = inject[KeyboardController]
+  private lazy val pickUserController     = inject[IPickUserController]
 
   private lazy val currentPage: SourceSignal[Int] = Signal()
 
@@ -136,6 +139,7 @@ class NewConversationFragment extends FragmentHelper with OnBackPressedListener 
     confButton.foreach(_.onClick {
       currentPage.currentValue.foreach {
         case SettingsPage =>
+          keyboard.hideKeyboardIfVisible()
           openFragment(new NewConversationPickFragment, NewConversationPickFragment.Tag)
         case PickerPage =>
           newConvController.createConversation().flatMap { convId =>
@@ -178,19 +182,25 @@ class NewConversationFragment extends FragmentHelper with OnBackPressedListener 
       .commit()
   }
 
-  private def close() =
-    if (!inject[IPickUserController].hidePickUser(Destination.PARTICIPANTS))
-      getFragmentManager.popBackStack()
-
-  private def back(): Unit = getChildFragmentManager.popBackStack()
+  private def close() = {
+    keyboard.hideKeyboardIfVisible()
+    pickUserController.hidePickUser(Destination.PARTICIPANTS) ||  { getFragmentManager.popBackStack(); true }
+  }
+  
+  private def back(): Unit = {
+    keyboard.hideKeyboardIfVisible()
+    getChildFragmentManager.popBackStack()
+  }
 
   override def onBackPressed(): Boolean = {
-    currentPage.currentValue.foreach {
-      case SettingsPage => close()
-      case PickerPage => back()
-      case _ =>
+    keyboard.hideKeyboardIfVisible() || {
+      currentPage.currentValue.foreach {
+        case SettingsPage => close()
+        case PickerPage => back()
+        case _ =>
+      }
+      true
     }
-    true
   }
 }
 
