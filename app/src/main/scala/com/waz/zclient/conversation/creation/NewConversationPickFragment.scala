@@ -29,12 +29,13 @@ import com.waz.service.ZMessaging
 import com.waz.threading.Threading
 import com.waz.utils.events._
 import com.waz.utils.returning
-import com.waz.zclient.common.controllers.global.KeyboardController
+import com.waz.zclient.common.controllers.global.{AccentColorController, KeyboardController}
 import com.waz.zclient.common.views.PickableElement
 import com.waz.zclient.pages.main.pickuser.controller.IPickUserController
 import com.waz.zclient.pages.main.pickuser.controller.IPickUserController.Destination
 import com.waz.zclient.ui.text.TypefaceTextView
 import com.waz.zclient.usersearch.views.{PickerSpannableEditText, SearchEditText, SearchResultUserRowView}
+import com.waz.zclient.utils.ContextUtils.getColor
 import com.waz.zclient.utils.RichView
 import com.waz.zclient.{FragmentHelper, OnBackPressedListener, R, ViewHelper}
 
@@ -50,6 +51,8 @@ class NewConversationPickFragment extends Fragment with FragmentHelper with OnBa
   private lazy val newConvController = inject[NewConversationController]
   private lazy val keyboard          = inject[KeyboardController]
 
+  private lazy val accentColor = inject[AccentColorController].accentColor.map(_.getColor)
+
   private lazy val searchFilter = Signal("")
 
   private lazy val searchResults = for {
@@ -61,16 +64,29 @@ class NewConversationPickFragment extends Fragment with FragmentHelper with OnBa
 
   private lazy val adapter = NewConvAdapter(searchResults, newConvController.users)
 
+  private lazy val toolbarText = returning(view[TypefaceTextView](R.id.header)) { vh =>
+    newConvController.users.map(_.size).map {
+      case 0 => getString(R.string.add_people_empty_header)
+      case x => getString(R.string.add_people_count_header, x.toString)
+    }.onUi(t => vh.foreach(_.setText(t)))
+  }
+
   private lazy val toolbar = returning(view[Toolbar](R.id.toolbar)) { vh =>
     newConvController.convId.map(_.nonEmpty).onUi { hasConv =>
       vh.foreach(_.setVisibility(if (hasConv) View.VISIBLE else View.GONE))
     }
   }
 
+  lazy val confButtonEnabled = newConvController.users.map(_.nonEmpty)
+
+  lazy val confButtonColor = confButtonEnabled.flatMap {
+    case false => Signal.const(getColor(R.color.teams_inactive_button))
+    case _     => accentColor
+  }
+
   private lazy val confButton = returning(view[TypefaceTextView](R.id.confirmation_button)) { vh =>
-    newConvController.users.map(_.nonEmpty).onUi { hasUsers =>
-      vh.foreach(_.setEnabled(hasUsers))
-    }
+    confButtonEnabled.onUi(e => vh.foreach(_.setEnabled(e)))
+    confButtonColor.onUi(c => vh.foreach(_.setTextColor(c)))
   }
 
   private lazy val searchBox = returning(view[SearchEditText](R.id.search_box)) { vh =>
@@ -112,7 +128,6 @@ class NewConversationPickFragment extends Fragment with FragmentHelper with OnBa
     recyclerView.setLayoutManager(new LinearLayoutManager(getContext))
     recyclerView.setAdapter(adapter)
 
-
     confButton.foreach { v =>
       v.onClick {
         newConvController.addUsersToConversation()
@@ -137,6 +152,7 @@ class NewConversationPickFragment extends Fragment with FragmentHelper with OnBa
 
     //lazy init
     errorText
+    toolbarText
   }
 
   private def close() = {

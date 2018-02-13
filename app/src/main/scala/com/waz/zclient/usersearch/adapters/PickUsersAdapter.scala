@@ -176,8 +176,8 @@ class PickUsersAdapter(topUsersOnItemTouchListener: SearchResultOnItemTouchListe
         addConnections()
       }
     } else  {
-      addTopPeople()
       addGroupCreationButton()
+      addTopPeople()
       addContacts()
       addGroupConversations()
       addConnections()

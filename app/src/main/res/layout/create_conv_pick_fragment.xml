@@ -35,10 +35,11 @@
         app:navigationIcon="@drawable/ic_action_close_dark">
 
         <com.waz.zclient.ui.text.TypefaceTextView
+            android:id="@+id/header"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity='center'
-            android:text="@string/add_members_header"
+            android:text="@string/add_people_empty_header"
             android:textColor="@color/teams_headline_text"
             android:textSize="@dimen/wire__text_size__small"
             app:w_font="@string/wire__typeface__medium"/>

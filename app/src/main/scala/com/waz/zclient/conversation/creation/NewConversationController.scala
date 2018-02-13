@@ -20,7 +20,7 @@ package com.waz.zclient.conversation.creation
 import com.waz.ZLog
 import com.waz.ZLog.ImplicitTag._
 import com.waz.model.{ConvId, UserId}
-import com.waz.utils.events.{Signal, SourceSignal}
+import com.waz.utils.events.Signal
 import com.waz.zclient.conversation.ConversationController
 import com.waz.zclient.utils.UiStorage
 import com.waz.zclient.{Injectable, Injector}
@@ -38,8 +38,6 @@ class NewConversationController(implicit inj: Injector) extends Injectable {
   val convId = Signal(Option.empty[ConvId])
   val name   = Signal("")
   val users  = Signal(Set.empty[UserId])
-
-  val isLeftPage = Signal[Boolean]()
 
   def setCreateConversation(preSelectedUsers: Set[UserId] = Set()): Unit = {
     name ! ""

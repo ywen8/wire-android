@@ -27,16 +27,16 @@ import android.view.{LayoutInflater, View, ViewGroup}
 import com.waz.ZLog
 import com.waz.ZLog.ImplicitTag._
 import com.waz.threading.Threading
-import com.waz.utils.events.{Signal, SourceSignal}
+import com.waz.utils.events.Signal
 import com.waz.utils.returning
-import com.waz.zclient.common.controllers.global.KeyboardController
+import com.waz.zclient.common.controllers.global.{AccentColorController, KeyboardController}
 import com.waz.zclient.conversation.ConversationController
 import com.waz.zclient.conversation.creation.NewConversationFragment._
 import com.waz.zclient.core.stores.conversation.ConversationChangeRequester
 import com.waz.zclient.pages.main.pickuser.controller.IPickUserController
 import com.waz.zclient.pages.main.pickuser.controller.IPickUserController.Destination
 import com.waz.zclient.ui.text.TypefaceTextView
-import com.waz.zclient.utils.ContextUtils.{getDimenPx, getInt}
+import com.waz.zclient.utils.ContextUtils.{getColor, getDimenPx, getInt}
 import com.waz.zclient.utils.RichView
 import com.waz.zclient.views.DefaultPageTransitionAnimation
 import com.waz.zclient.{FragmentHelper, OnBackPressedListener, R}
@@ -45,22 +45,35 @@ class NewConversationFragment extends FragmentHelper with OnBackPressedListener 
 
   implicit private def ctx = getContext
 
-  private lazy val newConvController = inject[NewConversationController]
+  private lazy val newConvController      = inject[NewConversationController]
   private lazy val conversationController = inject[ConversationController]
   private lazy val keyboard               = inject[KeyboardController]
   private lazy val pickUserController     = inject[IPickUserController]
 
-  private lazy val currentPage: SourceSignal[Int] = Signal()
+  private lazy val accentColor = inject[AccentColorController].accentColor.map(_.getColor)
 
-  private lazy val confButtonState = for {
+  private lazy val currentPage = Signal[Int]()
+
+  lazy val confButtonText = for {
     currentPage <- currentPage
-    name        <- newConvController.name
     users       <- newConvController.users
   } yield currentPage match {
-    case SettingsPage if name.trim.nonEmpty => (true,  R.string.next_button)
-    case SettingsPage                       => (false, R.string.next_button)
-    case PickerPage   if users.nonEmpty     => (true,  R.string.done_button)
-    case PickerPage                         => (true,  R.string.skip_button)
+    case SettingsPage                 => R.string.next_button
+    case PickerPage if users.nonEmpty => R.string.done_button
+    case PickerPage                   => R.string.skip_button
+  }
+
+  lazy val confButtonEnabled = for {
+    currentPage <- currentPage
+    name        <- newConvController.name
+  } yield currentPage match {
+    case SettingsPage if name.trim.isEmpty  => false
+    case _ => true
+  }
+
+  lazy val confButtonColor = confButtonEnabled.flatMap {
+    case false => Signal.const(getColor(R.color.teams_inactive_button))
+    case _     => accentColor
   }
 
   private lazy val headerText = for {
@@ -80,13 +93,9 @@ class NewConversationFragment extends FragmentHelper with OnBackPressedListener 
   }
 
   private lazy val confButton = returning(view[TypefaceTextView](R.id.confirmation_button)) { vh =>
-    confButtonState.onUi {
-      case (enabled, textId) =>
-        vh.foreach { v =>
-          v.setEnabled(enabled)
-          v.setText(textId)
-        }
-    }
+    confButtonEnabled.onUi(e => vh.foreach(_.setEnabled(e)))
+    confButtonText.onUi (id => vh.foreach(_.setText(id)))
+    confButtonColor.onUi(c => vh.foreach(_.setTextColor(c)))
   }
 
   private lazy val header = returning(view[TypefaceTextView](R.id.header)) { vh =>
@@ -186,7 +195,7 @@ class NewConversationFragment extends FragmentHelper with OnBackPressedListener 
     keyboard.hideKeyboardIfVisible()
     pickUserController.hidePickUser(Destination.PARTICIPANTS) ||  { getFragmentManager.popBackStack(); true }
   }
-  
+
   private def back(): Unit = {
     keyboard.hideKeyboardIfVisible()
     getChildFragmentManager.popBackStack()

@@ -269,7 +269,7 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
 
     searchUserController.filter ! ""
     integrationsController.searchQuery ! ""
-    
+
     containerSub = Some((for {
       kb <- keyboard.keyboardVisibility
       ac <- accentColor
