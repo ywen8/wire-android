@@ -335,14 +335,6 @@ class ConversationManagerFragment extends BaseFragment[Container] with FragmentH
 
   override def onHideOtrClient(): Unit = {}
 
-  override def shareCollectionItem(messageData: MessageData): Unit = {}
-
-  override def closeCollectionShare(): Unit = {}
-
-  override def nextItemRequested(): Unit = {}
-
-  override def previousItemRequested(): Unit = {}
-
   override def showRemoveConfirmation(user: User): Unit = {}
 
   override def onCameraNotAvailable(): Unit = {}
