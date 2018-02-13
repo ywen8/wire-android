@@ -49,7 +49,7 @@ import com.waz.zclient.common.views.{FlatWireButton, PickableElement}
 import com.waz.zclient.controllers.globallayout.{IGlobalLayoutController, KeyboardVisibilityObserver}
 import com.waz.zclient.controllers.navigation.{INavigationController, Page}
 import com.waz.zclient.conversation.ConversationController
-import com.waz.zclient.conversation.creation.NewConversationFragment
+import com.waz.zclient.conversation.creation.{NewConversationController, NewConversationFragment}
 import com.waz.zclient.conversationlist.ConversationListController
 import com.waz.zclient.core.stores.conversation.ConversationChangeRequester
 import com.waz.zclient.integrations.{IntegrationDetailsController, IntegrationDetailsFragment}
@@ -350,6 +350,7 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
   }
 
   override def onCreateConvClicked(): Unit = {
+    inject[NewConversationController].setCreateConversation()
     getFragmentManager.beginTransaction
       .setCustomAnimations(
         R.anim.slide_in_from_bottom_pick_user,

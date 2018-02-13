@@ -113,7 +113,6 @@ class NewConversationFragment extends FragmentHelper with OnBackPressedListener 
 
   override def onCreate(savedInstanceState: Bundle): Unit = {
     super.onCreate(savedInstanceState)
-    newConvController.setCreateConversation()
 
     getChildFragmentManager.addOnBackStackChangedListener(new OnBackStackChangedListener {
       override def onBackStackChanged(): Unit =

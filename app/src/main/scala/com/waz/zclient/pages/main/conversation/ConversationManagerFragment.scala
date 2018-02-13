@@ -107,7 +107,7 @@ class ConversationManagerFragment extends BaseFragment[Container] with FragmentH
     zms <- zms
     conv <- conversationController.currentConvId
     members <- zms.membersStorage.activeMembers(conv)
-  } yield members
+  } yield members.filter(_ != zms.selfUserId)
 
   private lazy val isGroupConv = for {
     zms <- zms
@@ -329,7 +329,7 @@ class ConversationManagerFragment extends BaseFragment[Container] with FragmentH
   override def getCurrentPickerDestination: IPickUserController.Destination = pickUserDestination
 
   override def onShowPickUser(destination: IPickUserController.Destination): Unit =
-    if (destination != IPickUserController.Destination.CURSOR && destination != IPickUserController.Destination.PARTICIPANTS) {
+    if (destination == IPickUserController.Destination.CURSOR || destination == IPickUserController.Destination.PARTICIPANTS) {
       pickUserDestination = destination
       if (LayoutSpec.isPhone(getContext)) KeyboardUtils.hideKeyboard(getActivity)
       navigationController.setRightPage(Page.PICK_USER_ADD_TO_CONVERSATION, ConversationManagerFragment.Tag)
