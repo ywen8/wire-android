@@ -199,8 +199,9 @@ case class NewConvAdapter(searchResults: Signal[IndexedSeq[UserData]], selectedU
   } yield (res, sel))
     .onUi {
       case (res, sel) =>
+        val prev = users.map(_._1)
         this.users = res.map(u => (u, sel.contains(u.id)))
-        if (users.map(_._1) != res) notifyDataSetChanged() //only update when user data changes, else selection causes flickering
+        if (prev != res) notifyDataSetChanged() //only update when user data changes, else selection causes flickering
     }
 
   override def getItemCount: Int = users.size
