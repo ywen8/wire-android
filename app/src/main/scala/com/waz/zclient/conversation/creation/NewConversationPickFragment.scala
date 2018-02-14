@@ -22,7 +22,10 @@ import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.support.v7.widget.{LinearLayoutManager, RecyclerView, Toolbar}
 import android.view.View.OnClickListener
-import android.view.{ContextThemeWrapper, LayoutInflater, View, ViewGroup}
+import android.view.inputmethod.EditorInfo
+import android.view._
+import android.widget.TextView
+import android.widget.TextView.OnEditorActionListener
 import com.waz.ZLog
 import com.waz.ZLog.ImplicitTag._
 import com.waz.model.{UserData, UserId}
@@ -144,6 +147,10 @@ class NewConversationPickFragment extends Fragment with FragmentHelper with OnBa
           newConvController.users.mutate(_ - UserId(element.id))
         override def afterTextChanged(s: String): Unit =
           searchFilter ! s
+      })
+      v.setOnEditorActionListener(new OnEditorActionListener {
+        override def onEditorAction(v: TextView, actionId: Int, event: KeyEvent): Boolean =
+          if (actionId == EditorInfo.IME_ACTION_SEARCH) keyboard.hideKeyboardIfVisible() else false
       })
     }
 

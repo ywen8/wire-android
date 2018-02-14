@@ -91,7 +91,6 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
 
   private lazy val pickUserController     = inject[IPickUserController]
   private lazy val convScreenController   = inject[IConversationScreenController]
-  private lazy val globalLayoutController = inject[IGlobalLayoutController]
   private lazy val navigationController   = inject[INavigationController]
 
   private lazy val shareContactsPref     = zms.map(_.userPrefs.preference(UserPreferences.ShareContacts))
@@ -104,11 +103,6 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
     integrationsController,
     darkTheme = true
   )
-  // Saves user from which a pending connect request is loaded
-  private var searchBoxIsEmpty: Boolean = true
-  private var showLoadingBarDelay: Long = 0L
-  private var lastInputIsKeyboardDoneAction: Boolean = false
-
   private lazy val searchUserController = new SearchUserController()
 
   private lazy val searchResultRecyclerView = view[RecyclerView](R.id.rv__pickuser__header_list_view)
@@ -121,7 +115,7 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
       .onUi(vis => vh.foreach(_.setVisibility(vis)))
   }
 
-  private lazy val searchBoxView = returning(view[SearchEditText](R.id.sbv__search_box)) { vh =>
+  private lazy val searchBox = returning(view[SearchEditText](R.id.sbv__search_box)) { vh =>
     accentColor.onUi(color => vh.foreach(_.setCursorColor(color)))
   }
 
@@ -164,14 +158,11 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
     override def onClearButton(): Unit = closeStartUI()
 
     override def afterTextChanged(s: String): Unit = {
-      searchBoxView.foreach { v =>
+      searchBox.foreach { v =>
         val filter = v.getSearchFilter
         searchUserController.filter ! filter
         integrationsController.searchQuery ! filter
-        searchBoxIsEmpty = filter.isEmpty
-        lastInputIsKeyboardDoneAction = false
         if (filter.isEmpty) {
-          searchBoxIsEmpty = true
           setConversationQuickMenuVisible(false)
         }
       }
@@ -211,7 +202,7 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
     searchResultRecyclerView.setAdapter(searchResultAdapter)
     searchResultRecyclerView.addOnItemTouchListener(new SearchResultOnItemTouchListener(getActivity, this))
 
-    searchBoxView.setCallback(searchBoxViewCallback)
+    searchBox.setCallback(searchBoxViewCallback)
 
     inviteButton.setText(R.string.pref_invite_title)
     inviteButton.setGlyph(R.string.glyph__invite)
@@ -220,11 +211,10 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
     errorMessageView
     toolbarTitle
 
-    showLoadingBarDelay = getResources.getInteger(R.integer.people_picker__loading_bar__show_delay)
     inviteButton.setVisibility(if (isPrivateAccount) View.VISIBLE else View.GONE)
     // Use constant style for left side start ui
     startUiToolbar.setVisibility(View.VISIBLE)
-    searchBoxView.applyDarkTheme(true)
+    searchBox.applyDarkTheme(true)
     startUiToolbar.inflateMenu(R.menu.toolbar_close_white)
     startUiToolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
       override def onMenuItemClick(item: MenuItem): Boolean = {
@@ -236,13 +226,9 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
       }
     })
 
-    searchBoxView.setOnEditorActionListener(new OnEditorActionListener {
-      override def onEditorAction(v: TextView, actionId: Int, event: KeyEvent): Boolean = {
-        if (actionId == EditorInfo.IME_ACTION_DONE || actionId == EditorInfo.IME_ACTION_GO) {
-          lastInputIsKeyboardDoneAction = true
-          true
-        } else false
-      }
+    searchBox.setOnEditorActionListener(new OnEditorActionListener {
+      override def onEditorAction(v: TextView, actionId: Int, event: KeyEvent): Boolean =
+        if (actionId == EditorInfo.IME_ACTION_SEARCH) keyboard.hideKeyboardIfVisible() else false
     })
 
     val tabs = findById[TabLayout](rootView, R.id.pick_user_tabs)
@@ -257,7 +243,7 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
           case 0 => searchResultAdapter.peopleOrServices ! false
           case 1 => searchResultAdapter.peopleOrServices ! true
         }
-        searchBoxView.removeAllElements()
+        searchBox.removeAllElements()
       }
       override def onTabUnselected(tab: TabLayout.Tab): Unit = {}
       override def onTabReselected(tab: TabLayout.Tab): Unit = {}
@@ -273,7 +259,8 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
     containerSub = Some((for {
       kb <- keyboard.keyboardVisibility
       ac <- accentColor
-    } yield if (kb || !searchBoxIsEmpty) getColor(R.color.people_picker__loading__color) else ac)
+      filterEmpty = !searchBox.flatMap(v => Option(v.getSearchFilter).map(_.isEmpty)).getOrElse(true)
+    } yield if (kb || filterEmpty) getColor(R.color.people_picker__loading__color) else ac)
       .onUi(getContainer.getLoadingViewIndicator.setColor))
   }
 
@@ -289,7 +276,7 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
     CancellableFuture.delay(getInt(R.integer.people_picker__keyboard__show_delay).millis).map { _ =>
       convListController.establishedConversations.head.map(_.size > PickUserFragment.SHOW_KEYBOARD_THRESHOLD && isTeamAccount).map {
         case true =>
-          searchBoxView.foreach { v =>
+          searchBox.foreach { v =>
             v.setFocus()
             keyboard.showKeyboardIfHidden()
           }
