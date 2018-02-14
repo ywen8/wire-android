@@ -259,7 +259,7 @@ object MessageView {
           case (FileLike | ImageLike, _) |
                (_, FileLike | ImageLike)    => 10
           case (MissedCall, _)              => 24
-          case (ConvStart, SystemLike)      => 8
+          case (ConvStart, SystemLike)      => 16
           case (SystemLike|ConvStart, _) |
                (_, SystemLike)              => 24
           case (_, Ping) | (Ping, _)        => 14
