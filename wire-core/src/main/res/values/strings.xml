@@ -211,6 +211,8 @@
     <string name="conversation_quick_menu__conversation_button__group_label">CREATE GROUP</string>
 
     <!-- Conversation: System messages -->
+    <string name="content__system__you_started_conversation">You started the conversation</string>
+    <string name="content__system__other_started_conversation">%1$s started the conversation</string>
     <string name="content__system__with_participant">with %1$s</string>
     <string name="content__system__you_started_participant">[[You]] started a conversation with %2$s</string>
     <string name="content__system__other_started_you">[[%1$s]] started a conversation with you</string>
@@ -1295,8 +1297,6 @@
     <string name="no_matches_found">No matches found</string>
 
     <string name="create_group_conversation">Create group</string>
-    <string name="you_started_conversation">You started the conversation</string>
-    <string name="other_started_conversation">%1$s started the conversation</string>
     <string name="next_button">NEXT</string>
     <string name="skip_button">SKIP</string>
     <string name="done_button">DONE</string>

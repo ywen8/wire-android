@@ -41,8 +41,8 @@ class ConversationStartPartView(context: Context, attrs: AttributeSet, style: In
 
   private val creator = message.map(_.userId).flatMap(users.displayName)
   private val subtitleText = creator map {
-    case Me          => getString(R.string.you_started_conversation)
-    case Other(name) => getString(R.string.other_started_conversation, name)
+    case Me          => getString(R.string.content__system__you_started_conversation)
+    case Other(name) => getString(R.string.content__system__other_started_conversation, name)
   }
 
   subtitleText.onUi { subtitleView.setText }
