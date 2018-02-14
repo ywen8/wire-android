@@ -23,6 +23,7 @@ import android.widget.LinearLayout
 import com.waz.zclient.messages.UsersController.DisplayName.{Me, Other}
 import com.waz.zclient.messages.{MessageViewPart, MsgPart, UsersController}
 import com.waz.zclient.ui.text.TypefaceTextView
+import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.{R, ViewHelper}
 
 class ConversationStartPartView(context: Context, attrs: AttributeSet, style: Int) extends LinearLayout(context, attrs, style) with MessageViewPart with ViewHelper {
@@ -40,8 +41,8 @@ class ConversationStartPartView(context: Context, attrs: AttributeSet, style: In
 
   private val creator = message.map(_.userId).flatMap(users.displayName)
   private val subtitleText = creator map {
-    case Me           => "You started the conversation"
-    case Other(name)  => s"$name started the conversation"
+    case Me          => getString(R.string.you_started_conversation)
+    case Other(name) => getString(R.string.other_started_conversation, name)
   }
 
   subtitleText.onUi { subtitleView.setText }

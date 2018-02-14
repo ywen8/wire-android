@@ -1295,6 +1295,8 @@
     <string name="no_matches_found">No matches found</string>
 
     <string name="create_group_conversation">Create group</string>
+    <string name="you_started_conversation">You started the conversation</string>
+    <string name="other_started_conversation">%1$s started the conversation</string>
     <string name="next_button">NEXT</string>
     <string name="skip_button">SKIP</string>
     <string name="done_button">DONE</string>

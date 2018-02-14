@@ -25,30 +25,23 @@
     android:layout_height="wrap_content"
     >
 
-    <FrameLayout
-        android:layout_width="@dimen/content__padding_left"
+    <com.waz.zclient.ui.text.GlyphTextView
+        android:id="@+id/gtv__system_message__icon"
+        android:layout_marginStart="@dimen/chathead__margin_start"
+        android:layout_marginEnd="@dimen/chathead__margin"
+        android:layout_width="@dimen/content__separator__chathead__size"
         android:layout_height="@dimen/wire__otr__shield__small_width"
-        android:id="@+id/system_message__icon_container"
-        android:layout_alignParentStart="true"
-        android:layout_centerVertical="true">
-
-        <com.waz.zclient.ui.text.GlyphTextView
-            android:id="@+id/gtv__system_message__icon"
-            android:layout_width="@dimen/wire__otr__shield__small_width"
-            android:layout_height="@dimen/wire__otr__shield__small_width"
-            android:gravity="center"
-            android:layout_gravity="center"
-            android:textColor="?wirePrimaryTextColor"
-            />
-
-    </FrameLayout>
+        android:gravity="center"
+        android:layout_gravity="center"
+        android:textColor="?wirePrimaryTextColor"
+        />
 
     <com.waz.zclient.common.views.LinkTextView
         android:id="@+id/ttv__system_message__text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerVertical="true"
-        android:layout_toEndOf="@id/system_message__icon_container"
+        android:layout_toEndOf="@id/gtv__system_message__icon"
         android:lineSpacingExtra="@dimen/wire__text_spacing__medium"
         android:textColor="?wirePrimaryTextColor"
         android:textSize="@dimen/wire__text_size__small"
