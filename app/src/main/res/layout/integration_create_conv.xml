@@ -28,7 +28,7 @@
                 android:focusable="true">
 
     <com.waz.zclient.ui.text.GlyphTextView
-        android:id="@+id/glyph"
+        android:id="@+id/icon"
         android:layout_width="@dimen/preference_button_image_size"
         android:layout_height="wrap_content"
         android:textSize="@dimen/wire__padding__16"
@@ -46,7 +46,7 @@
         android:layout_height="wrap_content"
         android:layout_centerVertical="true"
         android:text="@string/integrations_create_conversation"
-        android:layout_toEndOf="@id/glyph"
+        android:layout_toEndOf="@id/icon"
         android:textColor="@color/white"
         android:textSize="@dimen/wire__text_size__regular"
         app:w_font="@string/wire__typeface__light"

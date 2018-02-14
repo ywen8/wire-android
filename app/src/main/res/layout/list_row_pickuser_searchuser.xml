@@ -20,6 +20,7 @@
 -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
               xmlns:app="http://schemas.android.com/apk/res-auto"
+              xmlns:tools="http://schemas.android.com/tools"
               android:orientation="horizontal"
               android:layout_width="match_parent"
               android:layout_height="@dimen/people_picker__user_row__height"
@@ -64,5 +65,15 @@
         android:background="@drawable/rounded_corner_background_bubble"
         app:w_font="@string/wire__typeface__light"
         />
+
+    <android.support.v7.widget.AppCompatCheckBox
+        android:id="@+id/pick_user_checkbox"
+        android:layout_width="@dimen/share_extension__row__checkbox_size"
+        android:layout_height="@dimen/share_extension__row__checkbox_size"
+        android:layout_gravity="center_vertical"
+        android:button="@drawable/checkbox_black"
+        android:layout_marginStart="@dimen/wire__padding__regular"
+        android:visibility="gone"
+        tools:targetApi="lollipop"/>
 
 </LinearLayout>

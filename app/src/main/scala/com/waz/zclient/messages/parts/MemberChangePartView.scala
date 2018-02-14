@@ -24,8 +24,9 @@ import android.widget.{GridLayout, LinearLayout}
 import com.waz.ZLog.ImplicitTag._
 import com.waz.ZLog._
 import com.waz.api.Message
-import com.waz.model.UserId
+import com.waz.model.{MessageContent, UserId}
 import com.waz.service.ZMessaging
+import com.waz.service.messages.MessageAndLikes
 import com.waz.threading.Threading
 import com.waz.utils.events.Signal
 import com.waz.utils.returning
@@ -50,40 +51,50 @@ class MemberChangePartView(context: Context, attrs: AttributeSet, style: Int) ex
 
   val messageView: SystemMessageView  = findById(R.id.smv_header)
   val gridView: MembersGridView       = findById(R.id.people_changed_grid)
+  val position = Signal[Int]()
 
   val iconGlyph = message map { msg =>
     msg.msgType match {
-      case Message.Type.MEMBER_JOIN => R.string.glyph__plus
-      case _ =>                        R.string.glyph__minus
+      case Message.Type.MEMBER_JOIN if msg.firstMessage => R.string.glyph__conversation
+      case Message.Type.MEMBER_JOIN =>                     R.string.glyph__plus
+      case _ =>                                            R.string.glyph__minus
     }
   }
 
-  val memberNames = users.memberDisplayNames(message)
+
+  override def set(msg: MessageAndLikes, part: Option[MessageContent], opts: MessageView.MsgBindOptions) = {
+    super.set(msg, part, opts)
+    position ! opts.position
+  }
+
+  val memberNames = users.memberDisplayNames(message, boldNames = true)
 
   val senderName = message.map(_.userId).flatMap(users.displayName)
 
   val linkText = for {
-    zms <- zMessaging
-    msg <- message
+    zms         <- zMessaging
+    msg         <- message
     displayName <- senderName
-    members <- memberNames
+    members     <- memberNames
+    pos         <- position
   } yield {
     import Message.Type._
     val me = zms.selfUserId
     val userId = msg.userId
 
     (msg.msgType, displayName, msg.members.toSeq) match {
-      case (MEMBER_JOIN, Me, _)                   if msg.firstMessage => context.getString(R.string.content__system__you_started_participant, "", members)
-      case (MEMBER_JOIN, Other(name), Seq(`me`))  if msg.firstMessage => context.getString(R.string.content__system__other_started_you, name)
-      case (MEMBER_JOIN, Other(name), _)          if msg.firstMessage => context.getString(R.string.content__system__other_started_participant, name, members)
-      case (MEMBER_JOIN, Me, _)                                       => context.getString(R.string.content__system__you_added_participant, "", members)
-      case (MEMBER_JOIN, Other(name), Seq(`me`))                      => context.getString(R.string.content__system__other_added_you, name)
-      case (MEMBER_JOIN, Other(name), _)                              => context.getString(R.string.content__system__other_added_participant, name, members)
-      case (MEMBER_LEAVE, Me, Seq(`me`))                              => context.getString(R.string.content__system__you_left)
-      case (MEMBER_LEAVE, Me, _)                                      => context.getString(R.string.content__system__you_removed_other, "", members)
-      case (MEMBER_LEAVE, Other(name), Seq(`me`))                     => context.getString(R.string.content__system__other_removed_you, name)
-      case (MEMBER_LEAVE, Other(name), Seq(`userId`))                 => context.getString(R.string.content__system__other_left, name)
-      case (MEMBER_LEAVE, Other(name), _)                             => context.getString(R.string.content__system__other_removed_other, name, members)
+      case (MEMBER_JOIN, Me|Other(_), _)         if msg.firstMessage && pos == 1 => getString(R.string.content__system__with_participant, members)
+      case (MEMBER_JOIN, Me, _)                  if msg.firstMessage             => getString(R.string.content__system__you_started_participant, "", members)
+      case (MEMBER_JOIN, Other(name), Seq(`me`)) if msg.firstMessage             => getString(R.string.content__system__other_started_you, name)
+      case (MEMBER_JOIN, Other(name), _)         if msg.firstMessage             => getString(R.string.content__system__other_started_participant, name, members)
+      case (MEMBER_JOIN, Me, _)                                                  => getString(R.string.content__system__you_added_participant, "", members).toUpperCase
+      case (MEMBER_JOIN, Other(name), Seq(`me`))                                 => getString(R.string.content__system__other_added_you, name).toUpperCase
+      case (MEMBER_JOIN, Other(name), _)                                         => getString(R.string.content__system__other_added_participant, name, members).toUpperCase
+      case (MEMBER_LEAVE, Me, Seq(`me`))                                         => getString(R.string.content__system__you_left).toUpperCase
+      case (MEMBER_LEAVE, Me, _)                                                 => getString(R.string.content__system__you_removed_other, "", members).toUpperCase
+      case (MEMBER_LEAVE, Other(name), Seq(`me`))                                => getString(R.string.content__system__other_removed_you, name).toUpperCase
+      case (MEMBER_LEAVE, Other(name), Seq(`userId`))                            => getString(R.string.content__system__other_left, name).toUpperCase
+      case (MEMBER_LEAVE, Other(name), _)                                        => getString(R.string.content__system__other_removed_other, name, members).toUpperCase
     }
   }
 

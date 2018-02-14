@@ -15,8 +15,11 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package com.waz.zclient.conversation
+package com.waz.zclient.usersearch.viewholders
 
-class ConversationListController {
+import android.support.v7.widget.RecyclerView
+import android.view.View
+
+class CreateConvViewHolder(val view: View, darkTheme: Boolean) extends RecyclerView.ViewHolder(view) {
 
 }

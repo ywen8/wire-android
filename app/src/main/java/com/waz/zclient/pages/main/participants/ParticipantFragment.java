@@ -43,9 +43,11 @@ import com.waz.model.IntegrationId;
 import com.waz.model.ProviderId;
 import com.waz.model.UserData;
 import com.waz.model.UserId;
+import com.waz.utils.wrappers.AndroidURIUtil;
 import com.waz.zclient.BaseActivity;
 import com.waz.zclient.OnBackPressedListener;
 import com.waz.zclient.R;
+import com.waz.zclient.common.controllers.BrowserController;
 import com.waz.zclient.common.controllers.SoundController;
 import com.waz.zclient.common.controllers.ThemeController;
 import com.waz.zclient.common.controllers.UserAccountsController;
@@ -56,6 +58,7 @@ import com.waz.zclient.controllers.confirmation.TwoButtonConfirmationCallback;
 import com.waz.zclient.controllers.navigation.NavigationController;
 import com.waz.zclient.controllers.navigation.Page;
 import com.waz.zclient.conversation.ConversationController;
+import com.waz.zclient.conversation.creation.NewConversationPickFragment;
 import com.waz.zclient.core.api.scala.ModelObserver;
 import com.waz.zclient.core.stores.connect.IConnectStore;
 import com.waz.zclient.core.stores.conversation.ConversationChangeRequester;
@@ -69,8 +72,8 @@ import com.waz.zclient.pages.main.conversation.controller.ConversationScreenCont
 import com.waz.zclient.pages.main.participants.dialog.DialogLaunchMode;
 import com.waz.zclient.pages.main.pickuser.controller.IPickUserController;
 import com.waz.zclient.pages.main.pickuser.controller.PickUserControllerScreenObserver;
-import com.waz.zclient.participants.fragments.ParticipantBodyFragment;
 import com.waz.zclient.participants.OptionsMenuFragment;
+import com.waz.zclient.participants.fragments.ParticipantBodyFragment;
 import com.waz.zclient.ui.animation.interpolators.penner.Expo;
 import com.waz.zclient.ui.animation.interpolators.penner.Linear;
 import com.waz.zclient.ui.animation.interpolators.penner.Quart;
@@ -84,7 +87,6 @@ import com.waz.zclient.views.LoadingIndicatorView;
 import timber.log.Timber;
 
 import java.util.Collection;
-import java.util.List;
 
 public class ParticipantFragment extends BaseFragment<ParticipantFragment.Container> implements
                                                                                      ParticipantHeaderFragment.Container,
@@ -95,7 +97,6 @@ public class ParticipantFragment extends BaseFragment<ParticipantFragment.Contai
                                                                                      SendConnectRequestFragment.Container,
                                                                                      BlockedUserProfileFragment.Container,
                                                                                      PendingConnectRequestFragment.Container,
-                                                                                     PickUserFragment.Container,
                                                                                      ConversationScreenControllerObserver,
                                                                                      OnBackPressedListener,
                                                                                      PickUserControllerScreenObserver,
@@ -738,7 +739,7 @@ public class ParticipantFragment extends BaseFragment<ParticipantFragment.Contai
 
     @Override
     public void onOpenUrl(String url) {
-        getContainer().onOpenUrl(url);
+        inject(BrowserController.class).openUrl(AndroidURIUtil.parse(url));
     }
 
     @Override
@@ -789,47 +790,6 @@ public class ParticipantFragment extends BaseFragment<ParticipantFragment.Contai
     }
 
     @Override
-    public void showIncomingPendingConnectRequest(ConvId conv) { }
-
-    //////////////////////////////////////////////////////////////////////////////////////////
-    //
-    //  PickUserFragment.Container
-    //
-    //////////////////////////////////////////////////////////////////////////////////////////
-
-    @Override
-    public void onSelectedUsers(final List<UserId> userIds, final ConversationChangeRequester requester) {
-        convController.withCurrentConv(new Callback<ConversationData>() {
-            @Override
-            public void callback(ConversationData conv) {
-                if (conv.convType() == IConversation.Type.ONE_TO_ONE) {
-                    getControllerFactory().getPickUserController().hidePickUser(getCurrentPickerDestination());
-                    dismissDialog();
-                    convController.createGroupConversation(userIds, requester);
-                    if (!getStoreFactory().networkStore().hasInternetConnection()) {
-                        ViewUtils.showAlertDialog(getActivity(),
-                            R.string.conversation__create_group_conversation__no_network__title,
-                            R.string.conversation__create_group_conversation__no_network__message,
-                            R.string.conversation__create_group_conversation__no_network__button,
-                            null, true);
-                    }
-                } else if (conv.convType() == IConversation.Type.GROUP) {
-                    convController.addMembers(conv.id(), userIds);
-                    getControllerFactory().getPickUserController().hidePickUser(getCurrentPickerDestination());
-                    if (!getStoreFactory().networkStore().hasInternetConnection()) {
-                        ViewUtils.showAlertDialog(getActivity(),
-                            R.string.conversation__add_user__no_network__title,
-                            R.string.conversation__add_user__no_network__message,
-                            R.string.conversation__add_user__no_network__button,
-                            null, true);
-                    }
-
-                }
-            }
-        });
-    }
-
-    @Override
     public LoadingIndicatorView getLoadingViewIndicator() {
         return loadingIndicatorView;
     }
@@ -863,8 +823,8 @@ public class ParticipantFragment extends BaseFragment<ParticipantFragment.Contai
             .beginTransaction()
             .setCustomAnimations(pickUserAnimation, R.anim.fade_out)
             .add(R.id.fl__add_to_conversation__pickuser__container,
-                 PickUserFragment.newInstance(true, groupConversation, convController.getCurrentConvId().str()),
-                 PickUserFragment.TAG())
+                new NewConversationPickFragment(),
+                NewConversationPickFragment.Tag())
             .addToBackStack(PickUserFragment.TAG())
             .commit();
 

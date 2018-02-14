@@ -21,8 +21,8 @@ import android.content.Context
 import android.graphics.drawable.Drawable
 import android.graphics.{Canvas, Paint}
 import android.util.AttributeSet
-import android.view.View.MeasureSpec
-import android.view.{View, ViewGroup}
+import android.view.View
+import android.widget.RelativeLayout
 import com.waz.ZLog.ImplicitTag._
 import com.waz.utils.returning
 import com.waz.zclient.common.views.LinkTextView
@@ -35,7 +35,7 @@ import com.waz.zclient.{R, ViewHelper}
   * View implementing system message layout: row containing icon, text and expandable line.
   * By hard-coding layout logic in this class we can avoid using complicated view hierarchies.
   */
-class SystemMessageView(context: Context, attrs: AttributeSet, style: Int) extends ViewGroup(context, attrs, style) with ViewHelper {
+class SystemMessageView(context: Context, attrs: AttributeSet, style: Int) extends RelativeLayout(context, attrs, style) with ViewHelper {
   def this(context: Context, attrs: AttributeSet) = this(context, attrs, 0)
   def this(context: Context) = this(context, null, 0)
 
@@ -48,7 +48,7 @@ class SystemMessageView(context: Context, attrs: AttributeSet, style: Int) exten
   val iconMargin = getDimenPx(R.dimen.error__image__margin)
   val textMargin = getDimenPx(R.dimen.wire__padding__12)
   val paddingTop = getDimenPx(R.dimen.wire__padding__small)
-  val stroke = getDimenPx(R.dimen.wire__divider__height__thin)
+  val stroke = getDimenPx(R.dimen.wire__divider__height)
   val dividerColor = {
     val a = context.obtainStyledAttributes(Array(R.attr.wireDividerColor))
     returning(a.getColor(0, getColor(R.color.separator_dark))) { _ => a.recycle() }
@@ -64,12 +64,12 @@ class SystemMessageView(context: Context, attrs: AttributeSet, style: Int) exten
   setWillNotDraw(false)
 
   def setText(text: String) = {
-    textView.setText(text.toUpperCase(locale))
+    textView.setText(text)
     TextViewUtils.boldText(textView)
   }
 
   def setTextWithLink(text: String, color: Int, bold: Boolean = false, underline: Boolean = false)(onClick: => Unit) =
-    textView.setTextWithLink(text.toUpperCase(locale), color, bold, underline)(onClick)
+    textView.setTextWithLink(text, color, bold, underline)(onClick)
 
   def setIcon(drawable: Drawable) = {
     iconView.setText("")
@@ -89,32 +89,6 @@ class SystemMessageView(context: Context, attrs: AttributeSet, style: Int) exten
   def setIconGlyph(resId: Int) = {
     iconView.setBackground(null)
     iconView.setText(resId)
-  }
-
-  override def onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int): Unit = {
-    super.onMeasure(widthMeasureSpec, heightMeasureSpec)
-
-    val width = View.getDefaultSize(getSuggestedMinimumWidth, widthMeasureSpec)
-
-    iconView.measure(MeasureSpec.makeMeasureSpec(start, MeasureSpec.AT_MOST), heightMeasureSpec)
-    textView.measure(MeasureSpec.makeMeasureSpec(width - start - end - textMargin, MeasureSpec.AT_MOST), heightMeasureSpec)
-
-    setMeasuredDimension(width, math.max(iconView.getMeasuredHeight, textView.getMeasuredHeight) + getPaddingTop + getPaddingBottom)
-  }
-
-  override def onLayout(changed: Boolean, l: Int, t: Int, r: Int, b: Int): Unit = {
-
-    var iconLeft = start - iconView.getMeasuredWidth - iconMargin
-    var textLeft = start
-
-    if (getLayoutDirection == View.LAYOUT_DIRECTION_RTL) {
-      val w = getWidth
-      iconLeft = w - start + iconMargin
-      textLeft = w - start - textView.getMeasuredWidth
-    }
-
-    iconView.layout(iconLeft, 0, iconLeft + iconView.getMeasuredWidth, iconView.getMeasuredHeight)
-    textView.layout(textLeft, 0, textLeft + textView.getMeasuredWidth, textView.getMeasuredHeight)
   }
 
   override def onDraw(canvas: Canvas): Unit = {

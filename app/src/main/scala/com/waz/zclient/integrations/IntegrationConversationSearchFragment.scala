@@ -32,16 +32,16 @@ import com.waz.threading.Threading
 import com.waz.utils.events.{EventStream, Signal, SourceStream}
 import com.waz.utils.returning
 import com.waz.zclient.common.controllers.IntegrationsController
-import com.waz.zclient.common.views.{PickableElement, PickerSpannableEditText}
+import com.waz.zclient.common.views.PickableElement
 import com.waz.zclient.conversation.ConversationController
 import com.waz.zclient.conversationlist.views.NormalConversationListRow
 import com.waz.zclient.core.stores.conversation.ConversationChangeRequester
 import com.waz.zclient.integrations.IntegrationConversationsAdapter._
 import com.waz.zclient.pages.main.pickuser.controller.IPickUserController
 import com.waz.zclient.pages.main.pickuser.controller.IPickUserController.Destination
-import com.waz.zclient.usersearch.views.SearchEditText
+import com.waz.zclient.usersearch.views.{PickerSpannableEditText, SearchEditText}
 import com.waz.zclient.utils.ContextUtils.showToast
-import com.waz.zclient.utils.{ConversationMembersSignal, RichView, UiStorage}
+import com.waz.zclient.utils.{RichView, UiStorage}
 import com.waz.zclient.{FragmentHelper, R, ViewHelper}
 
 import scala.concurrent.Future
@@ -88,10 +88,10 @@ class IntegrationConversationSearchFragment extends Fragment with FragmentHelper
   }
 
   private lazy val convsData = for {
-    zms <- zms
+    zms    <- zms
     filter <- integrationDetailsController.searchFilter
-    convs <- Signal.future(zms.convsUi.findGroupConversations(SearchKey(filter), Int.MaxValue, handleOnly = false))
-    groups<- Signal.future(Future.sequence(convs.distinct.map(conv => conversationController.isGroup(conv).map(if (_) Some(conv) else None))))
+    convs  <- Signal.future(zms.convsUi.findGroupConversations(SearchKey(filter), Int.MaxValue, handleOnly = false))
+    groups <- Signal.future(Future.sequence(convs.distinct.map(conv => conversationController.isGroup(conv.id).map(if (_) Some(conv) else None))))
   } yield groups.flatten.filter(_.team == zms.teamId)
 
   override def onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState: Bundle): View =

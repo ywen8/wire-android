@@ -40,7 +40,7 @@ object MsgPart {
   case object MemberChange extends MsgPart
   case object ConnectRequest extends MsgPart
   case object Footer extends MsgPart
-  case object InviteBanner extends MsgPart
+  case object ConversationStart extends MsgPart
   case object OtrMessage extends MsgPart
   case object MissedCall extends MsgPart
   case object EphemeralDots extends MsgPart
@@ -48,7 +48,7 @@ object MsgPart {
   case object Empty extends MsgPart
   case object Unknown extends MsgPart
 
-  def apply(msgType: Message.Type, isOneToOne: Boolean): MsgPart = {
+  def apply(msgType: Message.Type, isOneToOne: Boolean, isFirstMessage: Boolean): MsgPart = {
     import Message.Type._
     msgType match {
       case TEXT | TEXT_EMOJI_ONLY => Text
@@ -61,6 +61,7 @@ object MsgPart {
       case CONNECT_REQUEST => ConnectRequest
       case OTR_ERROR | OTR_DEVICE_ADDED | OTR_IDENTITY_CHANGED | OTR_UNVERIFIED | OTR_VERIFIED | HISTORY_LOST | STARTED_USING_DEVICE | OTR_MEMBER_ADDED => OtrMessage
       case KNOCK => Ping
+      case RENAME if isFirstMessage => ConversationStart
       case RENAME => Rename
       case MISSED_CALL => MissedCall
       case SUCCESSFUL_CALL => Empty //TODO

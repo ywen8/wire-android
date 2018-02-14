@@ -427,7 +427,7 @@ object ConversationListRow {
     if (conv.convType == ConversationType.WaitForConnection || (lastMessage.exists(_.msgType == Message.Type.MEMBER_JOIN) && conv.convType == ConversationType.OneToOne)) {
       otherMember.flatMap(_.handle.map(_.string)).fold("")(StringUtils.formatHandle)
     } else if (memberIds.count(_ != selfId) == 0 && conv.convType == ConversationType.Group) {
-      getString(R.string.conversation_list__empty_conv__subtitle)
+      ""
     } else if (conv.unreadCount.total == 0 && !conv.isActive) {
       getString(R.string.conversation_list__left_you)
     } else if ((conv.muted || conv.incomingKnockMessage.nonEmpty || conv.missedCallMessage.nonEmpty) && typingUser.isEmpty) {

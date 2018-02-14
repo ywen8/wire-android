@@ -26,7 +26,7 @@
     >
 
     <com.waz.zclient.common.views.GlyphButton
-        android:id="@+id/glyph"
+        android:id="@+id/icon"
         android:layout_width="@dimen/cursor__send_button__width"
         android:layout_height="@dimen/cursor__send_button__width"
         android:padding="@dimen/cursor__menu_button__padding"

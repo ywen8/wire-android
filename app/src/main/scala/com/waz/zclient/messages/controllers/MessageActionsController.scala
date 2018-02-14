@@ -27,10 +27,10 @@ import android.widget.Toast
 import com.waz.ZLog.ImplicitTag._
 import com.waz.api.Message
 import com.waz.model._
+import com.waz.permissions.PermissionsService
 import com.waz.service.ZMessaging
 import com.waz.service.messages.MessageAndLikes
-import com.waz.permissions.PermissionsService
-import com.waz.threading.Threading
+import com.waz.threading.{CancellableFuture, Threading}
 import com.waz.utils._
 import com.waz.utils.events.{EventContext, EventStream, Signal}
 import com.waz.utils.wrappers.{AndroidURIUtil, URI}
@@ -42,9 +42,12 @@ import com.waz.zclient.notifications.controllers.ImageNotificationsController
 import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.{Injectable, Injector, R}
 
+import scala.concurrent.Future
+import scala.concurrent.duration._
 import scala.util.Success
 
 class MessageActionsController(implicit injector: Injector, ctx: Context, ec: EventContext) extends Injectable {
+  import MessageActionsController._
   import com.waz.threading.Threading.Implicits.Ui
 
   private val context                   = inject[Activity]
@@ -88,7 +91,7 @@ class MessageActionsController(implicit injector: Injector, ctx: Context, ec: Ev
 
   def showDialog(data: MessageAndLikes, fromCollection: Boolean = false): Boolean = {
     // TODO: keyboard should be handled in more generic way
-    keyboardController.hideKeyboardIfVisible().map { _ =>
+    if (keyboardController.hideKeyboardIfVisible()) CancellableFuture.delayed(HideDelay){}.future else Future.successful({}).map { _ =>
       dialog.foreach(_.dismiss())
       dialog = Some(
         returning(new MessageBottomSheetDialog(context, R.style.message__bottom_sheet__base, data.message, Params(collection = fromCollection))) { d =>
@@ -228,4 +231,8 @@ class MessageActionsController(implicit injector: Injector, ctx: Context, ec: Ev
       case _ =>
     }
   }
+}
+
+object MessageActionsController {
+  private val HideDelay = 200.millis
 }

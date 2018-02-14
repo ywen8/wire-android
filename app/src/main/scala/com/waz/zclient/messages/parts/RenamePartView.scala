@@ -46,10 +46,10 @@ class RenamePartView(context: Context, attrs: AttributeSet, style: Int) extends 
 
   val renamerName = message.map(_.userId).flatMap(users.displayName)
 
-  val text = renamerName map {
+  val text = renamerName.map {
     case Me           => getString(R.string.content__system__you_renamed_conv)
     case Other(name)  => getString(R.string.content__system__other_renamed_conv, name)
-  }
+  }.map(_.toUpperCase)
 
   text.on(Threading.Ui) { messageView.setText }
 

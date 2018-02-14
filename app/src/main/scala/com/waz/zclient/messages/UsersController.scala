@@ -101,11 +101,12 @@ class UsersController(implicit injector: Injector, context: Context) extends Inj
     } yield msg.members.size == 1 && msg.members.contains(zms.selfUserId)
   }
 
-  def memberDisplayNames(message: Signal[MessageData]) =
+  def memberDisplayNames(message: Signal[MessageData], boldNames: Boolean = false) =
     for {
       zms <- zMessaging
       msg <- message
       names <- Signal.sequence[String](msg.members.toSeq.sortBy(_.str).map(displayNameString): _*)
+        .map(_.map(name => if (boldNames) s"[[$name]]" else name))
     } yield
       names match {
         case Seq() => ""

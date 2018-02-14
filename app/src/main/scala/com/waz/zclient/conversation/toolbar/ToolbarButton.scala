@@ -42,7 +42,7 @@ abstract class ToolbarButton(context: Context, attrs: AttributeSet, defStyleAttr
   private var alphaPressed: Float = 0.0f
   private var toolbarItem: ToolbarItem = null
   private val params = new TableLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1.0f)
-  private lazy val glyphTextView = ViewUtils.getView[GlyphTextView](this, R.id.glyph)
+  private lazy val glyphTextView = ViewUtils.getView[GlyphTextView](this, R.id.icon)
 
   setLayoutParams(params)
   setLongClickable(true)

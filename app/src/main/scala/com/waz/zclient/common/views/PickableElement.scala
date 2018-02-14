@@ -17,10 +17,16 @@
  */
 package com.waz.zclient.common.views
 
-/**
-  * Created by joaoponte on 06.11.17.
-  */
 trait PickableElement {
   def id: String
   def name: String
+
+  override def equals(obj: scala.Any) = {
+    obj match {
+      case e:PickableElement => e.id == this.id
+      case _ => false
+    }
+  }
+
+  override def hashCode() = id.hashCode
 }

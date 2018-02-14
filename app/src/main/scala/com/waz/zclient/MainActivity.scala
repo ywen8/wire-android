@@ -41,7 +41,7 @@ import com.waz.zclient.appentry.controllers.AppEntryController
 import com.waz.zclient.appentry.controllers.AppEntryController.{DeviceLimitStage, EnterAppStage, Unknown}
 import com.waz.zclient.calling.CallingActivity
 import com.waz.zclient.calling.controllers.CallPermissionsController
-import com.waz.zclient.common.controllers.global.AccentColorController
+import com.waz.zclient.common.controllers.global.{AccentColorController, KeyboardController}
 import com.waz.zclient.common.controllers.{SharingController, UserAccountsController}
 import com.waz.zclient.controllers.accentcolor.AccentColorChangeRequester
 import com.waz.zclient.controllers.calling.CallingObserver
@@ -259,6 +259,7 @@ class MainActivity extends BaseActivity
   private def initializeControllers() = {
     //Ensure tracking is started
     inject[UiTrackingController]
+    inject[KeyboardController]
     // Make sure we have a running OrientationController instance
     getControllerFactory.getOrientationController
     // Here comes code for adding other dependencies to controllers...

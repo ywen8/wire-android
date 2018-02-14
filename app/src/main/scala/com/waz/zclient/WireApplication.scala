@@ -68,6 +68,11 @@ import com.waz.zclient.tracking.{CallingTrackingController, CrashController, Glo
 import com.waz.zclient.utils.{BackStackNavigator, BackendPicker, Callback, UiStorage}
 import com.waz.zclient.views.DraftMap
 import net.hockeyapp.android.Constants
+import com.waz.zclient.common.views.ImageController
+import com.waz.zclient.controllers.calling.ICallingController
+import com.waz.zclient.controllers.confirmation.IConfirmationController
+import com.waz.zclient.controllers.currentfocus.IFocusController
+import com.waz.zclient.conversation.creation.NewConversationController
 
 object WireApplication {
   var APP_INSTANCE: WireApplication = _
@@ -138,7 +143,6 @@ object WireApplication {
     bind [SignInController]          to new SignInController()
     bind [InvitationsController]     to new InvitationsController()
 
-
     // current conversation data
     bind [Signal[ConversationData]] to inject[ConversationController].currentConv
 
@@ -181,6 +185,7 @@ object WireApplication {
     bind [CursorController]             to new CursorController()
     bind [ConversationListController]   to new ConversationListController()
     bind [IntegrationDetailsController] to new IntegrationDetailsController()
+    bind [NewConversationController]    to new NewConversationController()
 
     /**
       * Since tracking controllers will immediately instantiate other necessary controllers, we keep them separated

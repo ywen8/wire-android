@@ -27,7 +27,7 @@
             android:thickness="2dp"
             android:useLevel="false">
 
-            <solid android:color="#FFFFFF"/>
+            <solid android:color="@color/collection_background_light"/>
 
             <size
                 android:width="24dp"
@@ -44,7 +44,7 @@
                 <shape
                     android:shape="oval">
 
-                    <solid android:color="@color/accent_blue"/>
+                    <solid android:color="@color/collection_background_light"/>
 
                     <size
                         android:width="24dp"
@@ -61,7 +61,7 @@
                     android:thickness="2dp"
                     android:useLevel="false">
 
-                    <solid android:color="#FFFFFF"/>
+                    <solid android:color="@color/collection_background_light"/>
 
                     <size
                         android:width="24dp"
@@ -72,7 +72,7 @@
             </item>
             <item>
                 <scale
-                   android:drawable="@drawable/ic_action_check_light"
+                   android:drawable="@drawable/ic_action_check_dark"
                    android:scaleGravity="center"
                    android:scaleHeight="50%"
                    android:scaleWidth="50%" />

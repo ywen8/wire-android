@@ -27,7 +27,7 @@
             android:thickness="2dp"
             android:useLevel="false">
 
-            <solid android:color="#000000"/>
+            <solid android:color="@color/graphite"/>
 
             <size
                 android:width="24dp"
@@ -44,7 +44,7 @@
                 <shape
                     android:shape="oval">
 
-                    <solid android:color="@color/accent_blue"/>
+                    <solid android:color="@color/graphite"/>
 
                     <size
                         android:width="24dp"
@@ -61,7 +61,7 @@
                     android:thickness="2dp"
                     android:useLevel="false">
 
-                    <solid android:color="#000000"/>
+                    <solid android:color="@color/graphite"/>
 
                     <size
                         android:width="24dp"
@@ -72,7 +72,7 @@
             </item>
             <item>
                 <scale
-                   android:drawable="@drawable/ic_action_check_dark"
+                   android:drawable="@drawable/ic_action_check_light"
                    android:scaleGravity="center"
                    android:scaleHeight="50%"
                    android:scaleWidth="50%" />

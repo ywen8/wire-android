@@ -43,7 +43,6 @@ import com.waz.api.OtrClient;
 import com.waz.api.User;
 import com.waz.api.UsersList;
 import com.waz.model.ConvId;
-import com.waz.model.ConversationData;
 import com.waz.model.IntegrationId;
 import com.waz.model.ProviderId;
 import com.waz.model.UserId;
@@ -56,7 +55,6 @@ import com.waz.zclient.controllers.confirmation.IConfirmationController;
 import com.waz.zclient.controllers.globallayout.KeyboardHeightObserver;
 import com.waz.zclient.conversation.ConversationController;
 import com.waz.zclient.core.stores.connect.IConnectStore;
-import com.waz.zclient.core.stores.conversation.ConversationChangeRequester;
 import com.waz.zclient.core.stores.participants.ParticipantsStoreObserver;
 import com.waz.zclient.pages.BaseFragment;
 import com.waz.zclient.pages.main.connect.BlockedUserProfileFragment;
@@ -74,14 +72,11 @@ import com.waz.zclient.ui.animation.HeightEvaluator;
 import com.waz.zclient.ui.animation.interpolators.penner.Quart;
 import com.waz.zclient.ui.utils.KeyboardUtils;
 import com.waz.zclient.ui.utils.MathUtils;
-import com.waz.zclient.usersearch.PickUserFragment;
 import com.waz.zclient.utils.Callback;
 import com.waz.zclient.utils.ContextUtils;
 import com.waz.zclient.utils.ViewUtils;
-import com.waz.zclient.views.LoadingIndicatorView;
 import com.waz.zclient.views.menus.ConfirmationMenu;
-
-import java.util.List;
+import timber.log.Timber;
 
 public class ParticipantsDialogFragment extends BaseFragment<ParticipantsDialogFragment.Container> implements
                                                                                                    ParticipantsStoreObserver,
@@ -93,7 +88,6 @@ public class ParticipantsDialogFragment extends BaseFragment<ParticipantsDialogF
                                                                                                    SendConnectRequestFragment.Container,
                                                                                                    PendingConnectRequestManagerFragment.Container,
                                                                                                    BlockedUserProfileFragment.Container,
-                                                                                                   PickUserFragment.Container,
                                                                                                    PickUserControllerScreenObserver,
                                                                                                    ConfirmationObserver,
                                                                                                    AccentColorObserver {
@@ -365,11 +359,11 @@ public class ParticipantsDialogFragment extends BaseFragment<ParticipantsDialogF
                 }
             }
             if (getArguments().getBoolean(ARG__ADD_TO_CONVERSATION)) {
-                transaction.replace(R.id.fl__participant_dialog__main__container,
-                                    PickUserFragment.newInstance(true,
-                                                                 getArguments().getBoolean(ARG__GROUP_CONVERSATION),
-                                                                 inject(ConversationController.class).getCurrentConvId().str()),
-                                    PickUserFragment.TAG());
+                Timber.v("Tablets not supported");
+//                inject(NewConversationController.class).setAddToConversation(inject(ConversationController.class).getCurrentConvId());
+//                transaction.replace(R.id.fl__participant_dialog__main__container,
+//                    new NewConversationPickFragment(),
+//                    NewConversationPickFragment.Tag());
 
             } else if (getControllerFactory().getConversationScreenController().getPopoverLaunchMode() == DialogLaunchMode.PARTICIPANT_BUTTON ||
                 getControllerFactory().getConversationScreenController().getPopoverLaunchMode() == DialogLaunchMode.CONVERSATION_TOOLBAR) {
@@ -1005,62 +999,6 @@ public class ParticipantsDialogFragment extends BaseFragment<ParticipantsDialogF
     @Override
     public void onAcceptedPendingOutgoingConnectRequest(ConvId conversation) {
 
-    }
-
-    //////////////////////////////////////////////////////////////////////////////////////////
-    //
-    //  PickUserFragment.Container
-    //
-    //////////////////////////////////////////////////////////////////////////////////////////
-
-    @Override
-    public void showIncomingPendingConnectRequest(ConvId conversation) {
-        // noop
-    }
-
-    @Override
-    public void onSelectedUsers(final List<UserId> userIds, final ConversationChangeRequester requester) {
-        // TODO https://wearezeta.atlassian.net/browse/AN-3730
-        getControllerFactory().getPickUserController().hidePickUser(getCurrentPickerDestination());
-
-        final ConversationController ctrl = inject(ConversationController.class);
-
-        ctrl.withCurrentConv(new Callback<ConversationData>() {
-            @Override
-            public void callback(ConversationData conv) {
-                if (conv.convType() == IConversation.Type.ONE_TO_ONE) {
-                    ctrl.createGroupConversation(userIds, requester);
-                    if (!getStoreFactory().networkStore().hasInternetConnection()) {
-                        ViewUtils.showAlertDialog(getActivity(),
-                            R.string.conversation__create_group_conversation__no_network__title,
-                            R.string.conversation__create_group_conversation__no_network__message,
-                            R.string.conversation__create_group_conversation__no_network__button,
-                            null, true);
-                    }
-                } else if (conv.convType() == IConversation.Type.GROUP) {
-                    ctrl.addMembers(conv.id(), userIds);
-                    if (!getStoreFactory().networkStore().hasInternetConnection()) {
-                        ViewUtils.showAlertDialog(getActivity(),
-                            R.string.conversation__add_user__no_network__title,
-                            R.string.conversation__add_user__no_network__message,
-                            R.string.conversation__add_user__no_network__button,
-                            null, true);
-                    }
-                }
-            }
-        });
-
-        hide();
-    }
-
-    @Override
-    public LoadingIndicatorView getLoadingViewIndicator() {
-        return ViewUtils.getView(getView(), R.id.lbv__conversation__loading_indicator);
-    }
-
-    @Override
-    public IPickUserController.Destination getCurrentPickerDestination() {
-        return IPickUserController.Destination.CURSOR;
     }
 
     public interface Container {
