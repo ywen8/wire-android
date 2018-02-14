@@ -1305,4 +1305,5 @@
     <string name="add_people_count_header">ADD PEOPLE (%1$s)</string>
     <string name="new_conv_no_results">NO RESULTS</string>
     <string name="new_conv_no_contacts">NO CONTACTS</string>
+    <string name="create_group_search">SEARCH FOR NAMES</string>
 </resources>
