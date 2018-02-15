@@ -36,13 +36,13 @@ import com.waz.threading.Threading
 import com.waz.utils.events.{EventContext, EventStream, Signal}
 import com.waz.utils.returning
 import com.waz.zclient.common.controllers.global.PasswordController
-import com.waz.zclient.preferences.views.{SwitchPreference, TextButton}
 import com.waz.zclient.preferences.DevicesPreferencesUtil
 import com.waz.zclient.preferences.dialogs.RemoveDeviceDialog
+import com.waz.zclient.preferences.views.{SwitchPreference, TextButton}
 import com.waz.zclient.ui.text.TypefaceTextView
 import com.waz.zclient.ui.utils.TextViewUtils
 import com.waz.zclient.utils.ContextUtils._
-import com.waz.zclient.utils.{BackStackKey, BackStackNavigator, RichView, ViewUtils, ZTimeFormatter}
+import com.waz.zclient.utils.{BackStackKey, BackStackNavigator, RichClient, RichView, ViewUtils, ZTimeFormatter}
 import com.waz.zclient.{Injectable, Injector, R, ViewHelper, _}
 import org.threeten.bp.{Instant, LocalDateTime, ZoneId}
 
@@ -54,7 +54,7 @@ trait DeviceDetailsView {
   val onDeviceRemoved:   EventStream[Unit]
 
   def setName(name: String): Unit
-  def setId(id: String): Unit
+  def setId(cId: String): Unit
   def setActivated(regTime: Instant, regLocation: Option[Location]): Unit
   def setFingerPrint(fingerprint: String): Unit
   def setActionsVisible(visible: Boolean): Unit
@@ -91,8 +91,8 @@ class DeviceDetailsViewImpl(context: Context, attrs: AttributeSet, style: Int) e
     TextViewUtils.boldText(nameView)
   }
 
-  override def setId(id: String) = {
-    idView.setText(DevicesPreferencesUtil.getFormattedId(id))
+  override def setId(cId: String) = {
+    idView.setText(cId)
     TextViewUtils.boldText(idView)
   }
 
@@ -201,7 +201,7 @@ case class DeviceDetailsViewController(view: DeviceDetailsView, clientId: Client
   clientAndIsSelf.onUi {
     case (Some(c), self) =>
       view.setName(c.model)
-      view.setId(c.id.str)
+      view.setId(c.displayId)
       view.setActivated(c.regTime.getOrElse(Instant.EPOCH), c.regLocation)
       view.setActionsVisible(!self)
     case _ =>

@@ -154,15 +154,15 @@ class IntegrationDetailsFragment extends FragmentHelper with OnBackPressedListen
     summaryView
     nameView
 
-    viewPager.setAdapter(IntegrationDetailsAdapter(getChildFragmentManager, providerId, integrationId))
+    viewPager.foreach(_.setAdapter(IntegrationDetailsAdapter(getChildFragmentManager, providerId, integrationId)))
   }
 
   override def onBackPressed(): Boolean = goBack()
 
   def goBack(): Boolean = {
-    viewPager.getCurrentItem match {
+    viewPager.foreach(_.getCurrentItem match {
       case IntegrationDetailsViewPager.ConvListPage =>
-        viewPager.goToDetails
+        viewPager.foreach(_.goToDetails)
       case _ =>
         getFragmentManager.popBackStack()
         if (integrationDetailsController.addingToConversation.nonEmpty) {
@@ -170,7 +170,7 @@ class IntegrationDetailsFragment extends FragmentHelper with OnBackPressedListen
         } else if (integrationDetailsController.removingFromConversation.isEmpty) {
           inject[INavigationController].setLeftPage(Page.PICK_USER, IntegrationDetailsFragment.Tag)
         }
-    }
+    })
     true
   }
 

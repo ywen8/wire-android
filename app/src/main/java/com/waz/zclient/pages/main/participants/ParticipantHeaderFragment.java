@@ -41,8 +41,11 @@ import com.waz.api.User;
 import com.waz.api.UsersList;
 import com.waz.api.Verification;
 import com.waz.model.ConvId;
+import com.waz.model.ConversationData;
 import com.waz.model.IntegrationId;
 import com.waz.model.ProviderId;
+import com.waz.model.UserData;
+import com.waz.model.UserId;
 import com.waz.zclient.BaseActivity;
 import com.waz.zclient.R;
 import com.waz.zclient.common.controllers.ThemeController;
@@ -57,6 +60,7 @@ import com.waz.zclient.core.stores.network.NetworkAction;
 import com.waz.zclient.core.stores.participants.ParticipantsStoreObserver;
 import com.waz.zclient.pages.BaseFragment;
 import com.waz.zclient.pages.main.conversation.controller.ConversationScreenControllerObserver;
+import com.waz.zclient.participants.ParticipantsController;
 import com.waz.zclient.ui.text.AccentColorEditText;
 import com.waz.zclient.ui.utils.KeyboardUtils;
 import com.waz.zclient.ui.utils.MathUtils;
@@ -84,7 +88,8 @@ public class ParticipantHeaderFragment extends BaseFragment<ParticipantHeaderFra
     private ShieldView shieldView;
     private IConnectStore.UserRequester userRequester;
 
-    private boolean isGroupConversation;
+    private ConversationController convController;
+    private ParticipantsController participantsController;
 
     public static ParticipantHeaderFragment newInstance(IConnectStore.UserRequester userRequester) {
         ParticipantHeaderFragment participantHeaderFragment = new ParticipantHeaderFragment();
@@ -122,6 +127,9 @@ public class ParticipantHeaderFragment extends BaseFragment<ParticipantHeaderFra
     @Override
     public View onCreateView(LayoutInflater inflater, final ViewGroup container, Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_participants_header, container, false);
+
+        convController = inject(ConversationController.class);
+        participantsController = inject(ParticipantsController.class);
 
         toolbar = ViewUtils.getView(rootView, R.id.t__participants__toolbar);
         membersCountTextView = ViewUtils.getView(rootView, R.id.ttv__participants__sub_header);
@@ -181,6 +189,8 @@ public class ParticipantHeaderFragment extends BaseFragment<ParticipantHeaderFra
         if (!((BaseActivity) getActivity()).injectJava(ThemeController.class).isDarkTheme()) {
             headerEditText.setAccentColor(getControllerFactory().getAccentColorController().getColor());
         }
+
+        updateWithCurrentConv();
     }
 
     @Override
@@ -230,33 +240,54 @@ public class ParticipantHeaderFragment extends BaseFragment<ParticipantHeaderFra
     }
 
     @Override
-    public void conversationUpdated(IConversation conversation) {
+    public void conversationUpdated(final IConversation conversation) {
         if (conversation == null) {
             return;
         }
-        isGroupConversation = conversation.getType() == IConversation.Type.GROUP;
-        if (isGroupConversation) {
-            membersCountTextView.setVisibility(View.VISIBLE);
-            userDetailsView.setVisibility(View.GONE);
-            headerReadOnlyTextView.setText(conversation.getName());
-            if (conversation.isMemberOfConversation()) {
-                headerEditText.setText(conversation.getName());
-                headerEditText.setVisibility(View.VISIBLE);
-            } else {
-                headerEditText.setVisibility(View.GONE);
+
+        updateWithCurrentConv();
+    }
+
+    private void updateWithCurrentConv() {
+        convController.withCurrentConv(new Callback<ConversationData>() {
+            @Override
+            public void callback(final ConversationData conv) {
+                participantsController.withCurrentConvGroupOrBot(new Callback<Boolean>() {
+                    @Override
+                    public void callback(Boolean groupOrBot) {
+                        headerReadOnlyTextView.setText(conv.displayName());
+                        if (groupOrBot) {
+                            membersCountTextView.setVisibility(View.VISIBLE);
+                            userDetailsView.setVisibility(View.GONE);
+                            if (conv.isActive()) {
+                                headerEditText.setText(conv.displayName());
+                                headerEditText.setVisibility(View.VISIBLE);
+                            } else {
+                                headerEditText.setVisibility(View.GONE);
+                            }
+
+                            shieldView.setVisibility(View.GONE);
+                            penIcon.setVisibility(View.VISIBLE);
+
+                        } else {
+                            membersCountTextView.setVisibility(View.GONE);
+                            userDetailsView.setVisibility(View.VISIBLE);
+                            headerEditText.setVisibility(View.GONE);
+                            penIcon.setVisibility(View.GONE);
+
+                            participantsController.withOtherParticipant(new Callback<UserData>() {
+                                @Override
+                                public void callback(UserData userData) {
+                                    shieldView.setVisibility(userData.verified() == Verification.VERIFIED ?
+                                        View.VISIBLE : View.GONE);
+                                    userDetailsView.setUserId(userData.id());
+                                }
+                            });
+                        }
+                    }
+                });
             }
-
-            shieldView.setVisibility(View.GONE);
-            penIcon.setVisibility(View.VISIBLE);
-
-        } else {
-            membersCountTextView.setVisibility(View.GONE);
-            userDetailsView.setVisibility(View.VISIBLE);
-            headerEditText.setVisibility(View.GONE);
-            penIcon.setVisibility(View.GONE);
-            shieldView.setVisibility(conversation.getOtherParticipant().getVerified() == Verification.VERIFIED ?
-                                     View.VISIBLE : View.GONE);
-        }
+        });
     }
 
     @Override
@@ -367,7 +398,7 @@ public class ParticipantHeaderFragment extends BaseFragment<ParticipantHeaderFra
     };
 
     private void resetName() {
-        inject(ConversationController.class).withCurrentConvName(new Callback<String>() {
+        convController.withCurrentConvName(new Callback<String>() {
             @Override
             public void callback(String convName) {
                 headerReadOnlyTextView.setText(convName);
@@ -397,7 +428,7 @@ public class ParticipantHeaderFragment extends BaseFragment<ParticipantHeaderFra
         }
 
         String text = headerEditText.getText().toString().trim();
-        inject(ConversationController.class).setCurrentConvName(text);
+        convController.setCurrentConvName(text);
         headerReadOnlyTextView.setText(text);
     }
 
@@ -451,7 +482,7 @@ public class ParticipantHeaderFragment extends BaseFragment<ParticipantHeaderFra
     }
 
     @Override
-    public void onShowUser(User user) {
+    public void onShowUser(UserId userId) {
 
     }
 
@@ -509,7 +540,7 @@ public class ParticipantHeaderFragment extends BaseFragment<ParticipantHeaderFra
         setParticipant(user);
     }
 
-    private void setParticipant(final User user) {
+    private void setParticipant(User user) {
         headerReadOnlyTextView.setText(user.getName());
         userDetailsView.setUser(user);
         headerEditText.setVisibility(View.GONE);
@@ -531,47 +562,51 @@ public class ParticipantHeaderFragment extends BaseFragment<ParticipantHeaderFra
     }
 
     @Override
-    public void onAccentColorHasChanged(Object sender, int color) {
-        if (isGroupConversation) {
-            return;
-        }
-        if (!((BaseActivity) getActivity()).injectJava(ThemeController.class).isDarkTheme()) {
-            headerEditText.setAccentColor(color);
-        }
+    public void onAccentColorHasChanged(Object sender, final int color) {
+        participantsController.withCurrentConvGroupOrBot(new Callback<Boolean>() {
+            @Override
+            public void callback(Boolean groupOrBot) {
+                if (!groupOrBot && !inject(ThemeController.class).isDarkTheme()) {
+                    headerEditText.setAccentColor(color);
+                }
+            }
+        });
     }
 
-    private void toggleEditModeForConversationName(boolean edit) {
-        if (!isGroupConversation) {
-            return;
-        }
-        getControllerFactory().getConversationScreenController().editConversationName(edit);
-        if (edit) {
-            headerEditText.setText(headerReadOnlyTextView.getText());
-            headerEditText.setAlpha(1);
-            headerEditText.requestFocus();
-            getControllerFactory().getFocusController().setFocus(IFocusController.CONVERSATION_EDIT_NAME);
-            headerEditText.setSelection(headerEditText.getText().length());
-            KeyboardUtils.showKeyboard(getActivity());
-            headerReadOnlyTextView.setAlpha(0);
-            membersCountTextView.setAlpha(0);
-            penIcon.setVisibility(View.GONE);
-        } else {
-            headerEditText.setAlpha(0);
-            headerEditText.requestLayout();
-            headerReadOnlyTextView.setAlpha(1);
-            headerEditText.clearFocus();
-            membersCountTextView.setAlpha(1);
-            penIcon.setVisibility(View.VISIBLE);
+    private void toggleEditModeForConversationName(final boolean edit) {
+        participantsController.withCurrentConvGroupOrBot(new Callback<Boolean>() {
+            @Override
+            public void callback(Boolean groupOrBot) {
+                if (groupOrBot) {
+                    getControllerFactory().getConversationScreenController().editConversationName(edit);
+                    if (edit) {
+                        headerEditText.setText(headerReadOnlyTextView.getText());
+                        headerEditText.setAlpha(1);
+                        headerEditText.requestFocus();
+                        getControllerFactory().getFocusController().setFocus(IFocusController.CONVERSATION_EDIT_NAME);
+                        headerEditText.setSelection(headerEditText.getText().length());
+                        KeyboardUtils.showKeyboard(getActivity());
+                        headerReadOnlyTextView.setAlpha(0);
+                        membersCountTextView.setAlpha(0);
+                        penIcon.setVisibility(View.GONE);
+                    } else {
+                        headerEditText.setAlpha(0);
+                        headerEditText.requestLayout();
+                        headerReadOnlyTextView.setAlpha(1);
+                        headerEditText.clearFocus();
+                        membersCountTextView.setAlpha(1);
+                        penIcon.setVisibility(View.VISIBLE);
 
-            if (LayoutSpec.isTablet(getActivity())) {
-                renameConversation();
+                        if (LayoutSpec.isTablet(getActivity())) {
+                            renameConversation();
+                        }
+                    }
+                }
             }
-        }
+        });
     }
 
     public interface Container {
-
-        void onClickedEmptyBackground();
 
         void dismissDialog();
     }

@@ -30,6 +30,7 @@ import com.waz.api.User;
 import com.waz.api.Verification;
 import com.waz.model.ConvId;
 import com.waz.utils.wrappers.AndroidURIUtil;
+import com.waz.model.UserId;
 import com.waz.zclient.BaseActivity;
 import com.waz.zclient.OnBackPressedListener;
 import com.waz.zclient.R;
@@ -50,6 +51,7 @@ import com.waz.zclient.common.controllers.SoundController;
 import com.waz.zclient.pages.BaseFragment;
 import com.waz.zclient.pages.main.connect.UserProfileContainer;
 import com.waz.zclient.pages.main.participants.dialog.DialogLaunchMode;
+import com.waz.zclient.participants.fragments.TabbedParticipantBodyFragment;
 import com.waz.zclient.ui.animation.fragment.FadeAnimation;
 import com.waz.zclient.ui.theme.OptionsTheme;
 import com.waz.zclient.ui.theme.ThemeUtils;
@@ -75,7 +77,6 @@ public class SingleParticipantFragment extends BaseFragment<SingleParticipantFra
     private TextView header;
     private ShieldView shieldView;
     private UserDetailsView userDetailsView;
-    private boolean isBelowUserProfile;
     private boolean goToConversationWithUser;
     private FooterMenu footerMenu;
     private boolean otherUserProfileScreenWasTracked;
@@ -160,8 +161,8 @@ public class SingleParticipantFragment extends BaseFragment<SingleParticipantFra
             imageAssetImageViewProfile.setVisibility(View.GONE);
             getChildFragmentManager().beginTransaction()
                                      .add(R.id.fl__participant__tab__container,
-                                          TabbedParticipantBodyFragment.newInstance(TabbedParticipantBodyFragment.USER_PAGE),
-                                          TabbedParticipantBodyFragment.TAG)
+                                          TabbedParticipantBodyFragment.newInstance(TabbedParticipantBodyFragment.USER_PAGE()),
+                                          TabbedParticipantBodyFragment.TAG())
                                      .commit();
 
 
@@ -259,6 +260,8 @@ public class SingleParticipantFragment extends BaseFragment<SingleParticipantFra
             return;
         }
 
+        Timber.i("onUserUpdated(%s)", user.getName());
+
         imageAssetImageViewProfile.connectImageAsset(user.getPicture());
 
         header.setText(user.getDisplayName());
@@ -302,7 +305,7 @@ public class SingleParticipantFragment extends BaseFragment<SingleParticipantFra
                         getStoreFactory().networkStore().doIfHasInternetOrNotifyUser(new NetworkAction() {
                             @Override
                             public void execute(NetworkMode networkMode) {
-                                getContainer().showRemoveConfirmation(user);
+                                getContainer().showRemoveConfirmation(new UserId(user.getId()));
                             }
 
                             @Override
@@ -370,8 +373,8 @@ public class SingleParticipantFragment extends BaseFragment<SingleParticipantFra
     }
 
     @Override
-    public void showRemoveConfirmation(User user) {
-        getContainer().showRemoveConfirmation(user);
+    public void showRemoveConfirmation(UserId userId) {
+        getContainer().showRemoveConfirmation(userId);
     }
 
     @Override

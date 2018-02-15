@@ -381,6 +381,7 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
                   sendSMSInvite(selectedContactMethod)
                 } else {
                   sendEmailInvite(selectedContactMethod)
+
                 }
               }
             }

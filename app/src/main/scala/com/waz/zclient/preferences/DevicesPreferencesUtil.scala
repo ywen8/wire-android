@@ -27,6 +27,7 @@ import com.waz.zclient.R
 import com.waz.zclient.ui.utils.TextViewUtils
 import com.waz.zclient.utils.{StringUtils, ZTimeFormatter}
 import org.threeten.bp.{LocalDateTime, ZoneId}
+import com.waz.zclient.utils.RichClient
 
 object DevicesPreferencesUtil {
   private val BOLD_PREFIX = "[["
@@ -44,7 +45,7 @@ object DevicesPreferencesUtil {
     val highlightColor = a.getColor(0, 0)
     a.recycle()
     val sb = new StringBuilder
-    sb.append(context.getString(R.string.pref_devices_device_id, getFormattedId(client.id.str)))
+    sb.append(context.getString(R.string.pref_devices_device_id, client.displayId))
     val highlightEnd = sb.length
     if (includeActivationSummary) {
       sb.append(NEW_LINE).append(NEW_LINE).append(getActivationSummary(context, client))
@@ -70,13 +71,6 @@ object DevicesPreferencesUtil {
 
     val formattedFingerprint = getFormattedFingerprint(fingerprint)
     TextViewUtils.getBoldHighlightText(context, formattedFingerprint, highlightColor, 0, formattedFingerprint.length)
-  }
-
-  def getFormattedId(id: String): String = {
-    f"${id.toUpperCase(Locale.ENGLISH)}%16s" replace (' ', '0') grouped 4 map { group =>
-      val (bold, normal) = group.splitAt(2)
-      s"[[$bold]] $normal"
-    } mkString " "
   }
 
   private def getFormattedFingerprint(fingerprint: String): String = {

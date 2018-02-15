@@ -17,9 +17,10 @@
  */
 package com.waz.zclient
 
+import java.util.Locale
+
 import android.graphics.LightingColorFilter
 import android.graphics.drawable.LayerDrawable
-
 import android.support.v7.preference.Preference
 import android.support.v7.preference.Preference.{OnPreferenceChangeListener, OnPreferenceClickListener}
 import android.text.{Editable, TextWatcher}
@@ -28,6 +29,7 @@ import android.view.ViewGroup.LayoutParams
 import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
 import android.view.{View, ViewGroup}
 import android.widget.{SeekBar, TextView}
+import com.waz.model.otr.Client
 import com.waz.utils.returning
 import com.waz.zclient.ui.views.OnDoubleClickListener
 
@@ -137,4 +139,12 @@ package object utils {
     }
   }
 
+  implicit class RichClient(val client: Client) extends AnyVal {
+    // TODO: This is the same code as in DevicesView and OtrClients. Consider putting it in one place.
+    def displayId: String =
+      f"${client.id.str.toUpperCase(Locale.ENGLISH)}%16s" replace (' ', '0') grouped 4 map { group =>
+        val (bold, normal) = group.splitAt(2)
+        s"[[$bold]] $normal"
+      } mkString " "
+  }
 }
