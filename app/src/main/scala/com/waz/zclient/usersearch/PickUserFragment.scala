@@ -37,6 +37,7 @@ import com.waz.model.UserData.ConnectionStatus
 import com.waz.model._
 import com.waz.permissions.PermissionsService
 import com.waz.service.ContactResult.ContactMethod
+import com.waz.service.tracking.GroupConversationEvent
 import com.waz.service.{ContactResult, NetworkModeService, ZMessaging}
 import com.waz.threading.{CancellableFuture, Threading}
 import com.waz.utils.events.{Signal, Subscription}
@@ -343,7 +344,7 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
 
   override def onCreateConvClicked(): Unit = {
     keyboard.hideKeyboardIfVisible()
-    inject[NewConversationController].setCreateConversation()
+    inject[NewConversationController].setCreateConversation(from = GroupConversationEvent.StartUi)
     getFragmentManager.beginTransaction
       .setCustomAnimations(
         R.anim.slide_in_from_bottom_pick_user,

@@ -29,6 +29,7 @@ import android.widget.TextView.OnEditorActionListener
 import com.waz.ZLog.ImplicitTag._
 import com.waz.model.{UserData, UserId}
 import com.waz.service.ZMessaging
+import com.waz.service.tracking.{GroupConversationEvent, OpenSelectParticipants, TrackingService}
 import com.waz.threading.Threading
 import com.waz.utils.events._
 import com.waz.utils.returning
@@ -53,6 +54,7 @@ class NewConversationPickFragment extends Fragment with FragmentHelper with OnBa
   private lazy val zms               = inject[Signal[ZMessaging]]
   private lazy val newConvController = inject[NewConversationController]
   private lazy val keyboard          = inject[KeyboardController]
+  private lazy val tracking          = inject[TrackingService]
 
   private lazy val accentColor = inject[AccentColorController].accentColor.map(_.getColor)
 
@@ -130,6 +132,10 @@ class NewConversationPickFragment extends Fragment with FragmentHelper with OnBa
     val recyclerView = findById[RecyclerView](R.id.recycler_view)
     recyclerView.setLayoutManager(new LinearLayoutManager(getContext))
     recyclerView.setAdapter(adapter)
+
+    newConvController.fromScreen.head.map { f =>
+      tracking.track(OpenSelectParticipants(f))
+    }
 
     confButton.foreach { v =>
       v.onClick {
