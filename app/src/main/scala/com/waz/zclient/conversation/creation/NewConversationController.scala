@@ -17,9 +17,9 @@
  */
 package com.waz.zclient.conversation.creation
 
-import com.waz.ZLog
 import com.waz.ZLog.ImplicitTag._
 import com.waz.model.{ConvId, UserId}
+import com.waz.service.tracking._
 import com.waz.utils.events.Signal
 import com.waz.zclient.conversation.ConversationController
 import com.waz.zclient.utils.UiStorage
@@ -30,33 +30,41 @@ import scala.concurrent.Future
 class NewConversationController(implicit inj: Injector) extends Injectable {
   import com.waz.threading.Threading.Implicits.Background
 
-  ZLog.verbose("NewConversationController started")
-
   private lazy val conversationController = inject[ConversationController]
   private implicit lazy val uiStorage = inject[UiStorage]
+  private lazy val tracking = inject[TrackingService]
 
   val convId = Signal(Option.empty[ConvId])
   val name   = Signal("")
   val users  = Signal(Set.empty[UserId])
 
-  def setCreateConversation(preSelectedUsers: Set[UserId] = Set()): Unit = {
+  val fromScreen = Signal[GroupConversationEvent.Method]()
+
+  def setCreateConversation(preSelectedUsers: Set[UserId] = Set(), from: GroupConversationEvent.Method): Unit = {
     name ! ""
     users ! preSelectedUsers
     convId ! None
+    fromScreen ! from
+    tracking.track(CreateGroupConversation(from))
   }
 
   def setAddToConversation(conv: ConvId): Unit = {
     name ! ""
     users ! Set()
     convId ! Some(conv)
+    fromScreen ! GroupConversationEvent.ConversationDetails
   }
 
   def createConversation(): Future[ConvId] =
     for {
-      name <- name.head
+      name  <- name.head
       users <- users.head
-      conv <- conversationController.createGroupConversation(users.toSeq, Some(name.trim))
-    } yield conv.id
+      conv  <- conversationController.createGroupConversation(users.toSeq, Some(name.trim))
+      from  <- fromScreen.head
+    } yield {
+      tracking.track(GroupConversationSuccessful(users.nonEmpty, from))
+      conv.id
+    }
 
   def addUsersToConversation(): Future[Unit] = {
     for {

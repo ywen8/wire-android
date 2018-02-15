@@ -52,6 +52,7 @@ import com.waz.zclient.controllers.navigation.INavigationController
 import com.waz.zclient.controllers.singleimage.ISingleImageController
 import com.waz.zclient.controllers.userpreferences.IUserPreferencesController
 import com.waz.zclient.conversation.ConversationController
+import com.waz.zclient.conversation.creation.NewConversationController
 import com.waz.zclient.conversationlist.ConversationListController
 import com.waz.zclient.core.stores.IStoreFactory
 import com.waz.zclient.core.stores.network.INetworkStore
@@ -68,11 +69,6 @@ import com.waz.zclient.tracking.{CallingTrackingController, CrashController, Glo
 import com.waz.zclient.utils.{BackStackNavigator, BackendPicker, Callback, UiStorage}
 import com.waz.zclient.views.DraftMap
 import net.hockeyapp.android.Constants
-import com.waz.zclient.common.views.ImageController
-import com.waz.zclient.controllers.calling.ICallingController
-import com.waz.zclient.controllers.confirmation.IConfirmationController
-import com.waz.zclient.controllers.currentfocus.IFocusController
-import com.waz.zclient.conversation.creation.NewConversationController
 
 object WireApplication {
   var APP_INSTANCE: WireApplication = _

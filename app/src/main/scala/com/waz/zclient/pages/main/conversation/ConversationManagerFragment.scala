@@ -41,6 +41,7 @@ import com.waz.ZLog.ImplicitTag._
 import com.waz.api._
 import com.waz.model.{MessageContent => _, _}
 import com.waz.service.ZMessaging
+import com.waz.service.tracking.GroupConversationEvent
 import com.waz.utils.events.Signal
 import com.waz.zclient.collection.controllers.CollectionController
 import com.waz.zclient.collection.fragments.CollectionFragment
@@ -273,7 +274,7 @@ class ConversationManagerFragment extends BaseFragment[Container] with FragmentH
           }
         case false =>
           convController.currentConvMembers.head.map { members =>
-            inject[NewConversationController].setCreateConversation(members)
+            inject[NewConversationController].setCreateConversation(members, GroupConversationEvent.ConversationDetails)
             showFragment(new NewConversationFragment, AddOrCreateTag)
           }
       }
