@@ -22,11 +22,10 @@ import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.support.v7.widget.{LinearLayoutManager, RecyclerView, Toolbar}
 import android.view.View.OnClickListener
-import android.view.inputmethod.EditorInfo
 import android.view._
+import android.view.inputmethod.EditorInfo
 import android.widget.TextView
 import android.widget.TextView.OnEditorActionListener
-import com.waz.ZLog
 import com.waz.ZLog.ImplicitTag._
 import com.waz.model.{UserData, UserId}
 import com.waz.service.ZMessaging
@@ -206,9 +205,16 @@ case class NewConvAdapter(searchResults: Signal[IndexedSeq[UserData]], selectedU
   } yield (res, sel))
     .onUi {
       case (res, sel) =>
-        val prev = users.map(_._1)
+        val prev = this.users
         this.users = res.map(u => (u, sel.contains(u.id)))
-        if (prev != res) notifyDataSetChanged() //only update when user data changes, else selection causes flickering
+        if (prev.map(_._1) == res) {
+          val changedPositions = prev.map {
+            case (user, selected) =>
+              if (selected && !sel.contains(user.id) || !selected && sel.contains(user.id)) prev.map(_._1).indexOf(user) else -1
+          }
+          changedPositions.filterNot(_ == -1).foreach(notifyItemChanged)
+        } else
+          notifyDataSetChanged()
     }
 
   override def getItemCount: Int = users.size
