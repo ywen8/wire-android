@@ -317,7 +317,7 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
         case Some(user) =>
           import ConnectionStatus._
           keyboard.hideKeyboardIfVisible()
-          if (z.teamId.isDefined || user.connection == Accepted)
+          if (user.connection == Accepted || (user.connection == Unconnected && z.teamId.isDefined && z.teamId == user.teamId))
             userAccountsController.getConversation(Set(userId)).map(_.id).map { convId =>
               conversationController.selectConv(convId, ConversationChangeRequester.START_CONVERSATION)
             }
