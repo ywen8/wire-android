@@ -48,7 +48,7 @@ object MsgPart {
   case object Empty extends MsgPart
   case object Unknown extends MsgPart
 
-  def apply(msgType: Message.Type, isOneToOne: Boolean, isFirstMessage: Boolean): MsgPart = {
+  def apply(msgType: Message.Type, isOneToOne: Boolean): MsgPart = {
     import Message.Type._
     msgType match {
       case TEXT | TEXT_EMOJI_ONLY => Text
@@ -61,7 +61,6 @@ object MsgPart {
       case CONNECT_REQUEST => ConnectRequest
       case OTR_ERROR | OTR_DEVICE_ADDED | OTR_IDENTITY_CHANGED | OTR_UNVERIFIED | OTR_VERIFIED | HISTORY_LOST | STARTED_USING_DEVICE | OTR_MEMBER_ADDED => OtrMessage
       case KNOCK => Ping
-      case RENAME if isFirstMessage => ConversationStart
       case RENAME => Rename
       case MISSED_CALL => MissedCall
       case SUCCESSFUL_CALL => Empty //TODO

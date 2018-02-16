@@ -82,15 +82,19 @@ class MessageView(context: Context, attrs: AttributeSet, style: Int)
     val isOneToOne = ConversationType.isOneToOne(opts.convType)
 
     val contentParts = {
-      if (msg.msgType == Message.Type.RICH_MEDIA){
+      if (msg.msgType == Message.Type.MEMBER_JOIN && msg.firstMessage) {
+        (if (msg.name.nonEmpty) Seq(PartDesc(ConversationStart)) else Seq.empty) ++
+          (if (msg.members.nonEmpty) Seq(PartDesc(MemberChange)) else Seq.empty)
+      }
+      else if (msg.msgType == Message.Type.RICH_MEDIA){
         if (msg.content.size > 1){
-          Seq(PartDesc(MsgPart(Message.Type.TEXT, isOneToOne, opts.position == 0))) ++ (msg.content map { content => PartDesc(MsgPart(content.tpe), Some(content)) }).filter(_.tpe == WebLink)
+          Seq(PartDesc(MsgPart(Message.Type.TEXT, isOneToOne))) ++ (msg.content map { content => PartDesc(MsgPart(content.tpe), Some(content)) }).filter(_.tpe == WebLink)
         } else {
           msg.content map { content => PartDesc(MsgPart(content.tpe), Some(content)) }
         }
       }
       else
-        Seq(PartDesc(MsgPart(msg.msgType, isOneToOne, opts.position == 0)))
+        Seq(PartDesc(MsgPart(msg.msgType, isOneToOne)))
     } .filter(_.tpe != MsgPart.Empty)
 
     val parts =
@@ -118,7 +122,7 @@ class MessageView(context: Context, attrs: AttributeSet, style: Int)
         builder.result()
       }
 
-    val (top, bottom) = if (parts.isEmpty) (0, 0) else getMargins(prev.map(_.msgType), next.map(_.msgType), parts.head.tpe, parts.last.tpe, isOneToOne, msg.firstMessage)
+    val (top, bottom) = if (parts.isEmpty) (0, 0) else getMargins(prev.map(_.msgType), next.map(_.msgType), parts.head.tpe, parts.last.tpe, isOneToOne)
     setPadding(0, top, 0, bottom)
     setParts(mAndL, parts, opts)
 
@@ -213,11 +217,10 @@ object MessageView {
   case object SystemLike extends MarginRule
   case object Ping extends MarginRule
   case object MissedCall extends MarginRule
-  case object ConvStart extends MarginRule
   case object Other extends MarginRule
 
   object MarginRule {
-    def apply(tpe: Message.Type, isOneToOne: Boolean, isFirst: Boolean): MarginRule = apply(MsgPart(tpe, isOneToOne, isFirst))
+    def apply(tpe: Message.Type, isOneToOne: Boolean): MarginRule = apply(MsgPart(tpe, isOneToOne))
 
     def apply(tpe: MsgPart): MarginRule = {
       tpe match {
@@ -235,23 +238,23 @@ object MessageView {
         case Image | VideoAsset => ImageLike
         case MemberChange |
              OtrMessage |
-             Rename => SystemLike
-        case ConversationStart => ConvStart
+             Rename |
+             ConversationStart => SystemLike
         case MsgPart.MissedCall => MissedCall
         case _ => Other
       }
     }
   }
 
-  def getMargins(prevTpe: Option[Message.Type], nextTpe: Option[Message.Type], topPart: MsgPart, bottomPart: MsgPart, isOneToOne: Boolean, isFirst: Boolean)(implicit context: Context): (Int, Int) = {
+  def getMargins(prevTpe: Option[Message.Type], nextTpe: Option[Message.Type], topPart: MsgPart, bottomPart: MsgPart, isOneToOne: Boolean)(implicit context: Context): (Int, Int) = {
     val top =
       if (prevTpe.isEmpty)
         MarginRule(topPart) match {
-          case SystemLike | ConvStart => 24
+          case SystemLike => 24
           case _ => 0
         }
       else {
-        (MarginRule(prevTpe.get, isOneToOne, isFirst), MarginRule(topPart)) match {
+        (MarginRule(prevTpe.get, isOneToOne), MarginRule(topPart)) match {
           case (TextLike, TextLike)         => 8
           case (TextLike, FileLike)         => 16
           case (FileLike, FileLike)         => 10
@@ -259,8 +262,7 @@ object MessageView {
           case (FileLike | ImageLike, _) |
                (_, FileLike | ImageLike)    => 10
           case (MissedCall, _)              => 24
-          case (ConvStart, SystemLike)      => 16
-          case (SystemLike|ConvStart, _) |
+          case (SystemLike, _) |
                (_, SystemLike)              => 24
           case (_, Ping) | (Ping, _)        => 14
           case (_, MissedCall)              => 24
@@ -271,7 +273,7 @@ object MessageView {
     val bottom =
       if (nextTpe.isEmpty)
         MarginRule(bottomPart) match {
-          case SystemLike | ConvStart => 8
+          case SystemLike => 8
           case _ => 0
         }
       else 0
