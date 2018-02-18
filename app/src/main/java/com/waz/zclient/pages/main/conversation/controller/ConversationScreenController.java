@@ -140,14 +140,15 @@ public class ConversationScreenController implements IConversationScreenControll
     }
 
     @Override
-    public void showUser(UserId userId) {
+    public boolean showUser(UserId userId) {
         if (userId == null || isShowingUser) {
-            return;
+            return false;
         }
         isShowingUser = true;
         for (ConversationScreenControllerObserver observer : conversationScreenControllerObservers) {
             observer.onShowUser(userId);
         }
+        return true;
     }
 
     @Override

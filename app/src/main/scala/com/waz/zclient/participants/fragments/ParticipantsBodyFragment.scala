@@ -80,8 +80,8 @@ class ParticipantsBodyFragment extends BaseFragment[ParticipantsBodyFragment.Con
             case _ =>
           }
         case _ =>
-          convScreenController.showUser(user.id)
-          participantsController.selectParticipant(user.id)
+          if (convScreenController.showUser(user.id))
+            participantsController.selectParticipant(user.id)
       }
       case _ =>
     }

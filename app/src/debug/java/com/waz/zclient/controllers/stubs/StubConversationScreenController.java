@@ -66,8 +66,8 @@ public class StubConversationScreenController implements IConversationScreenCont
     }
 
     @Override
-    public void showUser(UserId userId) {
-
+    public boolean showUser(UserId userId) {
+        return false;
     }
 
     @Override
