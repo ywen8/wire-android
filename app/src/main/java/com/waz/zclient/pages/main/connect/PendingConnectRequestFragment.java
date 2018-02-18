@@ -17,15 +17,12 @@
  */
 package com.waz.zclient.pages.main.connect;
 
-import android.content.res.Configuration;
 import android.graphics.Color;
 import android.os.Bundle;
-import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.Animation;
-import android.widget.TextView;
 import com.waz.api.IConversation;
 import com.waz.api.UpdateListener;
 import com.waz.api.User;
@@ -33,7 +30,6 @@ import com.waz.model.ConvId;
 import com.waz.model.ConversationData;
 import com.waz.model.UserId;
 import com.waz.zclient.R;
-import com.waz.zclient.common.views.UserDetailsView;
 import com.waz.zclient.controllers.accentcolor.AccentColorObserver;
 import com.waz.zclient.conversation.ConversationController;
 import com.waz.zclient.core.stores.connect.ConnectStoreObserver;
@@ -42,8 +38,6 @@ import com.waz.zclient.pages.BaseFragment;
 import com.waz.zclient.pages.main.participants.ProfileAnimation;
 import com.waz.zclient.pages.main.participants.ProfileTabletAnimation;
 import com.waz.zclient.pages.main.participants.dialog.DialogLaunchMode;
-import com.waz.zclient.ui.theme.ThemeUtils;
-import com.waz.zclient.ui.utils.KeyboardUtils;
 import com.waz.zclient.ui.views.ZetaButton;
 import com.waz.zclient.utils.Callback;
 import com.waz.zclient.utils.ContextUtils;
@@ -72,11 +66,8 @@ public class PendingConnectRequestFragment extends BaseFragment<PendingConnectRe
 
     private boolean isShowingFooterMenu;
 
-    private UserDetailsView userDetailsView;
     private ZetaButton unblockButton;
     private FooterMenu footerMenu;
-    private Toolbar toolbar;
-    private TextView displayNameTextView;
     private ImageAssetImageView imageAssetImageViewProfile;
 
     public static PendingConnectRequestFragment newInstance(String userId,
@@ -152,36 +143,11 @@ public class PendingConnectRequestFragment extends BaseFragment<PendingConnectRe
 
         View rootView = inflater.inflate(R.layout.fragment_connect_request_pending, viewContainer, false);
 
-        userDetailsView =  ViewUtils.getView(rootView, R.id.udv__pending_connect__user_details);
         unblockButton = ViewUtils.getView(rootView, R.id.zb__connect_request__unblock_button);
         footerMenu = ViewUtils.getView(rootView, R.id.fm__footer);
-        toolbar = ViewUtils.getView(rootView, R.id.t__pending_connect__toolbar);
-        displayNameTextView = ViewUtils.getView(rootView, R.id.tv__pending_connect_toolbar__title);
         imageAssetImageViewProfile = ViewUtils.getView(rootView, R.id.iaiv__pending_connect);
         imageAssetImageViewProfile.setDisplayType(ImageAssetImageView.DisplayType.CIRCLE);
         imageAssetImageViewProfile.setSaturation(0);
-
-        updateToolbarNavigationIcon();
-        if (userRequester == IConnectStore.UserRequester.PARTICIPANTS) {
-            toolbar.setBackground(null);
-        }
-        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                switch (userRequester) {
-                    case CONVERSATION:
-                        if (LayoutSpec.isTablet(getContext()) && ContextUtils.isInLandscape(getContext())) {
-                            return;
-                        }
-                        getActivity().onBackPressed();
-                        KeyboardUtils.closeKeyboardIfShown(getActivity());
-                        break;
-                    default:
-                        getContainer().dismissUserProfile();
-                        break;
-                }
-            }
-        });
 
         View backgroundContainer = ViewUtils.getView(rootView, R.id.ll__pending_connect__background_container);
         if (getControllerFactory().getConversationScreenController().getPopoverLaunchMode() == DialogLaunchMode.AVATAR ||
@@ -250,7 +216,6 @@ public class PendingConnectRequestFragment extends BaseFragment<PendingConnectRe
         imageAssetImageViewProfile = null;
         unblockButton = null;
         footerMenu = null;
-        displayNameTextView = null;
         if (conversation != null) {
             conversation.removeUpdateListener(this);
             conversation = null;
@@ -373,9 +338,6 @@ public class PendingConnectRequestFragment extends BaseFragment<PendingConnectRe
         }
 
         imageAssetImageViewProfile.connectImageAsset(user.getPicture());
-        userDetailsView.setUser(user);
-
-        displayNameTextView.setText(user.getName());
 
         switch (user.getConnectionStatus()) {
             case PENDING_FROM_OTHER:
@@ -407,37 +369,6 @@ public class PendingConnectRequestFragment extends BaseFragment<PendingConnectRe
         unblockButton.setAccentColor(color);
     }
 
-    private void updateToolbarNavigationIcon() {
-        updateToolbarNavigationIcon(null);
-    }
-
-    private void updateToolbarNavigationIcon(Configuration newConfig) {
-        if (LayoutSpec.isPhone(getContext())) {
-            return;
-        }
-        if (userRequester == IConnectStore.UserRequester.CONVERSATION &&
-            (ContextUtils.isInLandscape(getContext()) ||
-             (newConfig != null && ContextUtils.isInLandscape(newConfig)))) {
-            toolbar.setNavigationIcon(null);
-        } else {
-            switch (userRequester) {
-                case CONVERSATION:
-                    if (ThemeUtils.isDarkTheme(getContext())) {
-                        toolbar.setNavigationIcon(R.drawable.ic_action_menu_light);
-                    } else {
-                        toolbar.setNavigationIcon(R.drawable.ic_action_menu_dark);
-                    }
-                    break;
-                default:
-                    if (ThemeUtils.isDarkTheme(getContext())) {
-                        toolbar.setNavigationIcon(R.drawable.action_back_light);
-                    } else {
-                        toolbar.setNavigationIcon(R.drawable.action_back_dark);
-                    }
-                    break;
-            }
-        }
-    }
 
     @Override
     public void updated() {

@@ -293,9 +293,8 @@ class ParticipantFragment extends BaseFragment[ParticipantFragment.Container] wi
       .commit
 
   override def onShowUser(userId: UserId): Unit = participantsController.getUser(userId).foreach {
-    case None =>
-
-    case Some(user) if user.isSelf =>
+    case Some(user) if user.connection == User.ConnectionStatus.ACCEPTED || userAccountsController.isTeamAccount && userAccountsController.isTeamMember(userId)=>
+      participantsController.selectParticipant(userId)
       getStoreFactory.singleParticipantStore.setUser(getOldUserAPI(userId))
       openUserProfileFragment(
         SingleParticipantFragment.newInstance(false, IConnectStore.UserRequester.PARTICIPANTS),
@@ -303,12 +302,6 @@ class ParticipantFragment extends BaseFragment[ParticipantFragment.Container] wi
       )
       if (LayoutSpec.isPhone(getActivity))
         navigationController.setRightPage(Page.PARTICIPANT_USER_PROFILE, ParticipantFragment.TAG)
-
-    case Some(_) if userAccountsController.isTeamAccount && userAccountsController.isTeamMember(userId) =>
-      showAcceptedUser(userId)
-
-    case Some(user) if user.connection == User.ConnectionStatus.ACCEPTED =>
-      showAcceptedUser(user.id)
 
     case Some(user) if user.connection == PENDING_FROM_OTHER || user.connection == PENDING_FROM_USER || user.connection == IGNORED =>
       openUserProfileFragment(
@@ -332,20 +325,11 @@ class ParticipantFragment extends BaseFragment[ParticipantFragment.Container] wi
         SendConnectRequestFragment.TAG
       )
       navigationController.setRightPage(Page.SEND_CONNECT_REQUEST, ParticipantFragment.TAG)
+
+    case _ =>
   }
 
   private def getOldUserAPI(userId: UserId): User = getStoreFactory.pickUserStore.getUser(userId.str)
-
-  private def showAcceptedUser(userId: UserId) = {
-    participantsController.selectParticipant(userId)
-    getStoreFactory.singleParticipantStore.setUser(getOldUserAPI(userId))
-    openUserProfileFragment(
-      SingleParticipantFragment.newInstance(false, IConnectStore.UserRequester.PARTICIPANTS),
-      SingleParticipantFragment.TAG
-    )
-    if (LayoutSpec.isPhone(getActivity))
-      navigationController.setRightPage(Page.PARTICIPANT_USER_PROFILE, ParticipantFragment.TAG)
-  }
 
   private def openUserProfileFragment(fragment: Fragment, tag: String) = {
     val transaction = getChildFragmentManager.beginTransaction
@@ -357,7 +341,7 @@ class ParticipantFragment extends BaseFragment[ParticipantFragment.Container] wi
       transaction.setCustomAnimations(R.anim.open_profile, R.anim.close_profile, R.anim.open_profile, R.anim.close_profile)
     }
     else transaction.setCustomAnimations(R.anim.fade_in, R.anim.fade_out, R.anim.fade_in, R.anim.fade_out)
-    transaction.add(R.id.fl__participant__overlay, fragment, tag).addToBackStack(tag).commit
+    transaction.add(R.id.fl__participant__container, fragment, tag).addToBackStack(tag).commit
   }
 
   private def animateParticipantsWithConnectUserProfile(show: Boolean) = {
