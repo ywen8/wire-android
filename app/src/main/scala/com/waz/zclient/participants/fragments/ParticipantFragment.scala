@@ -28,10 +28,10 @@ import com.waz.ZLog._
 import com.waz.api.User.ConnectionStatus._
 import com.waz.api._
 import com.waz.model._
+import com.waz.model.otr.ClientId
 import com.waz.threading.Threading
 import com.waz.utils.events.Subscription
 import com.waz.utils.returning
-import com.waz.utils.wrappers.AndroidURIUtil
 import com.waz.zclient.common.controllers.{BrowserController, UserAccountsController}
 import com.waz.zclient.controllers.navigation.{INavigationController, Page}
 import com.waz.zclient.controllers.singleimage.ISingleImageController
@@ -59,9 +59,7 @@ class ParticipantFragment extends BaseFragment[ParticipantFragment.Container] wi
   with ParticipantsBodyFragment.Container
   with SendConnectRequestFragment.Container
   with BlockedUserProfileFragment.Container
-  with PendingConnectRequestFragment.Container
-  with PickUserFragment.Container
-  with SingleOtrClientFragment.Container {
+  with PendingConnectRequestFragment.Container {
 
   implicit def ctx: Context = getActivity
   import Threading.Implicits.Ui
@@ -227,7 +225,7 @@ class ParticipantFragment extends BaseFragment[ParticipantFragment.Container] wi
       case _ =>
     }
 
-  override def onShowOtrClient(otrClient: OtrClient, user: User): Unit =
+  def showOtrClient(userId: UserId, clientId: ClientId): Unit =
     getChildFragmentManager
       .beginTransaction
       .setCustomAnimations(
@@ -238,24 +236,7 @@ class ParticipantFragment extends BaseFragment[ParticipantFragment.Container] wi
       )
       .add(
         R.id.fl__participant__overlay,
-        SingleOtrClientFragment.newInstance(otrClient, user),
-        SingleOtrClientFragment.TAG
-      )
-      .addToBackStack(SingleOtrClientFragment.TAG)
-      .commit
-
-  override def onShowCurrentOtrClient(): Unit =
-    getChildFragmentManager
-      .beginTransaction
-      .setCustomAnimations(
-        R.anim.open_profile,
-        R.anim.close_profile,
-        R.anim.open_profile,
-        R.anim.close_profile
-      )
-      .add(
-        R.id.fl__participant__overlay,
-        SingleOtrClientFragment.newInstance,
+        SingleOtrClientFragment.newInstance(userId, clientId),
         SingleOtrClientFragment.TAG
       )
       .addToBackStack(SingleOtrClientFragment.TAG)
@@ -352,12 +333,7 @@ class ParticipantFragment extends BaseFragment[ParticipantFragment.Container] wi
 
   override def onConnectRequestWasSentToUser(): Unit = screenController.hideUser()
 
-  override def getLoadingViewIndicator: LoadingIndicatorView = loadingIndicatorView
-
   override def getCurrentPickerDestination = IPickUserController.Destination.PARTICIPANTS
-
-  override def onOpenUrl(url: String) =
-    browserController.openUrl(AndroidURIUtil.parse(url))
 
   override def onShowParticipants(anchorView: View, isSingleConversation: Boolean, isMemberOfConversation: Boolean, showDeviceTabIfSingle: Boolean): Unit = {}
 
@@ -370,8 +346,6 @@ class ParticipantFragment extends BaseFragment[ParticipantFragment.Container] wi
   override def onShowIntegrationDetails(providerId: ProviderId, integrationId: IntegrationId): Unit = {}
 
   override def onConversationUpdated(conversation: ConvId): Unit = {}
-
-  override def showIncomingPendingConnectRequest(conv: ConvId): Unit = {}
 }
 
 object ParticipantFragment {
