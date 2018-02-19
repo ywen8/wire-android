@@ -360,7 +360,7 @@ public class PendingConnectRequestFragment extends BaseFragment<PendingConnectRe
         unblockButton.setIsFilled(false);
         unblockButton.setAccentColor(color);
     }
-    
+
     @Override
     public void updated() {
         if (conversation != null && conversation.getType() == IConversation.Type.ONE_TO_ONE) {
