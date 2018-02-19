@@ -35,7 +35,6 @@ import com.waz.zclient.core.stores.stub.StubNetworkStore;
 import com.waz.zclient.core.stores.stub.StubParticipantsStore;
 import com.waz.zclient.core.stores.stub.StubPickUserStore;
 import com.waz.zclient.core.stores.stub.StubProfileStore;
-import com.waz.zclient.core.stores.stub.StubSingleParticipantStore;
 import com.waz.zclient.core.stores.stub.StubZMessagingApiStore;
 
 import static org.mockito.Mockito.spy;
