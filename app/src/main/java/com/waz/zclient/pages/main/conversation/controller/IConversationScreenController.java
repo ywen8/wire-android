@@ -57,7 +57,7 @@ public interface IConversationScreenController {
 
     void addPeopleToConversation();
 
-    void showUser(UserId userId);
+    boolean showUser(UserId userId);
 
     void hideUser();
 

@@ -35,6 +35,7 @@ import com.waz.zclient.messages.UsersController.DisplayName.{Me, Other}
 import com.waz.zclient.messages._
 import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.{R, ViewHelper}
+import com.waz.zclient.utils.RichView
 
 class MemberChangePartView(context: Context, attrs: AttributeSet, style: Int) extends LinearLayout(context, attrs, style) with MessageViewPart with ViewHelper {
   def this(context: Context, attrs: AttributeSet) = this(context, attrs, 0)
@@ -83,20 +84,24 @@ class MemberChangePartView(context: Context, attrs: AttributeSet, style: Int) ex
     val userId = msg.userId
 
     (msg.msgType, displayName, msg.members.toSeq) match {
-      case (MEMBER_JOIN, Me|Other(_), _)         if msg.firstMessage && pos == 1 => getString(R.string.content__system__with_participant, members)
-      case (MEMBER_JOIN, Me, _)                  if msg.firstMessage             => getString(R.string.content__system__you_started_participant, "", members)
-      case (MEMBER_JOIN, Other(name), Seq(`me`)) if msg.firstMessage             => getString(R.string.content__system__other_started_you, name)
-      case (MEMBER_JOIN, Other(name), _)         if msg.firstMessage             => getString(R.string.content__system__other_started_participant, name, members)
-      case (MEMBER_JOIN, Me, _)                                                  => getString(R.string.content__system__you_added_participant, "", members).toUpperCase
-      case (MEMBER_JOIN, Other(name), Seq(`me`))                                 => getString(R.string.content__system__other_added_you, name).toUpperCase
-      case (MEMBER_JOIN, Other(name), _)                                         => getString(R.string.content__system__other_added_participant, name, members).toUpperCase
-      case (MEMBER_LEAVE, Me, Seq(`me`))                                         => getString(R.string.content__system__you_left).toUpperCase
-      case (MEMBER_LEAVE, Me, _)                                                 => getString(R.string.content__system__you_removed_other, "", members).toUpperCase
-      case (MEMBER_LEAVE, Other(name), Seq(`me`))                                => getString(R.string.content__system__other_removed_you, name).toUpperCase
-      case (MEMBER_LEAVE, Other(name), Seq(`userId`))                            => getString(R.string.content__system__other_left, name).toUpperCase
-      case (MEMBER_LEAVE, Other(name), _)                                        => getString(R.string.content__system__other_removed_other, name, members).toUpperCase
+      case (MEMBER_JOIN, Me|Other(_), _)         if msg.firstMessage && msg.name.isDefined => getString(R.string.content__system__with_participant, members)
+      case (MEMBER_JOIN, Me, _)                  if msg.firstMessage                       => getString(R.string.content__system__you_started_participant, "", members)
+      case (MEMBER_JOIN, Other(name), Seq(`me`)) if msg.firstMessage                       => getString(R.string.content__system__other_started_you, name)
+      case (MEMBER_JOIN, Other(name), _)         if msg.firstMessage                       => getString(R.string.content__system__other_started_participant, name, members)
+      case (MEMBER_JOIN, Me, _)                                                            => getString(R.string.content__system__you_added_participant, "", members).toUpperCase
+      case (MEMBER_JOIN, Other(name), Seq(`me`))                                           => getString(R.string.content__system__other_added_you, name).toUpperCase
+      case (MEMBER_JOIN, Other(name), _)                                                   => getString(R.string.content__system__other_added_participant, name, members).toUpperCase
+      case (MEMBER_LEAVE, Me, Seq(`me`))                                                   => getString(R.string.content__system__you_left).toUpperCase
+      case (MEMBER_LEAVE, Me, _)                                                           => getString(R.string.content__system__you_removed_other, "", members).toUpperCase
+      case (MEMBER_LEAVE, Other(name), Seq(`me`))                                          => getString(R.string.content__system__other_removed_you, name).toUpperCase
+      case (MEMBER_LEAVE, Other(name), Seq(`userId`))                                      => getString(R.string.content__system__other_left, name).toUpperCase
+      case (MEMBER_LEAVE, Other(name), _)                                                  => getString(R.string.content__system__other_removed_other, name, members).toUpperCase
     }
   }
+
+  message.map(m => if (m.firstMessage && m.name.nonEmpty) Some(16) else None)
+    .map(_.map(toPx))
+    .onUi(_.foreach(this.setMarginTop))
 
   iconGlyph { messageView.setIconGlyph }
 

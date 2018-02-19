@@ -55,10 +55,10 @@ public enum LayoutSpec {
     }
 
     public static boolean isPhone(Context context) {
-        return get(context) == LAYOUT_PHONE;
+        return true;
     }
 
     public static boolean isTablet(Context context) {
-        return !isPhone(context);
+        return false;
     }
 }

@@ -1,20 +1,20 @@
 /**
- * Wire
- * Copyright (C) 2018 Wire Swiss GmbH
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
+  * Wire
+  * Copyright (C) 2018 Wire Swiss GmbH
+  *
+  * This program is free software: you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License as published by
+  * the Free Software Foundation, either version 3 of the License, or
+  * (at your option) any later version.
+  *
+  * This program is distributed in the hope that it will be useful,
+  * but WITHOUT ANY WARRANTY; without even the implied warranty of
+  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  * GNU General Public License for more details.
+  *
+  * You should have received a copy of the GNU General Public License
+  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  */
 package com.waz.zclient.participants
 
 import java.util.Locale
@@ -32,12 +32,15 @@ import com.waz.utils.events.{EventContext, EventStream, Signal, SourceStream}
 import com.waz.zclient.common.controllers.global.AccentColorController
 import com.waz.zclient.ui.utils.TextViewUtils
 import com.waz.zclient.utils.ContextUtils._
-import com.waz.zclient.utils.{ContextUtils, RichClient, RichView, ViewUtils}
+import com.waz.zclient.utils.{RichClient, RichView, ViewUtils}
 import com.waz.zclient.{Injectable, Injector, R}
+import com.waz.ZLog.ImplicitTag._
 
 class ParticipantOtrDeviceAdapter(implicit context: Context, injector: Injector, eventContext: EventContext)
   extends RecyclerView.Adapter[ParticipantOtrDeviceAdapter.ViewHolder] with Injectable {
   import ParticipantOtrDeviceAdapter._
+
+  import Threading.Implicits.Background
 
   private lazy val zms = inject[Signal[ZMessaging]]
   private lazy val participantsController = inject[ParticipantsController]
@@ -50,18 +53,16 @@ class ParticipantOtrDeviceAdapter(implicit context: Context, injector: Injector,
   val onHeaderClick = EventStream[Unit]()
   val onClientClick = EventStream[Client]()
 
-  private lazy val clients = for {
+  private val clients = for {
     Some(userId)  <- participantsController.otherParticipant
     Some(manager) <- ZMessaging.currentAccounts.activeAccountManager
     clients       <- manager.storage.otrClientsStorage.optSignal(userId)
   } yield clients.fold(List.empty[Client])(_.clients.values.toList.sortBy(_.regTime).reverse)
 
-  // request refresh of clients list, this will be executed only when UI goes to devices list,
-  // so should be safe to schedule sync every time (ie. once per the userId change)
-  participantsController.otherParticipant.on(Threading.Background) {
-    case Some(userId) => zms.map(_.sync.syncClients(userId))
-    case _            =>
-  }
+  private lazy val syncClientsRequest = for {
+    z             <- zms.head
+    Some(userId)  <- participantsController.otherParticipant.head
+  } yield z.sync.syncClients(userId)
 
   (for {
     z            <- zms
@@ -74,6 +75,11 @@ class ParticipantOtrDeviceAdapter(implicit context: Context, injector: Injector,
     userName = name
     accentColor = color.getColor
     notifyDataSetChanged()
+
+    // request refresh of clients list, this will be executed only when UI goes to devices list,
+    // so should be safe to schedule sync every time (ie. once per the userId change)
+    // TODO: [AN-5965] - this should not be necessary
+    syncClientsRequest
   }
 
   override def onCreateViewHolder(parent: ViewGroup, viewType: Int): ParticipantOtrDeviceAdapter.ViewHolder =
