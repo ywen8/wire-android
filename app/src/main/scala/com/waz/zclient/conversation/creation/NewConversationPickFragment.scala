@@ -38,7 +38,7 @@ import com.waz.zclient.common.views.PickableElement
 import com.waz.zclient.pages.main.pickuser.controller.IPickUserController
 import com.waz.zclient.pages.main.pickuser.controller.IPickUserController.Destination
 import com.waz.zclient.ui.text.TypefaceTextView
-import com.waz.zclient.usersearch.views.{PickerSpannableEditText, SearchEditText, SearchResultUserRowView}
+import com.waz.zclient.usersearch.views.{PickerSpannableEditText, SearchEditText, SearchResultUserRowView, SelectableUserRowViewHolder}
 import com.waz.zclient.utils.ContextUtils.getColor
 import com.waz.zclient.utils.RichView
 import com.waz.zclient.{FragmentHelper, OnBackPressedListener, R, ViewHelper}
@@ -195,15 +195,7 @@ object NewConversationPickFragment {
   }
 }
 
-
-case class NewConvUserViewHolder(v: SearchResultUserRowView) extends RecyclerView.ViewHolder(v) {
-  def bind(userData: UserData, selected: Boolean) = {
-    v.setUser(userData)
-    v.setChecked(selected)
-  }
-}
-
-case class NewConvAdapter(searchResults: Signal[IndexedSeq[UserData]], selectedUsers: SourceSignal[Set[UserId]])(implicit context: Context, eventContext: EventContext) extends RecyclerView.Adapter[NewConvUserViewHolder] {
+case class NewConvAdapter(searchResults: Signal[IndexedSeq[UserData]], selectedUsers: SourceSignal[Set[UserId]])(implicit context: Context, eventContext: EventContext) extends RecyclerView.Adapter[SelectableUserRowViewHolder] {
   private implicit val ctx = context
 
   private var users = Seq.empty[(UserData, /*isSelected: */ Boolean)]
@@ -232,7 +224,7 @@ case class NewConvAdapter(searchResults: Signal[IndexedSeq[UserData]], selectedU
 
   override def getItemCount: Int = users.size
 
-  override def onCreateViewHolder(parent: ViewGroup, viewType: Int): NewConvUserViewHolder = {
+  override def onCreateViewHolder(parent: ViewGroup, viewType: Int): SelectableUserRowViewHolder = {
     val view = ViewHelper.inflate[SearchResultUserRowView](R.layout.startui_user, parent, addToParent = false)
     view.setIsAddingPeople(true)
     view.onSelectionChanged.onUi { selected =>
@@ -244,13 +236,13 @@ case class NewConvAdapter(searchResults: Signal[IndexedSeq[UserData]], selectedU
           selectedUsers.mutate(_ - user)
       }
     }
-    NewConvUserViewHolder(view)
+    SelectableUserRowViewHolder(view)
   }
 
 
   override def getItemId(position: Int) = users(position)._1.id.str.hashCode
 
-  override def onBindViewHolder(holder: NewConvUserViewHolder, position: Int): Unit = {
+  override def onBindViewHolder(holder: SelectableUserRowViewHolder, position: Int): Unit = {
     val (user, selected) = users(position)
     holder.bind(user, selected)
   }

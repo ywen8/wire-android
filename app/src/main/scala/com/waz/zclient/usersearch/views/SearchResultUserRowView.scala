@@ -19,7 +19,7 @@ package com.waz.zclient.usersearch.views
 
 import android.content.Context
 import android.support.v4.content.ContextCompat
-import android.support.v7.widget.AppCompatCheckBox
+import android.support.v7.widget.{AppCompatCheckBox, RecyclerView}
 import android.util.AttributeSet
 import android.view.View
 import android.view.View.OnClickListener
@@ -33,6 +33,7 @@ import com.waz.zclient.common.views.ChatheadView
 import com.waz.zclient.ui.text.TypefaceTextView
 import com.waz.zclient.utils.ContextUtils.getDrawable
 import com.waz.zclient.{R, ViewHelper}
+import com.waz.zclient.utils.RichView
 
 class SearchResultUserRowView(val context: Context, val attrs: AttributeSet, val defStyleAttr: Int) extends FrameLayout(context, attrs, defStyleAttr) with UserRowView with ViewHelper {
   def this(context: Context, attrs: AttributeSet) = this(context, attrs, 0)
@@ -106,5 +107,23 @@ class SearchResultUserRowView(val context: Context, val attrs: AttributeSet, val
 
   isGuest.on(Threading.Ui) { guest =>
     guestLabel.setVisibility(if (guest) View.VISIBLE else View.GONE)
+  }
+}
+
+case class SelectableUserRowViewHolder(v: SearchResultUserRowView) extends RecyclerView.ViewHolder(v) {
+  def bind(userData: UserData, selected: Boolean) = {
+    v.setUser(userData)
+    v.setChecked(selected)
+  }
+}
+
+case class ClickableUserRowViewHolder(v: SearchResultUserRowView, onClick: SourceStream[UserId]) extends RecyclerView.ViewHolder(v) {
+  private var userId = Option.empty[UserId]
+
+  v.onClick(userId.foreach(onClick ! _))
+
+  def setUser(userData: UserData) = {
+    userId = Some(userData.id)
+    v.setUser(userData)
   }
 }

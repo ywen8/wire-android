@@ -19,23 +19,24 @@ package com.waz.zclient.participants
 
 import android.content.Context
 import android.support.v7.widget.RecyclerView
+import android.support.v7.widget.RecyclerView.ViewHolder
 import android.view.{LayoutInflater, View, ViewGroup}
 import android.widget.TextView
-import com.waz.model.UserId
+import com.waz.model.{UserData, UserId}
 import com.waz.service.ZMessaging
-import com.waz.utils.events.{EventContext, EventStream, Signal, SourceStream}
-import com.waz.zclient.common.views.ChatheadWithTextFooter
+import com.waz.utils.events.{EventContext, EventStream, Signal}
+import com.waz.zclient.usersearch.views.{SearchResultUserRowView, ClickableUserRowViewHolder}
 import com.waz.zclient.utils.ViewUtils
 import com.waz.zclient.{Injectable, Injector, R}
 
-class ParticipantsChatheadAdapter(numOfColumns: Int)(implicit context: Context, injector: Injector, eventContext: EventContext)
-  extends RecyclerView.Adapter[ParticipantsChatheadAdapter.ViewHolder] with Injectable {
-  import ParticipantsChatheadAdapter._
+class ParticipantsAdapter(numOfColumns: Int)(implicit context: Context, injector: Injector, eventContext: EventContext)
+  extends RecyclerView.Adapter[ViewHolder] with Injectable {
+  import ParticipantsAdapter._
 
   private lazy val zms = inject[Signal[ZMessaging]]
   private lazy val participantsController = inject[ParticipantsController]
 
-  private var items = List.empty[Either[UserId, Int]]
+  private var items = List.empty[Either[UserData, Int]]
 
   val onClick = EventStream[UserId]()
 
@@ -49,13 +50,13 @@ class ParticipantsChatheadAdapter(numOfColumns: Int)(implicit context: Context, 
     val (bots, people) = users.toList.partition(_.isWireBot)
     val (verified, unverified) = people.partition(_.isVerified)
 
-    unverified.map(data => Left(data.id)) :::
+    unverified.map(data => Left(data)) :::
       (if (unverified.nonEmpty && verified.nonEmpty) List(Right(SEPARATOR_VERIFIED))
        else Nil
-      ) ::: verified.map(data => Left(data.id)) :::
+      ) ::: verified.map(data => Left(data)) :::
       (if ((unverified.nonEmpty || verified.nonEmpty) && bots.nonEmpty) List(Right(SEPARATOR_BOTS))
        else Nil
-      ) ::: bots.map(data => Left(data.id))
+      ) ::: bots.map(data => Left(data))
   }
 
   positions.onUi { list =>
@@ -65,13 +66,13 @@ class ParticipantsChatheadAdapter(numOfColumns: Int)(implicit context: Context, 
 
   override def onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder = viewType match {
     case CHATHEAD =>
-      val view = LayoutInflater.from(parent.getContext).inflate(R.layout.participants_grid_chathead, parent, false)
-      new ChatheadViewHolder(view.asInstanceOf[ChatheadWithTextFooter], onClick)
+      val view = LayoutInflater.from(parent.getContext).inflate(R.layout.startui_user, parent, false)
+      ClickableUserRowViewHolder(view.asInstanceOf[SearchResultUserRowView], onClick)
     case _ => new SeparatorViewHolder(getSeparatorView(parent))
   }
 
   override def onBindViewHolder(holder: ViewHolder, position: Int): Unit = (items(position), holder) match {
-    case (Left(userId),   h: ChatheadViewHolder)                                   => h.setUserId(userId)
+    case (Left(userId),   h: ClickableUserRowViewHolder)                           => h.setUser(userId)
     case (Right(sepType), h: SeparatorViewHolder) if sepType == SEPARATOR_VERIFIED => h.setTitle(R.string.pref_devices_device_verified)
     case (Right(sepType), h: SeparatorViewHolder) if sepType == SEPARATOR_BOTS     => h.setTitle(R.string.integrations_picker__section_title)
     case _ =>
@@ -85,7 +86,7 @@ class ParticipantsChatheadAdapter(numOfColumns: Int)(implicit context: Context, 
   override def getItemCount: Int = items.size
 
   override def getItemId(position: Int): Long = items(position) match {
-    case Left(userId)   => userId.hashCode()
+    case Left(user)   => user.id.hashCode()
     case Right(sepType) => sepType
   }
 
@@ -101,25 +102,10 @@ class ParticipantsChatheadAdapter(numOfColumns: Int)(implicit context: Context, 
 
 }
 
-object ParticipantsChatheadAdapter {
+object ParticipantsAdapter {
   val CHATHEAD = 0
   val SEPARATOR_VERIFIED = 1
   val SEPARATOR_BOTS = 2
-
-  abstract class ViewHolder(itemView: View) extends RecyclerView.ViewHolder(itemView)
-
-  class ChatheadViewHolder(chathead: ChatheadWithTextFooter, onClick: SourceStream[UserId]) extends ViewHolder(chathead) with View.OnClickListener {
-    private var userId: Option[UserId] = None
-
-    chathead.setOnClickListener(this)
-
-    def setUserId(userId: UserId): Unit = {
-      this.userId = Some(userId)
-      chathead.setUserId(userId)
-    }
-
-    override def onClick(v: View): Unit = userId.foreach { id => this.onClick ! id }
-  }
 
   class SeparatorViewHolder(separator: View) extends ViewHolder(separator) {
     def setTitle(title: Int): Unit =

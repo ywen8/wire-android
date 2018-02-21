@@ -22,7 +22,7 @@ import android.content.Context
 import android.os.Bundle
 import android.support.annotation.Nullable
 import android.support.v4.app.Fragment
-import android.support.v7.widget.{GridLayoutManager, RecyclerView}
+import android.support.v7.widget.{LinearLayoutManager, RecyclerView}
 import android.view.animation.{AlphaAnimation, Animation}
 import android.view.{LayoutInflater, View, ViewGroup}
 import android.widget.LinearLayout
@@ -31,26 +31,23 @@ import com.waz.ZLog.verbose
 import com.waz.api.NetworkMode
 import com.waz.api.User.ConnectionStatus._
 import com.waz.model.{UserData, UserId}
-import com.waz.service.ZMessaging
+import com.waz.service.{NetworkModeService, ZMessaging}
 import com.waz.threading.Threading
 import com.waz.utils._
 import com.waz.utils.events._
 import com.waz.zclient.common.controllers.UserAccountsController
 import com.waz.zclient.core.stores.connect.IConnectStore
-import com.waz.zclient.core.stores.network.NetworkAction
 import com.waz.zclient.integrations.IntegrationDetailsController
-import com.waz.zclient.pages.BaseFragment
 import com.waz.zclient.pages.main.connect.{BlockedUserProfileFragment, ConnectRequestLoadMode, PendingConnectRequestFragment, SendConnectRequestFragment}
 import com.waz.zclient.pages.main.conversation.controller.IConversationScreenController
-import com.waz.zclient.pages.main.pickuser.controller.IPickUserController
-import com.waz.zclient.participants.{ParticipantsChatheadAdapter, ParticipantsController}
+import com.waz.zclient.participants.{ParticipantsAdapter, ParticipantsController}
 import com.waz.zclient.ui.utils.KeyboardUtils
 import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.utils.ViewUtils
 import com.waz.zclient.views.menus.{FooterMenu, FooterMenuCallback}
 import com.waz.zclient.{FragmentHelper, R}
 
-class GroupParticipantsFragment extends BaseFragment[GroupParticipantsFragment.Container] with FragmentHelper {
+class GroupParticipantsFragment extends FragmentHelper {
 
   implicit def ctx: Context = getActivity
   import Threading.Implicits.Ui
@@ -61,7 +58,31 @@ class GroupParticipantsFragment extends BaseFragment[GroupParticipantsFragment.C
   private lazy val userAccountsController       = inject[UserAccountsController]
   private lazy val integrationDetailsController = inject[IntegrationDetailsController]
 
-  private lazy val participantsAdapter = returning(new ParticipantsChatheadAdapter(getInt(R.integer.participant_column__count))) { adapter =>
+  private lazy val participantsView = view[RecyclerView](R.id.pgv__participants)
+  private lazy val topBorder        = view[View](R.id.v_participants__footer__top_border)
+  private lazy val footerWrapper    = view[LinearLayout](R.id.ll__participants__footer_wrapper)
+  private lazy val footerMenu = returning(view[FooterMenu](R.id.fm__participants__footer)) { fm =>
+    val showAddPeople = for {
+      conv    <- participantsController.conv
+      isGroup <- participantsController.isGroup
+    } yield conv.isActive && isGroup && userAccountsController.hasAddConversationMemberPermission(conv.id)
+
+    showAddPeople.map {
+      case true  => R.string.glyph__add_people
+      case false => R.string.empty_string
+    }.onUi { textId =>
+      fm.foreach(_.setLeftActionText(getString(textId)))
+    }
+
+    showAddPeople.map {
+      case true  => R.string.conversation__action__add_people
+      case false => R.string.empty_string
+    }.onUi { textId =>
+      fm.foreach(_.setLeftActionLabelText(getString(textId)))
+    }
+  }
+
+  private lazy val participantsAdapter = returning(new ParticipantsAdapter(getInt(R.integer.participant_column__count))) { adapter =>
     new FutureEventStream[UserId, Option[UserData]](adapter.onClick, participantsController.getUser).onUi {
       case Some(user) => (user.providerId, user.integrationId) match {
         case (Some(pId), Some(iId)) =>
@@ -94,76 +115,20 @@ class GroupParticipantsFragment extends BaseFragment[GroupParticipantsFragment.C
       case Some(user) if user.connection == ACCEPTED || userAccountsController.isTeamAccount && userAccountsController.isTeamMember(userId) =>
         participantsController.selectParticipant(userId)
         openUserProfileFragment(SingleParticipantFragment.newInstance(SingleParticipantFragment.USER_PAGE), SingleParticipantFragment.TAG)
+
       case Some(user) if user.connection == PENDING_FROM_OTHER || user.connection == PENDING_FROM_USER || user.connection == IGNORED =>
-        openUserProfileFragment(
-          PendingConnectRequestFragment.newInstance(userId.str, null, ConnectRequestLoadMode.LOAD_BY_USER_ID, IConnectStore.UserRequester.PARTICIPANTS),
-          PendingConnectRequestFragment.TAG
-        )
+        import PendingConnectRequestFragment._
+        openUserProfileFragment(newInstance(userId.str, null, ConnectRequestLoadMode.LOAD_BY_USER_ID, IConnectStore.UserRequester.PARTICIPANTS), TAG)
+
       case Some(user) if user.connection == BLOCKED =>
-        openUserProfileFragment(
-          BlockedUserProfileFragment.newInstance(userId.str, IConnectStore.UserRequester.PARTICIPANTS),
-          BlockedUserProfileFragment.TAG
-        )
+        import BlockedUserProfileFragment._
+        openUserProfileFragment(newInstance(userId.str, IConnectStore.UserRequester.PARTICIPANTS), TAG)
+
       case Some(user) if user.connection == CANCELLED || user.connection == UNCONNECTED =>
-        openUserProfileFragment(
-          SendConnectRequestFragment.newInstance(userId.str, IConnectStore.UserRequester.PARTICIPANTS),
-          SendConnectRequestFragment.TAG
-        )
+        import SendConnectRequestFragment._
+        openUserProfileFragment(newInstance(userId.str, IConnectStore.UserRequester.PARTICIPANTS), TAG)
       case _ =>
     }
-  }
-
-  private lazy val footerMenuCallback = new FooterMenuCallback() {
-    override def onLeftActionClicked(): Unit = {
-      (for {
-        conv    <- participantsController.conv.head
-        isGroup <- participantsController.isGroup.head
-      } yield (conv.id, conv.isActive, isGroup)).foreach {
-        case (convId, true, true) if userAccountsController.hasAddConversationMemberPermission(convId) =>
-          convScreenController.addPeopleToConversation()
-        case _ =>
-      }
-    }
-
-    override def onRightActionClicked(): Unit = getStoreFactory.networkStore.doIfHasInternetOrNotifyUser(new NetworkAction() {
-      override def execute(networkMode: NetworkMode): Unit =
-        participantsController.conv.head.foreach { conv =>
-          if (conv.isActive)
-            convScreenController.showConversationMenu(false, conv.id)
-        }
-
-      override def onNoNetwork(): Unit = ViewUtils.showAlertDialog(getActivity,
-        R.string.alert_dialog__no_network__header, R.string.leave_conversation_failed__message,
-        R.string.alert_dialog__confirmation, null, true
-      )
-    })
-
-  }
-
-  private lazy val participantsView = view[RecyclerView](R.id.pgv__participants)
-  private lazy val topBorder        = view[View](R.id.v_participants__footer__top_border)
-  private lazy val footerWrapper    = view[LinearLayout](R.id.ll__participants__footer_wrapper)
-  private lazy val footerMenu       = returning(view[FooterMenu](R.id.fm__participants__footer)) { fm =>
-
-    val showAddPeople = for {
-      conv    <- participantsController.conv
-      isGroup <- participantsController.isGroup
-    } yield conv.isActive && isGroup && userAccountsController.hasAddConversationMemberPermission(conv.id)
-
-    showAddPeople.map {
-      case true  => R.string.glyph__add_people
-      case false => R.string.empty_string
-    }.onUi { textId =>
-      fm.foreach(_.setLeftActionText(getString(textId)))
-    }
-
-    showAddPeople.map {
-      case true  => R.string.conversation__action__add_people
-      case false => R.string.empty_string
-    }.onUi { textId =>
-      fm.foreach(_.setLeftActionLabelText(getString(textId)))
-    }
-
   }
 
   override def onCreateAnimation(transit: Int, enter: Boolean, nextAnim: Int): Animation = {
@@ -185,25 +150,53 @@ class GroupParticipantsFragment extends BaseFragment[GroupParticipantsFragment.C
   override def onViewCreated(view: View, @Nullable savedInstanceState: Bundle): Unit = {
     super.onViewCreated(view, savedInstanceState)
 
-    val layoutManager =
-      returning(new GridLayoutManager(getContext, getInt(R.integer.participant_column__count))) {
-        _.setSpanSizeLookup(new GridLayoutManager.SpanSizeLookup() {
-          override def getSpanSize(position: Int): Int = participantsAdapter.getSpanSize(position)
-        })
-      }
-
     participantsView.foreach { v =>
       v.setAdapter(participantsAdapter)
-      v.setLayoutManager(layoutManager)
+      v.setLayoutManager(new LinearLayoutManager(getActivity))
     }
 
     participantsView
     topBorder
     footerWrapper
-    footerMenu.foreach { fm =>
-      fm.setRightActionText(getString(R.string.glyph__more))
-      fm.setCallback(footerMenuCallback)
-    }
+    footerMenu.foreach(_.setRightActionText(getString(R.string.glyph__more)))
+  }
+
+  override def onResume() = {
+    super.onResume()
+    footerMenu.foreach(_.setCallback(new FooterMenuCallback() {
+      override def onLeftActionClicked(): Unit = {
+        (for {
+          conv    <- participantsController.conv.head
+          isGroup <- participantsController.isGroup.head
+        } yield (conv.id, conv.isActive, isGroup)).foreach {
+          case (convId, true, true) if userAccountsController.hasAddConversationMemberPermission(convId) =>
+            convScreenController.addPeopleToConversation()
+          case _ =>
+        }
+      }
+
+      override def onRightActionClicked(): Unit = {
+        inject[NetworkModeService].networkMode.head.map {
+          case NetworkMode.OFFLINE =>
+            ViewUtils.showAlertDialog(
+              getActivity,
+              R.string.alert_dialog__no_network__header,
+              R.string.leave_conversation_failed__message, //TODO - message doesn't match action
+              R.string.alert_dialog__confirmation, null, true
+            )
+          case _ =>
+            participantsController.conv.head.foreach { conv =>
+              if (conv.isActive)
+                convScreenController.showConversationMenu(false, conv.id)
+            }
+        }
+      }
+    }))
+  }
+
+  override def onPause() = {
+    footerMenu.foreach(_.setCallback(null))
+    super.onPause()
   }
 }
 
@@ -212,10 +205,5 @@ object GroupParticipantsFragment {
 
   def newInstance(): GroupParticipantsFragment =
     new GroupParticipantsFragment
-
-  trait Container {
-
-    def getCurrentPickerDestination: IPickUserController.Destination
-  }
 
 }

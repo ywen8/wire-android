@@ -20,12 +20,11 @@ package com.waz.zclient.participants.fragments
 import android.content.Context
 import android.os.Bundle
 import android.support.annotation.Nullable
-import android.support.v4.app.{Fragment, FragmentManager}
+import android.support.v4.app.FragmentManager
 import android.view.animation.Animation
 import android.view.{LayoutInflater, View, ViewGroup}
 import com.waz.ZLog.ImplicitTag._
 import com.waz.ZLog._
-import com.waz.api.User.ConnectionStatus._
 import com.waz.api._
 import com.waz.model._
 import com.waz.model.otr.ClientId
@@ -40,12 +39,11 @@ import com.waz.zclient.core.stores.connect.IConnectStore
 import com.waz.zclient.core.stores.conversation.ConversationChangeRequester
 import com.waz.zclient.core.stores.conversation.ConversationChangeRequester._
 import com.waz.zclient.pages.BaseFragment
-import com.waz.zclient.pages.main.connect.{BlockedUserProfileFragment, ConnectRequestLoadMode, PendingConnectRequestFragment, SendConnectRequestFragment}
+import com.waz.zclient.pages.main.connect.{BlockedUserProfileFragment, PendingConnectRequestFragment, SendConnectRequestFragment}
 import com.waz.zclient.pages.main.conversation.controller.{ConversationScreenControllerObserver, IConversationScreenController}
 import com.waz.zclient.pages.main.pickuser.controller.IPickUserController
 import com.waz.zclient.participants.{OptionsMenuFragment, ParticipantsController}
 import com.waz.zclient.ui.animation.interpolators.penner.Expo
-import com.waz.zclient.ui.utils.KeyboardUtils
 import com.waz.zclient.usersearch.PickUserFragment
 import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.utils.ViewUtils
@@ -56,7 +54,6 @@ class ParticipantFragment extends BaseFragment[ParticipantFragment.Container] wi
   with ConversationScreenControllerObserver
   with OnBackPressedListener
   with ParticipantHeaderFragment.Container
-  with GroupParticipantsFragment.Container
   with SendConnectRequestFragment.Container
   with BlockedUserProfileFragment.Container
   with PendingConnectRequestFragment.Container {
@@ -152,7 +149,7 @@ class ParticipantFragment extends BaseFragment[ParticipantFragment.Container] wi
     subs += convChange.map(_.requester).onUi {
       case START_CONVERSATION | START_CONVERSATION_FOR_VIDEO_CALL | START_CONVERSATION_FOR_CALL | START_CONVERSATION_FOR_CAMERA =>
         getChildFragmentManager.popBackStackImmediate(PickUserFragment.TAG, FragmentManager.POP_BACK_STACK_INCLUSIVE)
-        pickUserController.hidePickUserWithoutAnimations(getCurrentPickerDestination)
+        pickUserController.hidePickUserWithoutAnimations(IPickUserController.Destination.PARTICIPANTS)
       case _ =>
     }
 
@@ -198,9 +195,9 @@ class ParticipantFragment extends BaseFragment[ParticipantFragment.Container] wi
       true
     case Some(f: OptionsMenuFragment) if f.close() =>
       true
-    case _ if pickUserController.isShowingPickUser(getCurrentPickerDestination) =>
+    case _ if pickUserController.isShowingPickUser(IPickUserController.Destination.PARTICIPANTS) =>
       verbose(s"onBackPressed with isShowingPickUser")
-      pickUserController.hidePickUser(getCurrentPickerDestination)
+      pickUserController.hidePickUser(IPickUserController.Destination.PARTICIPANTS)
       true
     case _ if screenController.isShowingUser =>
       verbose(s"onBackPressed with screenController.isShowingUser")
@@ -293,8 +290,6 @@ class ParticipantFragment extends BaseFragment[ParticipantFragment.Container] wi
   }
 
   override def onConnectRequestWasSentToUser(): Unit = screenController.hideUser()
-
-  override def getCurrentPickerDestination = IPickUserController.Destination.PARTICIPANTS
 
   override def onShowParticipants(anchorView: View, isSingleConversation: Boolean, isMemberOfConversation: Boolean, showDeviceTabIfSingle: Boolean): Unit = {}
 
