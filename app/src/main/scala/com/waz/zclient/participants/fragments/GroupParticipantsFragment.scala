@@ -114,7 +114,7 @@ class GroupParticipantsFragment extends FragmentHelper {
     participantsController.getUser(userId).foreach {
       case Some(user) if user.connection == ACCEPTED || userAccountsController.isTeamAccount && userAccountsController.isTeamMember(userId) =>
         participantsController.selectParticipant(userId)
-        openUserProfileFragment(SingleParticipantFragment.newInstance(SingleParticipantFragment.USER_PAGE), SingleParticipantFragment.TAG)
+        openUserProfileFragment(SingleParticipantFragment.newInstance(SingleParticipantFragment.UserPage), SingleParticipantFragment.TAG)
 
       case Some(user) if user.connection == PENDING_FROM_OTHER || user.connection == PENDING_FROM_USER || user.connection == IGNORED =>
         import PendingConnectRequestFragment._
@@ -197,6 +197,11 @@ class GroupParticipantsFragment extends FragmentHelper {
   override def onPause() = {
     footerMenu.foreach(_.setCallback(null))
     super.onPause()
+  }
+
+  def onBackPressed(): Boolean = {
+    //convScreenController.hideParticipants(true, false)
+    false
   }
 }
 

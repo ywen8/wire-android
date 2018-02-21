@@ -187,7 +187,7 @@ class ConversationManagerFragment extends BaseFragment[Container] with FragmentH
     KeyboardUtils.hideKeyboard(getActivity)
     navigationController.setRightPage(Page.PARTICIPANT, ConversationManagerFragment.Tag)
 
-    val fragment = ParticipantFragment.newInstance(IConnectStore.UserRequester.PARTICIPANTS, if (showDeviceTabIfSingle) SingleParticipantFragment.DEVICE_PAGE else SingleParticipantFragment.USER_PAGE)
+    val fragment = ParticipantFragment.newInstance(IConnectStore.UserRequester.PARTICIPANTS, if (showDeviceTabIfSingle) SingleParticipantFragment.DevicePage else SingleParticipantFragment.UserPage)
     showFragment(fragment, ParticipantFragment.TAG)
   }
 
@@ -195,7 +195,7 @@ class ConversationManagerFragment extends BaseFragment[Container] with FragmentH
     navigationController.setRightPage(Page.MESSAGE_STREAM, ConversationManagerFragment.Tag)
     getChildFragmentManager.popBackStack(ParticipantFragment.TAG, FragmentManager.POP_BACK_STACK_INCLUSIVE)
   }
-  
+
   override def onShowLikesList(message: Message): Unit = showFragment(LikesListFragment.newInstance(message), LikesListFragment.TAG)
 
   override def onShowIntegrationDetails(providerId: ProviderId, integrationId: IntegrationId): Unit = {

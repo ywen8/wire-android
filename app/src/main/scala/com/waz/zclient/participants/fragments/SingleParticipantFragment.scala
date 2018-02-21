@@ -32,6 +32,7 @@ import com.waz.zclient.common.controllers.{BrowserController, ThemeController, U
 import com.waz.zclient.conversation.ConversationController
 import com.waz.zclient.core.stores.conversation.ConversationChangeRequester
 import com.waz.zclient.pages.main.conversation.controller.IConversationScreenController
+import com.waz.zclient.participants.fragments.SingleParticipantFragment.{ArgFirstPage, DevicePage, UserPage}
 import com.waz.zclient.participants.{ParticipantOtrDeviceAdapter, ParticipantsController, TabbedParticipantPagerAdapter}
 import com.waz.zclient.ui.views.tab.TabIndicatorLayout
 import com.waz.zclient.utils.ContextUtils._
@@ -72,6 +73,7 @@ class SingleParticipantFragment extends FragmentHelper {
             case _ =>
           }
       }
+    
     override def onRightActionClicked(): Unit = (for {
       isGroup <- participantsController.isGroup.head
       convId  <- convController.currentConvId.head
@@ -119,10 +121,10 @@ class SingleParticipantFragment extends FragmentHelper {
 
     if (Option(savedInstanceState).isEmpty) viewPager.foreach { pager =>
       if (screenController.shouldShowDevicesTab) {
-        pager.setCurrentItem(1)
+        pager.setCurrentItem(DevicePage)
         screenController.setShowDevicesTab(null)
       } else
-        pager.setCurrentItem(getArguments.getInt(SingleParticipantFragment.ARG__FIRST__PAGE))
+        pager.setCurrentItem(getArguments.getInt(ArgFirstPage))
     }
 
     participantOtrDeviceAdapter.onClientClick.onUi { client =>
@@ -143,10 +145,10 @@ class SingleParticipantFragment extends FragmentHelper {
     participantsController.showParticipantsRequest.onUi {
       case (view, showDeviceTabIfSingle) => viewPager.foreach { pager =>
         if (screenController.shouldShowDevicesTab) {
-          pager.setCurrentItem(1)
+          pager.setCurrentItem(DevicePage)
           screenController.setShowDevicesTab(null)
         } else participantsController.isGroup.head.foreach { isGroup =>
-          if (!isGroup && showDeviceTabIfSingle) pager.setCurrentItem(1)
+          if (!isGroup && showDeviceTabIfSingle) pager.setCurrentItem(DevicePage)
         }
       }
     }
@@ -158,18 +160,28 @@ class SingleParticipantFragment extends FragmentHelper {
     super.onDestroyView()
   }
 
+  def onBackPressed(): Boolean = viewPager.fold(false){ pager =>
+    if (pager.getCurrentItem == UserPage) {
+      screenController.hideUser()
+      participantsController.unselectParticipant()
+    } else {
+      pager.setCurrentItem(UserPage)
+    }
+    true
+  }
+
 }
 
 object SingleParticipantFragment {
   val TAG: String = classOf[SingleParticipantFragment].getName
-  private val ARG__FIRST__PAGE: String = "ARG__FIRST__PAGE"
-  val USER_PAGE: Int = 0
-  val DEVICE_PAGE: Int = 1
+  private val ArgFirstPage: String = "ArgFirstPage"
+  val UserPage: Int = 0
+  val DevicePage: Int = 1
 
   def newInstance(firstPage: Int): SingleParticipantFragment =
     returning(new SingleParticipantFragment){
       _.setArguments(returning(new Bundle){
-        _.putInt(ARG__FIRST__PAGE, firstPage)
+        _.putInt(ArgFirstPage, firstPage)
       })
     }
 }

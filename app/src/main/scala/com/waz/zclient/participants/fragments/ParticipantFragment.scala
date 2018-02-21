@@ -82,6 +82,8 @@ class ParticipantFragment extends BaseFragment[ParticipantFragment.Container] wi
 
   private var subs = Set.empty[Subscription]
 
+  private lazy val headerFragment = ParticipantHeaderFragment.newInstance
+
   override def onCreateAnimation(transit: Int, enter: Boolean, nextAnim: Int): Animation =
     if (nextAnim == 0 || Option(getContainer).isEmpty || getControllerFactory.isTornDown)
       super.onCreateAnimation(transit, enter, nextAnim)
@@ -109,7 +111,7 @@ class ParticipantFragment extends BaseFragment[ParticipantFragment.Container] wi
       fragmentManager.beginTransaction
         .replace(
           R.id.fl__participant__header__container,
-          ParticipantHeaderFragment.newInstance,
+          headerFragment,
           ParticipantHeaderFragment.TAG
         )
         .commit
@@ -185,7 +187,14 @@ class ParticipantFragment extends BaseFragment[ParticipantFragment.Container] wi
     super.onDestroyView()
   }
 
-  override def onBackPressed: Boolean = withBackstackHead {
+  override def onBackPressed: Boolean =
+    if (headerFragment.onBackPressed()) true else withBackstackHead {
+    case Some(f: SingleParticipantFragment) if f.onBackPressed() =>
+      verbose(s"onBackPressed with SingleParticipantFragment")
+      true
+    case Some(f: GroupParticipantsFragment) if f.onBackPressed() =>
+      verbose(s"onBackPressed with GroupParticipantsFragment")
+      true
     case Some(f: PickUserFragment) if f.onBackPressed() =>
       verbose(s"onBackPressed with PickUserFragment")
       true
@@ -208,7 +217,7 @@ class ParticipantFragment extends BaseFragment[ParticipantFragment.Container] wi
       screenController.hideParticipants(true, false)
       true
     case _ =>
-      verbose(s"onBackPressed with unknown")
+      verbose(s"onBackPressed not handled here")
       false
   }
 

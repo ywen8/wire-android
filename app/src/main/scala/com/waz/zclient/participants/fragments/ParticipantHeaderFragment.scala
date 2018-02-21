@@ -45,6 +45,8 @@ import com.waz.zclient.utils.{RichView, ViewUtils}
 import com.waz.zclient.views.e2ee.ShieldView
 import com.waz.zclient.{FragmentHelper, R}
 
+import com.waz.ZLog.verbose
+
 class ParticipantHeaderFragment extends BaseFragment[ParticipantHeaderFragment.Container] with FragmentHelper {
   import com.waz.threading.Threading.Implicits.Ui
 
@@ -141,6 +143,12 @@ class ParticipantHeaderFragment extends BaseFragment[ParticipantHeaderFragment.C
     }
   }
 
+  private lazy val closeIcon = returning(view[TextView](R.id.participants_header__close_icon)) { view =>
+    editAllowed.onUi { edit =>
+      view.foreach { pi => pi.setVisible(edit) }
+    }
+  }
+
   private lazy val shieldView = returning(view[ShieldView](R.id.verified_shield)) { view =>
     (for {
       isGroupOrBot <- participantsController.isGroupOrBot
@@ -222,22 +230,9 @@ class ParticipantHeaderFragment extends BaseFragment[ParticipantHeaderFragment.C
   override def onViewCreated(view: View, savedInstanceState: Bundle): Unit = {
     super.onViewCreated(view, savedInstanceState)
 
-    toolbar.foreach(_.setNavigationOnClickListener(new View.OnClickListener() {
-      override def onClick(v: View): Unit = editInProgress.head.foreach {
-        case true =>
-          renameConversation()
-          editInProgress ! false
-        case false =>
-          participantsController.otherParticipant.map(_.isDefined).head.foreach {
-            case true =>
-              convScreenController.hideUser()
-              participantsController.unselectParticipant()
-            case false =>
-              convScreenController.hideParticipants(true, false)
-              getActivity.onBackPressed()
-          }
-      }
-    }))
+    toolbar
+
+    closeIcon.onClick { view => close() }
 
     membersCountTextView
     userDetailsView
@@ -255,6 +250,30 @@ class ParticipantHeaderFragment extends BaseFragment[ParticipantHeaderFragment.C
         KeyboardUtils.hideKeyboard(getActivity)
     }
 
+  }
+
+  def onBackPressed(): Boolean =
+    if (editInProgress.currentValue.getOrElse(false)) {
+      verbose(s"ParticipantFragment editInProgress")
+      renameConversation()
+      editInProgress ! false
+      true
+    } else false
+
+  private def close() = {
+    verbose(s"close")
+  }
+
+  override def onPause(): Unit = {
+    toolbar.foreach(_.setNavigationOnClickListener(null))
+    super.onPause()
+  }
+
+  override def onResume(): Unit = {
+    super.onResume()
+    toolbar.foreach(_.setNavigationOnClickListener(new View.OnClickListener() {
+      override def onClick(v: View): Unit = getActivity.onBackPressed()
+    }))
   }
 
   override def onDestroyView(): Unit = {
