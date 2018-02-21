@@ -28,7 +28,7 @@ class UserViewHolder(val view: View, val showContactInfo: Boolean, darkTheme: Bo
   private val userRow: SearchResultUserRowView = ViewUtils.getView(view, R.id.srurv_startui_user)
 
   userRow.setShowContactInfo(showContactInfo)
-  if (darkTheme) userRow.applyDarkTheme()
+  if (darkTheme) userRow.applyDarkTheme(isDark = true)
   userRow.setIsAddingPeople(addingPeople)
 
   def bind(userData: UserData, isSelected: Boolean): Unit = {

@@ -31,9 +31,9 @@ import com.waz.utils.events.{EventStream, Signal, SourceStream}
 import com.waz.utils.returning
 import com.waz.zclient.common.views.ChatheadView
 import com.waz.zclient.ui.text.TypefaceTextView
-import com.waz.zclient.utils.ContextUtils.getDrawable
-import com.waz.zclient.{R, ViewHelper}
+import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.utils.RichView
+import com.waz.zclient.{R, ViewHelper}
 
 class SearchResultUserRowView(val context: Context, val attrs: AttributeSet, val defStyleAttr: Int) extends FrameLayout(context, attrs, defStyleAttr) with UserRowView with ViewHelper {
   def this(context: Context, attrs: AttributeSet) = this(context, attrs, 0)
@@ -48,6 +48,8 @@ class SearchResultUserRowView(val context: Context, val attrs: AttributeSet, val
   private var showCheckbox: Boolean = false
   private val userId = Signal[UserId]()
   private val checkbox = findById[AppCompatCheckBox](R.id.pick_user_checkbox)
+  private val separator = findById[View](R.id.separator)
+
   returning(ContextCompat.getDrawable(getContext, R.drawable.checkbox_black)){ btn =>
     btn.setLevel(1)
     checkbox.setButtonDrawable(btn)
@@ -91,12 +93,13 @@ class SearchResultUserRowView(val context: Context, val attrs: AttributeSet, val
   def setChecked(checked: Boolean): Unit =
     checkbox.setChecked(checked)
 
-  def applyDarkTheme(): Unit = {
+  def applyDarkTheme(isDark: Boolean): Unit = {
     contactListItemTextView.applyDarkTheme()
     returning(ContextCompat.getDrawable(getContext, R.drawable.checkbox)){ btn =>
       btn.setLevel(1)
       checkbox.setButtonDrawable(btn)
     }
+    separator.setBackgroundColor(getColor(R.color.white_8))
   }
 
   def setIsAddingPeople(adding: Boolean): Unit = {
