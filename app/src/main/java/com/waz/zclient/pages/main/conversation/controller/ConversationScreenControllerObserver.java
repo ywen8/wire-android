@@ -22,7 +22,6 @@ import com.waz.api.Message;
 import com.waz.model.ConvId;
 import com.waz.model.IntegrationId;
 import com.waz.model.ProviderId;
-import com.waz.model.UserId;
 
 public interface ConversationScreenControllerObserver {
 

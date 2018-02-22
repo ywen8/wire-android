@@ -253,6 +253,23 @@ class ParticipantFragment extends BaseFragment[ParticipantFragment.Container] wi
       .addToBackStack(SingleOtrClientFragment.TAG)
       .commit
 
+  def showCurrentOtrClient(): Unit =
+    getChildFragmentManager
+      .beginTransaction
+      .setCustomAnimations(
+        R.anim.open_profile,
+        R.anim.close_profile,
+        R.anim.open_profile,
+        R.anim.close_profile
+      )
+      .add(
+        R.id.fl__participant__overlay,
+        SingleOtrClientFragment.newInstance,
+        SingleOtrClientFragment.TAG
+      )
+      .addToBackStack(SingleOtrClientFragment.TAG)
+      .commit
+
   private def animateParticipantsWithConnectUserProfile(show: Boolean) = {
     val animator = participantsContainerView.animate
     if (show) {

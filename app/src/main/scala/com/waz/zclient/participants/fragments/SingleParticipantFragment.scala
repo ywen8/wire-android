@@ -161,13 +161,14 @@ class SingleParticipantFragment extends FragmentHelper {
   }
 
   def onBackPressed(): Boolean = viewPager.fold(false){ pager =>
-    if (pager.getCurrentItem == UserPage) {
+    if (pager.getCurrentItem != UserPage) {
+      pager.setCurrentItem(UserPage)
+      true
+    } else if (participantsController.isGroupOrBot.currentValue.getOrElse(false)){
       screenController.hideUser()
       participantsController.unselectParticipant()
-    } else {
-      pager.setCurrentItem(UserPage)
-    }
-    true
+      true
+    } else false
   }
 
 }

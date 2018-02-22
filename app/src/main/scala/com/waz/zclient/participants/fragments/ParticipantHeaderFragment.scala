@@ -45,13 +45,11 @@ import com.waz.zclient.utils.{RichView, ViewUtils}
 import com.waz.zclient.views.e2ee.ShieldView
 import com.waz.zclient.{FragmentHelper, R}
 
-import com.waz.ZLog.verbose
-
 class ParticipantHeaderFragment extends BaseFragment[ParticipantHeaderFragment.Container] with FragmentHelper {
   import com.waz.threading.Threading.Implicits.Ui
 
   private lazy val participantsController = inject[ParticipantsController]
-  private lazy val convScreenController   = inject[IConversationScreenController]
+  private lazy val screenController       = inject[IConversationScreenController]
 
   private val editInProgress = Signal(false)
 
@@ -135,18 +133,25 @@ class ParticipantHeaderFragment extends BaseFragment[ParticipantHeaderFragment.C
     editInProgress { edit =>
       view.foreach(_.setVisible(!edit))
     }
+
+    view.onClick { _ => triggerEditingOfConversationNameIfInternet() }
   }
 
   private lazy val penIcon = returning(view[TextView](R.id.gtv__participants_header__pen_icon)) { view =>
     editAllowed.onUi { edit =>
       view.foreach { pi => pi.setVisible(edit) }
     }
+
+
+    view.onClick { _ => triggerEditingOfConversationNameIfInternet() }
   }
 
   private lazy val closeIcon = returning(view[TextView](R.id.participants_header__close_icon)) { view =>
-    editAllowed.onUi { edit =>
-      view.foreach { pi => pi.setVisible(edit) }
+    editInProgress.onUi { edit =>
+      view.foreach { pi => pi.setVisible(!edit) }
     }
+
+    view.onClick { _ => screenController.hideParticipants(true, false) }
   }
 
   private lazy val shieldView = returning(view[ShieldView](R.id.verified_shield)) { view =>
@@ -232,21 +237,20 @@ class ParticipantHeaderFragment extends BaseFragment[ParticipantHeaderFragment.C
 
     toolbar
 
-    closeIcon.onClick { view => close() }
-
     membersCountTextView
     userDetailsView
     shieldView
-    headerEditText.foreach { _.setOnEditorActionListener(editorActionListener) }
-    headerReadOnlyTextView.foreach(_.onClick { triggerEditingOfConversationNameIfInternet() })
-    penIcon.foreach(_.onClick { triggerEditingOfConversationNameIfInternet() })
+    headerEditText
+    headerReadOnlyTextView
+    penIcon
+    closeIcon
 
     subs += editInProgress {
       case true =>
-        convScreenController.editConversationName(true)
+        screenController.editConversationName(true)
         KeyboardUtils.showKeyboard(getActivity)
       case false =>
-        convScreenController.editConversationName(false)
+        screenController.editConversationName(false)
         KeyboardUtils.hideKeyboard(getActivity)
     }
 
@@ -260,12 +264,9 @@ class ParticipantHeaderFragment extends BaseFragment[ParticipantHeaderFragment.C
       true
     } else false
 
-  private def close() = {
-    verbose(s"close")
-  }
-
   override def onPause(): Unit = {
     toolbar.foreach(_.setNavigationOnClickListener(null))
+
     super.onPause()
   }
 
@@ -274,6 +275,8 @@ class ParticipantHeaderFragment extends BaseFragment[ParticipantHeaderFragment.C
     toolbar.foreach(_.setNavigationOnClickListener(new View.OnClickListener() {
       override def onClick(v: View): Unit = getActivity.onBackPressed()
     }))
+
+    headerEditText.foreach { _.setOnEditorActionListener(editorActionListener) }
   }
 
   override def onDestroyView(): Unit = {

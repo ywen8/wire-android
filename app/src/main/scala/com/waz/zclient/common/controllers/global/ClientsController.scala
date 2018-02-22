@@ -47,6 +47,11 @@ class ClientsController(implicit inj: Injector) extends Injectable {
 
   val self = accountManager.flatMap(_.userId).collect { case Some(id) => id }
 
+  private def selfClientId = for {
+    am      <- accountManager
+    account <- am.accountData
+  } yield account.clientId
+
   def client(userId: UserId, clientId: ClientId): Signal[Option[Client]] = for {
     manager <- accountManager
     clients <- manager.storage.otrClientsStorage.signal(userId)
@@ -56,6 +61,11 @@ class ClientsController(implicit inj: Injector) extends Injectable {
     userId <- self
     client <- client(userId, clientId)
   } yield client
+
+  def selfClient: Signal[Option[Client]] = selfClientId.flatMap {
+    case Some(clientId) => selfClient(clientId)
+    case None           => Signal.const(None)
+  }
 
   def fingerprint(userId: UserId, clientId: ClientId): Signal[Option[String]] = for {
     manager <- accountManager
@@ -67,10 +77,12 @@ class ClientsController(implicit inj: Injector) extends Injectable {
     fp     <- fingerprint(userId, clientId)
   } yield fp
 
-  def isCurrentClient(clientId: ClientId): Signal[Boolean] = for {
-    am <- accountManager
-    cl <- am.accountData.map(_.clientId)
-  } yield cl.contains(clientId)
+  def selfFingerprint: Signal[Option[String]] = selfClientId.flatMap {
+    case Some(clientId) => selfFingerprint(clientId)
+    case None           => Signal.const(None)
+  }
+
+  def isCurrentClient(clientId: ClientId): Signal[Boolean] = selfClientId.map(_.contains(clientId))
 
   def updateVerified(userId: UserId, clientId: ClientId, trusted: Boolean): Future[Option[(UserClients, UserClients)]] =
     accountManager.head.flatMap(_.storage.otrClientsStorage.updateVerified(userId, clientId, trusted))

@@ -147,12 +147,10 @@ trait FragmentHelper extends Fragment with ViewFinder with Injectable with Event
     h
   }
 
-
   override def onResume() = {
     super.onResume()
     views.foreach(_.onResume())
   }
-
 
   override def onPause() = {
     views.foreach(_.onPause())
@@ -240,8 +238,10 @@ trait ActivityHelper extends AppCompatActivity with ViewFinder with Injectable w
 }
 
 class ViewHolder[T <: View](id: Int, finder: ViewFinder) {
-  var view = Option.empty[T]
+  private var view = Option.empty[T]
   private var onClickListener = Option.empty[OnClickListener]
+
+  private def setOnClick(l: OnClickListener) = foreach(_.setOnClickListener(l))
 
   def get: T = view.getOrElse { returning(finder.findById[T](id)) { t => view = Some(t) } }
 
@@ -254,17 +254,14 @@ class ViewHolder[T <: View](id: Int, finder: ViewFinder) {
 
   def flatMap[A](f: T => Option[A]): Option[A] = Option(get).flatMap(f)
 
-  def onResume() =
-    onClickListener.foreach(l => view.foreach(_.setOnClickListener(l)))
+  def onResume() = onClickListener.foreach(setOnClick)
 
-  def onPause() = {
-    view.foreach(_.setOnClickListener(null))
-  }
+  def onPause() = setOnClick(null)
 
   def onClick(f: T => Unit): Unit = {
     onClickListener = Some(returning(new OnClickListener {
       override def onClick(v: View) = f(v.asInstanceOf[T])
-    })(l => view.foreach(_.setOnClickListener(l))))
+    })(setOnClick))
   }
 }
 

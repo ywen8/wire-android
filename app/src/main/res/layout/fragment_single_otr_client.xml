@@ -49,6 +49,19 @@
         style="?attr/smallIconButton"
         />
 
+    <com.waz.zclient.ui.text.TypefaceTextView
+        android:id="@+id/ttv__single_otr_client__my_fingerprint"
+        android:layout_width="wrap_content"
+        android:layout_height="@dimen/wire__button__height_small"
+        android:layout_gravity="right"
+        android:layout_marginRight="@dimen/wire__padding__big"
+        android:layout_marginTop="@dimen/wire__padding__big"
+        android:gravity="center|right"
+        android:text="@string/otr__participant__single_device__my_fingerprint_link"
+        app:w_font="@string/wire__typeface__regular"
+        style="?otrClientLink"
+        />
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -121,6 +134,17 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="left|center"
+                />
+
+            <com.waz.zclient.ui.text.TypefaceTextView
+                android:id="@+id/my_devices"
+                android:layout_width="wrap_content"
+                android:layout_height="@dimen/wire__button__height_small"
+                android:layout_gravity="left|center"
+                android:gravity="center"
+                android:text="@string/otr__participant__my_device__show_all_devices_link"
+                app:w_font="@string/wire__typeface__regular"
+                style="?otrClientLink"
                 />
 
             <com.waz.zclient.ui.text.TypefaceTextView
