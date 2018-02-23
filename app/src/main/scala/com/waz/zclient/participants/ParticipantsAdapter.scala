@@ -24,9 +24,9 @@ import android.view.{LayoutInflater, View, ViewGroup}
 import android.widget.TextView
 import com.waz.model.{UserData, UserId}
 import com.waz.service.ZMessaging
-import com.waz.utils.events.{EventContext, EventStream, Signal}
-import com.waz.zclient.usersearch.views.{SearchResultUserRowView, ClickableUserRowViewHolder}
-import com.waz.zclient.utils.ViewUtils
+import com.waz.utils.events.{EventContext, EventStream, Signal, SourceStream}
+import com.waz.zclient.common.views.SingleUserRowView
+import com.waz.zclient.utils.{ContextUtils, RichView, ViewUtils}
 import com.waz.zclient.{Injectable, Injector, R}
 
 class ParticipantsAdapter(numOfColumns: Int)(implicit context: Context, injector: Injector, eventContext: EventContext)
@@ -36,7 +36,7 @@ class ParticipantsAdapter(numOfColumns: Int)(implicit context: Context, injector
   private lazy val zms = inject[Signal[ZMessaging]]
   private lazy val participantsController = inject[ParticipantsController]
 
-  private var items = List.empty[Either[UserData, Int]]
+  private var items = List.empty[Either[ParticipantData, Int]]
 
   val onClick = EventStream[UserId]()
 
@@ -44,18 +44,17 @@ class ParticipantsAdapter(numOfColumns: Int)(implicit context: Context, injector
     z       <- zms
     userIds <- participantsController.otherParticipants
     users   <- Signal.sequence(userIds.filterNot(_ == z.selfUserId).map(z.users.userSignal).toSeq: _*)
-  } yield users
+    isGuest <- Signal.sequence(userIds.map(z.teams.isGuest).toSeq:_*)
+  } yield users.zip(isGuest).map(u => ParticipantData(u._1, u._2))
 
   private lazy val positions = users.map { users =>
-    val (bots, people) = users.toList.partition(_.isWireBot)
-    val (verified, unverified) = people.partition(_.isVerified)
+    val (bots, people) = users.toList.partition(_.userData.isWireBot)
 
-    unverified.map(data => Left(data)) :::
-      (if (unverified.nonEmpty && verified.nonEmpty) List(Right(SEPARATOR_VERIFIED))
-       else Nil
-      ) ::: verified.map(data => Left(data)) :::
-      (if ((unverified.nonEmpty || verified.nonEmpty) && bots.nonEmpty) List(Right(SEPARATOR_BOTS))
-       else Nil
+    (if (people.nonEmpty) List(Right(SEPARATOR_PEOPLE))
+      else Nil
+      ) ::: people.map(data => Left(data)) :::
+    (if (bots.nonEmpty) List(Right(SEPARATOR_BOTS))
+      else Nil
       ) ::: bots.map(data => Left(data))
   }
 
@@ -66,27 +65,38 @@ class ParticipantsAdapter(numOfColumns: Int)(implicit context: Context, injector
 
   override def onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder = viewType match {
     case CHATHEAD =>
-      val view = LayoutInflater.from(parent.getContext).inflate(R.layout.startui_user, parent, false)
-      ClickableUserRowViewHolder(view.asInstanceOf[SearchResultUserRowView], onClick)
+      val view = LayoutInflater.from(parent.getContext).inflate(R.layout.normal_participant_row, parent, false).asInstanceOf[SingleUserRowView]
+      view.showArrow(true)
+      ParticipantRowViewHolder(view, onClick)
     case _ => new SeparatorViewHolder(getSeparatorView(parent))
   }
 
   override def onBindViewHolder(holder: ViewHolder, position: Int): Unit = (items(position), holder) match {
-    case (Left(userId),   h: ClickableUserRowViewHolder)                           => h.setUser(userId)
-    case (Right(sepType), h: SeparatorViewHolder) if sepType == SEPARATOR_VERIFIED => h.setTitle(R.string.pref_devices_device_verified)
-    case (Right(sepType), h: SeparatorViewHolder) if sepType == SEPARATOR_BOTS     => h.setTitle(R.string.integrations_picker__section_title)
+    case (Left(userData), h: ParticipantRowViewHolder) => h.bind(userData)
+    case (Right(sepType), h: SeparatorViewHolder) if sepType == SEPARATOR_PEOPLE =>
+      val userCount = items.count {
+        case Left(a) if !a.userData.isWireBot => true
+        case _ => false
+      }.toString
+      h.setTitle(ContextUtils.getString(R.string.participants_divider_people, userCount))
+    case (Right(sepType), h: SeparatorViewHolder) if sepType == SEPARATOR_BOTS     =>
+      val botCount = items.count {
+        case Left(a) if a.userData.isWireBot => true
+        case _ => false
+      }.toString
+      h.setTitle(ContextUtils.getString(R.string.participants_divider_services, botCount))
     case _ =>
   }
 
   def getSpanSize(position: Int): Int = getItemViewType(position) match {
-    case SEPARATOR_VERIFIED | SEPARATOR_BOTS => numOfColumns
+    case SEPARATOR_PEOPLE | SEPARATOR_BOTS => numOfColumns
     case _                                   => 1
   }
 
   override def getItemCount: Int = items.size
 
   override def getItemId(position: Int): Long = items(position) match {
-    case Left(user)   => user.id.hashCode()
+    case Left(user)   => user.userData.id.hashCode()
     case Right(sepType) => sepType
   }
 
@@ -104,12 +114,30 @@ class ParticipantsAdapter(numOfColumns: Int)(implicit context: Context, injector
 
 object ParticipantsAdapter {
   val CHATHEAD = 0
-  val SEPARATOR_VERIFIED = 1
+  val SEPARATOR_PEOPLE = 1
   val SEPARATOR_BOTS = 2
+
+  case class ParticipantData(userData: UserData, isGuest: Boolean)
 
   class SeparatorViewHolder(separator: View) extends ViewHolder(separator) {
     def setTitle(title: Int): Unit =
       ViewUtils.getView[TextView](separator, R.id.separator_title).setText(title)
+    def setTitle(title: String): Unit = {
+      ViewUtils.getView[TextView](separator, R.id.separator_title).setText(title)
+    }
+  }
+
+  case class ParticipantRowViewHolder(view: SingleUserRowView, onClick: SourceStream[UserId]) extends ViewHolder(view) {
+
+    private var userId = Option.empty[UserId]
+
+    view.onClick(userId.foreach(onClick ! _))
+
+    def bind(participant: ParticipantData): Unit = {
+      userId = Some(participant.userData.id)
+      view.setUserData(participant.userData)
+      view.setIsGuest(participant.isGuest)
+    }
   }
 
 }

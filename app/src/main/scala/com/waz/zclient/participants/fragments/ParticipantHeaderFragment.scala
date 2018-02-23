@@ -26,6 +26,7 @@ import android.view._
 import android.view.animation.{AlphaAnimation, Animation}
 import android.view.inputmethod.{EditorInfo, InputMethodManager}
 import android.widget.TextView
+import com.waz.ZLog
 import com.waz.ZLog.ImplicitTag._
 import com.waz.api.{NetworkMode, Verification}
 import com.waz.model.UserData
@@ -258,7 +259,7 @@ class ParticipantHeaderFragment extends BaseFragment[ParticipantHeaderFragment.C
 
   def onBackPressed(): Boolean =
     if (editInProgress.currentValue.getOrElse(false)) {
-      verbose(s"ParticipantFragment editInProgress")
+      ZLog.verbose(s"ParticipantFragment editInProgress")
       renameConversation()
       editInProgress ! false
       true

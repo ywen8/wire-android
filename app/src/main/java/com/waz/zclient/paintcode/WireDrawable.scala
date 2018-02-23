@@ -21,8 +21,8 @@ import android.content.Context
 import android.graphics.drawable.Drawable
 import android.graphics._
 import com.waz.utils.returning
-import com.waz.zclient.paintcode.WireStyleKit.{ResizingBehavior, drawDownArrow, drawGroupIcon, drawServiceIcon}
 import com.waz.zclient.utils.ContextUtils._
+import com.waz.zclient.paintcode.WireStyleKit._
 
 trait WireDrawable extends Drawable {
 
@@ -90,4 +90,14 @@ object ServicePlaceholderDrawable {
 case class CreateGroupIcon(colorRes: Int)(implicit context: Context) extends WireDrawable {
   setColor(getColor(colorRes))
   override def draw(canvas: Canvas) = drawGroupIcon(canvas, new RectF(canvas.getClipBounds), ResizingBehavior.AspectFit, paint.getColor)
+}
+
+case class GuestIcon(colorRes: Int)(implicit context: Context) extends WireDrawable {
+  setColor(getColor(colorRes))
+  override def draw(canvas: Canvas) = drawGroupIcon(canvas, new RectF(canvas.getClipBounds), ResizingBehavior.AspectFit, paint.getColor)
+}
+
+case class ForwardNavigationIcon(colorRes: Int)(implicit context: Context) extends WireDrawable {
+  setColor(getColor(colorRes))
+  override def draw(canvas: Canvas) = drawNavigationArrow(canvas, new RectF(canvas.getClipBounds), ResizingBehavior.AspectFit, paint.getColor)
 }

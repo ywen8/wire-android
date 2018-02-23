@@ -1306,4 +1306,8 @@
     <string name="new_conv_no_results">NO RESULTS</string>
     <string name="new_conv_no_contacts">NO CONTACTS</string>
     <string name="create_group_search">SEARCH FOR NAMES</string>
+
+    <string name="participants_divider_services">Services (%1$s)</string>
+    <string name="participants_divider_people">People (%1$s)</string>
+
 </resources>

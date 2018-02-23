@@ -59,8 +59,6 @@ class GroupParticipantsFragment extends FragmentHelper {
   private lazy val integrationDetailsController = inject[IntegrationDetailsController]
 
   private lazy val participantsView = view[RecyclerView](R.id.pgv__participants)
-  private lazy val topBorder        = view[View](R.id.v_participants__footer__top_border)
-  private lazy val footerWrapper    = view[LinearLayout](R.id.ll__participants__footer_wrapper)
   private lazy val footerMenu = returning(view[FooterMenu](R.id.fm__participants__footer)) { fm =>
     val showAddPeople = for {
       conv    <- participantsController.conv
@@ -156,8 +154,6 @@ class GroupParticipantsFragment extends FragmentHelper {
     }
 
     participantsView
-    topBorder
-    footerWrapper
     footerMenu.foreach(_.setRightActionText(getString(R.string.glyph__more)))
   }
 

@@ -174,7 +174,7 @@ class ParticipantFragment extends BaseFragment[ParticipantFragment.Container] wi
   }
 
   override def onStop(): Unit = {
-    getStoreFactory.participantsStore.setCurrentConversation(null)
+    //getStoreFactory.participantsStore.setCurrentConversation(null)
     screenController.removeConversationControllerObservers(this)
     super.onStop()
   }
