@@ -75,6 +75,12 @@ class ParticipantsController(implicit injector: Injector, context: Context, ec: 
     currentConv <- conv
   } yield currentConv.team.isDefined && currentConv.team != currentUser.teamId
 
+  def currentUserBelongsToConversationTeam: Signal[Boolean] = for {
+    z           <- zms
+    currentUser <- UserSignal(z.selfUserId)
+    currentConv <- conv
+  } yield currentConv.team.isDefined && currentConv.team == currentUser.teamId
+
   def selectParticipant(userId: UserId): Unit = selectedParticipant ! Some(userId)
 
   def unselectParticipant(): Unit = selectedParticipant ! None

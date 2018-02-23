@@ -21,11 +21,12 @@ import android.content.Context
 import android.support.v7.widget.RecyclerView
 import android.support.v7.widget.RecyclerView.ViewHolder
 import android.view.{LayoutInflater, View, ViewGroup}
-import android.widget.TextView
+import android.widget.{ImageView, TextView}
 import com.waz.model.{UserData, UserId}
 import com.waz.service.ZMessaging
 import com.waz.utils.events.{EventContext, EventStream, Signal, SourceStream}
 import com.waz.zclient.common.views.SingleUserRowView
+import com.waz.zclient.paintcode.{ForwardNavigationIcon, GuestIcon}
 import com.waz.zclient.utils.{ContextUtils, RichView, ViewUtils}
 import com.waz.zclient.{Injectable, Injector, R}
 
@@ -39,6 +40,7 @@ class ParticipantsAdapter(numOfColumns: Int)(implicit context: Context, injector
   private var items = List.empty[Either[ParticipantData, Int]]
 
   val onClick = EventStream[UserId]()
+  val onGuestOptionsClick = EventStream[Unit]()
 
   private lazy val users = for {
     z       <- zms
@@ -47,9 +49,12 @@ class ParticipantsAdapter(numOfColumns: Int)(implicit context: Context, injector
     isGuest <- Signal.sequence(userIds.map(z.teams.isGuest).toSeq:_*)
   } yield users.zip(isGuest).map(u => ParticipantData(u._1, u._2))
 
-  private lazy val positions = users.map { users =>
+  private lazy val positions = users.zip(participantsController.currentUserBelongsToConversationTeam).map { case (users, isTeam) =>
     val (bots, people) = users.toList.partition(_.userData.isWireBot)
 
+    (if (true) List(Right(GUEST_OPTIONS_BUTTON))
+      else Nil
+      ) :::
     (if (people.nonEmpty) List(Right(SEPARATOR_PEOPLE))
       else Nil
       ) ::: people.map(data => Left(data)) :::
@@ -64,11 +69,15 @@ class ParticipantsAdapter(numOfColumns: Int)(implicit context: Context, injector
   }
 
   override def onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder = viewType match {
+    case GUEST_OPTIONS_BUTTON =>
+      val view = LayoutInflater.from(parent.getContext).inflate(R.layout.guest_options_button, parent, false)
+      view.onClick(onGuestOptionsClick ! (()))
+      GuestOptionsButtonViewHolder(view)
     case CHATHEAD =>
       val view = LayoutInflater.from(parent.getContext).inflate(R.layout.normal_participant_row, parent, false).asInstanceOf[SingleUserRowView]
       view.showArrow(true)
       ParticipantRowViewHolder(view, onClick)
-    case _ => new SeparatorViewHolder(getSeparatorView(parent))
+    case _ => SeparatorViewHolder(getSeparatorView(parent))
   }
 
   override def onBindViewHolder(holder: ViewHolder, position: Int): Unit = (items(position), holder) match {
@@ -116,10 +125,17 @@ object ParticipantsAdapter {
   val CHATHEAD = 0
   val SEPARATOR_PEOPLE = 1
   val SEPARATOR_BOTS = 2
+  val GUEST_OPTIONS_BUTTON = 3
 
   case class ParticipantData(userData: UserData, isGuest: Boolean)
 
-  class SeparatorViewHolder(separator: View) extends ViewHolder(separator) {
+  case class GuestOptionsButtonViewHolder(view: View) extends ViewHolder(view) {
+    private implicit val ctx = view.getContext
+    view.findViewById[ImageView](R.id.icon).setImageDrawable(GuestIcon(R.color.graphite))
+    view.findViewById[ImageView](R.id.next_indicator).setImageDrawable(ForwardNavigationIcon(R.color.light_graphite))
+  }
+
+  case class SeparatorViewHolder(separator: View) extends ViewHolder(separator) {
     def setTitle(title: Int): Unit =
       ViewUtils.getView[TextView](separator, R.id.separator_title).setText(title)
     def setTitle(title: String): Unit = {
