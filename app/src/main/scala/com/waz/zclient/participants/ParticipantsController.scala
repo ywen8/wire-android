@@ -69,13 +69,13 @@ class ParticipantsController(implicit injector: Injector, context: Context, ec: 
   } yield groupOrBot
 
   // is the current user a guest in the current conversation
-  def isCurrentUserGuest: Signal[Boolean] = for {
+  lazy val isCurrentUserGuest: Signal[Boolean] = for {
     z           <- zms
     currentUser <- UserSignal(z.selfUserId)
     currentConv <- conv
   } yield currentConv.team.isDefined && currentConv.team != currentUser.teamId
 
-  def currentUserBelongsToConversationTeam: Signal[Boolean] = for {
+  lazy val currentUserBelongsToConversationTeam: Signal[Boolean] = for {
     z           <- zms
     currentUser <- UserSignal(z.selfUserId)
     currentConv <- conv

@@ -52,7 +52,7 @@ class ParticipantsAdapter(numOfColumns: Int)(implicit context: Context, injector
   private lazy val positions = users.zip(participantsController.currentUserBelongsToConversationTeam).map { case (users, isTeam) =>
     val (bots, people) = users.toList.partition(_.userData.isWireBot)
 
-    (if (true) List(Right(GUEST_OPTIONS_BUTTON))
+    (if (isTeam) List(Right(GUEST_OPTIONS_BUTTON))
       else Nil
       ) :::
     (if (people.nonEmpty) List(Right(SEPARATOR_PEOPLE))
