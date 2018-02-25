@@ -18,30 +18,28 @@
 package com.waz.zclient.conversation
 
 import android.content.Context
-import com.waz.api.{EphemeralExpiration, IConversation, Verification}
-import com.waz.model.ConversationData.ConversationType
-import com.waz.model._
-import com.waz.service.ZMessaging
-import com.waz.threading.{CancellableFuture, SerialDispatchQueue, Threading}
-import com.waz.utils.events.{EventContext, EventStream, Signal, SourceStream}
-import com.waz.zclient.conversation.ConversationController.ConversationChange
-import com.waz.zclient.core.stores.conversation.ConversationChangeRequester
-import com.waz.zclient.utils.Callback
-import com.waz.zclient.{Injectable, Injector}
-import com.waz.ZLog._
 import com.waz.ZLog.ImplicitTag._
+import com.waz.ZLog._
 import com.waz.api
 import com.waz.api.MessageContent.Asset.ErrorHandler
 import com.waz.api.impl.{AssetForUpload, ImageAsset}
+import com.waz.api.{EphemeralExpiration, IConversation, Verification}
+import com.waz.model.ConversationData.ConversationType
+import com.waz.model._
 import com.waz.model.otr.Client
-import com.waz.utils.{Serialized, returning}
+import com.waz.service.ZMessaging
+import com.waz.threading.{CancellableFuture, SerialDispatchQueue, Threading}
+import com.waz.utils.events.{EventContext, EventStream, Signal, SourceStream}
+import com.waz.utils.{Serialized, returning, _}
+import com.waz.zclient.conversation.ConversationController.ConversationChange
 import com.waz.zclient.core.stores.IStoreFactory
+import com.waz.zclient.core.stores.conversation.ConversationChangeRequester
+import com.waz.zclient.utils.Callback
+import com.waz.zclient.{Injectable, Injector}
 import org.threeten.bp.Instant
 
 import scala.concurrent.Future
-import scala.collection.JavaConverters._
 import scala.concurrent.duration._
-import com.waz.utils._
 
 class ConversationController(implicit injector: Injector, context: Context, ec: EventContext) extends Injectable {
   private implicit val dispatcher = new SerialDispatchQueue(name = "ConversationController")
@@ -151,9 +149,6 @@ class ConversationController(implicit injector: Injector, context: Context, ec: 
 
   def addMembers(id: ConvId, users: Set[UserId]): Future[Unit] = zms.head.map { _.convsUi.addConversationMembers(id, users.toSeq) }
 
-  def addMembersToCurrentConv(users: Set[UserId]): Future[Unit] =
-    currentConvId.head.flatMap { convId => addMembers(convId, users) }
-
   def removeMember(user: UserId): Future[Unit] = for {
     z <- zms.head
     id <- currentConvId.head
@@ -177,25 +172,21 @@ class ConversationController(implicit injector: Injector, context: Context, ec: 
     }}
   }
 
-  def clear(id: ConvId): CancellableFuture[Option[ConversationData]] = Serialized("Conversations", id) { CancellableFuture.lift( zms.head.flatMap { _.convsUi.clearConversation(id) } ) }
-
   def setMuted(id: ConvId, muted: Boolean): Future[Unit] = zms.head.map { _.convsUi.setConversationMuted(id, muted) }
 
-  def delete(id: ConvId, alsoLeave: Boolean): CancellableFuture[Option[ConversationData]] =
-    if (alsoLeave) leave(id).flatMap(_ => clear(id)) else clear(id)
+  def delete(id: ConvId, alsoLeave: Boolean): CancellableFuture[Option[ConversationData]] = {
+    def clear(id: ConvId) = Serialized("Conversations", id) { CancellableFuture.lift( zms.head.flatMap { _.convsUi.clearConversation(id) } ) }
 
-  def knock(id: ConvId): Unit = zms(_.convsUi.knock(id))
+    if (alsoLeave) leave(id).flatMap(_ => clear(id)) else clear(id)
+  }
 
   def createGroupConversation(users: Seq[UserId], name: Option[String], localId: ConvId = ConvId()): Future[ConversationData] =
     zms.head.flatMap { z => z.convsUi.createGroupConversation(localId, name, users, z.teamId) }
 
   // TODO: remove when not used anymore
   def iConv(id: ConvId): IConversation = convStore.getConversation(id.str)
-  def iCurrentConv: IConversation = currentConvId.currentValue.map(iConv).orNull
 
-  def withCurrentConv(callback: Callback[ConversationData]): Unit = currentConv.head.foreach( callback.callback )(Threading.Ui)
   def withCurrentConvName(callback: Callback[String]): Unit = currentConvName.head.foreach(callback.callback)(Threading.Ui)
-  def withCurrentConvType(callback: Callback[IConversation.Type]): Unit = currentConvType.head.foreach(callback.callback)(Threading.Ui)
 
   def getCurrentConvId: ConvId = currentConvId.currentValue.orNull
   def withConvLoaded(convId: ConvId, callback: Callback[ConversationData]): Unit = loadConv(convId).foreach {
@@ -208,27 +199,6 @@ class ConversationController(implicit injector: Injector, context: Context, ec: 
   def removeConvChangedCallback(callback: Callback[ConversationChange]): Unit = convChangedCallbackSet -= callback
 
   convChanged.onUi { ev => convChangedCallbackSet.foreach(callback => callback.callback(ev)) }
-
-  def withMembers(convId: ConvId, callback: Callback[java.util.Collection[UserData]]): Unit =
-    loadMembers(convId).foreach { users => callback.callback(users.asJavaCollection) }(Threading.Ui)
-
-  def withCurrentConvMembers(callback: Callback[java.util.Collection[UserData]]): Unit =
-    currentConvId.head.foreach { id => withMembers(id, callback) }(Threading.Ui)
-
-  def addMembers(id: ConvId, users: java.util.List[UserId]): Unit = addMembers(id, users.asScala.toSet)
-
-  def addMembersToCurrentConv(users: java.util.List[UserId]): Unit =
-    addMembersToCurrentConv(users.asScala.toSet)
-
-  def createGroupConversation(users: java.util.List[UserId], conversationChangerSender: ConversationChangeRequester): Unit =
-    createGroupConversation(users.asScala, None).map { data =>
-      selectConv(Some(data.id),
-        if (conversationChangerSender != ConversationChangeRequester.START_CONVERSATION_FOR_CALL &&
-          conversationChangerSender != ConversationChangeRequester.START_CONVERSATION_FOR_VIDEO_CALL &&
-          conversationChangerSender != ConversationChangeRequester.START_CONVERSATION_FOR_CAMERA) ConversationChangeRequester.START_CONVERSATION
-        else conversationChangerSender
-      )
-    }
 
 
   object messages {
