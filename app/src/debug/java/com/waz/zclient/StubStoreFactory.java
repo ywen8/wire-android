@@ -23,7 +23,6 @@ import com.waz.zclient.core.stores.connect.IConnectStore;
 import com.waz.zclient.core.stores.conversation.IConversationStore;
 import com.waz.zclient.core.stores.inappnotification.IInAppNotificationStore;
 import com.waz.zclient.core.stores.network.INetworkStore;
-import com.waz.zclient.core.stores.participants.IParticipantsStore;
 import com.waz.zclient.core.stores.pickuser.IPickUserStore;
 import com.waz.zclient.core.stores.profile.IProfileStore;
 import com.waz.zclient.core.stores.stub.StubZMessagingApiStore;
@@ -60,11 +59,6 @@ public class StubStoreFactory implements IStoreFactory {
 
     @Override
     public IConnectStore connectStore() {
-        return null;
-    }
-
-    @Override
-    public IParticipantsStore participantsStore() {
         return null;
     }
 

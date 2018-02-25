@@ -22,7 +22,6 @@ import com.waz.zclient.core.stores.connect.IConnectStore
 import com.waz.zclient.core.stores.conversation.IConversationStore
 import com.waz.zclient.core.stores.inappnotification.IInAppNotificationStore
 import com.waz.zclient.core.stores.network.INetworkStore
-import com.waz.zclient.core.stores.participants.IParticipantsStore
 import com.waz.zclient.core.stores.pickuser.IPickUserStore
 import com.waz.zclient.core.stores.profile.IProfileStore
 
@@ -42,9 +41,6 @@ trait IStoreFactory {
 
   /* managing connecting & blocking to users */
   def connectStore: IConnectStore
-
-  /* managing the participants view (old meta view) */
-  def participantsStore: IParticipantsStore
 
   /* In App notification store (chathead, knocks) */
   def inAppNotificationStore: IInAppNotificationStore

@@ -157,11 +157,6 @@ class ParticipantFragment extends BaseFragment[ParticipantFragment.Container] wi
 
     subs += participantsController.conv.map(_.isActive).onUi { screenController.setMemberOfConversation }
 
-    subs += convController.currentConvId.onUi { convId =>
-      val iConv = convController.iConv(convId)
-      getStoreFactory.participantsStore.setCurrentConversation(iConv)
-    }
-
     subs += participantsController.isGroupOrBot.onUi { isGroupOrBot =>
       screenController.setSingleConversation(!isGroupOrBot)
     }
@@ -174,7 +169,6 @@ class ParticipantFragment extends BaseFragment[ParticipantFragment.Container] wi
   }
 
   override def onStop(): Unit = {
-    //getStoreFactory.participantsStore.setCurrentConversation(null)
     screenController.removeConversationControllerObservers(this)
     super.onStop()
   }

@@ -110,9 +110,6 @@ class ConversationManagerFragment extends BaseFragment[Container] with FragmentH
 
         screenController.hideParticipants(false, change.requester == START_CONVERSATION)
         closeLikesList()
-      } else if (change.toConvId != null) {
-        val iConv = convController.iConv(change.toConvId)
-        getStoreFactory.participantsStore.setCurrentConversation(iConv)
       } else if (!change.noChange) {
         collectionController.closeCollection()
       }
@@ -136,9 +133,6 @@ class ConversationManagerFragment extends BaseFragment[Container] with FragmentH
     pickUserController.addPickUserScreenControllerObserver(this)
     locationController.addObserver(this)
     collectionController.addObserver(this)
-    val curConv = convController.iCurrentConv
-    if (curConv != null)
-      getStoreFactory.participantsStore.setCurrentConversation(curConv)
   }
 
   override def onStop(): Unit = {
