@@ -205,7 +205,7 @@ class ParticipantFragment extends BaseFragment[ParticipantFragment.Container] wi
     case Some(f: OptionsMenuFragment) if f.close() =>
       true
     case Some(f: GuestOptionsFragment) if f.onBackPressed() =>
-      verbose(s"onBackPressed with SingleParticipantFragment")
+      verbose(s"onBackPressed with GuestOptionsFragment")
       true
     case _ if pickUserController.isShowingPickUser(IPickUserController.Destination.PARTICIPANTS) =>
       verbose(s"onBackPressed with isShowingPickUser")

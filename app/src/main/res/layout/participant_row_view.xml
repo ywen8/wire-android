@@ -60,7 +60,7 @@
             />
 
         <ImageView
-            android:id="@+id/next_indicator"
+            android:id="@+id/guest_indicator"
             android:layout_width="16dp"
             android:layout_height="16dp"
             android:layout_gravity="center_vertical"
@@ -78,17 +78,17 @@
             android:layout_marginStart="@dimen/wire__padding__small"
             android:layout_marginEnd="@dimen/wire__padding__small"
             android:visibility="gone"
-            />
+        />
 
         <ImageView
-            android:id="@+id/guest_indicator"
+            android:id="@+id/next_indicator"
             android:layout_width="16dp"
             android:layout_height="16dp"
             android:layout_gravity="center_vertical"
             android:layout_marginStart="@dimen/wire__padding__small"
             android:layout_marginEnd="@dimen/wire__padding__small"
             android:visibility="gone"
-            />
+        />
 
     </LinearLayout>
 
