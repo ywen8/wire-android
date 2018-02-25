@@ -34,9 +34,10 @@ class NewConversationController(implicit inj: Injector) extends Injectable {
   private implicit lazy val uiStorage = inject[UiStorage]
   private lazy val tracking = inject[TrackingService]
 
-  val convId = Signal(Option.empty[ConvId])
-  val name   = Signal("")
-  val users  = Signal(Set.empty[UserId])
+  val convId   = Signal(Option.empty[ConvId])
+  val name     = Signal("")
+  val users    = Signal(Set.empty[UserId])
+  val teamOnly = Signal(true) //TODO provide toggle to change this state!
 
   val fromScreen = Signal[GroupConversationEvent.Method]()
 
@@ -45,6 +46,7 @@ class NewConversationController(implicit inj: Injector) extends Injectable {
     users ! preSelectedUsers
     convId ! None
     fromScreen ! from
+    teamOnly ! false
     tracking.track(CreateGroupConversation(from))
   }
 
@@ -57,10 +59,11 @@ class NewConversationController(implicit inj: Injector) extends Injectable {
 
   def createConversation(): Future[ConvId] =
     for {
-      name  <- name.head
-      users <- users.head
-      conv  <- conversationController.createGroupConversation(users.toSeq, Some(name.trim))
-      from  <- fromScreen.head
+      name     <- name.head
+      users    <- users.head
+      teamOnly <- teamOnly.head
+      conv     <- conversationController.createGroupConversation(Some(name.trim), users.toSeq, teamOnly)
+      from     <- fromScreen.head
     } yield {
       tracking.track(GroupConversationSuccessful(users.nonEmpty, from))
       conv.id

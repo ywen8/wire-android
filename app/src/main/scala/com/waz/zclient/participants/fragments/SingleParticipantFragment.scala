@@ -64,16 +64,11 @@ class SingleParticipantFragment extends FragmentHelper {
         case _ =>
           screenController.hideParticipants(true, false)
           participantsController.otherParticipant.head.foreach {
-            case Some(userId) =>
-              userAccountsController.createAndOpenConversation(
-                Array[UserId](userId),
-                ConversationChangeRequester.START_CONVERSATION,
-                getActivity.asInstanceOf[BaseActivity]
-              )
+            case Some(userId) => userAccountsController.getOrCreateAndOpenConvFor(userId)
             case _ =>
           }
       }
-    
+
     override def onRightActionClicked(): Unit = (for {
       isGroup <- participantsController.isGroup.head
       convId  <- convController.currentConvId.head

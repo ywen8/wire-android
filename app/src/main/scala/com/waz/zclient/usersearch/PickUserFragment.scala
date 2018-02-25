@@ -317,9 +317,7 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
           import ConnectionStatus._
           keyboard.hideKeyboardIfVisible()
           if (user.connection == Accepted || (user.connection == Unconnected && z.teamId.isDefined && z.teamId == user.teamId))
-            userAccountsController.getConversation(Set(userId)).map(_.id).map { convId =>
-              conversationController.selectConv(convId, ConversationChangeRequester.START_CONVERSATION)
-            }
+            userAccountsController.getOrCreateAndOpenConvFor(userId)
           else if (!anchorView.isInstanceOf[ContactRowView] || (user.connection != ConnectionStatus.Unconnected)) {
             Future { user.connection match {
               case PendingFromUser | Blocked | Ignored | Cancelled | Unconnected =>

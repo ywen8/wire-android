@@ -92,7 +92,7 @@ class ClientsController(implicit inj: Injector) extends Injectable {
       z    <- zms.head
       convId <- z.convsStats.selectedConversationId.head.flatMap {
         case Some(id) => Future.successful(id)
-        case _ => userAccounts.getConversationId(Set(userId))
+        case _ => userAccounts.getConversationId(userId)
       }
       syncId <- z.otrService.resetSession(convId, userId, clientId)
       resp   <- z.syncRequests.scheduler.await(syncId)

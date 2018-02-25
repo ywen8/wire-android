@@ -180,8 +180,8 @@ class ConversationController(implicit injector: Injector, context: Context, ec: 
     if (alsoLeave) leave(id).flatMap(_ => clear(id)) else clear(id)
   }
 
-  def createGroupConversation(users: Seq[UserId], name: Option[String], localId: ConvId = ConvId()): Future[ConversationData] =
-    zms.head.flatMap { z => z.convsUi.createGroupConversation(localId, name, users, z.teamId) }
+  def createGroupConversation(name: Option[String], users: Seq[UserId], teamOnly: Boolean): Future[ConversationData] =
+    zms.head.flatMap { z => z.convsUi.createGroupConversation(name, users, teamOnly).map(_._1) }
 
   // TODO: remove when not used anymore
   def iConv(id: ConvId): IConversation = convStore.getConversation(id.str)
