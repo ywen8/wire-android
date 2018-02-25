@@ -17,31 +17,76 @@
  */
 package com.waz.zclient.participants.fragments
 
+import android.content.Context
 import android.os.Bundle
+import android.support.v7.widget.SwitchCompat
 import android.view.{LayoutInflater, View, ViewGroup}
-import android.widget.{CompoundButton, Switch}
-import com.waz.ZLog
+import android.widget.{CompoundButton, TextView}
+import com.waz.ZLog.ImplicitTag._
 import com.waz.service.ZMessaging
+import com.waz.threading.Threading
 import com.waz.utils.events.Signal
+import com.waz.utils.returning
+import com.waz.zclient.conversation.ConversationController
+import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.{FragmentHelper, OnBackPressedListener, R}
 
 class GuestOptionsFragment extends FragmentHelper with OnBackPressedListener {
 
+  import Threading.Implicits.Background
+
+  implicit def cxt: Context = getActivity
+
   private lazy val zms = inject[Signal[ZMessaging]]
 
-  private lazy val allowGustsSwitch = view[Switch](R.id.allow_guests_switch)
+  private lazy val convCtrl = inject[ConversationController]
 
-  override def onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState: Bundle): View = {
-    inflater.inflate(R.layout.guest_options_fragment, container, false)
+  //TODO look into using something more similar to SwitchPreference
+  private lazy val allowGustsSwitch = returning(view[SwitchCompat](R.id.allow_guests_switch)) { vh =>
+    convCtrl.currentConvIsTeamOnly.onUi(teamOnly => vh.foreach(_.setChecked(!teamOnly)))
   }
 
+  private lazy val allowGuestsTitle = view[TextView](R.id.allow_guests_title)
+
+  override def onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState: Bundle) =
+    inflater.inflate(R.layout.guest_options_fragment, container, false)
+
   override def onViewCreated(view: View, savedInstanceState: Bundle): Unit = {
-    allowGustsSwitch.foreach { switch =>
-      switch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener {
+    allowGustsSwitch
+  }
+
+  override def onResume() = {
+    super.onResume()
+    allowGustsSwitch.foreach {
+      _.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener {
         override def onCheckedChanged(buttonView: CompoundButton, isChecked: Boolean): Unit = {
+          setGuestsSwitchEnabled(false)
+          (for {
+            z <- zms.head
+            c <- convCtrl.currentConvId.head
+            resp <- z.conversations.setToTeamOnly(c, !isChecked)
+          } yield resp).map { resp =>
+            setGuestsSwitchEnabled(true)
+            resp match {
+              case Right(_) => //
+              case Left(err) =>
+                //TODO handle error properly
+                showToast(s"Something went wrong: $err")
+            }
+          }(Threading.Ui)
         }
       })
     }
+  }
+
+  private def setGuestsSwitchEnabled(enabled: Boolean) = {
+    allowGustsSwitch.foreach(_.setEnabled(enabled))
+    allowGuestsTitle.foreach(_.setAlpha(if (enabled) 1f else 0.5f))
+  }
+
+  override def onStop() = {
+    allowGustsSwitch.foreach(_.setOnCheckedChangeListener(null))
+    super.onStop()
   }
 
   override def onBackPressed(): Boolean = {
@@ -51,5 +96,5 @@ class GuestOptionsFragment extends FragmentHelper with OnBackPressedListener {
 }
 
 object GuestOptionsFragment {
-  val Tag = ZLog.ImplicitTag.implicitLogTag
+  val Tag = implicitLogTag
 }

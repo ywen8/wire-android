@@ -34,13 +34,14 @@
         android:layout_marginBottom="@dimen/wire__padding__regular">
 
         <com.waz.zclient.ui.text.TypefaceTextView
+            android:id="@+id/allow_guests_title"
             android:text="Allow Guests"
             android:layout_gravity="start|center_vertical"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textColor="@color/black"/>
 
-        <Switch
+        <android.support.v7.widget.SwitchCompat
             android:id="@+id/allow_guests_switch"
             android:layout_gravity="end|center_vertical"
             android:layout_width="wrap_content"

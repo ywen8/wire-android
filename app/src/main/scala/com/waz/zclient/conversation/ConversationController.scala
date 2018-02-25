@@ -66,6 +66,7 @@ class ConversationController(implicit injector: Injector, context: Context, ec: 
   val currentConvName: Signal[String] = currentConv.map(_.displayName) // the name of the current conversation can be edited (without switching)
   val currentConvIsVerified: Signal[Boolean] = currentConv.map(_.verified == Verification.VERIFIED)
   val currentConvIsGroup: Signal[Boolean] = currentConvId.flatMap(id => Signal.future(isGroup(id)))
+  val currentConvIsTeamOnly: Signal[Boolean] = currentConv.map(_.isTeamOnly)
 
   lazy val currentConvMembers = for {
     zms  <- zms

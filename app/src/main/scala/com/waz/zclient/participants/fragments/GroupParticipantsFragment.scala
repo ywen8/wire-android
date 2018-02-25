@@ -95,6 +95,7 @@ class GroupParticipantsFragment extends FragmentHelper {
       }
       case _ =>
     }
+
     adapter.onGuestOptionsClick.onUi { _ =>
       getFragmentManager.beginTransaction
         .replace(R.id.fl__participant__container, new GuestOptionsFragment(), GuestOptionsFragment.Tag)
