@@ -42,12 +42,15 @@ import com.waz.zclient.pages.main.conversation.controller.IConversationScreenCon
 import com.waz.zclient.participants.ParticipantsController
 import com.waz.zclient.ui.text.AccentColorEditText
 import com.waz.zclient.ui.utils.KeyboardUtils
-import com.waz.zclient.utils.{RichView, ViewUtils}
+import com.waz.zclient.utils.ContextUtils._
+import com.waz.zclient.utils.{ContextUtils, RichView, ViewUtils}
 import com.waz.zclient.views.e2ee.ShieldView
 import com.waz.zclient.{FragmentHelper, R}
 
 class ParticipantHeaderFragment extends BaseFragment[ParticipantHeaderFragment.Container] with FragmentHelper {
   import com.waz.threading.Threading.Implicits.Ui
+
+  implicit def cxt: Context = getActivity
 
   private lazy val participantsController = inject[ParticipantsController]
   private lazy val screenController       = inject[IConversationScreenController]
@@ -68,45 +71,40 @@ class ParticipantHeaderFragment extends BaseFragment[ParticipantHeaderFragment.C
 
   private lazy val toolbar = view[Toolbar](R.id.t__participants__toolbar)
 
-  private lazy val membersCountTextView = returning(view[TextView](R.id.ttv__participants__sub_header)) { view =>
-    participantsController.otherParticipants.map(_.size) { participants =>
-      view.foreach { mc =>
-        mc.setText(getResources.getQuantityString(R.plurals.participants__sub_header_xx_people, participants, participants.asInstanceOf[java.lang.Integer]))
-        mc.setTextSize(TypedValue.COMPLEX_UNIT_PX, getResources.getDimension(R.dimen.wire__text_size__small))
+  private lazy val membersCountTextView = returning(view[TextView](R.id.ttv__participants__sub_header)) { vh =>
+    participantsController.otherParticipants.map(_.size).onUi { participants =>
+      vh.foreach { mc =>
+        mc.setText(getQuantityString(R.plurals.participants__sub_header_xx_people, participants, participants.asInstanceOf[java.lang.Integer]))
+        mc.setTextSize(TypedValue.COMPLEX_UNIT_PX, getDimen(R.dimen.wire__text_size__small))
       }
     }
 
     (for {
       isSingleParticipant <- participantsController.otherParticipant.map(_.isDefined)
       edit                <- editInProgress
-    } yield !isSingleParticipant && !edit){ isVisible =>
-      view.foreach(_.setVisible(isVisible))
-    }
+    } yield !isSingleParticipant && !edit)
+      .onUi(vis => vh.foreach(_.setVisible(vis)))
   }
 
-  private lazy val userDetailsView = returning(view[UserDetailsView](R.id.udv__participants__user_details)) { view =>
-    participantsController.otherParticipant.collect { case Some(userId) => userId } { userId =>
-      view.foreach(_.setUserId(userId))
-    }
+  private lazy val userDetailsView = returning(view[UserDetailsView](R.id.udv__participants__user_details)) { vh =>
+    participantsController.otherParticipant.collect { case Some(userId) => userId }.onUi(id => vh.foreach(_.setUserId(id)))
 
     (for {
       isSingleParticipant <- participantsController.otherParticipant.map(_.isDefined)
       edit                <- editInProgress
-    } yield isSingleParticipant && !edit){ isVisible =>
-      view.foreach(_.setVisible(isVisible))
-    }
+    } yield isSingleParticipant && !edit)
+      .onUi(vis => vh.foreach(_.setVisible(vis)))
   }
 
-  private lazy val headerEditText = returning(view[AccentColorEditText](R.id.taet__participants__header__editable)) { view =>
+  private lazy val headerEditText = returning(view[AccentColorEditText](R.id.taet__participants__header__editable)) { vh =>
     (for {
       true        <- inject[ThemeController].darkThemeSet
       accentColor <- inject[AccentColorController].accentColor
-    } yield accentColor) { color =>
-      view.foreach(_.setAccentColor(color.getColor))
-    }
+    } yield accentColor)
+      .onUi(c => vh.foreach(_.setAccentColor(c.getColor)))
 
-    editInProgress {
-      case true => view.foreach { he =>
+    editInProgress.onUi {
+      case true => vh.foreach { he =>
         he.requestFocus()
         he.setVisible(true)
         headerReadOnlyTextView.foreach { hr =>
@@ -114,7 +112,7 @@ class ParticipantHeaderFragment extends BaseFragment[ParticipantHeaderFragment.C
           he.setSelection(hr.getText.length)
         }
       }
-      case false => view.foreach { he =>
+      case false => vh.foreach { he =>
         he.clearFocus()
         he.requestLayout()
         he.setVisible(false)
@@ -122,40 +120,29 @@ class ParticipantHeaderFragment extends BaseFragment[ParticipantHeaderFragment.C
     }
   }
 
-  private lazy val headerReadOnlyTextView = returning(view[TextView](R.id.ttv__participants__header)) { view =>
+  private lazy val headerReadOnlyTextView = returning(view[TextView](R.id.ttv__participants__header)) { vh =>
     (for {
       convName <- participantsController.conv.map(_.displayName)
       userId   <- participantsController.otherParticipant
       user     <- userId.fold(Signal.const(Option.empty[UserData]))(id => Signal.future(participantsController.getUser(id)))
-    } yield user.fold(convName)(_.name)) { name =>
-      view.foreach(_.setText(name))
-    }
+    } yield user.fold(convName)(_.name))
+      .onUi(name => vh.foreach(_.setText(name)))
 
-    editInProgress { edit =>
-      view.foreach(_.setVisible(!edit))
-    }
-
-    view.onClick { _ => triggerEditingOfConversationNameIfInternet() }
+    editInProgress.onUi(edit => vh.foreach(_.setVisible(!edit)))
+    vh.onClick(_ => triggerEditingOfConversationNameIfInternet())
   }
 
-  private lazy val penIcon = returning(view[TextView](R.id.gtv__participants_header__pen_icon)) { view =>
-    editAllowed.onUi { edit =>
-      view.foreach { pi => pi.setVisible(edit) }
-    }
-
-
-    view.onClick { _ => triggerEditingOfConversationNameIfInternet() }
+  private lazy val penIcon = returning(view[TextView](R.id.gtv__participants_header__pen_icon)) { vh =>
+    editAllowed.onUi(edit => vh.foreach(pi => pi.setVisible(edit)))
+    vh.onClick(_ => triggerEditingOfConversationNameIfInternet())
   }
 
-  private lazy val closeIcon = returning(view[TextView](R.id.participants_header__close_icon)) { view =>
-    editInProgress.onUi { edit =>
-      view.foreach { pi => pi.setVisible(!edit) }
-    }
-
-    view.onClick { _ => screenController.hideParticipants(true, false) }
+  private lazy val closeIcon = returning(view[TextView](R.id.participants_header__close_icon)) { vh =>
+    editInProgress.onUi(edit => vh.foreach(pi => pi.setVisible(!edit)))
+    vh.onClick(_ => screenController.hideParticipants(true, false))
   }
 
-  private lazy val shieldView = returning(view[ShieldView](R.id.verified_shield)) { view =>
+  private lazy val shieldView = returning(view[ShieldView](R.id.verified_shield)) { vh =>
     (for {
       isGroupOrBot <- participantsController.isGroupOrBot
       user         <- if (isGroupOrBot) Signal.const(Option.empty[UserData])
@@ -163,24 +150,24 @@ class ParticipantHeaderFragment extends BaseFragment[ParticipantHeaderFragment.C
         case Some(userId) => Signal.future(participantsController.getUser(userId))
         case None         => Signal.const(Option.empty[UserData])
       }
-    } yield user.fold(false)(_.verified == Verification.VERIFIED)) { isVerified =>
-      view.foreach(_.setVisible(isVerified))
-    }
+    } yield user.fold(false)(_.verified == Verification.VERIFIED))
+      .onUi(isVerified => vh.foreach(_.setVisible(isVerified)))
   }
 
-  private def renameConversation() = internetAvailable.head.foreach {
-    case true =>
-      headerEditText.foreach { he =>
-        val text = he.getText.toString.trim
-        inject[ConversationController].setCurrentConvName(text)
-        headerReadOnlyTextView.foreach(_.setText(text))
-      }
-    case false =>
-      participantsController.conv.map(_.displayName).head.foreach { name =>
-        headerReadOnlyTextView.foreach(_.setText(name))
-      }
-      showOfflineRenameError()
-  }
+  private def renameConversation() =
+    internetAvailable.head.foreach {
+      case true =>
+        headerEditText.foreach { he =>
+          val text = he.getText.toString.trim
+          inject[ConversationController].setCurrentConvName(text)
+          headerReadOnlyTextView.foreach(_.setText(text))
+        }
+      case false =>
+        participantsController.conv.map(_.displayName).head.foreach { name =>
+          headerReadOnlyTextView.foreach(_.setText(name))
+        }
+        showOfflineRenameError()
+    }
 
   private val editorActionListener: TextView.OnEditorActionListener = new TextView.OnEditorActionListener() {
     override def onEditorAction(textView: TextView, actionId: Int, event: KeyEvent): Boolean =
@@ -246,7 +233,7 @@ class ParticipantHeaderFragment extends BaseFragment[ParticipantHeaderFragment.C
     penIcon
     closeIcon
 
-    subs += editInProgress {
+    subs += editInProgress.onUi {
       case true =>
         screenController.editConversationName(true)
         KeyboardUtils.showKeyboard(getActivity)
@@ -254,7 +241,6 @@ class ParticipantHeaderFragment extends BaseFragment[ParticipantHeaderFragment.C
         screenController.editConversationName(false)
         KeyboardUtils.hideKeyboard(getActivity)
     }
-
   }
 
   def onBackPressed(): Boolean =
