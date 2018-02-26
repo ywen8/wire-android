@@ -1313,4 +1313,7 @@
     <string name="allow_guests_toggle_text">Allow guests</string>
     <string name="allow_guests_toggle_info_text">Open this conversation to people outside your team. You can always change it later.</string>
 
+    <string name="open_this_conversation_to_people_outside_your_team">Open this conversation to people outside your team</string>
+    <string name="allow_guests">Allow Guests</string>
+
 </resources>

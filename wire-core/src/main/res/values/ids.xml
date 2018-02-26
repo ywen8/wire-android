@@ -58,4 +58,8 @@
     <item name="content" type="id"/>
 
     <item name="collection_image_view" type="id"/>
+
+    <item name="participants_section" type="id" />
+    <item name="services_section" type="id" />
+    <item name="guest_options" type="id" />
 </resources>

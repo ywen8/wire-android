@@ -30,23 +30,36 @@
         android:layout_height="64dp"
         android:paddingStart="@dimen/wire__padding__regular"
         android:paddingEnd="@dimen/wire__padding__regular"
-        android:layout_marginTop="@dimen/wire__padding__regular"
-        android:layout_marginBottom="@dimen/wire__padding__regular">
+        android:layout_marginTop="@dimen/wire__padding__regular">
 
         <com.waz.zclient.ui.text.TypefaceTextView
-            android:id="@+id/allow_guests_title"
-            android:text="Allow Guests"
+            android:id="@+id/guest_toggle_title"
+            android:text="@string/allow_guests"
             android:layout_gravity="start|center_vertical"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:textSize="16sp"
             android:textColor="@color/black"/>
 
         <android.support.v7.widget.SwitchCompat
-            android:id="@+id/allow_guests_switch"
+            android:id="@+id/guest_toggle"
             android:layout_gravity="end|center_vertical"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"/>
 
     </FrameLayout>
+
+    <com.waz.zclient.ui.text.TypefaceTextView
+        android:id="@+id/guest_toggle_description"
+        android:text="@string/open_this_conversation_to_people_outside_your_team"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/wire__padding__regular"
+        android:paddingStart="@dimen/wire__padding__regular"
+        android:paddingEnd="@dimen/wire__padding__regular"
+        android:textColor="@color/teams_description_text"
+        android:textSize="12sp"
+    />
+
 
 </LinearLayout>
