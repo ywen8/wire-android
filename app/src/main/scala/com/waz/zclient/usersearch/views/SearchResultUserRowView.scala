@@ -29,7 +29,7 @@ import com.waz.service.ZMessaging
 import com.waz.threading.Threading
 import com.waz.utils.events.{EventStream, Signal, SourceStream}
 import com.waz.utils.returning
-import com.waz.zclient.common.views.ChatheadView
+import com.waz.zclient.common.views.{ChatheadView, SingleUserRowView}
 import com.waz.zclient.ui.text.TypefaceTextView
 import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.utils.RichView
@@ -113,10 +113,15 @@ class SearchResultUserRowView(val context: Context, val attrs: AttributeSet, val
   }
 }
 
-case class SelectableUserRowViewHolder(v: SearchResultUserRowView) extends RecyclerView.ViewHolder(v) {
-  def bind(userData: UserData, selected: Boolean) = {
-    v.setUser(userData)
+case class SelectableUserRowViewHolder(v: SingleUserRowView) extends RecyclerView.ViewHolder(v) {
+
+  var userData: Option[UserData] = None
+
+  def bind(userData: UserData, isGuest: Boolean, selected: Boolean) = {
+    this.userData = Some(userData)
+    v.setUserData(userData)
     v.setChecked(selected)
+    v.setIsGuest(isGuest)
   }
 }
 

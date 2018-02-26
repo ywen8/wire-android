@@ -34,7 +34,7 @@ import com.waz.threading.Threading
 import com.waz.utils.events._
 import com.waz.utils.returning
 import com.waz.zclient.common.controllers.global.{AccentColorController, KeyboardController}
-import com.waz.zclient.common.views.PickableElement
+import com.waz.zclient.common.views.{PickableElement, SingleUserRowView}
 import com.waz.zclient.pages.main.pickuser.controller.IPickUserController
 import com.waz.zclient.pages.main.pickuser.controller.IPickUserController.Destination
 import com.waz.zclient.ui.text.TypefaceTextView
@@ -66,7 +66,8 @@ class NewConversationPickFragment extends Fragment with FragmentHelper with OnBa
     filter  <- searchFilter
     convId  <- newConvController.convId
     results <- zms.userSearch.searchLocal(filter, toConv = convId)
-  } yield results
+    users   <- Signal.sequence(results.map(u => zms.teams.isGuest(u.id).map(g => (u, g))):_*)
+  } yield users
 
   private lazy val adapter = NewConvAdapter(searchResults, newConvController.users)
 
@@ -195,10 +196,10 @@ object NewConversationPickFragment {
   }
 }
 
-case class NewConvAdapter(searchResults: Signal[IndexedSeq[UserData]], selectedUsers: SourceSignal[Set[UserId]])(implicit context: Context, eventContext: EventContext) extends RecyclerView.Adapter[SelectableUserRowViewHolder] {
+case class NewConvAdapter(searchResults: Signal[Seq[(UserData, Boolean)]], selectedUsers: SourceSignal[Set[UserId]])(implicit context: Context, eventContext: EventContext) extends RecyclerView.Adapter[SelectableUserRowViewHolder] {
   private implicit val ctx = context
 
-  private var users = Seq.empty[(UserData, /*isSelected: */ Boolean)]
+  private var users = Seq.empty[PickableUserData]
 
   val onUserSelectionChanged = EventStream[(UserId, Boolean)]()
 
@@ -211,11 +212,14 @@ case class NewConvAdapter(searchResults: Signal[IndexedSeq[UserData]], selectedU
     .onUi {
       case (res, sel) =>
         val prev = this.users
-        this.users = res.map(u => (u, sel.contains(u.id)))
-        if (prev.map(_._1) == res) {
+        this.users = res.map(u => PickableUserData(u._1, isGuest = u._2, isSelected = sel.contains(u._1.id)))
+        if (prev.map(_.userData) == res.map(_._1)) {
           val changedPositions = prev.map {
-            case (user, selected) =>
-              if (selected && !sel.contains(user.id) || !selected && sel.contains(user.id)) prev.map(_._1).indexOf(user) else -1
+            pickableUser =>
+              if (pickableUser.isSelected && !sel.contains(pickableUser.userData.id) || !pickableUser.isSelected && sel.contains(pickableUser.userData.id))
+                prev.indexOf(pickableUser)
+              else
+                -1
           }
           changedPositions.filterNot(_ == -1).foreach(notifyItemChanged)
         } else
@@ -225,10 +229,12 @@ case class NewConvAdapter(searchResults: Signal[IndexedSeq[UserData]], selectedU
   override def getItemCount: Int = users.size
 
   override def onCreateViewHolder(parent: ViewGroup, viewType: Int): SelectableUserRowViewHolder = {
-    val view = ViewHelper.inflate[SearchResultUserRowView](R.layout.startui_user, parent, addToParent = false)
-    view.setIsAddingPeople(true)
+    val view = ViewHelper.inflate[SingleUserRowView](R.layout.normal_participant_row, parent, addToParent = false)
+    view.showCheckbox(true)
+    val viewHolder = SelectableUserRowViewHolder(view)
+
     view.onSelectionChanged.onUi { selected =>
-      view.getUser.foreach { user =>
+      viewHolder.userData.map(_.id).foreach { user =>
         onUserSelectionChanged ! (user, selected)
         if (selected)
           selectedUsers.mutate(_ + user)
@@ -236,14 +242,16 @@ case class NewConvAdapter(searchResults: Signal[IndexedSeq[UserData]], selectedU
           selectedUsers.mutate(_ - user)
       }
     }
-    SelectableUserRowViewHolder(view)
+    viewHolder
   }
 
 
-  override def getItemId(position: Int) = users(position)._1.id.str.hashCode
+  override def getItemId(position: Int) = users(position).userData.id.str.hashCode
 
   override def onBindViewHolder(holder: SelectableUserRowViewHolder, position: Int): Unit = {
-    val (user, selected) = users(position)
-    holder.bind(user, selected)
+    val user = users(position)
+    holder.bind(user.userData, isGuest = user.isGuest, selected = user.isSelected)
   }
 }
+
+case class PickableUserData(userData: UserData, isGuest: Boolean, isSelected: Boolean)

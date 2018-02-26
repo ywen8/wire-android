@@ -38,6 +38,9 @@ class SearchUserController(val toConv: Option[ConvId] = None)(implicit injector:
     selected <- selectedUsers
     filter   <- filter
     res      <- z.userSearch.search(filter, selected.toSet, toConv)
-  } yield res
+    userResults <- Signal.sequence(res.local.map(u => z.teams.isGuest(u.id).map(g => UserSearchResult(u, g))):_*)
+  } yield (res, userResults.toIndexedSeq)
 
 }
+
+case class UserSearchResult(userData: UserData, isGuest: Boolean)

@@ -18,21 +18,25 @@
 package com.waz.zclient.usersearch.viewholders
 
 import android.support.v7.widget.RecyclerView
-import android.view.View
 import com.waz.model.UserData
-import com.waz.zclient.R
-import com.waz.zclient.usersearch.views.SearchResultUserRowView
-import com.waz.zclient.utils.ViewUtils
+import com.waz.zclient.common.views.SingleUserRowView
 
-class UserViewHolder(val view: View, val showContactInfo: Boolean, darkTheme: Boolean, addingPeople: Boolean) extends RecyclerView.ViewHolder(view) {
-  private val userRow: SearchResultUserRowView = ViewUtils.getView(view, R.id.srurv_startui_user)
+class UserViewHolder(val view: SingleUserRowView, darkTheme: Boolean, addingPeople: Boolean) extends RecyclerView.ViewHolder(view) {
 
-  userRow.setShowContactInfo(showContactInfo)
-  if (darkTheme) userRow.applyDarkTheme(isDark = true)
-  userRow.setIsAddingPeople(addingPeople)
+  var userData: Option[UserData] = None
 
-  def bind(userData: UserData, isSelected: Boolean): Unit = {
-    userRow.setUser(userData)
-    userRow.setSelected(isSelected)
+  private val theme = if (addingPeople && darkTheme) SingleUserRowView.Dark
+  else if(addingPeople && !darkTheme) SingleUserRowView.Light
+  else SingleUserRowView.Transparent
+
+  view.showArrow(false)
+  view.showCheckbox(addingPeople)
+  view.setTheme(theme)
+
+  def bind(userData: UserData, isGuest: Boolean, isSelected: Boolean): Unit = {
+    this.userData = Some(userData)
+    view.setUserData(userData)
+    view.setIsGuest(isGuest)
+    view.setSelected(isSelected)
   }
 }

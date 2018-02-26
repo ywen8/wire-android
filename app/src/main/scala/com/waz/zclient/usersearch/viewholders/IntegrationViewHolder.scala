@@ -18,18 +18,23 @@
 package com.waz.zclient.usersearch.viewholders
 
 import android.support.v7.widget.RecyclerView
-import android.view.View
 import com.waz.model.IntegrationData
-import com.waz.zclient.R
-import com.waz.zclient.usersearch.views.SearchResultIntegrationRowView
-import com.waz.zclient.utils.ViewUtils
+import com.waz.zclient.common.views.SingleUserRowView
 
-class IntegrationViewHolder(val view: View, darkTheme: Boolean) extends RecyclerView.ViewHolder(view) {
-  private val integrationRowView: SearchResultIntegrationRowView = ViewUtils.getView(view, R.id.srurv_startui_user)
+class IntegrationViewHolder(val view: SingleUserRowView, darkTheme: Boolean) extends RecyclerView.ViewHolder(view) {
 
-  if (darkTheme) integrationRowView.applyDarkTheme()
+  var integrationData: Option[IntegrationData] = None
 
-  def bind(data: IntegrationData): Unit = {
-    integrationRowView.setIntegration(data)
+  private val theme = if (darkTheme) SingleUserRowView.Transparent
+  else SingleUserRowView.Light
+
+  view.showArrow(false)
+  view.showCheckbox(false)
+  view.setTheme(theme)
+
+  def bind(integrationData: IntegrationData): Unit = {
+    this.integrationData = Some(integrationData)
+    view.setIntegration(integrationData)
   }
+
 }

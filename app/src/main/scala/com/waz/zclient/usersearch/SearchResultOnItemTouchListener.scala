@@ -21,7 +21,7 @@ import android.content.Context
 import android.support.v7.widget.RecyclerView
 import android.view.{GestureDetector, MotionEvent, View}
 import com.waz.model.{ConversationData, IntegrationData, UserId}
-import com.waz.zclient.usersearch.views.{ConversationRowView, IntegrationRowView, UserRowView}
+import com.waz.zclient.usersearch.views.{ConversationRowView, IntegrationRowView}
 
 object SearchResultOnItemTouchListener {
 
@@ -45,9 +45,6 @@ class SearchResultOnItemTouchListener(val context: Context, var callback: Search
 
     override def onSingleTapConfirmed(e: MotionEvent): Boolean = {
       rowView match {
-        case view: UserRowView =>
-          view.onClicked()
-          view.getUser.foreach(uid => callback.onUserClicked(uid, rowView))
         case view: ConversationRowView =>
           callback.onConversationClicked(view.getConversation)
         case view: IntegrationRowView =>

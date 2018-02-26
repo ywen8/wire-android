@@ -318,7 +318,7 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
           keyboard.hideKeyboardIfVisible()
           if (user.connection == Accepted || (user.connection == Unconnected && z.teamId.isDefined && z.teamId == user.teamId))
             userAccountsController.getOrCreateAndOpenConvFor(userId)
-          else if (user.connection != ConnectionStatus.Unconnected) {
+          else {
             Future { user.connection match {
               case PendingFromUser | Blocked | Ignored | Cancelled | Unconnected =>
                 convScreenController.setPopoverLaunchedMode(DialogLaunchMode.SEARCH)

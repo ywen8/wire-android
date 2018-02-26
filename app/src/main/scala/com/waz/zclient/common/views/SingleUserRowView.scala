@@ -19,16 +19,19 @@ package com.waz.zclient.common.views
 
 import android.content.Context
 import android.graphics.Color
+import android.support.v4.content.ContextCompat
 import android.support.v7.widget.AppCompatCheckBox
 import android.util.AttributeSet
 import android.view.View
-import android.widget.{ImageView, RelativeLayout}
-import com.waz.model.UserData
+import android.widget.{CompoundButton, ImageView, RelativeLayout}
+import com.waz.model.{Availability, IntegrationData, UserData}
+import com.waz.utils.events.{EventStream, SourceStream}
 import com.waz.utils.returning
 import com.waz.zclient.common.views.SingleUserRowView._
 import com.waz.zclient.paintcode.{ForwardNavigationIcon, GuestIcon}
 import com.waz.zclient.ui.text.TypefaceTextView
 import com.waz.zclient.utils.{ContextUtils, StringUtils}
+import com.waz.zclient.views.AvailabilityView
 import com.waz.zclient.{R, ViewHelper}
 
 class SingleUserRowView(context: Context, attrs: AttributeSet, style: Int) extends RelativeLayout(context, attrs, style) with ViewHelper {
@@ -46,7 +49,16 @@ class SingleUserRowView(context: Context, attrs: AttributeSet, style: Int) exten
   private lazy val guestIndicator = returning(findById[ImageView](R.id.guest_indicator))(_.setImageDrawable(GuestIcon(R.color.light_graphite)))
   private lazy val nextIndicator = returning(findById[ImageView](R.id.next_indicator))(_.setImageDrawable(ForwardNavigationIcon(R.color.light_graphite)))
 
-  def setTitle(text: String): Unit = nameView.setText(text)
+  val onSelectionChanged: SourceStream[Boolean] = EventStream()
+
+  checkbox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener {
+    override def onCheckedChanged(buttonView: CompoundButton, isChecked: Boolean): Unit =
+      onSelectionChanged ! isChecked
+  })
+
+  def setTitle(text: String): Unit = {
+    nameView.setText(text)
+  }
 
   def setSubtitle(text: Option[String]): Unit = text.fold(usernameView.setVisibility(View.GONE)) { t =>
     usernameView.setVisibility(View.VISIBLE)
@@ -62,25 +74,52 @@ class SingleUserRowView(context: Context, attrs: AttributeSet, style: Int) exten
   def setUserData(userData: UserData): Unit = {
     chathead.setUserId(userData.id)
     setTitle(userData.getDisplayName)
+    setAvailability(userData.availability)
     setVerified(userData.isVerified)
     setSubtitle(userData.handle.map(h => StringUtils.formatHandle(h.string)))
   }
 
+  def setIntegration(integration: IntegrationData): Unit = {
+    chathead.setIntegration(integration)
+    setTitle(integration.name)
+    setAvailability(Availability.None)
+    setVerified(false)
+    setSubtitle(Some(integration.summary))
+  }
+
   def setIsGuest(guest: Boolean): Unit = guestIndicator.setVisibility(if (guest) View.VISIBLE else View.GONE)
 
-  def showCheckbox(show: Boolean) = checkbox.setVisibility(if (show) View.VISIBLE else View.GONE)
+  def showCheckbox(show: Boolean): Unit = checkbox.setVisibility(if (show) View.VISIBLE else View.GONE)
 
   //TODO: Proper colors and other stuff
   def setTheme(theme: Theme): Unit = {
     theme match {
       case Light =>
+        returning(ContextCompat.getDrawable(getContext, R.drawable.checkbox_black)){ btn =>
+          btn.setLevel(1)
+          checkbox.setButtonDrawable(btn)
+        }
+        nameView.setTextColor(ContextUtils.getColor(R.color.wire__text_color_primary_light_selector))
         setBackgroundColor(Color.WHITE)
       case Dark =>
+        returning(ContextCompat.getDrawable(getContext, R.drawable.checkbox)){ btn =>
+          btn.setLevel(1)
+          checkbox.setButtonDrawable(btn)
+        }
+        nameView.setTextColor(ContextUtils.getColor(R.color.wire__text_color_primary_dark_selector))
         setBackgroundColor(Color.BLACK)
       case Transparent =>
+        returning(ContextCompat.getDrawable(getContext, R.drawable.checkbox)){ btn =>
+          btn.setLevel(1)
+          checkbox.setButtonDrawable(btn)
+        }
+        nameView.setTextColor(ContextUtils.getColor(R.color.wire__text_color_primary_dark_selector))
         setBackground(ContextUtils.getDrawable(R.drawable.selector__transparent_button))
     }
   }
+
+  def setAvailability(availability: Availability): Unit =
+    AvailabilityView.displayLeftOfText(nameView, availability, nameView.getCurrentTextColor, pushDown = true)
 }
 
 object SingleUserRowView {

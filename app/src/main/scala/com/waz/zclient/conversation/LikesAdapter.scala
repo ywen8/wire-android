@@ -19,11 +19,12 @@ package com.waz.zclient.conversation
 
 import android.content.Context
 import android.support.v7.widget.RecyclerView
-import android.view.{LayoutInflater, View, ViewGroup}
+import android.view.{LayoutInflater, ViewGroup}
 import com.waz.api.User
 import com.waz.model.{UserData, UserId}
 import com.waz.threading.Threading
 import com.waz.utils.events.Signal
+import com.waz.zclient.common.views.SingleUserRowView
 import com.waz.zclient.usersearch.viewholders.UserViewHolder
 import com.waz.zclient.utils.{UiStorage, UserSetSignal}
 import com.waz.zclient.{BaseActivity, R}
@@ -44,13 +45,12 @@ class LikesAdapter(context: Context) extends RecyclerView.Adapter[RecyclerView.V
   }
 
   def onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder = {
-    var view: View = null
-    view = LayoutInflater.from(parent.getContext).inflate(R.layout.startui_user, parent, false)
-    new UserViewHolder(view, false, false, false)
+    val view = LayoutInflater.from(parent.getContext).inflate(R.layout.normal_participant_row, parent, false).asInstanceOf[SingleUserRowView]
+    new UserViewHolder(view, false, false)
   }
 
   def onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int): Unit = {
-    holder.asInstanceOf[UserViewHolder].bind(likesUsers(position), isSelected = false)
+    holder.asInstanceOf[UserViewHolder].bind(likesUsers(position), isGuest = false, isSelected = false)
   }
 
   def getItemCount: Int = likesUsers.size
