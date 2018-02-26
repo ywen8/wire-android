@@ -1309,5 +1309,8 @@
 
     <string name="participants_divider_services">Services (%1$s)</string>
     <string name="participants_divider_people">People (%1$s)</string>
+    <string name="group_name_hint">GROUP NAME</string>
+    <string name="allow_guests_toggle_text">Allow guests</string>
+    <string name="allow_guests_toggle_info_text">Open this conversation to people outside your team. You can always change it later.</string>
 
 </resources>

@@ -28,7 +28,7 @@ import com.waz.utils.returning
 import com.waz.zclient.common.views.SingleUserRowView._
 import com.waz.zclient.paintcode.{ForwardNavigationIcon, GuestIcon}
 import com.waz.zclient.ui.text.TypefaceTextView
-import com.waz.zclient.utils.ContextUtils
+import com.waz.zclient.utils.{ContextUtils, StringUtils}
 import com.waz.zclient.{R, ViewHelper}
 
 class SingleUserRowView(context: Context, attrs: AttributeSet, style: Int) extends RelativeLayout(context, attrs, style) with ViewHelper {
@@ -63,7 +63,7 @@ class SingleUserRowView(context: Context, attrs: AttributeSet, style: Int) exten
     chathead.setUserId(userData.id)
     setTitle(userData.getDisplayName)
     setVerified(userData.isVerified)
-    setSubtitle(userData.handle.map(_.string))
+    setSubtitle(userData.handle.map(h => StringUtils.formatHandle(h.string)))
   }
 
   def setIsGuest(guest: Boolean): Unit = guestIndicator.setVisibility(if (guest) View.VISIBLE else View.GONE)

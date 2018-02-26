@@ -94,7 +94,7 @@ case class CreateGroupIcon(colorRes: Int)(implicit context: Context) extends Wir
 
 case class GuestIcon(colorRes: Int)(implicit context: Context) extends WireDrawable {
   setColor(getColor(colorRes))
-  override def draw(canvas: Canvas) = drawGroupIcon(canvas, new RectF(canvas.getClipBounds), ResizingBehavior.AspectFit, paint.getColor)
+  override def draw(canvas: Canvas) = drawGuestIcon(canvas, new RectF(canvas.getClipBounds), ResizingBehavior.AspectFit, paint.getColor)
 }
 
 case class ForwardNavigationIcon(colorRes: Int)(implicit context: Context) extends WireDrawable {

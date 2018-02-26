@@ -26,6 +26,7 @@ import com.waz.model.{UserData, UserId}
 import com.waz.service.ZMessaging
 import com.waz.utils.events.{EventContext, EventStream, Signal, SourceStream}
 import com.waz.zclient.common.views.SingleUserRowView
+import com.waz.zclient.conversation.ConversationController
 import com.waz.zclient.paintcode.{ForwardNavigationIcon, GuestIcon}
 import com.waz.zclient.utils.{ContextUtils, RichView, ViewUtils}
 import com.waz.zclient.{Injectable, Injector, R}
@@ -49,18 +50,24 @@ class ParticipantsAdapter(numOfColumns: Int)(implicit context: Context, injector
     isGuest <- Signal.sequence(userIds.map(z.teams.isGuest).toSeq:_*)
   } yield users.zip(isGuest).map(u => ParticipantData(u._1, u._2))
 
-  private lazy val positions = users.zip(participantsController.currentUserBelongsToConversationTeam).map { case (users, isTeam) =>
+  private val shouldShowGuestButton = inject[ConversationController].currentConv.map(_.accessRole.isDefined)
+
+  private lazy val positions = for {
+    users <- users
+    isTeam <- participantsController.currentUserBelongsToConversationTeam
+    guestButton <- shouldShowGuestButton
+  } yield {
     val (bots, people) = users.toList.partition(_.userData.isWireBot)
 
-    (if (isTeam) List(Right(GUEST_OPTIONS_BUTTON))
-      else Nil
+    (if (isTeam && guestButton) List(Right(GUEST_OPTIONS_BUTTON))
+    else Nil
       ) :::
-    (if (people.nonEmpty) List(Right(SEPARATOR_PEOPLE))
+      (if (people.nonEmpty) List(Right(SEPARATOR_PEOPLE))
       else Nil
-      ) ::: people.map(data => Left(data)) :::
-    (if (bots.nonEmpty) List(Right(SEPARATOR_BOTS))
+        ) ::: people.map(data => Left(data)) :::
+      (if (bots.nonEmpty) List(Right(SEPARATOR_BOTS))
       else Nil
-      ) ::: bots.map(data => Left(data))
+        ) ::: bots.map(data => Left(data))
   }
 
   positions.onUi { list =>

@@ -18,10 +18,11 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 -->
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:app="http://schemas.android.com/apk/res-auto"
              android:layout_width="match_parent"
              android:layout_height="match_parent"
-             xmlns:app="http://schemas.android.com/apk/res-auto">
+             android:orientation="vertical">
 
     <com.waz.zclient.common.views.InputBox
         android:id='@+id/input_box'
@@ -29,6 +30,39 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:hasButton="false"
-        app:hint="GROUP NAME"/>
+        app:hint="@string/group_name_hint"
+        android:layout_marginTop="40dp"/>
 
-</FrameLayout>
+    <FrameLayout
+        android:background="@color/white"
+        android:layout_width="match_parent"
+        android:layout_height="64dp"
+        android:paddingStart="@dimen/wire__padding__regular"
+        android:paddingEnd="@dimen/wire__padding__regular">
+
+        <com.waz.zclient.ui.text.TypefaceTextView
+            android:id="@+id/allow_guests_title"
+            android:text="@string/allow_guests_toggle_text"
+            android:layout_gravity="start|center_vertical"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/black"/>
+
+        <android.support.v7.widget.SwitchCompat
+            android:id="@+id/guests_toggle"
+            android:layout_gravity="end|center_vertical"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+
+    </FrameLayout>
+
+    <com.waz.zclient.ui.text.TypefaceTextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingStart="@dimen/wire__padding__regular"
+        android:paddingEnd="@dimen/wire__padding__regular"
+        android:layout_marginTop="@dimen/wire__padding__regular"
+        android:text="@string/allow_guests_toggle_info_text"
+        android:textColor="?wireSecondaryTextColor"/>
+
+</LinearLayout>

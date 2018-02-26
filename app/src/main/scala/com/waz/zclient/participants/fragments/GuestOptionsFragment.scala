@@ -43,6 +43,7 @@ class GuestOptionsFragment extends FragmentHelper with OnBackPressedListener {
 
   //TODO look into using something more similar to SwitchPreference
   private lazy val allowGustsSwitch = returning(view[SwitchCompat](R.id.allow_guests_switch)) { vh =>
+    convCtrl.currentConvIsTeamOnly.currentValue.foreach(teamOnly => vh.foreach(_.setChecked(!teamOnly)))
     convCtrl.currentConvIsTeamOnly.onUi(teamOnly => vh.foreach(_.setChecked(!teamOnly)))
   }
 
