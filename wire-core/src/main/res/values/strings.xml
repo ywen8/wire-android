@@ -1310,4 +1310,7 @@
     <string name="participants_divider_services">Services (%1$s)</string>
     <string name="participants_divider_people">People (%1$s)</string>
 
+    <string name="open_this_conversation_to_people_outside_your_team">Open this conversation to people outside your team</string>
+    <string name="allow_guests">Allow Guests</string>
+
 </resources>

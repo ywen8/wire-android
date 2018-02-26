@@ -42,22 +42,22 @@ class GuestOptionsFragment extends FragmentHelper with OnBackPressedListener {
   private lazy val convCtrl = inject[ConversationController]
 
   //TODO look into using something more similar to SwitchPreference
-  private lazy val allowGustsSwitch = returning(view[SwitchCompat](R.id.allow_guests_switch)) { vh =>
+  private lazy val guestsSwitch = returning(view[SwitchCompat](R.id.guest_toggle)) { vh =>
     convCtrl.currentConvIsTeamOnly.onUi(teamOnly => vh.foreach(_.setChecked(!teamOnly)))
   }
 
-  private lazy val allowGuestsTitle = view[TextView](R.id.allow_guests_title)
+  private lazy val guestsTitle = view[TextView](R.id.guest_toggle_title)
 
   override def onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState: Bundle) =
     inflater.inflate(R.layout.guest_options_fragment, container, false)
 
   override def onViewCreated(view: View, savedInstanceState: Bundle): Unit = {
-    allowGustsSwitch
+    guestsSwitch
   }
 
   override def onResume() = {
     super.onResume()
-    allowGustsSwitch.foreach {
+    guestsSwitch.foreach {
       _.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener {
         override def onCheckedChanged(buttonView: CompoundButton, isChecked: Boolean): Unit = {
           setGuestsSwitchEnabled(false)
@@ -80,12 +80,12 @@ class GuestOptionsFragment extends FragmentHelper with OnBackPressedListener {
   }
 
   private def setGuestsSwitchEnabled(enabled: Boolean) = {
-    allowGustsSwitch.foreach(_.setEnabled(enabled))
-    allowGuestsTitle.foreach(_.setAlpha(if (enabled) 1f else 0.5f))
+    guestsSwitch.foreach(_.setEnabled(enabled))
+    guestsTitle.foreach(_.setAlpha(if (enabled) 1f else 0.5f))
   }
 
   override def onStop() = {
-    allowGustsSwitch.foreach(_.setOnCheckedChangeListener(null))
+    guestsSwitch.foreach(_.setOnCheckedChangeListener(null))
     super.onStop()
   }
 

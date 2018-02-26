@@ -27,7 +27,8 @@ import com.waz.service.ZMessaging
 import com.waz.utils.events.{EventContext, EventStream, Signal, SourceStream}
 import com.waz.zclient.common.views.SingleUserRowView
 import com.waz.zclient.paintcode.{ForwardNavigationIcon, GuestIcon}
-import com.waz.zclient.utils.{ContextUtils, RichView, ViewUtils}
+import com.waz.zclient.utils.ContextUtils._
+import com.waz.zclient.utils.{RichView, ViewUtils}
 import com.waz.zclient.{Injectable, Injector, R}
 
 class ParticipantsAdapter(numOfColumns: Int)(implicit context: Context, injector: Injector, eventContext: EventContext)
@@ -52,13 +53,13 @@ class ParticipantsAdapter(numOfColumns: Int)(implicit context: Context, injector
   private lazy val positions = users.zip(participantsController.currentUserBelongsToConversationTeam).map { case (users, isTeam) =>
     val (bots, people) = users.toList.partition(_.userData.isWireBot)
 
-    (if (isTeam) List(Right(GUEST_OPTIONS_BUTTON))
+    (if (isTeam) List(Right(GuestOptions))
       else Nil
       ) :::
-    (if (people.nonEmpty) List(Right(SEPARATOR_PEOPLE))
+    (if (people.nonEmpty) List(Right(PeopleSeparator))
       else Nil
       ) ::: people.map(data => Left(data)) :::
-    (if (bots.nonEmpty) List(Right(SEPARATOR_BOTS))
+    (if (bots.nonEmpty) List(Right(BotsSeparator))
       else Nil
       ) ::: bots.map(data => Left(data))
   }
@@ -69,11 +70,11 @@ class ParticipantsAdapter(numOfColumns: Int)(implicit context: Context, injector
   }
 
   override def onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder = viewType match {
-    case GUEST_OPTIONS_BUTTON =>
+    case GuestOptions =>
       val view = LayoutInflater.from(parent.getContext).inflate(R.layout.guest_options_button, parent, false)
-      view.onClick(onGuestOptionsClick ! (()))
+      view.onClick(onGuestOptionsClick ! {})
       GuestOptionsButtonViewHolder(view)
-    case CHATHEAD =>
+    case UserRow =>
       val view = LayoutInflater.from(parent.getContext).inflate(R.layout.normal_participant_row, parent, false).asInstanceOf[SingleUserRowView]
       view.showArrow(true)
       ParticipantRowViewHolder(view, onClick)
@@ -82,23 +83,22 @@ class ParticipantsAdapter(numOfColumns: Int)(implicit context: Context, injector
 
   override def onBindViewHolder(holder: ViewHolder, position: Int): Unit = (items(position), holder) match {
     case (Left(userData), h: ParticipantRowViewHolder) => h.bind(userData)
-    case (Right(sepType), h: SeparatorViewHolder) if sepType == SEPARATOR_PEOPLE =>
-      val userCount = items.count {
-        case Left(a) if !a.userData.isWireBot => true
+
+    case (Right(sepType), h: SeparatorViewHolder) if Set(PeopleSeparator, BotsSeparator).contains(sepType) =>
+      val count = items.count {
+        case Left(a)
+          if sepType == PeopleSeparator && !a.userData.isWireBot ||
+             sepType == BotsSeparator && a.userData.isWireBot => true
         case _ => false
       }.toString
-      h.setTitle(ContextUtils.getString(R.string.participants_divider_people, userCount))
-    case (Right(sepType), h: SeparatorViewHolder) if sepType == SEPARATOR_BOTS     =>
-      val botCount = items.count {
-        case Left(a) if a.userData.isWireBot => true
-        case _ => false
-      }.toString
-      h.setTitle(ContextUtils.getString(R.string.participants_divider_services, botCount))
+      h.setTitle(getString(if (sepType == PeopleSeparator) R.string.participants_divider_people else R.string.participants_divider_services, count))
+      h.setId(if (sepType == PeopleSeparator) R.id.participants_section else R.id.services_section)
+
     case _ =>
   }
 
   def getSpanSize(position: Int): Int = getItemViewType(position) match {
-    case SEPARATOR_PEOPLE | SEPARATOR_BOTS => numOfColumns
+    case PeopleSeparator | BotsSeparator => numOfColumns
     case _                                   => 1
   }
 
@@ -113,7 +113,7 @@ class ParticipantsAdapter(numOfColumns: Int)(implicit context: Context, injector
 
   override def getItemViewType(position: Int): Int = items(position) match {
     case Right(sepType) => sepType
-    case _              => CHATHEAD
+    case _              => UserRow
   }
 
   private def getSeparatorView(parent: ViewGroup): View =
@@ -122,25 +122,25 @@ class ParticipantsAdapter(numOfColumns: Int)(implicit context: Context, injector
 }
 
 object ParticipantsAdapter {
-  val CHATHEAD = 0
-  val SEPARATOR_PEOPLE = 1
-  val SEPARATOR_BOTS = 2
-  val GUEST_OPTIONS_BUTTON = 3
+  val UserRow = 0
+  val PeopleSeparator = 1
+  val BotsSeparator = 2
+  val GuestOptions = 3
 
   case class ParticipantData(userData: UserData, isGuest: Boolean)
 
   case class GuestOptionsButtonViewHolder(view: View) extends ViewHolder(view) {
     private implicit val ctx = view.getContext
+    view.setId(R.id.guest_options)
     view.findViewById[ImageView](R.id.icon).setImageDrawable(GuestIcon(R.color.graphite))
     view.findViewById[ImageView](R.id.next_indicator).setImageDrawable(ForwardNavigationIcon(R.color.light_graphite))
   }
 
   case class SeparatorViewHolder(separator: View) extends ViewHolder(separator) {
-    def setTitle(title: Int): Unit =
-      ViewUtils.getView[TextView](separator, R.id.separator_title).setText(title)
-    def setTitle(title: String): Unit = {
-      ViewUtils.getView[TextView](separator, R.id.separator_title).setText(title)
-    }
+    private val textView = ViewUtils.getView[TextView](separator, R.id.separator_title)
+
+    def setTitle(title: String) = textView.setText(title)
+    def setId(id: Int) = textView.setId(id)
   }
 
   case class ParticipantRowViewHolder(view: SingleUserRowView, onClick: SourceStream[UserId]) extends ViewHolder(view) {
