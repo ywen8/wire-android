@@ -164,12 +164,20 @@ object ShareActivity {
           None
       }).orElse(default)
     } else
-      uri.getScheme.toLowerCase match {
+      (uri.getScheme.toLowerCase match {
         case "content" => getDocumentPath(context, uri).orElse(default)
-        case "file" if uri.getPath.contains(context.getPackageName) => None //filter out attempts to trick us into sending application data
         case _ =>
           warn(s"Unreachable content: $uri")
           default
+      }).flatMap { u =>
+        //filter out attempts to trick us into sending application/sensitive data
+        val path = u.getPath
+        if (path.contains(context.getPackageName) ||
+            path.startsWith("/proc")) {
+          None
+        } else {
+          Some(u)
+        }
       }
   }
 
