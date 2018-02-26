@@ -62,7 +62,7 @@ class NewConversationController(implicit inj: Injector) extends Injectable {
       name     <- name.head
       users    <- users.head
       teamOnly <- teamOnly.head
-      conv     <- conversationController.createGroupConversation(Some(name.trim), users.toSeq, teamOnly)
+      conv     <- conversationController.createGroupConversation(Some(name.trim), users, teamOnly)
       from     <- fromScreen.head
     } yield {
       tracking.track(GroupConversationSuccessful(users.nonEmpty, from))
