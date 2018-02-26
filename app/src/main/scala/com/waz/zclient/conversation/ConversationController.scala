@@ -147,7 +147,7 @@ class ConversationController(implicit injector: Injector, context: Context, ec: 
     convId <- currentConvId.head
   } yield z.convsUi.setConversationName(convId, name)
 
-  def addMembers(id: ConvId, users: Set[UserId]): Future[Unit] = zms.head.map { _.convsUi.addConversationMembers(id, users.toSeq) }
+  def addMembers(id: ConvId, users: Set[UserId]): Future[Unit] = zms.head.map { _.convsUi.addConversationMembers(id, users) }
 
   def removeMember(user: UserId): Future[Unit] = for {
     z <- zms.head
@@ -180,7 +180,7 @@ class ConversationController(implicit injector: Injector, context: Context, ec: 
     if (alsoLeave) leave(id).flatMap(_ => clear(id)) else clear(id)
   }
 
-  def createGroupConversation(name: Option[String], users: Seq[UserId], teamOnly: Boolean): Future[ConversationData] =
+  def createGroupConversation(name: Option[String], users: Set[UserId], teamOnly: Boolean): Future[ConversationData] =
     zms.head.flatMap { z => z.convsUi.createGroupConversation(name, users, teamOnly).map(_._1) }
 
   // TODO: remove when not used anymore
