@@ -58,7 +58,6 @@ class PickUsersAdapter(topUsersOnItemTouchListener: SearchResultOnItemTouchListe
   private var topUsers = IndexedSeq.empty[UserData]
   private var localResults = IndexedSeq.empty[UserData]
   private var conversations = IndexedSeq.empty[ConversationData]
-  private var contacts = GenSeq.empty[ContactResult]
   private var directoryResults = IndexedSeq.empty[UserData]
   private var integrations = IndexedSeq.empty[IntegrationData]
   private var currentUser = Option.empty[UserData]
@@ -72,7 +71,6 @@ class PickUsersAdapter(topUsersOnItemTouchListener: SearchResultOnItemTouchListe
     topUsers         = res.top
     localResults     = res.local
     conversations    = res.convs
-    contacts         = res.ab
     directoryResults = res.dir
     updateMergedResults()
   }
@@ -102,14 +100,9 @@ class PickUsersAdapter(topUsersOnItemTouchListener: SearchResultOnItemTouchListe
     }
 
     def addContacts(): Unit = {
-      if (contacts.nonEmpty || localResults.nonEmpty) {
+      if (localResults.nonEmpty) {
         mergedResult = mergedResult ++ Seq(SearchResult(SectionHeader, ContactsSection, 0, teamName))
         var contactsSection = Seq[SearchResult]()
-
-        contactsSection = contactsSection ++ (0 until contacts.size).map { i =>
-          val name = Option(contacts(i).contact.name).getOrElse("")
-          SearchResult(AddressBookContact, ContactsSection, i, name)
-        }
 
         contactsSection = contactsSection ++ localResults.indices.map { i =>
           SearchResult(ConnectedUser, ContactsSection, i, localResults(i).id.str.hashCode, localResults(i).getDisplayName)
@@ -206,13 +199,8 @@ class PickUsersAdapter(topUsersOnItemTouchListener: SearchResultOnItemTouchListe
         holder.asInstanceOf[UserViewHolder].bind(unconnectedUser, contactIsSelected)
       case SectionHeader =>
         holder.asInstanceOf[SectionHeaderViewHolder].bind(item.section, item.name)
-      case NameInitialSeparator =>
-        holder.asInstanceOf[AddressBookSectionHeaderViewHolder].bind(item.name)
-      case AddressBookContact =>
-        val contact  = contacts(item.index)
-        holder.asInstanceOf[AddressBookContactViewHolder].bind(contact, adapterCallback)
       case Expand =>
-        val itemCount = if (item.section == ContactsSection) contacts.size + localResults.size else conversations.size
+        val itemCount = if (item.section == ContactsSection) localResults.size else conversations.size
         holder.asInstanceOf[SectionExpanderViewHolder].bind(itemCount, new View.OnClickListener() {
           def onClick(v: View): Unit = {
             if (item.section == ContactsSection) expandContacts() else expandGroups()
@@ -240,12 +228,6 @@ class PickUsersAdapter(topUsersOnItemTouchListener: SearchResultOnItemTouchListe
       case SectionHeader =>
         val view = LayoutInflater.from(parent.getContext).inflate(R.layout.startui_section_header, parent, false)
         new SectionHeaderViewHolder(view)
-      case NameInitialSeparator =>
-        val view = LayoutInflater.from(parent.getContext).inflate(R.layout.startui_section_header, parent, false)
-        new AddressBookSectionHeaderViewHolder(view, darkTheme)
-      case AddressBookContact =>
-        val view = LayoutInflater.from(parent.getContext).inflate(R.layout.contactlist_user, parent, false)
-        new AddressBookContactViewHolder(view, darkTheme)
       case Expand =>
         val view = LayoutInflater.from(parent.getContext).inflate(R.layout.startui_section_expander, parent, false)
         new SectionExpanderViewHolder(view)
@@ -282,15 +264,13 @@ object PickUsersAdapter {
 
   //Item Types
   val TopUsers: Int = 0
-  val NameInitialSeparator: Int = 1
-  val AddressBookContact: Int = 2
-  val ConnectedUser: Int = 3
-  val UnconnectedUser: Int = 4
-  val GroupConversation: Int = 5
-  val SectionHeader: Int = 6
-  val Expand: Int = 7
-  val Integration: Int = 8
-  val NewConversation: Int = 9
+  val ConnectedUser: Int = 1
+  val UnconnectedUser: Int = 2
+  val GroupConversation: Int = 3
+  val SectionHeader: Int = 4
+  val Expand: Int = 5
+  val Integration: Int = 6
+  val NewConversation: Int = 7
 
   //Sections
   val TopUsersSection = 0
@@ -304,7 +284,6 @@ object PickUsersAdapter {
   val CollapsedGroups = 5
 
   trait Callback {
-    def onContactListContactClicked(contactDetails: ContactResult): Unit
     def onCreateConvClicked(): Unit
   }
 

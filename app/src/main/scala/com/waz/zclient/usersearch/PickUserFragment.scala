@@ -59,7 +59,7 @@ import com.waz.zclient.pages.main.participants.dialog.DialogLaunchMode
 import com.waz.zclient.pages.main.pickuser.controller.IPickUserController
 import com.waz.zclient.ui.text.TypefaceTextView
 import com.waz.zclient.usersearch.adapters.PickUsersAdapter
-import com.waz.zclient.usersearch.views.{ContactRowView, SearchEditText}
+import com.waz.zclient.usersearch.views.SearchEditText
 import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.utils.{IntentUtils, RichView, StringUtils, UiStorage, UserSignal}
 import com.waz.zclient.views._
@@ -318,7 +318,7 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
           keyboard.hideKeyboardIfVisible()
           if (user.connection == Accepted || (user.connection == Unconnected && z.teamId.isDefined && z.teamId == user.teamId))
             userAccountsController.getOrCreateAndOpenConvFor(userId)
-          else if (!anchorView.isInstanceOf[ContactRowView] || (user.connection != ConnectionStatus.Unconnected)) {
+          else if (user.connection != ConnectionStatus.Unconnected) {
             Future { user.connection match {
               case PendingFromUser | Blocked | Ignored | Cancelled | Unconnected =>
                 convScreenController.setPopoverLaunchedMode(DialogLaunchMode.SEARCH)
@@ -353,60 +353,6 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
       .commit()
 
     //inject[INavigationController].setLeftPage(Page.CREATE_CONV, PickUserFragment.TAG)
-  }
-
-  override def onContactListContactClicked(contactDetails: ContactResult): Unit = {
-    if (inject[NetworkModeService].isOnlineMode) {
-      contactDetails.contactMethods.toList match {
-        case method :: Nil if method.getType == ContactMethod.Phone =>
-          sendSMSInvite(method)
-        case method :: Nil if method.getType == ContactMethod.Email =>
-          sendEmailInvite(method)
-        case methods if methods.nonEmpty =>
-          val itemNames: Array[CharSequence] = methods.map(_.stringRepresentation).toArray
-
-          var dialog: AlertDialog = null
-          val builder: AlertDialog.Builder = new AlertDialog.Builder(getActivity)
-          builder.setTitle(getResources.getString(R.string.people_picker__contact_list__invite_dialog__title))
-            .setPositiveButton(getResources.getText(R.string.confirmation_menu__confirm_done), new DialogInterface.OnClickListener() {
-            def onClick(dialogInterface: DialogInterface, i: Int): Unit = {
-              val lv: ListView = dialog.getListView
-              val selected: Int = lv.getCheckedItemPosition
-
-              if (contactDetails.contactMethods.isDefinedAt(selected)) {
-                val selectedContactMethod = contactDetails.contactMethods(selected)
-                if (selectedContactMethod.getType == ContactMethod.Phone) {
-                  sendSMSInvite(selectedContactMethod)
-                } else {
-                  sendEmailInvite(selectedContactMethod)
-
-                }
-              }
-            }
-          }).setNegativeButton(getResources.getText(R.string.confirmation_menu__cancel), new DialogInterface.OnClickListener() {
-            def onClick(dialogInterface: DialogInterface, i: Int): Unit = {
-              dialogInterface.cancel()
-            }
-          }).setSingleChoiceItems(itemNames, PickUserFragment.DEFAULT_SELECTED_INVITE_METHOD, null)
-          dialog = builder.create
-          dialog.show()
-        case _ =>
-      }
-    }
-  }
-
-  private def sendEmailInvite(contactMethod: ContactMethod) = {
-    zms.head.flatMap(_.invitations.invite(contactMethod.contact.id, contactMethod.method, contactMethod.contact.name, " ", None))
-    showToast(R.string.people_picker__invite__sent_feedback)
-  }
-
-  private def sendSMSInvite(contactMethod: ContactMethod): Unit = {
-    self.head.map { self =>
-      val smsBody = getString(R.string.people_picker__invite__share_text__body, self.handle.map(_.string).fold(self.getDisplayName)(StringUtils.formatHandle))
-      val intent = new Intent(Intent.ACTION_SENDTO, Uri.fromParts("sms", contactMethod.stringRepresentation, ""))
-      intent.putExtra("sms_body", smsBody)
-      startActivity(intent)
-    } (Threading.Ui)
   }
 
   private def getCurrentPickerDestination: IPickUserController.Destination =
