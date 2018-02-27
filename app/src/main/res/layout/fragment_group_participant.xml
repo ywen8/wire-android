@@ -32,6 +32,16 @@
         android:layout_above="@+id/fm__participants__footer"
         />
 
+    <com.waz.zclient.ui.text.GlyphTextView
+        android:id="@+id/empty_list_icon"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:textSize="@dimen/wire__text_size__insane"
+        android:textColor="@color/light_graphite_24"
+        android:text="@string/glyph__people"
+        android:gravity="center"
+        />
+
     <!-- Footer with left & right actions -->
     <com.waz.zclient.views.menus.FooterMenu
         android:id="@+id/fm__participants__footer"
