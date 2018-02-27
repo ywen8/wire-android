@@ -30,10 +30,10 @@ import com.waz.api.User.ConnectionStatus
 import com.waz.api.User.ConnectionStatus._
 import com.waz.api.impl.AccentColor
 import com.waz.model.{AssetData, UserData, UserId, _}
+import com.waz.service.ZMessaging
 import com.waz.service.assets.AssetService.BitmapResult
 import com.waz.service.assets.AssetService.BitmapResult.BitmapLoaded
 import com.waz.service.images.BitmapSignal
-import com.waz.service.{ContactResult, ZMessaging}
 import com.waz.threading.Threading
 import com.waz.ui.MemoryImageCache.BitmapRequest.{Round, Single}
 import com.waz.utils.events.{EventContext, Signal}
@@ -126,8 +126,6 @@ class ChatheadView(val context: Context, val attrs: AttributeSet, val defStyleAt
 
   def setUserId(userId: UserId): Unit = ctrl.setUserId(userId)
 
-  def setContactDetails(contactDetails: ContactResult): Unit = ctrl.setContactDetails(contactDetails)
-
   def setIntegration(integration: IntegrationData): Unit = ctrl.setIntegration(integration)
 
   override def isSelected = {
@@ -165,8 +163,7 @@ class ChatheadView(val context: Context, val attrs: AttributeSet, val defStyleAt
       val borderWidth = ctrl.borderWidth.currentValue.getOrElse(0)
       val selected = ctrl.selected.currentValue.getOrElse(false)
       val connectionStatus = ctrl.connectionStatus.currentValue.getOrElse(UNCONNECTED)
-      val hasBeenInvited = ctrl.hasBeenInvited.currentValue.getOrElse(false)
-      val glyph = getGlyphText(selected, hasBeenInvited, connectionStatus, ctrl.showWaitingForConnection)
+      val glyph = getGlyphText(selected, connectionStatus, ctrl.showWaitingForConnection)
       val bitmap = ctrl.bitmap.currentValue.getOrElse(Option.empty[Bitmap])
 
       val radius: Float = size / 2f
@@ -232,12 +229,9 @@ class ChatheadView(val context: Context, val attrs: AttributeSet, val defStyleAt
     cy - ((textPaint.descent + textPaint.ascent) / 2f)
   }
 
-  private def getGlyphText(selected: Boolean, contactHasBeenInvited: Boolean, connectionStatus: ConnectionStatus, showWaiting: Boolean): String = {
-    if (selected) {
-      getResources.getString(selectedUserGlyphId)
-    } else if (contactHasBeenInvited) {
-      getResources.getString(pendingAddressBookContactGlyphId)
-    } else {
+  private def getGlyphText(selected: Boolean, connectionStatus: ConnectionStatus, showWaiting: Boolean): String = {
+    if (selected) getResources.getString(selectedUserGlyphId)
+    else {
       connectionStatus match {
         case PENDING_FROM_OTHER | PENDING_FROM_USER | IGNORED if showWaiting => getResources.getString(pendingUserGlyphId)
         case BLOCKED => getResources.getString(blockedUserGlyphId)
@@ -251,7 +245,6 @@ object ChatheadView {
 
   private val selectedUserGlyphId: Int = R.string.glyph__check
   private val pendingUserGlyphId: Int = R.string.glyph__clock
-  private val pendingAddressBookContactGlyphId: Int = R.string.glyph__redo
   private val blockedUserGlyphId: Int = R.string.glyph__block
   private val chatheadBottomMarginRatio: Float = 12.75f
   private val defaultInitialFontSize = -1
@@ -276,14 +269,11 @@ protected class ChatheadController(val setSelectable:            Boolean        
 
   def setUserId(userId: UserId): Unit = Option(userId).fold(throw new IllegalArgumentException("UserId should not be null"))(u => assignInfo ! Some(AssignDetails(u)))
 
-  def setContactDetails(contactDetails: ContactResult): Unit = Option(contactDetails).fold(throw new IllegalArgumentException("ContactDetails should not be null"))(c => assignInfo ! Some(AssignDetails(c)))
-
-  def setIntegration(integration: IntegrationData): Unit = Option(integration).fold(throw new IllegalArgumentException("ContactDetails should not be null"))(i => assignInfo ! Some(AssignDetails(i)))
+  def setIntegration(integration: IntegrationData): Unit = Option(integration).fold(throw new IllegalArgumentException("IntegrationDetails should not be null"))(i => assignInfo ! Some(AssignDetails(i)))
 
   val chatheadInfo: Signal[Option[ChatheadDetails]] = zMessaging.zip(assignInfo).flatMap {
-    case (zms, Some(AssignDetails(Some(userId), _, _))) => zms.usersStorage.signal(userId).map(ud => Some(ChatheadDetails(ud)))
-    case (_, Some(AssignDetails(_, Some(contactDetails), _))) => Signal.const(Some(ChatheadDetails(contactDetails)))
-    case (_, Some(AssignDetails(_, _, Some(integration)))) => Signal.const(Some(ChatheadDetails(integration)))
+    case (zms, Some(AssignDetails(Some(userId), _))) => zms.usersStorage.signal(userId).map(ud => Some(ChatheadDetails(ud)))
+    case (_, Some(AssignDetails(_, Some(integration)))) => Signal.const(Some(ChatheadDetails(integration)))
     case _ => Signal.const(None)
   }
 
@@ -299,11 +289,6 @@ protected class ChatheadController(val setSelectable:            Boolean        
 
   val teamMember = chatheadInfo.map {
     case Some(details) => details.teamMember
-    case _ => false
-  }
-
-  val hasBeenInvited = chatheadInfo.map {
-    case Some(details) => details.hasBeenInvited
     case _ => false
   }
 
@@ -372,16 +357,15 @@ protected class ChatheadController(val setSelectable:            Boolean        
   val drawColors = grayScale.zip(accentColor)
 
   //Everything else that requires a redraw
-  val invalidate = Signal(bitmap, selected, borderWidth).zip(Signal(initials, hasBeenInvited, connectionStatus)).onChanged
+  val invalidate = Signal(bitmap, selected, borderWidth).zip(Signal(initials, connectionStatus)).onChanged
 
-  case class AssignDetails(userId: Option[UserId], contact: Option[ContactResult], integration: Option[IntegrationData]){
-    assert(userId.nonEmpty || contact.nonEmpty || integration.nonEmpty)
+  case class AssignDetails(userId: Option[UserId], integration: Option[IntegrationData]){
+    assert(userId.nonEmpty || integration.nonEmpty)
   }
 
   object AssignDetails {
-    def apply(userId: UserId): AssignDetails = AssignDetails(Some(userId), None, None)
-    def apply(contact: ContactResult): AssignDetails = AssignDetails(None, Some(contact), None)
-    def apply(integration: IntegrationData): AssignDetails = AssignDetails(None, None, Some(integration))
+    def apply(userId: UserId): AssignDetails = AssignDetails(Some(userId), None)
+    def apply(integration: IntegrationData): AssignDetails = AssignDetails(None, Some(integration))
   }
 
   case class ChatheadDetails(accentColor: ColorVal = contactBackgroundColor,
@@ -413,12 +397,6 @@ protected class ChatheadController(val setSelectable:            Boolean        
         isBot = user.isWireBot
       )
     }
-
-    def apply(contactDetails: ContactResult): ChatheadDetails =
-      ChatheadDetails(
-        hasBeenInvited = contactDetails.invited,
-        initials = contactDetails.contact.initials
-      )
 
     def apply(integration: IntegrationData): ChatheadDetails =
       ChatheadDetails(

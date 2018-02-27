@@ -27,7 +27,7 @@ import android.view.inputmethod.EditorInfo
 import android.widget.TextView
 import android.widget.TextView.OnEditorActionListener
 import com.waz.ZLog.ImplicitTag._
-import com.waz.model.{UserData, UserId}
+import com.waz.model.{TeamId, UserData, UserId}
 import com.waz.service.ZMessaging
 import com.waz.service.tracking.{OpenSelectParticipants, TrackingService}
 import com.waz.threading.Threading
@@ -41,7 +41,7 @@ import com.waz.zclient.ui.text.TypefaceTextView
 import com.waz.zclient.usersearch.views.{PickerSpannableEditText, SearchEditText}
 import com.waz.zclient.utils.ContextUtils.getColor
 import com.waz.zclient.utils.RichView
-import com.waz.zclient.{FragmentHelper, OnBackPressedListener, R, ViewHelper}
+import com.waz.zclient._
 
 import scala.collection.immutable.Set
 import scala.concurrent.Future
@@ -62,12 +62,15 @@ class NewConversationPickFragment extends Fragment with FragmentHelper with OnBa
   private lazy val searchFilter = Signal("")
 
   private lazy val searchResults = for {
-    zms     <- zms
-    filter  <- searchFilter
-    convId  <- newConvController.convId
-    results <- zms.userSearch.searchLocal(filter, toConv = convId)
-    users   <- Signal.sequence(results.map(u => zms.teams.isGuest(u.id).map(g => (u, g))):_*)
-  } yield users
+    zms      <- zms
+    filter   <- searchFilter
+    convId   <- newConvController.convId
+    teamOnly <- newConvController.teamOnly
+    results  <- convId match {
+      case Some(cId) => zms.userSearch.usersToAddToConversation(filter, cId)
+      case None      => zms.userSearch.usersForNewConversation(filter, teamOnly)
+    }
+  } yield results
 
   private lazy val adapter = NewConvAdapter(searchResults, newConvController.users)
 
@@ -196,30 +199,33 @@ object NewConversationPickFragment {
   }
 }
 
-case class NewConvAdapter(searchResults: Signal[Seq[(UserData, Boolean)]], selectedUsers: SourceSignal[Set[UserId]])(implicit context: Context, eventContext: EventContext) extends RecyclerView.Adapter[SelectableUserRowViewHolder] {
+case class NewConvAdapter(searchResults: Signal[IndexedSeq[UserData]], selectedUsers: SourceSignal[Set[UserId]])
+                         (implicit context: Context, eventContext: EventContext, injector: Injector)
+  extends RecyclerView.Adapter[SelectableUserRowViewHolder] with Injectable {
+
   private implicit val ctx = context
 
-  private var users = Seq.empty[PickableUserData]
+  private var users = Seq.empty[(UserData, Boolean)]
+  private var team = Option.empty[TeamId]
 
   val onUserSelectionChanged = EventStream[(UserId, Boolean)]()
 
   setHasStableIds(true)
 
   (for {
+    tId <- inject[Signal[ZMessaging]].map(_.teamId) //TODO - we should use the conversation's teamId when available...
     res <- searchResults
     sel <- selectedUsers
-  } yield (res, sel))
+  } yield (tId, res, sel))
     .onUi {
-      case (res, sel) =>
+      case (tId, res, sel) =>
+        team = tId
         val prev = this.users
-        this.users = res.map(u => PickableUserData(u._1, isGuest = u._2, isSelected = sel.contains(u._1.id)))
-        if (prev.map(_.userData) == res.map(_._1)) {
+        this.users = res.map(u => (u, sel.contains(u.id)))
+        if (prev.map(_._1) == res) {
           val changedPositions = prev.map {
-            pickableUser =>
-              if (pickableUser.isSelected && !sel.contains(pickableUser.userData.id) || !pickableUser.isSelected && sel.contains(pickableUser.userData.id))
-                prev.indexOf(pickableUser)
-              else
-                -1
+            case (user, selected) =>
+              if (selected && !sel.contains(user.id) || !selected && sel.contains(user.id)) prev.map(_._1).indexOf(user) else -1
           }
           changedPositions.filterNot(_ == -1).foreach(notifyItemChanged)
         } else
@@ -246,15 +252,13 @@ case class NewConvAdapter(searchResults: Signal[Seq[(UserData, Boolean)]], selec
   }
 
 
-  override def getItemId(position: Int) = users(position).userData.id.str.hashCode
+  override def getItemId(position: Int) = users(position)._1.id.str.hashCode
 
   override def onBindViewHolder(holder: SelectableUserRowViewHolder, position: Int): Unit = {
-    val user = users(position)
-    holder.bind(user.userData, isGuest = user.isGuest, selected = user.isSelected)
+    val (user, selected) = users(position)
+    holder.bind(user, isGuest = user.isGuest(team), selected = selected)
   }
 }
-
-case class PickableUserData(userData: UserData, isGuest: Boolean, isSelected: Boolean)
 
 case class SelectableUserRowViewHolder(v: SingleUserRowView) extends RecyclerView.ViewHolder(v) {
 

@@ -22,11 +22,12 @@ import android.view.{LayoutInflater, View, ViewGroup}
 import com.waz.ZLog.ImplicitTag._
 import com.waz.ZLog.verbose
 import com.waz.model._
+import com.waz.service.ZMessaging
 import com.waz.threading.Threading
 import com.waz.utils.events.{EventContext, Signal}
 import com.waz.utils.returning
 import com.waz.zclient._
-import com.waz.zclient.common.controllers.{IntegrationsController, SearchUserController, UserAccountsController, UserSearchResult}
+import com.waz.zclient.common.controllers.{IntegrationsController, UserAccountsController}
 import com.waz.zclient.common.views.SingleUserRowView
 import com.waz.zclient.paintcode.CreateGroupIcon
 import com.waz.zclient.ui.text.GlyphTextView
@@ -39,9 +40,7 @@ import scala.concurrent.duration._
 
 class PickUsersAdapter(topUsersOnItemTouchListener: SearchResultOnItemTouchListener,
                        adapterCallback: PickUsersAdapter.Callback,
-                       searchUserController: SearchUserController,
-                       integrationsController: IntegrationsController,
-                       darkTheme: Boolean)
+                       integrationsController: IntegrationsController)
                       (implicit injector: Injector) extends RecyclerView.Adapter[RecyclerView.ViewHolder] with Injectable {
 
   implicit private val ec = EventContext.Implicits.global
@@ -54,24 +53,38 @@ class PickUsersAdapter(topUsersOnItemTouchListener: SearchResultOnItemTouchListe
   private var collapsedContacts = true
   private var collapsedGroups = true
 
+  private var teamId = Option.empty[TeamId]
   private var topUsers = IndexedSeq.empty[UserData]
-  private var localResults = IndexedSeq.empty[UserSearchResult]
+  private var localResults = IndexedSeq.empty[UserData]
   private var conversations = IndexedSeq.empty[ConversationData]
   private var directoryResults = IndexedSeq.empty[UserData]
   private var integrations = IndexedSeq.empty[IntegrationData]
   private var currentUser = Option.empty[UserData]
 
+  val filter = Signal("")
+
+  val searchResults = for {
+    z        <- inject[Signal[ZMessaging]]
+    filter   <- filter
+    res      <- z.userSearch.search(filter)
+  } yield res
+
   val peopleOrServices = Signal[Boolean](false)
 
   peopleOrServices.on(Threading.Ui) { _ => updateMergedResults() }
 
-  searchUserController.searchResults.throttle(500.millis).onUi { case (res, userResults) =>
-    verbose(res.toString)
-    topUsers         = res.top
-    localResults     = userResults
-    conversations    = res.convs
-    directoryResults = res.dir
-    updateMergedResults()
+  (for {
+    team <- inject[Signal[ZMessaging]].map(_.teamId)
+    res  <- searchResults
+  } yield (team, res)).throttle(500.millis).onUi {
+    case (team, res) =>
+      verbose(res.toString)
+      teamId           = team
+      topUsers         = res.top
+      localResults     = res.local
+      conversations    = res.convs
+      directoryResults = res.dir
+      updateMergedResults()
   }
 
   integrationsController.searchIntegrations.throttle(500.millis).on(Threading.Ui) {
@@ -104,10 +117,10 @@ class PickUsersAdapter(topUsersOnItemTouchListener: SearchResultOnItemTouchListe
         var contactsSection = Seq[SearchResult]()
 
         contactsSection = contactsSection ++ localResults.indices.map { i =>
-          SearchResult(ConnectedUser, ContactsSection, i, localResults(i).userData.id.str.hashCode, localResults(i).userData.getDisplayName)
+          SearchResult(ConnectedUser, ContactsSection, i, localResults(i).id.str.hashCode, localResults(i).getDisplayName)
         }
 
-        val shouldCollapse = searchUserController.filter.currentValue.exists(_.nonEmpty) && collapsedContacts && contactsSection.size > CollapsedContacts
+        val shouldCollapse = filter.currentValue.exists(_.nonEmpty) && collapsedContacts && contactsSection.size > CollapsedContacts
 
         contactsSection = contactsSection.sortBy(_.name).take(if (shouldCollapse) CollapsedContacts else contactsSection.size)
 
@@ -152,10 +165,7 @@ class PickUsersAdapter(topUsersOnItemTouchListener: SearchResultOnItemTouchListe
     }
 
     def addGroupCreationButton(): Unit =
-      if (searchUserController.filter.currentValue.exists(_.isEmpty) && searchUserController.toConv.isEmpty) {
-        mergedResult = mergedResult ++ Seq(SearchResult(NewConversation, TopUsersSection, 0))
-      }
-
+      mergedResult = mergedResult ++ Seq(SearchResult(NewConversation, TopUsersSection, 0))
 
     if (userAccountsController.isTeamAccount) {
       if (peopleOrServices.currentValue.contains(true)) {
@@ -185,19 +195,22 @@ class PickUsersAdapter(topUsersOnItemTouchListener: SearchResultOnItemTouchListe
       case TopUsers =>
         holder.asInstanceOf[TopUsersViewHolder].bind(topUsers)
         holder.asInstanceOf[TopUsersViewHolder].bindOnItemTouchListener(topUsersOnItemTouchListener)
+
       case GroupConversation =>
         val conversation = conversations(item.index)
         holder.asInstanceOf[ConversationViewHolder].bind(conversation)
+
       case ConnectedUser =>
-        val connectedUser = localResults(item.index)
-        val contactIsSelected = searchUserController.selectedUsers.currentValue.exists(_.contains(connectedUser.userData.id))
-        holder.asInstanceOf[UserViewHolder].bind(connectedUser.userData, isGuest = connectedUser.isGuest, isSelected = contactIsSelected)
+        val user = localResults(item.index)
+        holder.asInstanceOf[UserViewHolder].bind(user, isGuest = user.isGuest(teamId))
+
       case UnconnectedUser =>
         val unconnectedUser = directoryResults(item.index)
-        val contactIsSelected = searchUserController.selectedUsers.currentValue.exists(_.contains(unconnectedUser.id))
-        holder.asInstanceOf[UserViewHolder].bind(unconnectedUser, isGuest = false, contactIsSelected)
+        holder.asInstanceOf[UserViewHolder].bind(unconnectedUser, isGuest = false)
+
       case SectionHeader =>
         holder.asInstanceOf[SectionHeaderViewHolder].bind(item.section, item.name)
+
       case Expand =>
         val itemCount = if (item.section == ContactsSection) localResults.size else conversations.size
         holder.asInstanceOf[SectionExpanderViewHolder].bind(itemCount, new View.OnClickListener() {
@@ -205,6 +218,7 @@ class PickUsersAdapter(topUsersOnItemTouchListener: SearchResultOnItemTouchListe
             if (item.section == ContactsSection) expandContacts() else expandGroups()
           }
         })
+
       case Integration =>
         val integration = integrations(item.index)
         holder.asInstanceOf[IntegrationViewHolder].bind(integration)
@@ -216,33 +230,38 @@ class PickUsersAdapter(topUsersOnItemTouchListener: SearchResultOnItemTouchListe
     viewType match {
       case TopUsers =>
         val view = LayoutInflater.from(parent.getContext).inflate(R.layout.startui_top_users, parent, false)
-        val topUserAdapter: TopUserAdapter = new TopUserAdapter(searchUserController.selectedUsers.map(_.toSet))
-        new com.waz.zclient.usersearch.viewholders.TopUsersViewHolder(view, topUserAdapter, parent.getContext)
+        new TopUsersViewHolder(view, new TopUserAdapter(), parent.getContext)
+
       case ConnectedUser | UnconnectedUser =>
         val view = LayoutInflater.from(parent.getContext).inflate(R.layout.single_user_row, parent, false).asInstanceOf[SingleUserRowView]
-        val vh = new UserViewHolder(view, darkTheme, searchUserController.toConv.nonEmpty)
+        val vh = new UserViewHolder(view)
         view.onClick(vh.userData.foreach(u => adapterCallback.onUserClicked(u.id, vh.itemView)))
         vh
+
       case GroupConversation =>
         val view = LayoutInflater.from(parent.getContext).inflate(R.layout.startui_conversation, parent, false)
-        new ConversationViewHolder(view, darkTheme)
+        new ConversationViewHolder(view)
+
       case SectionHeader =>
         val view = LayoutInflater.from(parent.getContext).inflate(R.layout.startui_section_header, parent, false)
         new SectionHeaderViewHolder(view)
+
       case Expand =>
         val view = LayoutInflater.from(parent.getContext).inflate(R.layout.startui_section_expander, parent, false)
         new SectionExpanderViewHolder(view)
+
       case Integration =>
         val view = LayoutInflater.from(parent.getContext).inflate(R.layout.single_user_row, parent, false).asInstanceOf[SingleUserRowView]
-        val vh = new IntegrationViewHolder(view, darkTheme)
+        val vh = new IntegrationViewHolder(view)
         view.onClick(vh.integrationData.foreach(i => adapterCallback.onIntegrationClicked(i)))
         vh
+
       case NewConversation =>
         val view = returning(LayoutInflater.from(parent.getContext).inflate(R.layout.startui_create_conv, parent, false)) { l =>
           l.findViewById[GlyphTextView](R.id.icon).setBackground(CreateGroupIcon(R.color.white)(parent.getContext))
           l.onClick(adapterCallback.onCreateConvClicked())
         }
-        new CreateConvViewHolder(view, darkTheme)
+        new RecyclerView.ViewHolder(view) {}
     }
   }
 

@@ -21,16 +21,13 @@ import android.support.v7.widget.RecyclerView
 import com.waz.model.IntegrationData
 import com.waz.zclient.common.views.SingleUserRowView
 
-class IntegrationViewHolder(val view: SingleUserRowView, darkTheme: Boolean) extends RecyclerView.ViewHolder(view) {
+class IntegrationViewHolder(view: SingleUserRowView) extends RecyclerView.ViewHolder(view) {
 
   var integrationData: Option[IntegrationData] = None
 
-  private val theme = if (darkTheme) SingleUserRowView.Transparent
-  else SingleUserRowView.Light
-
   view.showArrow(false)
   view.showCheckbox(false)
-  view.setTheme(theme)
+  view.setTheme(SingleUserRowView.Transparent)
 
   def bind(integrationData: IntegrationData): Unit = {
     this.integrationData = Some(integrationData)
