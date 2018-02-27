@@ -25,20 +25,18 @@ import android.support.v4.view.ViewPager
 import android.view.animation.{AlphaAnimation, Animation}
 import android.view.{LayoutInflater, View, ViewGroup}
 import com.waz.ZLog.ImplicitTag._
-import com.waz.model.UserId
 import com.waz.threading.Threading
 import com.waz.utils._
 import com.waz.zclient.common.controllers.{BrowserController, ThemeController, UserAccountsController}
 import com.waz.zclient.conversation.ConversationController
-import com.waz.zclient.core.stores.conversation.ConversationChangeRequester
 import com.waz.zclient.pages.main.conversation.controller.IConversationScreenController
-import com.waz.zclient.participants.fragments.SingleParticipantFragment.{ArgFirstPage, DevicePage, UserPage}
+import com.waz.zclient.participants.fragments.SingleParticipantFragment.{ArgFirstPage, DevicePage}
 import com.waz.zclient.participants.{ParticipantOtrDeviceAdapter, ParticipantsController, TabbedParticipantPagerAdapter}
 import com.waz.zclient.ui.views.tab.TabIndicatorLayout
 import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.utils.ViewUtils
 import com.waz.zclient.views.menus.FooterMenuCallback
-import com.waz.zclient.{BaseActivity, FragmentHelper, R}
+import com.waz.zclient.{FragmentHelper, R}
 
 class SingleParticipantFragment extends FragmentHelper {
   import Threading.Implicits.Ui
@@ -155,16 +153,12 @@ class SingleParticipantFragment extends FragmentHelper {
     super.onDestroyView()
   }
 
-  def onBackPressed(): Boolean = viewPager.fold(false){ pager =>
-    if (pager.getCurrentItem != UserPage) {
-      pager.setCurrentItem(UserPage)
-      true
-    } else if (participantsController.isGroupOrBot.currentValue.getOrElse(false)){
-      screenController.hideUser()
-      participantsController.unselectParticipant()
-      true
-    } else false
-  }
+  def onBackPressed(): Boolean =
+  if (participantsController.isGroupOrBot.currentValue.getOrElse(false)){
+    screenController.hideUser()
+    participantsController.unselectParticipant()
+    true
+  } else false
 
 }
 

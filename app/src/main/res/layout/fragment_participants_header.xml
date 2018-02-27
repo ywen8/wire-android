@@ -116,36 +116,14 @@
 
     </android.support.v7.widget.Toolbar>
 
-    <com.waz.zclient.common.views.UserDetailsView
-        android:id="@+id/udv__participants__user_details"
+    <TextView
+        android:id="@+id/user_name"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/wire__padding__small"
-        android:visibility="gone"
-        />
-
-    <com.waz.zclient.ui.text.TypefaceTextView
-        android:id="@+id/ttv__participants__sub_header"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/wire__padding__small"
-        android:layout_marginBottom="@dimen/wire__padding__regular"
-        android:layout_marginLeft="@dimen/wire__padding__big"
-        android:layout_marginRight="@dimen/wire__padding__big"
-        android:gravity="center"
-        android:ellipsize="end"
-        android:maxLines="1"
-        app:w_font="@string/wire__typeface__light"
-        android:visibility="gone"
-        style="?userSubHeader"
-        />
-
-    <View
-        android:id="@+id/v_participants__header__bottom_border"
-        android:layout_width="match_parent"
-        android:layout_height="@dimen/wire__divider__height__thin"
-        android:layout_gravity="bottom"
-        android:background="@color/text__secondary_light__40"
+        android:layout_marginBottom="@dimen/wire__padding__big"
+        android:textSize="@dimen/wire__text_size__big"
+        android:textColor="?wirePrimaryTextColor"
         android:visibility="gone"
         />
 
