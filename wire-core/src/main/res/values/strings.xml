@@ -1317,4 +1317,7 @@
     <string name="allow_guests">Allow Guests</string>
     <string name="guest_options_title">Guest Options</string>
 
+    <string name="allow_guests_error_title">Something went wrong</string>
+    <string name="allow_guests_error_body">Could not allow guests. Please try again.</string>
+
 </resources>

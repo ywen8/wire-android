@@ -17,7 +17,7 @@
  */
 package com.waz.zclient.participants.fragments
 
-import android.content.Context
+import android.content.{Context, DialogInterface}
 import android.os.Bundle
 import android.support.v7.widget.SwitchCompat
 import android.view.{LayoutInflater, View, ViewGroup}
@@ -28,7 +28,7 @@ import com.waz.threading.Threading
 import com.waz.utils.events.Signal
 import com.waz.utils.returning
 import com.waz.zclient.conversation.ConversationController
-import com.waz.zclient.utils.ContextUtils._
+import com.waz.zclient.utils.ViewUtils
 import com.waz.zclient.{FragmentHelper, OnBackPressedListener, R}
 
 class GuestOptionsFragment extends FragmentHelper with OnBackPressedListener {
@@ -70,9 +70,10 @@ class GuestOptionsFragment extends FragmentHelper with OnBackPressedListener {
             setGuestsSwitchEnabled(true)
             resp match {
               case Right(_) => //
-              case Left(err) =>
-                //TODO handle error properly
-                showToast(s"Something went wrong: $err")
+              case Left(_) =>
+                ViewUtils.showAlertDialog(getContext, R.string.allow_guests_error_title, R.string.allow_guests_error_body, android.R.string.ok, new DialogInterface.OnClickListener {
+                  override def onClick(dialog: DialogInterface, which: Int): Unit = dialog.dismiss()
+                }, true)
             }
           }(Threading.Ui)
         }
