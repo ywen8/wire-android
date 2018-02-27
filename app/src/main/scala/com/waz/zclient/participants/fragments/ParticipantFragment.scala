@@ -198,6 +198,7 @@ class ParticipantFragment extends BaseFragment[ParticipantFragment.Container] wi
     case _ if screenController.isShowingUser =>
       verbose(s"onBackPressed with screenController.isShowingUser")
       screenController.hideUser()
+      participantsController.unselectParticipant()
       true
     case _ if screenController.isShowingParticipant =>
       verbose(s"onBackPressed with isShowingParticipant")

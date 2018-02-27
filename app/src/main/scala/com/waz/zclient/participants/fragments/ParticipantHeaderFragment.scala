@@ -21,7 +21,6 @@ import android.content.Context
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.support.v7.widget.Toolbar
-import android.util.TypedValue
 import android.view._
 import android.view.animation.{AlphaAnimation, Animation}
 import android.view.inputmethod.{EditorInfo, InputMethodManager}
@@ -35,14 +34,12 @@ import com.waz.utils.events.{Signal, Subscription}
 import com.waz.utils.returning
 import com.waz.zclient.common.controllers.ThemeController
 import com.waz.zclient.common.controllers.global.AccentColorController
-import com.waz.zclient.common.views.UserDetailsView
 import com.waz.zclient.conversation.ConversationController
 import com.waz.zclient.pages.BaseFragment
 import com.waz.zclient.pages.main.conversation.controller.IConversationScreenController
 import com.waz.zclient.participants.ParticipantsController
 import com.waz.zclient.ui.text.AccentColorEditText
 import com.waz.zclient.ui.utils.KeyboardUtils
-import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.utils.{RichView, ViewUtils}
 import com.waz.zclient.views.e2ee.ShieldView
 import com.waz.zclient.{FragmentHelper, R}
@@ -54,6 +51,7 @@ class ParticipantHeaderFragment extends BaseFragment[ParticipantHeaderFragment.C
 
   private lazy val participantsController = inject[ParticipantsController]
   private lazy val screenController       = inject[IConversationScreenController]
+  private lazy val themeController        = inject[ThemeController]
 
   private val editInProgress = Signal(false)
 
@@ -69,36 +67,35 @@ class ParticipantHeaderFragment extends BaseFragment[ParticipantHeaderFragment.C
 
   private var subs = Set.empty[Subscription]
 
-  private lazy val toolbar = view[Toolbar](R.id.t__participants__toolbar)
-
-  private lazy val membersCountTextView = returning(view[TextView](R.id.ttv__participants__sub_header)) { vh =>
-    participantsController.otherParticipants.map(_.size).onUi { participants =>
-      vh.foreach { mc =>
-        mc.setText(getQuantityString(R.plurals.participants__sub_header_xx_people, participants, participants.asInstanceOf[java.lang.Integer]))
-        mc.setTextSize(TypedValue.COMPLEX_UNIT_PX, getDimen(R.dimen.wire__text_size__small))
-      }
-    }
-
+  private lazy val toolbar = returning(view[Toolbar](R.id.t__participants__toolbar)) { vh =>
     (for {
       isSingleParticipant <- participantsController.otherParticipant.map(_.isDefined)
-      edit                <- editInProgress
-    } yield !isSingleParticipant && !edit)
-      .onUi(vis => vh.foreach(_.setVisible(vis)))
+      darkTheme           <- themeController.darkThemeSet
+      icon                =  if (darkTheme) R.drawable.action_back_light else R.drawable.action_back_dark
+    } yield if (isSingleParticipant) Some(icon) else None).onUi {
+      case Some(iconId) => vh.foreach(_.setNavigationIcon(iconId))
+      case None => vh.foreach(_.setNavigationIcon(null))
+    }
   }
 
-  private lazy val userDetailsView = returning(view[UserDetailsView](R.id.udv__participants__user_details)) { vh =>
-    participantsController.otherParticipant.collect { case Some(userId) => userId }.onUi(id => vh.foreach(_.setUserId(id)))
-
+  private lazy val userNameView = returning(view[TextView](R.id.user_name)) { vh =>
     (for {
       isSingleParticipant <- participantsController.otherParticipant.map(_.isDefined)
       edit                <- editInProgress
     } yield isSingleParticipant && !edit)
       .onUi(vis => vh.foreach(_.setVisible(vis)))
+
+    (for {
+      Some(userId) <- participantsController.otherParticipant
+      Some(user)   <- Signal.future(participantsController.getUser(userId))
+    } yield user.getDisplayName).onUi { name =>
+      vh.foreach(_.setText(name))
+    }
   }
 
   private lazy val headerEditText = returning(view[AccentColorEditText](R.id.taet__participants__header__editable)) { vh =>
     (for {
-      true        <- inject[ThemeController].darkThemeSet
+      true        <- themeController.darkThemeSet
       accentColor <- inject[AccentColorController].accentColor
     } yield accentColor)
       .onUi(c => vh.foreach(_.setAccentColor(c.getColor)))
@@ -128,7 +125,11 @@ class ParticipantHeaderFragment extends BaseFragment[ParticipantHeaderFragment.C
     } yield user.fold(convName)(_.name))
       .onUi(name => vh.foreach(_.setText(name)))
 
-    editInProgress.onUi(edit => vh.foreach(_.setVisible(!edit)))
+    (for {
+      isSingleParticipant <- participantsController.otherParticipant.map(_.isDefined)
+      edit                <- editInProgress
+    } yield !isSingleParticipant && !edit).onUi(vis => vh.foreach(_.setVisible(vis)))
+
     vh.onClick(_ => triggerEditingOfConversationNameIfInternet())
   }
 
@@ -225,8 +226,7 @@ class ParticipantHeaderFragment extends BaseFragment[ParticipantHeaderFragment.C
 
     toolbar
 
-    membersCountTextView
-    userDetailsView
+    userNameView
     shieldView
     headerEditText
     headerReadOnlyTextView
