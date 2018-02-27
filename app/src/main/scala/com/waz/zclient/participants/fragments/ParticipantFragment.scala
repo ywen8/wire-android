@@ -31,7 +31,6 @@ import com.waz.model.otr.ClientId
 import com.waz.threading.Threading
 import com.waz.utils.events.Subscription
 import com.waz.utils.returning
-import com.waz.zclient.common.controllers.{BrowserController, UserAccountsController}
 import com.waz.zclient.controllers.navigation.{INavigationController, Page}
 import com.waz.zclient.controllers.singleimage.ISingleImageController
 import com.waz.zclient.conversation.ConversationController
@@ -47,7 +46,7 @@ import com.waz.zclient.ui.animation.interpolators.penner.Expo
 import com.waz.zclient.usersearch.PickUserFragment
 import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.utils.ViewUtils
-import com.waz.zclient.views.{DefaultPageTransitionAnimation, LoadingIndicatorView}
+import com.waz.zclient.views.DefaultPageTransitionAnimation
 import com.waz.zclient.{FragmentHelper, OnBackPressedListener, R}
 
 class ParticipantFragment extends BaseFragment[ParticipantFragment.Container] with FragmentHelper
@@ -63,17 +62,10 @@ class ParticipantFragment extends BaseFragment[ParticipantFragment.Container] wi
 
   private lazy val bodyContainer = view[View](R.id.fl__participant__container)
   private lazy val participantsContainerView = view[View](R.id.ll__participant__container)
-  private lazy val pickUserContainerView = view[View](R.id.fl__add_to_conversation__pickuser__container)
 
   private lazy val convChange = convController.convChanged.filter { _.to.isDefined }
 
-  private lazy val loadingIndicatorView = returning( view[LoadingIndicatorView](R.id.liv__participants__loading_indicator) ) {
-    _.foreach(_.setColor(getColorWithTheme(R.color.people_picker__loading__color, ctx)))
-  }
-
-  private lazy val browserController      = inject[BrowserController]
   private lazy val convController         = inject[ConversationController]
-  private lazy val userAccountsController = inject[UserAccountsController]
   private lazy val participantsController = inject[ParticipantsController]
   private lazy val screenController       = inject[IConversationScreenController]
   private lazy val pickUserController     = inject[IPickUserController]
@@ -144,9 +136,7 @@ class ParticipantFragment extends BaseFragment[ParticipantFragment.Container] wi
     }
 
     bodyContainer
-    loadingIndicatorView
     participantsContainerView
-    pickUserContainerView
 
     subs += convChange.map(_.requester).onUi {
       case START_CONVERSATION | START_CONVERSATION_FOR_VIDEO_CALL | START_CONVERSATION_FOR_CALL | START_CONVERSATION_FOR_CAMERA =>
@@ -289,7 +279,7 @@ class ParticipantFragment extends BaseFragment[ParticipantFragment.Container] wi
 
   override def onHideUser(): Unit = if (screenController.isShowingUser) {
     getChildFragmentManager.popBackStackImmediate
-    getControllerFactory.getNavigationController.setRightPage(if (screenController.isShowingParticipant) Page.PARTICIPANT else Page.MESSAGE_STREAM, ParticipantFragment.TAG)
+    navigationController.setRightPage(if (screenController.isShowingParticipant) Page.PARTICIPANT else Page.MESSAGE_STREAM, ParticipantFragment.TAG)
     animateParticipantsWithConnectUserProfile(true)
   }
 

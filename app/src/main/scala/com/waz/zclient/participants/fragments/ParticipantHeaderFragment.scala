@@ -43,7 +43,7 @@ import com.waz.zclient.participants.ParticipantsController
 import com.waz.zclient.ui.text.AccentColorEditText
 import com.waz.zclient.ui.utils.KeyboardUtils
 import com.waz.zclient.utils.ContextUtils._
-import com.waz.zclient.utils.{ContextUtils, RichView, ViewUtils}
+import com.waz.zclient.utils.{RichView, ViewUtils}
 import com.waz.zclient.views.e2ee.ShieldView
 import com.waz.zclient.{FragmentHelper, R}
 
