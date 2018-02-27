@@ -38,7 +38,7 @@ import com.waz.zclient.common.views.{PickableElement, SingleUserRowView}
 import com.waz.zclient.pages.main.pickuser.controller.IPickUserController
 import com.waz.zclient.pages.main.pickuser.controller.IPickUserController.Destination
 import com.waz.zclient.ui.text.TypefaceTextView
-import com.waz.zclient.usersearch.views.{PickerSpannableEditText, SearchEditText, SearchResultUserRowView, SelectableUserRowViewHolder}
+import com.waz.zclient.usersearch.views.{PickerSpannableEditText, SearchEditText}
 import com.waz.zclient.utils.ContextUtils.getColor
 import com.waz.zclient.utils.RichView
 import com.waz.zclient.{FragmentHelper, OnBackPressedListener, R, ViewHelper}
@@ -229,7 +229,7 @@ case class NewConvAdapter(searchResults: Signal[Seq[(UserData, Boolean)]], selec
   override def getItemCount: Int = users.size
 
   override def onCreateViewHolder(parent: ViewGroup, viewType: Int): SelectableUserRowViewHolder = {
-    val view = ViewHelper.inflate[SingleUserRowView](R.layout.normal_participant_row, parent, addToParent = false)
+    val view = ViewHelper.inflate[SingleUserRowView](R.layout.single_user_row, parent, addToParent = false)
     view.showCheckbox(true)
     val viewHolder = SelectableUserRowViewHolder(view)
 
@@ -255,3 +255,16 @@ case class NewConvAdapter(searchResults: Signal[Seq[(UserData, Boolean)]], selec
 }
 
 case class PickableUserData(userData: UserData, isGuest: Boolean, isSelected: Boolean)
+
+case class SelectableUserRowViewHolder(v: SingleUserRowView) extends RecyclerView.ViewHolder(v) {
+
+  var userData: Option[UserData] = None
+
+  def bind(userData: UserData, isGuest: Boolean, selected: Boolean) = {
+    this.userData = Some(userData)
+    v.setUserData(userData)
+    v.setChecked(selected)
+    v.setIsGuest(isGuest)
+  }
+}
+

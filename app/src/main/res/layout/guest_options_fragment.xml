@@ -27,7 +27,7 @@
     <FrameLayout
         android:background="@color/white"
         android:layout_width="match_parent"
-        android:layout_height="64dp"
+        android:layout_height="@dimen/menu_item_height"
         android:paddingStart="@dimen/wire__padding__regular"
         android:paddingEnd="@dimen/wire__padding__regular"
         android:layout_marginTop="@dimen/wire__padding__regular">
@@ -38,7 +38,7 @@
             android:layout_gravity="start|center_vertical"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textSize="16sp"
+            android:textSize="@dimen/wire__text_size__regular"
             android:textColor="@color/black"/>
 
         <android.support.v7.widget.SwitchCompat
@@ -58,8 +58,7 @@
         android:paddingStart="@dimen/wire__padding__regular"
         android:paddingEnd="@dimen/wire__padding__regular"
         android:textColor="@color/teams_description_text"
-        android:textSize="12sp"
+        android:textSize="@dimen/wire__text_size__small"
     />
-
 
 </LinearLayout>

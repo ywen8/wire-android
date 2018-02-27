@@ -29,8 +29,8 @@
 
     <ImageView
         android:id="@+id/icon"
-        android:layout_width="16dp"
-        android:layout_height="16dp"
+        android:layout_width="@dimen/guest_options_icon_size"
+        android:layout_height="@dimen/guest_options_icon_size"
         android:layout_alignParentStart="true"
         android:layout_centerVertical="true"
         android:layout_marginStart="@dimen/wire__padding__regular"
@@ -39,8 +39,8 @@
 
     <ImageView
         android:id="@+id/next_indicator"
-        android:layout_width="16dp"
-        android:layout_height="16dp"
+        android:layout_width="@dimen/guest_options_icon_size"
+        android:layout_height="@dimen/guest_options_icon_size"
         android:layout_gravity="center_vertical"
         android:layout_marginStart="@dimen/wire__padding__regular"
         android:layout_marginEnd="@dimen/wire__padding__regular"
@@ -61,7 +61,7 @@
         android:layout_centerVertical="true"
         android:layout_toEndOf="@id/icon"
         android:layout_toStartOf="@id/next_indicator"
-        android:text="Guest Options"
+        android:text="@string/guest_options_title"
         />
 
     <View

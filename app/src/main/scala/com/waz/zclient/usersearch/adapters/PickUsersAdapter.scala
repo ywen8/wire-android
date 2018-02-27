@@ -219,7 +219,7 @@ class PickUsersAdapter(topUsersOnItemTouchListener: SearchResultOnItemTouchListe
         val topUserAdapter: TopUserAdapter = new TopUserAdapter(searchUserController.selectedUsers.map(_.toSet))
         new com.waz.zclient.usersearch.viewholders.TopUsersViewHolder(view, topUserAdapter, parent.getContext)
       case ConnectedUser | UnconnectedUser =>
-        val view = LayoutInflater.from(parent.getContext).inflate(R.layout.normal_participant_row, parent, false).asInstanceOf[SingleUserRowView]
+        val view = LayoutInflater.from(parent.getContext).inflate(R.layout.single_user_row, parent, false).asInstanceOf[SingleUserRowView]
         val vh = new UserViewHolder(view, darkTheme, searchUserController.toConv.nonEmpty)
         view.onClick(vh.userData.foreach(u => adapterCallback.onUserClicked(u.id, vh.itemView)))
         vh
@@ -233,7 +233,7 @@ class PickUsersAdapter(topUsersOnItemTouchListener: SearchResultOnItemTouchListe
         val view = LayoutInflater.from(parent.getContext).inflate(R.layout.startui_section_expander, parent, false)
         new SectionExpanderViewHolder(view)
       case Integration =>
-        val view = LayoutInflater.from(parent.getContext).inflate(R.layout.normal_participant_row, parent, false).asInstanceOf[SingleUserRowView]
+        val view = LayoutInflater.from(parent.getContext).inflate(R.layout.single_user_row, parent, false).asInstanceOf[SingleUserRowView]
         val vh = new IntegrationViewHolder(view, darkTheme)
         view.onClick(vh.integrationData.foreach(i => adapterCallback.onIntegrationClicked(i)))
         vh

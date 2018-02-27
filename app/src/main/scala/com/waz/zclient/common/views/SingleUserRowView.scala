@@ -38,7 +38,7 @@ class SingleUserRowView(context: Context, attrs: AttributeSet, style: Int) exten
   def this(context: Context, attrs: AttributeSet) = this(context, attrs, 0)
   def this(context: Context) = this(context, null, 0)
 
-  inflate(R.layout.participant_row_view)
+  inflate(R.layout.single_user_row_view)
   setTheme(Light)
 
   private lazy val chathead = findById[ChatheadView](R.id.chathead)

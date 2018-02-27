@@ -18,9 +18,10 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 -->
-<com.waz.zclient.usersearch.views.ContactRowView
+<com.waz.zclient.common.views.SingleUserRowView
     xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/crv__contactlist_user"
+    android:orientation="vertical"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    />
+    android:layout_height="@dimen/user_row_height"
+    android:clickable="true"
+    android:focusable="true"/>

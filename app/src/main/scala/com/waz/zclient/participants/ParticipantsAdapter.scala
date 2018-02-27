@@ -49,7 +49,7 @@ class ParticipantsAdapter(numOfColumns: Int)(implicit context: Context, injector
     userIds <- participantsController.otherParticipants
     users   <- Signal.sequence(userIds.filterNot(_ == z.selfUserId).map(z.users.userSignal).toSeq: _*)
     isGuest <- Signal.sequence(userIds.map(z.teams.isGuest).toSeq:_*)
-  } yield users.zip(isGuest).map(u => ParticipantData(u._1, u._2))
+  } yield users.zip(isGuest).map(u => ParticipantData(u._1, u._2 && !u._1.isWireBot))
 
   private val shouldShowGuestButton = inject[ConversationController].currentConv.map(_.accessRole.isDefined)
 
@@ -82,7 +82,7 @@ class ParticipantsAdapter(numOfColumns: Int)(implicit context: Context, injector
       view.onClick(onGuestOptionsClick ! {})
       GuestOptionsButtonViewHolder(view)
     case UserRow =>
-      val view = LayoutInflater.from(parent.getContext).inflate(R.layout.normal_participant_row, parent, false).asInstanceOf[SingleUserRowView]
+      val view = LayoutInflater.from(parent.getContext).inflate(R.layout.single_user_row, parent, false).asInstanceOf[SingleUserRowView]
       view.showArrow(true)
       ParticipantRowViewHolder(view, onClick)
     case _ => SeparatorViewHolder(getSeparatorView(parent))

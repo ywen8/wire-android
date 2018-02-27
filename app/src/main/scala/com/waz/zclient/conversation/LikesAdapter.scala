@@ -45,7 +45,7 @@ class LikesAdapter(context: Context) extends RecyclerView.Adapter[RecyclerView.V
   }
 
   def onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder = {
-    val view = LayoutInflater.from(parent.getContext).inflate(R.layout.normal_participant_row, parent, false).asInstanceOf[SingleUserRowView]
+    val view = LayoutInflater.from(parent.getContext).inflate(R.layout.single_user_row, parent, false).asInstanceOf[SingleUserRowView]
     new UserViewHolder(view, false, false)
   }
 

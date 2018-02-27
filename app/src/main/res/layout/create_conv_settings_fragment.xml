@@ -31,12 +31,12 @@
         android:layout_height="wrap_content"
         app:hasButton="false"
         app:hint="@string/group_name_hint"
-        android:layout_marginTop="40dp"/>
+        android:layout_marginTop="@dimen/create_conv_input_margin_top"/>
 
     <FrameLayout
         android:background="@color/white"
         android:layout_width="match_parent"
-        android:layout_height="64dp"
+        android:layout_height="@dimen/menu_item_height"
         android:paddingStart="@dimen/wire__padding__regular"
         android:paddingEnd="@dimen/wire__padding__regular">
 
