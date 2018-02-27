@@ -50,7 +50,7 @@
         />
 
     <com.waz.zclient.ui.text.TypefaceTextView
-        android:id="@+id/ttv__single_otr_client__my_fingerprint"
+        android:id="@+id/my_fingerprint"
         android:layout_width="wrap_content"
         android:layout_height="@dimen/wire__button__height_small"
         android:layout_gravity="right"

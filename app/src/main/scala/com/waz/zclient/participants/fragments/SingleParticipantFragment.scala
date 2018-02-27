@@ -24,9 +24,11 @@ import android.support.v4.app.Fragment
 import android.support.v4.view.ViewPager
 import android.view.animation.{AlphaAnimation, Animation}
 import android.view.{LayoutInflater, View, ViewGroup}
+import android.widget.TextView
 import com.waz.ZLog.ImplicitTag._
 import com.waz.threading.Threading
 import com.waz.utils._
+import com.waz.utils.events.Signal
 import com.waz.zclient.common.controllers.{BrowserController, ThemeController, UserAccountsController}
 import com.waz.zclient.conversation.ConversationController
 import com.waz.zclient.pages.main.conversation.controller.IConversationScreenController
@@ -34,9 +36,9 @@ import com.waz.zclient.participants.fragments.SingleParticipantFragment.{ArgFirs
 import com.waz.zclient.participants.{ParticipantOtrDeviceAdapter, ParticipantsController, TabbedParticipantPagerAdapter}
 import com.waz.zclient.ui.views.tab.TabIndicatorLayout
 import com.waz.zclient.utils.ContextUtils._
-import com.waz.zclient.utils.ViewUtils
 import com.waz.zclient.views.menus.FooterMenuCallback
 import com.waz.zclient.{FragmentHelper, R}
+import com.waz.zclient.utils.{RichView, ViewUtils}
 
 class SingleParticipantFragment extends FragmentHelper {
   import Threading.Implicits.Ui
@@ -52,6 +54,19 @@ class SingleParticipantFragment extends FragmentHelper {
   private lazy val screenController       = inject[IConversationScreenController]
   private lazy val userAccountsController = inject[UserAccountsController]
   private lazy val browserController      = inject[BrowserController]
+
+  private lazy val userNameView = returning(view[TextView](R.id.user_name)) { vh =>
+    participantsController.otherParticipant.map(_.isDefined).onUi { visible =>
+      vh.foreach(_.setVisible(visible))
+    }
+
+    (for {
+      Some(userId) <- participantsController.otherParticipant
+      Some(user)   <- Signal.future(participantsController.getUser(userId))
+    } yield user.getDisplayName).onUi { name =>
+      vh.foreach(_.setText(name))
+    }
+  }
 
   private lazy val callback = new FooterMenuCallback {
 
@@ -146,6 +161,8 @@ class SingleParticipantFragment extends FragmentHelper {
       }
     }
 
+    userNameView
+
   }
 
   override def onDestroyView(): Unit = {
@@ -163,7 +180,7 @@ class SingleParticipantFragment extends FragmentHelper {
 }
 
 object SingleParticipantFragment {
-  val TAG: String = classOf[SingleParticipantFragment].getName
+  val Tag: String = classOf[SingleParticipantFragment].getName
   private val ArgFirstPage: String = "ArgFirstPage"
   val UserPage: Int = 0
   val DevicePage: Int = 1

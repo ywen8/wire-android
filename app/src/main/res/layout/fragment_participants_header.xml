@@ -116,15 +116,4 @@
 
     </android.support.v7.widget.Toolbar>
 
-    <TextView
-        android:id="@+id/user_name"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/wire__padding__small"
-        android:layout_marginBottom="@dimen/wire__padding__big"
-        android:textSize="@dimen/wire__text_size__big"
-        android:textColor="?wirePrimaryTextColor"
-        android:visibility="gone"
-        />
-
 </LinearLayout>

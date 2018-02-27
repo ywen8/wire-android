@@ -22,8 +22,20 @@
               android:layout_width="match_parent"
               android:layout_height="match_parent"
               android:orientation="vertical"
+              android:gravity="center_horizontal"
               android:layout_marginTop="@dimen/participants__otr_device__padding_top"
     >
+
+    <TextView
+        android:id="@+id/user_name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/wire__padding__small"
+        android:layout_marginBottom="@dimen/wire__padding__big"
+        android:textSize="@dimen/wire__text_size__big"
+        android:textColor="?wirePrimaryTextColor"
+        android:visibility="gone"
+        />
 
     <com.waz.zclient.ui.views.tab.TabIndicatorLayout
         android:id="@+id/til_single_participant_tabs"

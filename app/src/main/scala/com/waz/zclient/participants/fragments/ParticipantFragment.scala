@@ -97,43 +97,38 @@ class ParticipantFragment extends BaseFragment[ParticipantFragment.Container] wi
     }
 
   override def onViewCreated(view: View, @Nullable savedInstanceState: Bundle): Unit = {
-    val fragmentManager = getChildFragmentManager
-
-    if (Option(savedInstanceState).isEmpty) {
-      fragmentManager.beginTransaction
+    if (Option(savedInstanceState).isEmpty)
+      participantsController.isGroupOrBot.head.foreach { groupOrBot =>
+        getChildFragmentManager.beginTransaction
+        .setCustomAnimations(
+          R.anim.slide_in_from_bottom_pick_user,
+          R.anim.open_new_conversation__thread_list_out,
+          R.anim.open_new_conversation__thread_list_in,
+          R.anim.slide_out_to_bottom_pick_user
+        )
         .replace(
           R.id.fl__participant__header__container,
           headerFragment,
           ParticipantHeaderFragment.TAG
         )
-        .commit
-
-      participantsController.isGroupOrBot.head.foreach {
-        case false =>
-          fragmentManager.beginTransaction
-            .replace(
-              R.id.fl__participant__container,
-              SingleParticipantFragment.newInstance(getArguments.getInt(ParticipantFragment.ARG__FIRST__PAGE)),
-              SingleParticipantFragment.TAG)
-            .commit
-        case _ =>
-          participantsController.unselectParticipant()
-
-          fragmentManager.beginTransaction
-            .replace(R.id.fl__participant__container,
-              GroupParticipantsFragment.newInstance(),
-              GroupParticipantsFragment.TAG)
-            .commit
-      }
-
-      fragmentManager.beginTransaction
+        .replace(
+          R.id.fl__participant__container,
+          if (groupOrBot)
+            GroupParticipantsFragment.newInstance()
+          else
+            SingleParticipantFragment.newInstance(getArguments.getInt(ParticipantFragment.ARG__FIRST__PAGE)),
+          if (groupOrBot)
+            GroupParticipantsFragment.Tag
+          else
+            SingleParticipantFragment.Tag
+        )
         .replace(
           R.id.fl__participant__settings_box,
           OptionsMenuFragment.newInstance(false),
           OptionsMenuFragment.Tag
         )
         .commit
-    }
+      }
 
     bodyContainer
     participantsContainerView
@@ -228,11 +223,10 @@ class ParticipantFragment extends BaseFragment[ParticipantFragment.Container] wi
     getChildFragmentManager
       .beginTransaction
       .setCustomAnimations(
-        R.anim.open_profile,
-        R.anim.close_profile,
-        R.anim.open_profile,
-        R.anim.close_profile
-      )
+        R.anim.fragment_animation_second_page_slide_in_from_right,
+        R.anim.fragment_animation_second_page_slide_out_to_left,
+        R.anim.fragment_animation_second_page_slide_in_from_left,
+        R.anim.fragment_animation_second_page_slide_out_to_right)
       .add(
         R.id.fl__participant__overlay,
         SingleOtrClientFragment.newInstance(userId, clientId),
@@ -245,11 +239,10 @@ class ParticipantFragment extends BaseFragment[ParticipantFragment.Container] wi
     getChildFragmentManager
       .beginTransaction
       .setCustomAnimations(
-        R.anim.open_profile,
-        R.anim.close_profile,
-        R.anim.open_profile,
-        R.anim.close_profile
-      )
+        R.anim.slide_in_from_bottom_pick_user,
+        R.anim.open_new_conversation__thread_list_out,
+        R.anim.open_new_conversation__thread_list_in,
+        R.anim.slide_out_to_bottom_pick_user)
       .add(
         R.id.fl__participant__overlay,
         SingleOtrClientFragment.newInstance,
@@ -258,30 +251,9 @@ class ParticipantFragment extends BaseFragment[ParticipantFragment.Container] wi
       .addToBackStack(SingleOtrClientFragment.TAG)
       .commit
 
-  private def animateParticipantsWithConnectUserProfile(show: Boolean) = {
-    val animator = participantsContainerView.animate
-    if (show) {
-      animator.alpha(1)
-        .scaleY(1)
-        .scaleX(1)
-        .setInterpolator(new Expo.EaseOut)
-        .setDuration(getInt(R.integer.reopen_profile_source__animation_duration))
-        .setStartDelay(getInt(R.integer.reopen_profile_source__delay))
-    } else {
-      animator.alpha(0)
-        .scaleY(2)
-        .scaleX(2)
-        .setInterpolator(new Expo.EaseIn)
-        .setDuration(getInt(R.integer.reopen_profile_source__animation_duration))
-        .setStartDelay(0)
-    }
-    animator.start()
-  }
-
   override def onHideUser(): Unit = if (screenController.isShowingUser) {
-    getChildFragmentManager.popBackStackImmediate
+    getChildFragmentManager.popBackStack
     navigationController.setRightPage(if (screenController.isShowingParticipant) Page.PARTICIPANT else Page.MESSAGE_STREAM, ParticipantFragment.TAG)
-    animateParticipantsWithConnectUserProfile(true)
   }
 
   override def showRemoveConfirmation(userId: UserId): Unit =
@@ -309,7 +281,7 @@ class ParticipantFragment extends BaseFragment[ParticipantFragment.Container] wi
 
   override def onHideParticipants(backOrButtonPressed: Boolean, hideByConversationChange: Boolean, isSingleConversation: Boolean): Unit = {}
 
-  override def onHideOtrClient(): Unit = getChildFragmentManager.popBackStackImmediate
+  override def onHideOtrClient(): Unit = getChildFragmentManager.popBackStack
 
   override def onShowLikesList(message: Message): Unit = {}
 

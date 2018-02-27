@@ -129,7 +129,7 @@ class SingleOtrClientFragment extends FragmentHelper {
     }
   }
 
-  private lazy val myFingerprintButton = returning(view[TextView](R.id.ttv__single_otr_client__my_fingerprint)){ vh =>
+  private lazy val myFingerprintButton = returning(view[TextView](R.id.my_fingerprint)){ vh =>
     vh.onClick { _ =>
       Option(getParentFragment).foreach {
         case f: ParticipantFragment => f.showCurrentOtrClient()

@@ -25,7 +25,6 @@ import android.support.v4.app.Fragment
 import android.support.v7.widget.{LinearLayoutManager, RecyclerView}
 import android.view.animation.{AlphaAnimation, Animation}
 import android.view.{LayoutInflater, View, ViewGroup}
-import android.widget.LinearLayout
 import com.waz.ZLog.ImplicitTag._
 import com.waz.ZLog.verbose
 import com.waz.api.NetworkMode
@@ -98,6 +97,11 @@ class GroupParticipantsFragment extends FragmentHelper {
 
     adapter.onGuestOptionsClick.onUi { _ =>
       getFragmentManager.beginTransaction
+        .setCustomAnimations(
+          R.anim.fragment_animation_second_page_slide_in_from_right,
+          R.anim.fragment_animation_second_page_slide_out_to_left,
+          R.anim.fragment_animation_second_page_slide_in_from_left,
+          R.anim.fragment_animation_second_page_slide_out_to_right)
         .replace(R.id.fl__participant__container, new GuestOptionsFragment(), GuestOptionsFragment.Tag)
         .addToBackStack(GuestOptionsFragment.Tag)
         .commit
@@ -111,6 +115,11 @@ class GroupParticipantsFragment extends FragmentHelper {
 
     def openUserProfileFragment(fragment: Fragment, tag: String) =
       getFragmentManager.beginTransaction
+        .setCustomAnimations(
+          R.anim.fragment_animation_second_page_slide_in_from_right,
+          R.anim.fragment_animation_second_page_slide_out_to_left,
+          R.anim.fragment_animation_second_page_slide_in_from_left,
+          R.anim.fragment_animation_second_page_slide_out_to_right)
         .replace(R.id.fl__participant__container, fragment, tag)
         .addToBackStack(tag)
         .commit
@@ -119,7 +128,7 @@ class GroupParticipantsFragment extends FragmentHelper {
     participantsController.getUser(userId).foreach {
       case Some(user) if user.connection == ACCEPTED || userAccountsController.isTeamAccount && userAccountsController.isTeamMember(userId) =>
         participantsController.selectParticipant(userId)
-        openUserProfileFragment(SingleParticipantFragment.newInstance(SingleParticipantFragment.UserPage), SingleParticipantFragment.TAG)
+        openUserProfileFragment(SingleParticipantFragment.newInstance(SingleParticipantFragment.UserPage), SingleParticipantFragment.Tag)
 
       case Some(user) if user.connection == PENDING_FROM_OTHER || user.connection == PENDING_FROM_USER || user.connection == IGNORED =>
         import PendingConnectRequestFragment._
@@ -209,7 +218,7 @@ class GroupParticipantsFragment extends FragmentHelper {
 }
 
 object GroupParticipantsFragment {
-  val TAG: String = classOf[GroupParticipantsFragment].getName
+  val Tag: String = classOf[GroupParticipantsFragment].getName
 
   def newInstance(): GroupParticipantsFragment =
     new GroupParticipantsFragment

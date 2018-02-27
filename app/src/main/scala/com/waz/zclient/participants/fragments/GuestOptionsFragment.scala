@@ -118,7 +118,7 @@ class GuestOptionsFragment extends FragmentHelper with OnBackPressedListener {
   }
 
   override def onBackPressed(): Boolean = {
-    getFragmentManager.popBackStackImmediate
+    getFragmentManager.popBackStack
     true
   }
 }

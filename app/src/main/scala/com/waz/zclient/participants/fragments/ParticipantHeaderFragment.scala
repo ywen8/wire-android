@@ -78,21 +78,6 @@ class ParticipantHeaderFragment extends BaseFragment[ParticipantHeaderFragment.C
     }
   }
 
-  private lazy val userNameView = returning(view[TextView](R.id.user_name)) { vh =>
-    (for {
-      isSingleParticipant <- participantsController.otherParticipant.map(_.isDefined)
-      edit                <- editInProgress
-    } yield isSingleParticipant && !edit)
-      .onUi(vis => vh.foreach(_.setVisible(vis)))
-
-    (for {
-      Some(userId) <- participantsController.otherParticipant
-      Some(user)   <- Signal.future(participantsController.getUser(userId))
-    } yield user.getDisplayName).onUi { name =>
-      vh.foreach(_.setText(name))
-    }
-  }
-
   private lazy val headerEditText = returning(view[AccentColorEditText](R.id.taet__participants__header__editable)) { vh =>
     (for {
       true        <- themeController.darkThemeSet
@@ -226,7 +211,6 @@ class ParticipantHeaderFragment extends BaseFragment[ParticipantHeaderFragment.C
 
     toolbar
 
-    userNameView
     shieldView
     headerEditText
     headerReadOnlyTextView
