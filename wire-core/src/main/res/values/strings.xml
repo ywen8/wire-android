@@ -1319,5 +1319,7 @@
 
     <string name="allow_guests_error_title">Something went wrong</string>
     <string name="allow_guests_error_body">Could not allow guests. Please try again.</string>
+    <string name="allow_guests_warning_body">Current guests will be removed from the conversation. New guests will not be allowed.</string>
+    <string name="allow_guests_warning_confirm">Remove Guests</string>
 
 </resources>

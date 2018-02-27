@@ -61,21 +61,47 @@ class GuestOptionsFragment extends FragmentHelper with OnBackPressedListener {
     guestsSwitch.foreach {
       _.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener {
         override def onCheckedChanged(buttonView: CompoundButton, isChecked: Boolean): Unit = {
+
+          def setTeamOnly(): Unit = {
+            (for {
+              z <- zms.head
+              c <- convCtrl.currentConvId.head
+              resp <- z.conversations.setToTeamOnly(c, !isChecked)
+            } yield resp).map { resp =>
+              setGuestsSwitchEnabled(true)
+              resp match {
+                case Right(_) => //
+                case Left(_) =>
+                  ViewUtils.showAlertDialog(getContext, R.string.allow_guests_error_title, R.string.allow_guests_error_body, android.R.string.ok, new DialogInterface.OnClickListener {
+                    override def onClick(dialog: DialogInterface, which: Int): Unit = dialog.dismiss()
+                  }, true)
+              }
+            }(Threading.Ui)
+          }
+
           setGuestsSwitchEnabled(false)
-          (for {
-            z <- zms.head
-            c <- convCtrl.currentConvId.head
-            resp <- z.conversations.setToTeamOnly(c, !isChecked)
-          } yield resp).map { resp =>
-            setGuestsSwitchEnabled(true)
-            resp match {
-              case Right(_) => //
-              case Left(_) =>
-                ViewUtils.showAlertDialog(getContext, R.string.allow_guests_error_title, R.string.allow_guests_error_body, android.R.string.ok, new DialogInterface.OnClickListener {
-                  override def onClick(dialog: DialogInterface, which: Int): Unit = dialog.dismiss()
-                }, true)
-            }
-          }(Threading.Ui)
+
+          if (!isChecked) {
+            ViewUtils.showAlertDialog(getContext,
+              R.string.empty_string,
+              R.string.allow_guests_warning_body,
+              R.string.allow_guests_warning_confirm,
+              android.R.string.cancel,
+              new DialogInterface.OnClickListener {
+                override def onClick(dialog: DialogInterface, which: Int): Unit = {
+                  setTeamOnly()
+                  dialog.dismiss()
+                }
+              }, new DialogInterface.OnClickListener {
+                override def onClick(dialog: DialogInterface, which: Int): Unit = {
+                  guestsSwitch.setChecked(true)
+                  setGuestsSwitchEnabled(true)
+                  dialog.dismiss()
+                }
+              })
+          } else {
+            setTeamOnly()
+          }
         }
       })
     }
