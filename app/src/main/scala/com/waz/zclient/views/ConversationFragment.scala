@@ -169,7 +169,7 @@ class ConversationFragment extends BaseFragment[ConversationFragment.Container] 
       case false =>  hideGuestsBanner()
     }
 
-    keyboardController.keyboardVisibility.onUi(visible => if(visible) collapseGuestsBanner())
+    keyboardController.isKeyboardVisible.onUi(visible => if(visible) collapseGuestsBanner())
   }
 
   private def openGuestsBanner(): Unit = {

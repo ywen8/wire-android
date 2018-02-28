@@ -160,7 +160,7 @@
     <integer name="single_image_message__close_animation_background__delay">100</integer>
 
     <integer name="open_new_conversation__thread_list_out__animation_duration">150</integer>
-    <integer name="open_new_conversation__top_conversation__animation_duration">500</integer>
+    <integer name="open_new_conversation__top_conversation__animation_duration">350</integer>
     <integer name="open_close_button__alpha__delay">150</integer>
     <integer name="open_close_button__alpha__animation_duration">350</integer>
     <integer name="close_close_button__alpha__delay">150</integer>

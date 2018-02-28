@@ -19,7 +19,7 @@
 
 -->
 <translate xmlns:android="http://schemas.android.com/apk/res/android"
-    android:duration="500"
+    android:duration="@integer/open_new_conversation__top_conversation__animation_duration"
     android:fromXDelta="100%"
     android:toXDelta="0%"
     />
