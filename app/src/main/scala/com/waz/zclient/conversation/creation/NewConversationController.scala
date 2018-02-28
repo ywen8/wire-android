@@ -19,25 +19,38 @@ package com.waz.zclient.conversation.creation
 
 import com.waz.ZLog.ImplicitTag._
 import com.waz.model.{ConvId, UserId}
+import com.waz.service.ZMessaging
 import com.waz.service.tracking._
-import com.waz.utils.events.Signal
+import com.waz.utils.events.{EventContext, Signal}
 import com.waz.zclient.conversation.ConversationController
 import com.waz.zclient.utils.UiStorage
 import com.waz.zclient.{Injectable, Injector}
 
 import scala.concurrent.Future
 
-class NewConversationController(implicit inj: Injector) extends Injectable {
+class NewConversationController(implicit inj: Injector, ev: EventContext) extends Injectable {
   import com.waz.threading.Threading.Implicits.Background
 
   private lazy val conversationController = inject[ConversationController]
+  private lazy val zms = inject[Signal[ZMessaging]]
+
   private implicit lazy val uiStorage = inject[UiStorage]
   private lazy val tracking = inject[TrackingService]
 
   val convId   = Signal(Option.empty[ConvId])
   val name     = Signal("")
   val users    = Signal(Set.empty[UserId])
-  val teamOnly = Signal(true) //TODO provide toggle to change this state!
+  val teamOnly = Signal(true)
+
+  teamOnly.onChanged {
+    case true =>
+      for {
+        z   <- zms.head
+        ids <- users.head
+        us  <- Future.sequence(ids.map(z.users.getUser)).map(_.flatten)
+      } yield users.mutate(_ -- us.filter(_.isGuest(z.teamId)).map(_.id))
+    case false => //
+  }
 
   val fromScreen = Signal[GroupConversationEvent.Method]()
 
