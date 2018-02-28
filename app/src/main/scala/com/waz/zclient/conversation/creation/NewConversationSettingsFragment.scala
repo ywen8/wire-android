@@ -26,6 +26,7 @@ import android.widget.CompoundButton
 import android.widget.CompoundButton.OnCheckedChangeListener
 import com.waz.ZLog
 import com.waz.ZLog.ImplicitTag._
+import com.waz.utils.returning
 import com.waz.zclient.common.controllers.UserAccountsController
 import com.waz.zclient.{FragmentHelper, R}
 import com.waz.zclient.common.views.InputBox
@@ -33,28 +34,37 @@ import com.waz.zclient.common.views.InputBox.GroupNameValidator
 import com.waz.zclient.utils.RichView
 
 class NewConversationSettingsFragment extends Fragment with FragmentHelper {
-  private lazy val inputBox = view[InputBox](R.id.input_box)
-  private lazy val guestsToggle = view[SwitchCompat](R.id.guest_toggle)
-
   private lazy val convController = inject[NewConversationController]
   private lazy val userAccountsController = inject[UserAccountsController]
+
+  private lazy val inputBox = view[InputBox](R.id.input_box)
+
+  private lazy val guestsToggle    = view[SwitchCompat](R.id.guest_toggle)
+
+  private lazy val guestsToggleRow = returning(view[View](R.id.guest_toggle_row)) { vh =>
+    userAccountsController.isTeam.onUi(vis => vh.foreach(_.setVisible(vis)))
+  }
+
+  private lazy val guestsToggleDesc = returning(view[View](R.id.guest_toggle_description)) { vh =>
+    userAccountsController.isTeam.onUi(vis => vh.foreach(_.setVisible(vis)))
+  }
 
   override def onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState: Bundle): View =
     inflater.inflate(R.layout.create_conv_settings_fragment, container, false)
 
   override def onViewCreated(v: View, savedInstanceState: Bundle): Unit = {
-    inputBox.foreach(_.setValidator(GroupNameValidator))
-    convController.name.currentValue.foreach { text =>
-      inputBox.foreach(_.editText.setText(text))
-    }
+
+    guestsToggleRow
+    guestsToggleDesc
 
     inputBox.foreach { box =>
       box.text.onUi(convController.name ! _)
       box.editText.setFilters(Array(new LengthFilter(64)))
+      box.setValidator(GroupNameValidator)
+      convController.name.currentValue.foreach(text => box.editText.setText(text))
     }
 
     guestsToggle.foreach { toggle =>
-      toggle.setVisible(userAccountsController.isTeam.currentValue.getOrElse(false))
       convController.teamOnly.currentValue.foreach(teamOnly => toggle.setChecked(!teamOnly))
       toggle.setOnCheckedChangeListener(new OnCheckedChangeListener {
         override def onCheckedChanged(buttonView: CompoundButton, isChecked: Boolean): Unit = convController.teamOnly ! !isChecked
