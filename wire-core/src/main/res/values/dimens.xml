@@ -938,4 +938,5 @@
     <dimen name="guest_options_icon_size">16dp</dimen>
     <dimen name="user_row_height">64dp</dimen>
     <dimen name="user_row_icon_size">16dp</dimen>
+    <dimen name="guests_toolbar_height">16dp</dimen>
 </resources>
