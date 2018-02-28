@@ -57,6 +57,12 @@ class ParticipantsController(implicit injector: Injector, context: Context, ec: 
     case others                     => selectedParticipant.map(_.flatMap(id => others.find(_ == id)))
   }
 
+  lazy val containsGuest = for {
+    z     <- zms
+    ids   <- otherParticipants
+    users <- Signal.sequence(ids.map(z.users.userSignal).toSeq:_*)
+  } yield users.exists(_.isGuest(z.teamId))
+
   lazy val isWithBot = for {
     z       <- zms
     others  <- otherParticipants
