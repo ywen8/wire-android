@@ -302,7 +302,7 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
       } else false
     }
 
-  override def onUserClicked(userId: UserId, anchorView: View): Unit = {
+  override def onUserClicked(userId: UserId): Unit = {
     zms.head.flatMap { z =>
       z.usersStorage.get(userId).map {
         case Some(user) =>
@@ -314,7 +314,7 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
             Future { user.connection match {
               case PendingFromUser | Blocked | Ignored | Cancelled | Unconnected =>
                 convScreenController.setPopoverLaunchedMode(DialogLaunchMode.SEARCH)
-                pickUserController.showUserProfile(userId, anchorView)
+                pickUserController.showUserProfile(userId)
               case ConnectionStatus.PendingFromOther =>
                 getContainer.showIncomingPendingConnectRequest(ConvId(userId.str))
               case _ =>

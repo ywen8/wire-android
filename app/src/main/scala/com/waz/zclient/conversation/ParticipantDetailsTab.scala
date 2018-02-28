@@ -68,8 +68,7 @@ class ParticipantDetailsTab(val context: Context, callback: FooterMenuCallback) 
   private val otherUserIsGuest = for {
     z       <- zms
     user    <- otherUser
-    isGuest <- if (user.isWireBot) Signal.const(false) else z.teams.isGuest(user.id)
-  } yield isGuest
+  } yield !user.isWireBot && user.isGuest(z.teamId)
 
   otherUserIsGuest.onUi {
     guestIndicationText.setVisible

@@ -26,7 +26,7 @@ public interface PickUserControllerScreenObserver {
 
     void onHidePickUser(IPickUserController.Destination destination);
 
-    void onShowUserProfile(UserId userId, View anchorView);
+    void onShowUserProfile(UserId userId);
 
     void onHideUserProfile();
 }
