@@ -44,7 +44,7 @@ class ParticipantsAdapter(numOfColumns: Int)(implicit context: Context, injector
   val onClick = EventStream[UserId]()
   val onGuestOptionsClick = EventStream[Unit]()
 
-  private lazy val users = for {
+  lazy val users = for {
     z       <- zms
     userIds <- participantsController.otherParticipants.map(_.toSeq)
     users   <- Signal.sequence(userIds.filterNot(_ == z.selfUserId).map(z.users.userSignal): _*)

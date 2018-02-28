@@ -19,7 +19,6 @@ package com.waz.zclient.usersearch
 
 import android.Manifest.permission.READ_CONTACTS
 import android.content.{DialogInterface, Intent}
-import android.net.Uri
 import android.os.Bundle
 import android.support.design.widget.TabLayout
 import android.support.design.widget.TabLayout.OnTabSelectedListener
@@ -36,9 +35,8 @@ import com.waz.content.UserPreferences
 import com.waz.model.UserData.ConnectionStatus
 import com.waz.model._
 import com.waz.permissions.PermissionsService
-import com.waz.service.ContactResult.ContactMethod
+import com.waz.service.ZMessaging
 import com.waz.service.tracking.GroupConversationEvent
-import com.waz.service.{ContactResult, NetworkModeService, ZMessaging}
 import com.waz.threading.{CancellableFuture, Threading}
 import com.waz.utils.events.{Signal, Subscription}
 import com.waz.utils.returning
@@ -96,23 +94,20 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
   private lazy val shareContactsPref     = zms.map(_.userPrefs.preference(UserPreferences.ShareContacts))
   private lazy val showShareContactsPref = zms.map(_.userPrefs.preference(UserPreferences.ShowShareContacts))
 
-  private lazy val searchResultAdapter: PickUsersAdapter = new PickUsersAdapter(
+  private lazy val adapter: PickUsersAdapter = new PickUsersAdapter(
     new SearchResultOnItemTouchListener(getActivity, this),
     this,
-    searchUserController,
-    integrationsController,
-    darkTheme = true
+    integrationsController
   )
-  private lazy val searchUserController = new SearchUserController()
 
   private lazy val searchResultRecyclerView = view[RecyclerView](R.id.rv__pickuser__header_list_view)
   private lazy val startUiToolbar           = view[Toolbar](R.id.pickuser_toolbar)
+
   private lazy val inviteButton = returning(view[FlatWireButton](R.id.invite_button)) { vh =>
-    (for {
-      kb  <- keyboard.keyboardVisibility
-      sel <- searchUserController.selectedUsers
-    } yield if (kb || sel.nonEmpty || isTeamAccount) View.GONE else View.VISIBLE)
-      .onUi(vis => vh.foreach(_.setVisibility(vis)))
+    userAccountsController.isTeam.flatMap {
+      case true => Signal.const(false)
+      case _ => keyboard.isKeyboardVisible.map(!_)
+    }.onUi(vis => vh.foreach(_.setVisible(vis)))
   }
 
   private lazy val searchBox = returning(view[SearchEditText](R.id.sbv__search_box)) { vh =>
@@ -128,7 +123,7 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
 
   private lazy val errorMessageView = returning(view[TypefaceTextView](R.id.pickuser__error_text)) { vh =>
     (for {
-      integrationTab <- searchResultAdapter.peopleOrServices
+      integrationTab <- adapter.peopleOrServices
       hasSearch      <- integrationsController.searchQuery.map(_.nonEmpty)
       hasResults     <- integrationsController.searchIntegrations.map(_.forall(_.nonEmpty))
     } yield integrationTab && hasSearch && !hasResults).onUi { show =>
@@ -141,7 +136,7 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
       zms         <- zms
       permissions <- userAccountsController.permissions.orElse(Signal.const(Set.empty[AccountData.Permission]))
       members     <- zms.teams.searchTeamMembers().orElse(Signal.const(Set.empty[UserData]))
-      searching   <- searchUserController.filter.map(_.nonEmpty)
+      searching   <- adapter.filter.map(_.nonEmpty)
     } yield
       if (zms.teamId.nonEmpty && permissions(AccountData.Permission.AddTeamMember) && !members.exists(_.id != zms.selfUserId) && !searching)
         View.VISIBLE
@@ -160,11 +155,8 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
     override def afterTextChanged(s: String): Unit = {
       searchBox.foreach { v =>
         val filter = v.getSearchFilter
-        searchUserController.filter ! filter
+        adapter.filter ! filter
         integrationsController.searchQuery ! filter
-        if (filter.isEmpty) {
-          setConversationQuickMenuVisible(false)
-        }
       }
     }
   }
@@ -199,7 +191,7 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
   override def onViewCreated(rootView: View, savedInstanceState: Bundle): Unit = {
 
     searchResultRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity))
-    searchResultRecyclerView.setAdapter(searchResultAdapter)
+    searchResultRecyclerView.setAdapter(adapter)
     searchResultRecyclerView.addOnItemTouchListener(new SearchResultOnItemTouchListener(getActivity, this))
 
     searchBox.setCallback(searchBoxViewCallback)
@@ -232,7 +224,7 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
     })
 
     val tabs = findById[TabLayout](rootView, R.id.pick_user_tabs)
-    searchResultAdapter.peopleOrServices.head.map {
+    adapter.peopleOrServices.head.map {
       case false => 0
       case true  => 1
     }.foreach(tabs.getTabAt(_).select())
@@ -240,8 +232,8 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
     tabs.addOnTabSelectedListener(new OnTabSelectedListener {
       override def onTabSelected(tab: TabLayout.Tab): Unit = {
         tab.getPosition match {
-          case 0 => searchResultAdapter.peopleOrServices ! false
-          case 1 => searchResultAdapter.peopleOrServices ! true
+          case 0 => adapter.peopleOrServices ! false
+          case 1 => adapter.peopleOrServices ! true
         }
         searchBox.removeAllElements()
       }
@@ -253,11 +245,11 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
       .map(_.teamId.nonEmpty && internalVersion)
       .map(show => tabs.setVisibility(if (show) View.VISIBLE else View.GONE))(Threading.Ui)
 
-    searchUserController.filter ! ""
+    adapter.filter ! ""
     integrationsController.searchQuery ! ""
 
     containerSub = Some((for {
-      kb <- keyboard.keyboardVisibility
+      kb <- keyboard.isKeyboardVisible
       ac <- accentColor
       filterEmpty = !searchBox.flatMap(v => Option(v.getSearchFilter).map(_.isEmpty)).getOrElse(true)
     } yield if (kb || filterEmpty) getColor(R.color.people_picker__loading__color) else ac)
@@ -366,20 +358,15 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
       startActivity(Intent.createChooser(sharingIntent, getString(R.string.people_picker__invite__share_details_dialog)))
     }(Threading.Ui)
 
-  private def setConversationQuickMenuVisible(show: Boolean): Unit = {
-    val visible = show || searchUserController.selectedUsers.currentValue.exists(_.nonEmpty) || keyboard.isVisible || isTeamAccount
-    inviteButton.foreach(_.setVisibility(if (visible) View.GONE else View.VISIBLE))
-  }
-
   private def isPrivateAccount: Boolean = !isTeamAccount
 
   private def isTeamAccount: Boolean = userAccountsController.isTeamAccount
 
   private def closeStartUI(): Unit = {
     keyboard.hideKeyboardIfVisible()
-    searchUserController.filter ! ""
+    adapter.filter ! ""
     integrationsController.searchQuery ! ""
-    searchResultAdapter.peopleOrServices ! false
+    adapter.peopleOrServices ! false
     pickUserController.hidePickUser(getCurrentPickerDestination)
   }
 

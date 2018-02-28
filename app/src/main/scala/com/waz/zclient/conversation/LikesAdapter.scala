@@ -44,14 +44,11 @@ class LikesAdapter(context: Context) extends RecyclerView.Adapter[RecyclerView.V
     notifyDataSetChanged()
   }
 
-  def onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder = {
-    val view = LayoutInflater.from(parent.getContext).inflate(R.layout.single_user_row, parent, false).asInstanceOf[SingleUserRowView]
-    new UserViewHolder(view, false, false)
-  }
+  def onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder =
+    new UserViewHolder(LayoutInflater.from(parent.getContext).inflate(R.layout.single_user_row, parent, false).asInstanceOf[SingleUserRowView])
 
-  def onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int): Unit = {
-    holder.asInstanceOf[UserViewHolder].bind(likesUsers(position), isGuest = false, isSelected = false)
-  }
+  def onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int): Unit =
+    holder.asInstanceOf[UserViewHolder].bind(likesUsers(position), isGuest = false)
 
   def getItemCount: Int = likesUsers.size
 

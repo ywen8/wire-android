@@ -40,6 +40,7 @@ import com.waz.zclient.integrations.IntegrationDetailsController
 import com.waz.zclient.pages.main.connect.{BlockedUserProfileFragment, ConnectRequestLoadMode, PendingConnectRequestFragment, SendConnectRequestFragment}
 import com.waz.zclient.pages.main.conversation.controller.IConversationScreenController
 import com.waz.zclient.participants.{ParticipantsAdapter, ParticipantsController}
+import com.waz.zclient.ui.text.GlyphTextView
 import com.waz.zclient.ui.utils.KeyboardUtils
 import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.utils.ViewUtils
@@ -78,15 +79,13 @@ class GroupParticipantsFragment extends FragmentHelper {
       fm.foreach(_.setLeftActionLabelText(getString(textId)))
     }
   }
+  private lazy val emptyListIcon = view[GlyphTextView](R.id.empty_list_icon)
 
   private lazy val participantsAdapter = returning(new ParticipantsAdapter(getInt(R.integer.participant_column__count))) { adapter =>
     new FutureEventStream[UserId, Option[UserData]](adapter.onClick, participantsController.getUser).onUi {
       case Some(user) => (user.providerId, user.integrationId) match {
         case (Some(pId), Some(iId)) =>
-          (for {
-            z    <- zms.head
-            conv <- participantsController.conv.head
-          } yield conv).map { conv =>
+          participantsController.conv.head.map { conv =>
             integrationDetailsController.setRemoving(conv.id, user.id)
             convScreenController.showIntegrationDetails(pId, iId)
           }
@@ -106,6 +105,11 @@ class GroupParticipantsFragment extends FragmentHelper {
         .addToBackStack(GuestOptionsFragment.Tag)
         .commit
     }
+
+    adapter.users.map(_.isEmpty).map {
+      case true => View.VISIBLE
+      case false => View.GONE
+    }.onUi(emptyListIcon.setVisibility(_))
   }
 
   private def showUser(userId: UserId): Unit = {

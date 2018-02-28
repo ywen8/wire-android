@@ -32,7 +32,7 @@ import com.waz.zclient.common.views.InputBox.GroupNameValidator
 
 class NewConversationSettingsFragment extends Fragment with FragmentHelper {
   private lazy val inputBox = view[InputBox](R.id.input_box)
-  private lazy val guestsToggle = view[SwitchCompat](R.id.guests_toggle)
+  private lazy val guestsToggle = view[SwitchCompat](R.id.guest_toggle)
 
   private lazy val convController = inject[NewConversationController]
 

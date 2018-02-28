@@ -26,7 +26,7 @@ import com.waz.zclient.usersearch.SearchResultOnItemTouchListener
 import com.waz.zclient.usersearch.adapters.TopUserAdapter
 import com.waz.zclient.utils.ViewUtils
 
-class TopUsersViewHolder(val view: View, val topUserAdapter: TopUserAdapter, val context: Context) extends RecyclerView.ViewHolder(view) {
+class TopUsersViewHolder(view: View, topUserAdapter: TopUserAdapter, context: Context) extends RecyclerView.ViewHolder(view) {
 
   val topUsersRecyclerView = ViewUtils.getView[RecyclerView](view, R.id.rv_top_users)
   val layoutManager = new LinearLayoutManager(context)

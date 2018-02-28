@@ -21,22 +21,17 @@ import android.support.v7.widget.RecyclerView
 import com.waz.model.UserData
 import com.waz.zclient.common.views.SingleUserRowView
 
-class UserViewHolder(val view: SingleUserRowView, darkTheme: Boolean, addingPeople: Boolean) extends RecyclerView.ViewHolder(view) {
+class UserViewHolder(val view: SingleUserRowView) extends RecyclerView.ViewHolder(view) {
 
   var userData: Option[UserData] = None
 
-  private val theme = if (addingPeople && darkTheme) SingleUserRowView.Dark
-  else if(addingPeople && !darkTheme) SingleUserRowView.Light
-  else SingleUserRowView.Transparent
-
   view.showArrow(false)
-  view.showCheckbox(addingPeople)
-  view.setTheme(theme)
+  view.showCheckbox(false)
+  view.setTheme(SingleUserRowView.Transparent)
 
-  def bind(userData: UserData, isGuest: Boolean, isSelected: Boolean): Unit = {
+  def bind(userData: UserData, isGuest: Boolean): Unit = {
     this.userData = Some(userData)
     view.setUserData(userData)
     view.setIsGuest(isGuest)
-    view.setSelected(isSelected)
   }
 }
