@@ -17,7 +17,6 @@
  */
 package com.waz.zclient.pages.main.pickuser.controller;
 
-import android.view.View;
 import com.waz.model.UserId;
 
 public interface IPickUserController {

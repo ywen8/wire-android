@@ -43,7 +43,7 @@ import com.waz.zclient.pages.main.conversation.controller.{ConversationScreenCon
 import com.waz.zclient.pages.main.pickuser.controller.IPickUserController
 import com.waz.zclient.participants.{OptionsMenuFragment, ParticipantsController}
 import com.waz.zclient.ui.animation.interpolators.penner.Expo
-import com.waz.zclient.usersearch.PickUserFragment
+import com.waz.zclient.usersearch.SearchUIFragment
 import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.utils.ViewUtils
 import com.waz.zclient.views.DefaultPageTransitionAnimation
@@ -135,7 +135,7 @@ class ParticipantFragment extends BaseFragment[ParticipantFragment.Container] wi
 
     subs += convChange.map(_.requester).onUi {
       case START_CONVERSATION | START_CONVERSATION_FOR_VIDEO_CALL | START_CONVERSATION_FOR_CALL | START_CONVERSATION_FOR_CAMERA =>
-        getChildFragmentManager.popBackStackImmediate(PickUserFragment.TAG, FragmentManager.POP_BACK_STACK_INCLUSIVE)
+        getChildFragmentManager.popBackStackImmediate(SearchUIFragment.TAG, FragmentManager.POP_BACK_STACK_INCLUSIVE)
         pickUserController.hidePickUserWithoutAnimations(IPickUserController.Destination.PARTICIPANTS)
       case _ =>
     }
@@ -174,7 +174,7 @@ class ParticipantFragment extends BaseFragment[ParticipantFragment.Container] wi
     case Some(f: GroupParticipantsFragment) if f.onBackPressed() =>
       verbose(s"onBackPressed with GroupParticipantsFragment")
       true
-    case Some(f: PickUserFragment) if f.onBackPressed() =>
+    case Some(f: SearchUIFragment) if f.onBackPressed() =>
       verbose(s"onBackPressed with PickUserFragment")
       true
     case Some(f: SingleOtrClientFragment) =>

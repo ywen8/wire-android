@@ -43,7 +43,7 @@ import com.waz.zclient.pages.main.pickuser.controller.IPickUserController
 import com.waz.zclient.pages.main.pickuser.controller.IPickUserController.Destination
 import com.waz.zclient.paintcode.ServicePlaceholderDrawable
 import com.waz.zclient.ui.text.{GlyphTextView, TypefaceTextView}
-import com.waz.zclient.usersearch.PickUserFragment
+import com.waz.zclient.usersearch.SearchUIFragment
 import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.utils.RichView
 import com.waz.zclient.views.DefaultPageTransitionAnimation
@@ -175,7 +175,7 @@ class IntegrationDetailsFragment extends FragmentHelper with OnBackPressedListen
   }
 
   def close(): Boolean = {
-    getFragmentManager.popBackStack(PickUserFragment.TAG, FragmentManager.POP_BACK_STACK_INCLUSIVE)
+    getFragmentManager.popBackStack(SearchUIFragment.TAG, FragmentManager.POP_BACK_STACK_INCLUSIVE)
     if (integrationDetailsController.addingToConversation.nonEmpty) {
       inject[IPickUserController].hidePickUser(Destination.PARTICIPANTS)
       inject[INavigationController].setRightPage(Page.PARTICIPANT, IntegrationDetailsFragment.Tag)

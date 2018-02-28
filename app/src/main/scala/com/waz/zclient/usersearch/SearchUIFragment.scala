@@ -56,7 +56,6 @@ import com.waz.zclient.pages.main.conversation.controller.IConversationScreenCon
 import com.waz.zclient.pages.main.participants.dialog.DialogLaunchMode
 import com.waz.zclient.pages.main.pickuser.controller.IPickUserController
 import com.waz.zclient.ui.text.TypefaceTextView
-import com.waz.zclient.usersearch.adapters.PickUsersAdapter
 import com.waz.zclient.usersearch.views.SearchEditText
 import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.utils.{IntentUtils, RichView, StringUtils, UiStorage, UserSignal}
@@ -65,13 +64,12 @@ import com.waz.zclient.views._
 import scala.concurrent.Future
 import scala.concurrent.duration._
 
-class PickUserFragment extends BaseFragment[PickUserFragment.Container]
+class SearchUIFragment extends BaseFragment[SearchUIFragment.Container]
   with FragmentHelper
   with OnBackPressedListener
-  with SearchResultOnItemTouchListener.Callback
-  with PickUsersAdapter.Callback {
+  with SearchUIAdapter.Callback {
 
-  import PickUserFragment._
+  import SearchUIFragment._
   import Threading.Implicits.Background
 
   private implicit lazy val uiStorage = inject[UiStorage]
@@ -94,11 +92,7 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
   private lazy val shareContactsPref     = zms.map(_.userPrefs.preference(UserPreferences.ShareContacts))
   private lazy val showShareContactsPref = zms.map(_.userPrefs.preference(UserPreferences.ShowShareContacts))
 
-  private lazy val adapter: PickUsersAdapter = new PickUsersAdapter(
-    new SearchResultOnItemTouchListener(getActivity, this),
-    this,
-    integrationsController
-  )
+  private lazy val adapter = new SearchUIAdapter(this, integrationsController)
 
   private lazy val searchResultRecyclerView = view[RecyclerView](R.id.rv__pickuser__header_list_view)
   private lazy val startUiToolbar           = view[Toolbar](R.id.pickuser_toolbar)
@@ -192,7 +186,6 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
 
     searchResultRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity))
     searchResultRecyclerView.setAdapter(adapter)
-    searchResultRecyclerView.addOnItemTouchListener(new SearchResultOnItemTouchListener(getActivity, this))
 
     searchBox.setCallback(searchBoxViewCallback)
 
@@ -266,7 +259,7 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
     inviteButton.foreach(_.onClick(sendGenericInvite(false)))
 
     CancellableFuture.delay(getInt(R.integer.people_picker__keyboard__show_delay).millis).map { _ =>
-      convListController.establishedConversations.head.map(_.size > PickUserFragment.SHOW_KEYBOARD_THRESHOLD && isTeamAccount).map {
+      convListController.establishedConversations.head.map(_.size > SearchUIFragment.SHOW_KEYBOARD_THRESHOLD && isTeamAccount).map {
         case true =>
           searchBox.foreach { v =>
             v.setFocus()
@@ -424,12 +417,12 @@ class PickUserFragment extends BaseFragment[PickUserFragment.Container]
       .addToBackStack(Tag)
       .commit()
 
-    navigationController.setLeftPage(Page.INTEGRATION_DETAILS, PickUserFragment.TAG)
+    navigationController.setLeftPage(Page.INTEGRATION_DETAILS, SearchUIFragment.TAG)
   }
 }
 
-object PickUserFragment {
-  val TAG: String = classOf[PickUserFragment].getName
+object SearchUIFragment {
+  val TAG: String = classOf[SearchUIFragment].getName
   private val DEFAULT_SELECTED_INVITE_METHOD: Int = 0
   private val SHOW_KEYBOARD_THRESHOLD: Int = 10
 
@@ -438,8 +431,8 @@ object PickUserFragment {
     case _ => false
   }
 
-  def newInstance(): PickUserFragment =
-    new PickUserFragment
+  def newInstance(): SearchUIFragment =
+    new SearchUIFragment
 
   trait Container {
     def showIncomingPendingConnectRequest(conv: ConvId): Unit
