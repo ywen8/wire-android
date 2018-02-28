@@ -160,16 +160,12 @@ class ConversationFragment extends BaseFragment[ConversationFragment.Container] 
     super.onCreate(savedInstanceState)
     assetIntentsManager = Option(new AssetIntentsManager(getActivity, assetIntentsManagerCallback, savedInstanceState))
 
-    (for {
-      zms <- zms
-      convMembers <- convController.currentConvMembers
-      guests <- Signal.sequence(convMembers.map(zms.teams.isGuest).toSeq:_*)
-    } yield guests.contains(true)).onUi {
+    participantsController.containsGuest.onUi {
       case true => openGuestsBanner()
       case false =>  hideGuestsBanner()
     }
 
-    keyboardController.keyboardVisibility.onUi(visible => if(visible) collapseGuestsBanner())
+    keyboardController.isKeyboardVisible.onUi(visible => if(visible) collapseGuestsBanner())
   }
 
   private def openGuestsBanner(): Unit = {
