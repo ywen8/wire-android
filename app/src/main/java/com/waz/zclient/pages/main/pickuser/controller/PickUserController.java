@@ -18,7 +18,6 @@
 package com.waz.zclient.pages.main.pickuser.controller;
 
 import android.content.Context;
-import android.view.View;
 import com.waz.model.UserId;
 
 import java.util.HashSet;

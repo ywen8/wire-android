@@ -19,6 +19,7 @@
 
 -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:app="http://schemas.android.com/apk/res-auto"
               android:orientation="vertical"
               android:layout_width="match_parent"
               android:layout_height="match_parent"
@@ -39,7 +40,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textSize="@dimen/wire__text_size__regular"
-            android:textColor="@color/black"/>
+            app:w_font="@string/wire__typeface__light"
+            android:textColor="?wirePrimaryTextColor"/>
 
         <android.support.v7.widget.SwitchCompat
             android:id="@+id/guest_toggle"
@@ -57,7 +59,8 @@
         android:layout_marginTop="@dimen/wire__padding__regular"
         android:paddingStart="@dimen/wire__padding__regular"
         android:paddingEnd="@dimen/wire__padding__regular"
-        android:textColor="@color/teams_description_text"
+        android:textColor="?wireSecondaryTextColor"
+        app:w_font="@string/wire__typeface__light"
         android:textSize="@dimen/wire__text_size__small"
     />
 
