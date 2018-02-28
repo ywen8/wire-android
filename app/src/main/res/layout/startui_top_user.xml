@@ -27,5 +27,8 @@
     android:paddingRight="@dimen/people_picker__topgrid__chathead__horizontal_padding"
     android:paddingLeft="@dimen/people_picker__topgrid__chathead__horizontal_padding"
     app:chathead_size="@dimen/people_picker__topgrid__chathead__width"
+    android:background="@drawable/selector__transparent_button"
+    android:focusable="true"
+    android:clickable="true"
     />
 

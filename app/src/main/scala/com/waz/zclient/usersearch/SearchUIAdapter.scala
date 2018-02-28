@@ -319,8 +319,7 @@ object SearchUIAdapter {
     topUsersRecyclerView.setHasFixedSize(false)
     topUsersRecyclerView.setAdapter(this.topUserAdapter)
 
-    def bind(users: Seq[UserData]): Unit =
-      topUserAdapter.setTopUsers(users)
+    def bind(users: Seq[UserData]): Unit = topUserAdapter.setTopUsers(users)
   }
 
   object TopUsersViewHolder {
