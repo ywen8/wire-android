@@ -26,15 +26,10 @@ import com.waz.zclient.R
 import com.waz.zclient.common.views.ChatheadWithTextFooter
 import com.waz.zclient.usersearch.viewholders.TopUserViewHolder
 
-class TopUserAdapter(selectedUsersSignal: Signal[Set[UserId]]) extends RecyclerView.Adapter[TopUserViewHolder] {
+class TopUserAdapter() extends RecyclerView.Adapter[TopUserViewHolder] {
   private var topUsers = Seq[UserData]()
   private var selectedUsers = Set[UserId]()
   implicit private val ec = EventContext.Implicits.global
-
-  selectedUsersSignal.on(Threading.Ui){ data =>
-    selectedUsers = data
-    notifyDataSetChanged()
-  }
 
   def onCreateViewHolder(parent: ViewGroup, viewType: Int): TopUserViewHolder = {
     val v = LayoutInflater.from(parent.getContext).inflate(R.layout.startui_top_user, parent, false).asInstanceOf[ChatheadWithTextFooter]

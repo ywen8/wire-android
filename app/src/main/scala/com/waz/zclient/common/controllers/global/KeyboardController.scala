@@ -32,8 +32,8 @@ class KeyboardController(implicit inj: Injector, ec: EventContext) extends ViewT
 
   private val cxt = inject[Context]
 
-  val keyboardVisibility = Signal(false)
-  keyboardVisibility(v => verbose(s"Keyboard visible: $v"))
+  val isKeyboardVisible = Signal(false)
+  isKeyboardVisible(v => verbose(s"Keyboard visible: $v"))
 
   val keyboardHeight = Signal(0)
 
@@ -50,11 +50,11 @@ class KeyboardController(implicit inj: Injector, ec: EventContext) extends ViewT
       val screenHeight: Int = rootLayout.getRootView.getHeight
       val kbHeight = screenHeight - r.bottom - statusAndNavigationBarHeight
 
-      keyboardVisibility ! (kbHeight > 0)
+      isKeyboardVisible ! (kbHeight > 0)
       keyboardHeight ! kbHeight
   }
 
-  def isVisible = keyboardVisibility.currentValue.getOrElse(false)
+  def isVisible = isKeyboardVisible.currentValue.getOrElse(false)
 
   //Returns true if keyboard state was changed
   def hideKeyboardIfVisible(): Boolean = {

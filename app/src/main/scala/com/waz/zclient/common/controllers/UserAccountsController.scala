@@ -95,6 +95,8 @@ class UserAccountsController(implicit injector: Injector, context: Context, ec: 
 
   zms.map(_.teamId)(_teamId = _)
 
+  val isTeam: Signal[Boolean] = zms.map(_.teamId.isDefined)
+
   def teamId = _teamId
   def isTeamAccount = _teamId.isDefined
   def isTeamMember(userId: UserId) = _teamMembers.contains(userId)
