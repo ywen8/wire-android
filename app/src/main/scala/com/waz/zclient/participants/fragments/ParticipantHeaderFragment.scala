@@ -23,47 +23,26 @@ import android.support.v4.app.Fragment
 import android.support.v7.widget.Toolbar
 import android.view._
 import android.view.animation.{AlphaAnimation, Animation}
-import android.view.inputmethod.{EditorInfo, InputMethodManager}
 import android.widget.TextView
-import com.waz.ZLog
-import com.waz.ZLog.ImplicitTag._
-import com.waz.api.{NetworkMode, Verification}
+import com.waz.api.Verification
 import com.waz.model.UserData
-import com.waz.service.ZMessaging
 import com.waz.utils.events.{Signal, Subscription}
 import com.waz.utils.returning
 import com.waz.zclient.common.controllers.ThemeController
-import com.waz.zclient.common.controllers.global.AccentColorController
-import com.waz.zclient.conversation.ConversationController
 import com.waz.zclient.pages.BaseFragment
 import com.waz.zclient.pages.main.conversation.controller.IConversationScreenController
 import com.waz.zclient.participants.ParticipantsController
-import com.waz.zclient.ui.text.AccentColorEditText
-import com.waz.zclient.ui.utils.KeyboardUtils
 import com.waz.zclient.utils.{RichView, ViewUtils}
 import com.waz.zclient.views.e2ee.ShieldView
 import com.waz.zclient.{FragmentHelper, R}
 
 class ParticipantHeaderFragment extends BaseFragment[ParticipantHeaderFragment.Container] with FragmentHelper {
-  import com.waz.threading.Threading.Implicits.Ui
 
   implicit def cxt: Context = getActivity
 
   private lazy val participantsController = inject[ParticipantsController]
   private lazy val screenController       = inject[IConversationScreenController]
   private lazy val themeController        = inject[ThemeController]
-
-  private val editInProgress = Signal(false)
-
-  private lazy val internetAvailable = for {
-    z           <- inject[Signal[ZMessaging]]
-    networkMode <- z.network.networkMode
-  } yield networkMode != NetworkMode.OFFLINE && networkMode != NetworkMode.UNKNOWN
-
-  private lazy val editAllowed = for {
-    isSingleParticipant <- participantsController.otherParticipant.map(_.isDefined)
-    edit                <- editInProgress
-  } yield !isSingleParticipant && !edit
 
   private var subs = Set.empty[Subscription]
 
@@ -78,53 +57,7 @@ class ParticipantHeaderFragment extends BaseFragment[ParticipantHeaderFragment.C
     }
   }
 
-  private lazy val headerEditText = returning(view[AccentColorEditText](R.id.taet__participants__header__editable)) { vh =>
-    (for {
-      true        <- themeController.darkThemeSet
-      accentColor <- inject[AccentColorController].accentColor
-    } yield accentColor)
-      .onUi(c => vh.foreach(_.setAccentColor(c.getColor)))
-
-    editInProgress.onUi {
-      case true => vh.foreach { he =>
-        he.requestFocus()
-        he.setVisible(true)
-        headerReadOnlyTextView.foreach { hr =>
-          he.setText(hr.getText)
-          he.setSelection(hr.getText.length)
-        }
-      }
-      case false => vh.foreach { he =>
-        he.clearFocus()
-        he.requestLayout()
-        he.setVisible(false)
-      }
-    }
-  }
-
-  private lazy val headerReadOnlyTextView = returning(view[TextView](R.id.ttv__participants__header)) { vh =>
-    (for {
-      convName <- participantsController.conv.map(_.displayName)
-      userId   <- participantsController.otherParticipant
-      user     <- userId.fold(Signal.const(Option.empty[UserData]))(id => Signal.future(participantsController.getUser(id)))
-    } yield user.fold(convName)(_.name))
-      .onUi(name => vh.foreach(_.setText(name)))
-
-    (for {
-      isSingleParticipant <- participantsController.otherParticipant.map(_.isDefined)
-      edit                <- editInProgress
-    } yield !isSingleParticipant && !edit).onUi(vis => vh.foreach(_.setVisible(vis)))
-
-    vh.onClick(_ => triggerEditingOfConversationNameIfInternet())
-  }
-
-  private lazy val penIcon = returning(view[TextView](R.id.gtv__participants_header__pen_icon)) { vh =>
-    editAllowed.onUi(edit => vh.foreach(pi => pi.setVisible(edit)))
-    vh.onClick(_ => triggerEditingOfConversationNameIfInternet())
-  }
-
   private lazy val closeIcon = returning(view[TextView](R.id.participants_header__close_icon)) { vh =>
-    editInProgress.onUi(edit => vh.foreach(pi => pi.setVisible(!edit)))
     vh.onClick(_ => screenController.hideParticipants(true, false))
   }
 
@@ -140,45 +73,10 @@ class ParticipantHeaderFragment extends BaseFragment[ParticipantHeaderFragment.C
       .onUi(isVerified => vh.foreach(_.setVisible(isVerified)))
   }
 
-  private def renameConversation() =
-    internetAvailable.head.foreach {
-      case true =>
-        headerEditText.foreach { he =>
-          val text = he.getText.toString.trim
-          inject[ConversationController].setCurrentConvName(text)
-          headerReadOnlyTextView.foreach(_.setText(text))
-        }
-      case false =>
-        participantsController.conv.map(_.displayName).head.foreach { name =>
-          headerReadOnlyTextView.foreach(_.setText(name))
-        }
-        showOfflineRenameError()
-    }
-
-  private val editorActionListener: TextView.OnEditorActionListener = new TextView.OnEditorActionListener() {
-    override def onEditorAction(textView: TextView, actionId: Int, event: KeyEvent): Boolean =
-      if (actionId == EditorInfo.IME_ACTION_DONE || (event != null && event.getKeyCode == KeyEvent.KEYCODE_ENTER)) {
-        renameConversation()
-
-        headerEditText.foreach { he =>
-          he.clearFocus()
-          getActivity
-            .getSystemService(Context.INPUT_METHOD_SERVICE).asInstanceOf[InputMethodManager]
-            .hideSoftInputFromWindow(he.getWindowToken, 0)
-        }
-
-        editInProgress ! false
-        true
-      } else false
-  }
-
-  private def triggerEditingOfConversationNameIfInternet(): Unit = (for {
-    edit     <- editAllowed.head
-    internet <- internetAvailable.head
-  } yield (edit, internet)).foreach {
-    case (true, false) => showOfflineRenameError()
-    case (true, true)  => editInProgress ! true
-    case _ =>
+  private lazy val headerReadOnlyTextView = returning(view[TextView](R.id.participants__header)) { vh =>
+    (for {
+      isSingleParticipant <- participantsController.otherParticipant.map(_.isDefined)
+    } yield !isSingleParticipant).onUi(vis => vh.foreach(_.setVisible(vis)))
   }
 
   private def showOfflineRenameError(): Unit =
@@ -212,28 +110,10 @@ class ParticipantHeaderFragment extends BaseFragment[ParticipantHeaderFragment.C
     toolbar
 
     shieldView
-    headerEditText
-    headerReadOnlyTextView
-    penIcon
     closeIcon
-
-    subs += editInProgress.onUi {
-      case true =>
-        screenController.editConversationName(true)
-        KeyboardUtils.showKeyboard(getActivity)
-      case false =>
-        screenController.editConversationName(false)
-        KeyboardUtils.hideKeyboard(getActivity)
-    }
   }
 
-  def onBackPressed(): Boolean =
-    if (editInProgress.currentValue.getOrElse(false)) {
-      ZLog.verbose(s"ParticipantFragment editInProgress")
-      renameConversation()
-      editInProgress ! false
-      true
-    } else false
+  def onBackPressed(): Boolean = false
 
   override def onPause(): Unit = {
     toolbar.foreach(_.setNavigationOnClickListener(null))
@@ -246,8 +126,6 @@ class ParticipantHeaderFragment extends BaseFragment[ParticipantHeaderFragment.C
     toolbar.foreach(_.setNavigationOnClickListener(new View.OnClickListener() {
       override def onClick(v: View): Unit = getActivity.onBackPressed()
     }))
-
-    headerEditText.foreach { _.setOnEditorActionListener(editorActionListener) }
   }
 
   override def onDestroyView(): Unit = {

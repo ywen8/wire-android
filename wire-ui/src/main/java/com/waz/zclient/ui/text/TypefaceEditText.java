@@ -29,7 +29,12 @@ import com.waz.zclient.ui.utils.TypefaceUtils;
 
 public class TypefaceEditText extends AccentColorEditText {
 
+    public interface OnSelectionChangedListener {
+        void onSelectionChanged(int selStart, int selEnd);
+    }
+
     private View.OnKeyListener keyPreImeListener = null;
+    private OnSelectionChangedListener onSelectionChangedListener = null;
 
     public TypefaceEditText(Context context) {
         super(context);
@@ -72,5 +77,17 @@ public class TypefaceEditText extends AccentColorEditText {
 
     public void setOnKeyPreImeListener(View.OnKeyListener listener) {
         keyPreImeListener = listener;
+    }
+
+    @Override
+    protected void onSelectionChanged(int selStart, int selEnd) {
+        super.onSelectionChanged(selStart, selEnd);
+        if (onSelectionChangedListener != null) {
+            onSelectionChangedListener.onSelectionChanged(selStart, selEnd);
+        }
+    }
+
+    public void setOnSelectionChangedListener(OnSelectionChangedListener onSelectionChangedListener) {
+        this.onSelectionChangedListener = onSelectionChangedListener;
     }
 }
