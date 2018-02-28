@@ -65,7 +65,7 @@ class UserAccountsController(implicit injector: Injector, context: Context, ec: 
     teamMembers <- zms.teams.searchTeamMembers()
   } yield teamMembers.map(_.id)
 
-  teamMembersSignal { members => _teamMembers = members }
+  teamMembersSignal.onUi(members => _teamMembers = members)
 
   private def unreadCountForConv(conversationData: ConversationData): Int = {
     if (conversationData.archived || conversationData.muted || conversationData.hidden || conversationData.convType == ConversationData.ConversationType.Self)
@@ -88,18 +88,18 @@ class UserAccountsController(implicit injector: Injector, context: Context, ec: 
   def getOrCreateAndOpenConvFor(user: UserId) =
     getConversationId(user).flatMap(convCtrl.selectConv(_, ConversationChangeRequester.START_CONVERSATION))
 
-  zms.map(_.teamId)(_teamId = _)
+  lazy val teamId = zms.map(_.teamId)
+  teamId.onUi(_teamId = _)
 
-  val isTeam: Signal[Boolean] = zms.map(_.teamId.isDefined)
+  val isTeam: Signal[Boolean] = teamId.map(_.isDefined)
 
-  def teamId = _teamId
   def isTeamAccount = _teamId.isDefined
   def isTeamMember(userId: UserId) = _teamMembers.contains(userId)
 
   //TODO should perhaps clean this up a tad
   private def getTeamId(convId: ConvId): Option[TeamId] = zms.currentValue.flatMap(_.convsStorage.conversations.find(_.id == convId).flatMap(_.team))
 
-  private def isPartOfTeam(tId: TeamId): Boolean = teamId match {
+  private def isPartOfTeam(tId: TeamId): Boolean = _teamId match {
     case Some(id) => id == tId
     case _ => false
   }

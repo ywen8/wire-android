@@ -26,15 +26,18 @@ import android.widget.CompoundButton
 import android.widget.CompoundButton.OnCheckedChangeListener
 import com.waz.ZLog
 import com.waz.ZLog.ImplicitTag._
+import com.waz.zclient.common.controllers.UserAccountsController
 import com.waz.zclient.{FragmentHelper, R}
 import com.waz.zclient.common.views.InputBox
 import com.waz.zclient.common.views.InputBox.GroupNameValidator
+import com.waz.zclient.utils.RichView
 
 class NewConversationSettingsFragment extends Fragment with FragmentHelper {
   private lazy val inputBox = view[InputBox](R.id.input_box)
   private lazy val guestsToggle = view[SwitchCompat](R.id.guest_toggle)
 
   private lazy val convController = inject[NewConversationController]
+  private lazy val userAccountsController = inject[UserAccountsController]
 
   override def onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState: Bundle): View =
     inflater.inflate(R.layout.create_conv_settings_fragment, container, false)
@@ -51,6 +54,7 @@ class NewConversationSettingsFragment extends Fragment with FragmentHelper {
     }
 
     guestsToggle.foreach { toggle =>
+      toggle.setVisible(userAccountsController.isTeam.currentValue.getOrElse(false))
       convController.teamOnly.currentValue.foreach(teamOnly => toggle.setChecked(!teamOnly))
       toggle.setOnCheckedChangeListener(new OnCheckedChangeListener {
         override def onCheckedChanged(buttonView: CompoundButton, isChecked: Boolean): Unit = convController.teamOnly ! !isChecked
