@@ -48,7 +48,7 @@ public interface IPickUserController {
 
     void resetShowingPickUser(Destination destination);
 
-    void showUserProfile(UserId userId, View anchorView);
+    void showUserProfile(UserId userId);
 
     void hideUserProfile();
 

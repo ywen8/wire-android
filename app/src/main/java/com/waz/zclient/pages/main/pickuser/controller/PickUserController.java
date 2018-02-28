@@ -107,9 +107,9 @@ public class PickUserController implements IPickUserController {
     }
 
     @Override
-    public void showUserProfile(UserId userId, View anchorView) {
+    public void showUserProfile(UserId userId) {
         for (PickUserControllerScreenObserver pickUserControllerScreenObserver : pickUserControllerScreenObservers) {
-            pickUserControllerScreenObserver.onShowUserProfile(userId, anchorView);
+            pickUserControllerScreenObserver.onShowUserProfile(userId);
         }
         isShowingUserProfile = true;
     }

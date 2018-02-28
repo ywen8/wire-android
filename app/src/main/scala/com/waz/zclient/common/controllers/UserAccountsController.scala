@@ -43,7 +43,6 @@ class UserAccountsController(implicit injector: Injector, context: Context, ec: 
 
   private var _permissions = Set[AccountData.Permission]()
 
-  private var _teamData = Option.empty[TeamData]
   private var _teamId = Option.empty[TeamId]
   private var _teamMembers = Set.empty[UserId]
 
@@ -56,14 +55,10 @@ class UserAccountsController(implicit injector: Injector, context: Context, ec: 
     _permissions = p
   }
 
-  val teamDataSignal = for {
+  val teamData = for {
     zms <- zms
     teamData <- zms.teams.selfTeam
   } yield teamData
-
-  teamDataSignal { data => _teamData = data }
-
-  def teamData = _teamData
 
   val teamMembersSignal = for {
     zms <- zms

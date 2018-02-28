@@ -26,8 +26,6 @@ import com.waz.zclient.usersearch.views.{ConversationRowView, IntegrationRowView
 object SearchResultOnItemTouchListener {
 
   trait Callback {
-    def onUserClicked(userId: UserId, anchorView: View): Unit
-
     def onConversationClicked(conversation: ConversationData): Unit
 
     def onIntegrationClicked(integration: IntegrationData): Unit

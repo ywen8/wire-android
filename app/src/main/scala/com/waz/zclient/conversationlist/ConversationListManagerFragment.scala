@@ -247,7 +247,7 @@ class ConversationListManagerFragment extends Fragment
     getChildFragmentManager.getFragments.asScala.foreach(_.onActivityResult(requestCode, resultCode, data))
   }
 
-  override def onShowUserProfile(userId: UserId, anchorView: View) =
+  override def onShowUserProfile(userId: UserId) =
     if (!pickUserController.isShowingUserProfile) {
       import User.ConnectionStatus._
 

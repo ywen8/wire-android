@@ -152,7 +152,7 @@
         <attr name="gray_on_unconnected" format="boolean"/>
     </declare-styleable>
 
-    <declare-styleable name="ChatheadWithTextFooter">
+    <declare-styleable name="TopUserChathead">
         <attr name="chathead_size" format="dimension"/>
     </declare-styleable>
 

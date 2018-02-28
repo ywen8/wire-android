@@ -40,23 +40,6 @@
             app:show_border="false"
             />
 
-        <com.waz.zclient.ui.text.TypefaceTextView
-            android:id="@+id/guest_indicator"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="@dimen/wire__padding__12"
-            android:layout_marginEnd="@dimen/wire__padding__12"
-            android:layout_alignParentBottom="true"
-            android:layout_alignStart="@+id/cv__chathead"
-            android:layout_alignEnd="@+id/cv__chathead"
-            android:gravity="center"
-            android:text="@string/guest_indicator"
-            android:background="?roundBackgroundDrawable"
-            android:textColor="?wirePrimaryTextColor"
-            android:textSize="@dimen/wire__text_size__small"
-            android:visibility="gone"
-            />
-
     </RelativeLayout>
 
     <LinearLayout

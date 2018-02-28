@@ -323,7 +323,7 @@ class ConversationManagerFragment extends BaseFragment[Container] with FragmentH
 
   override def onCameraNotAvailable(): Unit = {}
 
-  override def onShowUserProfile(userId: UserId, anchorView: View): Unit = {}
+  override def onShowUserProfile(userId: UserId): Unit = {}
 
   override def onHideUserProfile(): Unit = {}
 }
