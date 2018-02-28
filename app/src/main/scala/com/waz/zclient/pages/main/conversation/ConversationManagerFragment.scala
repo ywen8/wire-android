@@ -89,6 +89,7 @@ class ConversationManagerFragment extends BaseFragment[Container] with FragmentH
   private lazy val drawingController      = inject[IDrawingController]
   private lazy val locationController     = inject[ILocationController]
   private lazy val pickUserController     = inject[IPickUserController]
+  private lazy val newConvController      = inject[NewConversationController]
 
   private lazy val loadingIndicatorView = view[LoadingIndicatorView](R.id.liv__conversation_manager__loading_indicator)
 
@@ -260,12 +261,12 @@ class ConversationManagerFragment extends BaseFragment[Container] with FragmentH
       convController.currentConvIsGroup.head.flatMap {
         case true =>
           convController.currentConvId.head.map { cId =>
-            inject[NewConversationController].setAddToConversation(cId)
+            newConvController.setAddToConversation(cId)
             showFragment(new NewConversationPickFragment, AddOrCreateTag)
           }
         case false =>
           convController.currentConvMembers.head.map { members =>
-            inject[NewConversationController].setCreateConversation(members, GroupConversationEvent.ConversationDetails)
+            newConvController.setCreateConversation(members, GroupConversationEvent.ConversationDetails)
             showFragment(new NewConversationFragment, AddOrCreateTag)
           }
       }

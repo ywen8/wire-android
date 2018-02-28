@@ -23,6 +23,7 @@ import android.support.v4.content.ContextCompat
 import android.support.v7.widget.AppCompatCheckBox
 import android.util.AttributeSet
 import android.view.View
+import android.view.View.OnClickListener
 import android.widget.{CompoundButton, ImageView, RelativeLayout}
 import com.waz.model.{Availability, IntegrationData, UserData}
 import com.waz.utils.events.{EventStream, SourceStream}
@@ -54,6 +55,10 @@ class SingleUserRowView(context: Context, attrs: AttributeSet, style: Int) exten
   checkbox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener {
     override def onCheckedChanged(buttonView: CompoundButton, isChecked: Boolean): Unit =
       onSelectionChanged ! isChecked
+  })
+
+  this.setOnClickListener(new OnClickListener {
+    override def onClick(v: View): Unit = setChecked(!checkbox.isChecked)
   })
 
   def setTitle(text: String): Unit = {
