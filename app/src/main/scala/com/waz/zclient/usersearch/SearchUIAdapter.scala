@@ -228,11 +228,11 @@ class SearchUIAdapter(adapterCallback: SearchUIAdapter.Callback, integrationsCon
     val view = LayoutInflater.from(parent.getContext).inflate(viewType match {
       case TopUsers          => R.layout.startui_top_users
       case ConnectedUser |
-           UnconnectedUser   => R.layout.single_user_row
+           UnconnectedUser |
+           Integration       => R.layout.single_user_row
       case GroupConversation => R.layout.startui_conversation
       case SectionHeader     => R.layout.startui_section_header
       case Expand            => R.layout.startui_section_expander
-      case Integration       => R.layout.single_user_row
       case NewConversation   => R.layout.startui_create_conv
       case _                 => -1
     }, parent, false)
