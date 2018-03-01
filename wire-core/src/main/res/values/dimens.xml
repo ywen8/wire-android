@@ -940,4 +940,5 @@
     <dimen name="user_row_icon_size">16dp</dimen>
     <dimen name="guests_toolbar_height">16dp</dimen>
     <dimen name="conversation_name_row_padding_end">48dp</dimen>
+    <dimen name="guest_badge_size">16dp</dimen>
 </resources>

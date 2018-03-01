@@ -23,13 +23,13 @@ import com.waz.ZLog.ImplicitTag._
 import com.waz.service.ZMessaging
 import com.waz.utils.events.Signal
 import com.waz.utils.returning
-import com.waz.zclient.common.controllers.UserAccountsController
+import com.waz.zclient.common.controllers.{ThemeController, UserAccountsController}
 import com.waz.zclient.common.views.ImageAssetDrawable
 import com.waz.zclient.common.views.ImageAssetDrawable.{RequestBuilder, ScaleType}
 import com.waz.zclient.common.views.ImageController.{ImageSource, WireImage}
 import com.waz.zclient.messages.UsersController
+import com.waz.zclient.paintcode.GuestIcon
 import com.waz.zclient.participants.ParticipantsController
-import com.waz.zclient.ui.text.TypefaceTextView
 import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.utils.{RichView, UiStorage}
 import com.waz.zclient.views.ShowAvailabilityView
@@ -46,6 +46,7 @@ class ParticipantDetailsTab(val context: Context, callback: FooterMenuCallback) 
   private val usersController        = inject[UsersController]
   private val participantsController = inject[ParticipantsController]
   private val userAccountsController = inject[UserAccountsController]
+  private val themeController        = inject[ThemeController]
 
   private val imageView = findById[ImageView](R.id.chathead)
 
@@ -53,7 +54,7 @@ class ParticipantDetailsTab(val context: Context, callback: FooterMenuCallback) 
     _.setCallback(callback)
   }
 
-  private lazy val guestIndicationText = findById[TypefaceTextView](R.id.participant_guest_indicator)
+  private lazy val guestIndication     = findById[LinearLayout](R.id.participant_guest_indicator)
   private lazy val userAvailability    = findById[ShowAvailabilityView](R.id.participant_availability)
 
   private val otherUser = for {
@@ -70,15 +71,11 @@ class ParticipantDetailsTab(val context: Context, callback: FooterMenuCallback) 
     user    <- otherUser
   } yield !user.isWireBot && user.isGuest(z.teamId)
 
-  otherUserIsGuest.onUi {
-    guestIndicationText.setVisible
-  }
+  otherUserIsGuest.onUi(guestIndication.setVisible(_))
 
-  otherUserIsGuest.map {
-    case true  => getString(R.string.participant_tab_guest_indicator_label)
-    case false => ""
-  }.onUi {
-    guestIndicationText.setText
+  returning(findById[ImageView](R.id.participant_guest_indicator_icon)) { icon =>
+    val color = if (themeController.isDarkTheme) R.color.wire__text_color_primary_dark_selector else R.color.wire__text_color_primary_light_selector
+    icon.setImageDrawable(GuestIcon(color))
   }
 
   imageView.setImageDrawable(new ImageAssetDrawable(picture, scaleType = ScaleType.CenterInside, request = RequestBuilder.Round))
