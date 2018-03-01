@@ -18,7 +18,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 -->
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
              android:layout_width="match_parent"
              android:layout_height="@dimen/user_row_height"
              xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -27,19 +27,19 @@
 
     <com.waz.zclient.ui.text.TypefaceEditText
         android:id="@+id/conversation_name_edit_text"
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_weight="1"
         android:layout_gravity="center_vertical"
-        android:layout_marginEnd="@dimen/wire__padding__regular"
-        android:layout_marginStart="@dimen/wire__padding__regular"
+        android:paddingStart="@dimen/wire__padding__regular"
+        android:paddingEnd="@dimen/conversation_name_row_padding_end"
         android:imeOptions="actionDone"
         android:inputType="text"
         android:maxLines="1"
         android:textColor="?wirePrimaryTextColor"
         app:w_font="@string/wire__typeface__light"
         android:textSize="@dimen/wire__text_size__regular"
-        android:background="@null"/>
+        android:background="@null"
+        android:ellipsize="end"/>
 
     <com.waz.zclient.ui.text.GlyphTextView
         android:id="@+id/conversation_name_edit_glyph"
@@ -47,7 +47,7 @@
         android:layout_height="wrap_content"
         android:text="@string/glyph__edit"
         android:textColor="?wirePrimaryTextColor"
-        android:layout_gravity="center_vertical"
+        android:layout_gravity="center_vertical|end"
         android:layout_marginEnd="@dimen/wire__padding__regular"/>
 
-</LinearLayout>
+</FrameLayout>
