@@ -60,8 +60,9 @@ class ParticipantsController(implicit injector: Injector, context: Context, ec: 
   lazy val containsGuest = for {
     z     <- zms
     ids   <- otherParticipants
+    isGroup <- convController.currentConvIsGroup
     users <- Signal.sequence(ids.map(z.users.userSignal).toSeq:_*)
-  } yield users.exists(_.isGuest(z.teamId))
+  } yield isGroup && users.exists(_.isGuest(z.teamId))
 
   lazy val isWithBot = for {
     z       <- zms
