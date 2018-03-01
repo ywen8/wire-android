@@ -70,7 +70,7 @@ class NewConversationPickFragment extends Fragment with FragmentHelper with OnBa
       case Some(cId) => zms.userSearch.usersToAddToConversation(filter, cId)
       case None      => zms.userSearch.usersForNewConversation(filter, teamOnly)
     }
-  } yield results.sortBy(_.getDisplayName)
+  } yield results
 
   private lazy val adapter = NewConvAdapter(searchResults, newConvController.users)
 
