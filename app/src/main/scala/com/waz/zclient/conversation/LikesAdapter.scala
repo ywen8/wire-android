@@ -62,7 +62,7 @@ object LikesAdapter {
 
     def bind(userData: UserData): Unit = {
       this.userData = Some(userData)
-      view.setUserData(userData)
+      view.setUserData(userData, None)
     }
   }
 }

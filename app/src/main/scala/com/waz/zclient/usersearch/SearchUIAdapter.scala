@@ -201,7 +201,7 @@ class SearchUIAdapter(adapterCallback: SearchUIAdapter.Callback, integrationsCon
 
       case ConnectedUser =>
         val user = localResults(item.index)
-        holder.asInstanceOf[UserViewHolder].bind(user, isGuest = user.isGuest(team.map(_.id)))
+        holder.asInstanceOf[UserViewHolder].bind(user, team.map(_.id))
 
       case UnconnectedUser =>
         holder.asInstanceOf[UserViewHolder].bind(directoryResults(item.index))
@@ -362,10 +362,9 @@ object SearchUIAdapter {
     view.showCheckbox(false)
     view.setTheme(SingleUserRowView.Transparent)
 
-    def bind(userData: UserData, isGuest: Boolean = false): Unit = {
+    def bind(userData: UserData, teamId: Option[TeamId] = None): Unit = {
       this.userData = Some(userData)
-      view.setUserData(userData)
-      view.setIsGuest(isGuest)
+      view.setUserData(userData, teamId)
     }
   }
 

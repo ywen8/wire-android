@@ -25,7 +25,7 @@ import android.util.AttributeSet
 import android.view.View
 import android.view.View.OnClickListener
 import android.widget.{CompoundButton, ImageView, RelativeLayout}
-import com.waz.model.{Availability, IntegrationData, UserData}
+import com.waz.model.{Availability, IntegrationData, TeamId, UserData}
 import com.waz.utils.events.{EventStream, SourceStream}
 import com.waz.utils.returning
 import com.waz.zclient.common.views.SingleUserRowView._
@@ -76,12 +76,13 @@ class SingleUserRowView(context: Context, attrs: AttributeSet, style: Int) exten
 
   def showArrow(show: Boolean): Unit = nextIndicator.setVisibility(if (show) View.VISIBLE else View.GONE)
 
-  def setUserData(userData: UserData): Unit = {
+  def setUserData(userData: UserData, teamId: Option[TeamId]): Unit = {
     chathead.setUserId(userData.id)
     setTitle(userData.getDisplayName)
-    setAvailability(userData.availability)
+    if (teamId.isDefined) setAvailability(userData.availability)
     setVerified(userData.isVerified)
     setSubtitle(userData.handle.map(h => StringUtils.formatHandle(h.string)))
+    setIsGuest(userData.isGuest(teamId))
   }
 
   def setIntegration(integration: IntegrationData): Unit = {

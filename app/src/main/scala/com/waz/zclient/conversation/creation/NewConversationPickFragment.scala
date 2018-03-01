@@ -256,7 +256,7 @@ case class NewConvAdapter(searchResults: Signal[IndexedSeq[UserData]], selectedU
 
   override def onBindViewHolder(holder: SelectableUserRowViewHolder, position: Int): Unit = {
     val (user, selected) = users(position)
-    holder.bind(user, isGuest = user.isGuest(team), selected = selected)
+    holder.bind(user, team, selected = selected)
   }
 }
 
@@ -264,11 +264,10 @@ case class SelectableUserRowViewHolder(v: SingleUserRowView) extends RecyclerVie
 
   var userData: Option[UserData] = None
 
-  def bind(userData: UserData, isGuest: Boolean, selected: Boolean) = {
+  def bind(userData: UserData, teamId: Option[TeamId], selected: Boolean) = {
     this.userData = Some(userData)
-    v.setUserData(userData)
+    v.setUserData(userData, teamId)
     v.setChecked(selected)
-    v.setIsGuest(isGuest)
   }
 }
 

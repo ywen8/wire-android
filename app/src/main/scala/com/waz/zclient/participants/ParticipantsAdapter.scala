@@ -22,12 +22,11 @@ import android.graphics.Color
 import android.support.v7.widget.RecyclerView
 import android.support.v7.widget.RecyclerView.ViewHolder
 import android.text.Selection
-import android.view.View.OnFocusChangeListener
 import android.view.inputmethod.EditorInfo
 import android.view.{KeyEvent, LayoutInflater, View, ViewGroup}
 import android.widget.TextView.OnEditorActionListener
 import android.widget.{ImageView, TextView}
-import com.waz.model.{ConvId, ConversationData, UserData, UserId}
+import com.waz.model._
 import com.waz.service.ZMessaging
 import com.waz.utils.events.{EventContext, EventStream, Signal, SourceStream}
 import com.waz.zclient.common.views.SingleUserRowView
@@ -38,11 +37,9 @@ import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.utils.{RichView, ViewUtils}
 import com.waz.zclient.{Injectable, Injector, R}
 import com.waz.ZLog.ImplicitTag.implicitLogTag
-import com.waz.api.impl.AccentColor
 import com.waz.threading.Threading
 import com.waz.zclient.ui.text.TypefaceEditText.OnSelectionChangedListener
 
-import scala.concurrent.Future
 
 class ParticipantsAdapter(numOfColumns: Int)(implicit context: Context, injector: Injector, eventContext: EventContext)
   extends RecyclerView.Adapter[ViewHolder] with Injectable {
@@ -54,6 +51,7 @@ class ParticipantsAdapter(numOfColumns: Int)(implicit context: Context, injector
 
   private var conversation = Option.empty[ConversationData]
   private var items = List.empty[Either[ParticipantData, Int]]
+  private var teamId = Option.empty[TeamId]
 
   val onClick = EventStream[UserId]()
   val onGuestOptionsClick = EventStream[Unit]()
@@ -95,6 +93,11 @@ class ParticipantsAdapter(numOfColumns: Int)(implicit context: Context, injector
     notifyDataSetChanged()
   }
 
+  zms.map(_.teamId).onUi { tId =>
+    teamId = tId
+    notifyDataSetChanged()
+  }
+
   override def onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder = viewType match {
     case GuestOptions =>
       val view = LayoutInflater.from(parent.getContext).inflate(R.layout.guest_options_button, parent, false)
@@ -112,7 +115,7 @@ class ParticipantsAdapter(numOfColumns: Int)(implicit context: Context, injector
   }
 
   override def onBindViewHolder(holder: ViewHolder, position: Int): Unit = (items(position), holder) match {
-    case (Left(userData), h: ParticipantRowViewHolder) => h.bind(userData)
+    case (Left(userData), h: ParticipantRowViewHolder) => h.bind(userData, teamId)
     case (Right(ConversationName), h: ConversationNameViewHolder) => conversation.foreach(h.bind)
     case (Right(sepType), h: SeparatorViewHolder) if Set(PeopleSeparator, BotsSeparator).contains(sepType) =>
       val count = items.count {
@@ -180,10 +183,9 @@ object ParticipantsAdapter {
 
     view.onClick(userId.foreach(onClick ! _))
 
-    def bind(participant: ParticipantData): Unit = {
+    def bind(participant: ParticipantData, teamId: Option[TeamId]): Unit = {
       userId = Some(participant.userData.id)
-      view.setUserData(participant.userData)
-      view.setIsGuest(participant.isGuest)
+      view.setUserData(participant.userData, teamId)
     }
   }
 
@@ -207,15 +209,9 @@ object ParticipantsAdapter {
       }
     })
 
-    editText.setOnFocusChangeListener(new OnFocusChangeListener {
-      override def onFocusChange(v: View, hasFocus: Boolean): Unit = {
-
-      }
-    })
-
     editText.setOnSelectionChangedListener(new OnSelectionChangedListener {
       override def onSelectionChanged(selStart: Int, selEnd: Int): Unit =
-        penGlyph.animate().alpha(if (selStart > 0) 0.0f else 1.0f).start()
+        penGlyph.animate().alpha(if (selStart >= 0) 0.0f else 1.0f).start()
     })
 
     def bind(conversationData: ConversationData): Unit = {
