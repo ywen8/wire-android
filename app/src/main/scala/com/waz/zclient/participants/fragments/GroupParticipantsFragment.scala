@@ -30,7 +30,7 @@ import com.waz.ZLog.verbose
 import com.waz.api.NetworkMode
 import com.waz.api.User.ConnectionStatus._
 import com.waz.model.{UserData, UserId}
-import com.waz.service.{NetworkModeService, ZMessaging}
+import com.waz.service.NetworkModeService
 import com.waz.threading.Threading
 import com.waz.utils._
 import com.waz.utils.events._
@@ -52,7 +52,6 @@ class GroupParticipantsFragment extends FragmentHelper {
   implicit def ctx: Context = getActivity
   import Threading.Implicits.Ui
 
-  private lazy val zms                          = inject[Signal[ZMessaging]]
   private lazy val participantsController       = inject[ParticipantsController]
   private lazy val convScreenController         = inject[IConversationScreenController]
   private lazy val userAccountsController       = inject[UserAccountsController]
@@ -86,8 +85,13 @@ class GroupParticipantsFragment extends FragmentHelper {
       case Some(user) => (user.providerId, user.integrationId) match {
         case (Some(pId), Some(iId)) =>
           participantsController.conv.head.map { conv =>
-            integrationDetailsController.setRemoving(conv.id, user.id)
-            convScreenController.showIntegrationDetails(pId, iId)
+            Option(getParentFragment) match {
+              case Some(f: ParticipantFragment) =>
+                integrationDetailsController.setRemoving(conv.id, user.id)
+                f.showIntegrationDetails(pId, iId)
+              case _ =>
+            }
+
           }
         case _ => showUser(user.id)
       }

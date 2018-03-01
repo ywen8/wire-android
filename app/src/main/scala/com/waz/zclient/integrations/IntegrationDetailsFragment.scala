@@ -18,22 +18,22 @@
 package com.waz.zclient.integrations
 
 import android.content.Context
+import android.graphics.Color
 import android.os.Bundle
 import android.support.annotation.Nullable
 import android.support.v4.app.{Fragment, FragmentManager, FragmentPagerAdapter}
 import android.support.v4.view.ViewPager
 import android.util.AttributeSet
 import android.view._
-import android.view.animation.Animation
 import android.widget.ImageView
-import com.waz.ZLog.warn
 import com.waz.ZLog.ImplicitTag._
+import com.waz.ZLog.warn
 import com.waz.model.{IntegrationId, ProviderId}
 import com.waz.service.tracking.{IntegrationAdded, TrackingService}
 import com.waz.threading.Threading
 import com.waz.utils.events.Signal
 import com.waz.utils.returning
-import com.waz.zclient.common.controllers.IntegrationsController
+import com.waz.zclient.common.controllers.{IntegrationsController, ThemeController}
 import com.waz.zclient.common.views.ImageAssetDrawable.{RequestBuilder, ScaleType}
 import com.waz.zclient.common.views.ImageController.{ImageSource, NoImage, WireImage}
 import com.waz.zclient.common.views.IntegrationAssetDrawable
@@ -46,7 +46,6 @@ import com.waz.zclient.ui.text.{GlyphTextView, TypefaceTextView}
 import com.waz.zclient.usersearch.SearchUIFragment
 import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.utils.RichView
-import com.waz.zclient.views.DefaultPageTransitionAnimation
 import com.waz.zclient.{FragmentHelper, OnBackPressedListener, R, ViewHelper}
 
 class IntegrationDetailsFragment extends FragmentHelper with OnBackPressedListener {
@@ -54,14 +53,17 @@ class IntegrationDetailsFragment extends FragmentHelper with OnBackPressedListen
   implicit def ctx: Context = getActivity
 
   private lazy val integrationDetailsController = inject[IntegrationDetailsController]
-  private lazy val integrationsController = inject[IntegrationsController]
-  private lazy val tracking = inject[TrackingService]
+  private lazy val integrationsController       = inject[IntegrationsController]
+  private lazy val themeController              = inject[ThemeController]
+  private lazy val tracking                     = inject[TrackingService]
 
-  private lazy val providerId = ProviderId(getArguments.getString(IntegrationDetailsFragment.ProviderId))
-  private lazy val integrationId = IntegrationId(getArguments.getString(IntegrationDetailsFragment.IntegrationId))
+  private lazy val providerId              = ProviderId(getArguments.getString(IntegrationDetailsFragment.ProviderId))
+  private lazy val integrationId           = IntegrationId(getArguments.getString(IntegrationDetailsFragment.IntegrationId))
+  private lazy val isBackgroundTransparent = getArguments.getBoolean(IntegrationDetailsFragment.IsTransparent)
 
-  private lazy val pictureAssetId = integrationDetailsController.currentIntegration.map(_.asset)
+  private lazy val pictureAssetId               = integrationDetailsController.currentIntegration.map(_.asset)
   private lazy val picture: Signal[ImageSource] = pictureAssetId.map(_.map(WireImage).getOrElse(NoImage()))
+  private lazy val name                         = integrationDetailsController.currentIntegration.map(_.name)
 
   private lazy val drawable = new IntegrationAssetDrawable(
     src          = picture,
@@ -73,8 +75,6 @@ class IntegrationDetailsFragment extends FragmentHelper with OnBackPressedListen
 
   private lazy val viewPager = view[IntegrationDetailsViewPager](R.id.view_pager)
 
-  lazy val name = integrationDetailsController.currentIntegration.map(_.name)
-
   private lazy val title = returning(view[TypefaceTextView](R.id.integration_title)) { title =>
     name.map(_.toUpperCase).onUi { name => title.foreach(_.setText(name)) }
   }
@@ -85,26 +85,6 @@ class IntegrationDetailsFragment extends FragmentHelper with OnBackPressedListen
 
   private lazy val summaryView = returning(view[TypefaceTextView](R.id.integration_summary)){ sv =>
     integrationDetailsController.currentIntegration.map(_.summary).onUi { summary => sv.foreach(_.setText(summary)) }
-  }
-
-  override def onCreateAnimation(transit: Int, enter: Boolean, nextAnim: Int): Animation = {
-    if (nextAnim == 0)
-      super.onCreateAnimation(transit, enter, nextAnim)
-    else if (enter)
-      new DefaultPageTransitionAnimation(0,
-        getDimenPx(R.dimen.open_new_conversation__thread_list__max_top_distance),
-        enter,
-        getInt(R.integer.framework_animation_duration_long),
-        getInt(R.integer.framework_animation_duration_medium),
-        1f)
-    else
-      new DefaultPageTransitionAnimation(
-        0,
-        getDimenPx(R.dimen.open_new_conversation__thread_list__max_top_distance),
-        enter,
-        getInt(R.integer.framework_animation_duration_medium),
-        0,
-        1f)
   }
 
   override def onCreate(savedInstanceState: Bundle): Unit = {
@@ -147,8 +127,16 @@ class IntegrationDetailsFragment extends FragmentHelper with OnBackPressedListen
       else
         closeButton.onClick(close())
     }
+
     returning(findById[GlyphTextView](R.id.integration_back))(_.onClick(goBack()))
     returning(findById[ImageView](R.id.integration_picture))(_.setImageDrawable(drawable))
+
+    // TODO: AN-5980
+    if (!isBackgroundTransparent)
+      v.setBackgroundColor(
+        if (themeController.isDarkTheme) themeController.getThemeDependentOptionsTheme.getOverlayColor
+        else Color.WHITE
+      )
 
     title
     summaryView
@@ -190,13 +178,16 @@ class IntegrationDetailsFragment extends FragmentHelper with OnBackPressedListen
 object IntegrationDetailsFragment {
 
   val Tag = classOf[IntegrationDetailsFragment].getName
-  val IntegrationId = "ARG_INTEGRATION_ID"
-  val ProviderId = "ARG_PROVIDER_ID"
 
-  def newInstance(providerId: ProviderId, integrationId: IntegrationId) = returning(new IntegrationDetailsFragment) {
+  val IntegrationId = "ARG_INTEGRATION_ID"
+  val ProviderId    = "ARG_PROVIDER_ID"
+  val IsTransparent = "ARG_IS_TRANSPARENT"
+
+  def newInstance(providerId: ProviderId, integrationId: IntegrationId, isTransparent: Boolean = true) = returning(new IntegrationDetailsFragment) {
     _.setArguments(returning(new Bundle){ b =>
       b.putString(ProviderId, providerId.str)
       b.putString(IntegrationId, integrationId.str)
+      b.putBoolean(IsTransparent, isTransparent)
     })
   }
 }
@@ -209,7 +200,7 @@ object IntegrationDetailsViewPager {
 case class IntegrationDetailsViewPager (context: Context, attrs: AttributeSet) extends ViewPager(context, attrs) with ViewHelper {
   def this(context: Context) = this(context, null)
 
-  def goToDetails = setCurrentItem(DetailsPage)
+  def goToDetails       = setCurrentItem(DetailsPage)
   def goToConversations = setCurrentItem(ConvListPage)
 
   override def onInterceptTouchEvent(ev: MotionEvent): Boolean = false

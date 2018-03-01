@@ -37,12 +37,12 @@ import com.waz.zclient.conversation.ConversationController
 import com.waz.zclient.core.stores.connect.IConnectStore
 import com.waz.zclient.core.stores.conversation.ConversationChangeRequester
 import com.waz.zclient.core.stores.conversation.ConversationChangeRequester._
+import com.waz.zclient.integrations.IntegrationDetailsFragment
 import com.waz.zclient.pages.BaseFragment
 import com.waz.zclient.pages.main.connect.{BlockedUserProfileFragment, PendingConnectRequestFragment, SendConnectRequestFragment}
 import com.waz.zclient.pages.main.conversation.controller.{ConversationScreenControllerObserver, IConversationScreenController}
 import com.waz.zclient.pages.main.pickuser.controller.IPickUserController
 import com.waz.zclient.participants.{OptionsMenuFragment, ParticipantsController}
-import com.waz.zclient.ui.animation.interpolators.penner.Expo
 import com.waz.zclient.usersearch.SearchUIFragment
 import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.utils.ViewUtils
@@ -60,7 +60,7 @@ class ParticipantFragment extends BaseFragment[ParticipantFragment.Container] wi
   implicit def ctx: Context = getActivity
   import Threading.Implicits.Ui
 
-  private lazy val bodyContainer = view[View](R.id.fl__participant__container)
+  private lazy val bodyContainer             = view[View](R.id.fl__participant__container)
   private lazy val participantsContainerView = view[View](R.id.ll__participant__container)
 
   private lazy val convChange = convController.convChanged.filter { _.to.isDefined }
@@ -230,9 +230,9 @@ class ParticipantFragment extends BaseFragment[ParticipantFragment.Container] wi
       .add(
         R.id.fl__participant__overlay,
         SingleOtrClientFragment.newInstance(userId, clientId),
-        SingleOtrClientFragment.TAG
+        SingleOtrClientFragment.Tag
       )
-      .addToBackStack(SingleOtrClientFragment.TAG)
+      .addToBackStack(SingleOtrClientFragment.Tag)
       .commit
 
   def showCurrentOtrClient(): Unit =
@@ -246,10 +246,29 @@ class ParticipantFragment extends BaseFragment[ParticipantFragment.Container] wi
       .add(
         R.id.fl__participant__overlay,
         SingleOtrClientFragment.newInstance,
-        SingleOtrClientFragment.TAG
+        SingleOtrClientFragment.Tag
       )
-      .addToBackStack(SingleOtrClientFragment.TAG)
+      .addToBackStack(SingleOtrClientFragment.Tag)
       .commit
+
+  // TODO: AN-5980
+  def showIntegrationDetails(pId: ProviderId, iId: IntegrationId): Unit = {
+    getChildFragmentManager
+      .beginTransaction
+      .setCustomAnimations(
+        R.anim.fragment_animation_second_page_slide_in_from_right,
+        R.anim.fragment_animation_second_page_slide_out_to_left,
+        R.anim.fragment_animation_second_page_slide_in_from_left,
+        R.anim.fragment_animation_second_page_slide_out_to_right
+      )
+      .add(
+        R.id.fl__participant__overlay,
+        IntegrationDetailsFragment.newInstance(pId, iId, isTransparent = false),
+        IntegrationDetailsFragment.Tag
+      )
+      .addToBackStack(IntegrationDetailsFragment.Tag)
+      .commit
+  }
 
   override def onHideUser(): Unit = if (screenController.isShowingUser) {
     getChildFragmentManager.popBackStack

@@ -219,7 +219,7 @@ class SingleOtrClientFragment extends FragmentHelper {
 }
 
 object SingleOtrClientFragment {
-  val TAG = classOf[SingleOtrClientFragment].getName
+  val Tag = classOf[SingleOtrClientFragment].getName
   private val ArgUser = "ARG_USER"
   private val ArgClient = "ARG_CLIENT"
 
