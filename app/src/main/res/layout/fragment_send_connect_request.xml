@@ -19,7 +19,7 @@
 
 -->
 
-<FrameLayout
+<RelativeLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/background_container"
@@ -29,18 +29,41 @@
     android:layout_weight="1"
 >
 
+    <com.waz.zclient.ui.text.TypefaceTextView
+        android:id="@+id/user_name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="@dimen/wire__text_size__big"
+        android:textColor="?wirePrimaryTextColor"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        app:w_font="@string/wire__typeface__regular"
+        />
+
+    <com.waz.zclient.ui.text.TypefaceTextView
+        android:id="@+id/user_username"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/user_name"
+        android:layout_centerHorizontal="true"
+        android:layout_gravity="center_horizontal"
+        android:textColor="?wireSecondaryTextColor"
+        android:textSize="@dimen/wire__text_size__regular"
+        android:layout_marginTop="@dimen/wire__padding__small"
+        app:w_font="@string/wire__typeface__regular"/>
+
     <com.waz.zclient.views.images.ImageAssetImageView
         android:id="@+id/iaiv__send_connect"
         android:layout_width="@dimen/profile__image__width"
         android:layout_height="@dimen/profile__image__height"
-        android:layout_gravity="center"
+        android:layout_centerInParent="true"
     />
 
 
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_gravity="bottom"
+        android:layout_alignParentBottom="true"
     >
 
         <com.waz.zclient.views.menus.FooterMenu
@@ -69,4 +92,4 @@
 
     </FrameLayout>
 
-</FrameLayout>
+</RelativeLayout>

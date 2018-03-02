@@ -35,9 +35,11 @@ import com.waz.zclient.core.stores.connect.IConnectStore;
 import com.waz.zclient.pages.BaseFragment;
 import com.waz.zclient.pages.main.participants.ProfileAnimation;
 import com.waz.zclient.pages.main.participants.dialog.DialogLaunchMode;
+import com.waz.zclient.ui.text.TypefaceTextView;
 import com.waz.zclient.ui.utils.KeyboardUtils;
 import com.waz.zclient.ui.views.ZetaButton;
 import com.waz.zclient.utils.ContextUtils;
+import com.waz.zclient.utils.StringUtils;
 import com.waz.zclient.utils.ViewUtils;
 import com.waz.zclient.views.images.ImageAssetImageView;
 import com.waz.zclient.views.menus.FooterMenu;
@@ -56,6 +58,8 @@ public class SendConnectRequestFragment extends BaseFragment<SendConnectRequestF
     private ZetaButton connectButton;
     private FooterMenu footerMenu;
     private ImageAssetImageView imageAssetImageViewProfile;
+    private TypefaceTextView userNameView;
+    private TypefaceTextView userUsernameView;
 
     public static SendConnectRequestFragment newInstance(String userId, IConnectStore.UserRequester userRequester) {
         SendConnectRequestFragment newFragment = new SendConnectRequestFragment();
@@ -115,6 +119,8 @@ public class SendConnectRequestFragment extends BaseFragment<SendConnectRequestF
         imageAssetImageViewProfile = ViewUtils.getView(rootView, R.id.iaiv__send_connect);
         imageAssetImageViewProfile.setDisplayType(ImageAssetImageView.DisplayType.CIRCLE);
         imageAssetImageViewProfile.setSaturation(0);
+        userNameView = ViewUtils.getView(rootView, R.id.user_name);
+        userUsernameView = ViewUtils.getView(rootView, R.id.user_username);
 
         View backgroundContainer = ViewUtils.getView(rootView, R.id.background_container);
         backgroundContainer.setClickable(true);
@@ -222,6 +228,9 @@ public class SendConnectRequestFragment extends BaseFragment<SendConnectRequestF
                 }
             }
         });
+
+        userNameView.setText(user.getDisplayName());
+        userUsernameView.setText(StringUtils.formatHandle(user.getUsername()));
 
         if (userRequester == IConnectStore.UserRequester.PARTICIPANTS) {
             footerMenu.setVisibility(View.VISIBLE);
