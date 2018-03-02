@@ -22,12 +22,15 @@
               xmlns:app="http://schemas.android.com/apk/res-auto"
               android:layout_width="match_parent"
               android:layout_height="match_parent"
+              android:background="@null"
               android:orientation="vertical">
 
     <RelativeLayout
         android:id="@+id/integration_top_toolbar"
         android:layout_width="match_parent"
-        android:layout_height="?attr/actionBarSize">
+        android:layout_height="?attr/actionBarSize"
+        android:focusable="true"
+        android:clickable="true">
 
         <com.waz.zclient.ui.text.GlyphTextView
             android:id="@+id/integration_back"

@@ -19,7 +19,6 @@ package com.waz.zclient.pages.main.conversation.controller;
 
 import android.view.View;
 import com.waz.api.Message;
-import com.waz.api.OtrClient;
 import com.waz.api.User;
 import com.waz.model.ConvId;
 import com.waz.model.IntegrationId;
@@ -43,13 +42,9 @@ public interface IConversationScreenController {
 
     boolean shouldShowDevicesTab();
 
-    User getRequestedDeviceTabUser();
-
     boolean isShowingParticipant();
 
     void resetToMessageStream();
-
-    void setParticipantHeaderHeight(int participantHeaderHeight);
 
     void setSingleConversation(boolean isSingleConversation);
 
@@ -70,10 +65,6 @@ public interface IConversationScreenController {
     void showConversationMenu(boolean inConvList, ConvId convId);
 
     DialogLaunchMode getPopoverLaunchMode();
-
-    void showOtrClient(OtrClient otrClient, User user);
-
-    void showCurrentOtrClient();
 
     void hideOtrClient();
 

@@ -19,15 +19,19 @@ package com.waz.zclient.participants
 
 import android.content.Context
 import android.view.View
+import com.waz.ZLog.ImplicitTag._
+import com.waz.ZLog.warn
 import com.waz.model._
 import com.waz.service.ZMessaging
-import com.waz.utils.events.{EventContext, EventStream, Signal}
-import com.waz.zclient.conversation.ConversationController
-import com.waz.zclient.utils.{Callback, UiStorage, UserSignal}
-import com.waz.zclient.{Injectable, Injector}
-import com.waz.ZLog.ImplicitTag._
 import com.waz.threading.Threading
-import com.waz.ZLog.warn
+import com.waz.utils.events.{EventContext, EventStream, Signal}
+import com.waz.zclient.common.controllers.{SoundController, ThemeController}
+import com.waz.zclient.controllers.confirmation.{ConfirmationRequest, IConfirmationController, TwoButtonConfirmationCallback}
+import com.waz.zclient.conversation.ConversationController
+import com.waz.zclient.pages.main.conversation.controller.IConversationScreenController
+import com.waz.zclient.utils.ContextUtils._
+import com.waz.zclient.utils.{Callback, UiStorage, UserSignal}
+import com.waz.zclient.{Injectable, Injector, R}
 
 import scala.concurrent.Future
 
@@ -35,11 +39,13 @@ class ParticipantsController(implicit injector: Injector, context: Context, ec: 
 
   import com.waz.threading.Threading.Implicits.Background
 
-  private implicit lazy val uiStorage  = inject[UiStorage]
-  private lazy val zms                 = inject[Signal[ZMessaging]]
-  private lazy val convController      = inject[ConversationController]
-  private lazy val selectedParticipant = Signal(Option.empty[UserId])
+  private implicit lazy val uiStorage     = inject[UiStorage]
+  private lazy val zms                    = inject[Signal[ZMessaging]]
+  private lazy val convController         = inject[ConversationController]
+  private lazy val confirmationController = inject[IConfirmationController]
+  private lazy val screenController       = inject[IConversationScreenController]
 
+  private lazy val selectedParticipant = Signal(Option.empty[UserId])
   val showParticipantsRequest = EventStream[(View, Boolean)]()
 
   lazy val otherParticipants = convController.currentConvMembers
@@ -50,6 +56,13 @@ class ParticipantsController(implicit injector: Injector, context: Context, ec: 
     case others if others.size == 1 => Signal.const(others.headOption)
     case others                     => selectedParticipant.map(_.flatMap(id => others.find(_ == id)))
   }
+
+  lazy val containsGuest = for {
+    z     <- zms
+    ids   <- otherParticipants
+    isGroup <- convController.currentConvIsGroup
+    users <- Signal.sequence(ids.map(z.users.userSignal).toSeq:_*)
+  } yield isGroup && users.exists(_.isGuest(z.teamId))
 
   lazy val isWithBot = for {
     z       <- zms
@@ -63,13 +76,21 @@ class ParticipantsController(implicit injector: Injector, context: Context, ec: 
   } yield groupOrBot
 
   // is the current user a guest in the current conversation
-  def isCurrentUserGuest: Signal[Boolean] = for {
+  lazy val isCurrentUserGuest: Signal[Boolean] = for {
     z           <- zms
     currentUser <- UserSignal(z.selfUserId)
     currentConv <- conv
   } yield currentConv.team.isDefined && currentConv.team != currentUser.teamId
 
-  def selectParticipant(userId: UserId): Unit =  selectedParticipant ! Some(userId)
+  lazy val currentUserBelongsToConversationTeam: Signal[Boolean] = for {
+    z           <- zms
+    currentUser <- UserSignal(z.selfUserId)
+    currentConv <- conv
+  } yield currentConv.team.isDefined && currentConv.team == currentUser.teamId
+
+  def selectParticipant(userId: UserId): Unit = selectedParticipant ! Some(userId)
+
+  def unselectParticipant(): Unit = selectedParticipant ! None
 
   def getUser(userId: UserId): Future[Option[UserData]] = zms.head.flatMap(_.users.getUser(userId))
 
@@ -91,5 +112,28 @@ class ParticipantsController(implicit injector: Injector, context: Context, ec: 
 
   def withCurrentConvGroupOrBot(callback: Callback[java.lang.Boolean]): Unit =
     isGroupOrBot.head.foreach { groupOrBot => callback.callback(groupOrBot) }(Threading.Ui)
+
+  def showRemoveConfirmation(userId: UserId): Unit = getUser(userId).foreach {
+    case Some(userData) =>
+      val request = new ConfirmationRequest.Builder()
+        .withHeader(getString(R.string.confirmation_menu__header))
+        .withMessage(getString(R.string.confirmation_menu_text_with_name, userData.getDisplayName))
+        .withPositiveButton(getString(R.string.confirmation_menu__confirm_remove))
+        .withNegativeButton(getString(R.string.confirmation_menu__cancel))
+        .withConfirmationCallback(new TwoButtonConfirmationCallback() {
+          override def positiveButtonClicked(checkboxIsSelected: Boolean): Unit = {
+            screenController.hideUser()
+            convController.removeMember(userId)
+          }
+
+          override def negativeButtonClicked(): Unit = {}
+          override def onHideAnimationEnd(confirmed: Boolean, canceled: Boolean, checkboxIsSelected: Boolean): Unit = {}
+        })
+        .withWireTheme(inject[ThemeController].getThemeDependentOptionsTheme)
+        .build
+      confirmationController.requestConfirmation(request, IConfirmationController.PARTICIPANTS)
+      inject[SoundController].playAlert()
+    case _ =>
+  }(Threading.Ui)
 
 }

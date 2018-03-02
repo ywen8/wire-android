@@ -17,7 +17,6 @@
  */
 package com.waz.zclient.pages.main.pickuser.controller;
 
-import android.view.View;
 import com.waz.model.UserId;
 
 public interface IPickUserController {
@@ -48,7 +47,7 @@ public interface IPickUserController {
 
     void resetShowingPickUser(Destination destination);
 
-    void showUserProfile(UserId userId, View anchorView);
+    void showUserProfile(UserId userId);
 
     void hideUserProfile();
 

@@ -35,7 +35,7 @@ import com.waz.zclient.appentry.controllers.{AppEntryController, InvitationsCont
 import com.waz.zclient.calling.controllers.{CallPermissionsController, CurrentCallController, GlobalCallingController}
 import com.waz.zclient.camera.controllers.{AndroidCameraFactory, GlobalCameraController}
 import com.waz.zclient.collection.controllers.CollectionController
-import com.waz.zclient.common.controllers.global.{AccentColorController, KeyboardController, PasswordController}
+import com.waz.zclient.common.controllers.global.{AccentColorController, ClientsController, KeyboardController, PasswordController}
 import com.waz.zclient.common.controllers.{SoundController, _}
 import com.waz.zclient.common.views.ImageController
 import com.waz.zclient.controllers._
@@ -96,7 +96,6 @@ object WireApplication {
     bind [IConversationScreenController] toProvider controllerFactory.getConversationScreenController
     bind [INavigationController]         toProvider controllerFactory.getNavigationController
     bind [IUserPreferencesController]    toProvider controllerFactory.getUserPreferencesController
-    bind [IConversationScreenController] toProvider controllerFactory.getConversationScreenController
     bind [ISingleImageController]        toProvider controllerFactory.getSingleImageController
     bind [ISlidingPaneController]        toProvider controllerFactory.getSlidingPaneController
     bind [IDrawingController]            toProvider controllerFactory.getDrawingController
@@ -140,6 +139,7 @@ object WireApplication {
     bind [InvitationsController]           to new InvitationsController()
     bind [IntegrationDetailsController]    to new IntegrationDetailsController()
     bind [IntegrationsController]          to new IntegrationsController()
+    bind [ClientsController]               to new ClientsController()
 
     // current conversation data
     bind [Signal[ConversationData]] to inject[ConversationController].currentConv

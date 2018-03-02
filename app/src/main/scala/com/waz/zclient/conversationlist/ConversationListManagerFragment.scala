@@ -53,7 +53,7 @@ import com.waz.zclient.pages.main.pickuser.controller.{IPickUserController, Pick
 import com.waz.zclient.participants.OptionsMenuFragment
 import com.waz.zclient.ui.animation.interpolators.penner.{Expo, Quart}
 import com.waz.zclient.ui.utils.KeyboardUtils
-import com.waz.zclient.usersearch.PickUserFragment
+import com.waz.zclient.usersearch.SearchUIFragment
 import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.utils.RichView
 import com.waz.zclient.views.LoadingIndicatorView
@@ -66,7 +66,7 @@ import scala.concurrent.duration._
 class ConversationListManagerFragment extends Fragment
   with FragmentHelper
   with PickUserControllerScreenObserver
-  with PickUserFragment.Container
+  with SearchUIFragment.Container
   with NavigationControllerObserver
   with ConversationListFragment.Container
   with ConversationScreenControllerObserver
@@ -148,8 +148,8 @@ class ConversationListManagerFragment extends Fragment
         if (isShowingUserProfile) hideUserProfile()
         if (isShowingPickUser(CONVERSATION_LIST)) {
           hidePickUser(CONVERSATION_LIST)
-          Option(fm.findFragmentByTag(PickUserFragment.TAG)).foreach { f =>
-            fm.popBackStack(PickUserFragment.TAG, FragmentManager.POP_BACK_STACK_INCLUSIVE)
+          Option(fm.findFragmentByTag(SearchUIFragment.TAG)).foreach { f =>
+            fm.popBackStack(SearchUIFragment.TAG, FragmentManager.POP_BACK_STACK_INCLUSIVE)
           }
         }
 
@@ -203,8 +203,8 @@ class ConversationListManagerFragment extends Fragment
       navController.getCurrentLeftPage match {
         // TODO: START is set as left page on tablet, fix
         case START | CONVERSATION_LIST =>
-          withFragmentOpt(PickUserFragment.TAG) {
-            case Some(_: PickUserFragment) => // already showing
+          withFragmentOpt(SearchUIFragment.TAG) {
+            case Some(_: SearchUIFragment) => // already showing
             case _ =>
               getChildFragmentManager.beginTransaction
                 .setCustomAnimations(
@@ -212,8 +212,8 @@ class ConversationListManagerFragment extends Fragment
                   R.anim.open_new_conversation__thread_list_out,
                   R.anim.open_new_conversation__thread_list_in,
                   R.anim.slide_out_to_bottom_pick_user)
-                .replace(R.id.fl__conversation_list_main, PickUserFragment.newInstance(), PickUserFragment.TAG)
-                .addToBackStack(PickUserFragment.TAG)
+                .replace(R.id.fl__conversation_list_main, SearchUIFragment.newInstance(), SearchUIFragment.TAG)
+                .addToBackStack(SearchUIFragment.TAG)
                 .commit
           }
         case _ => //
@@ -227,7 +227,7 @@ class ConversationListManagerFragment extends Fragment
       import Page._
 
       def hide() = {
-        getChildFragmentManager.popBackStackImmediate(PickUserFragment.TAG, FragmentManager.POP_BACK_STACK_INCLUSIVE)
+        getChildFragmentManager.popBackStackImmediate(SearchUIFragment.TAG, FragmentManager.POP_BACK_STACK_INCLUSIVE)
         KeyboardUtils.hideKeyboard(getActivity)
       }
 
@@ -247,7 +247,7 @@ class ConversationListManagerFragment extends Fragment
     getChildFragmentManager.getFragments.asScala.foreach(_.onActivityResult(requestCode, resultCode, data))
   }
 
-  override def onShowUserProfile(userId: UserId, anchorView: View) =
+  override def onShowUserProfile(userId: UserId) =
     if (!pickUserController.isShowingUserProfile) {
       import User.ConnectionStatus._
 
@@ -395,7 +395,7 @@ class ConversationListManagerFragment extends Fragment
     else {
       withBackstackHead {
         case Some(f: IntegrationDetailsFragment) if f.onBackPressed() => true
-        case Some(f: PickUserFragment) if f.onBackPressed() => true
+        case Some(f: SearchUIFragment) if f.onBackPressed() => true
         case Some(f: ArchiveListFragment) if f.onBackPressed() => true
         case Some(f: NewConversationFragment) if f.onBackPressed() => true
         case _ if pickUserController.isShowingPickUser(getCurrentPickerDestination) =>
@@ -453,19 +453,9 @@ class ConversationListManagerFragment extends Fragment
 
   override def onShowEditConversationName(show: Boolean) = {}
 
-  override def onHeaderViewMeasured(participantHeaderHeight: Int) = {}
-
-  override def onScrollParticipantsList(verticalOffset: Int, scrolledToBottom: Boolean) = {}
-
-  override def onShowUser(userId: UserId): Unit = {}
-
   override def onHideUser() = {}
 
   override def onAddPeopleToConversation() = {}
-
-  override def onShowOtrClient(otrClient: OtrClient, user: User) = {}
-
-  override def onShowCurrentOtrClient() = {}
 
   override def onHideOtrClient() = {}
 

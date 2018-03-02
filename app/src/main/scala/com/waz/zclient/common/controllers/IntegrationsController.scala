@@ -56,7 +56,7 @@ class IntegrationsController(implicit injector: Injector, context: Context) exte
   def createConvWithBot(pId: ProviderId, iId: IntegrationId): Future[ConvId] = {
     for {
       zms <- zms.head
-      (conv, syncId) <- zms.convsUi.createAndPostConversation(ConvId(), None, Seq.empty, zms.teamId)
+      (conv, syncId) <- zms.convsUi.createGroupConversation()
       _ = zms.syncRequests.scheduler.await(syncId).map {
         case SyncResult.Success =>
           addBot(conv.id, pId, iId).collect {

@@ -18,7 +18,6 @@
 package com.waz.zclient.pages.main.pickuser.controller;
 
 import android.content.Context;
-import android.view.View;
 import com.waz.model.UserId;
 
 import java.util.HashSet;
@@ -107,9 +106,9 @@ public class PickUserController implements IPickUserController {
     }
 
     @Override
-    public void showUserProfile(UserId userId, View anchorView) {
+    public void showUserProfile(UserId userId) {
         for (PickUserControllerScreenObserver pickUserControllerScreenObserver : pickUserControllerScreenObservers) {
-            pickUserControllerScreenObserver.onShowUserProfile(userId, anchorView);
+            pickUserControllerScreenObserver.onShowUserProfile(userId);
         }
         isShowingUserProfile = true;
     }

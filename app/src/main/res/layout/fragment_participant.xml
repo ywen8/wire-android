@@ -63,10 +63,4 @@
         android:layout_height="match_parent"
         />
 
-    <com.waz.zclient.views.LoadingIndicatorView
-        android:id="@+id/liv__participants__loading_indicator"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        />
-
 </FrameLayout>

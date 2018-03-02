@@ -63,7 +63,7 @@ import com.waz.zclient.pages.main.conversation.controller.{ConversationScreenCon
 import com.waz.zclient.pages.main.drawing.DrawingFragment
 import com.waz.zclient.pages.main.pickuser.controller.{IPickUserController, PickUserControllerScreenObserver}
 import com.waz.zclient.pages.main.profile.camera.{CameraContext, CameraFragment}
-import com.waz.zclient.participants.fragments.{ParticipantFragment, TabbedParticipantBodyFragment}
+import com.waz.zclient.participants.fragments.{ParticipantFragment, SingleParticipantFragment}
 import com.waz.zclient.ui.utils.KeyboardUtils
 import com.waz.zclient.views.{ConversationFragment, LoadingIndicatorView}
 import com.waz.zclient.{FragmentHelper, OnBackPressedListener, R}
@@ -89,6 +89,7 @@ class ConversationManagerFragment extends BaseFragment[Container] with FragmentH
   private lazy val drawingController      = inject[IDrawingController]
   private lazy val locationController     = inject[ILocationController]
   private lazy val pickUserController     = inject[IPickUserController]
+  private lazy val newConvController      = inject[NewConversationController]
 
   private lazy val loadingIndicatorView = view[LoadingIndicatorView](R.id.liv__conversation_manager__loading_indicator)
 
@@ -110,9 +111,6 @@ class ConversationManagerFragment extends BaseFragment[Container] with FragmentH
 
         screenController.hideParticipants(false, change.requester == START_CONVERSATION)
         closeLikesList()
-      } else if (change.toConvId != null) {
-        val iConv = convController.iConv(change.toConvId)
-        getStoreFactory.participantsStore.setCurrentConversation(iConv)
       } else if (!change.noChange) {
         collectionController.closeCollection()
       }
@@ -136,9 +134,6 @@ class ConversationManagerFragment extends BaseFragment[Container] with FragmentH
     pickUserController.addPickUserScreenControllerObserver(this)
     locationController.addObserver(this)
     collectionController.addObserver(this)
-    val curConv = convController.iCurrentConv
-    if (curConv != null)
-      getStoreFactory.participantsStore.setCurrentConversation(curConv)
   }
 
   override def onStop(): Unit = {
@@ -187,7 +182,7 @@ class ConversationManagerFragment extends BaseFragment[Container] with FragmentH
     KeyboardUtils.hideKeyboard(getActivity)
     navigationController.setRightPage(Page.PARTICIPANT, ConversationManagerFragment.Tag)
 
-    val fragment = ParticipantFragment.newInstance(IConnectStore.UserRequester.PARTICIPANTS, if (showDeviceTabIfSingle) TabbedParticipantBodyFragment.DEVICE_PAGE else TabbedParticipantBodyFragment.USER_PAGE)
+    val fragment = ParticipantFragment.newInstance(IConnectStore.UserRequester.PARTICIPANTS, if (showDeviceTabIfSingle) SingleParticipantFragment.DevicePage else SingleParticipantFragment.UserPage)
     showFragment(fragment, ParticipantFragment.TAG)
   }
 
@@ -195,8 +190,6 @@ class ConversationManagerFragment extends BaseFragment[Container] with FragmentH
     navigationController.setRightPage(Page.MESSAGE_STREAM, ConversationManagerFragment.Tag)
     getChildFragmentManager.popBackStack(ParticipantFragment.TAG, FragmentManager.POP_BACK_STACK_INCLUSIVE)
   }
-
-  override def onShowUser(userId: UserId): Unit = KeyboardUtils.hideKeyboard(getActivity)
 
   override def onShowLikesList(message: Message): Unit = showFragment(LikesListFragment.newInstance(message), LikesListFragment.TAG)
 
@@ -268,12 +261,12 @@ class ConversationManagerFragment extends BaseFragment[Container] with FragmentH
       convController.currentConvIsGroup.head.flatMap {
         case true =>
           convController.currentConvId.head.map { cId =>
-            inject[NewConversationController].setAddToConversation(cId)
+            newConvController.setAddToConversation(cId)
             showFragment(new NewConversationPickFragment, AddOrCreateTag)
           }
         case false =>
           convController.currentConvMembers.head.map { members =>
-            inject[NewConversationController].setCreateConversation(members, GroupConversationEvent.ConversationDetails)
+            newConvController.setCreateConversation(members, GroupConversationEvent.ConversationDetails)
             showFragment(new NewConversationFragment, AddOrCreateTag)
           }
       }
@@ -319,19 +312,11 @@ class ConversationManagerFragment extends BaseFragment[Container] with FragmentH
 
   override def onShowEditConversationName(show: Boolean): Unit = {}
 
-  override def onHeaderViewMeasured(participantHeaderHeight: Int): Unit = {}
-
-  override def onScrollParticipantsList(verticalOffset: Int, scrolledToBottom: Boolean): Unit = {}
-
   override def onHideUser(): Unit = {}
 
   override def onAddPeopleToConversation(): Unit = {}
 
   override def onShowConversationMenu(inConvList: Boolean, convId: ConvId): Unit = {}
-
-  override def onShowOtrClient(otrClient: OtrClient, user: User): Unit = {}
-
-  override def onShowCurrentOtrClient(): Unit = {}
 
   override def onHideOtrClient(): Unit = {}
 
@@ -339,7 +324,7 @@ class ConversationManagerFragment extends BaseFragment[Container] with FragmentH
 
   override def onCameraNotAvailable(): Unit = {}
 
-  override def onShowUserProfile(userId: UserId, anchorView: View): Unit = {}
+  override def onShowUserProfile(userId: UserId): Unit = {}
 
   override def onHideUserProfile(): Unit = {}
 }

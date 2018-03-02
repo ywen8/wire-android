@@ -18,11 +18,10 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 -->
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
               xmlns:app="http://schemas.android.com/apk/res-auto"
               android:layout_width="match_parent"
               android:layout_height="@dimen/participants__verified_row__height"
-              android:orientation="horizontal"
               android:layout_marginStart="@dimen/participants__left_margin"
               android:layout_marginEnd="@dimen/participants__left_margin"
     >
@@ -32,17 +31,12 @@
         style="?userChatHeadLabel"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="center_vertical"
+        android:layout_gravity="start|bottom"
+        android:layout_marginBottom="@dimen/wire__padding__small"
         android:textColor="@color/light_graphite"
         android:textSize="@dimen/wire__text_size__small"
+        android:textAllCaps="true"
         app:w_font="@string/wire__typeface__medium"
         />
 
-    <View
-        style="?wireDivider"
-        android:layout_width="match_parent"
-        android:layout_height="@dimen/wire__divider__height__thin"
-        android:layout_gravity="center_vertical"
-        android:layout_marginLeft="@dimen/wire__padding__regular"
-        />
-</LinearLayout>
+</FrameLayout>

@@ -77,7 +77,6 @@ class MemberChangePartView(context: Context, attrs: AttributeSet, style: Int) ex
     msg         <- message
     displayName <- senderName
     members     <- memberNames
-    pos         <- position
   } yield {
     import Message.Type._
     val me = zms.selfUserId
@@ -88,8 +87,10 @@ class MemberChangePartView(context: Context, attrs: AttributeSet, style: Int) ex
       case (MEMBER_JOIN, Me, _)                  if msg.firstMessage                       => getString(R.string.content__system__you_started_participant, "", members)
       case (MEMBER_JOIN, Other(name), Seq(`me`)) if msg.firstMessage                       => getString(R.string.content__system__other_started_you, name)
       case (MEMBER_JOIN, Other(name), _)         if msg.firstMessage                       => getString(R.string.content__system__other_started_participant, name, members)
+      case (MEMBER_JOIN, Me, Seq(`me`)) if userId == me                                    => getString(R.string.content__system__you_joined).toUpperCase
       case (MEMBER_JOIN, Me, _)                                                            => getString(R.string.content__system__you_added_participant, "", members).toUpperCase
       case (MEMBER_JOIN, Other(name), Seq(`me`))                                           => getString(R.string.content__system__other_added_you, name).toUpperCase
+      case (MEMBER_JOIN, Other(name), Seq(`userId`))                                       => getString(R.string.content__system__other_joined, name).toUpperCase
       case (MEMBER_JOIN, Other(name), _)                                                   => getString(R.string.content__system__other_added_participant, name, members).toUpperCase
       case (MEMBER_LEAVE, Me, Seq(`me`))                                                   => getString(R.string.content__system__you_left).toUpperCase
       case (MEMBER_LEAVE, Me, _)                                                           => getString(R.string.content__system__you_removed_other, "", members).toUpperCase

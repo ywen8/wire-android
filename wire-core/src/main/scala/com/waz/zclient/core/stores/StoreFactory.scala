@@ -22,10 +22,8 @@ import com.waz.zclient.core.stores.connect.IConnectStore
 import com.waz.zclient.core.stores.conversation.IConversationStore
 import com.waz.zclient.core.stores.inappnotification.IInAppNotificationStore
 import com.waz.zclient.core.stores.network.INetworkStore
-import com.waz.zclient.core.stores.participants.IParticipantsStore
 import com.waz.zclient.core.stores.pickuser.IPickUserStore
 import com.waz.zclient.core.stores.profile.IProfileStore
-import com.waz.zclient.core.stores.singleparticipants.ISingleParticipantStore
 import com.waz.zclient.utils.Lazy
 
 abstract class StoreFactory extends IStoreFactory {
@@ -36,8 +34,6 @@ abstract class StoreFactory extends IStoreFactory {
   private val _conversationStore = lazyStore { createConversationStore() }
   private val _pickUserStore = lazyStore { createPickUserStore() }
   private val _profileStore = lazyStore { createProfileStore() }
-  private val _participantsStore = lazyStore { createParticipantsStore() }
-  private val _singleParticipantStore = lazyStore { createSingleParticipantStore() }
   private val _inAppNotificationStore = lazyStore { createInAppNotificationStore() }
   private val _connectStore = lazyStore { createConnectStore() }
   private val _zMessagingApiStore = lazyStore { createZMessagingApiStore() }
@@ -49,8 +45,6 @@ abstract class StoreFactory extends IStoreFactory {
   protected def createConversationStore(): IConversationStore
   protected def createProfileStore(): IProfileStore
   protected def createPickUserStore(): IPickUserStore
-  protected def createParticipantsStore(): IParticipantsStore
-  protected def createSingleParticipantStore(): ISingleParticipantStore
   protected def createInAppNotificationStore(): IInAppNotificationStore
   protected def createConnectStore(): IConnectStore
   protected def createNetworkStore(): INetworkStore
@@ -60,8 +54,6 @@ abstract class StoreFactory extends IStoreFactory {
   override def profileStore = _profileStore()
   override def pickUserStore = _pickUserStore()
   override def connectStore = _connectStore()
-  override def participantsStore = _participantsStore()
-  override def singleParticipantStore = _singleParticipantStore()
   override def inAppNotificationStore = _inAppNotificationStore()
   override def networkStore = _networkStore()
 
@@ -69,9 +61,7 @@ abstract class StoreFactory extends IStoreFactory {
     conversationStore.tearDown()
     pickUserStore.tearDown()
     profileStore.tearDown()
-    participantsStore.tearDown()
     inAppNotificationStore.tearDown()
-    singleParticipantStore.tearDown()
     networkStore.tearDown()
 
     tornDown = false
