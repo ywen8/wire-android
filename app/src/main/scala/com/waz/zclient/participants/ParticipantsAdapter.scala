@@ -37,6 +37,7 @@ import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.utils.{RichView, ViewUtils}
 import com.waz.zclient.{Injectable, Injector, R}
 import com.waz.ZLog.ImplicitTag.implicitLogTag
+import com.waz.api.Verification
 import com.waz.threading.Threading
 import com.waz.zclient.ui.text.TypefaceEditText.OnSelectionChangedListener
 
@@ -192,6 +193,7 @@ object ParticipantsAdapter {
   case class ConversationNameViewHolder(view: View, changeName: (ConvId, String) => Unit) extends ViewHolder(view) {
     private val editText = view.findViewById[TypefaceEditText](R.id.conversation_name_edit_text)
     private val penGlyph = view.findViewById[GlyphTextView](R.id.conversation_name_edit_glyph)
+    private val verifiedShield = view.findViewById[ImageView](R.id.conversation_verified_shield)
 
     private var conversationData = Option.empty[ConversationData]
 
@@ -218,6 +220,7 @@ object ParticipantsAdapter {
       this.conversationData = Some(conversationData)
       editText.setText(conversationData.displayName)
       Selection.removeSelection(editText.getText)
+      verifiedShield.setVisible(conversationData.verified == Verification.VERIFIED)
     }
   }
 

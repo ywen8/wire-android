@@ -61,18 +61,6 @@ class ParticipantHeaderFragment extends BaseFragment[ParticipantHeaderFragment.C
     vh.onClick(_ => screenController.hideParticipants(true, false))
   }
 
-  private lazy val shieldView = returning(view[ShieldView](R.id.verified_shield)) { vh =>
-    (for {
-      isGroupOrBot <- participantsController.isGroupOrBot
-      user         <- if (isGroupOrBot) Signal.const(Option.empty[UserData])
-      else participantsController.otherParticipant.flatMap {
-        case Some(userId) => Signal.future(participantsController.getUser(userId))
-        case None         => Signal.const(Option.empty[UserData])
-      }
-    } yield user.fold(false)(_.verified == Verification.VERIFIED))
-      .onUi(isVerified => vh.foreach(_.setVisible(isVerified)))
-  }
-
   private lazy val headerReadOnlyTextView = returning(view[TextView](R.id.participants__header)) { vh =>
     (for {
       isSingleParticipant <- participantsController.otherParticipant.map(_.isDefined)
@@ -109,7 +97,6 @@ class ParticipantHeaderFragment extends BaseFragment[ParticipantHeaderFragment.C
 
     toolbar
 
-    shieldView
     closeIcon
   }
 

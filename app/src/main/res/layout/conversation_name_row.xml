@@ -18,20 +18,32 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 -->
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
              android:layout_width="match_parent"
              android:layout_height="@dimen/user_row_height"
              xmlns:app="http://schemas.android.com/apk/res-auto"
              android:background="@color/white"
              android:layout_marginTop="@dimen/wire__padding__regular">
 
+    <ImageView
+        android:id="@+id/conversation_verified_shield"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/shield_full"
+        android:layout_alignParentStart="true"
+        android:layout_centerVertical="true"
+        android:layout_marginStart="@dimen/wire__padding__regular"
+        android:visibility="gone"
+        />
+
     <com.waz.zclient.ui.text.TypefaceEditText
         android:id="@+id/conversation_name_edit_text"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_gravity="center_vertical"
+        android:layout_centerVertical="true"
         android:paddingStart="@dimen/wire__padding__regular"
         android:paddingEnd="@dimen/conversation_name_row_padding_end"
+        android:layout_toEndOf="@id/conversation_verified_shield"
         android:imeOptions="actionDone"
         android:inputType="text"
         android:maxLines="1"
@@ -47,7 +59,8 @@
         android:layout_height="wrap_content"
         android:text="@string/glyph__edit"
         android:textColor="?wirePrimaryTextColor"
-        android:layout_gravity="center_vertical|end"
+        android:layout_alignParentEnd="true"
+        android:layout_centerVertical="true"
         android:layout_marginEnd="@dimen/wire__padding__regular"/>
 
-</FrameLayout>
+</RelativeLayout>
