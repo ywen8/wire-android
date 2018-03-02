@@ -38,7 +38,7 @@ import com.waz.zclient.ui.views.tab.TabIndicatorLayout
 import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.views.menus.FooterMenuCallback
 import com.waz.zclient.{FragmentHelper, R}
-import com.waz.zclient.utils.{RichView, ViewUtils}
+import com.waz.zclient.utils.{RichView, StringUtils, ViewUtils}
 
 class SingleParticipantFragment extends FragmentHelper {
   import Threading.Implicits.Ui
@@ -55,17 +55,28 @@ class SingleParticipantFragment extends FragmentHelper {
   private lazy val userAccountsController = inject[UserAccountsController]
   private lazy val browserController      = inject[BrowserController]
 
+  private lazy val otherUser = for {
+    Some(userId) <- participantsController.otherParticipant
+    Some(user)   <- Signal.future(participantsController.getUser(userId))
+  } yield user
+
   private lazy val userNameView = returning(view[TextView](R.id.user_name)) { vh =>
     participantsController.otherParticipant.map(_.isDefined).onUi { visible =>
       vh.foreach(_.setVisible(visible))
     }
 
-    (for {
-      Some(userId) <- participantsController.otherParticipant
-      Some(user)   <- Signal.future(participantsController.getUser(userId))
-    } yield user.getDisplayName).onUi { name =>
+    otherUser.map(_.getDisplayName).onUi { name =>
       vh.foreach(_.setText(name))
     }
+  }
+
+  private lazy val userHandle = returning(view[TextView](R.id.user_handle)) { vh =>
+    val handle = otherUser.map(_.handle.map(_.string))
+    handle.onUi { h => vh.foreach(_.setVisible(h.isDefined)) }
+    handle.map {
+      case Some(h) => StringUtils.formatHandle(h)
+      case _       => ""
+    }.onUi { str => vh.foreach(_.setText(str)) }
   }
 
   private lazy val callback = new FooterMenuCallback {
@@ -162,6 +173,7 @@ class SingleParticipantFragment extends FragmentHelper {
     }
 
     userNameView
+    userHandle
 
   }
 
