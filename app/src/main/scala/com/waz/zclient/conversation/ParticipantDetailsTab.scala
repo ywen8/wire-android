@@ -54,7 +54,7 @@ class ParticipantDetailsTab(val context: Context, callback: FooterMenuCallback) 
     _.setCallback(callback)
   }
 
-  private lazy val guestIndication     = findById[LinearLayout](R.id.participant_guest_indicator)
+  private lazy val guestIndication     = findById[LinearLayout](R.id.guest_indicator)
   private lazy val userAvailability    = findById[ShowAvailabilityView](R.id.participant_availability)
 
   private val otherUser = for {
