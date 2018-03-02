@@ -182,6 +182,10 @@ class ParticipantFragment extends BaseFragment[ParticipantFragment.Container] wi
       screenController.hideOtrClient()
       true
     case Some(f: OptionsMenuFragment) if f.close() =>
+      verbose(s"onBackPressed with OptionsMenuFragment")
+      true
+    case Some(f: IntegrationDetailsFragment) if f.onBackPressed() =>
+      verbose(s"onBackPressed with IntegrationDetailsFragment")
       true
     case Some(f: GuestOptionsFragment) if f.onBackPressed() =>
       verbose(s"onBackPressed with GuestOptionsFragment")
@@ -261,7 +265,7 @@ class ParticipantFragment extends BaseFragment[ParticipantFragment.Container] wi
         R.anim.fragment_animation_second_page_slide_in_from_left,
         R.anim.fragment_animation_second_page_slide_out_to_right
       )
-      .add(
+      .replace(
         R.id.fl__participant__overlay,
         IntegrationDetailsFragment.newInstance(pId, iId, isTransparent = false),
         IntegrationDetailsFragment.Tag
