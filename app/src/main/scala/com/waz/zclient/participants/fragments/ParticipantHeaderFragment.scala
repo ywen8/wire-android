@@ -96,7 +96,7 @@ class ParticipantHeaderFragment extends BaseFragment[ParticipantHeaderFragment.C
     super.onViewCreated(view, savedInstanceState)
 
     toolbar
-
+    headerReadOnlyTextView
     closeIcon
   }
 
