@@ -48,7 +48,7 @@ class SingleUserRowView(context: Context, attrs: AttributeSet, style: Int) exten
   private lazy val checkbox = findById[AppCompatCheckBox](R.id.checkbox)
   private lazy val verifiedShield = findById[ImageView](R.id.verified_shield)
   private lazy val guestIndicator = returning(findById[ImageView](R.id.guest_indicator))(_.setImageDrawable(GuestIcon(R.color.light_graphite)))
-  private lazy val nextIndicator = returning(findById[ImageView](R.id.next_indicator))(_.setImageDrawable(ForwardNavigationIcon(R.color.light_graphite)))
+  private lazy val nextIndicator = returning(findById[ImageView](R.id.next_indicator))(_.setImageDrawable(ForwardNavigationIcon(R.color.light_graphite_40)))
 
   val onSelectionChanged: SourceStream[Boolean] = EventStream()
 

@@ -82,8 +82,8 @@
 
         <ImageView
             android:id="@+id/next_indicator"
-            android:layout_width="@dimen/user_row_icon_size"
-            android:layout_height="@dimen/user_row_icon_size"
+            android:layout_width="@dimen/next_indicator_size"
+            android:layout_height="@dimen/next_indicator_size"
             android:layout_gravity="center_vertical"
             android:layout_marginStart="@dimen/wire__padding__small"
             android:layout_marginEnd="@dimen/wire__padding__small"

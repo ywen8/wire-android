@@ -640,8 +640,8 @@
     <dimen name="option_menu__font_size">20dp</dimen>
     <dimen name="option_menu__tile_height">56dp</dimen>
 
-    <dimen name="participants__left_margin">24dp</dimen>
-    <dimen name="participants__right_margin">24dp</dimen>
+    <dimen name="participants__left_margin">16dp</dimen>
+    <dimen name="participants__right_margin">16dp</dimen>
     <dimen name="participants__header__input_field__padding">8dp</dimen>
     <dimen name="participants__header__input_field__layout_margin">16dp</dimen>
     <dimen name="participants__subheader__font_size__one_to_one">@dimen/wire__text_size__small</dimen>
@@ -936,9 +936,11 @@
     <dimen name="create_conv_input_margin_top">40dp</dimen>
     <dimen name="menu_item_height">64dp</dimen>
     <dimen name="guest_options_icon_size">16dp</dimen>
-    <dimen name="user_row_height">64dp</dimen>
+    <dimen name="user_row_height">56dp</dimen>
     <dimen name="user_row_icon_size">16dp</dimen>
     <dimen name="guests_toolbar_height">16dp</dimen>
     <dimen name="conversation_name_row_padding_end">48dp</dimen>
     <dimen name="guest_badge_size">16dp</dimen>
+    <dimen name="participants_options_button_margin_top">32dp</dimen>
+    <dimen name="next_indicator_size">12dp</dimen>
 </resources>

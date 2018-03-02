@@ -41,7 +41,7 @@
             android:layout_height="@dimen/wire__icon_button__diameter"
             android:gravity="center"
             android:layout_gravity="center_vertical"
-            android:layout_marginStart="@dimen/wire__padding__big"
+            android:layout_marginStart="@dimen/wire__padding__regular"
             style="?attr/smallIconButton"
             />
 
@@ -83,7 +83,7 @@
             android:id="@+id/gtv__participants__right__action"
             android:layout_width="@dimen/wire__icon_button__diameter"
             android:layout_height="@dimen/wire__icon_button__diameter"
-            android:layout_marginEnd="@dimen/wire__padding__big"
+            android:layout_marginEnd="@dimen/wire__padding__regular"
             android:gravity="center"
             android:layout_gravity="center_vertical"
             style="?attr/smallIconButton"
