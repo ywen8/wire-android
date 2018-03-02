@@ -17,15 +17,14 @@
  */
 package com.waz.zclient.pages.main.conversation;
 
-import android.Manifest;
 import android.annotation.TargetApi;
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
 import android.provider.MediaStore;
 import com.waz.utils.wrappers.AndroidURI;
 import com.waz.utils.wrappers.AndroidURIUtil;
@@ -39,8 +38,6 @@ import java.util.Locale;
 
 public class AssetIntentsManager {
     private static final String SAVED_STATE_PENDING_URI = "SAVED_STATE_PENDING_URI";
-
-    private static final String[] CAMERA_PERMISSIONS = new String[] {Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE};
 
     private static final String INTENT_GALLERY_TYPE = "image/*";
     private final PackageManager pm;
@@ -87,16 +84,9 @@ public class AssetIntentsManager {
         openDocument("*/*", IntentType.FILE_SHARING);
     }
 
-    private void captureImage() {
-        Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-        pendingFileUri = getOutputMediaFileUri(IntentType.CAMERA);
-        intent.putExtra(MediaStore.EXTRA_OUTPUT, AndroidURIUtil.unwrap(pendingFileUri));
-        callback.openIntent(intent, IntentType.CAMERA);
-    }
-
-    public void captureVideo() {
+    public void captureVideo(Context context) {
         Intent intent = new Intent(MediaStore.ACTION_VIDEO_CAPTURE);
-        pendingFileUri = getOutputMediaFileUri(IntentType.VIDEO);
+        pendingFileUri = getOutputMediaFileUri(context, IntentType.VIDEO);
         intent.putExtra(MediaStore.EXTRA_OUTPUT, AndroidURIUtil.unwrap(pendingFileUri));
         if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.JELLY_BEAN_MR1) {
             intent.putExtra(MediaStore.EXTRA_VIDEO_QUALITY, 0);
@@ -120,7 +110,7 @@ public class AssetIntentsManager {
 
         IntentType type = IntentType.get(requestCode);
 
-        if (type == IntentType.UNKOWN) {
+        if (type == IntentType.UNKNOWN) {
             return false;
         }
 
@@ -164,8 +154,8 @@ public class AssetIntentsManager {
      *
      * @param type
      */
-    private static URI getOutputMediaFileUri(IntentType type) {
-        File file = getOutputMediaFile(type);
+    private static URI getOutputMediaFileUri(Context context, IntentType type) {
+        File file = getOutputMediaFile(context, type);
         return file != null ? AndroidURIUtil.fromFile(file) : null;
     }
 
@@ -174,9 +164,9 @@ public class AssetIntentsManager {
      *
      * @param type
      */
-    private static File getOutputMediaFile(IntentType type) {
-        File mediaStorageDir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), "WIRE_MEDIA");
-        if (!mediaStorageDir.exists() && !mediaStorageDir.mkdirs()) {
+    private static File getOutputMediaFile(Context context, IntentType type) {
+        File mediaStorageDir = context.getExternalCacheDir();
+        if (mediaStorageDir == null || !mediaStorageDir.exists()) {
             return null;
         }
 
@@ -193,19 +183,17 @@ public class AssetIntentsManager {
     }
 
     public enum IntentType {
-        UNKOWN(-1, -1),
-        GALLERY(9411, 8411),
-        SKETCH_FROM_GALLERY(9416, 8416),
-        VIDEO(9412, 8412),
-        CAMERA(9413, 8413),
-        FILE_SHARING(9414, 8414);
+        UNKNOWN(-1),
+        GALLERY(9411),
+        SKETCH_FROM_GALLERY(9416),
+        VIDEO(9412),
+        CAMERA(9413),
+        FILE_SHARING(9414);
 
         public int requestCode;
-        private int permissionCode;
 
-        IntentType(int requestCode, int permissionCode) {
+        IntentType(int requestCode) {
             this.requestCode = requestCode;
-            this.permissionCode = permissionCode;
         }
 
         public static IntentType get(int requestCode) {
@@ -230,29 +218,7 @@ public class AssetIntentsManager {
                 return FILE_SHARING;
             }
 
-            return UNKOWN;
-        }
-
-
-        public static IntentType getByPermissionCode(int permissionCode) {
-
-            if (permissionCode == GALLERY.permissionCode) {
-                return GALLERY;
-            }
-
-            if (permissionCode == CAMERA.permissionCode) {
-                return CAMERA;
-            }
-
-            if (permissionCode == VIDEO.permissionCode) {
-                return VIDEO;
-            }
-
-            if (permissionCode == FILE_SHARING.permissionCode) {
-                return FILE_SHARING;
-            }
-
-            return UNKOWN;
+            return UNKNOWN;
         }
     }
 
