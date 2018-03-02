@@ -78,7 +78,7 @@ class GroupParticipantsFragment extends FragmentHelper {
       fm.foreach(_.setLeftActionLabelText(getString(textId)))
     }
   }
-  private lazy val emptyListIcon = view[GlyphTextView](R.id.empty_list_icon)
+  private lazy val emptyListIcon = view[GlyphTextView](R.id.empty_group_watermark)
 
   private lazy val participantsAdapter = returning(new ParticipantsAdapter(getInt(R.integer.participant_column__count))) { adapter =>
     new FutureEventStream[UserId, Option[UserData]](adapter.onClick, participantsController.getUser).onUi {
