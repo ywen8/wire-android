@@ -68,7 +68,7 @@ import com.waz.zclient.pages.main.conversationpager.controller.ISlidingPaneContr
 import com.waz.zclient.pages.main.pickuser.controller.IPickUserController
 import com.waz.zclient.participants.ParticipantsController
 import com.waz.zclient.preferences.PreferencesController
-import com.waz.zclient.tracking.{CallingTrackingController, CrashController, GlobalTrackingController, UiTrackingController}
+import com.waz.zclient.tracking.{CrashController, GlobalTrackingController, UiTrackingController}
 import com.waz.zclient.utils.{BackStackNavigator, BackendPicker, Callback, UiStorage}
 import com.waz.zclient.views.DraftMap
 import net.hockeyapp.android.Constants
@@ -128,7 +128,6 @@ object WireApplication {
     bind [CallingNotificationsController]  to new CallingNotificationsController()
 
     bind [GlobalTrackingController]        to new GlobalTrackingController()
-    bind [CallingTrackingController]       to new CallingTrackingController()
     bind [PreferencesController]           to new PreferencesController()
     bind [ImageController]                 to new ImageController()
     bind [UserAccountsController]          to new UserAccountsController()
@@ -228,9 +227,8 @@ class WireApplication extends MultiDexApplication with WireContext with Injectab
   override def onCreate(): Unit = {
     super.onCreate()
 
-    if (ZmsVersion.DEBUG) {
-      InternalLog.init(getApplicationContext.getApplicationInfo.dataDir)
-    }
+
+    InternalLog.init(getApplicationContext.getApplicationInfo.dataDir)
 
     verbose("onCreate")
     controllerFactory = new ControllerFactory(getApplicationContext)
@@ -256,7 +254,6 @@ class WireApplication extends MultiDexApplication with WireContext with Injectab
     //TODO [AN-4942] - is this early enough for app launch events?
     inject[GlobalTrackingController]
     inject[CrashController] //needs to register crash handler
-    inject[CallingTrackingController]
     inject[ThemeController]
     inject[PreferencesController]
     clearOldVideoFiles(getApplicationContext)

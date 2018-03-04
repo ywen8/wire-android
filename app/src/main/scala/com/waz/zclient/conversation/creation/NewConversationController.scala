@@ -41,6 +41,7 @@ class NewConversationController(implicit inj: Injector, ev: EventContext) extend
   val name     = Signal("")
   val users    = Signal(Set.empty[UserId])
   val teamOnly = Signal(true)
+  val fromScreen = Signal[GroupConversationEvent.Method]()
 
   teamOnly.onChanged {
     case true =>
@@ -51,8 +52,6 @@ class NewConversationController(implicit inj: Injector, ev: EventContext) extend
       } yield users.mutate(_ -- us.filter(_.isGuest(z.teamId)).map(_.id))
     case false => //
   }
-
-  val fromScreen = Signal[GroupConversationEvent.Method]()
 
   def setCreateConversation(preSelectedUsers: Set[UserId] = Set(), from: GroupConversationEvent.Method): Unit = {
     name ! ""
@@ -72,21 +71,30 @@ class NewConversationController(implicit inj: Injector, ev: EventContext) extend
 
   def createConversation(): Future[ConvId] =
     for {
+      z        <- zms.head
       name     <- name.head
-      users    <- users.head
+      userIds  <- users.head
       teamOnly <- teamOnly.head
-      conv     <- conversationController.createGroupConversation(Some(name.trim), users, teamOnly)
+      conv     <- conversationController.createGroupConversation(Some(name.trim), userIds, teamOnly)
       from     <- fromScreen.head
+      (guests, nonGuests) <- z.usersStorage.getAll(userIds).map(_.flatten.partition(_.isGuest(z.teamId)))
     } yield {
-      tracking.track(GroupConversationSuccessful(users.nonEmpty, from))
+      tracking.track(AddParticipantsEvent(!teamOnly, nonGuests.size, guests.size, from))
+      tracking.track(GroupConversationSuccessful(userIds.nonEmpty, !teamOnly, from))
       conv.id
     }
 
   def addUsersToConversation(): Future[Unit] = {
     for {
+      z            <- zms.head
       Some(convId) <- convId.head
-      users <- users.head
-      _ <- conversationController.addMembers(convId, users)
-    } yield ()
+      Some(conv)   <- z.convsStorage.get(convId)
+      userIds      <- users.head
+      from         <- fromScreen.head
+      _            <- conversationController.addMembers(convId, userIds)
+      (guests, nonGuests) <- z.usersStorage.getAll(userIds).map(_.flatten.partition(_.isGuest(z.teamId)))
+    } yield {
+      tracking.track(AddParticipantsEvent(!conv.isTeamOnly, nonGuests.size, guests.size, from))
+    }
   }
 }

@@ -66,7 +66,7 @@ class GlobalCallingController(implicit inj: Injector, cxt: WireContext, eventCon
 
   val convIdOpt = currentCallOpt.map(_.map(_.convId))
 
-  val callStateOpt: Signal[Option[CallState]] = currentCallOpt.map(_.map(_.state))
+  val callStateOpt: Signal[Option[CallState]] = currentCallOpt.map(_.flatMap(_.state))
 
   val activeCall = currentCallOpt.map(_.isDefined)
 
@@ -233,8 +233,8 @@ class GlobalCallingController(implicit inj: Injector, cxt: WireContext, eventCon
   val callerId = currentCallOpt flatMap {
     case Some(info) =>
       (info.others, info.state) match {
-        case (_, SelfCalling) => selfUser.map(_.id)
-        case (others, OtherCalling) if others.size == 1 => Signal.const(others.head)
+        case (_, Some(SelfCalling)) => selfUser.map(_.id)
+        case (others, Some(OtherCalling)) if others.size == 1 => Signal.const(others.head)
         case _ => Signal.empty[UserId] //TODO Dean do I need this information for other call states?
       }
     case _ => Signal.empty[UserId]
