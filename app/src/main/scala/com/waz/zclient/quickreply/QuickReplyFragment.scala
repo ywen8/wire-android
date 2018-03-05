@@ -27,7 +27,6 @@ import android.widget.TextView
 import com.waz.ZLog.ImplicitTag._
 import com.waz.ZLog.verbose
 import com.waz.api.{EphemeralExpiration, MessageContent}
-import com.waz.api.impl.Conversation
 import com.waz.model.{AccountId, ConvId}
 import com.waz.service.ZMessaging
 import com.waz.service.tracking.ContributionEvent
@@ -37,7 +36,6 @@ import com.waz.utils.returning
 import com.waz.zclient.common.controllers.SharingController
 import com.waz.zclient.common.controllers.global.AccentColorController
 import com.waz.zclient.pages.main.popup.ViewPagerLikeLayoutManager
-import com.waz.zclient.tracking.GlobalTrackingController.convType
 import com.waz.zclient.ui.text.{TypefaceEditText, TypefaceTextView}
 import com.waz.zclient.ui.utils.KeyboardUtils
 import com.waz.zclient.utils._
@@ -130,18 +128,18 @@ class QuickReplyFragment extends Fragment with FragmentHelper {
           else {
             textView.setEnabled(false)
             for {
-              zs       <- zms.head
-              c        <- conv.head
-              isBot    <- Conversation.isOtto(c, zs.usersStorage)
-              convType <- convType(c, zs.membersStorage)
-              _        <- zs.convsUi.setEphemeral(c.id, EphemeralExpiration.NONE)
-              msg      <- zs.convsUi.sendMessage(c.id, new MessageContent.Text(sendText))
+              z           <- zms.head
+              c           <- conv.head
+              withService <- z.conversations.isWithService(c.id)
+              isGroup     <- z.conversations.isGroupConversation(c.id)
+              _           <- z.convsUi.setEphemeral(c.id, EphemeralExpiration.NONE)
+              msg         <- z.convsUi.sendMessage(c.id, new MessageContent.Text(sendText))
             } {
               textView.setEnabled(true)
               if (msg.isDefined) {
                 ZMessaging.globalModule.map(_.trackingService.track(
-                  ContributionEvent(Action.Text, convType, c.ephemeral, isBot),
-                  Some(zs.accountId)
+                  ContributionEvent(Action.Text, isGroup, c.ephemeral, withService, !c.isTeamOnly, c.isMemberFromTeamGuest(z.teamId)),
+                  Some(z.accountId)
                 ))
                 getActivity.finish()
               }
