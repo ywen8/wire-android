@@ -23,15 +23,15 @@
               android:orientation="vertical"
               android:layout_width="match_parent"
               android:layout_height="match_parent"
-    android:background="@color/teams_background">
+              android:background="?wireBackgroundCollection">
 
     <FrameLayout
-        android:background="@color/white"
         android:layout_width="match_parent"
         android:layout_height="@dimen/menu_item_height"
         android:paddingStart="@dimen/wire__padding__regular"
         android:paddingEnd="@dimen/wire__padding__regular"
-        android:layout_marginTop="@dimen/wire__padding__regular">
+        android:layout_marginTop="@dimen/wire__padding__regular"
+        style="?wireBackground">
 
         <com.waz.zclient.ui.text.TypefaceTextView
             android:id="@+id/guest_toggle_title"

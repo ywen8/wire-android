@@ -22,7 +22,7 @@
              android:layout_width="match_parent"
              android:layout_height="@dimen/user_row_height"
              xmlns:app="http://schemas.android.com/apk/res-auto"
-             android:background="@color/white"
+             style="?wireBackground"
              android:layout_marginTop="@dimen/participants_options_button_margin_top">
 
     <ImageView

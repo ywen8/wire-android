@@ -106,7 +106,7 @@
     <color name="ephemera_dimmed">#3DFF5000</color>
 
     <color name="collection_background_light">#fafafa</color>
-    <color name="collection_background_dark">@color/background_graphite</color>
+    <color name="collection_background_dark">@color/black</color>
 
 
     <!-- Teams colors palette -->
