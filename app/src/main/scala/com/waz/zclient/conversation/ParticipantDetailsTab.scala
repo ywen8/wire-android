@@ -57,19 +57,13 @@ class ParticipantDetailsTab(val context: Context, callback: FooterMenuCallback) 
   private lazy val guestIndication     = findById[LinearLayout](R.id.guest_indicator)
   private lazy val userAvailability    = findById[ShowAvailabilityView](R.id.participant_availability)
 
-  private val otherUser = for {
-    z         <- zms
-    Some(uId) <- participantsController.otherParticipant
-    user      <- z.users.userSignal(uId)
-  } yield user
-
   private val picture: Signal[ImageSource] =
-    otherUser.map(_.picture).collect { case Some(pic) => WireImage(pic) }
+    participantsController.otherParticipant.map(_.picture).collect { case Some(pic) => WireImage(pic) }
 
   private val otherUserIsGuest = for {
-    z       <- zms
-    user    <- otherUser
-  } yield !user.isWireBot && user.isGuest(z.teamId)
+    teamId <- zms.map(_.teamId)
+    user   <- participantsController.otherParticipant
+  } yield !user.isWireBot && user.isGuest(teamId)
 
   otherUserIsGuest.onUi(guestIndication.setVisible(_))
 
@@ -83,7 +77,7 @@ class ParticipantDetailsTab(val context: Context, callback: FooterMenuCallback) 
   usersController.availabilityVisible.onUi { userAvailability.setVisible }
 
   (for {
-    Some(uId) <- participantsController.otherParticipant
+    Some(uId) <- participantsController.otherParticipantId
     av        <- usersController.availability(uId)
   } yield av).onUi {
     userAvailability.set
