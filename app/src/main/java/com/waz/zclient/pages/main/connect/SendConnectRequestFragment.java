@@ -247,7 +247,7 @@ public class SendConnectRequestFragment extends BaseFragment<SendConnectRequestF
     }
 
     @Override
-    public void onInviteRequestSent(IConversation conversation) {
+    public void onInviteRequestSent(String conversation) {
 
     }
 
