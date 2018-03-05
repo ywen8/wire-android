@@ -35,7 +35,7 @@
 
     <FrameLayout
         android:id="@+id/guest_toggle_row"
-        android:background="@color/white"
+        style="?wireBackground"
         android:layout_width="match_parent"
         android:layout_height="@dimen/menu_item_height"
         android:paddingStart="@dimen/wire__padding__regular"

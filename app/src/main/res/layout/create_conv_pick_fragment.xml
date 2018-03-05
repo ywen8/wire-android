@@ -23,14 +23,14 @@
              android:layout_width="match_parent"
              android:layout_height="match_parent"
              android:orientation="vertical"
-             android:background="@color/teams_background"
+             android:background="?wireBackgroundCollection"
              >
 
     <android.support.v7.widget.Toolbar
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
         android:layout_height="?android:actionBarSize"
-        android:background="@color/white"
+        style="?wireBackground"
         android:visibility="gone"
         app:navigationIcon="@drawable/ic_action_close_dark">
 
@@ -40,7 +40,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity='center'
             android:text="@string/add_people_empty_header"
-            android:textColor="@color/teams_headline_text"
+            android:textColor="?wirePrimaryTextColor"
             android:textSize="@dimen/wire__text_size__small"
             app:w_font="@string/wire__typeface__medium"/>
 
@@ -60,7 +60,7 @@
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/white">
+        style="?wireBackground">
 
         <com.waz.zclient.usersearch.views.SearchEditText
             android:id="@+id/search_box"

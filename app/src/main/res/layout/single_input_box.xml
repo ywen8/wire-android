@@ -28,7 +28,7 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/white"
+        style="?wireBackground"
         android:orientation="horizontal">
 
         <com.waz.zclient.ui.text.TypefaceTextView
@@ -41,7 +41,8 @@
             app:w_font="@string/wire__typeface__regular"
             android:gravity="center"
             android:visibility="visible"
-            tools:ignore="RtlHardcoded"/>
+            tools:ignore="RtlHardcoded"
+            android:textColor="?wirePrimaryTextColor"/>
 
         <FrameLayout
             android:layout_width="match_parent"
@@ -54,7 +55,7 @@
                 android:gravity="start|center_vertical"
                 android:paddingStart="@dimen/app_entry_input_hint_padding"
                 android:paddingEnd="@dimen/app_entry_input_hint_padding"
-                android:textColor="@color/teams_placeholder_text"
+                android:textColor="?wireSecondaryTextColor"
                 android:textSize="@dimen/wire__text_size__smaller"
                 app:w_font="@string/wire__typeface__regular"
                 android:clickable="false"
@@ -67,7 +68,7 @@
                 android:layout_height="@dimen/teams_input_box_height"
                 android:background="@null"
                 android:paddingRight="@dimen/wire__padding__regular"
-                android:textColor="@color/teams_headline_text"
+                android:textColor="?wirePrimaryTextColor"
                 android:textSize="@dimen/wire__text_size__regular_small"
                 app:w_font="@string/wire__typeface__regular"
                 android:maxLines="1"
