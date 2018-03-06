@@ -308,7 +308,7 @@ tasks.withType(ScalaCompile) {
         "UTF-8"]
 }
 
-def getDate() {
+static def getDate() {
     def date = new Date()
     def formattedDate = date.format('MM/dd HH:mm:ss')
     return formattedDate
@@ -322,7 +322,7 @@ def getApiKey(String property) {
     } else if (property.startsWith("mixpanel")) {
         return ""
     } else {
-        return java.util.UUID.randomUUID().toString().replaceAll("-", "")
+        return UUID.randomUUID().toString().replaceAll("-", "")
     }
 }
 

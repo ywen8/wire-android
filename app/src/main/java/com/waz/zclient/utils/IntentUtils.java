@@ -24,13 +24,11 @@ import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.net.Uri;
 import android.support.annotation.Nullable;
-import android.text.TextUtils;
 import com.waz.utils.wrappers.AndroidURIUtil;
 import com.waz.utils.wrappers.URI;
 import com.waz.zclient.BuildConfig;
 import com.waz.zclient.R;
 import com.waz.zclient.controllers.notifications.ShareSavedImageActivity;
-import hugo.weaving.DebugLog;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
@@ -39,27 +37,13 @@ import java.util.Locale;
 public class IntentUtils {
 
     public static final String WIRE_SCHEME = "wire";
-    public static final String EMAIL_VERIFIED_HOST_TOKEN = "email-verified";
     public static final String PASSWORD_RESET_SUCCESSFUL_HOST_TOKEN = "password-reset-successful";
-    public static final String SMS_CODE_TOKEN = "verify-phone";
-    public static final String INVITE_HOST_TOKEN = "connect";
     public static final String EXTRA_LAUNCH_FROM_SAVE_IMAGE_NOTIFICATION = "EXTRA_LAUNCH_FROM_SAVE_IMAGE_NOTIFICATION";
     private static final String GOOGLE_MAPS_INTENT_URI = "geo:0,0?q=%s,%s";
     private static final String GOOGLE_MAPS_WITH_LABEL_INTENT_URI = "geo:0,0?q=%s,%s(%s)";
     private static final String GOOGLE_MAPS_INTENT_PACKAGE = "com.google.android.apps.maps";
     private static final String GOOGLE_MAPS_WEB_LINK = "http://maps.google.com/maps?z=%d&q=loc:%f+%f+(%s)";
     private static final String IMAGE_MIME_TYPE = "image/*";
-
-    public static boolean isEmailVerificationIntent(@Nullable Intent intent) {
-        if (intent == null) {
-            return false;
-        }
-
-        Uri data = intent.getData();
-        return data != null &&
-               WIRE_SCHEME.equals(data.getScheme()) &&
-               EMAIL_VERIFIED_HOST_TOKEN.equals(data.getHost());
-    }
 
     public static boolean isPasswordResetIntent(@Nullable Intent intent) {
         if (intent == null) {
@@ -70,61 +54,6 @@ public class IntentUtils {
         return data != null &&
                WIRE_SCHEME.equals(data.getScheme()) &&
                PASSWORD_RESET_SUCCESSFUL_HOST_TOKEN.equals(data.getHost());
-    }
-
-    public static boolean isInviteIntent(@Nullable Intent intent) {
-        String token = getInviteToken(intent);
-        return !TextUtils.isEmpty(token);
-    }
-
-    public static boolean isSmsIntent(@Nullable Intent intent) {
-        if (intent == null) {
-            return false;
-        }
-
-        Uri data = intent.getData();
-        return data != null &&
-               WIRE_SCHEME.equals(data.getScheme()) &&
-               SMS_CODE_TOKEN.equals(data.getHost());
-    }
-
-    @DebugLog
-    public static String getSmsCode(@Nullable Intent intent) {
-        if (intent == null) {
-            return null;
-        }
-        Uri data = intent.getData();
-        if (isSmsIntent(intent) &&
-            data.getPath() != null &&
-            data.getPath().length() > 1
-            ) {
-            return data.getPath().substring(1);
-        }
-        return null;
-    }
-
-    @DebugLog
-    public static String getInviteToken(@Nullable Intent intent) {
-        if (intent == null) {
-            return null;
-        }
-        Uri data = intent.getData();
-        if (data != null &&
-            WIRE_SCHEME.equals(data.getScheme()) &&
-            INVITE_HOST_TOKEN.equals(data.getHost())) {
-            return data.getQueryParameter("code");
-        }
-        return null;
-    }
-
-    public static boolean isLaunchFromNotificationIntent(@Nullable Intent intent) {
-        return intent != null &&
-               intent.getBooleanExtra("from_notification", false);
-    }
-
-    public static boolean isLaunchFromSharingIntent(@Nullable Intent intent) {
-        return intent != null &&
-               intent.getBooleanExtra("from_sharing", false);
     }
 
     public static PendingIntent getGalleryIntent(Context context, URI uri) {
@@ -194,12 +123,12 @@ public class IntentUtils {
         Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
         mapIntent.setPackage(GOOGLE_MAPS_INTENT_PACKAGE);
         if (mapIntent.resolveActivity(context.getPackageManager()) == null) {
-            return getGoogleMapsWebFallbackIntent(context, lat, lon, zoom, name);
+            return getGoogleMapsWebFallbackIntent(lat, lon, zoom, name);
         }
         return mapIntent;
     }
 
-    private static Intent getGoogleMapsWebFallbackIntent(Context context, float lat, float lon, int zoom, String name) {
+    private static Intent getGoogleMapsWebFallbackIntent(float lat, float lon, int zoom, String name) {
         String urlEncodedName;
         try {
             urlEncodedName = URLEncoder.encode(name, "UTF-8");

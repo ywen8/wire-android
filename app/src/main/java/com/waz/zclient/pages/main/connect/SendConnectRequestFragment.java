@@ -244,11 +244,6 @@ public class SendConnectRequestFragment extends BaseFragment<SendConnectRequestF
         }
     }
 
-    @Override
-    public void onInviteRequestSent(String conversation) {
-
-    }
-
     //////////////////////////////////////////////////////////////////////////////////////////
     //
     //  AccentColorObserver

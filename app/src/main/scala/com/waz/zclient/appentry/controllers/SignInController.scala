@@ -19,7 +19,6 @@ package com.waz.zclient.appentry.controllers
 
 import android.content.Context
 import com.waz.api.ClientRegistrationState
-import com.waz.api.Invitations.{EmailAddressResponse, PhoneNumberResponse}
 import com.waz.service.ZMessaging
 import com.waz.threading.Threading
 import com.waz.utils.events.{EventContext, Signal}
@@ -46,16 +45,6 @@ class SignInController(implicit inj: Injector, eventContext: EventContext, conte
   val password = Signal("")
   val name = Signal("")
   val phone = Signal("")
-
-  appEntryController.invitationDetails.onUi {
-    case PhoneNumberResponse(nameOfInvitee, number) =>
-      name ! nameOfInvitee
-      phone ! number
-    case EmailAddressResponse(nameOfInvitee, address) =>
-      name ! nameOfInvitee
-      email ! address
-    case _ =>
-  }
 
   Signal(appEntryController.entryStage, appEntryController.currentAccount).onUi {
     case (InsertPasswordStage, Some(acc)) if acc.email.isDefined =>
