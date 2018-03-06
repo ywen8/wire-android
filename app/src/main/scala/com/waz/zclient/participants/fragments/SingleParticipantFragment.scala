@@ -20,7 +20,6 @@ package com.waz.zclient.participants.fragments
 import android.content.Context
 import android.os.Bundle
 import android.support.annotation.Nullable
-import android.support.v4.app.Fragment
 import android.support.v4.view.ViewPager
 import android.view.animation.{AlphaAnimation, Animation}
 import android.view.{LayoutInflater, View, ViewGroup}
@@ -121,9 +120,10 @@ class SingleParticipantFragment extends FragmentHelper {
   // Apply the workaround only if this is a child fragment, and the parent is being removed.
   override def onCreateAnimation(transit: Int, enter: Boolean, nextAnim: Int): Animation =
     Option(getParentFragment) match {
-      case Some(parent: Fragment) if enter && parent.isRemoving => returning(new AlphaAnimation(1, 1)){
-        _.setDuration(ViewUtils.getNextAnimationDuration(parent))
-      }
+      case Some(parent) if !enter && parent.isRemoving =>
+        returning(new AlphaAnimation(1, 1)) {
+          _.setDuration(ViewUtils.getNextAnimationDuration(parent))
+        }
       case _ => super.onCreateAnimation(transit, enter, nextAnim)
     }
 
