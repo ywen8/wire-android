@@ -20,7 +20,6 @@ package com.waz.zclient.participants
 import android.content.Context
 import android.view.View
 import com.waz.ZLog.ImplicitTag._
-import com.waz.ZLog.warn
 import com.waz.model._
 import com.waz.service.ZMessaging
 import com.waz.threading.Threading
@@ -30,7 +29,7 @@ import com.waz.zclient.controllers.confirmation.{ConfirmationRequest, IConfirmat
 import com.waz.zclient.conversation.ConversationController
 import com.waz.zclient.pages.main.conversation.controller.IConversationScreenController
 import com.waz.zclient.utils.ContextUtils._
-import com.waz.zclient.utils.{Callback, UiStorage, UserSignal}
+import com.waz.zclient.utils.{UiStorage, UserSignal}
 import com.waz.zclient.{Injectable, Injector, R}
 
 import scala.concurrent.Future
@@ -52,10 +51,16 @@ class ParticipantsController(implicit injector: Injector, context: Context, ec: 
   lazy val conv              = convController.currentConv
   lazy val isGroup           = convController.currentConvIsGroup
 
-  lazy val otherParticipant = otherParticipants.flatMap {
+  lazy val otherParticipantId = otherParticipants.flatMap {
     case others if others.size == 1 => Signal.const(others.headOption)
     case others                     => selectedParticipant.map(_.flatMap(id => others.find(_ == id)))
   }
+
+  lazy val otherParticipant = for {
+    z        <- zms
+    Some(id) <- otherParticipantId
+    user     <- z.users.userSignal(id)
+  } yield user
 
   lazy val containsGuest = for {
     z     <- zms
@@ -100,18 +105,6 @@ class ParticipantsController(implicit injector: Injector, context: Context, ec: 
   def blockUser(userId: UserId): Future[Option[UserData]] = zms.head.flatMap(_.connection.blockConnection(userId))
 
   def unblockUser(userId: UserId): Future[ConversationData] = zms.head.flatMap(_.connection.unblockConnection(userId))
-
-  def withOtherParticipant(callback: Callback[UserData]): Unit =
-    otherParticipant.head.flatMap {
-      case Some(userId) => getUser(userId)
-      case None => Future.successful(None)
-    }.foreach {
-      case Some(userData) => callback.callback(userData)
-      case None => warn("Unable to get the other participant for the current conversation")
-    }(Threading.Ui)
-
-  def withCurrentConvGroupOrBot(callback: Callback[java.lang.Boolean]): Unit =
-    isGroupOrBot.head.foreach { groupOrBot => callback.callback(groupOrBot) }(Threading.Ui)
 
   def showRemoveConfirmation(userId: UserId): Unit = getUser(userId).foreach {
     case Some(userData) =>
