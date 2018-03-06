@@ -105,12 +105,6 @@ class ParticipantFragment extends BaseFragment[ParticipantFragment.Container] wi
     if (Option(savedInstanceState).isEmpty)
       participantsController.isGroupOrBot.head.foreach { groupOrBot =>
         getChildFragmentManager.beginTransaction
-        .setCustomAnimations(
-          R.anim.open_new_conversation__thread_list_in,
-          R.anim.open_new_conversation__thread_list_out,
-          R.anim.open_new_conversation__thread_list_in,
-          R.anim.open_new_conversation__thread_list_out
-        )
         .replace(
           R.id.fl__participant__header__container,
           headerFragment,

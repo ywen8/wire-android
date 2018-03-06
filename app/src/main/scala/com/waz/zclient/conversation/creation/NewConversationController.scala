@@ -79,7 +79,7 @@ class NewConversationController(implicit inj: Injector, ev: EventContext) extend
       from     <- fromScreen.head
       (guests, nonGuests) <- z.usersStorage.getAll(userIds).map(_.flatten.partition(_.isGuest(z.teamId)))
     } yield {
-      tracking.track(AddParticipantsEvent(!teamOnly, nonGuests.size, guests.size, from))
+      tracking.track(AddParticipantsEvent(!teamOnly, nonGuests.size + 1, guests.size, from))
       tracking.track(GroupConversationSuccessful(userIds.nonEmpty, !teamOnly, from))
       conv.id
     }
