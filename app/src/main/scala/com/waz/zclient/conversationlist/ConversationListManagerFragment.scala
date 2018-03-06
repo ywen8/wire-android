@@ -58,7 +58,7 @@ import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.utils.RichView
 import com.waz.zclient.views.LoadingIndicatorView
 import com.waz.zclient.views.menus.ConfirmationMenu
-import com.waz.zclient.{FragmentHelper, OnBackPressedListener, R}
+import com.waz.zclient.{FragmentHelper, R}
 
 import scala.collection.JavaConverters._
 import scala.concurrent.duration._
@@ -70,7 +70,6 @@ class ConversationListManagerFragment extends Fragment
   with NavigationControllerObserver
   with ConversationListFragment.Container
   with ConversationScreenControllerObserver
-  with OnBackPressedListener
   with SendConnectRequestFragment.Container
   with BlockedUserProfileFragment.Container
   with PendingConnectRequestManagerFragment.Container {

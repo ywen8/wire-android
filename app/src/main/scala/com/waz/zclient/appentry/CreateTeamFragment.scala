@@ -32,9 +32,9 @@ import com.waz.zclient.pages.BaseFragment
 import com.waz.zclient.ui.text.{GlyphTextView, TypefaceTextView}
 import com.waz.zclient.ui.utils.KeyboardUtils
 import com.waz.zclient.utils.{ContextUtils, DefaultTransition, RichView}
-import com.waz.zclient.{FragmentHelper, OnBackPressedListener, R}
+import com.waz.zclient.{FragmentHelper, R}
 
-class CreateTeamFragment extends BaseFragment[Container] with FragmentHelper with OnBackPressedListener {
+class CreateTeamFragment extends BaseFragment[Container] with FragmentHelper {
 
   private lazy val appEntryController = inject[AppEntryController]
   private lazy val invitesController = inject[InvitationsController]

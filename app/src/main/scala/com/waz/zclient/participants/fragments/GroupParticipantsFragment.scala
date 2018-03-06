@@ -231,7 +231,11 @@ class GroupParticipantsFragment extends FragmentHelper {
     super.onPause()
   }
 
-  def onBackPressed(): Boolean = participantsAdapter.onBackPressed()
+  override def onBackPressed(): Boolean = {
+    super.onBackPressed()
+    participantsAdapter.onBackPressed()
+  }
+
 }
 
 object GroupParticipantsFragment {

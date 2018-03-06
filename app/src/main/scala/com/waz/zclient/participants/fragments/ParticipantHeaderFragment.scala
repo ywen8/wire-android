@@ -29,14 +29,12 @@ import com.waz.utils.returning
 import com.waz.zclient.common.controllers.ThemeController
 import com.waz.zclient.pages.BaseFragment
 import com.waz.zclient.pages.main.conversation.controller.IConversationScreenController
-import com.waz.zclient.participants.ParticipantsController
 import com.waz.zclient.utils.{RichView, ViewUtils}
-import com.waz.zclient.{FragmentHelper, R}
+import com.waz.zclient.{FragmentHelper, ManagerFragment, R}
 
 class ParticipantHeaderFragment extends BaseFragment[ParticipantHeaderFragment.Container] with FragmentHelper {
   implicit def cxt: Context = getActivity
 
-  private lazy val participantsController = inject[ParticipantsController]
   private lazy val screenController       = inject[IConversationScreenController]
   private lazy val themeController        = inject[ThemeController]
 
@@ -44,9 +42,9 @@ class ParticipantHeaderFragment extends BaseFragment[ParticipantHeaderFragment.C
 
   private lazy val toolbar = returning(view[Toolbar](R.id.t__participants__toolbar)) { vh =>
     (for {
-      navVisible <- getParentFragment match {
-                      case (f: ParticipantFragment) => f.navigationIconVisible
-                      case _                        => Signal.const(true)
+      navVisible <- Option(getParentFragment) match {
+                      case Some(f: ParticipantFragment) => f.navigationIconVisible
+                      case _                            => Signal.const(true)
                     }
       darkTheme  <- themeController.darkThemeSet
       icon       =  if (darkTheme) R.drawable.action_back_light else R.drawable.action_back_dark
@@ -61,9 +59,12 @@ class ParticipantHeaderFragment extends BaseFragment[ParticipantHeaderFragment.C
   }
 
   private lazy val headerReadOnlyTextView = returning(view[TextView](R.id.participants__header)) { vh =>
-    (for {
-      isSingleParticipant <- participantsController.otherParticipantId.map(_.isDefined)
-    } yield !isSingleParticipant).onUi(vis => vh.foreach(_.setVisible(vis)))
+    (Option(getParentFragment) match {
+      case Some(f: ManagerFragment) => f.currentContentTag
+      case _                        => Signal.const(None)
+    }).map { tag: Option[String] =>
+      tag.contains(GroupParticipantsFragment.Tag) || tag.contains(GuestOptionsFragment.Tag)
+    }.onUi(vis => vh.foreach(_.setVisible(vis)))
   }
 
   // This is a workaround for the bug where child fragments disappear when
