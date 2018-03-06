@@ -18,7 +18,6 @@
 package com.waz.zclient.controllers.singleimage;
 
 import android.view.View;
-import com.waz.api.User;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -53,13 +52,6 @@ public class SingleImageController implements ISingleImageController {
     public void showSingleImage(String messageId) {
         for (SingleImageObserver observer : observerList) {
             observer.onShowSingleImage(messageId);
-        }
-    }
-
-    @Override
-    public void showSingleImage(User user) {
-        for (SingleImageObserver observer : observerList) {
-            observer.onShowUserImage(user);
         }
     }
 

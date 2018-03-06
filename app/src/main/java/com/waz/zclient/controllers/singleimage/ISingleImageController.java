@@ -36,6 +36,4 @@ public interface ISingleImageController {
     void clearReferences();
 
     void showSingleImage(String messageId);
-
-    void showSingleImage(User user);
 }

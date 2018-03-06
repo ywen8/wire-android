@@ -17,13 +17,7 @@
  */
 package com.waz.zclient.controllers.singleimage;
 
-import com.waz.api.User;
-
 public interface SingleImageObserver {
     void onShowSingleImage(String messageId);
-
-    void onShowUserImage(User user);
-
     void onHideSingleImage();
-
 }

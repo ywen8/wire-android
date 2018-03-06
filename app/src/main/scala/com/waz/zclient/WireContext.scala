@@ -138,7 +138,7 @@ trait FragmentHelper extends Fragment with ViewFinder with Injectable with Event
   def withFragmentOpt[A](tag: String)(f: Option[Fragment] => A): A =
     f(Option(this.asInstanceOf[Fragment].getChildFragmentManager.findFragmentByTag(tag)))
 
-  def findById[V <: View](parent: View, id: Int) =
+  def findById[V <: View](parent: View, id: Int): V =
     parent.findViewById(id).asInstanceOf[V]
 
   def view[V <: View](id: Int) = {
