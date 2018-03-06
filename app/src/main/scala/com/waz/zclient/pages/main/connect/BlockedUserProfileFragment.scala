@@ -100,9 +100,15 @@ class BlockedUserProfileFragment extends BaseFragment[BlockedUserProfileFragment
   private var isShowingFooterMenu = true
   private var goToConversationWithUser = false
 
-  private lazy val unblockButton = view[ZetaButton](R.id.zb__connect_request__unblock_button)
-  private lazy val cancelButton = view[ZetaButton](R.id.zb__connect_request__ignore_button)
-  private lazy val smallUnblockButton = view[ZetaButton](R.id.zb__connect_request__accept_button)
+  private lazy val unblockButton = returning(view[ZetaButton](R.id.zb__connect_request__unblock_button)) { vh =>
+    accentColor.onUi(color => vh.foreach(_.setAccentColor(color.getColor)))
+  }
+  private lazy val cancelButton = returning(view[ZetaButton](R.id.zb__connect_request__ignore_button)) { vh =>
+    accentColor.onUi(color => vh.foreach(_.setAccentColor(color.getColor)))
+  }
+  private lazy val smallUnblockButton = returning(view[ZetaButton](R.id.zb__connect_request__accept_button)) { vh =>
+    accentColor.onUi(color => vh.foreach(_.setAccentColor(color.getColor)))
+  }
   private lazy val unblockMenu = view[LinearLayout](R.id.ll__connect_request__accept_menu)
   private lazy val footerMenu = view[FooterMenu](R.id.fm__footer)
   private lazy val profileImageView = view[ImageView](R.id.blocked_user_picture)
@@ -117,17 +123,7 @@ class BlockedUserProfileFragment extends BaseFragment[BlockedUserProfileFragment
 
   override def onCreate(savedInstanceState: Bundle): Unit = {
     super.onCreate(savedInstanceState)
-
     userRequester = Option(IConnectStore.UserRequester.valueOf(getArguments.getString(ARGUMENT_USER_REQUESTER)))
-
-    accentColor.onUi { color =>
-      unblockButton.setIsFilled(true)
-      unblockButton.setAccentColor(color.getColor)
-      cancelButton.setIsFilled(false)
-      cancelButton.setAccentColor(color.getColor)
-      smallUnblockButton.setIsFilled(true)
-      smallUnblockButton.setAccentColor(color.getColor)
-    }
   }
 
   override def onCreateAnimation(transit: Int, enter: Boolean, nextAnim: Int): Animation = {
@@ -157,6 +153,10 @@ class BlockedUserProfileFragment extends BaseFragment[BlockedUserProfileFragment
     userNameView
     userUsernameView
     profileImageView.setImageDrawable(profileDrawable)
+    unblockButton.foreach(_.setIsFilled(true))
+    cancelButton.foreach(_.setIsFilled(true))
+    smallUnblockButton.foreach(_.setIsFilled(true))
+
     if (userRequester.contains(IConnectStore.UserRequester.PARTICIPANTS)) {
       unblockButton.setVisibility(View.GONE)
       toggleUnblockAndFooterMenu(isShowingFooterMenu)

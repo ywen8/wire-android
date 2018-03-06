@@ -120,7 +120,7 @@ public class SendConnectRequestFragment extends BaseFragment<SendConnectRequestF
         imageAssetImageViewProfile.setDisplayType(ImageAssetImageView.DisplayType.CIRCLE);
         imageAssetImageViewProfile.setSaturation(0);
         userNameView = ViewUtils.getView(rootView, R.id.user_name);
-        userUsernameView = ViewUtils.getView(rootView, R.id.user_username);
+        userUsernameView = ViewUtils.getView(rootView, R.id.user_handle);
 
         View backgroundContainer = ViewUtils.getView(rootView, R.id.background_container);
         backgroundContainer.setClickable(true);
