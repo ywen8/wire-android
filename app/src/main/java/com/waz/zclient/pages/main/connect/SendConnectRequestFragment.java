@@ -128,6 +128,9 @@ public class SendConnectRequestFragment extends BaseFragment<SendConnectRequestF
             getControllerFactory().getConversationScreenController().getPopoverLaunchMode() != DialogLaunchMode.AVATAR &&
             getControllerFactory().getConversationScreenController().getPopoverLaunchMode() != DialogLaunchMode.COMMON_USER) {
             backgroundContainer.setBackgroundColor(Color.TRANSPARENT);
+            userNameView.setPaddingRelative(0, 0, 0, 0);
+        } else {
+            userNameView.setPaddingRelative(0, ContextUtils.getDimenPx(R.dimen.wire__padding__regular, getContext()), 0, 0);
         }
         connectButton.setText(getResources().getString(R.string.send_connect_request__connect_button__text));
 

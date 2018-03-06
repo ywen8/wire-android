@@ -154,7 +154,7 @@ class GroupParticipantsFragment extends FragmentHelper {
 
       case Some(user) if user.connection == BLOCKED =>
         import BlockedUserProfileFragment._
-        openUserProfileFragment(newInstance(userId.str, IConnectStore.UserRequester.PARTICIPANTS), TAG)
+        openUserProfileFragment(newInstance(userId.str, IConnectStore.UserRequester.PARTICIPANTS), Tag)
 
       case Some(user) if user.connection == CANCELLED || user.connection == UNCONNECTED =>
         import SendConnectRequestFragment._
