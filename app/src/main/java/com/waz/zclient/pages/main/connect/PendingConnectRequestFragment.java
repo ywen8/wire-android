@@ -327,23 +327,12 @@ public class PendingConnectRequestFragment extends BaseFragment<PendingConnectRe
     @Override
     public void onConnectUserUpdated(final User user, IConnectStore.UserRequester userRequester) {
         if (this.userRequester != userRequester ||
-            user == null) {
+            user == null || !user.getId().equals(userId)) {
             return;
         }
 
         userNameView.setText(user.getDisplayName());
         userUsernameView.setText(StringUtils.formatHandle(user.getUsername()));
-
-        switch (loadMode) {
-            case LOAD_BY_USER_ID:
-                inject(ConversationController.class).withConvLoaded(new ConvId(user.getConversation().getId()), new Callback<ConversationData>() {
-                    @Override
-                    public void callback(ConversationData conversationData) {
-                        onConversationLoaded(conversationData);
-                    }
-                });
-                break;
-        }
 
         imageAssetImageViewProfile.connectImageAsset(user.getPicture());
 
