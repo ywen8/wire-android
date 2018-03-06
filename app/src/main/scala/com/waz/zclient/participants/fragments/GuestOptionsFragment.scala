@@ -30,9 +30,9 @@ import com.waz.utils.events.Signal
 import com.waz.utils.returning
 import com.waz.zclient.conversation.ConversationController
 import com.waz.zclient.utils.ViewUtils
-import com.waz.zclient.{FragmentHelper, OnBackPressedListener, R}
+import com.waz.zclient.{FragmentHelper, R}
 
-class GuestOptionsFragment extends FragmentHelper with OnBackPressedListener {
+class GuestOptionsFragment extends FragmentHelper {
 
   import Threading.Implicits.Background
 
@@ -133,6 +133,7 @@ class GuestOptionsFragment extends FragmentHelper with OnBackPressedListener {
   }
 
   override def onBackPressed(): Boolean = {
+    super.onBackPressed()
     getFragmentManager.popBackStack
     true
   }

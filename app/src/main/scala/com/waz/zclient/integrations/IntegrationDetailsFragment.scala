@@ -46,9 +46,9 @@ import com.waz.zclient.ui.text.{GlyphTextView, TypefaceTextView}
 import com.waz.zclient.usersearch.SearchUIFragment
 import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.utils.RichView
-import com.waz.zclient.{FragmentHelper, OnBackPressedListener, R, ViewHelper}
+import com.waz.zclient.{FragmentHelper, R, ViewHelper}
 
-class IntegrationDetailsFragment extends FragmentHelper with OnBackPressedListener {
+class IntegrationDetailsFragment extends FragmentHelper {
 
   implicit def ctx: Context = getActivity
 
@@ -145,7 +145,10 @@ class IntegrationDetailsFragment extends FragmentHelper with OnBackPressedListen
     viewPager.foreach(_.setAdapter(IntegrationDetailsAdapter(getChildFragmentManager, providerId, integrationId)))
   }
 
-  override def onBackPressed(): Boolean = goBack()
+  override def onBackPressed(): Boolean = {
+    super.onBackPressed()
+    goBack()
+  }
 
   def goBack(): Boolean = {
     viewPager.foreach(_.getCurrentItem match {

@@ -37,7 +37,7 @@ import com.waz.zclient.utils.{StringUtils, ViewUtils}
 import com.waz.zclient.common.views.ImageAssetDrawable
 import com.waz.zclient.common.views.ImageAssetDrawable.{RequestBuilder, ScaleType}
 import com.waz.zclient.common.views.ImageController.{ImageSource, WireImage}
-import com.waz.zclient.{FragmentHelper, OnBackPressedListener, R}
+import com.waz.zclient.{FragmentHelper, R}
 
 object FirstTimeAssignUsernameFragment {
   val TAG: String = classOf[FirstTimeAssignUsernameFragment].getName
@@ -67,7 +67,6 @@ object FirstTimeAssignUsernameFragment {
 
 class FirstTimeAssignUsernameFragment extends BaseFragment[FirstTimeAssignUsernameFragment.Container]
   with FragmentHelper
-  with OnBackPressedListener
   with UsernamesControllerObserver {
 
   private lazy val zms = inject[Signal[ZMessaging]]
@@ -147,7 +146,10 @@ class FirstTimeAssignUsernameFragment extends BaseFragment[FirstTimeAssignUserna
   override def onCreateView(inflater: LayoutInflater, @Nullable container: ViewGroup, @Nullable savedInstanceState: Bundle): View =
     inflater.inflate(R.layout.fragment_username_first_launch, container, false)
 
-  def onBackPressed: Boolean = true
+  override def onBackPressed(): Boolean = {
+    super.onBackPressed()
+    true
+  }
 
   override def onValidUsernameGenerated(name: String, generatedUsername: String) = {
     ZLog.verbose(s"onValidUsernameGenerated $generatedUsername")

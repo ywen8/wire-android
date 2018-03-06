@@ -70,7 +70,6 @@ import com.waz.zclient.{FragmentHelper, OnBackPressedListener, R}
 
 class ConversationManagerFragment extends BaseFragment[Container] with FragmentHelper
   with LikesListFragment.Container
-  with OnBackPressedListener
   with ConversationScreenControllerObserver
   with DrawingObserver
   with DrawingFragment.Container

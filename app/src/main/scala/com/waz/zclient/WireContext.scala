@@ -20,7 +20,9 @@ package com.waz.zclient
 import android.annotation.SuppressLint
 import android.app.{Dialog, Service}
 import android.content.{Context, ContextWrapper, DialogInterface}
-import android.support.v4.app.{Fragment, FragmentActivity}
+import android.os.Bundle
+import android.support.annotation.IdRes
+import android.support.v4.app.{Fragment, FragmentActivity, FragmentManager}
 import android.support.v7.app.AppCompatActivity
 import android.support.v7.preference.Preference
 import android.view.View.OnClickListener
@@ -83,13 +85,13 @@ trait ViewHelper extends View with ViewFinder with Injectable with ViewEventCont
 object ViewHelper {
 
   @SuppressLint(Array("LogNotTimber"))
-  def inflate[T <: View](layoutResId: Int, group: ViewGroup, addToParent: Boolean)(implicit logTag: ZLog.LogTag) =
+  def inflate[T <: View](layoutResId: Int, group: ViewGroup, addToParent: Boolean)(implicit logTag: LogTag) =
     try LayoutInflater.from(group.getContext).inflate(layoutResId, group, addToParent).asInstanceOf[T]
     catch {
       case e: Throwable =>
         var cause = e
         while (cause.getCause != null) cause = cause.getCause
-        ZLog.error("inflate failed with root cause:", cause)
+        error("inflate failed with root cause:", cause)
         throw e
     }
 
@@ -115,7 +117,7 @@ trait ServiceHelper extends Service with Injectable with WireContext with EventC
   }
 }
 
-trait FragmentHelper extends Fragment with ViewFinder with Injectable with EventContext {
+trait FragmentHelper extends Fragment with OnBackPressedListener with ViewFinder with Injectable with EventContext {
 
   lazy implicit val injector = getActivity.asInstanceOf[WireContext].injector
   override implicit def eventContext: EventContext = this
@@ -132,11 +134,14 @@ trait FragmentHelper extends Fragment with ViewFinder with Injectable with Event
 
   def withBackstackHead[A](f: Option[Fragment] => A): A = {
     import scala.collection.JavaConverters._
-    f(this.asInstanceOf[Fragment].getChildFragmentManager.getFragments.asScala.toList.flatMap(Option(_)).lastOption)
+    f(getChildFragmentManager.getFragments.asScala.toList.flatMap(Option(_)).lastOption)
   }
 
   def withFragmentOpt[A](tag: String)(f: Option[Fragment] => A): A =
-    f(Option(this.asInstanceOf[Fragment].getChildFragmentManager.findFragmentByTag(tag)))
+    f(Option(getChildFragmentManager.findFragmentByTag(tag)))
+
+  def withFragmentOpt[A](@IdRes id: Int)(f: Option[Fragment] => A): A =
+    f(Option(getChildFragmentManager.findFragmentById(id)))
 
   def findById[V <: View](parent: View, id: Int): V =
     parent.findViewById(id).asInstanceOf[V]
@@ -145,6 +150,13 @@ trait FragmentHelper extends Fragment with ViewFinder with Injectable with Event
     val h = new ViewHolder[V](id, this)
     views ::= h
     h
+  }
+
+  lazy val className: String = ZLog.ImplicitTag.implicitLogTag
+
+  override def onBackPressed(): Boolean = {
+    verbose(s"onBackPressed")(className)
+    false
   }
 
   override def onResume() = {
@@ -175,6 +187,21 @@ trait FragmentHelper extends Fragment with ViewFinder with Injectable with Event
   override def onDestroy(): Unit = {
     super.onDestroy()
     onContextDestroy()
+  }
+}
+
+trait ManagerFragment extends FragmentHelper {
+  def contentId: Int
+
+  val currentContentTag = Signal(Option.empty[String])
+
+  override def onCreate(savedInstanceState: Bundle): Unit = {
+    super.onCreate(savedInstanceState)
+
+    getChildFragmentManager.addOnBackStackChangedListener(new FragmentManager.OnBackStackChangedListener {
+      override def onBackStackChanged(): Unit =
+        currentContentTag ! withFragmentOpt(contentId)(_.map(_.getTag))
+    })
   }
 }
 
