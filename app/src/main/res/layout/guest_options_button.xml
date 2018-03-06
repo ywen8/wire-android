@@ -23,7 +23,7 @@
               xmlns:tools="http://schemas.android.com/tools"
               android:layout_width="match_parent"
               android:layout_height="@dimen/menu_item_height"
-              android:background="@color/white"
+              style="?wireBackground"
               android:layout_marginTop="@dimen/participants_options_button_margin_top"
     >
 
@@ -39,8 +39,8 @@
 
     <ImageView
         android:id="@+id/next_indicator"
-        android:layout_width="@dimen/guest_options_icon_size"
-        android:layout_height="@dimen/guest_options_icon_size"
+        android:layout_width="@dimen/next_indicator_size"
+        android:layout_height="@dimen/next_indicator_size"
         android:layout_gravity="center_vertical"
         android:layout_marginStart="@dimen/wire__padding__regular"
         android:layout_marginEnd="@dimen/wire__padding__regular"

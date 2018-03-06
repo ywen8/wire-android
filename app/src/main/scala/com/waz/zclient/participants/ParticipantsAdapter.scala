@@ -39,6 +39,7 @@ import com.waz.zclient.{Injectable, Injector, R}
 import com.waz.ZLog.ImplicitTag.implicitLogTag
 import com.waz.api.Verification
 import com.waz.threading.Threading
+import com.waz.zclient.common.controllers.ThemeController
 import com.waz.zclient.ui.text.TypefaceEditText.OnSelectionChangedListener
 
 
@@ -49,6 +50,7 @@ class ParticipantsAdapter(numOfColumns: Int)(implicit context: Context, injector
   private lazy val zms = inject[Signal[ZMessaging]]
   private lazy val participantsController = inject[ParticipantsController]
   private lazy val convController         = inject[ConversationController]
+  private lazy val themeController        = inject[ThemeController]
 
   private var conversation = Option.empty[ConversationData]
   private var items = List.empty[Either[ParticipantData, Int]]
@@ -107,6 +109,7 @@ class ParticipantsAdapter(numOfColumns: Int)(implicit context: Context, injector
     case UserRow =>
       val view = LayoutInflater.from(parent.getContext).inflate(R.layout.single_user_row, parent, false).asInstanceOf[SingleUserRowView]
       view.showArrow(true)
+      view.setTheme(if (themeController.isDarkTheme) SingleUserRowView.Dark else SingleUserRowView.Light)
       ParticipantRowViewHolder(view, onClick)
     case ConversationName =>
       import Threading.Implicits.Background
@@ -167,8 +170,8 @@ object ParticipantsAdapter {
   case class GuestOptionsButtonViewHolder(view: View) extends ViewHolder(view) {
     private implicit val ctx = view.getContext
     view.setId(R.id.guest_options)
-    view.findViewById[ImageView](R.id.icon).setImageDrawable(GuestIcon(R.color.graphite))
-    view.findViewById[ImageView](R.id.next_indicator).setImageDrawable(ForwardNavigationIcon(R.color.light_graphite))
+    view.findViewById[ImageView](R.id.icon).setImageDrawable(GuestIcon(R.color.light_graphite))
+    view.findViewById[ImageView](R.id.next_indicator).setImageDrawable(ForwardNavigationIcon(R.color.light_graphite_40))
   }
 
   case class SeparatorViewHolder(separator: View) extends ViewHolder(separator) {

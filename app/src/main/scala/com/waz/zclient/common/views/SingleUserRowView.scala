@@ -106,14 +106,14 @@ class SingleUserRowView(context: Context, attrs: AttributeSet, style: Int) exten
           checkbox.setButtonDrawable(btn)
         }
         nameView.setTextColor(ContextUtils.getColor(R.color.wire__text_color_primary_light_selector))
-        setBackgroundColor(Color.WHITE)
+        setBackgroundColor(ContextUtils.getColor(R.color.background_light))
       case Dark =>
         returning(ContextCompat.getDrawable(getContext, R.drawable.checkbox)){ btn =>
           btn.setLevel(1)
           checkbox.setButtonDrawable(btn)
         }
         nameView.setTextColor(ContextUtils.getColor(R.color.wire__text_color_primary_dark_selector))
-        setBackgroundColor(Color.BLACK)
+        setBackgroundColor(ContextUtils.getColor(R.color.background_dark))
       case Transparent =>
         returning(ContextCompat.getDrawable(getContext, R.drawable.checkbox)){ btn =>
           btn.setLevel(1)
