@@ -49,24 +49,7 @@ class AppEntryController(implicit inj: Injector, eventContext: EventContext) ext
   lazy val uiTracking = inject[GlobalTrackingController] //TODO slowly move away from referencing this class
   val currentAccount = ZMessaging.currentAccounts.activeAccount
   val currentUser = optZms.flatMap{ _.fold(Signal.const(Option.empty[UserData]))(z => z.usersStorage.optSignal(z.selfUserId)) }
-  val invitationToken = Signal(Option.empty[String])
   val firstStage = Signal[FirstStage](FirstScreen)
-
-  val invitationDetails = for {
-    Some(token) <- invitationToken
-    req <- Signal.future(ZMessaging.currentAccounts.retrieveInvitationDetails(PersonalInvitationToken(token)))
-  } yield req
-
-  invitationToken.onUi{
-    case Some (token) =>
-      val invToken = PersonalInvitationToken(token)
-      for {
-        invDetails <- ZMessaging.currentAccounts.retrieveInvitationDetails(invToken)
-        _ <- ZMessaging.currentAccounts.generateAccountFromInvitation(invDetails, invToken)
-        _ = invitationToken ! None
-      } yield ()
-    case _ =>
-  }
 
   //Vars to persist text in edit boxes
   var teamName = ""
@@ -91,11 +74,6 @@ class AppEntryController(implicit inj: Injector, eventContext: EventContext) ext
     firstPageState <- firstStage
     state <- Signal.const(stateForAccountAndUser(account, user, firstPageState)).collect{ case s if s != Waiting => s }
   } yield state
-
-  val autoConnectInvite = for {
-    Some(token)   <- invitationToken
-    EnterAppStage <- entryStage
-  } yield token
 
   entryStage.onUi { stage =>
     ZLog.verbose(s"Current stage: $stage")
@@ -365,8 +343,6 @@ class AppEntryController(implicit inj: Injector, eventContext: EventContext) ext
 }
 
 object AppEntryController {
-  val GenericInviteToken: String = "getwire"
-
   trait FirstStage {
     val depth: Int = 0
   }

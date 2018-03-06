@@ -37,10 +37,5 @@ public interface IConnectStore extends IStore {
     // Connect actions with another user
     IConversation connectToNewUser(User user, String firstMessage);
 
-    void blockUser(User user);
-
     IConversation unblockUser(User user);
-
-    void requestConnection(String token);
-
 }

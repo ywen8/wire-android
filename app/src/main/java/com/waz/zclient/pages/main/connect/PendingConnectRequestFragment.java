@@ -350,11 +350,6 @@ public class PendingConnectRequestFragment extends BaseFragment<PendingConnectRe
         }
     }
 
-    @Override
-    public void onInviteRequestSent(String conversation) {
-
-    }
-
     //////////////////////////////////////////////////////////////////////////////////////////
     //
     //  AccentColorControllerObserver

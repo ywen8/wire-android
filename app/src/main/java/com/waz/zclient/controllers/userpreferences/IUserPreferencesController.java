@@ -43,14 +43,6 @@ public interface IUserPreferencesController {
 
     boolean showContactsDialog();
 
-    void setReferralToken(String token);
-
-    String getReferralToken();
-
-    void setGenericInvitationToken(String token);
-
-    String getGenericInvitationToken();
-
     String getDeviceId();
 
     void setVerificationCode(String code);

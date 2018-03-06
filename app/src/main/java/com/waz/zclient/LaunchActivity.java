@@ -18,13 +18,11 @@
 package com.waz.zclient;
 
 import android.content.Intent;
-import android.text.TextUtils;
 import com.waz.api.InitListener;
 import com.waz.api.Self;
 import com.waz.zclient.appentry.AppEntryActivity;
 import com.waz.zclient.utils.BackendPicker;
 import com.waz.zclient.utils.Callback;
-import com.waz.zclient.utils.IntentUtils;
 
 public class LaunchActivity extends BaseActivity implements InitListener {
     public static final String TAG = LaunchActivity.class.getName();
@@ -36,8 +34,6 @@ public class LaunchActivity extends BaseActivity implements InitListener {
 
     @Override
     public void onBaseActivityStart() {
-        persistInviteToken();
-
         new BackendPicker(getApplicationContext()).withBackend(this, new Callback<Void>() {
             @Override
             public void callback(Void aVoid) {
@@ -51,14 +47,6 @@ public class LaunchActivity extends BaseActivity implements InitListener {
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
         setIntent(intent);
-        persistInviteToken();
-    }
-
-    private void persistInviteToken() {
-        String token = IntentUtils.getInviteToken(getIntent());
-        if (!TextUtils.isEmpty(token)) {
-            getControllerFactory().getUserPreferencesController().setGenericInvitationToken(token);
-        }
     }
 
     // Callbacks //////////////////////////////////////////////////
