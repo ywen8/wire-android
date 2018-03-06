@@ -74,7 +74,8 @@ class ParticipantFragment extends BaseFragment[ParticipantFragment.Container] wi
 
   private var subs = Set.empty[Subscription]
 
-  private lazy val headerFragment = ParticipantHeaderFragment.newInstance
+  private lazy val headerFragment  = ParticipantHeaderFragment.newInstance
+  private lazy val optionsFragment = OptionsMenuFragment.newInstance(false)
 
   val navigationIconVisible = Signal(true)
 
@@ -112,7 +113,7 @@ class ParticipantFragment extends BaseFragment[ParticipantFragment.Container] wi
         )
         .replace(
           R.id.fl__participant__settings_box,
-          OptionsMenuFragment.newInstance(false),
+          optionsFragment,
           OptionsMenuFragment.Tag
         )
         .replace(
@@ -126,6 +127,7 @@ class ParticipantFragment extends BaseFragment[ParticipantFragment.Container] wi
           else
             SingleParticipantFragment.Tag
         )
+        .addToBackStack(if (groupOrBot) GroupParticipantsFragment.Tag else SingleParticipantFragment.Tag)
         .commit
       }
 
@@ -179,14 +181,14 @@ class ParticipantFragment extends BaseFragment[ParticipantFragment.Container] wi
       verbose(s"onBackPressed with SingleOtrClientFragment")
       screenController.hideOtrClient()
       true
-    case Some(f: OptionsMenuFragment) if f.close() =>
-      verbose(s"onBackPressed with OptionsMenuFragment")
-      true
     case Some(f: IntegrationDetailsFragment) if f.onBackPressed() =>
       verbose(s"onBackPressed with IntegrationDetailsFragment")
       true
     case Some(f: GuestOptionsFragment) if f.onBackPressed() =>
       verbose(s"onBackPressed with GuestOptionsFragment")
+      true
+    case _ if optionsFragment.close() =>
+      verbose(s"onBackPressed with OptionsMenuFragment")
       true
     case _ if pickUserController.isShowingPickUser(IPickUserController.Destination.PARTICIPANTS) =>
       verbose(s"onBackPressed with isShowingPickUser")
