@@ -24,7 +24,9 @@
                 style="?wireBackground"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:orientation="vertical">
+                android:orientation="vertical"
+                android:clickable="true"
+                android:focusable="true">
 
     <com.waz.zclient.ui.text.TypefaceTextView
         android:id="@+id/user_name"
@@ -89,7 +91,7 @@
                     android:layout_marginEnd="@dimen/connect_request__common_users__chathead__vertical_padding"
                     android:layout_weight="1"
                     android:gravity="center"
-                    android:text="@string/connect_request__ignore_button__text"
+                    android:text="@string/confirmation_menu__cancel"
                     android:textAllCaps="true"
                     android:textColor="@color/framework_confirmation_menu_button_font_color"
                     android:textSize="@dimen/framework_confirmation_menu_button_font_size"
@@ -103,9 +105,9 @@
                     android:layout_marginStart="@dimen/connect_request__common_users__chathead__vertical_padding"
                     android:layout_weight="1"
                     android:gravity="center"
-                    android:text="@string/send_connect_request__connect_button__text"
+                    android:text="@string/connect_request__unblock__button__text"
                     android:textAllCaps="true"
-                    android:textColor="@color/framework_confirmation_menu_button_font_color"
+                    android:textColor="?wirePrimaryTextColor"
                     android:textSize="@dimen/framework_confirmation_menu_button_font_size"
                     app:w_font="@string/framework_confirmation_menu_button_font"
                     />
@@ -121,9 +123,10 @@
                 android:gravity="center"
                 android:text="@string/connect_request__unblock__button__text"
                 android:textAllCaps="true"
-                android:textColor="@color/framework_confirmation_menu_button_font_color"
+                android:textColor="?wirePrimaryTextColor"
                 android:textSize="@dimen/framework_confirmation_menu_button_font_size"
                 app:w_font="@string/framework_confirmation_menu_button_font"
+                android:visibility="gone"
                 />
 
         </FrameLayout>
@@ -137,6 +140,7 @@
             app:leftActionLabelText="@string/connect_request__sub_header__pending_label"
             app:leftActionText="@string/glyph__conversation"
             app:rightActionText="@string/glyph__block"
+            android:visibility="gone"
             />
 
     </FrameLayout>

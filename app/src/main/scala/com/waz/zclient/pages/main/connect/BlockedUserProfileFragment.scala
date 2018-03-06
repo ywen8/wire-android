@@ -36,14 +36,14 @@ package com.waz.zclient.pages.main.connect
 import android.os.Bundle
 import android.view.animation.Animation
 import android.view.{LayoutInflater, View, ViewGroup}
-import android.widget.{FrameLayout, ImageView, LinearLayout}
+import android.widget.{ImageView, LinearLayout}
 import com.waz.ZLog
 import com.waz.ZLog.ImplicitTag.implicitLogTag
-import com.waz.model.{ConvId, UserData, UserId}
+import com.waz.model.{ConvId, UserId}
 import com.waz.service.ZMessaging
 import com.waz.threading.Threading
 import com.waz.utils.events.Signal
-import com.waz.zclient.common.controllers.ThemeController
+import com.waz.utils.returning
 import com.waz.zclient.common.controllers.global.AccentColorController
 import com.waz.zclient.common.views.ImageAssetDrawable
 import com.waz.zclient.common.views.ImageController.{ImageSource, WireImage}
@@ -55,10 +55,10 @@ import com.waz.zclient.pages.main.participants.dialog.DialogLaunchMode
 import com.waz.zclient.ui.animation.fragment.FadeAnimation
 import com.waz.zclient.ui.text.TypefaceTextView
 import com.waz.zclient.ui.views.ZetaButton
-import com.waz.zclient.utils.{ContextUtils, StringUtils}
+import com.waz.zclient.utils.ContextUtils._
+import com.waz.zclient.utils.{RichView, StringUtils}
 import com.waz.zclient.views.menus.{FooterMenu, FooterMenuCallback}
 import com.waz.zclient.{FragmentHelper, R}
-import com.waz.zclient.utils.RichView
 
 object BlockedUserProfileFragment {
   val Tag: String = ZLog.ImplicitTag.implicitLogTag
@@ -87,18 +87,17 @@ class BlockedUserProfileFragment extends BaseFragment[BlockedUserProfileFragment
   private lazy val zms = inject[Signal[ZMessaging]]
   private lazy val accentColor = inject[AccentColorController].accentColor
 
-  private val userId = Signal[UserId]()
+  private lazy val userId = UserId(getArguments.getString(BlockedUserProfileFragment.ARGUMENT_USER_ID))
   private lazy val user = for {
     zms <- zms
-    uId <- userId
-    user <- zms.usersStorage.signal(uId)
+    user <- zms.usersStorage.signal(userId)
   } yield user
 
   private lazy val pictureSignal: Signal[ImageSource] = user.map(_.picture).collect { case Some(pic) => WireImage(pic) }
   private lazy val profileDrawable = new ImageAssetDrawable(pictureSignal, ImageAssetDrawable.ScaleType.CenterInside, ImageAssetDrawable.RequestBuilder.Round)
 
   private var userRequester = Option.empty[IConnectStore.UserRequester]
-  private var isShowingFooterMenu = false
+  private var isShowingFooterMenu = true
   private var goToConversationWithUser = false
 
   private lazy val unblockButton = view[ZetaButton](R.id.zb__connect_request__unblock_button)
@@ -107,22 +106,19 @@ class BlockedUserProfileFragment extends BaseFragment[BlockedUserProfileFragment
   private lazy val unblockMenu = view[LinearLayout](R.id.ll__connect_request__accept_menu)
   private lazy val footerMenu = view[FooterMenu](R.id.fm__footer)
   private lazy val profileImageView = view[ImageView](R.id.blocked_user_picture)
-  private lazy val backgroundContainer = view[FrameLayout](R.id.fl__blocked_user__background_container)
-  private lazy val userNameView = view[TypefaceTextView](R.id.user_name)
-  private lazy val userUsernameView = view[TypefaceTextView](R.id.user_handle)
+
+  private lazy val userNameView = returning(view[TypefaceTextView](R.id.user_name)) { vh =>
+    user.map(_.getDisplayName).onUi(name => vh.foreach(_.setText(name)))
+  }
+
+  private lazy val userUsernameView = returning(view[TypefaceTextView](R.id.user_handle)) { vh =>
+    user.map(_.handle.map(h => StringUtils.formatHandle(h.string)).getOrElse("")).onUi(handle => vh.foreach(_.setText(handle)))
+  }
 
   override def onCreate(savedInstanceState: Bundle): Unit = {
     super.onCreate(savedInstanceState)
 
-    if (savedInstanceState != null) {
-      userId ! UserId(savedInstanceState.getString(BlockedUserProfileFragment.ARGUMENT_USER_ID))
-      userRequester = Option(IConnectStore.UserRequester.valueOf(savedInstanceState.getString(ARGUMENT_USER_REQUESTER)))
-      isShowingFooterMenu = savedInstanceState.getBoolean(BlockedUserProfileFragment.STATE_IS_SHOWING_FOOTER_MENU)
-    } else {
-      userRequester = Option(IConnectStore.UserRequester.valueOf(getArguments.getString(ARGUMENT_USER_REQUESTER)))
-      userId ! UserId(getArguments.getString(BlockedUserProfileFragment.ARGUMENT_USER_ID))
-      isShowingFooterMenu = true
-    }
+    userRequester = Option(IConnectStore.UserRequester.valueOf(getArguments.getString(ARGUMENT_USER_REQUESTER)))
 
     accentColor.onUi { color =>
       unblockButton.setIsFilled(true)
@@ -132,41 +128,22 @@ class BlockedUserProfileFragment extends BaseFragment[BlockedUserProfileFragment
       smallUnblockButton.setIsFilled(true)
       smallUnblockButton.setAccentColor(color.getColor)
     }
-
-    user.onUi { userData =>
-      userNameView.setText(userData.getDisplayName)
-      userUsernameView.setText(userData.handle.map(h => StringUtils.formatHandle(h.string)).getOrElse(""))
-      unblockMenu.setVisibility(View.GONE)
-      if (userRequester.contains(IConnectStore.UserRequester.PARTICIPANTS)){
-        setGroupConversationFooterMenu(userData)
-        userNameView.setPaddingRelative(0, 0, 0, 0)
-      } else {
-        setRegularFooterMenu(userData)
-        userNameView.setPaddingRelative(0, ContextUtils.getDimenPx(R.dimen.wire__padding__regular), 0, 0)
-      }
-    }
   }
 
   override def onCreateAnimation(transit: Int, enter: Boolean, nextAnim: Int): Animation = {
     var animation = super.onCreateAnimation(transit, enter, nextAnim)
     if ((getControllerFactory.getConversationScreenController.getPopoverLaunchMode ne DialogLaunchMode.AVATAR) && (getControllerFactory.getConversationScreenController.getPopoverLaunchMode ne DialogLaunchMode.COMMON_USER)) {
-      val centerX = ContextUtils.getOrientationIndependentDisplayWidth(getActivity) / 2
-      val centerY = ContextUtils.getOrientationIndependentDisplayHeight(getActivity) / 2
-      var duration = 0
-      var delay = 0
+      val centerX = getOrientationIndependentDisplayWidth(getActivity) / 2
+      val centerY = getOrientationIndependentDisplayHeight(getActivity) / 2
+
       // Fade out animation when starting conversation directly with this user when unblocking
       if (!goToConversationWithUser || enter) if (nextAnim != 0) {
-        if (enter) {
-          duration = getResources.getInteger(R.integer.open_profile__animation_duration)
-          delay = getResources.getInteger(R.integer.open_profile__delay)
-        }
-        else duration = getResources.getInteger(R.integer.close_profile__animation_duration)
+        val duration = getInt(if (enter) R.integer.open_profile__animation_duration else R.integer.close_profile__animation_duration)
+        val delay = if (enter) getInt(R.integer.open_profile__delay) else 0
         animation = new ProfileAnimation(enter, duration, delay, centerX, centerY)
-      }
-      else {
+      } else {
         goToConversationWithUser = false
-        duration = getResources.getInteger(R.integer.framework_animation_duration_medium)
-        animation = new FadeAnimation(duration, 1, 0)
+        animation = new FadeAnimation(getInt(R.integer.framework_animation_duration_medium), 1, 0)
       }
     }
     animation
@@ -177,50 +154,31 @@ class BlockedUserProfileFragment extends BaseFragment[BlockedUserProfileFragment
 
 
   override def onViewCreated(view: View, savedInstanceState: Bundle): Unit = {
-    super.onViewCreated(view, savedInstanceState)
-
+    userNameView
+    userUsernameView
     profileImageView.setImageDrawable(profileDrawable)
-    // Split Unblock / Cancel menu when opened from group conversation
-    cancelButton.setText(getString(R.string.confirmation_menu__cancel))
-    smallUnblockButton.setText(getString(R.string.connect_request__unblock__button__text))
-    val unblockButtonColor = inject(classOf[ThemeController]).optionsDarkTheme.getTextColorPrimary
-    unblockButton.setTextColor(unblockButtonColor)
-    smallUnblockButton.setTextColor(unblockButtonColor)
-    // Hide some views irrelevant for blocking
-    footerMenu.setVisibility(View.GONE)
-    unblockButton.setVisibility(View.GONE)
-
-    backgroundContainer.setClickable(true)
-  }
-
-  override def onSaveInstanceState(outState: Bundle): Unit = {
-    outState.putString(BlockedUserProfileFragment.ARGUMENT_USER_ID, userId.currentValue.map(_.str).orNull)
-    userRequester.foreach(req => outState.putString(ARGUMENT_USER_REQUESTER, req.toString))
-    outState.putBoolean(BlockedUserProfileFragment.STATE_IS_SHOWING_FOOTER_MENU, isShowingFooterMenu)
-    super.onSaveInstanceState(outState)
-  }
-
-  private def setRegularFooterMenu(user: UserData) = {
-    unblockButton.foreach(_.onClick(unblockUser(user)))
-    unblockButton.setVisibility(View.VISIBLE)
-    footerMenu.setVisibility(View.GONE)
-    unblockMenu.setVisibility(View.GONE)
-  }
-
-  private def setGroupConversationFooterMenu(user: UserData) = {
-    unblockButton.setVisibility(View.GONE)
-    toggleUnblockAndFooterMenu(isShowingFooterMenu)
-    footerMenu.setLeftActionLabelText(getString(R.string.connect_request__footer__blocked_label))
-    footerMenu.setLeftActionText(getString(R.string.glyph__block))
-    footerMenu.setRightActionText(getString(R.string.glyph__minus))
-    footerMenu.setCallback(new FooterMenuCallback() {
-      override def onLeftActionClicked(): Unit = toggleUnblockAndFooterMenu(false)
-      override def onRightActionClicked(): Unit = getContainer.showRemoveConfirmation(user.id)
-    })
-    cancelButton.setEnabled(true)
-    cancelButton.foreach(_.onClick(toggleUnblockAndFooterMenu(true)))
-    smallUnblockButton.setEnabled(true)
-    smallUnblockButton.foreach(_.onClick(unblockUser(user)))
+    if (userRequester.contains(IConnectStore.UserRequester.PARTICIPANTS)) {
+      unblockButton.setVisibility(View.GONE)
+      toggleUnblockAndFooterMenu(isShowingFooterMenu)
+      footerMenu.setLeftActionLabelText(getString(R.string.connect_request__footer__blocked_label))
+      footerMenu.setLeftActionText(getString(R.string.glyph__block))
+      footerMenu.setRightActionText(getString(R.string.glyph__minus))
+      footerMenu.setCallback(new FooterMenuCallback() {
+        override def onLeftActionClicked(): Unit = toggleUnblockAndFooterMenu(false)
+        override def onRightActionClicked(): Unit = getContainer.showRemoveConfirmation(userId)
+      })
+      cancelButton.setEnabled(true)
+      cancelButton.foreach(_.onClick(toggleUnblockAndFooterMenu(true)))
+      smallUnblockButton.setEnabled(true)
+      smallUnblockButton.foreach(_.onClick(unblockUser(userId)))
+      userNameView.setPaddingRelative(0, 0, 0, 0)
+    } else {
+      footerMenu.setVisibility(View.GONE)
+      unblockMenu.setVisibility(View.GONE)
+      unblockButton.setVisibility(View.VISIBLE)
+      unblockButton.foreach(_.onClick(unblockUser(userId)))
+      userNameView.setPaddingRelative(0, getDimenPx(R.dimen.wire__padding__regular), 0, 0)
+    }
   }
 
   private def toggleUnblockAndFooterMenu(showFooterMenu: Boolean) = {
@@ -234,9 +192,9 @@ class BlockedUserProfileFragment extends BaseFragment[BlockedUserProfileFragment
     isShowingFooterMenu = showFooterMenu
   }
 
-  private def unblockUser(user: UserData) = {
-    zms.head.map(_.connection.unblockConnection(user.id))(Threading.Background)
+  private def unblockUser(userId: UserId) = {
+    zms.head.map(_.connection.unblockConnection(userId))(Threading.Background)
     goToConversationWithUser = true
-    getContainer.onUnblockedUser(ConvId(user.id.str))
+    getContainer.onUnblockedUser(ConvId(userId.str))
   }
 }
