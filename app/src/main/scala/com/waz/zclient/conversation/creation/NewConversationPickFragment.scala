@@ -42,6 +42,7 @@ import com.waz.zclient.usersearch.views.{PickerSpannableEditText, SearchEditText
 import com.waz.zclient.utils.ContextUtils.getColor
 import com.waz.zclient.utils.RichView
 import com.waz.zclient._
+import com.waz.zclient.common.controllers.ThemeController
 
 import scala.collection.immutable.Set
 import scala.concurrent.Future
@@ -56,6 +57,7 @@ class NewConversationPickFragment extends Fragment with FragmentHelper with OnBa
   private lazy val newConvController = inject[NewConversationController]
   private lazy val keyboard          = inject[KeyboardController]
   private lazy val tracking          = inject[TrackingService]
+  private lazy val themeController   = inject[ThemeController]
 
   private lazy val accentColor = inject[AccentColorController].accentColor.map(_.getColor)
 
@@ -130,8 +132,7 @@ class NewConversationPickFragment extends Fragment with FragmentHelper with OnBa
   }
 
   override def onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState: Bundle): View =
-    inflater.cloneInContext(new ContextThemeWrapper(getActivity, R.style.Theme_Light))
-      .inflate(R.layout.create_conv_pick_fragment, container, false)
+    inflater.inflate(R.layout.create_conv_pick_fragment, container, false)
 
   override def onViewCreated(view: View, savedInstanceState: Bundle): Unit = {
     val recyclerView = findById[RecyclerView](R.id.recycler_view)
@@ -151,7 +152,7 @@ class NewConversationPickFragment extends Fragment with FragmentHelper with OnBa
     }
 
     searchBox.foreach { v =>
-      v.applyDarkTheme(false)
+      v.applyDarkTheme(themeController.isDarkTheme)
       v.setCallback(new PickerSpannableEditText.Callback{
         override def onRemovedTokenSpan(element: PickableElement): Unit =
           newConvController.users.mutate(_ - UserId(element.id))
@@ -204,6 +205,7 @@ case class NewConvAdapter(searchResults: Signal[IndexedSeq[UserData]], selectedU
   extends RecyclerView.Adapter[SelectableUserRowViewHolder] with Injectable {
 
   private implicit val ctx = context
+  private lazy val themeController = inject[ThemeController]
 
   private var users = Seq.empty[(UserData, Boolean)]
   private var team = Option.empty[TeamId]
@@ -237,6 +239,7 @@ case class NewConvAdapter(searchResults: Signal[IndexedSeq[UserData]], selectedU
   override def onCreateViewHolder(parent: ViewGroup, viewType: Int): SelectableUserRowViewHolder = {
     val view = ViewHelper.inflate[SingleUserRowView](R.layout.single_user_row, parent, addToParent = false)
     view.showCheckbox(true)
+    view.setTheme(if (themeController.isDarkTheme) SingleUserRowView.Dark else SingleUserRowView.Light)
     val viewHolder = SelectableUserRowViewHolder(view)
 
     view.onSelectionChanged.onUi { selected =>

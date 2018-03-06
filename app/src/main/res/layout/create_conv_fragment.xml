@@ -22,14 +22,14 @@
                 xmlns:app="http://schemas.android.com/apk/res-auto"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:background="@color/teams_background">
+                android:background="?wireBackgroundCollection">
 
     <android.support.v7.widget.Toolbar
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
         android:layout_height="?android:actionBarSize"
         android:layout_alignParentTop="true"
-        android:background="@color/white"
+        style="?wireBackground"
         app:navigationIcon="@drawable/ic_action_close_dark">
 
         <com.waz.zclient.ui.text.TypefaceTextView
@@ -38,7 +38,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity='center'
             android:text="@string/new_group_header"
-            android:textColor="@color/teams_headline_text"
+            android:textColor="?wirePrimaryTextColor"
             android:textSize="@dimen/wire__text_size__small"
             app:w_font="@string/wire__typeface__medium"/>
 

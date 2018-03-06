@@ -106,7 +106,7 @@
     <color name="ephemera_dimmed">#3DFF5000</color>
 
     <color name="collection_background_light">#fafafa</color>
-    <color name="collection_background_dark">@color/background_graphite</color>
+    <color name="collection_background_dark">@color/black</color>
 
 
     <!-- Teams colors palette -->
@@ -122,6 +122,7 @@
     <color name="teams_active_button_pressed">#006eb0</color>
     <color name="teams_create_button">@color/accent_green</color>
     <color name="teams_create_button_pressed">#009b00</color>
+    <color name="banner_grey">#95989A</color>
 
 
     <!-- +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ -->

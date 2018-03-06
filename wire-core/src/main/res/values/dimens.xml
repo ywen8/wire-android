@@ -161,6 +161,7 @@
     <dimen name="wire__margin_huge">48dp</dimen>
     <dimen name="wire__padding__tiny">4dp</dimen>
     <dimen name="wire__padding__small">8dp</dimen>
+    <dimen name="wire__padding__1">1dp</dimen>
     <dimen name="wire__padding__2">2dp</dimen>
     <dimen name="wire__padding__4">4dp</dimen>
     <dimen name="wire__padding__5">5dp</dimen>
@@ -934,7 +935,7 @@
     <dimen name="add_remove_service_button_height">40dp</dimen>
     <dimen name="integration_details_picture_size">64dp</dimen>
     <dimen name="create_conv_input_margin_top">40dp</dimen>
-    <dimen name="menu_item_height">64dp</dimen>
+    <dimen name="menu_item_height">56dp</dimen>
     <dimen name="guest_options_icon_size">16dp</dimen>
     <dimen name="user_row_height">56dp</dimen>
     <dimen name="user_row_icon_size">16dp</dimen>

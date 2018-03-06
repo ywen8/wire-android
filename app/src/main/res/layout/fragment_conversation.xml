@@ -115,7 +115,7 @@
                 android:id="@+id/guests_banner"
                 android:layout_width="match_parent"
                 android:layout_height="@dimen/guests_toolbar_height"
-                android:background="@color/light_graphite"
+                android:background="@color/banner_grey"
                 android:layout_gravity="top"
                 android:visibility="gone">
 

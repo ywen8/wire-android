@@ -22,7 +22,7 @@ import android.content.res.Resources;
 import android.support.annotation.DimenRes;
 import android.util.TypedValue;
 
-import com.waz.utils.crypto.SecureRandom;
+import com.waz.utils.crypto.ZSecureRandom;
 import com.waz.zclient.ui.R;
 
 
@@ -45,7 +45,7 @@ public class ResourceUtils {
 
     public static int getRandomAccentColor(Context context) {
         int[] validAccentColors = context.getResources().getIntArray(R.array.selectable_accents_color);
-        int accentColorPos = SecureRandom.nextInt(0, validAccentColors.length - 1);
+        int accentColorPos = ZSecureRandom.nextInt(0, validAccentColors.length - 1);
         return validAccentColors[accentColorPos];
     }
 }

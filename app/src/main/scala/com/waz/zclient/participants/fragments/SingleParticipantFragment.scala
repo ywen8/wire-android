@@ -28,7 +28,6 @@ import android.widget.TextView
 import com.waz.ZLog.ImplicitTag._
 import com.waz.threading.Threading
 import com.waz.utils._
-import com.waz.utils.events.Signal
 import com.waz.zclient.common.controllers.{BrowserController, ThemeController, UserAccountsController}
 import com.waz.zclient.conversation.ConversationController
 import com.waz.zclient.pages.main.conversation.controller.IConversationScreenController
@@ -36,9 +35,9 @@ import com.waz.zclient.participants.fragments.SingleParticipantFragment.{ArgFirs
 import com.waz.zclient.participants.{ParticipantOtrDeviceAdapter, ParticipantsController, TabbedParticipantPagerAdapter}
 import com.waz.zclient.ui.views.tab.TabIndicatorLayout
 import com.waz.zclient.utils.ContextUtils._
+import com.waz.zclient.utils.{RichView, StringUtils, ViewUtils}
 import com.waz.zclient.views.menus.FooterMenuCallback
 import com.waz.zclient.{FragmentHelper, R}
-import com.waz.zclient.utils.{RichView, StringUtils, ViewUtils}
 
 class SingleParticipantFragment extends FragmentHelper {
   import Threading.Implicits.Ui
@@ -55,23 +54,32 @@ class SingleParticipantFragment extends FragmentHelper {
   private lazy val userAccountsController = inject[UserAccountsController]
   private lazy val browserController      = inject[BrowserController]
 
-  private lazy val otherUser = for {
-    Some(userId) <- participantsController.otherParticipant
-    Some(user)   <- Signal.future(participantsController.getUser(userId))
-  } yield user
-
   private lazy val userNameView = returning(view[TextView](R.id.user_name)) { vh =>
-    participantsController.otherParticipant.map(_.isDefined).onUi { visible =>
+    participantsController.otherParticipantId.map(_.isDefined).onUi { visible =>
       vh.foreach(_.setVisible(visible))
     }
 
-    otherUser.map(_.getDisplayName).onUi { name =>
+    participantsController.otherParticipant.map(_.getDisplayName).onUi { name =>
       vh.foreach(_.setText(name))
+    }
+
+    participantsController.otherParticipant.map(_.isVerified).onUi { visible =>
+      vh.foreach { view =>
+        val shield = if (visible) Option(getDrawable(R.drawable.shield_full)) else None
+
+        shield.foreach { sh =>
+          val pushDown = getDimenPx(R.dimen.wire__padding__1)
+          sh.setBounds(0, pushDown, sh.getIntrinsicWidth, sh.getIntrinsicHeight + pushDown)
+          view.setCompoundDrawablePadding(getDimenPx(R.dimen.wire__padding__tiny))
+        }
+        val old = view.getCompoundDrawables
+        view.setCompoundDrawablesRelative(shield.orNull, old(1), old(2), old(3))
+      }
     }
   }
 
   private lazy val userHandle = returning(view[TextView](R.id.user_handle)) { vh =>
-    val handle = otherUser.map(_.handle.map(_.string))
+    val handle = participantsController.otherParticipant.map(_.handle.map(_.string))
     handle.onUi { h => vh.foreach(_.setVisible(h.isDefined)) }
     handle.map {
       case Some(h) => StringUtils.formatHandle(h)
@@ -87,7 +95,7 @@ class SingleParticipantFragment extends FragmentHelper {
           screenController.addPeopleToConversation()
         case _ =>
           screenController.hideParticipants(true, false)
-          participantsController.otherParticipant.head.foreach {
+          participantsController.otherParticipantId.head.foreach {
             case Some(userId) => userAccountsController.getOrCreateAndOpenConvFor(userId)
             case _ =>
           }
@@ -99,7 +107,7 @@ class SingleParticipantFragment extends FragmentHelper {
     } yield (isGroup, convId)).foreach {
       case (false, convId) => screenController.showConversationMenu(false, convId)
       case (true, convId) if userAccountsController.hasRemoveConversationMemberPermission(convId) =>
-        participantsController.otherParticipant.head.foreach {
+        participantsController.otherParticipantId.head.foreach {
           case Some(userId) => participantsController.showRemoveConfirmation(userId)
           case _            =>
         }
@@ -147,7 +155,7 @@ class SingleParticipantFragment extends FragmentHelper {
     }
 
     participantOtrDeviceAdapter.onClientClick.onUi { client =>
-      participantsController.otherParticipant.head.foreach {
+      participantsController.otherParticipantId.head.foreach {
         case Some(userId) =>
           Option(getParentFragment).foreach {
             case f: ParticipantFragment => f.showOtrClient(userId, client.id)
@@ -161,8 +169,8 @@ class SingleParticipantFragment extends FragmentHelper {
       _ => browserController.openUrl(getString(R.string.url_otr_learn_why))
     }
 
-    participantsController.showParticipantsRequest.onUi {
-      case (view, showDeviceTabIfSingle) => viewPager.foreach { pager =>
+    participantsController.showParticipantsRequest.onUi { case (_, showDeviceTabIfSingle) =>
+      viewPager.foreach { pager =>
         if (screenController.shouldShowDevicesTab) {
           pager.setCurrentItem(DevicePage)
           screenController.setShowDevicesTab(null)
@@ -174,7 +182,6 @@ class SingleParticipantFragment extends FragmentHelper {
 
     userNameView
     userHandle
-
   }
 
   override def onDestroyView(): Unit = {
