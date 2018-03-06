@@ -35,6 +35,7 @@ import com.waz.api.impl.ContentUriAssetForUpload
 import com.waz.model.ConversationData.ConversationType
 import com.waz.model.{MessageContent => _, _}
 import com.waz.permissions.PermissionsService
+import com.waz.service.ZMessaging
 import com.waz.threading.{CancellableFuture, Threading}
 import com.waz.utils.events.{EventStreamWithAuxSignal, Signal}
 import com.waz.utils.returningF
@@ -42,6 +43,7 @@ import com.waz.utils.wrappers.URI
 import com.waz.zclient.Intents.ShowDevicesIntent
 import com.waz.zclient.camera.controllers.GlobalCameraController
 import com.waz.zclient.collection.controllers.CollectionController
+import com.waz.zclient.common.controllers.global.KeyboardController
 import com.waz.zclient.common.controllers.{ThemeController, UserAccountsController}
 import com.waz.zclient.controllers.accentcolor.AccentColorObserver
 import com.waz.zclient.controllers.confirmation.{ConfirmationCallback, ConfirmationRequest, IConfirmationController}
@@ -71,6 +73,7 @@ import com.waz.zclient.pages.main.profile.camera.CameraContext
 import com.waz.zclient.participants.ParticipantsController
 import com.waz.zclient.ui.animation.interpolators.penner.Expo
 import com.waz.zclient.ui.cursor.CursorMenuItem
+import com.waz.zclient.ui.text.TypefaceTextView
 import com.waz.zclient.ui.utils.KeyboardUtils
 import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.utils.{RichView, SquareOrientation, ViewUtils}
@@ -85,10 +88,12 @@ class ConversationFragment extends BaseFragment[ConversationFragment.Container] 
   import ConversationFragment._
   import Threading.Implicits.Ui
 
+  private lazy val zms                  = inject[Signal[ZMessaging]]
   private lazy val convController       = inject[ConversationController]
   private lazy val collectionController = inject[CollectionController]
   private lazy val permissions          = inject[PermissionsService]
   private lazy val participantsController = inject[ParticipantsController]
+  private lazy val keyboardController   = inject[KeyboardController]
 
   private val previewShown = Signal(false)
   private lazy val convChange = convController.convChanged.filter { _.to.isDefined }
@@ -108,6 +113,9 @@ class ConversationFragment extends BaseFragment[ConversationFragment.Container] 
 
   private var leftMenu: ActionMenuView = _
   private var toolbar: Toolbar = _
+
+  private lazy val guestsBanner = view[FrameLayout](R.id.guests_banner)
+  private lazy val guestsBannerText = view[TypefaceTextView](R.id.guests_banner_text)
 
   override def onCreateAnimation(transit: Int, enter: Boolean, nextAnim: Int): Animation = {
     implicit val ctx: Context = getActivity
@@ -151,6 +159,38 @@ class ConversationFragment extends BaseFragment[ConversationFragment.Container] 
   override def onCreate(@Nullable savedInstanceState: Bundle): Unit = {
     super.onCreate(savedInstanceState)
     assetIntentsManager = Option(new AssetIntentsManager(getActivity, assetIntentsManagerCallback, savedInstanceState))
+
+    participantsController.containsGuest.onUi {
+      case true => openGuestsBanner()
+      case false =>  hideGuestsBanner()
+    }
+
+    keyboardController.isKeyboardVisible.onUi(visible => if(visible) collapseGuestsBanner())
+  }
+
+  private def openGuestsBanner(): Unit = {
+    guestsBanner.foreach { banner =>
+      banner.setVisibility(View.VISIBLE)
+      banner.setPivotY(0.0f)
+      banner.setScaleY(0.1f)
+      banner.animate().scaleY(1.0f).start()
+    }
+    guestsBannerText.foreach { text =>
+      text.setAlpha(0.0f)
+      text.animate().alpha(1.0f).start()
+    }
+  }
+
+  private def collapseGuestsBanner(): Unit = {
+    guestsBanner.foreach { banner =>
+      banner.setPivotY(0.0f)
+      banner.animate().scaleY(0.1f).start()
+    }
+    guestsBannerText.foreach(_.animate().alpha(0.0f).start())
+  }
+
+  private def hideGuestsBanner(): Unit = {
+    guestsBanner.setVisibility(View.GONE)
   }
 
   override def onCreateView(inflater: LayoutInflater, viewGroup: ViewGroup, savedInstanceState: Bundle): View = {
@@ -588,7 +628,7 @@ class ConversationFragment extends BaseFragment[ConversationFragment.Container] 
   private def captureVideoAskPermissions() = for {
     _ <- inject[GlobalCameraController].releaseCamera() //release camera so the camera app can use it
     _ <- permissions.requestAllPermissions(Set(CAMERA, WRITE_EXTERNAL_STORAGE)).map {
-      case true => assetIntentsManager.foreach(_.captureVideo())
+      case true => assetIntentsManager.foreach(_.captureVideo(getContext.getApplicationContext))
       case false => //
     }(Threading.Ui)
   } yield {}

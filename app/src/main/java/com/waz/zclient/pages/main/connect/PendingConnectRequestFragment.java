@@ -19,12 +19,10 @@ package com.waz.zclient.pages.main.connect;
 
 import android.graphics.Color;
 import android.os.Bundle;
-import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.Animation;
-import android.widget.TextView;
 import com.waz.api.IConversation;
 import com.waz.api.UpdateListener;
 import com.waz.api.User;
@@ -32,7 +30,6 @@ import com.waz.model.ConvId;
 import com.waz.model.ConversationData;
 import com.waz.model.UserId;
 import com.waz.zclient.R;
-import com.waz.zclient.common.views.UserDetailsView;
 import com.waz.zclient.controllers.accentcolor.AccentColorObserver;
 import com.waz.zclient.conversation.ConversationController;
 import com.waz.zclient.core.stores.connect.ConnectStoreObserver;
@@ -40,10 +37,11 @@ import com.waz.zclient.core.stores.connect.IConnectStore;
 import com.waz.zclient.pages.BaseFragment;
 import com.waz.zclient.pages.main.participants.ProfileAnimation;
 import com.waz.zclient.pages.main.participants.dialog.DialogLaunchMode;
-import com.waz.zclient.ui.utils.KeyboardUtils;
+import com.waz.zclient.ui.text.TypefaceTextView;
 import com.waz.zclient.ui.views.ZetaButton;
 import com.waz.zclient.utils.Callback;
 import com.waz.zclient.utils.ContextUtils;
+import com.waz.zclient.utils.StringUtils;
 import com.waz.zclient.utils.ViewUtils;
 import com.waz.zclient.views.images.ImageAssetImageView;
 import com.waz.zclient.views.menus.FooterMenu;
@@ -68,12 +66,12 @@ public class PendingConnectRequestFragment extends BaseFragment<PendingConnectRe
 
     private boolean isShowingFooterMenu;
 
-    private UserDetailsView userDetailsView;
     private ZetaButton unblockButton;
     private FooterMenu footerMenu;
-    private Toolbar toolbar;
-    private TextView displayNameTextView;
     private ImageAssetImageView imageAssetImageViewProfile;
+    private TypefaceTextView userNameView;
+    private TypefaceTextView userUsernameView;
+
 
     public static PendingConnectRequestFragment newInstance(String userId,
                                                             String conversationId,
@@ -142,32 +140,13 @@ public class PendingConnectRequestFragment extends BaseFragment<PendingConnectRe
 
         View rootView = inflater.inflate(R.layout.fragment_connect_request_pending, viewContainer, false);
 
-        userDetailsView =  ViewUtils.getView(rootView, R.id.udv__pending_connect__user_details);
+        userNameView = ViewUtils.getView(rootView, R.id.user_name);
+        userUsernameView = ViewUtils.getView(rootView, R.id.user_handle);
         unblockButton = ViewUtils.getView(rootView, R.id.zb__connect_request__unblock_button);
         footerMenu = ViewUtils.getView(rootView, R.id.fm__footer);
-        toolbar = ViewUtils.getView(rootView, R.id.t__pending_connect__toolbar);
-        displayNameTextView = ViewUtils.getView(rootView, R.id.tv__pending_connect_toolbar__title);
         imageAssetImageViewProfile = ViewUtils.getView(rootView, R.id.iaiv__pending_connect);
         imageAssetImageViewProfile.setDisplayType(ImageAssetImageView.DisplayType.CIRCLE);
         imageAssetImageViewProfile.setSaturation(0);
-
-        if (userRequester == IConnectStore.UserRequester.PARTICIPANTS) {
-            toolbar.setBackground(null);
-        }
-        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                switch (userRequester) {
-                    case CONVERSATION:
-                        getActivity().onBackPressed();
-                        KeyboardUtils.closeKeyboardIfShown(getActivity());
-                        break;
-                    default:
-                        getContainer().dismissUserProfile();
-                        break;
-                }
-            }
-        });
 
         View backgroundContainer = ViewUtils.getView(rootView, R.id.ll__pending_connect__background_container);
         if (getControllerFactory().getConversationScreenController().getPopoverLaunchMode() == DialogLaunchMode.AVATAR ||
@@ -180,6 +159,12 @@ public class PendingConnectRequestFragment extends BaseFragment<PendingConnectRe
         // Hide views until connection status of user is determined
         footerMenu.setVisibility(View.GONE);
         unblockButton.setVisibility(View.GONE);
+
+        if (userRequester == IConnectStore.UserRequester.PARTICIPANTS) {
+            userNameView.setPaddingRelative(0, 0, 0, 0);
+        } else {
+            userNameView.setPaddingRelative(0, ContextUtils.getDimenPx(R.dimen.wire__padding__regular, getContext()), 0, 0);
+        }
 
         return rootView;
     }
@@ -236,7 +221,6 @@ public class PendingConnectRequestFragment extends BaseFragment<PendingConnectRe
         imageAssetImageViewProfile = null;
         unblockButton = null;
         footerMenu = null;
-        displayNameTextView = null;
         if (conversation != null) {
             conversation.removeUpdateListener(this);
             conversation = null;
@@ -343,25 +327,14 @@ public class PendingConnectRequestFragment extends BaseFragment<PendingConnectRe
     @Override
     public void onConnectUserUpdated(final User user, IConnectStore.UserRequester userRequester) {
         if (this.userRequester != userRequester ||
-            user == null) {
+            user == null || !user.getId().equals(userId)) {
             return;
         }
 
-        switch (loadMode) {
-            case LOAD_BY_USER_ID:
-                inject(ConversationController.class).withConvLoaded(new ConvId(user.getConversation().getId()), new Callback<ConversationData>() {
-                    @Override
-                    public void callback(ConversationData conversationData) {
-                        onConversationLoaded(conversationData);
-                    }
-                });
-                break;
-        }
+        userNameView.setText(user.getDisplayName());
+        userUsernameView.setText(StringUtils.formatHandle(user.getUsername()));
 
         imageAssetImageViewProfile.connectImageAsset(user.getPicture());
-        userDetailsView.setUser(user);
-
-        displayNameTextView.setText(user.getName());
 
         switch (user.getConnectionStatus()) {
             case PENDING_FROM_OTHER:

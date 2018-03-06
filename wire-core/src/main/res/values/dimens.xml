@@ -161,6 +161,7 @@
     <dimen name="wire__margin_huge">48dp</dimen>
     <dimen name="wire__padding__tiny">4dp</dimen>
     <dimen name="wire__padding__small">8dp</dimen>
+    <dimen name="wire__padding__1">1dp</dimen>
     <dimen name="wire__padding__2">2dp</dimen>
     <dimen name="wire__padding__4">4dp</dimen>
     <dimen name="wire__padding__5">5dp</dimen>
@@ -640,8 +641,8 @@
     <dimen name="option_menu__font_size">20dp</dimen>
     <dimen name="option_menu__tile_height">56dp</dimen>
 
-    <dimen name="participants__left_margin">24dp</dimen>
-    <dimen name="participants__right_margin">24dp</dimen>
+    <dimen name="participants__left_margin">16dp</dimen>
+    <dimen name="participants__right_margin">16dp</dimen>
     <dimen name="participants__header__input_field__padding">8dp</dimen>
     <dimen name="participants__header__input_field__layout_margin">16dp</dimen>
     <dimen name="participants__subheader__font_size__one_to_one">@dimen/wire__text_size__small</dimen>
@@ -933,4 +934,14 @@
     <dimen name="invitation_list_item_height">48dp</dimen>
     <dimen name="add_remove_service_button_height">40dp</dimen>
     <dimen name="integration_details_picture_size">64dp</dimen>
+    <dimen name="create_conv_input_margin_top">40dp</dimen>
+    <dimen name="menu_item_height">56dp</dimen>
+    <dimen name="guest_options_icon_size">16dp</dimen>
+    <dimen name="user_row_height">56dp</dimen>
+    <dimen name="user_row_icon_size">16dp</dimen>
+    <dimen name="guests_toolbar_height">16dp</dimen>
+    <dimen name="conversation_name_row_padding_end">48dp</dimen>
+    <dimen name="guest_badge_size">16dp</dimen>
+    <dimen name="participants_options_button_margin_top">32dp</dimen>
+    <dimen name="next_indicator_size">12dp</dimen>
 </resources>

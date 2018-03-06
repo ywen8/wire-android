@@ -21,7 +21,7 @@ import com.waz.api.impl.{AccentColor, AccentColors}
 import com.waz.content.GlobalPreferences
 import com.waz.content.Preferences.PrefKey
 import com.waz.service.ZMessaging
-import com.waz.utils.crypto.SecureRandom
+import com.waz.utils.crypto.ZSecureRandom
 import com.waz.utils.events.Signal
 import com.waz.zclient.{Injectable, Injector}
 
@@ -30,7 +30,7 @@ class AccentColorController(implicit inj: Injector) extends Injectable {
 
   private val zms = inject[Signal[Option[ZMessaging]]]
 
-  private val randomColorPref = prefs.preference(PrefKey[Int]("random_accent_color", SecureRandom.nextInt(AccentColors.colors.length)))
+  private val randomColorPref = prefs.preference(PrefKey[Int]("random_accent_color", ZSecureRandom.nextInt(AccentColors.colors.length)))
 
   val accentColor: Signal[com.waz.api.AccentColor] = zms.flatMap {
     case Some(z) => accentColor(z)

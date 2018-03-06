@@ -111,6 +111,27 @@
                 android:layout_gravity="bottom"
                 />
 
+            <FrameLayout
+                android:id="@+id/guests_banner"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/guests_toolbar_height"
+                android:background="@color/banner_grey"
+                android:layout_gravity="top"
+                android:visibility="gone">
+
+                <com.waz.zclient.ui.text.TypefaceTextView
+                    android:id="@+id/guests_banner_text"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:gravity="center"
+                    android:textColor="@color/white"
+                    android:textSize="@dimen/wire__text_size__small"
+                    app:w_font="@string/wire__typeface__regular"
+                    android:text="@string/guests_are_present"/>
+
+            </FrameLayout>
+
         </FrameLayout>
 
         <com.waz.zclient.cursor.CursorView

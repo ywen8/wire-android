@@ -17,7 +17,6 @@
  */
 package com.waz.zclient.pages.main.pickuser.controller;
 
-import android.view.View;
 import com.waz.model.UserId;
 
 public interface PickUserControllerScreenObserver {
@@ -26,7 +25,7 @@ public interface PickUserControllerScreenObserver {
 
     void onHidePickUser(IPickUserController.Destination destination);
 
-    void onShowUserProfile(UserId userId, View anchorView);
+    void onShowUserProfile(UserId userId);
 
     void onHideUserProfile();
 }

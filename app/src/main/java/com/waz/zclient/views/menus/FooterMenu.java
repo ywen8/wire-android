@@ -109,17 +109,22 @@ public class FooterMenu extends FrameLayout {
     }
 
     public void setCallback(final FooterMenuCallback callback) {
-        leftActionContainerView.setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                callback.onLeftActionClicked();
-            }
-        });
-        rightActionContainerView.setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                callback.onRightActionClicked();
-            }
-        });
+        if (callback == null) {
+            leftActionContainerView.setOnClickListener(null);
+            rightActionContainerView.setOnClickListener(null);
+        } else {
+            leftActionContainerView.setOnClickListener(new OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    callback.onLeftActionClicked();
+                }
+            });
+            rightActionContainerView.setOnClickListener(new OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    callback.onRightActionClicked();
+                }
+            });
+        }
     }
 }

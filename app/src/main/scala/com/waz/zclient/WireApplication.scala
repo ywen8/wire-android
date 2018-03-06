@@ -17,6 +17,9 @@
  */
 package com.waz.zclient
 
+import java.util.Calendar
+
+import android.content.Context
 import android.os.Build
 import android.renderscript.RenderScript
 import android.support.multidex.MultiDexApplication
@@ -35,7 +38,7 @@ import com.waz.zclient.appentry.controllers.{AppEntryController, InvitationsCont
 import com.waz.zclient.calling.controllers.{CallPermissionsController, CurrentCallController, GlobalCallingController}
 import com.waz.zclient.camera.controllers.{AndroidCameraFactory, GlobalCameraController}
 import com.waz.zclient.collection.controllers.CollectionController
-import com.waz.zclient.common.controllers.global.{AccentColorController, KeyboardController, PasswordController}
+import com.waz.zclient.common.controllers.global.{AccentColorController, ClientsController, KeyboardController, PasswordController}
 import com.waz.zclient.common.controllers.{SoundController, _}
 import com.waz.zclient.common.views.ImageController
 import com.waz.zclient.controllers._
@@ -65,7 +68,7 @@ import com.waz.zclient.pages.main.conversationpager.controller.ISlidingPaneContr
 import com.waz.zclient.pages.main.pickuser.controller.IPickUserController
 import com.waz.zclient.participants.ParticipantsController
 import com.waz.zclient.preferences.PreferencesController
-import com.waz.zclient.tracking.{CallingTrackingController, CrashController, GlobalTrackingController, UiTrackingController}
+import com.waz.zclient.tracking.{CrashController, GlobalTrackingController, UiTrackingController}
 import com.waz.zclient.utils.{BackStackNavigator, BackendPicker, Callback, UiStorage}
 import com.waz.zclient.views.DraftMap
 import net.hockeyapp.android.Constants
@@ -96,7 +99,6 @@ object WireApplication {
     bind [IConversationScreenController] toProvider controllerFactory.getConversationScreenController
     bind [INavigationController]         toProvider controllerFactory.getNavigationController
     bind [IUserPreferencesController]    toProvider controllerFactory.getUserPreferencesController
-    bind [IConversationScreenController] toProvider controllerFactory.getConversationScreenController
     bind [ISingleImageController]        toProvider controllerFactory.getSingleImageController
     bind [ISlidingPaneController]        toProvider controllerFactory.getSlidingPaneController
     bind [IDrawingController]            toProvider controllerFactory.getDrawingController
@@ -126,7 +128,6 @@ object WireApplication {
     bind [CallingNotificationsController]  to new CallingNotificationsController()
 
     bind [GlobalTrackingController]        to new GlobalTrackingController()
-    bind [CallingTrackingController]       to new CallingTrackingController()
     bind [PreferencesController]           to new PreferencesController()
     bind [ImageController]                 to new ImageController()
     bind [UserAccountsController]          to new UserAccountsController()
@@ -140,6 +141,7 @@ object WireApplication {
     bind [InvitationsController]           to new InvitationsController()
     bind [IntegrationDetailsController]    to new IntegrationDetailsController()
     bind [IntegrationsController]          to new IntegrationsController()
+    bind [ClientsController]               to new ClientsController()
 
     // current conversation data
     bind [Signal[ConversationData]] to inject[ConversationController].currentConv
@@ -193,6 +195,19 @@ object WireApplication {
       */
     bind [UiTrackingController]    to new UiTrackingController()
   }
+
+  protected def clearOldVideoFiles(context: Context): Unit = {
+    val oneWeekAgo = Calendar.getInstance
+    oneWeekAgo.add(Calendar.DAY_OF_YEAR, -7)
+    Option(context.getExternalCacheDir).foreach { _.listFiles().foreach { file =>
+      val fileName = file.getName
+      val fileModified = Calendar.getInstance()
+      fileModified.setTimeInMillis(file.lastModified)
+      if (fileName.startsWith("VID_") && fileName.endsWith(".mp4") && fileModified.before(oneWeekAgo)) {
+        file.delete()
+      }
+    }}
+  }
 }
 
 class WireApplication extends MultiDexApplication with WireContext with Injectable {
@@ -212,9 +227,8 @@ class WireApplication extends MultiDexApplication with WireContext with Injectab
   override def onCreate(): Unit = {
     super.onCreate()
 
-    if (ZmsVersion.DEBUG) {
-      InternalLog.init(getApplicationContext.getApplicationInfo.dataDir)
-    }
+
+    InternalLog.init(getApplicationContext.getApplicationInfo.dataDir)
 
     verbose("onCreate")
     controllerFactory = new ControllerFactory(getApplicationContext)
@@ -240,9 +254,9 @@ class WireApplication extends MultiDexApplication with WireContext with Injectab
     //TODO [AN-4942] - is this early enough for app launch events?
     inject[GlobalTrackingController]
     inject[CrashController] //needs to register crash handler
-    inject[CallingTrackingController]
     inject[ThemeController]
     inject[PreferencesController]
+    clearOldVideoFiles(getApplicationContext)
   }
 
   override def onTerminate(): Unit = {

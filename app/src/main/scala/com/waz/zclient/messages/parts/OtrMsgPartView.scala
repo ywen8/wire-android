@@ -47,9 +47,9 @@ class OtrMsgPartView(context: Context, attrs: AttributeSet, style: Int) extends 
 
   val msgType = message.map(_.msgType)
 
-  val affectedUserName = message.map(_.userId).flatMap(users.displayNameString)
+  val affectedUserName = message.map(_.userId).flatMap(users.displayNameString).map(_.toUpperCase)
 
-  val memberNames = users.memberDisplayNames(message)
+  val memberNames = users.memberDisplayNames(message).map(_.toUpperCase)
 
   val memberIsJustSelf = users.memberIsJustSelf(message)
 
@@ -61,7 +61,7 @@ class OtrMsgPartView(context: Context, attrs: AttributeSet, style: Int) extends 
     case _                                                    => None
   }
 
-  val msgString = msgType flatMap {
+  val msgString = msgType.flatMap {
     case HISTORY_LOST         => Signal const getString(R.string.content__otr__lost_history)
     case STARTED_USING_DEVICE => Signal const getString(R.string.content__otr__start_this_device__message)
     case OTR_VERIFIED         => Signal const getString(R.string.content__otr__all_fingerprints_verified)

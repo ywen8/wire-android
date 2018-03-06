@@ -27,21 +27,22 @@ import android.view.inputmethod.EditorInfo
 import android.widget.TextView
 import android.widget.TextView.OnEditorActionListener
 import com.waz.ZLog.ImplicitTag._
-import com.waz.model.{UserData, UserId}
+import com.waz.model.{TeamId, UserData, UserId}
 import com.waz.service.ZMessaging
 import com.waz.service.tracking.{OpenSelectParticipants, TrackingService}
 import com.waz.threading.Threading
 import com.waz.utils.events._
 import com.waz.utils.returning
 import com.waz.zclient.common.controllers.global.{AccentColorController, KeyboardController}
-import com.waz.zclient.common.views.PickableElement
+import com.waz.zclient.common.views.{PickableElement, SingleUserRowView}
 import com.waz.zclient.pages.main.pickuser.controller.IPickUserController
 import com.waz.zclient.pages.main.pickuser.controller.IPickUserController.Destination
 import com.waz.zclient.ui.text.TypefaceTextView
-import com.waz.zclient.usersearch.views.{PickerSpannableEditText, SearchEditText, SearchResultUserRowView}
+import com.waz.zclient.usersearch.views.{PickerSpannableEditText, SearchEditText}
 import com.waz.zclient.utils.ContextUtils.getColor
 import com.waz.zclient.utils.RichView
-import com.waz.zclient.{FragmentHelper, OnBackPressedListener, R, ViewHelper}
+import com.waz.zclient._
+import com.waz.zclient.common.controllers.ThemeController
 
 import scala.collection.immutable.Set
 import scala.concurrent.Future
@@ -56,16 +57,21 @@ class NewConversationPickFragment extends Fragment with FragmentHelper with OnBa
   private lazy val newConvController = inject[NewConversationController]
   private lazy val keyboard          = inject[KeyboardController]
   private lazy val tracking          = inject[TrackingService]
+  private lazy val themeController   = inject[ThemeController]
 
   private lazy val accentColor = inject[AccentColorController].accentColor.map(_.getColor)
 
   private lazy val searchFilter = Signal("")
 
   private lazy val searchResults = for {
-    zms     <- zms
-    filter  <- searchFilter
-    convId  <- newConvController.convId
-    results <- zms.userSearch.searchLocal(filter, toConv = convId)
+    zms      <- zms
+    filter   <- searchFilter
+    convId   <- newConvController.convId
+    teamOnly <- newConvController.teamOnly
+    results  <- convId match {
+      case Some(cId) => zms.userSearch.usersToAddToConversation(filter, cId)
+      case None      => zms.userSearch.usersForNewConversation(filter, teamOnly)
+    }
   } yield results
 
   private lazy val adapter = NewConvAdapter(searchResults, newConvController.users)
@@ -126,8 +132,7 @@ class NewConversationPickFragment extends Fragment with FragmentHelper with OnBa
   }
 
   override def onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState: Bundle): View =
-    inflater.cloneInContext(new ContextThemeWrapper(getActivity, R.style.Theme_Light))
-      .inflate(R.layout.create_conv_pick_fragment, container, false)
+    inflater.inflate(R.layout.create_conv_pick_fragment, container, false)
 
   override def onViewCreated(view: View, savedInstanceState: Bundle): Unit = {
     val recyclerView = findById[RecyclerView](R.id.recycler_view)
@@ -147,7 +152,7 @@ class NewConversationPickFragment extends Fragment with FragmentHelper with OnBa
     }
 
     searchBox.foreach { v =>
-      v.applyDarkTheme(false)
+      v.applyDarkTheme(themeController.isDarkTheme)
       v.setCallback(new PickerSpannableEditText.Callback{
         override def onRemovedTokenSpan(element: PickableElement): Unit =
           newConvController.users.mutate(_ - UserId(element.id))
@@ -195,29 +200,28 @@ object NewConversationPickFragment {
   }
 }
 
+case class NewConvAdapter(searchResults: Signal[IndexedSeq[UserData]], selectedUsers: SourceSignal[Set[UserId]])
+                         (implicit context: Context, eventContext: EventContext, injector: Injector)
+  extends RecyclerView.Adapter[SelectableUserRowViewHolder] with Injectable {
 
-case class NewConvUserViewHolder(v: SearchResultUserRowView) extends RecyclerView.ViewHolder(v) {
-  def bind(userData: UserData, selected: Boolean) = {
-    v.setUser(userData)
-    v.setChecked(selected)
-  }
-}
-
-case class NewConvAdapter(searchResults: Signal[IndexedSeq[UserData]], selectedUsers: SourceSignal[Set[UserId]])(implicit context: Context, eventContext: EventContext) extends RecyclerView.Adapter[NewConvUserViewHolder] {
   private implicit val ctx = context
+  private lazy val themeController = inject[ThemeController]
 
-  private var users = Seq.empty[(UserData, /*isSelected: */ Boolean)]
+  private var users = Seq.empty[(UserData, Boolean)]
+  private var team = Option.empty[TeamId]
 
   val onUserSelectionChanged = EventStream[(UserId, Boolean)]()
 
   setHasStableIds(true)
 
   (for {
+    tId <- inject[Signal[ZMessaging]].map(_.teamId) //TODO - we should use the conversation's teamId when available...
     res <- searchResults
     sel <- selectedUsers
-  } yield (res, sel))
+  } yield (tId, res, sel))
     .onUi {
-      case (res, sel) =>
+      case (tId, res, sel) =>
+        team = tId
         val prev = this.users
         this.users = res.map(u => (u, sel.contains(u.id)))
         if (prev.map(_._1) == res) {
@@ -232,11 +236,14 @@ case class NewConvAdapter(searchResults: Signal[IndexedSeq[UserData]], selectedU
 
   override def getItemCount: Int = users.size
 
-  override def onCreateViewHolder(parent: ViewGroup, viewType: Int): NewConvUserViewHolder = {
-    val view = ViewHelper.inflate[SearchResultUserRowView](R.layout.startui_user, parent, addToParent = false)
-    view.setIsAddingPeople(true)
+  override def onCreateViewHolder(parent: ViewGroup, viewType: Int): SelectableUserRowViewHolder = {
+    val view = ViewHelper.inflate[SingleUserRowView](R.layout.single_user_row, parent, addToParent = false)
+    view.showCheckbox(true)
+    view.setTheme(if (themeController.isDarkTheme) SingleUserRowView.Dark else SingleUserRowView.Light)
+    val viewHolder = SelectableUserRowViewHolder(view)
+
     view.onSelectionChanged.onUi { selected =>
-      view.getUser.foreach { user =>
+      viewHolder.userData.map(_.id).foreach { user =>
         onUserSelectionChanged ! (user, selected)
         if (selected)
           selectedUsers.mutate(_ + user)
@@ -244,14 +251,26 @@ case class NewConvAdapter(searchResults: Signal[IndexedSeq[UserData]], selectedU
           selectedUsers.mutate(_ - user)
       }
     }
-    NewConvUserViewHolder(view)
+    viewHolder
   }
 
 
   override def getItemId(position: Int) = users(position)._1.id.str.hashCode
 
-  override def onBindViewHolder(holder: NewConvUserViewHolder, position: Int): Unit = {
+  override def onBindViewHolder(holder: SelectableUserRowViewHolder, position: Int): Unit = {
     val (user, selected) = users(position)
-    holder.bind(user, selected)
+    holder.bind(user, team, selected = selected)
   }
 }
+
+case class SelectableUserRowViewHolder(v: SingleUserRowView) extends RecyclerView.ViewHolder(v) {
+
+  var userData: Option[UserData] = None
+
+  def bind(userData: UserData, teamId: Option[TeamId], selected: Boolean) = {
+    this.userData = Some(userData)
+    v.setUserData(userData, teamId)
+    v.setChecked(selected)
+  }
+}
+

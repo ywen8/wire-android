@@ -19,7 +19,6 @@ package com.waz.zclient.pages.main.conversation.controller;
 
 import android.view.View;
 import com.waz.api.Message;
-import com.waz.api.OtrClient;
 import com.waz.api.User;
 import com.waz.model.ConvId;
 import com.waz.model.IntegrationId;
@@ -98,11 +97,6 @@ public class ConversationScreenController implements IConversationScreenControll
     }
 
     @Override
-    public User getRequestedDeviceTabUser() {
-        return showDevicesTabForUser;
-    }
-
-    @Override
     public boolean isShowingParticipant() {
         return isShowingParticipant;
     }
@@ -113,13 +107,6 @@ public class ConversationScreenController implements IConversationScreenControll
         isShowingUser = false;
         showDevicesTabForUser = null;
         launchMode = null;
-    }
-
-    @Override
-    public void setParticipantHeaderHeight(int participantHeaderHeight) {
-        for (ConversationScreenControllerObserver conversationScreenControllerObserver : conversationScreenControllerObservers) {
-            conversationScreenControllerObserver.onHeaderViewMeasured(participantHeaderHeight);
-        }
     }
 
     @Override
@@ -145,9 +132,6 @@ public class ConversationScreenController implements IConversationScreenControll
             return false;
         }
         isShowingUser = true;
-        for (ConversationScreenControllerObserver observer : conversationScreenControllerObservers) {
-            observer.onShowUser(userId);
-        }
         return true;
     }
 
@@ -191,20 +175,6 @@ public class ConversationScreenController implements IConversationScreenControll
     @Override
     public DialogLaunchMode getPopoverLaunchMode() {
         return launchMode;
-    }
-
-    @Override
-    public void showOtrClient(OtrClient otrClient, User user) {
-        for (ConversationScreenControllerObserver observer : conversationScreenControllerObservers) {
-            observer.onShowOtrClient(otrClient, user);
-        }
-    }
-
-    @Override
-    public void showCurrentOtrClient() {
-        for (ConversationScreenControllerObserver observer : conversationScreenControllerObservers) {
-            observer.onShowCurrentOtrClient();
-        }
     }
 
     @Override

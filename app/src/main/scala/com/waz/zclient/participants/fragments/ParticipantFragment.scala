@@ -20,68 +20,52 @@ package com.waz.zclient.participants.fragments
 import android.content.Context
 import android.os.Bundle
 import android.support.annotation.Nullable
-import android.support.v4.app.{Fragment, FragmentManager}
+import android.support.v4.app.FragmentManager
 import android.view.animation.Animation
 import android.view.{LayoutInflater, View, ViewGroup}
 import com.waz.ZLog.ImplicitTag._
 import com.waz.ZLog._
-import com.waz.api.User.ConnectionStatus._
 import com.waz.api._
 import com.waz.model._
+import com.waz.model.otr.ClientId
 import com.waz.threading.Threading
-import com.waz.utils.events.Subscription
+import com.waz.utils.events.{Signal, Subscription}
 import com.waz.utils.returning
-import com.waz.utils.wrappers.AndroidURIUtil
-import com.waz.zclient.common.controllers.{BrowserController, SoundController, ThemeController, UserAccountsController}
-import com.waz.zclient.controllers.confirmation.{ConfirmationRequest, IConfirmationController, TwoButtonConfirmationCallback}
 import com.waz.zclient.controllers.navigation.{INavigationController, Page}
 import com.waz.zclient.controllers.singleimage.ISingleImageController
 import com.waz.zclient.conversation.ConversationController
 import com.waz.zclient.core.stores.connect.IConnectStore
 import com.waz.zclient.core.stores.conversation.ConversationChangeRequester
 import com.waz.zclient.core.stores.conversation.ConversationChangeRequester._
+import com.waz.zclient.integrations.IntegrationDetailsFragment
 import com.waz.zclient.pages.BaseFragment
-import com.waz.zclient.pages.main.connect.{BlockedUserProfileFragment, ConnectRequestLoadMode, PendingConnectRequestFragment, SendConnectRequestFragment}
+import com.waz.zclient.pages.main.connect.{BlockedUserProfileFragment, PendingConnectRequestFragment, SendConnectRequestFragment}
 import com.waz.zclient.pages.main.conversation.controller.{ConversationScreenControllerObserver, IConversationScreenController}
-import com.waz.zclient.pages.main.participants._
-import com.waz.zclient.pages.main.participants.dialog.DialogLaunchMode
 import com.waz.zclient.pages.main.pickuser.controller.IPickUserController
 import com.waz.zclient.participants.{OptionsMenuFragment, ParticipantsController}
-import com.waz.zclient.ui.animation.interpolators.penner.Expo
-import com.waz.zclient.usersearch.PickUserFragment
+import com.waz.zclient.usersearch.SearchUIFragment
 import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.utils.ViewUtils
-import com.waz.zclient.views.{DefaultPageTransitionAnimation, LoadingIndicatorView}
+import com.waz.zclient.views.DefaultPageTransitionAnimation
 import com.waz.zclient.{FragmentHelper, OnBackPressedListener, R}
 
 class ParticipantFragment extends BaseFragment[ParticipantFragment.Container] with FragmentHelper
   with ConversationScreenControllerObserver
   with OnBackPressedListener
   with ParticipantHeaderFragment.Container
-  with ParticipantsBodyFragment.Container
-  with TabbedParticipantBodyFragment.Container
-  with SingleParticipantFragment.Container
   with SendConnectRequestFragment.Container
   with BlockedUserProfileFragment.Container
-  with PendingConnectRequestFragment.Container
-  with PickUserFragment.Container
-  with SingleOtrClientFragment.Container {
+  with PendingConnectRequestFragment.Container {
 
   implicit def ctx: Context = getActivity
   import Threading.Implicits.Ui
 
-  private lazy val bodyContainer = view[View](R.id.fl__participant__container)
+  private lazy val bodyContainer             = view[View](R.id.fl__participant__container)
   private lazy val participantsContainerView = view[View](R.id.ll__participant__container)
-  private lazy val pickUserContainerView = view[View](R.id.fl__add_to_conversation__pickuser__container)
 
   private lazy val convChange = convController.convChanged.filter { _.to.isDefined }
 
-  private lazy val loadingIndicatorView = returning( view[LoadingIndicatorView](R.id.liv__participants__loading_indicator) ) {
-    _.foreach(_.setColor(getColorWithTheme(R.color.people_picker__loading__color, ctx)))
-  }
-
   private lazy val convController         = inject[ConversationController]
-  private lazy val userAccountsController = inject[UserAccountsController]
   private lazy val participantsController = inject[ParticipantsController]
   private lazy val screenController       = inject[IConversationScreenController]
   private lazy val pickUserController     = inject[IPickUserController]
@@ -89,6 +73,14 @@ class ParticipantFragment extends BaseFragment[ParticipantFragment.Container] wi
   private lazy val navigationController   = inject[INavigationController]
 
   private var subs = Set.empty[Subscription]
+
+  private lazy val headerFragment  = ParticipantHeaderFragment.newInstance
+  private lazy val optionsFragment = OptionsMenuFragment.newInstance(false)
+
+  val navigationIconVisible = Signal(true)
+
+  def setNavigationIconVisible(isVisible: Boolean): Unit =
+    navigationIconVisible ! isVisible
 
   override def onCreateAnimation(transit: Int, enter: Boolean, nextAnim: Int): Animation =
     if (nextAnim == 0 || Option(getContainer).isEmpty || getControllerFactory.isTornDown)
@@ -111,60 +103,45 @@ class ParticipantFragment extends BaseFragment[ParticipantFragment.Container] wi
     }
 
   override def onViewCreated(view: View, @Nullable savedInstanceState: Bundle): Unit = {
-    val fragmentManager = getChildFragmentManager
-
-    if (Option(savedInstanceState).isEmpty) {
-      fragmentManager.beginTransaction
+    if (Option(savedInstanceState).isEmpty)
+      participantsController.isGroupOrBot.head.foreach { groupOrBot =>
+        getChildFragmentManager.beginTransaction
         .replace(
           R.id.fl__participant__header__container,
-          ParticipantHeaderFragment.newInstance(),
+          headerFragment,
           ParticipantHeaderFragment.TAG
         )
-        .commit
-
-      participantsController.isGroupOrBot.head.foreach {
-        case false =>
-          fragmentManager.beginTransaction
-            .replace(
-              R.id.fl__participant__container,
-              TabbedParticipantBodyFragment.newInstance(getArguments.getInt(ParticipantFragment.ARG__FIRST__PAGE)),
-              TabbedParticipantBodyFragment.TAG)
-            .commit
-        case _ =>
-          fragmentManager.beginTransaction
-            .replace(R.id.fl__participant__container,
-              ParticipantsBodyFragment.newInstance(),
-              ParticipantsBodyFragment.TAG)
-            .commit
-      }
-
-      fragmentManager.beginTransaction
         .replace(
           R.id.fl__participant__settings_box,
-          OptionsMenuFragment.newInstance(false),
+          optionsFragment,
           OptionsMenuFragment.Tag
         )
+        .replace(
+          R.id.fl__participant__container,
+          if (groupOrBot)
+            GroupParticipantsFragment.newInstance()
+          else
+            SingleParticipantFragment.newInstance(getArguments.getInt(ParticipantFragment.ARG__FIRST__PAGE)),
+          if (groupOrBot)
+            GroupParticipantsFragment.Tag
+          else
+            SingleParticipantFragment.Tag
+        )
+        .addToBackStack(if (groupOrBot) GroupParticipantsFragment.Tag else SingleParticipantFragment.Tag)
         .commit
-    }
+      }
 
     bodyContainer
-    loadingIndicatorView
     participantsContainerView
-    pickUserContainerView
 
     subs += convChange.map(_.requester).onUi {
       case START_CONVERSATION | START_CONVERSATION_FOR_VIDEO_CALL | START_CONVERSATION_FOR_CALL | START_CONVERSATION_FOR_CAMERA =>
-        getChildFragmentManager.popBackStackImmediate(PickUserFragment.TAG, FragmentManager.POP_BACK_STACK_INCLUSIVE)
-        pickUserController.hidePickUserWithoutAnimations(getCurrentPickerDestination)
+        getChildFragmentManager.popBackStackImmediate(SearchUIFragment.TAG, FragmentManager.POP_BACK_STACK_INCLUSIVE)
+        pickUserController.hidePickUserWithoutAnimations(IPickUserController.Destination.PARTICIPANTS)
       case _ =>
     }
 
     subs += participantsController.conv.map(_.isActive).onUi { screenController.setMemberOfConversation }
-
-    subs += convController.currentConvId.onUi { convId =>
-      val iConv = convController.iConv(convId)
-      getStoreFactory.participantsStore.setCurrentConversation(iConv)
-    }
 
     subs += participantsController.isGroupOrBot.onUi { isGroupOrBot =>
       screenController.setSingleConversation(!isGroupOrBot)
@@ -178,7 +155,6 @@ class ParticipantFragment extends BaseFragment[ParticipantFragment.Container] wi
   }
 
   override def onStop(): Unit = {
-    getStoreFactory.participantsStore.setCurrentConversation(null)
     screenController.removeConversationControllerObservers(this)
     super.onStop()
   }
@@ -192,22 +168,44 @@ class ParticipantFragment extends BaseFragment[ParticipantFragment.Container] wi
   }
 
   override def onBackPressed: Boolean = withBackstackHead {
-    case Some(f: PickUserFragment) if f.onBackPressed() => true
+    case Some(f: SingleParticipantFragment) if f.onBackPressed() =>
+      verbose(s"onBackPressed with SingleParticipantFragment")
+      true
+    case Some(f: GroupParticipantsFragment) if f.onBackPressed() =>
+      verbose(s"onBackPressed with GroupParticipantsFragment")
+      true
+    case Some(f: SearchUIFragment) if f.onBackPressed() =>
+      verbose(s"onBackPressed with PickUserFragment")
+      true
     case Some(f: SingleOtrClientFragment) =>
+      verbose(s"onBackPressed with SingleOtrClientFragment")
       screenController.hideOtrClient()
       true
-    case Some(f: SingleParticipantFragment) if f.onBackPressed() => true
-    case Some(f: OptionsMenuFragment) if f.close() => true
-    case _ if pickUserController.isShowingPickUser(getCurrentPickerDestination) =>
-      pickUserController.hidePickUser(getCurrentPickerDestination)
+    case Some(f: IntegrationDetailsFragment) if f.onBackPressed() =>
+      verbose(s"onBackPressed with IntegrationDetailsFragment")
+      true
+    case Some(f: GuestOptionsFragment) if f.onBackPressed() =>
+      verbose(s"onBackPressed with GuestOptionsFragment")
+      true
+    case _ if optionsFragment.close() =>
+      verbose(s"onBackPressed with OptionsMenuFragment")
+      true
+    case _ if pickUserController.isShowingPickUser(IPickUserController.Destination.PARTICIPANTS) =>
+      verbose(s"onBackPressed with isShowingPickUser")
+      pickUserController.hidePickUser(IPickUserController.Destination.PARTICIPANTS)
       true
     case _ if screenController.isShowingUser =>
+      verbose(s"onBackPressed with screenController.isShowingUser")
       screenController.hideUser()
+      participantsController.unselectParticipant()
       true
     case _ if screenController.isShowingParticipant =>
+      verbose(s"onBackPressed with isShowingParticipant")
       screenController.hideParticipants(true, false)
       true
-    case _ => false
+    case _ =>
+      verbose(s"onBackPressed not handled here")
+      false
   }
 
   override def onShowEditConversationName(show: Boolean): Unit =
@@ -225,158 +223,64 @@ class ParticipantFragment extends BaseFragment[ParticipantFragment.Container] wi
       case _ =>
     }
 
-  override def onShowOtrClient(otrClient: OtrClient, user: User): Unit =
+  def showOtrClient(userId: UserId, clientId: ClientId): Unit =
     getChildFragmentManager
       .beginTransaction
       .setCustomAnimations(
-        R.anim.open_profile,
-        R.anim.close_profile,
-        R.anim.open_profile,
-        R.anim.close_profile
-      )
+        R.anim.fragment_animation_second_page_slide_in_from_right,
+        R.anim.fragment_animation_second_page_slide_out_to_left,
+        R.anim.fragment_animation_second_page_slide_in_from_left,
+        R.anim.fragment_animation_second_page_slide_out_to_right)
       .add(
         R.id.fl__participant__overlay,
-        SingleOtrClientFragment.newInstance(otrClient, user),
-        SingleOtrClientFragment.TAG
+        SingleOtrClientFragment.newInstance(userId, clientId),
+        SingleOtrClientFragment.Tag
       )
-      .addToBackStack(SingleOtrClientFragment.TAG)
+      .addToBackStack(SingleOtrClientFragment.Tag)
       .commit
 
-  override def onShowCurrentOtrClient(): Unit =
+  def showCurrentOtrClient(): Unit =
     getChildFragmentManager
       .beginTransaction
       .setCustomAnimations(
-        R.anim.open_profile,
-        R.anim.close_profile,
-        R.anim.open_profile,
-        R.anim.close_profile
-      )
+        R.anim.slide_in_from_bottom_pick_user,
+        R.anim.open_new_conversation__thread_list_out,
+        R.anim.open_new_conversation__thread_list_in,
+        R.anim.slide_out_to_bottom_pick_user)
       .add(
         R.id.fl__participant__overlay,
         SingleOtrClientFragment.newInstance,
-        SingleOtrClientFragment.TAG
+        SingleOtrClientFragment.Tag
       )
-      .addToBackStack(SingleOtrClientFragment.TAG)
+      .addToBackStack(SingleOtrClientFragment.Tag)
       .commit
 
-  override def onShowUser(userId: UserId): Unit = participantsController.getUser(userId).foreach {
-    case None =>
-
-    case Some(user) if user.isSelf =>
-      getStoreFactory.singleParticipantStore.setUser(getOldUserAPI(userId))
-      openUserProfileFragment(
-        SingleParticipantFragment.newInstance(false, IConnectStore.UserRequester.PARTICIPANTS),
-        SingleParticipantFragment.TAG
+  // TODO: AN-5980
+  def showIntegrationDetails(pId: ProviderId, iId: IntegrationId): Unit = {
+    getChildFragmentManager
+      .beginTransaction
+      .setCustomAnimations(
+        R.anim.fragment_animation_second_page_slide_in_from_right,
+        R.anim.fragment_animation_second_page_slide_out_to_left,
+        R.anim.fragment_animation_second_page_slide_in_from_left,
+        R.anim.fragment_animation_second_page_slide_out_to_right
       )
-      navigationController.setRightPage(Page.PARTICIPANT_USER_PROFILE, ParticipantFragment.TAG)
-
-    case Some(_) if userAccountsController.isTeamAccount && userAccountsController.isTeamMember(userId) =>
-      showAcceptedUser(userId)
-
-    case Some(user) if user.connection == User.ConnectionStatus.ACCEPTED =>
-      showAcceptedUser(user.id)
-
-    case Some(user) if user.connection == PENDING_FROM_OTHER || user.connection == PENDING_FROM_USER || user.connection == IGNORED =>
-      openUserProfileFragment(
-        PendingConnectRequestFragment.newInstance(userId.str, null, ConnectRequestLoadMode.LOAD_BY_USER_ID, IConnectStore.UserRequester.PARTICIPANTS),
-        PendingConnectRequestFragment.TAG
+      .replace(
+        R.id.fl__participant__overlay,
+        IntegrationDetailsFragment.newInstance(pId, iId, isTransparent = false),
+        IntegrationDetailsFragment.Tag
       )
-      navigationController.setRightPage(Page.PARTICIPANT_USER_PROFILE, ParticipantFragment.TAG)
-
-    case Some(user) if user.connection == BLOCKED =>
-      openUserProfileFragment(
-        BlockedUserProfileFragment.newInstance(userId.str, IConnectStore.UserRequester.PARTICIPANTS),
-        BlockedUserProfileFragment.TAG
-      )
-      navigationController.setRightPage(Page.PARTICIPANT_USER_PROFILE, ParticipantFragment.TAG)
-
-    case Some(user) if user.connection == CANCELLED || user.connection == UNCONNECTED =>
-      openUserProfileFragment(
-        SendConnectRequestFragment.newInstance(userId.str, IConnectStore.UserRequester.PARTICIPANTS),
-        SendConnectRequestFragment.TAG
-      )
-      navigationController.setRightPage(Page.SEND_CONNECT_REQUEST, ParticipantFragment.TAG)
-  }
-
-  private def getOldUserAPI(userId: UserId): User = getStoreFactory.pickUserStore.getUser(userId.str)
-
-  private def showAcceptedUser(userId: UserId) = {
-    participantsController.selectParticipant(userId)
-    getStoreFactory.singleParticipantStore.setUser(getOldUserAPI(userId))
-    openUserProfileFragment(
-      SingleParticipantFragment.newInstance(false, IConnectStore.UserRequester.PARTICIPANTS),
-      SingleParticipantFragment.TAG
-    )
-    navigationController.setRightPage(Page.PARTICIPANT_USER_PROFILE, ParticipantFragment.TAG)
-  }
-
-  private def openUserProfileFragment(fragment: Fragment, tag: String) = {
-    val transaction = getChildFragmentManager.beginTransaction
-    if (
-      screenController.getPopoverLaunchMode != DialogLaunchMode.AVATAR &&
-      screenController.getPopoverLaunchMode != DialogLaunchMode.COMMON_USER
-    ) {
-      animateParticipantsWithConnectUserProfile(false)
-      transaction.setCustomAnimations(R.anim.open_profile, R.anim.close_profile, R.anim.open_profile, R.anim.close_profile)
-    }
-    else transaction.setCustomAnimations(R.anim.fade_in, R.anim.fade_out, R.anim.fade_in, R.anim.fade_out)
-    transaction.add(R.id.fl__participant__overlay, fragment, tag).addToBackStack(tag).commit
-  }
-
-  private def animateParticipantsWithConnectUserProfile(show: Boolean) = {
-    val animator = participantsContainerView.animate
-    if (show) {
-      animator.alpha(1)
-        .scaleY(1)
-        .scaleX(1)
-        .setInterpolator(new Expo.EaseOut)
-        .setDuration(getInt(R.integer.reopen_profile_source__animation_duration))
-        .setStartDelay(getInt(R.integer.reopen_profile_source__delay))
-    } else {
-      animator.alpha(0)
-        .scaleY(2)
-        .scaleX(2)
-        .setInterpolator(new Expo.EaseIn)
-        .setDuration(getInt(R.integer.reopen_profile_source__animation_duration))
-        .setStartDelay(0)
-    }
-    animator.start()
+      .addToBackStack(IntegrationDetailsFragment.Tag)
+      .commit
   }
 
   override def onHideUser(): Unit = if (screenController.isShowingUser) {
-    getChildFragmentManager.popBackStackImmediate
-    getControllerFactory.getNavigationController.setRightPage(if (screenController.isShowingParticipant) Page.PARTICIPANT else Page.MESSAGE_STREAM, ParticipantFragment.TAG)
-    animateParticipantsWithConnectUserProfile(true)
+    getChildFragmentManager.popBackStack
+    navigationController.setRightPage(if (screenController.isShowingParticipant) Page.PARTICIPANT else Page.MESSAGE_STREAM, ParticipantFragment.TAG)
   }
 
-  override def showRemoveConfirmation(userId: UserId): Unit = { // Show confirmation dialog before removing user
-    val callback = new TwoButtonConfirmationCallback() {
-      override def positiveButtonClicked(checkboxIsSelected: Boolean): Unit = {
-        dismissUserProfile()
-        convController.removeMember(userId)
-      }
-
-      override def negativeButtonClicked(): Unit = {}
-      override def onHideAnimationEnd(confirmed: Boolean, canceled: Boolean, checkboxIsSelected: Boolean): Unit = {}
-    }
-
-    participantsController.getUser(userId).foreach {
-      case Some(userData) =>
-        val request = new ConfirmationRequest.Builder()
-          .withHeader(getString(R.string.confirmation_menu__header))
-          .withMessage(getString(R.string.confirmation_menu_text_with_name, userData.getDisplayName))
-          .withPositiveButton(getString(R.string.confirmation_menu__confirm_remove))
-          .withNegativeButton(getString(R.string.confirmation_menu__cancel))
-          .withConfirmationCallback(callback)
-          .withWireTheme(inject[ThemeController].getThemeDependentOptionsTheme)
-          .build
-        getControllerFactory.getConfirmationController.requestConfirmation(request, IConfirmationController.PARTICIPANTS)
-        inject[SoundController].playAlert()
-      case _ =>
-    }
-  }
-
-  override def onOpenUrl(url: String): Unit = inject[BrowserController].openUrl(AndroidURIUtil.parse(url))
+  override def showRemoveConfirmation(userId: UserId): Unit =
+    participantsController.showRemoveConfirmation(userId)
 
   override def dismissUserProfile(): Unit = screenController.hideUser()
 
@@ -396,27 +300,17 @@ class ParticipantFragment extends BaseFragment[ParticipantFragment.Container] wi
 
   override def onConnectRequestWasSentToUser(): Unit = screenController.hideUser()
 
-  override def getLoadingViewIndicator: LoadingIndicatorView = loadingIndicatorView
-
-  override def getCurrentPickerDestination = IPickUserController.Destination.PARTICIPANTS
-
   override def onShowParticipants(anchorView: View, isSingleConversation: Boolean, isMemberOfConversation: Boolean, showDeviceTabIfSingle: Boolean): Unit = {}
 
   override def onHideParticipants(backOrButtonPressed: Boolean, hideByConversationChange: Boolean, isSingleConversation: Boolean): Unit = {}
 
-  override def onHeaderViewMeasured(participantHeaderHeight: Int): Unit = {}
-
-  override def onScrollParticipantsList(verticalOffset: Int, scrolledToBottom: Boolean): Unit = {}
-
-  override def onHideOtrClient(): Unit = getChildFragmentManager.popBackStackImmediate
+  override def onHideOtrClient(): Unit = getChildFragmentManager.popBackStack
 
   override def onShowLikesList(message: Message): Unit = {}
 
   override def onShowIntegrationDetails(providerId: ProviderId, integrationId: IntegrationId): Unit = {}
 
   override def onConversationUpdated(conversation: ConvId): Unit = {}
-
-  override def showIncomingPendingConnectRequest(conv: ConvId): Unit = {}
 }
 
 object ParticipantFragment {

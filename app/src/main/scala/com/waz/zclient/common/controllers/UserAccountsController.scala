@@ -19,16 +19,13 @@ package com.waz.zclient.common.controllers
 
 import android.content.Context
 import com.waz.ZLog.ImplicitTag._
-import com.waz.ZLog._
 import com.waz.model._
 import com.waz.service.ZMessaging
 import com.waz.threading.Threading
 import com.waz.utils.events.{EventContext, Signal}
 import com.waz.zclient.conversation.ConversationController
 import com.waz.zclient.core.stores.conversation.ConversationChangeRequester
-import com.waz.zclient.{BaseActivity, Injectable, Injector}
-
-import scala.concurrent.Future
+import com.waz.zclient.{Injectable, Injector}
 
 class UserAccountsController(implicit injector: Injector, context: Context, ec: EventContext) extends Injectable {
   import Threading.Implicits.Ui
@@ -36,6 +33,7 @@ class UserAccountsController(implicit injector: Injector, context: Context, ec: 
   val zms = inject[Signal[ZMessaging]]
 
   val accounts = Option(ZMessaging.currentAccounts).fold(Signal.const(Seq.empty[AccountData]))(_.loggedInAccounts.map(_.toSeq.sortBy(acc => (acc.isTeamAccount, acc.id.str))))
+  val convCtrl = inject[ConversationController]
 
   val currentUser = for {
     zms     <- zms
@@ -45,7 +43,6 @@ class UserAccountsController(implicit injector: Injector, context: Context, ec: 
 
   private var _permissions = Set[AccountData.Permission]()
 
-  private var _teamData = Option.empty[TeamData]
   private var _teamId = Option.empty[TeamId]
   private var _teamMembers = Set.empty[UserId]
 
@@ -58,21 +55,17 @@ class UserAccountsController(implicit injector: Injector, context: Context, ec: 
     _permissions = p
   }
 
-  val teamDataSignal = for {
+  val teamData = for {
     zms <- zms
     teamData <- zms.teams.selfTeam
   } yield teamData
-
-  teamDataSignal { data => _teamData = data }
-
-  def teamData = _teamData
 
   val teamMembersSignal = for {
     zms <- zms
     teamMembers <- zms.teams.searchTeamMembers()
   } yield teamMembers.map(_.id)
 
-  teamMembersSignal { members => _teamMembers = members }
+  teamMembersSignal.onUi(members => _teamMembers = members)
 
   private def unreadCountForConv(conversationData: ConversationData): Int = {
     if (conversationData.archived || conversationData.muted || conversationData.hidden || conversationData.convType == ConversationData.ConversationType.Self)
@@ -86,35 +79,27 @@ class UserAccountsController(implicit injector: Injector, context: Context, ec: 
     countMap <- Signal.sequence(zmsSet.map(z => z.convsStorage.convsSignal.map(c => z.accountId -> c.conversations.map(unreadCountForConv).sum)).toSeq:_*)
   } yield countMap.toMap
 
-  def getConversation(users: Set[UserId]) = {
-    zms.head.flatMap { z =>
-      if (users.size == 1 && !isTeamAccount)
-        z.convsUi.getOrCreateOneToOneConversation(users.head)
-      else
-        z.convsUi.createGroupConversation(ConvId(), None, users.toSeq, teamId)
-    }
-  }
+  def getConversationId(user: UserId) =
+    for {
+      z    <- zms.head
+      conv <- z.convsUi.getOrCreateOneToOneConversation(user)
+    } yield conv.id
 
-  def getConversationId(users: Set[UserId]) = getConversation(users).map(_.id)
+  def getOrCreateAndOpenConvFor(user: UserId) =
+    getConversationId(user).flatMap(convCtrl.selectConv(_, ConversationChangeRequester.START_CONVERSATION))
 
-  def createAndOpenConversation(users: Array[UserId], requester: ConversationChangeRequester,  activity: BaseActivity): Future[Unit] = {
-    val createConv = getConversation(users.toSet)
-    createConv.flatMap { conv =>
-      verbose(s"createAndOpenConversation ${conv.id}")
-      inject[ConversationController].selectConv(conv.id, requester)
-    } (Threading.Ui)
-  }
+  lazy val teamId = zms.map(_.teamId)
+  teamId.onUi(_teamId = _)
 
-  zms.map(_.teamId)(_teamId = _)
+  val isTeam: Signal[Boolean] = teamId.map(_.isDefined)
 
-  def teamId = _teamId
   def isTeamAccount = _teamId.isDefined
   def isTeamMember(userId: UserId) = _teamMembers.contains(userId)
 
   //TODO should perhaps clean this up a tad
   private def getTeamId(convId: ConvId): Option[TeamId] = zms.currentValue.flatMap(_.convsStorage.conversations.find(_.id == convId).flatMap(_.team))
 
-  private def isPartOfTeam(tId: TeamId): Boolean = teamId match {
+  private def isPartOfTeam(tId: TeamId): Boolean = _teamId match {
     case Some(id) => id == tId
     case _ => false
   }

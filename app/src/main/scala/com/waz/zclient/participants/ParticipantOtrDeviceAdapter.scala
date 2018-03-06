@@ -54,22 +54,20 @@ class ParticipantOtrDeviceAdapter(implicit context: Context, injector: Injector,
   val onClientClick = EventStream[Client]()
 
   private val clients = for {
-    Some(userId)  <- participantsController.otherParticipant
+    Some(userId)  <- participantsController.otherParticipantId
     Some(manager) <- ZMessaging.currentAccounts.activeAccountManager
     clients       <- manager.storage.otrClientsStorage.optSignal(userId)
   } yield clients.fold(List.empty[Client])(_.clients.values.toList.sortBy(_.regTime).reverse)
 
   private lazy val syncClientsRequest = for {
     z             <- zms.head
-    Some(userId)  <- participantsController.otherParticipant.head
+    Some(userId)  <- participantsController.otherParticipantId.head
   } yield z.sync.syncClients(userId)
 
   (for {
-    z            <- zms
-    cs           <- clients
-    Some(userId) <- participantsController.otherParticipant
-    user         <- z.users.userSignal(userId)
-    color        <- accentColorController.accentColor
+    cs    <- clients
+    user  <- participantsController.otherParticipant
+    color <- accentColorController.accentColor
   } yield (cs, user.name, color)).onUi { case (cs, name, color) =>
     devices = cs
     userName = name

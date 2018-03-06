@@ -19,12 +19,12 @@ package com.waz.zclient.conversation
 
 import android.content.Context
 import android.support.v7.widget.RecyclerView
-import android.view.{LayoutInflater, View, ViewGroup}
+import android.view.{LayoutInflater, ViewGroup}
 import com.waz.api.User
 import com.waz.model.{UserData, UserId}
-import com.waz.threading.Threading
 import com.waz.utils.events.Signal
-import com.waz.zclient.usersearch.viewholders.UserViewHolder
+import com.waz.zclient.common.views.SingleUserRowView
+import com.waz.zclient.conversation.LikesAdapter.ViewHolder
 import com.waz.zclient.utils.{UiStorage, UserSetSignal}
 import com.waz.zclient.{BaseActivity, R}
 
@@ -37,25 +37,32 @@ class LikesAdapter(context: Context) extends RecyclerView.Adapter[RecyclerView.V
 
   (for {
     userIds <- likesUserIds
-    users <- UserSetSignal(userIds)
-  } yield users.toSeq).on(Threading.Ui) { data =>
+    users   <- UserSetSignal(userIds)
+  } yield users.toSeq).onUi { data =>
     likesUsers = data
     notifyDataSetChanged()
   }
 
-  def onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder = {
-    var view: View = null
-    view = LayoutInflater.from(parent.getContext).inflate(R.layout.startui_user, parent, false)
-    new UserViewHolder(view, false, false, false)
-  }
+  def onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder =
+    new ViewHolder(LayoutInflater.from(parent.getContext).inflate(R.layout.single_user_row, parent, false).asInstanceOf[SingleUserRowView])
 
-  def onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int): Unit = {
-    holder.asInstanceOf[UserViewHolder].bind(likesUsers(position), isSelected = false)
-  }
+  def onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int): Unit =
+    holder.asInstanceOf[ViewHolder].bind(likesUsers(position))
 
   def getItemCount: Int = likesUsers.size
 
-  def setLikes(likes: Array[User]): Unit = {
-    likesUserIds ! likes.map(u => UserId(u.getId)).toSet
+  def setLikes(likes: Array[User]): Unit = likesUserIds ! likes.map(u => UserId(u.getId)).toSet
+}
+
+object LikesAdapter {
+  class ViewHolder(view: SingleUserRowView) extends RecyclerView.ViewHolder(view) {
+
+    private var userData: Option[UserData] = None
+    view.setTheme(SingleUserRowView.Transparent)
+
+    def bind(userData: UserData): Unit = {
+      this.userData = Some(userData)
+      view.setUserData(userData, None)
+    }
   }
 }

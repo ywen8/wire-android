@@ -19,32 +19,46 @@ package com.waz.zclient.conversation.creation
 
 import com.waz.ZLog.ImplicitTag._
 import com.waz.model.{ConvId, UserId}
+import com.waz.service.ZMessaging
 import com.waz.service.tracking._
-import com.waz.utils.events.Signal
+import com.waz.utils.events.{EventContext, Signal}
 import com.waz.zclient.conversation.ConversationController
 import com.waz.zclient.utils.UiStorage
 import com.waz.zclient.{Injectable, Injector}
 
 import scala.concurrent.Future
 
-class NewConversationController(implicit inj: Injector) extends Injectable {
+class NewConversationController(implicit inj: Injector, ev: EventContext) extends Injectable {
   import com.waz.threading.Threading.Implicits.Background
 
   private lazy val conversationController = inject[ConversationController]
+  private lazy val zms = inject[Signal[ZMessaging]]
+
   private implicit lazy val uiStorage = inject[UiStorage]
   private lazy val tracking = inject[TrackingService]
 
-  val convId = Signal(Option.empty[ConvId])
-  val name   = Signal("")
-  val users  = Signal(Set.empty[UserId])
-
+  val convId   = Signal(Option.empty[ConvId])
+  val name     = Signal("")
+  val users    = Signal(Set.empty[UserId])
+  val teamOnly = Signal(true)
   val fromScreen = Signal[GroupConversationEvent.Method]()
+
+  teamOnly.onChanged {
+    case true =>
+      for {
+        z   <- zms.head
+        ids <- users.head
+        us  <- Future.sequence(ids.map(z.users.getUser)).map(_.flatten)
+      } yield users.mutate(_ -- us.filter(_.isGuest(z.teamId)).map(_.id))
+    case false => //
+  }
 
   def setCreateConversation(preSelectedUsers: Set[UserId] = Set(), from: GroupConversationEvent.Method): Unit = {
     name ! ""
     users ! preSelectedUsers
     convId ! None
     fromScreen ! from
+    teamOnly ! false
     tracking.track(CreateGroupConversation(from))
   }
 
@@ -57,20 +71,30 @@ class NewConversationController(implicit inj: Injector) extends Injectable {
 
   def createConversation(): Future[ConvId] =
     for {
-      name  <- name.head
-      users <- users.head
-      conv  <- conversationController.createGroupConversation(users.toSeq, Some(name.trim))
-      from  <- fromScreen.head
+      z        <- zms.head
+      name     <- name.head
+      userIds  <- users.head
+      teamOnly <- teamOnly.head
+      conv     <- conversationController.createGroupConversation(Some(name.trim), userIds, teamOnly)
+      from     <- fromScreen.head
+      (guests, nonGuests) <- z.usersStorage.getAll(userIds).map(_.flatten.partition(_.isGuest(z.teamId)))
     } yield {
-      tracking.track(GroupConversationSuccessful(users.nonEmpty, from))
+      tracking.track(AddParticipantsEvent(!teamOnly, nonGuests.size + 1, guests.size, from))
+      tracking.track(GroupConversationSuccessful(userIds.nonEmpty, !teamOnly, from))
       conv.id
     }
 
   def addUsersToConversation(): Future[Unit] = {
     for {
+      z            <- zms.head
       Some(convId) <- convId.head
-      users <- users.head
-      _ <- conversationController.addMembers(convId, users)
-    } yield ()
+      Some(conv)   <- z.convsStorage.get(convId)
+      userIds      <- users.head
+      from         <- fromScreen.head
+      _            <- conversationController.addMembers(convId, userIds)
+      (guests, nonGuests) <- z.usersStorage.getAll(userIds).map(_.flatten.partition(_.isGuest(z.teamId)))
+    } yield {
+      tracking.track(AddParticipantsEvent(!conv.isTeamOnly, nonGuests.size, guests.size, from))
+    }
   }
 }

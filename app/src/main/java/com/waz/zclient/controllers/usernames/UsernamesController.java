@@ -22,7 +22,7 @@ import com.waz.api.Self;
 import com.waz.api.UsernameValidation;
 import com.waz.api.Usernames;
 import com.waz.api.ValidatedUsernames;
-import com.waz.utils.crypto.SecureRandom;
+import com.waz.utils.crypto.ZSecureRandom;
 import com.waz.zclient.ZApplication;
 import com.waz.zclient.core.api.scala.ModelObserver;
 import com.waz.zclient.utils.StringUtils;
@@ -198,7 +198,7 @@ public class UsernamesController implements IUsernamesController {
 
     private String getTrailingNumber(int attempt) {
         if (attempt > 0) {
-            return String.format(Locale.getDefault(), "%d", SecureRandom.nextInt(0, MAX_RANDOM_TRAILLING_NUMBER * 10 ^ (attempt / 10)));
+            return String.format(Locale.getDefault(), "%d", ZSecureRandom.nextInt(0, MAX_RANDOM_TRAILLING_NUMBER * 10 ^ (attempt / 10)));
         }
         return "";
     }

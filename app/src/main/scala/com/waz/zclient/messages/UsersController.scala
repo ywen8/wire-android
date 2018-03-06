@@ -124,7 +124,9 @@ class UsersController(implicit injector: Injector, context: Context) extends Inj
       contact <- zms.contacts.contactForUser(id)
     } yield contact
 
-  def user(id: UserId) = zMessaging flatMap { _.users.userSignal(id) }
+  def user(id: UserId): Signal[UserData] = zMessaging flatMap { _.users.userSignal(id) }
+
+  def selfUser: Signal[UserData] = selfUserId.flatMap(user)
 
   def conv(msg: MessageData) = {
     for {
