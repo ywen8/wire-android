@@ -131,7 +131,7 @@ class SendConnectRequestFragment extends BaseFragment[SendConnectRequestFragment
   private lazy val userNameView = returning(view[TypefaceTextView](R.id.user_name)) { vh =>
     userDisplayName.onUi(t => vh.foreach(_.setText(t)))
   }
-  private lazy val userUsernameView = returning(view[TypefaceTextView](R.id.user_username)) { vh =>
+  private lazy val userHandleView = returning(view[TypefaceTextView](R.id.user_handle)) { vh =>
     userName.onUi(t => vh.foreach(_.setText(t)))
   }
 
@@ -163,7 +163,7 @@ class SendConnectRequestFragment extends BaseFragment[SendConnectRequestFragment
 
   override def onViewCreated(view: View, savedInstanceState: Bundle): Unit = {
     userNameView
-    userUsernameView
+    userHandleView
 
 //    imageViewProfile.foreach(_.setDisplayType(ImageAssetImageView.DisplayType.CIRCLE))
 //    imageViewProfile.foreach(_.setSaturation(0))
