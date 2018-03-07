@@ -100,9 +100,10 @@ class ParticipantDetailsTab(val context: Context, callback: FooterMenuCallback) 
   (for {
     convId     <- participantsController.conv.map(_.id)
     groupOrBot <- participantsController.isGroupOrBot
-  } yield (groupOrBot, convId)).map {
-    case (false, _)     if userAccountsController.hasCreateConversationPermission               => R.string.glyph__more
-    case (true, convId) if userAccountsController.hasRemoveConversationMemberPermission(convId) => R.string.glyph__minus
+    hasRemoveMeberPermission <- userAccountsController.hasRemoveConversationMemberPermission(convId)
+  } yield (groupOrBot, convId, hasRemoveMeberPermission)).map {
+    case (false, _, _)  if userAccountsController.hasCreateConversationPermission => R.string.glyph__more
+    case (true, convId, true) => R.string.glyph__minus
     case _ => R.string.empty_string
   }.onUi { id =>
     footerMenu.setRightActionText(getString(id))

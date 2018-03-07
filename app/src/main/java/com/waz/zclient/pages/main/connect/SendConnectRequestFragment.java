@@ -116,7 +116,7 @@ public class SendConnectRequestFragment extends BaseFragment<SendConnectRequestF
         }
         connectButton = ViewUtils.getView(rootView, R.id.zb__send_connect_request__connect_button);
         footerMenu = ViewUtils.getView(rootView, R.id.fm__footer);
-        imageAssetImageViewProfile = ViewUtils.getView(rootView, R.id.iaiv__send_connect);
+//        imageAssetImageViewProfile = ViewUtils.getView(rootView, R.id.iaiv__send_connect);
         imageAssetImageViewProfile.setDisplayType(ImageAssetImageView.DisplayType.CIRCLE);
         imageAssetImageViewProfile.setSaturation(0);
         userNameView = ViewUtils.getView(rootView, R.id.user_name);
@@ -210,9 +210,11 @@ public class SendConnectRequestFragment extends BaseFragment<SendConnectRequestF
             }
         });
 
-        final Boolean permissionToRemove = inject(UserAccountsController.class).hasRemoveConversationMemberPermission(
-            inject(ConversationController.class).getCurrentConvId()
-        );
+//        final Boolean permissionToRemove = inject(UserAccountsController.class).hasRemoveConversationMemberPermission(
+//            inject(ConversationController.class).getCurrentConvId()
+//        );
+
+        final Boolean permissionToRemove = false;
 
         if (userRequester == IConnectStore.UserRequester.PARTICIPANTS && permissionToRemove) {
             footerMenu.setRightActionText(getString(R.string.glyph__minus));

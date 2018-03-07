@@ -52,8 +52,8 @@
         android:layout_marginTop="@dimen/wire__padding__small"
         app:w_font="@string/wire__typeface__regular"/>
 
-    <com.waz.zclient.views.images.ImageAssetImageView
-        android:id="@+id/iaiv__send_connect"
+    <ImageView
+        android:id="@+id/iv__send_connect"
         android:layout_width="@dimen/profile__image__width"
         android:layout_height="@dimen/profile__image__height"
         android:layout_centerInParent="true"
