@@ -30,13 +30,15 @@ import com.waz.model.otr.ClientId
 import com.waz.threading.Threading
 import com.waz.utils.events.{Signal, Subscription}
 import com.waz.utils.returning
+import com.waz.zclient.connect.SendConnectRequestFragment
+import com.waz.zclient.controllers.navigation.{INavigationController, Page}
 import com.waz.zclient.controllers.singleimage.ISingleImageController
 import com.waz.zclient.conversation.ConversationController
 import com.waz.zclient.core.stores.conversation.ConversationChangeRequester
 import com.waz.zclient.core.stores.conversation.ConversationChangeRequester._
 import com.waz.zclient.integrations.IntegrationDetailsFragment
 import com.waz.zclient.pages.BaseFragment
-import com.waz.zclient.pages.main.connect.{BlockedUserProfileFragment, PendingConnectRequestFragment, SendConnectRequestFragment}
+import com.waz.zclient.pages.main.connect.{BlockedUserProfileFragment, PendingConnectRequestFragment}
 import com.waz.zclient.pages.main.conversation.controller.{ConversationScreenControllerObserver, IConversationScreenController}
 import com.waz.zclient.pages.main.pickuser.controller.IPickUserController
 import com.waz.zclient.participants.{OptionsMenu, ParticipantsController}
