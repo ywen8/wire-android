@@ -83,78 +83,20 @@ class ShareToMultipleFragment extends FragmentHelper with OnBackPressedListener 
     }
   }
 
-  lazy val convList = returning(view[RecyclerView](R.id.lv__conversation_list)) { vh =>
-    vh.foreach(_.setLayoutManager(new LinearLayoutManager(getContext)))
-    vh.foreach(_.setAdapter(adapter))
-  }
-
+  lazy val convList = view[RecyclerView](R.id.lv__conversation_list)
   lazy val accountTabs = view[AccountTabsView](R.id.account_tabs)
+  lazy val bottomContainer = view[AnimatedBottomContainer](R.id.ephemeral_container)
+  lazy val ephemeralToggle = view[EphemeralCursorButton](R.id.ephemeral_toggle)
 
   lazy val sendButton = returning(view[CursorIconButton](R.id.cib__send_button)) { vh =>
-    vh.foreach(_.onClick {
-      if (!adapter.selectedConversations.currentValue.forall(_.isEmpty)) {
-        onClickEvent ! {}
-      }
-    })
-
     (for {
       convs <- adapter.selectedConversations
       color <- accentColor
     } yield if (convs.nonEmpty) color else ColorUtils.injectAlpha(0.4f, color)).onUi(c => vh.foreach(_.setSolidBackgroundColor(c)))
   }
 
-  lazy val bottomContainer = view[AnimatedBottomContainer](R.id.ephemeral_container)
-
-  lazy val ephemeralToggle = returning(view[EphemeralCursorButton](R.id.ephemeral_toggle)) { vh =>
-    vh.foreach(_.onClick {
-      bottomContainer.foreach { bc =>
-        bc.isExpanded.currentValue match {
-          case Some(true) =>
-            bc.closedAnimated()
-          case Some(false) =>
-            returning(getLayoutInflater.inflate(R.layout.ephemeral_keyboard_layout, null, false).asInstanceOf[EphemeralLayout]) { l =>
-              sharingController.ephemeralExpiration.currentValue.foreach(l.setSelectedExpiration)
-              l.setCallback(new EphemeralLayout.Callback() {
-                override def onEphemeralExpirationSelected(expiration: EphemeralExpiration, close: Boolean): Unit = {
-                  sharingController.ephemeralExpiration ! expiration
-                  vh.foreach(_.ephemeralExpiration ! expiration)
-                  if (close) bc.closedAnimated()
-                }
-              })
-              bc.addView(l)
-            }
-            bc.openAnimated()
-          case _ =>
-        }
-      }
-    })
-  }
-
   lazy val searchBox = returning(view[SearchEditText](R.id.multi_share_search_box)) { vh =>
     accentColor.onUi(c => vh.foreach(_.setCursorColor(c)))
-
-    vh.foreach { v =>
-      v.setCallback(new PickerSpannableEditText.Callback {
-        override def onRemovedTokenSpan(element: PickableElement) =
-          adapter.conversationSelectEvent ! (ConvId(element.id), false)
-
-        override def afterTextChanged(s: String) =
-          vh.map(_.getSearchFilter).foreach(filterText ! _)
-      })
-
-      v.setOnEditorActionListener(new OnEditorActionListener {
-        override def onEditorAction(v: TextView, actionId: Int, event: KeyEvent): Boolean = {
-          if (actionId == EditorInfo.IME_ACTION_DONE || actionId == EditorInfo.IME_ACTION_GO) {
-            if (adapter.selectedConversations.currentValue.forall(_.isEmpty)) false
-            else {
-              KeyboardUtils.closeKeyboardIfShown(getActivity)
-              onClickEvent ! {}
-              true
-            }
-          } else false
-        }
-      })
-    }
 
     ZMessaging.currentAccounts.activeAccount.onChanged.onUi(_ => vh.foreach(v => v.getElements.foreach(v.removeElement)))
 
@@ -227,17 +169,67 @@ class ShareToMultipleFragment extends FragmentHelper with OnBackPressedListener 
 
   private var subs = Set.empty[Subscription]
   override def onViewCreated(view: View, savedInstanceState: Bundle) = {
-    super.onViewCreated(view, savedInstanceState)
     adapter
-    convList
+    bottomContainer
+    contentLayout
+
+    convList.foreach { list =>
+      list.setLayoutManager(new LinearLayoutManager(getContext))
+      list.setAdapter(adapter)
+    }
 
     accountTabs.map(_.onTabClick.map(_.id)(ZMessaging.currentAccounts.switchAccount)).foreach(subs += _)
 
-    sendButton
-    bottomContainer
-    ephemeralToggle
-    searchBox
-    contentLayout
+    sendButton.foreach(_.onClick {
+      if (!adapter.selectedConversations.currentValue.forall(_.isEmpty)) {
+        onClickEvent ! {}
+      }
+    })
+
+    ephemeralToggle.foreach(toggle => toggle.onClick {
+      bottomContainer.foreach { bc =>
+        bc.isExpanded.currentValue match {
+          case Some(true) =>
+            bc.closedAnimated()
+          case Some(false) =>
+            returning(getLayoutInflater.inflate(R.layout.ephemeral_keyboard_layout, null, false).asInstanceOf[EphemeralLayout]) { l =>
+              sharingController.ephemeralExpiration.currentValue.foreach(l.setSelectedExpiration)
+              l.setCallback(new EphemeralLayout.Callback() {
+                override def onEphemeralExpirationSelected(expiration: EphemeralExpiration, close: Boolean): Unit = {
+                  sharingController.ephemeralExpiration ! expiration
+                  toggle.ephemeralExpiration ! expiration
+                  if (close) bc.closedAnimated()
+                }
+              })
+              bc.addView(l)
+            }
+            bc.openAnimated()
+          case _ =>
+        }
+      }
+    })
+
+    searchBox.foreach { box =>
+      box.setCallback(new PickerSpannableEditText.Callback {
+        override def onRemovedTokenSpan(element: PickableElement) =
+          adapter.conversationSelectEvent ! (ConvId(element.id), false)
+
+        override def afterTextChanged(s: String) = filterText ! box.getSearchFilter
+      })
+
+      box.setOnEditorActionListener(new OnEditorActionListener {
+        override def onEditorAction(v: TextView, actionId: Int, event: KeyEvent): Boolean = {
+          if (actionId == EditorInfo.IME_ACTION_DONE || actionId == EditorInfo.IME_ACTION_GO) {
+            if (adapter.selectedConversations.currentValue.forall(_.isEmpty)) false
+            else {
+              KeyboardUtils.closeKeyboardIfShown(getActivity)
+              onClickEvent ! {}
+              true
+            }
+          } else false
+        }
+      })
+    }
   }
 
 
