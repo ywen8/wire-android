@@ -327,7 +327,8 @@ public class PendingConnectRequestFragment extends BaseFragment<PendingConnectRe
     @Override
     public void onConnectUserUpdated(final User user, IConnectStore.UserRequester userRequester) {
         if (this.userRequester != userRequester ||
-            user == null || !user.getId().equals(userId)) {
+            user == null ||
+            (userId != null && !user.getId().equals(userId))) {
             return;
         }
 
