@@ -17,7 +17,6 @@
  */
 package com.waz.zclient.pages.main.conversation.controller;
 
-import com.waz.api.Message;
 import com.waz.model.ConvId;
 import com.waz.model.UserId;
 import com.waz.zclient.pages.main.participants.dialog.DialogLaunchMode;
@@ -47,6 +46,4 @@ public interface IConversationScreenController {
     DialogLaunchMode getPopoverLaunchMode();
 
     void hideOtrClient();
-
-    void showLikesList(Message message);
 }

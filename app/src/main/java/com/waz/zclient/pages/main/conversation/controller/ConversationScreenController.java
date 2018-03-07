@@ -17,7 +17,6 @@
  */
 package com.waz.zclient.pages.main.conversation.controller;
 
-import com.waz.api.Message;
 import com.waz.model.ConvId;
 import com.waz.model.UserId;
 import com.waz.zclient.pages.main.participants.dialog.DialogLaunchMode;
@@ -118,10 +117,4 @@ public class ConversationScreenController implements IConversationScreenControll
         }
     }
 
-    @Override
-    public void showLikesList(Message message) {
-        for (ConversationScreenControllerObserver observer : conversationScreenControllerObservers) {
-            observer.onShowLikesList(message);
-        }
-    }
 }

@@ -40,19 +40,18 @@ import android.view.{LayoutInflater, View, ViewGroup}
 import com.waz.ZLog.ImplicitTag._
 import com.waz.api._
 import com.waz.model.{MessageContent => _, _}
-import com.waz.service.ZMessaging
 import com.waz.service.tracking.GroupConversationEvent
-import com.waz.utils.events.Signal
 import com.waz.zclient.collection.controllers.CollectionController
 import com.waz.zclient.collection.fragments.CollectionFragment
+import com.waz.zclient.common.controllers.ScreenController
 import com.waz.zclient.controllers.camera.ICameraController
 import com.waz.zclient.controllers.collections.CollectionsObserver
 import com.waz.zclient.controllers.drawing.IDrawingController.DrawingDestination
 import com.waz.zclient.controllers.drawing.{DrawingObserver, IDrawingController}
 import com.waz.zclient.controllers.location.{ILocationController, LocationObserver}
 import com.waz.zclient.controllers.navigation.{INavigationController, Page}
-import com.waz.zclient.conversation.ConversationController
 import com.waz.zclient.conversation.creation.{NewConversationController, NewConversationFragment, NewConversationPickFragment}
+import com.waz.zclient.conversation.{ConversationController, LikesListFragment}
 import com.waz.zclient.core.stores.conversation.ConversationChangeRequester
 import com.waz.zclient.pages.BaseFragment
 import com.waz.zclient.pages.main.connect.UserProfileContainer
@@ -68,7 +67,6 @@ import com.waz.zclient.views.ConversationFragment
 import com.waz.zclient.{FragmentHelper, OnBackPressedListener, R}
 
 class ConversationManagerFragment extends BaseFragment[Container] with FragmentHelper
-  with LikesListFragment.Container
   with ConversationScreenControllerObserver
   with DrawingObserver
   with DrawingFragment.Container
@@ -78,25 +76,38 @@ class ConversationManagerFragment extends BaseFragment[Container] with FragmentH
   with CollectionsObserver
   with UserProfileContainer {
 
-  private lazy val zms                    = inject[Signal[ZMessaging]]
-  private lazy val convController         = inject[ConversationController]
-  private lazy val collectionController   = inject[CollectionController]
-  private lazy val navigationController   = inject[INavigationController]
-  private lazy val cameraController       = inject[ICameraController]
-  private lazy val screenController       = inject[IConversationScreenController]
-  private lazy val drawingController      = inject[IDrawingController]
-  private lazy val locationController     = inject[ILocationController]
-  private lazy val pickUserController     = inject[IPickUserController]
-  private lazy val newConvController      = inject[NewConversationController]
+  private lazy val convController       = inject[ConversationController]
+  private lazy val collectionController = inject[CollectionController]
+  private lazy val navigationController = inject[INavigationController]
+  private lazy val cameraController     = inject[ICameraController]
+  private lazy val convScreenController = inject[IConversationScreenController]
+  private lazy val screenController     = inject[ScreenController]
+  private lazy val drawingController    = inject[IDrawingController]
+  private lazy val locationController   = inject[ILocationController]
+  private lazy val pickUserController   = inject[IPickUserController]
+  private lazy val newConvController    = inject[NewConversationController]
   private lazy val participantsController = inject[ParticipantsController]
 
-  private var pickUserDestination: IPickUserController.Destination = null
+  private var pickUserDestination = Option.empty[IPickUserController.Destination]
+  private var subs = Set.empty[com.waz.utils.events.Subscription]
 
-  override def onCreate(savedInstanceState: Bundle): Unit = {
-    super.onCreate(savedInstanceState)
+  override def onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState: Bundle): View = {
+    inflater.inflate(R.layout.fragment_conversation_manager, container, false)
+  }
+
+  override def onViewCreated(view: View, savedInstanceState: Bundle): Unit = {
+    super.onViewCreated(view, savedInstanceState)
+
+    if (savedInstanceState == null) {
+      import ConversationFragment._
+      getChildFragmentManager
+        .beginTransaction
+        .add(R.id.fl__conversation_manager__message_list_container, newInstance(), TAG)
+        .commit
+    }
 
     import ConversationChangeRequester._
-    convController.convChanged.onUi { change =>
+    subs += convController.convChanged.onUi { change =>
       if ((change.requester == START_CONVERSATION) ||
         (change.requester == INCOMING_CALL) ||
         (change.requester == LEAVE_CONVERSATION) ||
@@ -106,10 +117,15 @@ class ConversationManagerFragment extends BaseFragment[Container] with FragmentH
         if ((navigationController.getCurrentRightPage == Page.CAMERA) && !change.noChange)
           cameraController.closeCamera(CameraContext.MESSAGE)
 
-        closeLikesList()
+        screenController.showLikesForMessage ! None
       } else if (!change.noChange) {
         collectionController.closeCollection()
       }
+    }
+
+    subs += screenController.showLikesForMessage.onUi {
+      case Some(mId) => showFragment(new LikesListFragment, LikesListFragment.Tag)
+      case None      => getChildFragmentManager.popBackStack(LikesListFragment.Tag, FragmentManager.POP_BACK_STACK_INCLUSIVE)
     }
 
     participantsController.onShowParticipants.onUi { childTag =>
@@ -124,21 +140,9 @@ class ConversationManagerFragment extends BaseFragment[Container] with FragmentH
     }
   }
 
-  override def onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState: Bundle): View = {
-    val view = inflater.inflate(R.layout.fragment_conversation_manager, container, false)
-    if (savedInstanceState == null) {
-      import ConversationFragment._
-      getChildFragmentManager
-        .beginTransaction
-        .add(R.id.fl__conversation_manager__message_list_container, newInstance(), TAG)
-        .commit
-    }
-    view
-  }
-
   override def onStart(): Unit = {
     super.onStart()
-    screenController.addConversationControllerObservers(this)
+    convScreenController.addConversationControllerObservers(this)
     drawingController.addDrawingObserver(this)
     cameraController.addCameraActionObserver(this)
     pickUserController.addPickUserScreenControllerObserver(this)
@@ -151,9 +155,16 @@ class ConversationManagerFragment extends BaseFragment[Container] with FragmentH
     pickUserController.removePickUserScreenControllerObserver(this)
     cameraController.removeCameraActionObserver(this)
     drawingController.removeDrawingObserver(this)
-    screenController.removeConversationControllerObservers(this)
+    convScreenController.removeConversationControllerObservers(this)
     collectionController.removeObserver(this)
     super.onStop()
+  }
+
+  override def onDestroyView(): Unit = {
+    subs.foreach(_.destroy())
+    subs = Set.empty
+
+    super.onDestroyView()
   }
 
   override def onActivityResult(requestCode: Int, resultCode: Int, data: Intent): Unit = {
@@ -166,23 +177,22 @@ class ConversationManagerFragment extends BaseFragment[Container] with FragmentH
     val fragment = getChildFragmentManager.findFragmentById(R.id.fl__conversation_manager__message_list_container)
     fragment match {
       case f: OnBackPressedListener if f.onBackPressed => true
+
       case f: NewConversationPickFragment =>
         f.onBackPressed()
-        pickUserController.hidePickUser(pickUserDestination)
+        pickUserDestination.foreach(pickUserController.hidePickUser)
         true
-      case f: NewConversationFragment =>
+      case f: NewConversationFragment if pickUserDestination.isDefined  =>
         f.onBackPressed()
-        pickUserController.hidePickUser(pickUserDestination)
+        pickUserDestination.foreach(pickUserController.hidePickUser)
         true
-      case _: LikesListFragment =>
-        getChildFragmentManager.popBackStack(LikesListFragment.TAG, FragmentManager.POP_BACK_STACK_INCLUSIVE)
+      case f: LikesListFragment =>
+        f.onBackPressed()
         true
       case _ =>
         false
     }
   }
-
-  override def onShowLikesList(message: Message): Unit = showFragment(LikesListFragment.newInstance(message), LikesListFragment.TAG)
 
   override def onShowDrawing(image: ImageAsset, drawingDestination: IDrawingController.DrawingDestination, method: IDrawingController.DrawingMethod): Unit = {
     navigationController.setRightPage(Page.DRAWING, ConversationManagerFragment.Tag)
@@ -239,7 +249,7 @@ class ConversationManagerFragment extends BaseFragment[Container] with FragmentH
 
   override def onShowPickUser(destination: IPickUserController.Destination): Unit =
     if (destination == IPickUserController.Destination.CURSOR || destination == IPickUserController.Destination.PARTICIPANTS) {
-      pickUserDestination = destination
+      pickUserDestination = Option(destination)
       KeyboardUtils.hideKeyboard(getActivity)
       navigationController.setRightPage(Page.PICK_USER_ADD_TO_CONVERSATION, ConversationManagerFragment.Tag)
 
@@ -259,8 +269,8 @@ class ConversationManagerFragment extends BaseFragment[Container] with FragmentH
     }
 
   override def onHidePickUser(destination: IPickUserController.Destination): Unit = {
-    if (destination == pickUserDestination) {
-      val page = if (IPickUserController.Destination.CURSOR == pickUserDestination) Page.MESSAGE_STREAM else Page.PARTICIPANT
+    if (pickUserDestination.contains(destination)) {
+      val page = if (pickUserDestination.contains(IPickUserController.Destination.CURSOR)) Page.MESSAGE_STREAM else Page.PARTICIPANT
       navigationController.setRightPage(page, ConversationManagerFragment.Tag)
       getChildFragmentManager.popBackStack(AddOrCreateTag, FragmentManager.POP_BACK_STACK_INCLUSIVE)
     }
@@ -276,12 +286,6 @@ class ConversationManagerFragment extends BaseFragment[Container] with FragmentH
       convController.sendMessage(location)
     navigationController.setRightPage(Page.MESSAGE_STREAM, ConversationManagerFragment.Tag)
     getChildFragmentManager.popBackStack(LocationFragment.TAG, FragmentManager.POP_BACK_STACK_INCLUSIVE)
-  }
-
-  override def closeLikesList(): Unit = {
-    val fragment = getChildFragmentManager.findFragmentById(R.id.fl__conversation_manager__message_list_container)
-    if (fragment.isInstanceOf[LikesListFragment])
-      getChildFragmentManager.popBackStack(LikesListFragment.TAG, FragmentManager.POP_BACK_STACK_INCLUSIVE)
   }
 
   private def showFragment(fragment: Fragment, tag: String): Unit = {

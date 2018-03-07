@@ -19,18 +19,13 @@ package com.waz.zclient.common.controllers
 
 import android.content.Context
 import com.waz.model.MessageId
-import com.waz.service.ZMessaging
+import com.waz.utils.events.Signal
 import com.waz.zclient.Intents.ShowDevicesIntent
-import com.waz.zclient.pages.main.conversation.controller.IConversationScreenController
 import com.waz.zclient.{Injectable, Injector}
 
 class ScreenController(implicit injector: Injector, context: Context) extends Injectable {
 
-  private lazy val conversationController = inject[IConversationScreenController]
+  def openOtrDevicePreferences(): Unit = context.startActivity(ShowDevicesIntent)
 
-  def openOtrDevicePreferences() =
-    context.startActivity(ShowDevicesIntent)
-
-  def showUsersWhoLike(mId: MessageId) = conversationController.showLikesList(ZMessaging.currentUi.messages.cachedOrNew(mId))
-
+  val showLikesForMessage = Signal(Option.empty[MessageId])
 }
