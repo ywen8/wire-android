@@ -90,12 +90,12 @@ class VideoCallingView(val context: Context, val attrs: AttributeSet, val defSty
     case false => None
   }.on(Threading.Ui)(controller.setVideoPreview)
 
-  controller.callEstablished.map {
+  controller.glob.activeCallEstablished.map {
     case true => Some(videoView)
     case false => None
   }.on(Threading.Ui)(controller.setVideoView)
 
-  Signal(controller.glob.activeCall, controller.callEstablished).on(Threading.Ui) {
+  Signal(controller.glob.activeCall, controller.glob.activeCallEstablished).on(Threading.Ui) {
     case (true, false) if !hasFullScreenBeenSet =>
       Timber.d("Attaching videoPreview to fullScreen (call active, but not established")
       setFullScreenView(videoPreview)
@@ -109,11 +109,11 @@ class VideoCallingView(val context: Context, val attrs: AttributeSet, val defSty
     case _ =>
   }
 
-  controller.callEstablished.on(Threading.Ui)(selfViewLayout.setVisible)
+  controller.glob.activeCallEstablished.on(Threading.Ui)(selfViewLayout.setVisible)
 
-  controller.callEstablished.on(Threading.Ui)(est => headerView.setVisible(!est))
+  controller.glob.activeCallEstablished.on(Threading.Ui)(est => headerView.setVisible(!est))
 
-  controller.callEstablished(isCallEstablished = _)
+  controller.glob.activeCallEstablished(isCallEstablished = _)
 
   controller.stateMessageText.on(Threading.Ui) {
     case (Some(message)) =>
@@ -123,17 +123,17 @@ class VideoCallingView(val context: Context, val attrs: AttributeSet, val defSty
       messageView.setVisibility(GONE)
   }
 
-  Signal(controller.callEstablished, controller.cameraFailed, controller.videoSendState).map {
+  Signal(controller.glob.activeCallEstablished, controller.cameraFailed, controller.videoSendState).map {
     case (true, false, VideoSendState.SEND) => GONE
     case _ => VISIBLE
   }.on(Threading.Ui)(selfPreviewPlaceHolder.setVisibility)
 
-  Signal(controller.callEstablished, controller.cameraFailed, controller.videoSendState).map {
+  Signal(controller.glob.activeCallEstablished, controller.cameraFailed, controller.videoSendState).map {
     case (true, false, VideoSendState.SEND) => VISIBLE
     case _ => GONE
   }.on(Threading.Ui)(setSelfPreviewVisible)
 
-  Signal(controller.callEstablished, controller.cameraFailed, controller.videoSendState, controller.captureDevices).map {
+  Signal(controller.glob.activeCallEstablished, controller.cameraFailed, controller.videoSendState, controller.captureDevices).map {
     case (true, false, VideoSendState.SEND, devices) if devices.size > 1 =>
       isCameraToggleButtonVisible = true
       VISIBLE
