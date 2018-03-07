@@ -104,9 +104,10 @@ class SingleParticipantFragment extends FragmentHelper {
     override def onRightActionClicked(): Unit = (for {
       isGroup <- participantsController.isGroup.head
       convId  <- convController.currentConvId.head
-    } yield (isGroup, convId)).foreach {
-      case (false, convId) => screenController.showConversationMenu(false, convId)
-      case (true, convId) if userAccountsController.hasRemoveConversationMemberPermission(convId) =>
+      hasRemoveMemberPermission <- userAccountsController.hasRemoveConversationMemberPermission(convId).head
+    } yield (isGroup, convId, hasRemoveMemberPermission)).foreach {
+      case (false, convId, _) => screenController.showConversationMenu(false, convId)
+      case (true, convId, true) =>
         participantsController.otherParticipantId.head.foreach {
           case Some(userId) => participantsController.showRemoveConfirmation(userId)
           case _            =>

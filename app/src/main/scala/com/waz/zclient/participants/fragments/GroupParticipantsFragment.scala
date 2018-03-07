@@ -37,7 +37,7 @@ import com.waz.utils.events._
 import com.waz.zclient.common.controllers.UserAccountsController
 import com.waz.zclient.core.stores.connect.IConnectStore
 import com.waz.zclient.integrations.IntegrationDetailsController
-import com.waz.zclient.pages.main.connect.{BlockedUserProfileFragment, ConnectRequestLoadMode, PendingConnectRequestFragment, SendConnectRequestFragment}
+import com.waz.zclient.pages.main.connect.{BlockedUserProfileFragment, ConnectRequestLoadMode, PendingConnectRequestFragment}
 import com.waz.zclient.pages.main.conversation.controller.IConversationScreenController
 import com.waz.zclient.participants.{ParticipantsAdapter, ParticipantsController}
 import com.waz.zclient.ui.text.GlyphTextView
@@ -157,8 +157,8 @@ class GroupParticipantsFragment extends FragmentHelper {
         openUserProfileFragment(newInstance(userId.str, IConnectStore.UserRequester.PARTICIPANTS), TAG)
 
       case Some(user) if user.connection == CANCELLED || user.connection == UNCONNECTED =>
-        import SendConnectRequestFragment._
-        openUserProfileFragment(newInstance(userId.str, IConnectStore.UserRequester.PARTICIPANTS), TAG)
+        import com.waz.zclient.connect.SendConnectRequestFragment._
+        openUserProfileFragment(newInstance(userId.str, IConnectStore.UserRequester.PARTICIPANTS), Tag)
       case _ =>
     }
   }
