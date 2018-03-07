@@ -18,7 +18,6 @@
 package com.waz.zclient.controllers.singleimage;
 
 import android.view.View;
-import com.waz.api.User;
 
 public interface ISingleImageController {
     void addSingleImageObserver(SingleImageObserver observer);
@@ -36,6 +35,4 @@ public interface ISingleImageController {
     void clearReferences();
 
     void showSingleImage(String messageId);
-
-    void showSingleImage(User user);
 }
