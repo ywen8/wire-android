@@ -26,37 +26,38 @@ import android.view.inputmethod.EditorInfo
 import android.view.{KeyEvent, LayoutInflater, View, ViewGroup}
 import android.widget.TextView.OnEditorActionListener
 import android.widget.{ImageView, TextView}
+import com.waz.ZLog.ImplicitTag.implicitLogTag
+import com.waz.api.Verification
 import com.waz.model._
 import com.waz.service.ZMessaging
+import com.waz.threading.Threading
 import com.waz.utils.events.{EventContext, EventStream, Signal, SourceStream}
+import com.waz.utils.returning
+import com.waz.zclient.common.controllers.ThemeController
 import com.waz.zclient.common.views.SingleUserRowView
 import com.waz.zclient.conversation.ConversationController
 import com.waz.zclient.paintcode.{ForwardNavigationIcon, GuestIcon}
+import com.waz.zclient.ui.text.TypefaceEditText.OnSelectionChangedListener
 import com.waz.zclient.ui.text.{GlyphTextView, TypefaceEditText}
 import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.utils.{RichView, ViewUtils}
 import com.waz.zclient.{Injectable, Injector, R}
-import com.waz.ZLog.ImplicitTag.implicitLogTag
-import com.waz.api.Verification
-import com.waz.threading.Threading
-import com.waz.zclient.common.controllers.ThemeController
-import com.waz.zclient.ui.text.TypefaceEditText.OnSelectionChangedListener
-
 
 class ParticipantsAdapter(numOfColumns: Int)(implicit context: Context, injector: Injector, eventContext: EventContext)
   extends RecyclerView.Adapter[ViewHolder] with Injectable {
   import ParticipantsAdapter._
 
-  private lazy val zms = inject[Signal[ZMessaging]]
+  private lazy val zms                    = inject[Signal[ZMessaging]]
   private lazy val participantsController = inject[ParticipantsController]
   private lazy val convController         = inject[ConversationController]
   private lazy val themeController        = inject[ThemeController]
 
-  private var conversation = Option.empty[ConversationData]
-  private var items = List.empty[Either[ParticipantData, Int]]
-  private var teamId = Option.empty[TeamId]
+  private var items              = List.empty[Either[ParticipantData, Int]]
+  private var teamId             = Option.empty[TeamId]
+  private var conversation       = Option.empty[ConversationData]
+  private var convNameViewHolder = Option.empty[ConversationNameViewHolder]
 
-  val onClick = EventStream[UserId]()
+  val onClick             = EventStream[UserId]()
   val onGuestOptionsClick = EventStream[Unit]()
 
   lazy val users = for {
@@ -68,8 +69,8 @@ class ParticipantsAdapter(numOfColumns: Int)(implicit context: Context, injector
   private val shouldShowGuestButton = inject[ConversationController].currentConv.map(_.accessRole.isDefined)
 
   private lazy val positions = for {
-    users <- users
-    isTeam <- participantsController.currentUserBelongsToConversationTeam
+    users       <- users
+    isTeam      <- participantsController.currentUserBelongsToConversationTeam
     guestButton <- shouldShowGuestButton
   } yield {
     val (bots, people) = users.toList.partition(_.userData.isWireBot)
@@ -101,6 +102,8 @@ class ParticipantsAdapter(numOfColumns: Int)(implicit context: Context, injector
     notifyDataSetChanged()
   }
 
+  def onBackPressed(): Boolean = convNameViewHolder.exists(_.onBackPressed())
+
   override def onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder = viewType match {
     case GuestOptions =>
       val view = LayoutInflater.from(parent.getContext).inflate(R.layout.guest_options_button, parent, false)
@@ -112,14 +115,15 @@ class ParticipantsAdapter(numOfColumns: Int)(implicit context: Context, injector
       view.setTheme(if (themeController.isDarkTheme) SingleUserRowView.Dark else SingleUserRowView.Light)
       ParticipantRowViewHolder(view, onClick)
     case ConversationName =>
-      import Threading.Implicits.Background
       val view = LayoutInflater.from(parent.getContext).inflate(R.layout.conversation_name_row, parent, false)
-      ConversationNameViewHolder(view, (convId, name) => zms.head.flatMap(_.convsUi.setConversationName(convId, name)))
+      returning(ConversationNameViewHolder(view, zms)) { vh =>
+        convNameViewHolder = Option(vh)
+      }
     case _ => SeparatorViewHolder(getSeparatorView(parent))
   }
 
   override def onBindViewHolder(holder: ViewHolder, position: Int): Unit = (items(position), holder) match {
-    case (Left(userData), h: ParticipantRowViewHolder) => h.bind(userData, teamId)
+    case (Left(userData), h: ParticipantRowViewHolder)            => h.bind(userData, teamId)
     case (Right(ConversationName), h: ConversationNameViewHolder) => conversation.foreach(h.bind)
     case (Right(sepType), h: SeparatorViewHolder) if Set(PeopleSeparator, BotsSeparator).contains(sepType) =>
       val count = items.count {
@@ -136,13 +140,13 @@ class ParticipantsAdapter(numOfColumns: Int)(implicit context: Context, injector
 
   def getSpanSize(position: Int): Int = getItemViewType(position) match {
     case PeopleSeparator | BotsSeparator => numOfColumns
-    case _                                   => 1
+    case _                               => 1
   }
 
   override def getItemCount: Int = items.size
 
   override def getItemId(position: Int): Long = items(position) match {
-    case Left(user)   => user.userData.id.hashCode()
+    case Left(user)     => user.userData.id.hashCode()
     case Right(sepType) => sepType
   }
 
@@ -159,10 +163,10 @@ class ParticipantsAdapter(numOfColumns: Int)(implicit context: Context, injector
 }
 
 object ParticipantsAdapter {
-  val UserRow = 0
-  val PeopleSeparator = 1
-  val BotsSeparator = 2
-  val GuestOptions = 3
+  val UserRow          = 0
+  val PeopleSeparator  = 1
+  val BotsSeparator    = 2
+  val GuestOptions     = 3
   val ConversationName = 4
 
   case class ParticipantData(userData: UserData, isGuest: Boolean)
@@ -193,30 +197,42 @@ object ParticipantsAdapter {
     }
   }
 
-  case class ConversationNameViewHolder(view: View, changeName: (ConvId, String) => Unit) extends ViewHolder(view) {
+  case class ConversationNameViewHolder(view: View, zms: Signal[ZMessaging]) extends ViewHolder(view) {
     private val editText = view.findViewById[TypefaceEditText](R.id.conversation_name_edit_text)
     private val penGlyph = view.findViewById[GlyphTextView](R.id.conversation_name_edit_glyph)
     private val verifiedShield = view.findViewById[ImageView](R.id.conversation_verified_shield)
 
     private var conversationData = Option.empty[ConversationData]
+    private val isBeingEdited = Signal(false)
+
+    private def stopEditing() = {
+      editText.setSelected(false)
+      editText.clearFocus()
+      Selection.removeSelection(editText.getText)
+      penGlyph.setVisible(true)
+      isBeingEdited ! false
+    }
 
     editText.setAccentColor(Color.BLACK)
 
     editText.setOnEditorActionListener(new OnEditorActionListener {
       override def onEditorAction(v: TextView, actionId: Int, event: KeyEvent): Boolean = {
         if (actionId == EditorInfo.IME_ACTION_DONE) {
-          editText.setSelected(false)
-          editText.clearFocus()
-          Selection.removeSelection(editText.getText)
-          conversationData.foreach(c => changeName(c.id, v.getText.toString))
+          stopEditing()
+          conversationData.foreach { c =>
+            import Threading.Implicits.Background
+            zms.head.flatMap(_.convsUi.setConversationName(c.id, v.getText.toString))
+          }
         }
         false
       }
     })
 
     editText.setOnSelectionChangedListener(new OnSelectionChangedListener {
-      override def onSelectionChanged(selStart: Int, selEnd: Int): Unit =
+      override def onSelectionChanged(selStart: Int, selEnd: Int): Unit = {
         penGlyph.animate().alpha(if (selStart >= 0) 0.0f else 1.0f).start()
+        isBeingEdited ! true
+      }
     })
 
     def bind(conversationData: ConversationData): Unit = {
@@ -225,6 +241,12 @@ object ParticipantsAdapter {
       Selection.removeSelection(editText.getText)
       verifiedShield.setVisible(conversationData.verified == Verification.VERIFIED)
     }
+
+    def onBackPressed(): Boolean = if (isBeingEdited.currentValue.getOrElse(false)) {
+      conversationData.foreach(c => editText.setText(c.displayName))
+      stopEditing()
+      true
+    } else false
   }
 
 }
