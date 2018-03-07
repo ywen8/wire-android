@@ -84,11 +84,6 @@ class CurrentCallController(implicit inj: Injector, cxt: WireContext) extends In
     case _ => Signal.const[Option[UserData]](None) //Need a none signal to help with further signals
   }
 
-  val callEstablished = currentCallOpt.map(_.exists(_.state == SelfConnected))
-    .disableAutowiring()
-
-  val onCallEstablished = callEstablished.onChanged
-
   val duration = {
     def timeSince(est: Option[Instant]) = ClockSignal(Duration.ofSeconds(1).asScala).map(_ => est.fold2(ZERO, between(_, now)))
     currentCall.map(_.estabTime).flatMap(timeSince)
@@ -234,7 +229,7 @@ class CurrentCallController(implicit inj: Injector, cxt: WireContext) extends In
 
   val rightButtonShown = convDegraded.flatMap {
     case true  => Signal(false)
-    case false => Signal(videoCall, callEstablished, captureDevices, isTablet) map {
+    case false => Signal(videoCall, activeCallEstablished, captureDevices, isTablet) map {
       case (true, false, _, _) => false
       case (true, true, captureDevices, _) => captureDevices.size >= 0
       case (false, _, _, isTablet) => !isTablet //Tablets don't have ear-pieces, so you can't switch between speakers
