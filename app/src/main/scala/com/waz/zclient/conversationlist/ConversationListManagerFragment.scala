@@ -283,7 +283,7 @@ class ConversationListManagerFragment extends Fragment
           case BLOCKED =>
             show (
               BlockedUserProfileFragment.newInstance(userId.str, IConnectStore.UserRequester.SEARCH),
-              BlockedUserProfileFragment.TAG
+              BlockedUserProfileFragment.Tag
             )
             navController.setLeftPage(Page.PENDING_CONNECT_REQUEST, Tag)
           case _ => //

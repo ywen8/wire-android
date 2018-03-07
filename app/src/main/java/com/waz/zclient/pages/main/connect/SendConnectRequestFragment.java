@@ -120,7 +120,7 @@ public class SendConnectRequestFragment extends BaseFragment<SendConnectRequestF
         imageAssetImageViewProfile.setDisplayType(ImageAssetImageView.DisplayType.CIRCLE);
         imageAssetImageViewProfile.setSaturation(0);
         userNameView = ViewUtils.getView(rootView, R.id.user_name);
-        userUsernameView = ViewUtils.getView(rootView, R.id.user_username);
+        userUsernameView = ViewUtils.getView(rootView, R.id.user_handle);
 
         View backgroundContainer = ViewUtils.getView(rootView, R.id.background_container);
         backgroundContainer.setClickable(true);
@@ -128,6 +128,9 @@ public class SendConnectRequestFragment extends BaseFragment<SendConnectRequestF
             getControllerFactory().getConversationScreenController().getPopoverLaunchMode() != DialogLaunchMode.AVATAR &&
             getControllerFactory().getConversationScreenController().getPopoverLaunchMode() != DialogLaunchMode.COMMON_USER) {
             backgroundContainer.setBackgroundColor(Color.TRANSPARENT);
+            userNameView.setPaddingRelative(0, 0, 0, 0);
+        } else {
+            userNameView.setPaddingRelative(0, ContextUtils.getDimenPx(R.dimen.wire__padding__regular, getContext()), 0, 0);
         }
         connectButton.setText(getResources().getString(R.string.send_connect_request__connect_button__text));
 
