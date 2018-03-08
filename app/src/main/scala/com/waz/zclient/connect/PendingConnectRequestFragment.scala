@@ -19,7 +19,7 @@ import com.waz.zclient.common.views.ImageController.{ImageSource, WireImage}
 import com.waz.zclient.core.stores.connect.IConnectStore
 import com.waz.zclient.messages.UsersController
 import com.waz.zclient.pages.BaseFragment
-import com.waz.zclient.pages.main.connect.{ConnectRequestLoadMode, UserProfileContainer}
+import com.waz.zclient.pages.main.connect.UserProfileContainer
 import com.waz.zclient.pages.main.participants.ProfileAnimation
 import com.waz.zclient.pages.main.participants.dialog.DialogLaunchMode
 import com.waz.zclient.ui.text.TypefaceTextView
@@ -38,7 +38,7 @@ object PendingConnectRequestFragment {
   val ArgUserRequester = "ARGUMENT_USER_REQUESTER"
   val StateIsShowingFooterMenu = "STATE_IS_SHOWING_FOOTER_MENU"
 
-  def newInstance(userId: String, conversationId: String, loadMode: ConnectRequestLoadMode, userRequester: IConnectStore.UserRequester): PendingConnectRequestFragment = {
+  def newInstance(userId: String, userRequester: IConnectStore.UserRequester): PendingConnectRequestFragment = {
     val newFragment = new PendingConnectRequestFragment
     val args = new Bundle
     args.putString(ArgUserId, userId)
