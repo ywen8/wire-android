@@ -35,7 +35,7 @@ import com.waz.utils.events.Signal
 import com.waz.utils.returning
 import com.waz.zclient.common.controllers.global.AccentColorController
 import com.waz.zclient.common.controllers.{SoundController, ThemeController, UserAccountsController}
-import com.waz.zclient.connect.SendConnectRequestFragment
+import com.waz.zclient.connect.{PendingConnectRequestManagerFragment, SendConnectRequestFragment}
 import com.waz.zclient.controllers.calling.ICallingController
 import com.waz.zclient.controllers.camera.ICameraController
 import com.waz.zclient.controllers.confirmation._
@@ -44,7 +44,7 @@ import com.waz.zclient.conversation.ConversationController
 import com.waz.zclient.core.stores.connect.IConnectStore
 import com.waz.zclient.core.stores.conversation.ConversationChangeRequester
 import com.waz.zclient.messages.UsersController
-import com.waz.zclient.pages.main.connect.{BlockedUserProfileFragment, ConnectRequestLoadMode, PendingConnectRequestManagerFragment}
+import com.waz.zclient.pages.main.connect.BlockedUserProfileFragment
 import com.waz.zclient.pages.main.conversation.controller.{ConversationScreenControllerObserver, IConversationScreenController}
 import com.waz.zclient.pages.main.pickuser.controller.IPickUserController.Destination
 import com.waz.zclient.pages.main.pickuser.controller.{IPickUserController, PickUserControllerScreenObserver}
@@ -84,14 +84,15 @@ class ConversationListManagerFragment extends Fragment
   lazy val sounds       = inject[SoundController]
   lazy val convListController = inject[ConversationListController]
 
-  lazy val convController          = inject[ConversationController]
-  lazy val accentColor             = inject[AccentColorController]
-  lazy val pickUserController      = inject[IPickUserController]
-  lazy val navController           = inject[INavigationController]
-  lazy val convScreenController    = inject[IConversationScreenController]
-  lazy val confirmationController  = inject[IConfirmationController]
-  lazy val cameraController        = inject[ICameraController]
-  lazy val callingController       = inject[ICallingController]
+  private lazy val convController                 = inject[ConversationController]
+  private lazy val accentColor                    = inject[AccentColorController]
+  private lazy val pickUserController             = inject[IPickUserController]
+  private lazy val navController                  = inject[INavigationController]
+  private lazy val convScreenController           = inject[IConversationScreenController]
+  private lazy val confirmationController         = inject[IConfirmationController]
+  private lazy val cameraController               = inject[ICameraController]
+  private lazy val callingController              = inject[ICallingController]
+  private lazy val userAccountsController         = inject[UserAccountsController]
 
   private var startUiLoadingIndicator: LoadingIndicatorView = _
   private var listLoadingIndicator   : LoadingIndicatorView = _
@@ -269,8 +270,8 @@ class ConversationListManagerFragment extends Fragment
 
           case PENDING_FROM_OTHER | PENDING_FROM_USER | IGNORED =>
             show(
-              PendingConnectRequestManagerFragment.newInstance(userId.str, null, ConnectRequestLoadMode.LOAD_BY_USER_ID, IConnectStore.UserRequester.SEARCH),
-              PendingConnectRequestManagerFragment.TAG
+              PendingConnectRequestManagerFragment.newInstance(userId, IConnectStore.UserRequester.SEARCH),
+              PendingConnectRequestManagerFragment.Tag
             )
             navController.setLeftPage(Page.PENDING_CONNECT_REQUEST, Tag)
 
@@ -394,14 +395,11 @@ class ConversationListManagerFragment extends Fragment
     }
   }
 
-  override def onAcceptedConnectRequest(convId: ConvId) = {
-    verbose(s"onAcceptedConnectRequest $convId")
-    convController.selectConv(convId, ConversationChangeRequester.START_CONVERSATION)
-  }
-
-  override def onAcceptedPendingOutgoingConnectRequest(conversation: ConvId) = {
-    verbose(s"onAcceptedPendingOutgoingConnectRequest: $conversation")
-    convController.selectConv(conversation, ConversationChangeRequester.CONNECT_REQUEST_ACCEPTED)
+  override def onAcceptedConnectRequest(userId: UserId) = {
+    verbose(s"onAcceptedConnectRequest $userId")
+    userAccountsController.getConversationId(userId).flatMap { convId =>
+      convController.selectConv(convId, ConversationChangeRequester.START_CONVERSATION)
+    }
   }
 
   override def onUnblockedUser(restoredConversationWithUser: ConvId) = {

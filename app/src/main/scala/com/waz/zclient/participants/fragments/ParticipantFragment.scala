@@ -25,12 +25,14 @@ import android.view.animation.Animation
 import android.view.{LayoutInflater, View, ViewGroup}
 import com.waz.ZLog.ImplicitTag._
 import com.waz.ZLog._
+import com.waz.api.Message
 import com.waz.model._
 import com.waz.model.otr.ClientId
 import com.waz.threading.Threading
 import com.waz.utils.events.{Signal, Subscription}
 import com.waz.utils.returning
-import com.waz.zclient.connect.SendConnectRequestFragment
+import com.waz.zclient.common.controllers.UserAccountsController
+import com.waz.zclient.connect.{PendingConnectRequestFragment, SendConnectRequestFragment}
 import com.waz.zclient.controllers.navigation.{INavigationController, Page}
 import com.waz.zclient.controllers.singleimage.ISingleImageController
 import com.waz.zclient.conversation.ConversationController
@@ -38,7 +40,7 @@ import com.waz.zclient.core.stores.conversation.ConversationChangeRequester
 import com.waz.zclient.core.stores.conversation.ConversationChangeRequester._
 import com.waz.zclient.integrations.IntegrationDetailsFragment
 import com.waz.zclient.pages.BaseFragment
-import com.waz.zclient.pages.main.connect.{BlockedUserProfileFragment, PendingConnectRequestFragment}
+import com.waz.zclient.pages.main.connect.BlockedUserProfileFragment
 import com.waz.zclient.pages.main.conversation.controller.{ConversationScreenControllerObserver, IConversationScreenController}
 import com.waz.zclient.pages.main.pickuser.controller.IPickUserController
 import com.waz.zclient.participants.{OptionsMenu, ParticipantsController}
@@ -73,6 +75,8 @@ class ParticipantFragment extends BaseFragment[ParticipantFragment.Container] wi
   private lazy val screenController       = inject[IConversationScreenController]
   private lazy val pickUserController     = inject[IPickUserController]
   private lazy val singleImageController  = inject[ISingleImageController]
+  private lazy val navigationController   = inject[INavigationController]
+  private lazy val userAccountsController = inject[UserAccountsController]
 
   private var subs = Set.empty[Subscription]
 
@@ -245,10 +249,12 @@ class ParticipantFragment extends BaseFragment[ParticipantFragment.Container] wi
 
   override def dismissSingleUserProfile(): Unit = dismissUserProfile()
 
-  override def onAcceptedConnectRequest(conversation: ConvId): Unit = {
+  override def onAcceptedConnectRequest(userId: UserId): Unit = {
     screenController.hideUser()
-    verbose(s"onAcceptedConnectRequest $conversation")
-    convController.selectConv(conversation, ConversationChangeRequester.START_CONVERSATION)
+    verbose(s"onAcceptedConnectRequest $userId")
+    userAccountsController.getConversationId(userId).flatMap { convId =>
+      convController.selectConv(convId, ConversationChangeRequester.START_CONVERSATION)
+    }
   }
 
   override def onUnblockedUser(restoredConversationWithUser: ConvId): Unit = {
@@ -261,7 +267,7 @@ class ParticipantFragment extends BaseFragment[ParticipantFragment.Container] wi
 
   override def onHideOtrClient(): Unit = getChildFragmentManager.popBackStack()
 
-  override def onConversationUpdated(conversation: ConvId): Unit = {}
+  override def onShowLikesList(message: Message): Unit = {}
 }
 
 object ParticipantFragment {
