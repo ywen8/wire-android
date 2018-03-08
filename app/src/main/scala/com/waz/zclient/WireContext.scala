@@ -252,9 +252,9 @@ class ViewHolder[T <: View](id: Int, finder: ViewFinder) {
 
   def flatMap[A](f: T => Option[A]): Option[A] = Option(get).flatMap(f)
 
-  def onResume() = onClickListener.foreach(l => view.foreach(_.setOnClickListener(l)))
+  def onResume() = onClickListener.foreach(l => foreach(_.setOnClickListener(l)))
 
-  def onPause() = onClickListener.foreach(_ => view.foreach(_.setOnClickListener(null)))
+  def onPause() = onClickListener.foreach(_ => foreach(_.setOnClickListener(null)))
 
   def onClick(f: T => Unit): Unit = {
     onClickListener = Some(returning(new OnClickListener {
