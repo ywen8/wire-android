@@ -22,7 +22,7 @@ import android.os.Bundle
 import android.support.v4.app.ShareCompat
 import android.support.v7.widget.SwitchCompat
 import android.view.{LayoutInflater, View, ViewGroup}
-import android.widget.{CompoundButton, LinearLayout, TextView}
+import android.widget.{CompoundButton, FrameLayout, LinearLayout, TextView}
 import com.waz.ZLog.ImplicitTag._
 import com.waz.service.ZMessaging
 import com.waz.threading.Threading
@@ -34,6 +34,8 @@ import com.waz.zclient.ui.text.TypefaceTextView
 import com.waz.zclient.utils.ContextUtils.showToast
 import com.waz.zclient.utils.{RichView, ViewUtils}
 import com.waz.zclient.{FragmentHelper, R, SpinnerController}
+
+import scala.concurrent.Future
 
 class GuestOptionsFragment extends FragmentHelper {
 
@@ -53,6 +55,7 @@ class GuestOptionsFragment extends FragmentHelper {
   }
 
   private lazy val guestsTitle = view[TextView](R.id.guest_toggle_title)
+  private lazy val linkButton = view[FrameLayout](R.id.link_button)
   private lazy val guestLinkText = returning(view[TypefaceTextView](R.id.link_button_link_text)) { text =>
     convCtrl.currentConv.map(_.link).onUi {
       case Some(link) =>
@@ -72,7 +75,7 @@ class GuestOptionsFragment extends FragmentHelper {
       button.foreach(_.setVisibility(if (hasLink) View.VISIBLE else View.GONE))
     }
   }
-  private lazy val shareLinkButton = returning(view[MenuRowButton](R.id.share_link_button)) { button =>
+  private lazy val shareLinkButton = returning(view[MenuRowButton](R.id.share_link)) { button =>
     convCtrl.currentConv.map(_.link.isDefined).onUi { hasLink =>
       button.foreach(_.setVisibility(if (hasLink) View.VISIBLE else View.GONE))
     }
@@ -93,6 +96,46 @@ class GuestOptionsFragment extends FragmentHelper {
 
   override def onViewCreated(view: View, savedInstanceState: Bundle): Unit = {
     guestsSwitch
+    guestLinkText
+    guestLinkCreate
+
+    linkButton.foreach(_.onClick {
+      spinnerController.showSpinner(true)
+      zms.head.map { zms =>
+        convCtrl.currentConv.head.flatMap { conv =>
+          conv.link match {
+            case Some(link) =>
+              copyToClipboard(link.url)
+              spinnerController.showSpinner(false)
+              Future.successful(())
+            case _ =>
+              zms.conversations.createLink(conv.id).map {
+                case Left(_) =>
+                  spinnerController.showSpinner(false)
+                  showToast(R.string.allow_guests_error_title)
+                case _ =>
+                  spinnerController.showSpinner(false)
+              } (Threading.Ui)
+          }
+        } (Threading.Ui)
+
+      }
+    })
+/*
+      (for {
+        zms <- zms.head
+        conv <- convCtrl.currentConv.head
+        link <- zms.conversations.createLink(conv.id)
+      } yield link).map {
+        case Left(_) =>
+          spinnerController.showSpinner(false)
+          showToast(R.string.allow_guests_error_title)
+        case l =>
+          spinnerController.showSpinner(false)
+      } (Threading.Ui)
+*/
+
+/*
     guestLinkText.foreach(linkText => linkText.onClick(copyToClipboard(linkText.getText.toString)))
     guestLinkCreate.foreach(_.onClick {
       spinnerController.showSpinner(true)
@@ -108,12 +151,11 @@ class GuestOptionsFragment extends FragmentHelper {
           spinnerController.showSpinner(false)
       } (Threading.Ui)
     })
-
+*/
     copyLinkButton.foreach(_.onClick(convCtrl.currentConv.head.map(_.link.foreach(link => copyToClipboard(link.url)))(Threading.Ui)))
     shareLinkButton.foreach(_.onClick {
       convCtrl.currentConv.head.map(_.link.foreach { link =>
         val intentBuilder = ShareCompat.IntentBuilder.from(getActivity)
-        //intentBuilder.setChooserTitle(R.string.conversation__action_mode__fwd__chooser__title)
         intentBuilder.setType("text/plain")
         intentBuilder.setText(link.url)
         intentBuilder.startChooser()

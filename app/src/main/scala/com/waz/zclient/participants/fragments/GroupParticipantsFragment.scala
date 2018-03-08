@@ -79,7 +79,6 @@ class GroupParticipantsFragment extends FragmentHelper {
       fm.foreach(_.setLeftActionLabelText(getString(textId)))
     }
   }
-  private lazy val emptyListIcon = view[GlyphTextView](R.id.empty_group_watermark)
 
   private lazy val participantsAdapter = returning(new ParticipantsAdapter(getInt(R.integer.participant_column__count))) { adapter =>
     new FutureEventStream[UserId, Option[UserData]](adapter.onClick, participantsController.getUser).onUi {
@@ -112,11 +111,6 @@ class GroupParticipantsFragment extends FragmentHelper {
 
       showNavigationIcon(true)
     }
-
-    adapter.users.map(_.isEmpty).map {
-      case true => View.VISIBLE
-      case false => View.GONE
-    }.onUi(emptyListIcon.setVisibility(_))
   }
 
   private def showNavigationIcon(isVisible: Boolean) = getParentFragment match {

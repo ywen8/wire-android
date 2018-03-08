@@ -111,7 +111,10 @@ class LoadingIndicatorView(context: Context, attrs: AttributeSet, defStyle: Int)
 
   def hide(): Unit = {
     setToVisible = false
-    Future { ViewUtils.fadeOutView(LoadingIndicatorView.this) }
+    Future {
+      progressView.setVisible(false)
+      ViewUtils.fadeOutView(LoadingIndicatorView.this)
+    }
   }
 
   def setColor(color: Int): Unit = {

@@ -89,6 +89,7 @@
             android:text="@string/invitation_link_title"/>
 
         <com.waz.zclient.ui.text.TypefaceTextView
+            android:id="@+id/link_description"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_margin="@dimen/wire__padding__regular"
@@ -112,9 +113,9 @@
                 android:id="@+id/link_button_link_text"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text=""
                 android:textColor="?wirePrimaryTextColor"
-                app:w_font="@string/wire__typeface__regular"
+                app:w_font="@string/wire__typeface__light"
+                android:textSize="@dimen/wire__text_size__regular"
                 android:padding="@dimen/wire__padding__regular"
                 android:layout_gravity="center"
                 android:visibility="gone"/>
@@ -131,6 +132,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/glyph__link"
+                    android:textSize="@dimen/wire__text_size__regular"
                     android:textColor="@color/accent_blue"
                     android:layout_gravity="center_vertical"
                     android:gravity="center"/>
@@ -140,7 +142,8 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textColor="@color/accent_blue"
-                    app:w_font="@string/wire__typeface__regular"
+                    android:textSize="@dimen/wire__text_size__regular"
+                    app:w_font="@string/wire__typeface__light"
                     android:text="@string/create_link_button"/>
 
             </LinearLayout>
@@ -157,7 +160,7 @@
             app:buttonIcon="@string/glyph__copy"/>
 
         <com.waz.zclient.common.views.MenuRowButton
-            android:id="@+id/share_link_button"
+            android:id="@+id/share_link"
             android:layout_width="match_parent"
             android:layout_height="@dimen/menu_item_height"
             app:buttonTextColor="?wirePrimaryTextColor"
