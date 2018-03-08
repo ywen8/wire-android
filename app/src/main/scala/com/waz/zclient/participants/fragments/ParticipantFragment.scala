@@ -47,11 +47,10 @@ import com.waz.zclient.usersearch.SearchUIFragment
 import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.utils.ViewUtils
 import com.waz.zclient.views.DefaultPageTransitionAnimation
-import com.waz.zclient.{FragmentHelper, OnBackPressedListener, R}
+import com.waz.zclient.{FragmentHelper, ManagerFragment, R}
 
-class ParticipantFragment extends BaseFragment[ParticipantFragment.Container] with FragmentHelper
+class ParticipantFragment extends BaseFragment[ParticipantFragment.Container] with ManagerFragment
   with ConversationScreenControllerObserver
-  with OnBackPressedListener
   with ParticipantHeaderFragment.Container
   with SendConnectRequestFragment.Container
   with BlockedUserProfileFragment.Container
@@ -59,6 +58,8 @@ class ParticipantFragment extends BaseFragment[ParticipantFragment.Container] wi
 
   implicit def ctx: Context = getActivity
   import Threading.Implicits.Ui
+
+  override val contentId: Int = R.id.fl__participant__container
 
   private lazy val bodyContainer             = view[View](R.id.fl__participant__container)
   private lazy val participantsContainerView = view[View](R.id.ll__participant__container)
@@ -103,33 +104,36 @@ class ParticipantFragment extends BaseFragment[ParticipantFragment.Container] wi
     }
 
   override def onViewCreated(view: View, @Nullable savedInstanceState: Bundle): Unit = {
-    if (Option(savedInstanceState).isEmpty)
+    if (Option(savedInstanceState).isEmpty) {
       participantsController.isGroupOrBot.head.foreach { groupOrBot =>
         getChildFragmentManager.beginTransaction
-        .replace(
-          R.id.fl__participant__header__container,
-          headerFragment,
-          ParticipantHeaderFragment.TAG
-        )
-        .replace(
-          R.id.fl__participant__settings_box,
-          optionsFragment,
-          OptionsMenuFragment.Tag
-        )
-        .replace(
-          R.id.fl__participant__container,
-          if (groupOrBot)
-            GroupParticipantsFragment.newInstance()
-          else
-            SingleParticipantFragment.newInstance(getArguments.getInt(ParticipantFragment.ARG__FIRST__PAGE)),
-          if (groupOrBot)
-            GroupParticipantsFragment.Tag
-          else
-            SingleParticipantFragment.Tag
-        )
-        .addToBackStack(if (groupOrBot) GroupParticipantsFragment.Tag else SingleParticipantFragment.Tag)
-        .commit
+          .replace(
+            R.id.fl__participant__header__container,
+            headerFragment,
+            ParticipantHeaderFragment.TAG
+          )
+          .replace(
+            R.id.fl__participant__settings_box,
+            optionsFragment,
+            OptionsMenuFragment.Tag
+          )
+          .replace(
+            R.id.fl__participant__container,
+            if (groupOrBot)
+              GroupParticipantsFragment.newInstance()
+            else
+              SingleParticipantFragment.newInstance(getArguments.getInt(ParticipantFragment.ARG__FIRST__PAGE)),
+            if (groupOrBot)
+              GroupParticipantsFragment.Tag
+            else
+              SingleParticipantFragment.Tag
+          )
+          .addToBackStack(if (groupOrBot) GroupParticipantsFragment.Tag else SingleParticipantFragment.Tag)
+          .commit
       }
+
+      setNavigationIconVisible(false)
+    }
 
     bodyContainer
     participantsContainerView
@@ -168,27 +172,9 @@ class ParticipantFragment extends BaseFragment[ParticipantFragment.Container] wi
   }
 
   override def onBackPressed: Boolean = withBackstackHead {
-    case Some(f: SingleParticipantFragment) if f.onBackPressed() =>
-      verbose(s"onBackPressed with SingleParticipantFragment")
-      true
-    case Some(f: GroupParticipantsFragment) if f.onBackPressed() =>
-      verbose(s"onBackPressed with GroupParticipantsFragment")
-      true
-    case Some(f: SearchUIFragment) if f.onBackPressed() =>
-      verbose(s"onBackPressed with PickUserFragment")
-      true
-    case Some(f: SingleOtrClientFragment) =>
-      verbose(s"onBackPressed with SingleOtrClientFragment")
-      screenController.hideOtrClient()
-      true
-    case Some(f: IntegrationDetailsFragment) if f.onBackPressed() =>
-      verbose(s"onBackPressed with IntegrationDetailsFragment")
-      true
-    case Some(f: GuestOptionsFragment) if f.onBackPressed() =>
-      verbose(s"onBackPressed with GuestOptionsFragment")
-      true
+    case Some(f: FragmentHelper) if f.onBackPressed() => true
     case _ if optionsFragment.close() =>
-      verbose(s"onBackPressed with OptionsMenuFragment")
+      verbose(s"close with OptionsMenuFragment")
       true
     case _ if pickUserController.isShowingPickUser(IPickUserController.Destination.PARTICIPANTS) =>
       verbose(s"onBackPressed with isShowingPickUser")

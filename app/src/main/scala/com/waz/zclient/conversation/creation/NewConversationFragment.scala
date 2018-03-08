@@ -39,9 +39,9 @@ import com.waz.zclient.ui.text.TypefaceTextView
 import com.waz.zclient.utils.ContextUtils.{getColor, getDimenPx, getInt}
 import com.waz.zclient.utils.RichView
 import com.waz.zclient.views.DefaultPageTransitionAnimation
-import com.waz.zclient.{FragmentHelper, OnBackPressedListener, R}
+import com.waz.zclient.{FragmentHelper, R}
 
-class NewConversationFragment extends FragmentHelper with OnBackPressedListener {
+class NewConversationFragment extends FragmentHelper {
 
   implicit private def ctx = getContext
 

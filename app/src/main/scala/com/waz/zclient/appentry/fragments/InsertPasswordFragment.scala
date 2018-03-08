@@ -32,11 +32,11 @@ import com.waz.zclient.newreg.views.PhoneConfirmationButton.State._
 import com.waz.zclient.pages.BaseFragment
 import com.waz.zclient.pages.main.profile.views.GuidedEditText
 import com.waz.zclient.utils.{ViewUtils, _}
-import com.waz.zclient.{FragmentHelper, OnBackPressedListener, R}
+import com.waz.zclient.{FragmentHelper, R}
 import InsertPasswordFragment._
 import com.waz.zclient.appentry.controllers.SignInController._
 
-class InsertPasswordFragment extends BaseFragment[Container] with FragmentHelper with View.OnClickListener with OnBackPressedListener {
+class InsertPasswordFragment extends BaseFragment[Container] with FragmentHelper with View.OnClickListener {
 
   lazy val signInController = inject[SignInController]
 

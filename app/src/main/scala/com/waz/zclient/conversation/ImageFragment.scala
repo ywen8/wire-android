@@ -44,7 +44,7 @@ import com.waz.zclient.ui.cursor.CursorMenuItem
 import com.waz.zclient.ui.text.TypefaceTextView
 import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.utils.{Offset, ViewUtils}
-import com.waz.zclient.{FragmentHelper, OnBackPressedListener, R}
+import com.waz.zclient.{FragmentHelper, R}
 import org.threeten.bp.{LocalDateTime, ZoneId}
 
 object ImageFragment {
@@ -55,7 +55,7 @@ object ImageFragment {
     returning(new ImageFragment)(_.setArguments(returning(new Bundle())(_.putString(ArgMessageId, messageId))))
 }
 
-class ImageFragment extends FragmentHelper with OnBackPressedListener {
+class ImageFragment extends FragmentHelper {
   import ImageFragment._
   import Threading.Implicits.Ui
 

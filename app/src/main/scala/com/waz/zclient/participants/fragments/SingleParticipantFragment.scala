@@ -140,7 +140,6 @@ class SingleParticipantFragment extends FragmentHelper {
 
         tabIndicatorLayout.setViewPager(pager)
       })
-
     }
 
   override def onViewCreated(v: View, @Nullable savedInstanceState: Bundle): Unit = {
@@ -189,12 +188,13 @@ class SingleParticipantFragment extends FragmentHelper {
     super.onDestroyView()
   }
 
-  def onBackPressed(): Boolean =
-  if (participantsController.isGroupOrBot.currentValue.getOrElse(false)){
-    screenController.hideUser()
-    participantsController.unselectParticipant()
-    true
-  } else false
+  override def onBackPressed(): Boolean =
+    if (participantsController.isGroupOrBot.currentValue.getOrElse(false)){
+      super.onBackPressed()
+      screenController.hideUser()
+      participantsController.unselectParticipant()
+      true
+    } else false
 
 }
 

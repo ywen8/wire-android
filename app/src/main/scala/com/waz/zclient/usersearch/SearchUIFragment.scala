@@ -66,13 +66,13 @@ import scala.concurrent.duration._
 
 class SearchUIFragment extends BaseFragment[SearchUIFragment.Container]
   with FragmentHelper
-  with OnBackPressedListener
   with SearchUIAdapter.Callback {
 
   import SearchUIFragment._
   import Threading.Implicits.Background
 
   private implicit lazy val uiStorage = inject[UiStorage]
+
   private implicit def context = getContext
 
   private lazy val zms                    = inject[Signal[ZMessaging]]
@@ -89,8 +89,8 @@ class SearchUIFragment extends BaseFragment[SearchUIFragment.Container]
   private lazy val convScreenController   = inject[IConversationScreenController]
   private lazy val navigationController   = inject[INavigationController]
 
-  private lazy val shareContactsPref     = zms.map(_.userPrefs.preference(UserPreferences.ShareContacts))
-  private lazy val showShareContactsPref = zms.map(_.userPrefs.preference(UserPreferences.ShowShareContacts))
+  private lazy val shareContactsPref      = zms.map(_.userPrefs.preference(UserPreferences.ShareContacts))
+  private lazy val showShareContactsPref  = zms.map(_.userPrefs.preference(UserPreferences.ShowShareContacts))
 
   private lazy val adapter = new SearchUIAdapter(this, integrationsController)
 
@@ -100,7 +100,7 @@ class SearchUIFragment extends BaseFragment[SearchUIFragment.Container]
   private lazy val inviteButton = returning(view[FlatWireButton](R.id.invite_button)) { vh =>
     userAccountsController.isTeam.flatMap {
       case true => Signal.const(false)
-      case _ => keyboard.isKeyboardVisible.map(!_)
+      case _    => keyboard.isKeyboardVisible.map(!_)
     }.onUi(vis => vh.foreach(_.setVisible(vis)))
   }
 
@@ -121,22 +121,19 @@ class SearchUIFragment extends BaseFragment[SearchUIFragment.Container]
       hasSearch      <- integrationsController.searchQuery.map(_.nonEmpty)
       hasResults     <- integrationsController.searchIntegrations.map(_.forall(_.nonEmpty))
     } yield integrationTab && hasSearch && !hasResults).onUi { show =>
-      vh.foreach(_.setVisibility(if (show) View.VISIBLE else View.GONE))
+      vh.foreach(_.setVisible(show))
     }
   }
 
-  private lazy val emptyListButton = returning(view[RelativeLayout](R.id.empty_list_button)){ v =>
+  private lazy val emptyListButton = returning(view[RelativeLayout](R.id.empty_list_button)) { v =>
     (for {
-      zms         <- zms
+      zms <- zms
       permissions <- userAccountsController.permissions.orElse(Signal.const(Set.empty[AccountData.Permission]))
-      members     <- zms.teams.searchTeamMembers().orElse(Signal.const(Set.empty[UserData]))
-      searching   <- adapter.filter.map(_.nonEmpty)
-    } yield
-      if (zms.teamId.nonEmpty && permissions(AccountData.Permission.AddTeamMember) && !members.exists(_.id != zms.selfUserId) && !searching)
-        View.VISIBLE
-      else
-        View.GONE)
-      .onUi(v.setVisibility(_))
+      members <- zms.teams.searchTeamMembers().orElse(Signal.const(Set.empty[UserData]))
+      searching <- adapter.filter.map(_.nonEmpty)
+     } yield
+       zms.teamId.nonEmpty && permissions(AccountData.Permission.AddTeamMember) && !members.exists(_.id != zms.selfUserId) && !searching
+    ).onUi(visible => v.foreach(_.setVisible(visible)))
   }
 
   private val searchBoxViewCallback = new SearchEditText.Callback {
@@ -146,12 +143,10 @@ class SearchUIFragment extends BaseFragment[SearchUIFragment.Container]
 
     override def onClearButton(): Unit = closeStartUI()
 
-    override def afterTextChanged(s: String): Unit = {
-      searchBox.foreach { v =>
-        val filter = v.getSearchFilter
-        adapter.filter ! filter
-        integrationsController.searchQuery ! filter
-      }
+    override def afterTextChanged(s: String): Unit = searchBox.foreach { v =>
+      val filter = v.getSearchFilter
+      adapter.filter ! filter
+      integrationsController.searchQuery ! filter
     }
   }
 
@@ -180,10 +175,9 @@ class SearchUIFragment extends BaseFragment[SearchUIFragment.Container]
   override def onCreateView(inflater: LayoutInflater, viewContainer: ViewGroup, savedInstanceState: Bundle): View =
     inflater.inflate(R.layout.fragment_pick_user, viewContainer, false)
 
+  private var containerSub = Option.empty[Subscription] //TODO remove subscription...
 
-  private var containerSub = Option.empty[Subscription]//TODO remove subscription...
   override def onViewCreated(rootView: View, savedInstanceState: Bundle): Unit = {
-
     searchResultRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity))
     searchResultRecyclerView.setAdapter(adapter)
 
@@ -230,7 +224,9 @@ class SearchUIFragment extends BaseFragment[SearchUIFragment.Container]
         }
         searchBox.removeAllElements()
       }
+
       override def onTabUnselected(tab: TabLayout.Tab): Unit = {}
+
       override def onTabReselected(tab: TabLayout.Tab): Unit = {}
     })
 
@@ -266,7 +262,7 @@ class SearchUIFragment extends BaseFragment[SearchUIFragment.Container]
             keyboard.showKeyboardIfHidden()
           }
         case _ =>
-      } (Threading.Ui)
+      }(Threading.Ui)
     }
   }
 
@@ -275,25 +271,19 @@ class SearchUIFragment extends BaseFragment[SearchUIFragment.Container]
     super.onPause()
   }
 
-  override def onStop(): Unit = {
-    //getContainer.getLoadingViewIndicator.hide()
-    super.onStop()
-  }
-
-
   override def onDestroyView() = {
     containerSub.foreach(_.destroy())
     containerSub = None
     super.onDestroyView()
   }
 
-  override def onBackPressed: Boolean =
-    keyboard.hideKeyboardIfVisible() || {
-      if (pickUserController.isShowingUserProfile) {
-        pickUserController.hideUserProfile()
-        true
-      } else false
+  override def onBackPressed(): Boolean =
+    if (keyboard.hideKeyboardIfVisible()) true
+    else if (pickUserController.isShowingUserProfile) {
+      pickUserController.hideUserProfile()
+      true
     }
+    else false
 
   override def onUserClicked(userId: UserId): Unit = {
     zms.head.flatMap { z =>
@@ -336,8 +326,6 @@ class SearchUIFragment extends BaseFragment[SearchUIFragment.Container]
       .replace(R.id.fl__conversation_list_main, new NewConversationFragment, NewConversationFragment.Tag)
       .addToBackStack(NewConversationFragment.Tag)
       .commit()
-
-    //inject[INavigationController].setLeftPage(Page.CREATE_CONV, PickUserFragment.TAG)
   }
 
   private def getCurrentPickerDestination: IPickUserController.Destination =

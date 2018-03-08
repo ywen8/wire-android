@@ -33,6 +33,7 @@ import com.waz.zclient.common.controllers.BrowserController
 import com.waz.zclient.common.controllers.global.ClientsController.getDeviceClassName
 import com.waz.zclient.common.controllers.global.{AccentColorController, ClientsController}
 import com.waz.zclient.messages.UsersController
+import com.waz.zclient.pages.main.conversation.controller.IConversationScreenController
 import com.waz.zclient.ui.text.TypefaceTextView
 import com.waz.zclient.ui.utils.TextViewUtils.{getBoldHighlightText, getHighlightText}
 import com.waz.zclient.ui.views.e2ee.OtrSwitch
@@ -215,6 +216,12 @@ class SingleOtrClientFragment extends FragmentHelper {
   override def onPause() = {
     verifySwitch.foreach(_.setOnCheckedListener(null))
     super.onPause()
+  }
+
+  override def onBackPressed(): Boolean = {
+    super.onBackPressed()
+    inject[IConversationScreenController].hideOtrClient()
+    true
   }
 }
 
