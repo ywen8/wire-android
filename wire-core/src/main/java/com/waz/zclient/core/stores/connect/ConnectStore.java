@@ -43,19 +43,6 @@ public abstract class ConnectStore implements IConnectStore {
         }
     }
 
-    protected void notifyInviteRequestSent(IConversation conversation) {
-        for (ConnectStoreObserver connectStoreObserver : connectStoreObservers) {
-            connectStoreObserver.onInviteRequestSent(conversation);
-        }
-    }
-
-    @Override
-    public void blockUser(User user) {
-        if (user != null) {
-            user.block();
-        }
-    }
-
     @Override
     public IConversation unblockUser(User user) {
         if (user != null) {

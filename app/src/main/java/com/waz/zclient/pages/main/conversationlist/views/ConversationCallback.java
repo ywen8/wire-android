@@ -18,11 +18,10 @@
 package com.waz.zclient.pages.main.conversationlist.views;
 
 import android.view.View;
-import com.waz.api.IConversation;
 
 public interface ConversationCallback {
 
-    void onConversationListRowSwiped(IConversation conversation, View conversationListRowView);
+    void onConversationListRowSwiped(String convId, View conversationListRowView);
 
-    void onConversationListRowLongClicked(IConversation conversation, View conversationListRowView);
+    void onConversationListRowLongClicked(String convId, View conversationListRowView);
 }

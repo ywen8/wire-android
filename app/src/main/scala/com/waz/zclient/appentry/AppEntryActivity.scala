@@ -247,9 +247,6 @@ class AppEntryActivity extends BaseActivity
     withFragmentOpt(SignInFragment.Tag) {
       case Some(_) =>
       case None =>
-        if (fromGenericInvite)
-          appEntryController.invitationToken ! Option(getControllerFactory.getUserPreferencesController.getGenericInvitationToken)
-
         showFragment(new SignInFragment, SignInFragment.Tag)
         getControllerFactory.getNavigationController.setLeftPage(Page.LOGIN_REGISTRATION, AppEntryActivity.TAG)
     }
@@ -305,12 +302,6 @@ class AppEntryActivity extends BaseActivity
   def dismissCountryBox(): Unit = {
     getSupportFragmentManager.popBackStackImmediate
     KeyboardUtils.showKeyboard(this)
-  }
-
-  private def fromGenericInvite: Boolean = {
-    val referralToken: String = getControllerFactory.getUserPreferencesController.getReferralToken
-    val token: String = getControllerFactory.getUserPreferencesController.getGenericInvitationToken
-    token != null || GenericInviteToken == referralToken
   }
 
   def getUnsplashImageAsset: ImageAsset = unsplashInitImageAsset

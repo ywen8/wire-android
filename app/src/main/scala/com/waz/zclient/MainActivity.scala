@@ -25,7 +25,6 @@ import android.graphics.{Color, Paint, PixelFormat}
 import android.net.Uri
 import android.os.{Build, Bundle}
 import android.support.v4.app.Fragment
-import android.text.TextUtils
 import com.waz.ZLog.ImplicitTag._
 import com.waz.ZLog.{error, info, verbose}
 import com.waz.api.{NetworkMode, User, _}
@@ -134,17 +133,6 @@ class MainActivity extends BaseActivity
         error("Unknown state")
       case _ => openSignUpPage()
     }
-
-    appEntryController.autoConnectInvite.onUi { token =>
-      getControllerFactory.getUserPreferencesController.setGenericInvitationToken(null)
-      getControllerFactory.getUserPreferencesController.setReferralToken(null)
-
-      if (!TextUtils.isEmpty(token) && TextUtils.equals(token, AppEntryController.GenericInviteToken)){
-        getStoreFactory.connectStore.requestConnection(token)
-      }
-
-      appEntryController.invitationToken ! None
-    }
   }
 
   override protected def onResumeFragments() = {
@@ -175,7 +163,7 @@ class MainActivity extends BaseActivity
           }
         }
     catch {
-      case t: Throwable => /*noop*/
+      case _: Throwable => /*noop*/
     }
   }
 
@@ -387,9 +375,9 @@ class MainActivity extends BaseActivity
 
   def onConnectUserUpdated(user: User, userRequester: IConnectStore.UserRequester): Unit = {}
 
-  def onInviteRequestSent(conversation: IConversation) = {
-    info(s"onInviteRequestSent(${conversation.getId})")
-    conversationController.selectConv(Option(new ConvId(conversation.getId)), ConversationChangeRequester.INVITE)
+  def onInviteRequestSent(conversation: String) = {
+    info(s"onInviteRequestSent($conversation)")
+    conversationController.selectConv(Option(new ConvId(conversation)), ConversationChangeRequester.INVITE)
   }
 
   def onOpenUrl(url: String) = {

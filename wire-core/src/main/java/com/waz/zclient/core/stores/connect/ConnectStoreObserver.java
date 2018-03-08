@@ -17,12 +17,9 @@
  */
 package com.waz.zclient.core.stores.connect;
 
-import com.waz.api.IConversation;
 import com.waz.api.User;
 
 public interface ConnectStoreObserver {
 
     void onConnectUserUpdated(User user, IConnectStore.UserRequester userRequester);
-
-    void onInviteRequestSent(IConversation conversation);
 }

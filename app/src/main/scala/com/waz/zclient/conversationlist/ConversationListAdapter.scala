@@ -23,7 +23,6 @@ import android.view.{View, ViewGroup}
 import com.waz.ZLog
 import com.waz.ZLog.ImplicitTag._
 import com.waz.ZLog.error
-import com.waz.api.IConversation
 import com.waz.model.ConversationData.ConversationType
 import com.waz.model._
 import com.waz.service.ZMessaging
@@ -125,10 +124,10 @@ class ConversationListAdapter(implicit injector: Injector, eventContext: EventCo
             }
           })
           r.setConversationCallback(new ConversationCallback {
-            override def onConversationListRowLongClicked(conversation: IConversation, view: View) = {
+            override def onConversationListRowLongClicked(convId: String, view: View) = {
               Option(view.getTag.asInstanceOf[ConversationData]).foreach { onConversationLongClick ! _ }
             }
-            override def onConversationListRowSwiped(conversation: IConversation, view: View) = {
+            override def onConversationListRowSwiped(convId: String, view: View) = {
               Option(view.getTag.asInstanceOf[ConversationData]).foreach { onConversationLongClick ! _ }
             }
           })

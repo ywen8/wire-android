@@ -83,26 +83,6 @@ public class UserPreferencesController implements IUserPreferencesController {
     }
 
     @Override
-    public void setReferralToken(String token) {
-        userPreferences.edit().putString(USER_PREFS_REFERRAL_TOKEN, token).apply();
-    }
-
-    @Override
-    public String getReferralToken() {
-        return userPreferences.getString(USER_PREFS_REFERRAL_TOKEN, null);
-    }
-
-    @Override
-    public void setGenericInvitationToken(String token) {
-        userPreferences.edit().putString(USER_PREFS_GENERIC_INVITATION_TOKEN, token).apply();
-    }
-
-    @Override
-    public String getGenericInvitationToken() {
-        return userPreferences.getString(USER_PREFS_GENERIC_INVITATION_TOKEN, null);
-    }
-
-    @Override
     public String getDeviceId() {
         String id = userPreferences.getString(PREFS_DEVICE_ID, null);
         if (id == null) {

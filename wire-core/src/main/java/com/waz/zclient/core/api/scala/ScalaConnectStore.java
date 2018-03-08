@@ -17,37 +17,24 @@
  */
 package com.waz.zclient.core.api.scala;
 
-import android.content.Context;
-import com.waz.api.ErrorResponse;
 import com.waz.api.IConversation;
-import com.waz.api.InvitationTokenFactory;
-import com.waz.api.Invitations;
 import com.waz.api.UpdateListener;
 import com.waz.api.User;
 import com.waz.api.ZMessagingApi;
-import com.waz.zclient.core.R;
 import com.waz.zclient.core.stores.connect.ConnectStore;
 import com.waz.zclient.core.stores.connect.ConnectStoreObserver;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 
 public class ScalaConnectStore extends ConnectStore {
 
     private ZMessagingApi zMessagingApi;
-    private Context context;
-    private Invitations invites;
 
-    Set<Invitations.ConnectionCallback> connectionCallbacks;
     Map<UserRequester, User> users;
 
-    public ScalaConnectStore(Context context, ZMessagingApi zMessagingApi) {
+    public ScalaConnectStore(ZMessagingApi zMessagingApi) {
         this.zMessagingApi = zMessagingApi;
-        this.context = context;
-        connectionCallbacks = new HashSet<>();
-        invites = zMessagingApi.getInvitations();
         users = new HashMap<>();
     }
 
@@ -55,9 +42,6 @@ public class ScalaConnectStore extends ConnectStore {
     public void tearDown() {
         removeUserListener();
         users = null;
-        invites = null;
-        context = null;
-        connectionCallbacks = null;
     }
 
     @Override
@@ -97,33 +81,6 @@ public class ScalaConnectStore extends ConnectStore {
     @Override
     public IConversation connectToNewUser(User user, String firstMessage) {
         return user.connect(firstMessage);
-    }
-
-    @Override
-    public void requestConnection(String token) {
-        Invitations.GenericToken inviteToken = InvitationTokenFactory.genericTokenFromCode(token);
-        String myName = zMessagingApi.getSelf().getName();
-        String message = context.getString(R.string.people_picker__invite__message, myName);
-        Invitations.ConnectionCallback callback = new Invitations.ConnectionCallback() {
-            @Override
-            public void onConnectionRequested(IConversation iConversation) {
-                if (connectionCallbacks == null) {
-                    return;
-                }
-                connectionCallbacks.remove(this);
-                notifyInviteRequestSent(iConversation);
-            }
-
-            @Override
-            public void onRequestFailed(ErrorResponse errorResponse) {
-                if (connectionCallbacks == null) {
-                    return;
-                }
-                connectionCallbacks.remove(this);
-            }
-        };
-        connectionCallbacks.add(callback);
-        invites.requestConnection(inviteToken, message, callback);
     }
 
     private void removeUserListener() {
