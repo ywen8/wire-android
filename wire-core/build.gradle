@@ -34,7 +34,7 @@ dependencies {
     // TODO   when there are different SE APIs in dev vs internal/prod)
     boolean internal = true;
     for (String taskName : gradle.startParameter.taskNames) {
-        if (taskName.contains("Candidate") || taskName.contains("Prod")) {
+        if (taskName.contains("Release")) {
             internal = false;
             break;
         }
