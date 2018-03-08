@@ -23,6 +23,7 @@ import android.view.{LayoutInflater, ViewGroup}
 import com.waz.api.User
 import com.waz.model.{UserData, UserId}
 import com.waz.utils.events.Signal
+import com.waz.zclient.common.controllers.ThemeController
 import com.waz.zclient.common.views.SingleUserRowView
 import com.waz.zclient.conversation.LikesAdapter.ViewHolder
 import com.waz.zclient.utils.{UiStorage, UserSetSignal}
@@ -32,6 +33,7 @@ class LikesAdapter(context: Context) extends RecyclerView.Adapter[RecyclerView.V
   private implicit val injector = context.asInstanceOf[BaseActivity].injector
   private implicit val ec = context.asInstanceOf[BaseActivity].eventContext
   private implicit val uiStorage = context.asInstanceOf[BaseActivity].inject[UiStorage]
+  private val isDarkTheme = context.asInstanceOf[BaseActivity].inject[ThemeController].isDarkTheme
   private val likesUserIds = Signal(Set[UserId]())
   private var likesUsers = Seq[UserData]()
 
@@ -43,8 +45,11 @@ class LikesAdapter(context: Context) extends RecyclerView.Adapter[RecyclerView.V
     notifyDataSetChanged()
   }
 
-  def onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder =
-    new ViewHolder(LayoutInflater.from(parent.getContext).inflate(R.layout.single_user_row, parent, false).asInstanceOf[SingleUserRowView])
+  def onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder = {
+    val view = LayoutInflater.from(parent.getContext).inflate(R.layout.single_user_row, parent, false).asInstanceOf[SingleUserRowView]
+    view.setTheme(if (isDarkTheme) SingleUserRowView.Dark else SingleUserRowView.Light)
+    new ViewHolder(view)
+  }
 
   def onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int): Unit =
     holder.asInstanceOf[ViewHolder].bind(likesUsers(position))
@@ -58,7 +63,6 @@ object LikesAdapter {
   class ViewHolder(view: SingleUserRowView) extends RecyclerView.ViewHolder(view) {
 
     private var userData: Option[UserData] = None
-    view.setTheme(SingleUserRowView.Transparent)
 
     def bind(userData: UserData): Unit = {
       this.userData = Some(userData)
