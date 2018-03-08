@@ -146,6 +146,16 @@ class MainActivity extends BaseActivity
       case (true, theme) => loadingIndicator.show(Spinner, theme)
       case (false, _) => loadingIndicator.hide()
     }
+
+    val loadingIndicator = findViewById[LoadingIndicatorView](R.id.progress_spinner)
+
+    (for {
+      darkTheme <- themeController.darkThemeSet
+      show <- spinnerController.spinnerShowing
+    }  yield (show, darkTheme)).onUi{
+      case (true, theme) => loadingIndicator.show(Spinner, theme)
+      case (false, _) => loadingIndicator.hide()
+    }
   }
 
   override protected def onResumeFragments() = {
