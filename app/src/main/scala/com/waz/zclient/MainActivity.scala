@@ -58,6 +58,8 @@ import com.waz.zclient.tracking.{CrashController, UiTrackingController}
 import com.waz.zclient.utils.PhoneUtils.PhoneState
 import com.waz.zclient.utils.StringUtils.TextDrawing
 import com.waz.zclient.utils.{BuildConfigUtils, ContextUtils, Emojis, IntentUtils, PhoneUtils, ViewUtils}
+import com.waz.zclient.views.LoadingIndicatorView
+import com.waz.zclient.views.LoadingIndicatorView.Spinner
 import net.hockeyapp.android.{ExceptionHandler, NativeCrashManager}
 
 import scala.collection.JavaConverters._
@@ -85,6 +87,7 @@ class MainActivity extends BaseActivity
   lazy val conversationController   = inject[ConversationController]
   lazy val userAccountsController   = inject[UserAccountsController]
   lazy val appEntryController       = inject[AppEntryController]
+  lazy val spinnerController        = inject[SpinnerController]
 
   override def onAttachedToWindow() = {
     super.onAttachedToWindow()
@@ -132,6 +135,16 @@ class MainActivity extends BaseActivity
       case Unknown =>
         error("Unknown state")
       case _ => openSignUpPage()
+    }
+
+    val loadingIndicator = findViewById[LoadingIndicatorView](R.id.progress_spinner)
+
+    (for {
+      darkTheme <- themeController.darkThemeSet
+      show <- spinnerController.spinnerShowing
+    }  yield (show, darkTheme)).onUi{
+      case (true, theme) => loadingIndicator.show(Spinner, theme)
+      case (false, _) => loadingIndicator.hide()
     }
   }
 
