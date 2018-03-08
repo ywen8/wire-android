@@ -15,11 +15,19 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package com.waz.zclient.connect
+package com.waz.zclient.utils;
 
-/**
-  * Created by admin on 3/6/18.
-  */
-class SendConnectRequestFragment {
+import android.hardware.Camera;
 
+public class CameraWrapper {
+
+    private final Camera camera;
+
+    public CameraWrapper(Camera camera) {
+        this.camera = camera;
+    }
+
+    public Camera get() {
+        return camera;
+    }
 }
