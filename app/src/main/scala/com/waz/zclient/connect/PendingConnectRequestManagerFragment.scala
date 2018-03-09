@@ -22,8 +22,6 @@ import android.os.Bundle
 import android.view.{LayoutInflater, View, ViewGroup}
 import com.waz.model.UserId
 import com.waz.service.NetworkModeService
-import com.waz.zclient.connect.PendingConnectRequestFragment.ArgUserId
-import com.waz.zclient.connect.PendingConnectRequestManagerFragment.ArgUserId
 import com.waz.zclient.controllers.navigation.Page
 import com.waz.zclient.core.stores.connect.IConnectStore
 import com.waz.zclient.messages.controllers.NavigationController

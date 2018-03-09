@@ -46,7 +46,6 @@ import com.waz.zclient.ui.utils.KeyboardUtils
 import com.waz.zclient.ui.views.ZetaButton
 import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.utils.{StringUtils, ViewUtils}
-import com.waz.zclient.views.images.ImageAssetImageView
 import com.waz.zclient.views.menus.{FooterMenu, FooterMenuCallback}
 import com.waz.zclient.{FragmentHelper, R}
 import timber.log.Timber
@@ -79,8 +78,8 @@ object SendConnectRequestFragment {
 class SendConnectRequestFragment extends BaseFragment[SendConnectRequestFragment.Container]
   with FragmentHelper {
 
-  import Threading.Implicits.Ui
   import SendConnectRequestFragment._
+  import Threading.Implicits.Ui
 
   implicit def context: Context = getActivity
 
