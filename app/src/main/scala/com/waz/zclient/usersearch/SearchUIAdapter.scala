@@ -30,8 +30,8 @@ import com.waz.utils.events.{EventContext, Signal}
 import com.waz.zclient._
 import com.waz.zclient.common.controllers.{IntegrationsController, UserAccountsController}
 import com.waz.zclient.common.views.{SingleUserRowView, TopUserChathead}
-import com.waz.zclient.paintcode.CreateGroupIcon
-import com.waz.zclient.ui.text.{GlyphTextView, TypefaceTextView}
+import com.waz.zclient.paintcode.{CreateGroupIcon, GuestIcon}
+import com.waz.zclient.ui.text.TypefaceTextView
 import com.waz.zclient.usersearch.SearchUIAdapter.TopUsersViewHolder.TopUserAdapter
 import com.waz.zclient.usersearch.views.SearchResultConversationRowView
 import com.waz.zclient.utils.ContextUtils._
@@ -168,11 +168,15 @@ class SearchUIAdapter(adapterCallback: SearchUIAdapter.Callback, integrationsCon
     def addGroupCreationButton(): Unit =
       mergedResult = mergedResult ++ Seq(SearchResult(NewConversation, TopUsersSection, 0))
 
+    def addGuestRoomCreationButton(): Unit =
+      mergedResult = mergedResult ++ Seq(SearchResult(NewGuestRoom, TopUsersSection, 0))
+
     if (userAccountsController.isTeamAccount) {
       if (peopleOrServices.currentValue.contains(true)) {
         addIntegrations()
       } else {
         addGroupCreationButton()
+        addGuestRoomCreationButton()
         addContacts()
         addGroupConversations()
         addConnections()
@@ -233,7 +237,8 @@ class SearchUIAdapter(adapterCallback: SearchUIAdapter.Callback, integrationsCon
       case GroupConversation => R.layout.startui_conversation
       case SectionHeader     => R.layout.startui_section_header
       case Expand            => R.layout.startui_section_expander
-      case NewConversation   => R.layout.startui_create_conv
+      case NewConversation   => R.layout.startui_button
+      case NewGuestRoom      => R.layout.startui_button
       case _                 => -1
     }, parent, false)
 
@@ -246,6 +251,7 @@ class SearchUIAdapter(adapterCallback: SearchUIAdapter.Callback, integrationsCon
       case Expand            => new SectionExpanderViewHolder(view)
       case Integration       => new IntegrationViewHolder(view.asInstanceOf[SingleUserRowView], adapterCallback)
       case NewConversation   => new NewConversationButtonViewHolder(view, adapterCallback)
+      case NewGuestRoom      => new NewGuestRoomViewHolder(view, adapterCallback)
       case _                 => null
     }
   }
@@ -278,6 +284,7 @@ object SearchUIAdapter {
   val Expand: Int = 5
   val Integration: Int = 6
   val NewConversation: Int = 7
+  val NewGuestRoom: Int = 8
 
   //Sections
   val TopUsersSection = 0
@@ -294,6 +301,7 @@ object SearchUIAdapter {
     def onUserClicked(userId: UserId): Unit
     def onIntegrationClicked(data: IntegrationData): Unit
     def onCreateConvClicked(): Unit
+    def onCreateGuestRoomClicked(): Unit
     def onConversationClicked(conversation: ConversationData): Unit
   }
 
@@ -306,8 +314,17 @@ object SearchUIAdapter {
   }
 
   class NewConversationButtonViewHolder(view: View, callback: SearchUIAdapter.Callback) extends RecyclerView.ViewHolder(view) {
-    view.findViewById[GlyphTextView](R.id.icon).setBackground(CreateGroupIcon(R.color.white)(view.getContext))
+    private implicit val ctx = view.getContext
+    view.findViewById[View](R.id.icon).setBackground(CreateGroupIcon(R.color.white))
+    view.findViewById[TypefaceTextView](R.id.title).setText(R.string.create_group_conversation)
     view.onClick(callback.onCreateConvClicked())
+  }
+
+  class NewGuestRoomViewHolder(view: View, callback: SearchUIAdapter.Callback) extends RecyclerView.ViewHolder(view) {
+    private implicit val ctx = view.getContext
+    view.findViewById[View](R.id.icon).setBackground(GuestIcon(R.color.white))
+    view.findViewById[TypefaceTextView](R.id.title).setText(R.string.create_guest_room_conversation)
+    view.onClick(callback.onCreateGuestRoomClicked())
   }
 
   class TopUsersViewHolder(view: View, topUserAdapter: TopUserAdapter, context: Context) extends RecyclerView.ViewHolder(view) {

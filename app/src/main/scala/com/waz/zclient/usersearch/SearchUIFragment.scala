@@ -328,6 +328,14 @@ class SearchUIFragment extends BaseFragment[SearchUIFragment.Container]
       .commit()
   }
 
+
+  override def onCreateGuestRoomClicked(): Unit = {
+    keyboard.hideKeyboardIfVisible()
+    conversationController.createGuestRoom().map { conv =>
+      conversationController.selectConv(Some(conv.id), ConversationChangeRequester.START_CONVERSATION)
+    } (Threading.Ui)
+  }
+
   private def getCurrentPickerDestination: IPickUserController.Destination =
     getContainer.getCurrentPickerDestination
 

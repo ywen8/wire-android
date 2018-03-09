@@ -37,6 +37,7 @@
         android:layout_marginStart="@dimen/wire__padding__regular"/>
 
     <com.waz.zclient.ui.text.TypefaceTextView
+        android:id="@+id/title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerVertical="true"

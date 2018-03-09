@@ -35,7 +35,7 @@ import com.waz.zclient.conversation.ConversationController.ConversationChange
 import com.waz.zclient.core.stores.IStoreFactory
 import com.waz.zclient.core.stores.conversation.ConversationChangeRequester
 import com.waz.zclient.utils.Callback
-import com.waz.zclient.{Injectable, Injector}
+import com.waz.zclient.{Injectable, Injector, R}
 import org.threeten.bp.Instant
 
 import scala.concurrent.Future
@@ -179,6 +179,8 @@ class ConversationController(implicit injector: Injector, context: Context, ec: 
 
     if (alsoLeave) leave(id).flatMap(_ => clear(id)) else clear(id)
   }
+
+  def createGuestRoom(): Future[ConversationData] = createGroupConversation(Some(context.getString(R.string.guest_room_name)), Set(), false)
 
   def createGroupConversation(name: Option[String], users: Set[UserId], teamOnly: Boolean): Future[ConversationData] =
     zms.head.flatMap { z => z.convsUi.createGroupConversation(name, users, teamOnly).map(_._1) }
