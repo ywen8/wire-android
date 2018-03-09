@@ -320,7 +320,7 @@ class ConversationListManagerFragment extends Fragment
   override def showIncomingPendingConnectRequest(conv: ConvId) = {
     verbose(s"showIncomingPendingConnectRequest $conv")
     pickUserController.hidePickUser(getCurrentPickerDestination)
-    convController.selectConv(conv, ConversationChangeRequester.INBOX)
+    convController.selectConv(conv, ConversationChangeRequester.INBOX) //todo stop doing this!!!
   }
 
   override def getLoadingViewIndicator =
@@ -401,6 +401,13 @@ class ConversationListManagerFragment extends Fragment
       convController.selectConv(convId, ConversationChangeRequester.START_CONVERSATION)
     }
   }
+
+//  override def onAcceptedPendingOutgoingConnectRequest(userId: UserId) = {
+//    verbose(s"onAcceptedPendingOutgoingConnectRequest: $userId")
+//    userAccountsController.getConversationId(userId).flatMap { convId =>
+//      convController.selectConv(convId, ConversationChangeRequester.CONNECT_REQUEST_ACCEPTED)
+//    }
+//  }
 
   override def onUnblockedUser(restoredConversationWithUser: ConvId) = {
     pickUserController.hideUserProfile()

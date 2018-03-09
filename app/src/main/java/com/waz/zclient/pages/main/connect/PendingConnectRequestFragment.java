@@ -144,7 +144,7 @@ public class PendingConnectRequestFragment extends BaseFragment<PendingConnectRe
         userUsernameView = ViewUtils.getView(rootView, R.id.user_handle);
         unblockButton = ViewUtils.getView(rootView, R.id.zb__connect_request__unblock_button);
         footerMenu = ViewUtils.getView(rootView, R.id.fm__footer);
-        imageAssetImageViewProfile = ViewUtils.getView(rootView, R.id.iaiv__pending_connect);
+        imageAssetImageViewProfile = ViewUtils.getView(rootView, R.id.iv__pending_connect);
         imageAssetImageViewProfile.setDisplayType(ImageAssetImageView.DisplayType.CIRCLE);
         imageAssetImageViewProfile.setSaturation(0);
 

@@ -151,7 +151,7 @@ class GroupParticipantsFragment extends FragmentHelper {
 
       case Some(user) if user.connection == PENDING_FROM_OTHER || user.connection == PENDING_FROM_USER || user.connection == IGNORED =>
         import com.waz.zclient.connect.PendingConnectRequestFragment._
-        openUserProfileFragment(newInstance(userId.str, IConnectStore.UserRequester.PARTICIPANTS), Tag)
+        openUserProfileFragment(newInstance(userId, IConnectStore.UserRequester.PARTICIPANTS), Tag)
 
       case Some(user) if user.connection == BLOCKED =>
         import BlockedUserProfileFragment._

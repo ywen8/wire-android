@@ -1,3 +1,20 @@
+/**
+ * Wire
+ * Copyright (C) 2018 Wire Swiss GmbH
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 package com.waz.zclient.connect
 
 import android.content.Context
@@ -7,7 +24,7 @@ import android.view.animation.Animation
 import android.view.{LayoutInflater, View, ViewGroup}
 import android.widget.ImageView
 import com.waz.api.User.ConnectionStatus
-import com.waz.model.{ConvId, UserId}
+import com.waz.model.UserId
 import com.waz.service.ZMessaging
 import com.waz.threading.Threading
 import com.waz.utils.events.Signal
@@ -28,6 +45,8 @@ import com.waz.zclient.utils.{ContextUtils, StringUtils}
 import com.waz.zclient.views.menus.{FooterMenu, FooterMenuCallback}
 import com.waz.zclient.{FragmentHelper, R}
 
+import com.waz.ZLog.ImplicitTag._
+
 /**
   * Created by admin on 3/7/18.
   */
@@ -38,10 +57,10 @@ object PendingConnectRequestFragment {
   val ArgUserRequester = "ARGUMENT_USER_REQUESTER"
   val StateIsShowingFooterMenu = "STATE_IS_SHOWING_FOOTER_MENU"
 
-  def newInstance(userId: String, userRequester: IConnectStore.UserRequester): PendingConnectRequestFragment = {
+  def newInstance(userId: UserId, userRequester: IConnectStore.UserRequester): PendingConnectRequestFragment = {
     val newFragment = new PendingConnectRequestFragment
     val args = new Bundle
-    args.putString(ArgUserId, userId)
+    args.putString(ArgUserId, userId.str)
     args.putString(ArgUserRequester, userRequester.toString)
     newFragment.setArguments(args)
     newFragment
@@ -49,7 +68,6 @@ object PendingConnectRequestFragment {
 
   trait Container extends UserProfileContainer {
     def onAcceptedConnectRequest(userId: UserId): Unit
-    def onConversationUpdated(conversation: ConvId): Unit
   }
 
 }
@@ -163,6 +181,7 @@ class PendingConnectRequestFragment extends BaseFragment[PendingConnectRequestFr
           setFooterForIgnoredConnectRequest(user.id)
         case ConnectionStatus.PENDING_FROM_USER =>
           setFooterForOutgoingConnectRequest(user.id)
+        case _ =>
       }
     }
 
