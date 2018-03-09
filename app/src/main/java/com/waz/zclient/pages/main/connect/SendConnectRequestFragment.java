@@ -23,13 +23,12 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.Animation;
+
 import com.waz.api.IConversation;
 import com.waz.api.User;
 import com.waz.model.UserId;
 import com.waz.zclient.R;
-import com.waz.zclient.common.controllers.UserAccountsController;
 import com.waz.zclient.controllers.accentcolor.AccentColorObserver;
-import com.waz.zclient.conversation.ConversationController;
 import com.waz.zclient.core.stores.connect.ConnectStoreObserver;
 import com.waz.zclient.core.stores.connect.IConnectStore;
 import com.waz.zclient.pages.BaseFragment;
