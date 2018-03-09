@@ -54,8 +54,9 @@
             android:layout_gravity="center_vertical"
             android:minHeight="@dimen/touch_target_buttons"
             android:gravity="start|center_vertical"
-            app:w_font="@string/wire__typeface__light"
+            app:w_font="@string/wire__typeface__medium"
             style="?userFooterLabel"
+            android:textSize="@dimen/wire__text_size__smaller"
             />
 
     </LinearLayout>
@@ -75,8 +76,9 @@
             android:minHeight="@dimen/touch_target_buttons"
             android:gravity="end|center_vertical"
             android:layout_marginEnd="@dimen/wire__padding__small"
-            app:w_font="@string/wire__typeface__light"
+            app:w_font="@string/wire__typeface__medium"
             style="?userFooterLabel"
+            android:textSize="@dimen/wire__text_size__smaller"
             />
 
         <com.waz.zclient.ui.text.GlyphTextView

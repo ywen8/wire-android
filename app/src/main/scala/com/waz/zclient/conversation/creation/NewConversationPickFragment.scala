@@ -240,6 +240,7 @@ case class NewConvAdapter(searchResults: Signal[IndexedSeq[UserData]], selectedU
     val view = ViewHelper.inflate[SingleUserRowView](R.layout.single_user_row, parent, addToParent = false)
     view.showCheckbox(true)
     view.setTheme(if (themeController.isDarkTheme) SingleUserRowView.Dark else SingleUserRowView.Light)
+    view.setBackground(null)
     val viewHolder = SelectableUserRowViewHolder(view)
 
     view.onSelectionChanged.onUi { selected =>

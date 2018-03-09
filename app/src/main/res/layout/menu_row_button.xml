@@ -47,6 +47,6 @@
         android:layout_height="@dimen/wire__divider__height__thin"
         android:layout_alignParentBottom="true"
         android:layout_toEndOf="@id/icon"
-        android:background="@color/light_graphite_40"/>
+        android:background="?thinDividerColor"/>
 
 </merge>

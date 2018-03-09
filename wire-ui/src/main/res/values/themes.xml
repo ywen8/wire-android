@@ -108,6 +108,7 @@
         <item name="wirePrimaryTextColor">@color/text__primary_dark</item>
         <item name="wirePrimaryTextColorReverted">@color/text__primary_light</item>
         <item name="wireSecondaryTextColor">@color/text__secondary_dark</item>
+        <item name="thinDividerColor">@color/white_16</item>
 
         <!-- Start UI -->
         <item name="startUiErrorLabel">@style/start_ui__error_label__dark</item>
@@ -261,6 +262,7 @@
         <item name="wirePrimaryTextColor">@color/text__primary_light</item>
         <item name="wirePrimaryTextColorReverted">@color/text__primary_dark</item>
         <item name="wireSecondaryTextColor">@color/text__secondary_light</item>
+        <item name="thinDividerColor">@color/graphite_8</item>
 
         <!-- Start UI -->
         <item name="startUiErrorLabel">@style/start_ui__error_label__light</item>
@@ -341,6 +343,7 @@
         <item name="windowActionModeOverlay">true</item>
 
         <item name="wirePrimaryTextColor">@color/text__primary_dark</item>
+        <item name="thinDividerColor">@color/white_16</item>
     </style>
 
     <style name="Theme.Popup" parent="@style/Theme.Design.NoActionBar">
@@ -356,6 +359,7 @@
         <item name="android:windowIsTranslucent">true</item>
         <item name="android:windowAnimationStyle">@android:style/Animation</item>
         <item name="windowActionModeOverlay">true</item>
+        <item name="thinDividerColor">@color/white_16</item>
     </style>
 
     <style name="Theme.Share" parent="Theme.Dark">

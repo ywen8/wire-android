@@ -205,13 +205,11 @@ class GuestOptionsFragment extends FragmentHelper {
         override def onCheckedChanged(buttonView: CompoundButton, isChecked: Boolean): Unit = {
 
           def setTeamOnly(): Unit = {
-            spinnerController.showSpinner(true)
             (for {
               z <- zms.head
               c <- convCtrl.currentConvId.head
               resp <- z.conversations.setToTeamOnly(c, !isChecked)
             } yield resp).map { resp =>
-              spinnerController.showSpinner(false)
               setGuestsSwitchEnabled(true)
               resp match {
                 case Right(_) => //

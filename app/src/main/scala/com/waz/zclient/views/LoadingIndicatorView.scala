@@ -109,6 +109,11 @@ class LoadingIndicatorView(context: Context, attrs: AttributeSet, defStyle: Int)
     CancellableFuture.delayed(delayMs.millis) { animations(animationType)() }
   }
 
+  def show(animationType: AnimationType, darkTheme: Boolean, delayMs: Long): Unit = {
+    if (darkTheme) applyDarkTheme() else applyLightTheme()
+    show(animationType, delayMs)
+  }
+
   def hide(): Unit = {
     setToVisible = false
     Future {

@@ -27,7 +27,7 @@
             android:thickness="2dp"
             android:useLevel="false">
 
-            <solid android:color="@color/graphite"/>
+            <solid android:color="@color/graphite_48"/>
 
             <size
                 android:width="24dp"

@@ -35,6 +35,7 @@
         android:layout_centerVertical="true"
         android:layout_marginStart="@dimen/wire__padding__big"
         android:layout_marginEnd="@dimen/wire__padding__big"
+        android:scaleType="centerInside"
         />
 
     <ImageView
@@ -62,15 +63,6 @@
         android:layout_toEndOf="@id/icon"
         android:layout_toStartOf="@id/next_indicator"
         android:text="@string/guest_options_title"
-        />
-
-    <View
-        android:id="@+id/separator"
-        android:layout_width="match_parent"
-        android:layout_height="@dimen/wire__divider__height"
-        android:background="@color/light_graphite_16"
-        android:layout_toEndOf="@id/icon"
-        android:layout_alignParentBottom="true"
         />
 
 </RelativeLayout>

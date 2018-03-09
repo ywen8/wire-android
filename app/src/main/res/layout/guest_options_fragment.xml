@@ -30,7 +30,7 @@
         android:layout_height="@dimen/menu_item_height"
         android:paddingStart="@dimen/wire__padding__regular"
         android:paddingEnd="@dimen/wire__padding__regular"
-        android:layout_marginTop="@dimen/wire__padding__regular"
+        android:layout_marginTop="@dimen/participants_options_button_margin_top"
         style="?wireBackground">
 
         <com.waz.zclient.ui.text.TypefaceTextView
@@ -73,7 +73,7 @@
         <View
             android:layout_width="match_parent"
             android:layout_height="@dimen/wire__divider__height__thin"
-            android:background="@color/light_graphite_40"
+            android:background="?thinDividerColor"
             android:layout_margin="@dimen/wire__padding__regular"/>
 
         <com.waz.zclient.ui.text.TypefaceTextView
@@ -98,7 +98,8 @@
             android:textSize="@dimen/wire__text_size__small"
             android:textColor="?wireSecondaryTextColor"
             app:w_font="@string/wire__typeface__regular"
-            android:text="@string/invitation_link_description"/>
+            android:text="@string/invitation_link_description"
+            android:lineSpacingMultiplier="1.1"/>
 
         <FrameLayout
             android:id="@+id/link_button"
@@ -118,6 +119,7 @@
                 android:textSize="@dimen/wire__text_size__regular"
                 android:padding="@dimen/wire__padding__regular"
                 android:layout_gravity="center"
+                android:lineSpacingMultiplier="1.1"
                 android:visibility="gone"/>
 
             <LinearLayout

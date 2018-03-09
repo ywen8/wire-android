@@ -683,6 +683,10 @@ class ConversationFragment extends BaseFragment[ConversationFragment.Container] 
 
   private val navigationControllerObserver = new NavigationControllerObserver {
     override def onPageVisible(page: Page): Unit = if (page == Page.MESSAGE_STREAM) {
+      participantsController.containsGuest.currentValue.foreach {
+        case true => openGuestsBanner()
+        case false =>  hideGuestsBanner()
+      }
       inflateCollectionIcon()
       cursorView.enableMessageWriting()
     }
