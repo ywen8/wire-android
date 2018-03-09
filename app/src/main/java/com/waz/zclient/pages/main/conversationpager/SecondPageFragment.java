@@ -213,7 +213,7 @@ public class SecondPageFragment extends BaseFragment<SecondPageFragment.Containe
                 break;
             case CONNECT_REQUEST_INBOX:
                 getControllerFactory().getNavigationController().setRightPage(Page.CONNECT_REQUEST_INBOX, TAG);
-                pageFragment = ConnectRequestFragment.newInstance(arguments.getString(ARGUMENT_CONVERSATION_ID));
+                pageFragment = ConnectRequestFragment.newInstance(UserId.apply(arguments.getString(ARGUMENT_CONVERSATION_ID)));
                 tag = ConnectRequestFragment.FragmentTag();
                 break;
             case MESSAGE_STREAM:

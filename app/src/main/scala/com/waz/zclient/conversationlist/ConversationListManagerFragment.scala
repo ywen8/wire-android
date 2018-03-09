@@ -277,8 +277,8 @@ class ConversationListManagerFragment extends Fragment
 
           case PENDING_FROM_OTHER | PENDING_FROM_USER | IGNORED =>
             show(
-              PendingConnectRequestManagerFragment.newInstance(userId.str, null, ConnectRequestLoadMode.LOAD_BY_USER_ID, IConnectStore.UserRequester.SEARCH),
-              PendingConnectRequestManagerFragment.TAG
+              PendingConnectRequestManagerFragment.newInstance(userId, IConnectStore.UserRequester.SEARCH),
+              PendingConnectRequestManagerFragment.Tag
             )
             navController.setLeftPage(Page.PENDING_CONNECT_REQUEST, Tag)
 
@@ -320,14 +320,14 @@ class ConversationListManagerFragment extends Fragment
   override def onHideUserProfile() = {
     if (pickUserController.isShowingUserProfile) {
       getChildFragmentManager.popBackStackImmediate
-      togglePeoplePicker(true)
+      togglePeoplePicker(true) //todo call this method directly
     }
   }
 
   override def showIncomingPendingConnectRequest(conv: ConvId) = {
     verbose(s"showIncomingPendingConnectRequest $conv")
     pickUserController.hidePickUser(getCurrentPickerDestination)
-    convController.selectConv(conv, ConversationChangeRequester.INBOX)
+    convController.selectConv(conv, ConversationChangeRequester.INBOX) //todo stop doing this!!!
   }
 
   override def getLoadingViewIndicator =
@@ -417,12 +417,12 @@ class ConversationListManagerFragment extends Fragment
     }
   }
 
-  override def onAcceptedPendingOutgoingConnectRequest(userId: UserId) = {
-    verbose(s"onAcceptedPendingOutgoingConnectRequest: $userId")
-    userAccountsController.getConversationId(userId).flatMap { convId =>
-      convController.selectConv(convId, ConversationChangeRequester.CONNECT_REQUEST_ACCEPTED)
-    }
-  }
+//  override def onAcceptedPendingOutgoingConnectRequest(userId: UserId) = {
+//    verbose(s"onAcceptedPendingOutgoingConnectRequest: $userId")
+//    userAccountsController.getConversationId(userId).flatMap { convId =>
+//      convController.selectConv(convId, ConversationChangeRequester.CONNECT_REQUEST_ACCEPTED)
+//    }
+//  }
 
   override def onUnblockedUser(restoredConversationWithUser: ConvId) = {
     pickUserController.hideUserProfile()

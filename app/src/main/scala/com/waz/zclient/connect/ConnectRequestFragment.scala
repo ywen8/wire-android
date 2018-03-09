@@ -83,9 +83,9 @@ object ConnectRequestFragment {
     def dismissInboxFragment(): Unit
   }
 
-  def newInstance(userId: String) = {
+  def newInstance(userId: UserId) = {
     returning(new ConnectRequestFragment) { f =>
-      f.setArguments(returning(new Bundle)(_.putString(SelectedUser, userId)))
+      f.setArguments(returning(new Bundle)(_.putString(SelectedUser, userId.str)))
     }
   }
 

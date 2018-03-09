@@ -1,13 +1,34 @@
+/**
+ * Wire
+ * Copyright (C) 2018 Wire Swiss GmbH
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 package com.waz.zclient.connect
 
+import android.content.Context
 import android.os.Bundle
 import android.view.{LayoutInflater, View, ViewGroup}
-import com.waz.model.{ConvId, UserId}
+import com.waz.model.UserId
 import com.waz.service.NetworkModeService
+import com.waz.zclient.connect.PendingConnectRequestFragment.ArgUserId
+import com.waz.zclient.connect.PendingConnectRequestManagerFragment.ArgUserId
 import com.waz.zclient.controllers.navigation.Page
 import com.waz.zclient.core.stores.connect.IConnectStore
+import com.waz.zclient.messages.controllers.NavigationController
 import com.waz.zclient.pages.BaseFragment
-import com.waz.zclient.pages.main.connect.{ConnectRequestLoadMode, UserProfileContainer}
+import com.waz.zclient.pages.main.connect.UserProfileContainer
 import com.waz.zclient.participants.OptionsMenuFragment
 import com.waz.zclient.utils.ViewUtils
 import com.waz.zclient.{FragmentHelper, OnBackPressedListener, R}
@@ -17,14 +38,14 @@ import com.waz.zclient.{FragmentHelper, OnBackPressedListener, R}
   */
 
 object PendingConnectRequestManagerFragment {
-  val TAG: String = classOf[PendingConnectRequestManagerFragment].getName
+  val Tag: String = classOf[PendingConnectRequestManagerFragment].getName
   val ArgUserId = "ARGUMENT_USER_ID"
   val ArgUserRequester = "ARGUMENT_USER_REQUESTER"
 
-  def newInstance(userId: String, conversationId: String, loadMode: ConnectRequestLoadMode, userRequester: IConnectStore.UserRequester): PendingConnectRequestManagerFragment = {
+  def newInstance(userId: UserId, userRequester: IConnectStore.UserRequester): PendingConnectRequestManagerFragment = {
     val newFragment = new PendingConnectRequestManagerFragment
     val args = new Bundle
-    args.putString(ArgUserId, userId)
+    args.putString(ArgUserId, userId.str)
     args.putString(ArgUserRequester, userRequester.toString)
     newFragment.setArguments(args)
     newFragment
@@ -32,7 +53,6 @@ object PendingConnectRequestManagerFragment {
 
   trait Container extends UserProfileContainer {
     def onAcceptedConnectRequest(userId: UserId): Unit
-    def onAcceptedPendingOutgoingConnectRequest(userId: UserId): Unit
   }
 
 }
@@ -44,7 +64,10 @@ class PendingConnectRequestManagerFragment extends BaseFragment[PendingConnectRe
 
   import PendingConnectRequestManagerFragment._
 
+  implicit def context: Context = getActivity
+
   private lazy val networkService = inject[NetworkModeService]
+  private lazy val navigationController = inject[NavigationController]
 
   private lazy val userRequester =
     IConnectStore.UserRequester.valueOf(getArguments.getString(ArgUserRequester))
@@ -55,7 +78,8 @@ class PendingConnectRequestManagerFragment extends BaseFragment[PendingConnectRe
 
   override def onViewCreated(view: View, savedInstanceState: Bundle): Unit = {
     if (savedInstanceState == null) {
-      val userId = getArguments.getString(PendingConnectRequestManagerFragment.ArgUserId)
+      val userId = UserId(getArguments.getString(PendingConnectRequestManagerFragment.ArgUserId))
+
       {
         import PendingConnectRequestFragment._
         getChildFragmentManager
@@ -97,22 +121,14 @@ class PendingConnectRequestManagerFragment extends BaseFragment[PendingConnectRe
     }
   }
 
-  override def onConversationUpdated(conversation: ConvId): Unit = {
-    //todo Do we need this??
-//    getContainer.onAcceptedPendingOutgoingConnectRequest(conversation)
-  }
-
   private def restoreCurrentPageAfterClosingOverlay() = {
-    if (getControllerFactory != null && !getControllerFactory.isTornDown) {
-      val targetLeftPage =
-        if (userRequester == IConnectStore.UserRequester.CONVERSATION)
-          Page.PENDING_CONNECT_REQUEST_AS_CONVERSATION
-        else
-          Page.PENDING_CONNECT_REQUEST
+    val targetLeftPage =
+      if (userRequester == IConnectStore.UserRequester.CONVERSATION)
+        Page.PENDING_CONNECT_REQUEST_AS_CONVERSATION
+      else
+        Page.PENDING_CONNECT_REQUEST
 
-      getControllerFactory.getNavigationController
-        .setRightPage(targetLeftPage, PendingConnectRequestManagerFragment.TAG)
-    }
+    navigationController.navController.setRightPage(targetLeftPage, Tag)
   }
 
   override def onAcceptedConnectRequest(userId: UserId): Unit = {

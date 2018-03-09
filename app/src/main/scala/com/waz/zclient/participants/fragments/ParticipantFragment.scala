@@ -315,7 +315,6 @@ class ParticipantFragment extends BaseFragment[ParticipantFragment.Container] wi
 
   override def onShowIntegrationDetails(providerId: ProviderId, integrationId: IntegrationId): Unit = {}
 
-  override def onConversationUpdated(conversation: ConvId): Unit = {}
 }
 
 object ParticipantFragment {
