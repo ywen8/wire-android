@@ -36,20 +36,6 @@ import com.waz.zclient.pages.main.conversation.ConversationManagerFragment
 import com.waz.zclient.ui.utils.MathUtils
 import com.waz.zclient.{FragmentHelper, OnBackPressedListener, R}
 
-object SecondPageFragment {
-  val Tag: String = classOf[SecondPageFragment].getName
-  val ArgConversationId = "ARGUMENT_CONVERSATION_ID"
-  private val StateSecondPagePosition = "SECOND_PAGE_POSITION"
-
-
-  def newInstance = new SecondPageFragment
-
-  trait Container {
-    def onOpenUrl(url: String): Unit
-  }
-
-}
-
 class SecondPageFragment extends BaseFragment[SecondPageFragment.Container]
   with FragmentHelper
   with OnBackPressedListener
@@ -63,7 +49,7 @@ class SecondPageFragment extends BaseFragment[SecondPageFragment.Container]
 
   private var currentPage: Page = _
 
-  private lazy val navigationController = inject[INavigationController]
+  private lazy val navigationController   = inject[INavigationController]
   private lazy val userAccountsController = inject[UserAccountsController]
   private lazy val conversationController = inject[ConversationController]
 
@@ -114,42 +100,8 @@ class SecondPageFragment extends BaseFragment[SecondPageFragment.Container]
     if (fragment != null) fragment.onActivityResult(requestCode, resultCode, data)
   }
 
-//  final private val callback = new Callback[ConversationController.ConversationChange]() {
-//    override def callback(change: ConversationController.ConversationChange): Unit = {
-//      if (change.toConvId == null) return
-//      inject(classOf[ConversationController]).withConvLoaded(change.toConvId, new Callback[ConversationData]() {
-//        override def callback(convData: ConversationData): Unit = {
-//          info(s"Conversation: ${change.toConvId} type: ${convData.convType} requester: ${change.requester}")
-//          // either starting from beginning or switching fragment
-//          val switchingToPendingConnectRequest = convData.convType eq IConversation.Type.WAIT_FOR_CONNECTION
-//          val switchingToConnectRequestInbox = convData.convType eq IConversation.Type.INCOMING_CONNECTION
-//          if (switchingToConnectRequestInbox) {
-//            val arguments = new Bundle
-//            arguments.putString(SecondPageFragment.ArgConversationId, change.toConvId.str)
-//            openPage(Page.CONNECT_REQUEST_INBOX, arguments)
-//          }
-//          else if (switchingToPendingConnectRequest) {
-//            val arguments = new Bundle
-//            arguments.putString(SecondPageFragment.ArgConversationId, change.toConvId.str)
-//            openPage(Page.CONNECT_REQUEST_PENDING, arguments)
-//          }
-//          else openPage(Page.MESSAGE_STREAM, new Bundle)
-//        }
-//      })
-//    }
-//  }
-
   private def openPage(page: Page, userId: UserId) = {
     info(s"openPage ${page.name} userId $userId")
-//    if (getContainer == null || !isResumed) return
-//
-//    val fragment = getChildFragmentManager.findFragmentById(R.id.fl__second_page_container)
-//    if (currentPage != null && currentPage == page) { // Scroll to a certain connect request in inbox
-//      if (fragment.isInstanceOf[ConnectRequestFragment]) { //TODO set a preference or something
-//        fragment.asInstanceOf[ConnectRequestFragment].setVisibleConnectRequest(new UserId(arguments.getString(SecondPageFragment.ArgConversationId)))
-//      }
-//      if (page != Page.CONNECT_REQUEST_PENDING) return
-//    }
     currentPage = page
 
     Some(page)
@@ -189,9 +141,7 @@ class SecondPageFragment extends BaseFragment[SecondPageFragment.Container]
       .foreach(transaction => transaction.commit())
   }
 
-  override def onOpenUrl(url: String): Unit = {
-    getContainer.onOpenUrl(url)
-  }
+  override def onOpenUrl(url: String): Unit = getContainer.onOpenUrl(url)
 
   override def onBackPressed: Boolean = {
     val fragment = getChildFragmentManager.findFragmentById(R.id.fl__second_page_container)
@@ -232,4 +182,18 @@ class SecondPageFragment extends BaseFragment[SecondPageFragment.Container]
 
   override def showRemoveConfirmation(userId: UserId): Unit = {
   }
+}
+
+object SecondPageFragment {
+  val Tag: String = classOf[SecondPageFragment].getName
+  val ArgConversationId = "ARGUMENT_CONVERSATION_ID"
+  private val StateSecondPagePosition = "SECOND_PAGE_POSITION"
+
+
+  def newInstance = new SecondPageFragment
+
+  trait Container {
+    def onOpenUrl(url: String): Unit
+  }
+
 }

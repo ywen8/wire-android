@@ -48,32 +48,10 @@ import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.utils.{StringUtils, ViewUtils}
 import com.waz.zclient.views.menus.{FooterMenu, FooterMenuCallback}
 import com.waz.zclient.{FragmentHelper, R}
-import timber.log.Timber
 
 /**
   * Created by admin on 3/6/18.
   */
-
-object SendConnectRequestFragment {
-  val Tag: String = classOf[SendConnectRequestFragment].getName
-  val ArgumentUserId = "ARGUMENT_USER_ID"
-  val ArgumentUserRequester = "ARGUMENT_USER_REQUESTER"
-
-  def newInstance(userId: String, userRequester: IConnectStore.UserRequester): SendConnectRequestFragment = {
-    val newFragment = new SendConnectRequestFragment
-    val args = new Bundle
-    args.putString(ArgumentUserId, userId)
-    args.putString(ArgumentUserRequester, userRequester.toString)
-    newFragment.setArguments(args)
-    newFragment
-  }
-
-  trait Container extends UserProfileContainer {
-    def onConnectRequestWasSentToUser(): Unit
-    override def showRemoveConfirmation(userId: UserId): Unit
-  }
-
-}
 
 class SendConnectRequestFragment extends BaseFragment[SendConnectRequestFragment.Container]
   with FragmentHelper {
@@ -93,7 +71,7 @@ class SendConnectRequestFragment extends BaseFragment[SendConnectRequestFragment
 
   private lazy val accentColor = inject[AccentColorController].accentColor
   private lazy val userToConnect = usersController.user(userToConnectId)
-  private lazy val userDisplayName = userToConnect.map(user => { Timber.d("We have user: " + user); user.getDisplayName })
+  private lazy val userDisplayName = userToConnect.map(_.getDisplayName)
   private lazy val userName = userToConnect.map(user => StringUtils.formatHandle(user.handle.map(_.string).getOrElse("")))
   private lazy val userPicture: Signal[ImageSource] = userToConnect.map(_.picture).collect { case Some(p) => WireImage(p) }
   private lazy val hasRemoveConvMemberPermForCurrentConv = for {
@@ -126,7 +104,7 @@ class SendConnectRequestFragment extends BaseFragment[SendConnectRequestFragment
       vh.foreach(_.setCallback(callback))
     }
   }
-  private lazy val imageViewProfile = view[ImageView](R.id.iv__send_connect)
+  private lazy val imageViewProfile = view[ImageView](R.id.send_connect)
   private lazy val userNameView = returning(view[TypefaceTextView](R.id.user_name)) { vh =>
     userDisplayName.onUi(t => vh.foreach(_.setText(t)))
   }
@@ -155,17 +133,12 @@ class SendConnectRequestFragment extends BaseFragment[SendConnectRequestFragment
     animation
   }
 
-  override def onCreateView(inflater: LayoutInflater, viewContainer: ViewGroup, savedInstanceState: Bundle): View = {
+  override def onCreateView(inflater: LayoutInflater, viewContainer: ViewGroup, savedInstanceState: Bundle): View =
     inflater.inflate(R.layout.fragment_send_connect_request, viewContainer, false)
-  }
-
 
   override def onViewCreated(view: View, savedInstanceState: Bundle): Unit = {
     userNameView
     userHandleView
-
-//    imageViewProfile.foreach(_.setDisplayType(ImageAssetImageView.DisplayType.CIRCLE))
-//    imageViewProfile.foreach(_.setSaturation(0))
 
     val assetDrawable = new ImageAssetDrawable(
       userPicture,
@@ -223,4 +196,24 @@ class SendConnectRequestFragment extends BaseFragment[SendConnectRequestFragment
       }
     }
   }
+}
+
+object SendConnectRequestFragment {
+  val Tag: String = classOf[SendConnectRequestFragment].getName
+  val ArgumentUserId = "ARGUMENT_USER_ID"
+  val ArgumentUserRequester = "ARGUMENT_USER_REQUESTER"
+
+  def newInstance(userId: String, userRequester: IConnectStore.UserRequester): SendConnectRequestFragment =
+    returning(new SendConnectRequestFragment)(fragment =>
+      fragment.setArguments(returning(new Bundle) { args =>
+        args.putString(ArgumentUserId, userId)
+        args.putString(ArgumentUserRequester, userRequester.toString)
+      })
+    )
+
+  trait Container extends UserProfileContainer {
+    def onConnectRequestWasSentToUser(): Unit
+    override def showRemoveConfirmation(userId: UserId): Unit
+  }
+
 }

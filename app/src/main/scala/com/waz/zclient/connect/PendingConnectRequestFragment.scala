@@ -23,13 +23,13 @@ import android.os.Bundle
 import android.view.animation.Animation
 import android.view.{LayoutInflater, View, ViewGroup}
 import android.widget.ImageView
+import com.waz.ZLog.ImplicitTag._
 import com.waz.api.User.ConnectionStatus
 import com.waz.model.UserId
 import com.waz.service.ZMessaging
 import com.waz.threading.Threading
 import com.waz.utils.events.Signal
 import com.waz.utils.returning
-import com.waz.zclient.common.controllers.global.AccentColorController
 import com.waz.zclient.common.views.ImageAssetDrawable
 import com.waz.zclient.common.views.ImageAssetDrawable.{RequestBuilder, ScaleType}
 import com.waz.zclient.common.views.ImageController.{ImageSource, WireImage}
@@ -40,37 +40,14 @@ import com.waz.zclient.pages.main.connect.UserProfileContainer
 import com.waz.zclient.pages.main.participants.ProfileAnimation
 import com.waz.zclient.pages.main.participants.dialog.DialogLaunchMode
 import com.waz.zclient.ui.text.TypefaceTextView
-import com.waz.zclient.ui.views.ZetaButton
-import com.waz.zclient.utils.{ContextUtils, StringUtils}
+import com.waz.zclient.utils.ContextUtils._
+import com.waz.zclient.utils.StringUtils
 import com.waz.zclient.views.menus.{FooterMenu, FooterMenuCallback}
 import com.waz.zclient.{FragmentHelper, R}
-
-import com.waz.ZLog.ImplicitTag._
 
 /**
   * Created by admin on 3/7/18.
   */
-
-object PendingConnectRequestFragment {
-  val Tag: String = classOf[PendingConnectRequestFragment].getName
-  val ArgUserId = "ARGUMENT_USER_ID"
-  val ArgUserRequester = "ARGUMENT_USER_REQUESTER"
-  val StateIsShowingFooterMenu = "STATE_IS_SHOWING_FOOTER_MENU"
-
-  def newInstance(userId: UserId, userRequester: IConnectStore.UserRequester): PendingConnectRequestFragment = {
-    val newFragment = new PendingConnectRequestFragment
-    val args = new Bundle
-    args.putString(ArgUserId, userId.str)
-    args.putString(ArgUserRequester, userRequester.toString)
-    newFragment.setArguments(args)
-    newFragment
-  }
-
-  trait Container extends UserProfileContainer {
-    def onAcceptedConnectRequest(userId: UserId): Unit
-  }
-
-}
 
 class PendingConnectRequestFragment extends BaseFragment[PendingConnectRequestFragment.Container]
   with FragmentHelper {
@@ -80,14 +57,13 @@ class PendingConnectRequestFragment extends BaseFragment[PendingConnectRequestFr
 
   implicit def context: Context = getActivity
 
-  private lazy val usersController = inject[UsersController]
-  private lazy val zms = inject[Signal[ZMessaging]]
+  private lazy val usersController  = inject[UsersController]
+  private lazy val zms              = inject[Signal[ZMessaging]]
 
-  private lazy val userId = UserId(getArguments.getString(ArgUserId))
-  private lazy val userRequester = IConnectStore.UserRequester.valueOf(getArguments.getString(ArgUserRequester))
+  private lazy val userId         = UserId(getArguments.getString(ArgUserId))
+  private lazy val userRequester  = IConnectStore.UserRequester.valueOf(getArguments.getString(ArgUserRequester))
 
-  private lazy val accentColor = inject[AccentColorController].accentColor
-  private lazy val userToConnect = usersController.user(userId)
+  private lazy val userToConnect  = usersController.user(userId)
   private lazy val userToConnectPicture: Signal[ImageSource] =
     userToConnect.map(_.picture).collect { case Some(p) => WireImage(p) }
   private lazy val userDisplayName = userToConnect.map(_.getDisplayName)
@@ -97,9 +73,6 @@ class PendingConnectRequestFragment extends BaseFragment[PendingConnectRequestFr
 
   private var isShowingFooterMenu: Boolean = false
 
-  private lazy val unblockButton = returning(view[ZetaButton](R.id.zb__connect_request__unblock_button)) { vh =>
-    accentColor.onUi { color => vh.foreach(_.setAccentColor(color.getColor)) }
-  }
   private lazy val footerMenu = view[FooterMenu](R.id.fm__footer)
   private lazy val userNameView = returning(view[TypefaceTextView](R.id.user_name)) { vh =>
     userDisplayName.onUi(t => vh.foreach(_.setText(t)))
@@ -107,36 +80,36 @@ class PendingConnectRequestFragment extends BaseFragment[PendingConnectRequestFr
   private lazy val userHandleView = returning(view[TypefaceTextView](R.id.user_handle)) { vh =>
     userHandle.onUi(t => vh.foreach(_.setText(t)))
   }
-  private lazy val imageViewProfile = view[ImageView](R.id.iv__pending_connect)
+  private lazy val imageViewProfile = view[ImageView](R.id.pending_connect)
 
   override def onCreateAnimation(transit: Int, enter: Boolean, nextAnim: Int): Animation = {
-    var animation: Animation = super.onCreateAnimation(transit, enter, nextAnim)
-    val popoverLaunchMode = getControllerFactory.getConversationScreenController.getPopoverLaunchMode
-    if (popoverLaunchMode != DialogLaunchMode.AVATAR && popoverLaunchMode != DialogLaunchMode.COMMON_USER) { // No animation when request is shown in conversation list
-      val userRequester = IConnectStore.UserRequester.valueOf(getArguments.getString(ArgUserRequester))
-      if (userRequester != IConnectStore.UserRequester.CONVERSATION) {
-        val centerX: Int = ContextUtils.getOrientationIndependentDisplayWidth(getActivity) / 2
-        val centerY: Int = ContextUtils.getOrientationIndependentDisplayHeight(getActivity) / 2
-        var duration: Int = 0
-        var delay: Int = 0
-        if (nextAnim != 0) {
-          if (enter) {
-            duration = getResources.getInteger(R.integer.open_profile__animation_duration)
-            delay = getResources.getInteger(R.integer.open_profile__delay)
-          }
-          else {
-            duration = getResources.getInteger(R.integer.close_profile__animation_duration)
-          }
-          animation = new ProfileAnimation(enter, duration, delay, centerX, centerY)
-        }
-      }
+    def defaultAnimation = super.onCreateAnimation(transit, enter, nextAnim)
+    def shownInConvList = {
+      val launchMode = getControllerFactory.getConversationScreenController.getPopoverLaunchMode
+      launchMode != DialogLaunchMode.AVATAR && launchMode != DialogLaunchMode.COMMON_USER
     }
-    animation
+    def isConvRequester = {
+      val userRequester = IConnectStore.UserRequester.valueOf(getArguments.getString(ArgUserRequester))
+      userRequester == IConnectStore.UserRequester.CONVERSATION
+    }
+
+    if (shownInConvList || isConvRequester || nextAnim != 0) defaultAnimation
+    else {
+      val centerX = getOrientationIndependentDisplayWidth(getActivity) / 2
+      val centerY = getOrientationIndependentDisplayHeight(getActivity) / 2
+      val duration =
+        if (enter) getInt(R.integer.open_profile__animation_duration)
+        else getInt(R.integer.close_profile__animation_duration)
+      val delay =
+        if (enter) getInt(R.integer.open_profile__delay)
+        else 0
+
+      new ProfileAnimation(enter, duration, delay, centerX, centerY)
+    }
   }
 
-  override def onCreateView(inflater: LayoutInflater, viewContainer: ViewGroup, savedInstanceState: Bundle): View = {
+  override def onCreateView(inflater: LayoutInflater, viewContainer: ViewGroup, savedInstanceState: Bundle): View =
     inflater.inflate(R.layout.fragment_connect_request_pending, viewContainer, false)
-  }
 
   override def onViewCreated(view: View, savedInstanceState: Bundle): Unit = {
     if (savedInstanceState != null) {
@@ -146,8 +119,6 @@ class PendingConnectRequestFragment extends BaseFragment[PendingConnectRequestFr
     }
 
     userHandleView
-
-    unblockButton.setIsFilled(false)
 
     val assetDrawable = new ImageAssetDrawable(
       userToConnectPicture,
@@ -164,13 +135,10 @@ class PendingConnectRequestFragment extends BaseFragment[PendingConnectRequestFr
       backgroundContainer.setBackgroundColor(Color.TRANSPARENT)
     }
 
-    // Hide views until connection status of user is determined
-    footerMenu.setVisibility(View.GONE)
-    unblockButton.setVisibility(View.GONE)
     if (userRequester == IConnectStore.UserRequester.PARTICIPANTS) {
       userNameView.setPaddingRelative(0, 0, 0, 0)
     } else {
-      userNameView.setPaddingRelative(0, ContextUtils.getDimenPx(R.dimen.wire__padding__regular), 0, 0)
+      userNameView.setPaddingRelative(0, getDimenPx(R.dimen.wire__padding__regular), 0, 0)
     }
 
     userToConnect.onUi {user =>
@@ -193,11 +161,11 @@ class PendingConnectRequestFragment extends BaseFragment[PendingConnectRequestFr
     super.onSaveInstanceState(outState)
   }
 
-  private def setFooterForOutgoingConnectRequest(userId: UserId): Unit = { // Show footer
-    footerMenu.setVisibility(View.VISIBLE)
+  private def setFooterForOutgoingConnectRequest(userId: UserId): Unit = footerMenu.foreach { v =>
+    v.setVisibility(View.VISIBLE)
     isShowingFooterMenu = true
-    footerMenu.setRightActionText("")
-    footerMenu.setCallback(new FooterMenuCallback() {
+    v.setRightActionText("")
+    v.setCallback(new FooterMenuCallback() {
       override def onLeftActionClicked(): Unit = {
         zms.head.map(_.connection.cancelConnection(userId)).foreach { _ =>
           getActivity.onBackPressed()
@@ -209,39 +177,61 @@ class PendingConnectRequestFragment extends BaseFragment[PendingConnectRequestFr
     })
   }
 
-  private def setFooterForIncomingConnectRequest(userId: UserId): Unit = {
-    if (userRequester != IConnectStore.UserRequester.PARTICIPANTS) {
-      return
+  private def setFooterForIncomingConnectRequest(userId: UserId): Unit =
+    if (userRequester == IConnectStore.UserRequester.PARTICIPANTS) {
+      footerMenu.foreach { v =>
+        v.setVisibility(View.VISIBLE)
+        v.setRightActionText(getString(R.string.glyph__minus))
+        v.setCallback(new FooterMenuCallback() {
+          override def onLeftActionClicked(): Unit = {
+            getContainer.onAcceptedConnectRequest(userId)
+          }
+
+          override def onRightActionClicked(): Unit = {
+            getContainer.showRemoveConfirmation(userId)
+          }
+        })
+        v.setLeftActionText(getString(R.string.glyph__plus))
+        v.setLeftActionLabelText(getString(R.string.send_connect_request__connect_button__text))
+      }
     }
-    footerMenu.setVisibility(View.VISIBLE)
-    footerMenu.setRightActionText(getString(R.string.glyph__minus))
-    footerMenu.setCallback(new FooterMenuCallback() {
+
+  private def setFooterForIgnoredConnectRequest(userId: UserId): Unit = footerMenu.foreach { v =>
+    v.setVisibility(View.VISIBLE)
+    v.setRightActionText("")
+    v.setRightActionLabelText("")
+    v.setCallback(new FooterMenuCallback() {
       override def onLeftActionClicked(): Unit = {
         getContainer.onAcceptedConnectRequest(userId)
       }
 
       override def onRightActionClicked(): Unit = {
-        getContainer.showRemoveConfirmation(userId)
       }
     })
-    footerMenu.setLeftActionText(getString(R.string.glyph__plus))
-    footerMenu.setLeftActionLabelText(getString(R.string.send_connect_request__connect_button__text))
+    v.setLeftActionText(getString(R.string.glyph__plus))
+    v.setLeftActionLabelText(getString(R.string.send_connect_request__connect_button__text))
   }
 
-  private def setFooterForIgnoredConnectRequest(userId: UserId): Unit = {
-    footerMenu.setVisibility(View.VISIBLE)
-    footerMenu.setRightActionText("")
-    footerMenu.setRightActionLabelText("")
-    footerMenu.setCallback(new FooterMenuCallback() {
-      override def onLeftActionClicked(): Unit = {
-        getContainer.onAcceptedConnectRequest(userId)
-      }
+}
 
-      override def onRightActionClicked(): Unit = {
-      }
-    })
-    footerMenu.setLeftActionText(getString(R.string.glyph__plus))
-    footerMenu.setLeftActionLabelText(getString(R.string.send_connect_request__connect_button__text))
+object PendingConnectRequestFragment {
+  val Tag: String = classOf[PendingConnectRequestFragment].getName
+  val ArgUserId = "ARGUMENT_USER_ID"
+  val ArgUserRequester = "ARGUMENT_USER_REQUESTER"
+  val StateIsShowingFooterMenu = "STATE_IS_SHOWING_FOOTER_MENU"
+
+  def newInstance(userId: UserId, userRequester: IConnectStore.UserRequester): PendingConnectRequestFragment =
+    returning(new PendingConnectRequestFragment)(fragment =>
+      fragment.setArguments(
+        returning(new Bundle) { args =>
+          args.putString(ArgUserId, userId.str)
+          args.putString(ArgUserRequester, userRequester.toString)
+        }
+      )
+    )
+
+  trait Container extends UserProfileContainer {
+    def onAcceptedConnectRequest(userId: UserId): Unit
   }
 
 }

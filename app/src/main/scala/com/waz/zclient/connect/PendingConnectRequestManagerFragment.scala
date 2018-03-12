@@ -35,26 +35,6 @@ import com.waz.zclient.{FragmentHelper, OnBackPressedListener, R}
   * Created by admin on 3/8/18.
   */
 
-object PendingConnectRequestManagerFragment {
-  val Tag: String = classOf[PendingConnectRequestManagerFragment].getName
-  val ArgUserId = "ARGUMENT_USER_ID"
-  val ArgUserRequester = "ARGUMENT_USER_REQUESTER"
-
-  def newInstance(userId: UserId, userRequester: IConnectStore.UserRequester): PendingConnectRequestManagerFragment = {
-    val newFragment = new PendingConnectRequestManagerFragment
-    val args = new Bundle
-    args.putString(ArgUserId, userId.str)
-    args.putString(ArgUserRequester, userRequester.toString)
-    newFragment.setArguments(args)
-    newFragment
-  }
-
-  trait Container extends UserProfileContainer {
-    def onAcceptedConnectRequest(userId: UserId): Unit
-  }
-
-}
-
 class PendingConnectRequestManagerFragment extends BaseFragment[PendingConnectRequestManagerFragment.Container]
   with FragmentHelper
   with PendingConnectRequestFragment.Container
@@ -70,9 +50,8 @@ class PendingConnectRequestManagerFragment extends BaseFragment[PendingConnectRe
   private lazy val userRequester =
     IConnectStore.UserRequester.valueOf(getArguments.getString(ArgUserRequester))
 
-  override def onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState: Bundle): View = {
+  override def onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState: Bundle): View =
     inflater.inflate(R.layout.fragment_connect_request_pending_manager, container, false)
-  }
 
   override def onViewCreated(view: View, savedInstanceState: Bundle): Unit = {
     if (savedInstanceState == null) {
@@ -96,13 +75,10 @@ class PendingConnectRequestManagerFragment extends BaseFragment[PendingConnectRe
     }
   }
 
-  override def dismissUserProfile(): Unit = {
-    getContainer.dismissUserProfile()
-  }
+  override def dismissUserProfile(): Unit = getContainer.dismissUserProfile()
 
-  override def dismissSingleUserProfile(): Unit = {
+  override def dismissSingleUserProfile(): Unit =
     if (getChildFragmentManager.popBackStackImmediate) restoreCurrentPageAfterClosingOverlay()
-  }
 
   override def showRemoveConfirmation(userId: UserId): Unit = {
     if (networkService.isOnlineMode) {
@@ -129,10 +105,29 @@ class PendingConnectRequestManagerFragment extends BaseFragment[PendingConnectRe
     navigationController.navController.setRightPage(targetLeftPage, Tag)
   }
 
-  override def onAcceptedConnectRequest(userId: UserId): Unit = {
+  override def onAcceptedConnectRequest(userId: UserId): Unit =
     getContainer.onAcceptedConnectRequest(userId)
+
+  override def onBackPressed() = false
+
+}
+
+object PendingConnectRequestManagerFragment {
+  val Tag: String = classOf[PendingConnectRequestManagerFragment].getName
+  val ArgUserId = "ARGUMENT_USER_ID"
+  val ArgUserRequester = "ARGUMENT_USER_REQUESTER"
+
+  def newInstance(userId: UserId, userRequester: IConnectStore.UserRequester): PendingConnectRequestManagerFragment = {
+    val newFragment = new PendingConnectRequestManagerFragment
+    val args = new Bundle
+    args.putString(ArgUserId, userId.str)
+    args.putString(ArgUserRequester, userRequester.toString)
+    newFragment.setArguments(args)
+    newFragment
   }
 
-  override def onBackPressed = false
+  trait Container extends UserProfileContainer {
+    def onAcceptedConnectRequest(userId: UserId): Unit
+  }
 
 }

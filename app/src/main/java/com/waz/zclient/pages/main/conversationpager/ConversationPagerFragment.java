@@ -34,6 +34,7 @@ import com.waz.zclient.controllers.navigation.NavigationControllerObserver;
 import com.waz.zclient.controllers.navigation.Page;
 import com.waz.zclient.controllers.navigation.PagerControllerObserver;
 import com.waz.zclient.conversation.ConversationController;
+import com.waz.zclient.conversationpager.SecondPageFragment;
 import com.waz.zclient.cursor.CursorController;
 import com.waz.zclient.pages.BaseFragment;
 import com.waz.zclient.utils.Callback;

@@ -53,7 +53,7 @@
         app:w_font="@string/wire__typeface__regular"/>
 
     <ImageView
-        android:id="@+id/iv__send_connect"
+        android:id="@+id/send_connect"
         android:layout_width="@dimen/profile__image__width"
         android:layout_height="@dimen/profile__image__height"
         android:layout_centerInParent="true"

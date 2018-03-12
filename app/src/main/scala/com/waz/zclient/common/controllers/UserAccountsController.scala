@@ -69,22 +69,16 @@ class UserAccountsController(implicit injector: Injector, context: Context, ec: 
 
   def getTeamIdSignal(convId: ConvId): Signal[Option[TeamId]] =
     for {
-      zmsValue <- zms
-      conversation = zmsValue.convsStorage.conversations.find(_.id == convId)
+      conversation <- convCtrl.conversationData(convId)
     } yield conversation.flatMap(_.team)
 
-  def hasRemoveConversationMemberPermission(convId: ConvId): Signal[Boolean] = {
-    val maybeResult = for {
+  def hasRemoveConversationMemberPermission(convId: ConvId): Signal[Boolean] =
+    for {
       maybeCurrentTeamId <- teamId
       maybeTeamId <- getTeamIdSignal(convId)
       permissions <- permissions
-    } yield for {
-      currentTeamId <- maybeCurrentTeamId
-      maybeTeamId <- maybeTeamId
-    } yield maybeTeamId == currentTeamId && permissions(AccountData.Permission.RemoveConversationMember)
-
-    maybeResult.map(_.getOrElse(true))
-  }
+    } yield maybeTeamId.isEmpty ||
+      (maybeCurrentTeamId == maybeTeamId && permissions(AccountData.Permission.RemoveConversationMember))
 
   private def unreadCountForConv(conversationData: ConversationData): Int = {
     if (conversationData.archived || conversationData.muted || conversationData.hidden || conversationData.convType == ConversationData.ConversationType.Self)
