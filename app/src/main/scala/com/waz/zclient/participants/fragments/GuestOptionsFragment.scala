@@ -59,8 +59,10 @@ class GuestOptionsFragment extends FragmentHelper {
   private lazy val guestLinkText = returning(view[TypefaceTextView](R.id.link_button_link_text)) { text =>
     convCtrl.currentConv.map(_.link).onUi {
       case Some(link) =>
-        text.foreach(_.setVisibility(View.VISIBLE))
-        text.foreach(_.setText(link.url))
+        text.foreach { t =>
+          t.setVisibility(View.VISIBLE)
+          t.setText(link.url)
+        }
       case None =>
         text.foreach(_.setVisibility(View.GONE))
     }
@@ -121,37 +123,7 @@ class GuestOptionsFragment extends FragmentHelper {
 
       }
     })
-/*
-      (for {
-        zms <- zms.head
-        conv <- convCtrl.currentConv.head
-        link <- zms.conversations.createLink(conv.id)
-      } yield link).map {
-        case Left(_) =>
-          spinnerController.showSpinner(false)
-          showToast(R.string.allow_guests_error_title)
-        case l =>
-          spinnerController.showSpinner(false)
-      } (Threading.Ui)
-*/
 
-/*
-    guestLinkText.foreach(linkText => linkText.onClick(copyToClipboard(linkText.getText.toString)))
-    guestLinkCreate.foreach(_.onClick {
-      spinnerController.showSpinner(true)
-      (for {
-        zms <- zms.head
-        conv <- convCtrl.currentConv.head
-        link <- zms.conversations.createLink(conv.id)
-      } yield link).map {
-        case Left(_) =>
-          spinnerController.showSpinner(false)
-          showToast(R.string.allow_guests_error_title)
-        case _ =>
-          spinnerController.showSpinner(false)
-      } (Threading.Ui)
-    })
-*/
     copyLinkButton.foreach(_.onClick(convCtrl.currentConv.head.map(_.link.foreach(link => copyToClipboard(link.url)))(Threading.Ui)))
     shareLinkButton.foreach(_.onClick {
       convCtrl.currentConv.head.map(_.link.foreach { link =>
@@ -178,7 +150,9 @@ class GuestOptionsFragment extends FragmentHelper {
             } yield res).map {
               case Left(_) =>
                 spinnerController.showSpinner(false)
-                showToast(R.string.allow_guests_error_title)
+                ViewUtils.showAlertDialog(getContext, R.string.allow_guests_error_title, R.string.allow_guests_error_body, android.R.string.ok, new DialogInterface.OnClickListener {
+                  override def onClick(dialog: DialogInterface, which: Int): Unit = dialog.dismiss()
+                }, true)
               case _ =>
                 spinnerController.showSpinner(false)
             } (Threading.Ui)
