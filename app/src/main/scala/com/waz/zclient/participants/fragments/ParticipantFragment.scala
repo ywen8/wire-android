@@ -25,7 +25,7 @@ import android.view.animation.Animation
 import android.view.{LayoutInflater, View, ViewGroup}
 import com.waz.ZLog.ImplicitTag._
 import com.waz.ZLog._
-import com.waz.api.Message
+import com.waz.api._
 import com.waz.model._
 import com.waz.model.otr.ClientId
 import com.waz.threading.Threading
@@ -33,7 +33,7 @@ import com.waz.utils.events.{Signal, Subscription}
 import com.waz.utils.returning
 import com.waz.zclient.common.controllers.UserAccountsController
 import com.waz.zclient.connect.{PendingConnectRequestFragment, SendConnectRequestFragment}
-import com.waz.zclient.controllers.navigation.{INavigationController, Page}
+import com.waz.zclient.controllers.navigation.INavigationController
 import com.waz.zclient.controllers.singleimage.ISingleImageController
 import com.waz.zclient.conversation.ConversationController
 import com.waz.zclient.core.stores.conversation.ConversationChangeRequester
