@@ -34,6 +34,7 @@ import com.waz.zclient.common.controllers.global.AccentColorController
 import com.waz.zclient.common.views.ImageAssetDrawable
 import com.waz.zclient.common.views.ImageAssetDrawable.{RequestBuilder, ScaleType}
 import com.waz.zclient.common.views.ImageController.{ImageSource, WireImage}
+import com.waz.zclient.connect.PendingConnectRequestFragment.ArgUserRequester
 import com.waz.zclient.conversation.ConversationController
 import com.waz.zclient.core.stores.connect.IConnectStore
 import com.waz.zclient.messages.UsersController
@@ -113,24 +114,29 @@ class SendConnectRequestFragment extends BaseFragment[SendConnectRequestFragment
   }
 
   override def onCreateAnimation(transit: Int, enter: Boolean, nextAnim: Int): Animation = {
-    var animation = super.onCreateAnimation(transit, enter, nextAnim)
-    val popoverLaunchMode = getControllerFactory.getConversationScreenController.getPopoverLaunchMode
-    if (popoverLaunchMode != DialogLaunchMode.AVATAR && popoverLaunchMode != DialogLaunchMode.COMMON_USER) {
+    def defaultAnimation = super.onCreateAnimation(transit, enter, nextAnim)
+    def shownInConvList = {
+      val launchMode = getControllerFactory.getConversationScreenController.getPopoverLaunchMode
+      launchMode != DialogLaunchMode.AVATAR && launchMode != DialogLaunchMode.COMMON_USER
+    }
+    def isConvRequester = {
+      val userRequester = IConnectStore.UserRequester.valueOf(getArguments.getString(ArgUserRequester))
+      userRequester == IConnectStore.UserRequester.CONVERSATION
+    }
+
+    if (shownInConvList || isConvRequester || nextAnim != 0) defaultAnimation
+    else {
       val centerX = getOrientationIndependentDisplayWidth(getActivity) / 2
       val centerY = getOrientationIndependentDisplayHeight(getActivity) / 2
-      var duration = 0
-      var delay = 0
-      if (nextAnim != 0) {
-        if (enter) {
-          duration = getInt(R.integer.open_profile__animation_duration)
-          delay = getInt(R.integer.open_profile__delay)
-        } else {
-          duration = getInt(R.integer.close_profile__animation_duration)
-        }
-        animation = new ProfileAnimation(enter, duration, delay, centerX, centerY)
-      }
+      val duration =
+        if (enter) getInt(R.integer.open_profile__animation_duration)
+        else getInt(R.integer.close_profile__animation_duration)
+      val delay =
+        if (enter) getInt(R.integer.open_profile__delay)
+        else 0
+
+      new ProfileAnimation(enter, duration, delay, centerX, centerY)
     }
-    animation
   }
 
   override def onCreateView(inflater: LayoutInflater, viewContainer: ViewGroup, savedInstanceState: Bundle): View =
@@ -156,9 +162,6 @@ class SendConnectRequestFragment extends BaseFragment[SendConnectRequestFragment
       popoverLaunchMode != DialogLaunchMode.COMMON_USER) {
       backgroundContainer.setBackgroundColor(Color.TRANSPARENT)
     }
-
-    connectButton.setText(getString(R.string.send_connect_request__connect_button__text))
-    footerMenu.setVisibility(View.GONE)
 
     if (userRequester == IConnectStore.UserRequester.PARTICIPANTS) {
       footerMenu.setVisibility(View.VISIBLE)

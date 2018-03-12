@@ -67,15 +67,11 @@ class UserAccountsController(implicit injector: Injector, context: Context, ec: 
 
   teamMembersSignal.onUi(members => _teamMembers = members)
 
-  def getTeamIdSignal(convId: ConvId): Signal[Option[TeamId]] =
-    for {
-      conversation <- convCtrl.conversationData(convId)
-    } yield conversation.flatMap(_.team)
-
   def hasRemoveConversationMemberPermission(convId: ConvId): Signal[Boolean] =
     for {
       maybeCurrentTeamId <- teamId
-      maybeTeamId <- getTeamIdSignal(convId)
+      maybeConvData <- convCtrl.conversationData(convId)
+      maybeTeamId = maybeConvData.flatMap(_.team)
       permissions <- permissions
     } yield maybeTeamId.isEmpty ||
       (maybeCurrentTeamId == maybeTeamId && permissions(AccountData.Permission.RemoveConversationMember))

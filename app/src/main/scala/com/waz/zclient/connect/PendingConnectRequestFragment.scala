@@ -135,10 +135,12 @@ class PendingConnectRequestFragment extends BaseFragment[PendingConnectRequestFr
       backgroundContainer.setBackgroundColor(Color.TRANSPARENT)
     }
 
-    if (userRequester == IConnectStore.UserRequester.PARTICIPANTS) {
-      userNameView.setPaddingRelative(0, 0, 0, 0)
-    } else {
-      userNameView.setPaddingRelative(0, getDimenPx(R.dimen.wire__padding__regular), 0, 0)
+    userNameView.foreach { v =>
+      val paddingTop =
+        if (userRequester == IConnectStore.UserRequester.PARTICIPANTS) 0
+        else getDimenPx(R.dimen.wire__padding__regular)
+
+      v.setPaddingRelative(0, paddingTop, 0, 0)
     }
 
     userToConnect.onUi {user =>

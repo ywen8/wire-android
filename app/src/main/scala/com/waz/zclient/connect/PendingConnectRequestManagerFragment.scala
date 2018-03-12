@@ -22,6 +22,7 @@ import android.os.Bundle
 import android.view.{LayoutInflater, View, ViewGroup}
 import com.waz.model.UserId
 import com.waz.service.NetworkModeService
+import com.waz.utils.returning
 import com.waz.zclient.controllers.navigation.Page
 import com.waz.zclient.core.stores.connect.IConnectStore
 import com.waz.zclient.messages.controllers.NavigationController
@@ -117,14 +118,13 @@ object PendingConnectRequestManagerFragment {
   val ArgUserId = "ARGUMENT_USER_ID"
   val ArgUserRequester = "ARGUMENT_USER_REQUESTER"
 
-  def newInstance(userId: UserId, userRequester: IConnectStore.UserRequester): PendingConnectRequestManagerFragment = {
-    val newFragment = new PendingConnectRequestManagerFragment
-    val args = new Bundle
-    args.putString(ArgUserId, userId.str)
-    args.putString(ArgUserRequester, userRequester.toString)
-    newFragment.setArguments(args)
-    newFragment
-  }
+  def newInstance(userId: UserId, userRequester: IConnectStore.UserRequester): PendingConnectRequestManagerFragment =
+    returning(new PendingConnectRequestManagerFragment)(fragment =>
+      fragment.setArguments(returning(new Bundle) { args =>
+        args.putString(ArgUserId, userId.str)
+        args.putString(ArgUserRequester, userRequester.toString)
+      })
+    )
 
   trait Container extends UserProfileContainer {
     def onAcceptedConnectRequest(userId: UserId): Unit
