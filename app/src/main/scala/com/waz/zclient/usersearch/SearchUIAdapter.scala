@@ -318,6 +318,7 @@ object SearchUIAdapter {
     view.findViewById[View](R.id.icon).setBackground(CreateGroupIcon(R.color.white))
     view.findViewById[TypefaceTextView](R.id.title).setText(R.string.create_group_conversation)
     view.onClick(callback.onCreateConvClicked())
+    view.setId(R.id.create_group_button)
   }
 
   class NewGuestRoomViewHolder(view: View, callback: SearchUIAdapter.Callback) extends RecyclerView.ViewHolder(view) {
@@ -325,6 +326,7 @@ object SearchUIAdapter {
     view.findViewById[View](R.id.icon).setBackground(GuestIcon(R.color.white))
     view.findViewById[TypefaceTextView](R.id.title).setText(R.string.create_guest_room_conversation)
     view.onClick(callback.onCreateGuestRoomClicked())
+    view.setId(R.id.create_guest_room_button)
   }
 
   class TopUsersViewHolder(view: View, topUserAdapter: TopUserAdapter, context: Context) extends RecyclerView.ViewHolder(view) {
