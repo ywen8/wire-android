@@ -23,7 +23,6 @@ import android.os.Bundle
 import android.support.annotation.Nullable
 import android.support.v4.app.Fragment
 import android.support.v7.widget.{LinearLayoutManager, RecyclerView}
-import android.view.animation.{AlphaAnimation, Animation}
 import android.view.{LayoutInflater, View, ViewGroup}
 import com.waz.ZLog.ImplicitTag._
 import com.waz.ZLog.verbose
@@ -39,6 +38,7 @@ import com.waz.zclient.core.stores.connect.IConnectStore
 import com.waz.zclient.integrations.IntegrationDetailsController
 import com.waz.zclient.pages.main.connect.{BlockedUserProfileFragment, ConnectRequestLoadMode, PendingConnectRequestFragment, SendConnectRequestFragment}
 import com.waz.zclient.pages.main.conversation.controller.IConversationScreenController
+import com.waz.zclient.pages.main.pickuser.controller.IPickUserController
 import com.waz.zclient.participants.{ParticipantsAdapter, ParticipantsController}
 import com.waz.zclient.ui.text.GlyphTextView
 import com.waz.zclient.ui.utils.KeyboardUtils
@@ -56,6 +56,7 @@ class GroupParticipantsFragment extends FragmentHelper {
   private lazy val convScreenController         = inject[IConversationScreenController]
   private lazy val userAccountsController       = inject[UserAccountsController]
   private lazy val integrationDetailsController = inject[IntegrationDetailsController]
+  private lazy val pickUserController           = inject[IPickUserController]
 
   private lazy val participantsView = view[RecyclerView](R.id.pgv__participants)
   private lazy val footerMenu = returning(view[FooterMenu](R.id.fm__participants__footer)) { fm =>
@@ -146,7 +147,7 @@ class GroupParticipantsFragment extends FragmentHelper {
     participantsController.getUser(userId).foreach {
       case Some(user) if user.connection == ACCEPTED || userAccountsController.isTeamAccount && userAccountsController.isTeamMember(userId) =>
         participantsController.selectParticipant(userId)
-        openUserProfileFragment(SingleParticipantFragment.newInstance(SingleParticipantFragment.UserPage), SingleParticipantFragment.Tag)
+        openUserProfileFragment(SingleParticipantFragment.newInstance(), SingleParticipantFragment.Tag)
 
       case Some(user) if user.connection == PENDING_FROM_OTHER || user.connection == PENDING_FROM_USER || user.connection == IGNORED =>
         import PendingConnectRequestFragment._
@@ -162,19 +163,6 @@ class GroupParticipantsFragment extends FragmentHelper {
       case _ =>
     }
   }
-
-  // This is a workaround for the bug where child fragments disappear when
-  // the parent is removed (as all children are first removed from the parent)
-  // See https://code.google.com/p/android/issues/detail?id=55228
-  // Apply the workaround only if this is a child fragment, and the parent is being removed.
-  override def onCreateAnimation(transit: Int, enter: Boolean, nextAnim: Int): Animation =
-    Option(getParentFragment) match {
-      case Some(parent) if !enter && parent.isRemoving =>
-        returning(new AlphaAnimation(1, 1)) {
-          _.setDuration(ViewUtils.getNextAnimationDuration(parent))
-        }
-      case _ => super.onCreateAnimation(transit, enter, nextAnim)
-    }
 
   override def onCreateView(inflater: LayoutInflater, viewGroup: ViewGroup, savedInstanceState: Bundle): View =
     inflater.inflate(R.layout.fragment_group_participant, viewGroup, false)
@@ -202,7 +190,7 @@ class GroupParticipantsFragment extends FragmentHelper {
           isGroup <- participantsController.isGroup.head
         } yield (conv.id, conv.isActive, isGroup)).foreach {
           case (convId, true, true) if userAccountsController.hasAddConversationMemberPermission(convId) =>
-            convScreenController.addPeopleToConversation()
+            pickUserController.showPickUser(IPickUserController.Destination.PARTICIPANTS)
           case _ =>
         }
       }
