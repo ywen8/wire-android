@@ -31,15 +31,15 @@ public enum OptionsMenuItem {
      */
     ARCHIVE(R.string.conversation__action__archive, R.string.glyph__archive),
     UNARCHIVE(R.string.conversation__action__unarchive, R.string.glyph__archive),
-    LEAVE(R.string.conversation__action__leave, R.string.glyph__minus),
     BLOCK(R.string.confirmation_menu__confirm_block, R.string.glyph__block),
     UNBLOCK(R.string.connect_request__unblock__button__text, R.string.glyph__block),
-    DELETE(R.string.conversation__action__delete, R.string.glyph__trash),
     SILENCE(R.string.conversation__action__silence, R.string.glyph__silence),
-    UNSILENCE(R.string.conversation__action__unsilence, R.string.glyph__silence),
+    UNSILENCE(R.string.conversation__action__unsilence, R.string.glyph__notify),
     RENAME(R.string.conversation__action__rename, R.string.glyph__edit),
     PICTURE(R.string.conversation__action__picture, R.string.glyph__camera),
-    CALL(R.string.conversation__action__call, R.string.glyph__call);
+    CALL(R.string.conversation__action__call, R.string.glyph__call),
+    DELETE(R.string.conversation__action__delete, R.string.glyph__trash),
+    LEAVE(R.string.conversation__action__leave, R.string.glyph__minus);
 
     public final int resTextId;
     public final int resGlyphId;

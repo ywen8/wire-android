@@ -40,7 +40,7 @@ import com.waz.zclient.pages.BaseFragment
 import com.waz.zclient.pages.main.connect.{BlockedUserProfileFragment, PendingConnectRequestFragment, SendConnectRequestFragment}
 import com.waz.zclient.pages.main.conversation.controller.{ConversationScreenControllerObserver, IConversationScreenController}
 import com.waz.zclient.pages.main.pickuser.controller.IPickUserController
-import com.waz.zclient.participants.{OptionsMenuFragment, ParticipantsController}
+import com.waz.zclient.participants.{OptionsMenu, ParticipantsController}
 import com.waz.zclient.usersearch.SearchUIFragment
 import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.utils.ViewUtils
@@ -77,7 +77,6 @@ class ParticipantFragment extends BaseFragment[ParticipantFragment.Container] wi
   private var subs = Set.empty[Subscription]
 
   private lazy val headerFragment  = ParticipantHeaderFragment.newInstance
-  private lazy val optionsFragment = OptionsMenuFragment.newInstance(false)
 
   val navigationIconVisible = Signal(true)
 
@@ -118,7 +117,6 @@ class ParticipantFragment extends BaseFragment[ParticipantFragment.Container] wi
         case (f, tag) =>
           getChildFragmentManager.beginTransaction
             .replace(R.id.fl__participant__header__container, headerFragment, ParticipantHeaderFragment.TAG)
-            .replace(R.id.fl__participant__settings_box, optionsFragment, OptionsMenuFragment.Tag)
             .replace(R.id.fl__participant__container, f, tag)
             .addToBackStack(tag)
             .commit
@@ -162,7 +160,6 @@ class ParticipantFragment extends BaseFragment[ParticipantFragment.Container] wi
 
   override def onBackPressed(): Boolean = {
     withContentFragment {
-      case _ if optionsFragment.close() => true
       case _ if pickUserController.isShowingPickUser(IPickUserController.Destination.PARTICIPANTS) =>
         verbose(s"onBackPressed with isShowingPickUser")
         pickUserController.hidePickUser(IPickUserController.Destination.PARTICIPANTS)
@@ -190,10 +187,7 @@ class ParticipantFragment extends BaseFragment[ParticipantFragment.Container] wi
     }
 
   override def onShowConversationMenu(inConvList: Boolean, convId: ConvId): Unit =
-    if (!inConvList) getChildFragmentManager.findFragmentByTag(OptionsMenuFragment.Tag) match {
-      case fragment: OptionsMenuFragment => fragment.open(convId)
-      case _ =>
-    }
+    if (!inConvList) OptionsMenu(getContext, inConvList, convId).show()
 
   def showOtrClient(userId: UserId, clientId: ClientId): Unit =
     getChildFragmentManager

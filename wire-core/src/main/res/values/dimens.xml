@@ -128,13 +128,13 @@
     <!-- options menu-->
     <dimen name="options_menu_item__padding">22dp</dimen>
     <dimen name="options_menu_item__padding__big">30dp</dimen>
-    <dimen name="options_menu_item__height">56dp</dimen>
+    <dimen name="options_menu_item__height">32dp</dimen>
     <dimen name="options_menu_item__width">56dp</dimen>
     <dimen name="options_menu_item_glyph_text_size">16dp</dimen>
-    <dimen name="options_menu_item_title_height">16dp</dimen>
+    <dimen name="options_menu_item_title_height">48dp</dimen>
     <dimen name="options_menu_item_title_margin_top">8dp</dimen>
     <dimen name="options_menu_cancel_height">16dp</dimen>
-    <dimen name="options_menu_cancel_margin_top">72dp</dimen>
+    <dimen name="options_menu_cancel_margin_top">32dp</dimen>
     <dimen name="options_menu_cancel_margin_bottom">40dp</dimen>
 
     <!-- Sign in tab-->

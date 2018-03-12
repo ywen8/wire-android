@@ -284,18 +284,18 @@
     <string name="content__location__no_map_placeholder">THE LOCATION WILL APPEAR ON THE MAP WHEN YOU ARE BACK ONLINE.</string>
 
     <!-- Conversation actions -->
-    <string name="conversation__action__rename">RENAME</string>
-    <string name="conversation__action__delete">DELETE</string>
-    <string name="conversation__action__archive">ARCHIVE</string>
-    <string name="conversation__action__unarchive">UNARCHIVE</string>
+    <string name="conversation__action__rename">Rename</string>
+    <string name="conversation__action__delete">Delete</string>
+    <string name="conversation__action__archive">Archive</string>
+    <string name="conversation__action__unarchive">Unarchive</string>
     <string name="conversation__action__add_people">ADD PEOPLE</string>
     <string name="conversation__action__create_group">CREATE GROUP</string>
-    <string name="conversation__action__silence">MUTE</string>
-    <string name="conversation__action__unsilence">UNMUTE</string>
-    <string name="conversation__action__leave">LEAVE</string>
-    <string name="conversation__action__remove">REMOVE</string>
-    <string name="conversation__action__call">CALL</string>
-    <string name="conversation__action__picture">PICTURE</string>
+    <string name="conversation__action__silence">Mute</string>
+    <string name="conversation__action__unsilence">Unmute</string>
+    <string name="conversation__action__leave">Leave</string>
+    <string name="conversation__action__remove">Remove</string>
+    <string name="conversation__action__call">Call</string>
+    <string name="conversation__action__picture">Picture</string>
 
     <!-- Conversation: Profile Popover -->
     <string name="popover__action__open">OPEN</string>
