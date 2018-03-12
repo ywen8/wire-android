@@ -68,7 +68,8 @@
         android:id="@+id/guest_link_options"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        android:layout_marginTop="@dimen/wire__padding__small">
 
         <View
             android:layout_width="match_parent"
@@ -81,9 +82,10 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="@dimen/wire__padding__regular"
             android:layout_marginEnd="@dimen/wire__padding__regular"
+            android:layout_marginTop="@dimen/wire__padding__small"
             android:textAlignment="textStart"
             android:gravity="center_vertical|start"
-            android:textSize="@dimen/wire__text_size__small"
+            android:textSize="@dimen/wire__text_size__smaller"
             android:textColor="?wireSecondaryTextColor"
             app:w_font="@string/wire__typeface__medium"
             android:text="@string/invitation_link_title"/>
@@ -92,7 +94,9 @@
             android:id="@+id/link_description"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_margin="@dimen/wire__padding__regular"
+            android:layout_marginTop="@dimen/wire__padding__small"
+            android:layout_marginStart="@dimen/wire__padding__regular"
+            android:layout_marginEnd="@dimen/wire__padding__regular"
             android:textAlignment="textStart"
             android:gravity="center_vertical|start"
             android:textSize="@dimen/wire__text_size__small"
@@ -105,6 +109,7 @@
             android:id="@+id/link_button"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/wire__padding__24"
             android:minHeight="@dimen/menu_item_height"
             style="?wireBackground"
             android:clickable="true"
@@ -154,7 +159,7 @@
 
         <com.waz.zclient.common.views.MenuRowButton
             android:id="@+id/copy_link_button"
-            android:layout_marginTop="@dimen/wire__padding__regular"
+            android:layout_marginTop="@dimen/wire__padding__24"
             android:layout_width="match_parent"
             android:layout_height="@dimen/menu_item_height"
             app:buttonTextColor="?wirePrimaryTextColor"
