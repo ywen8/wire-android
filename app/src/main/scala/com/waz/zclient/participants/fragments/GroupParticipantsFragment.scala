@@ -40,7 +40,6 @@ import com.waz.zclient.pages.main.connect.{BlockedUserProfileFragment, ConnectRe
 import com.waz.zclient.pages.main.conversation.controller.IConversationScreenController
 import com.waz.zclient.pages.main.pickuser.controller.IPickUserController
 import com.waz.zclient.participants.{ParticipantsAdapter, ParticipantsController}
-import com.waz.zclient.ui.text.GlyphTextView
 import com.waz.zclient.ui.utils.KeyboardUtils
 import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.utils.ViewUtils
