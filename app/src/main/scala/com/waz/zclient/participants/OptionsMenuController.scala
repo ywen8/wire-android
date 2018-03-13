@@ -20,7 +20,7 @@ package com.waz.zclient.participants
 import android.content.Context
 import com.waz.ZLog.ImplicitTag._
 import com.waz.ZLog.verbose
-import com.waz.model.{ConvId, ConversationData, UserData, UserId}
+import com.waz.model.{ConvId, UserData, UserId}
 import com.waz.service.ZMessaging
 import com.waz.threading.{CancellableFuture, Threading}
 import com.waz.utils.events.{EventContext, EventStream, EventStreamWithAuxSignal, Signal}
@@ -45,34 +45,29 @@ import com.waz.zclient.{Injectable, Injector, R}
 import scala.concurrent.Future
 import scala.concurrent.duration._
 
-class OptionsMenuController(implicit injector: Injector, context: Context, ec: EventContext) extends Injectable {
+case class OptionsMenuController(convId: ConvId, inConvList: Boolean)(implicit injector: Injector, context: Context, ec: EventContext) extends Injectable {
   import Threading.Implicits.Ui
 
-  val zMessaging             = inject[Signal[ZMessaging]]
-  val convController         = inject[ConversationController]
-  val participantsController = inject[ParticipantsController]
-  val navController          = inject[INavigationController]
-  val confirmationController = inject[IConfirmationController]
-  val themes                 = inject[ThemeController]
-  val sounds                 = inject[SoundController]
-  val userAccounts           = inject[UserAccountsController]
-  val users                  = inject[UsersController]
-  val callingController      = inject[ICallingController]
-  val cameraController       = inject[ICameraController]
-  val screenController       = inject[IConversationScreenController]
-  val pickUserController     = inject[IPickUserController]
-
-  val convId = Signal(Option.empty[ConvId])
+  private val zMessaging             = inject[Signal[ZMessaging]]
+  private val convController         = inject[ConversationController]
+  private val participantsController = inject[ParticipantsController]
+  private val navController          = inject[INavigationController]
+  private val confirmationController = inject[IConfirmationController]
+  private val themes                 = inject[ThemeController]
+  private val sounds                 = inject[SoundController]
+  private val userAccounts           = inject[UserAccountsController]
+  private val users                  = inject[UsersController]
+  private val callingController      = inject[ICallingController]
+  private val cameraController       = inject[ICameraController]
+  private val screenController       = inject[IConversationScreenController]
+  private val pickUserController     = inject[IPickUserController]
 
   val onMenuItemClicked = EventStream[OptionsMenuItem]()
   val animationState    = Signal[AnimState](Closed)
 
-  val inConversationList = Signal(false)
-  private def inConvList = inConversationList.currentValue.getOrElse(false)
-  inConversationList(v => verbose(s"inConversationList: $v"))
   def tag = if (inConvList) "OptionsMenu_ConvList" else "OptionsMenu_Participants"
 
-  val optionsTheme = inConversationList.flatMap {
+  val optionsTheme = inConvList match {
     case true => Signal.const(themes.optionsDarkTheme)
     case _    => themes.darkThemePref.flatMap(_.signal).map {
       case true => themes.optionsDarkTheme
@@ -82,15 +77,11 @@ class OptionsMenuController(implicit injector: Injector, context: Context, ec: E
 
   private def currentTheme = optionsTheme.currentValue.getOrElse(themes.optionsDarkTheme)
 
-  val conv = convId.flatMap {
-    case Some(id)   => convController.conversationData(id)
-    case _          => Signal.const(Option.empty[ConversationData])
-  }
+  val conv = convController.conversationData(convId)
 
   //returns Signal(None) if the selected convId is a group
   val otherUser: Signal[Option[UserData]] = (for {
     zms          <- zMessaging
-    Some(convId) <- convId
     isGroup      <- Signal.future(zms.conversations.isGroupConversation(convId))
     id <- if (isGroup) Signal.const(Option.empty[UserId]) else zms.membersStorage.activeMembers(convId).filter(_ != zms.selfUserId).map(_.headOption)
     user <- id.fold(Signal.const(Option.empty[UserData]))(zms.users.userSignal(_).map(Some(_)))
@@ -112,7 +103,6 @@ class OptionsMenuController(implicit injector: Injector, context: Context, ec: E
     connectStatus <- otherUser.map(_.map(_.connection))
     teamMember    <- otherUser.map(_.exists(u => u.teamId.nonEmpty && u.teamId == zms.teamId))
     isBot         <- otherUser.map(_.exists(_.isWireBot))
-    inConvList    <- inConversationList
   } yield {
     import OptionsMenuItem._
     import com.waz.api.User.ConnectionStatus._
@@ -141,21 +131,15 @@ class OptionsMenuController(implicit injector: Injector, context: Context, ec: E
     builder.result().toSeq.sortWith { case (l, r) => l.compareTo(r) < 0 }
   }
 
-  (for {
-    inConvList <- inConversationList
-    animState  <- animationState
-  } yield (inConvList, animState)).onChanged.collect {
+  animationState.map(state => (inConvList, state)).onChanged.collect {
     case (true, Opening) => Page.CONVERSATION_MENU_OVER_CONVERSATION_LIST
     case (true, Closed)  => Page.CONVERSATION_LIST
   }.onUi(page => navController.setLeftPage(page, tag))
 
-  val convState = for {
-    cId <- convId
-    other <- otherUser
-  } yield (cId, other)
+  private val convState = otherUser.map(other => (convId, other))
 
   (new EventStreamWithAuxSignal(onMenuItemClicked, convState)) {
-    case (item, Some((Some(cId), user))) =>
+    case (item, Some((cId, user))) =>
       verbose(s"onMenuItemClicked: item: $item, conv: $cId, user: $user")
       item match {
         case ARCHIVE   =>

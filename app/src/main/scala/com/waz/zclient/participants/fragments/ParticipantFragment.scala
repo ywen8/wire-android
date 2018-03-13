@@ -180,11 +180,7 @@ class ParticipantFragment extends BaseFragment[ParticipantFragment.Container] wi
     }
   }
 
-  override def onShowEditConversationName(show: Boolean): Unit =
-    bodyContainer.foreach { view =>
-      if (show) ViewUtils.fadeOutView(view)
-      else ViewUtils.fadeInView(view)
-    }
+  override def onShowEditConversationName(show: Boolean): Unit = {}
 
   override def onShowConversationMenu(inConvList: Boolean, convId: ConvId): Unit =
     if (!inConvList) OptionsMenu(getContext, inConvList, convId).show()

@@ -35,9 +35,7 @@ import com.waz.zclient.{DialogHelper, R}
 case class OptionsMenu(context: Context, inConvList: Boolean, convId: ConvId) extends BottomSheetDialog(context, R.style.message__bottom_sheet__base) with DialogHelper {
   private implicit val ctx = context
 
-  val ctrl = new OptionsMenuController
-  ctrl.inConversationList ! inConvList
-  ctrl.convId ! Some(convId)
+  val ctrl = OptionsMenuController(convId, inConvList)
 
   private val data = ctrl.optionItems.disableAutowiring()
 
