@@ -1299,6 +1299,7 @@
     <string name="no_matches_found">No matches found</string>
 
     <string name="create_group_conversation">Create group</string>
+    <string name="create_guest_room_conversation">Create guest room</string>
     <string name="next_button">NEXT</string>
     <string name="skip_button">SKIP</string>
     <string name="done_button">DONE</string>
@@ -1328,4 +1329,5 @@
 
     <string name="invite_button_description">People outside your team can join this conversation.</string>
     <string name="invite_people">Invite people</string>
+    <string name="guest_room_name">Guest Room</string>
 </resources>
