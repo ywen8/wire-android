@@ -92,21 +92,20 @@ class SecondPageFragment extends FragmentHelper
     Some(page)
       .collect {
         case Page.CONNECT_REQUEST_PENDING =>
+          import PendingConnectRequestManagerFragment._
           navigationController.setRightPage(Page.PENDING_CONNECT_REQUEST_AS_CONVERSATION, Tag)
-          PendingConnectRequestManagerFragment.Tag -> PendingConnectRequestManagerFragment.newInstance(
-            userId,
-            IConnectStore.UserRequester.CONVERSATION
-          )
+          Tag -> newInstance(userId, IConnectStore.UserRequester.CONVERSATION)
         case Page.CONNECT_REQUEST_INBOX =>
+          import ConnectRequestFragment._
           navigationController.setRightPage(Page.CONNECT_REQUEST_INBOX, SecondPageFragment.Tag)
-          ConnectRequestFragment.FragmentTag -> ConnectRequestFragment.newInstance(userId)
+          FragmentTag -> newInstance(userId)
         case Page.MESSAGE_STREAM =>
+          import ConversationManagerFragment._
           navigationController.setRightPage(Page.MESSAGE_STREAM, SecondPageFragment.Tag)
-          ConversationManagerFragment.Tag -> ConversationManagerFragment.newInstance
+          Tag -> newInstance
       }
       .map { case (tag, pageFragment) =>
-        getChildFragmentManager.beginTransaction
-          .replace(R.id.fl__second_page_container, pageFragment, tag)
+        getChildFragmentManager.beginTransaction.replace(R.id.fl__second_page_container, pageFragment, tag)
       }
       .map(_ -> navigationController.getCurrentPage)
       .collect {

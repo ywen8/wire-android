@@ -64,39 +64,36 @@ class PendingConnectRequestFragment extends BaseFragment[PendingConnectRequestFr
   private lazy val userConnection = userToConnect.map(_.connection)
   private lazy val userToConnectPicture: Signal[ImageSource] =
     userToConnect.map(_.picture).collect { case Some(p) => WireImage(p) }
-  private lazy val userDisplayName = userToConnect.map(_.getDisplayName)
-  private lazy val userHandle =
-    userToConnect.map(user => StringUtils.formatHandle(user.handle.map(_.string).getOrElse("")))
-  private lazy val footerMenuVisibility = userConnection.collect {
-    case ConnectionStatus.IGNORED | ConnectionStatus.PENDING_FROM_USER => View.VISIBLE
-    case ConnectionStatus.PENDING_FROM_OTHER if userRequester == UserRequester.PARTICIPANTS => View.VISIBLE
-  }
-  private lazy val footerMenuRightActionText = userConnection.collect {
-    case ConnectionStatus.PENDING_FROM_OTHER if userRequester == UserRequester.PARTICIPANTS =>
-      getString(R.string.glyph__minus)
-    case _ => ""
-  }
-  private lazy val footerMenuRightActionLabelText = userConnection.collect {
-    case ConnectionStatus.IGNORED => ""
-  }
-  private lazy val footerMenuLeftActionText = userConnection.collect {
-    case ConnectionStatus.IGNORED => getString(R.string.glyph__plus)
-  }
-  private lazy val footerMenuLeftActionLabelText = userConnection.collect {
-    case ConnectionStatus.IGNORED => getString(R.string.send_connect_request__connect_button__text)
-  }
+  private lazy val isIgnoredConnection = userConnection.map(_ == ConnectionStatus.IGNORED)
+
   private lazy val userNameView = returning(view[TypefaceTextView](R.id.user_name)) { vh =>
-    userDisplayName.onUi(t => vh.foreach(_.setText(t)))
+    userToConnect.map(_.getDisplayName).onUi(t => vh.foreach(_.setText(t)))
   }
   private lazy val userHandleView = returning(view[TypefaceTextView](R.id.user_handle)) { vh =>
-    userHandle.onUi(t => vh.foreach(_.setText(t)))
+    userToConnect.map(user => StringUtils.formatHandle(user.handle.map(_.string).getOrElse("")))
+      .onUi(t => vh.foreach(_.setText(t)))
   }
   private lazy val footerMenu = returning(view[FooterMenu](R.id.fm__footer)) { vh =>
-    footerMenuVisibility.onUi { visibility => vh.foreach(_.setVisibility(visibility)) }
-    footerMenuRightActionText.onUi { text => vh.foreach(_.setRightActionText(text)) }
-    footerMenuRightActionLabelText.onUi { text => vh.foreach(_.setRightActionLabelText(text)) }
-    footerMenuLeftActionText.onUi { text => vh.foreach(_.setLeftActionText(text)) }
-    footerMenuLeftActionLabelText.onUi { text => vh.foreach(_.setLeftActionLabelText(text)) }
+    userConnection.map {
+      case ConnectionStatus.IGNORED | ConnectionStatus.PENDING_FROM_USER => View.VISIBLE
+      case ConnectionStatus.PENDING_FROM_OTHER if userRequester == UserRequester.PARTICIPANTS => View.VISIBLE
+      case _ => View.GONE
+    }.onUi { visibility => vh.foreach(_.setVisibility(visibility)) }
+
+    userConnection.map {
+      case ConnectionStatus.PENDING_FROM_OTHER if userRequester == UserRequester.PARTICIPANTS =>
+        getString(R.string.glyph__minus)
+      case _ => ""
+    }.onUi { text => vh.foreach(_.setRightActionText(text)) }
+
+    isIgnoredConnection.map {
+      case true => getString(R.string.glyph__plus)
+      case false => getString(R.string.glyph__undo)
+    }.onUi { text => vh.foreach(_.setLeftActionText(text)) }
+    isIgnoredConnection.map {
+      case true => getString(R.string.send_connect_request__connect_button__text)
+      case false => getString(R.string.connect_request__cancel_request__label)
+    }.onUi { text => vh.foreach(_.setLeftActionLabelText(text)) }
   }
 
   private lazy val imageViewProfile = view[ImageView](R.id.pending_connect)
