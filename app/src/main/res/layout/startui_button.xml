@@ -25,8 +25,7 @@
     android:layout_height="@dimen/people_picker__user_row__height"
     android:background="@drawable/selector__transparent_button"
     android:clickable="true"
-    android:focusable="true"
-    android:id="@+id/create_group_button">
+    android:focusable="true">
 
     <View
         android:id="@+id/icon"
@@ -37,6 +36,7 @@
         android:layout_marginStart="@dimen/wire__padding__regular"/>
 
     <com.waz.zclient.ui.text.TypefaceTextView
+        android:id="@+id/title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerVertical="true"
