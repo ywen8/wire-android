@@ -34,6 +34,7 @@ import com.waz.zclient.common.views.ImageAssetDrawable
 import com.waz.zclient.common.views.ImageAssetDrawable.{RequestBuilder, ScaleType}
 import com.waz.zclient.common.views.ImageController.{ImageSource, WireImage}
 import com.waz.zclient.core.stores.connect.IConnectStore
+import com.waz.zclient.core.stores.connect.IConnectStore.UserRequester
 import com.waz.zclient.messages.UsersController
 import com.waz.zclient.pages.BaseFragment
 import com.waz.zclient.pages.main.connect.UserProfileContainer
@@ -70,67 +71,37 @@ class PendingConnectRequestFragment extends BaseFragment[PendingConnectRequestFr
   private lazy val userDisplayName = userToConnect.map(_.getDisplayName)
   private lazy val userHandle =
     userToConnect.map(user => StringUtils.formatHandle(user.handle.map(_.string).getOrElse("")))
-
+  private lazy val footerMenuVisibility = userConnection.collect {
+    case ConnectionStatus.IGNORED => View.VISIBLE
+  }
+  private lazy val footerMenuRightActionText = userConnection.collect {
+    case ConnectionStatus.PENDING_FROM_OTHER if userRequester == UserRequester.PARTICIPANTS =>
+      getString(R.string.glyph__minus)
+  }
+  private lazy val footerMenuRightActionLabelText = userConnection.collect {
+    case ConnectionStatus.IGNORED => ""
+  }
+  private lazy val footerMenuLeftActionText = userConnection.collect {
+    case ConnectionStatus.IGNORED => getString(R.string.glyph__plus)
+  }
+  private lazy val footerMenuLeftActionLabelText = userConnection.collect {
+    case ConnectionStatus.IGNORED => getString(R.string.send_connect_request__connect_button__text)
+  }
   private lazy val userNameView = returning(view[TypefaceTextView](R.id.user_name)) { vh =>
     userDisplayName.onUi(t => vh.foreach(_.setText(t)))
   }
   private lazy val userHandleView = returning(view[TypefaceTextView](R.id.user_handle)) { vh =>
     userHandle.onUi(t => vh.foreach(_.setText(t)))
   }
-  private lazy val imageViewProfile = view[ImageView](R.id.pending_connect)
-
   private lazy val footerMenu = returning(view[FooterMenu](R.id.fm__footer)) { vh =>
-
-    def setFooterForOutgoingConnectRequest(footerMenu: FooterMenu, userId: UserId): Unit = {
-      footerMenu.setVisibility(View.VISIBLE)
-      footerMenu.setRightActionText("")
-      footerMenu.setCallback(new FooterMenuCallback() {
-        override def onLeftActionClicked(): Unit = {
-          zms.head.map(_.connection.cancelConnection(userId)).foreach { _ =>
-            getActivity.onBackPressed()
-          }
-        }
-        override def onRightActionClicked(): Unit = ()
-      })
-    }
-
-    def setFooterForIncomingConnectRequest(footerMenu: FooterMenu): Unit = {
-      footerMenu.setVisibility(View.VISIBLE)
-      footerMenu.setRightActionText(getString(R.string.glyph__minus))
-      footerMenu.setCallback(new FooterMenuCallback() {
-        override def onLeftActionClicked(): Unit = getContainer.onAcceptedConnectRequest(userId)
-        override def onRightActionClicked(): Unit = getContainer.showRemoveConfirmation(userId)
-      })
-      footerMenu.setLeftActionText(getString(R.string.glyph__plus))
-      footerMenu.setLeftActionLabelText(getString(R.string.send_connect_request__connect_button__text))
-    }
-
-    def setFooterForIgnoredConnectRequest(footerMenu: FooterMenu): Unit = {
-      footerMenu.setVisibility(View.VISIBLE)
-      footerMenu.setRightActionText("")
-      footerMenu.setRightActionLabelText("")
-      footerMenu.setCallback(new FooterMenuCallback() {
-        override def onLeftActionClicked(): Unit = getContainer.onAcceptedConnectRequest(userId)
-        override def onRightActionClicked(): Unit = ()
-      })
-      footerMenu.setLeftActionText(getString(R.string.glyph__plus))
-      footerMenu.setLeftActionLabelText(getString(R.string.send_connect_request__connect_button__text))
-    }
-
-    userConnection.onUi { connection =>
-      vh.foreach { v =>
-        connection match {
-          case ConnectionStatus.PENDING_FROM_OTHER if userRequester == IConnectStore.UserRequester.PARTICIPANTS =>
-            setFooterForIncomingConnectRequest(v)
-          case ConnectionStatus.IGNORED =>
-            setFooterForIgnoredConnectRequest(v)
-          case ConnectionStatus.PENDING_FROM_USER =>
-            setFooterForOutgoingConnectRequest(v, userId)
-          case _ =>
-        }
-      }
-    }
+    footerMenuVisibility.onUi { visibility => vh.foreach(_.setVisibility(visibility)) }
+    footerMenuRightActionText.onUi { text => vh.foreach(_.setRightActionText(text)) }
+    footerMenuRightActionLabelText.onUi { text => vh.foreach(_.setRightActionLabelText(text)) }
+    footerMenuLeftActionText.onUi { text => vh.foreach(_.setLeftActionText(text)) }
+    footerMenuLeftActionLabelText.onUi { text => vh.foreach(_.setLeftActionLabelText(text)) }
   }
+
+  private lazy val imageViewProfile = view[ImageView](R.id.pending_connect)
 
   override def onCreateAnimation(transit: Int, enter: Boolean, nextAnim: Int): Animation = {
     def defaultAnimation = super.onCreateAnimation(transit, enter, nextAnim)
@@ -163,7 +134,6 @@ class PendingConnectRequestFragment extends BaseFragment[PendingConnectRequestFr
 
   override def onViewCreated(view: View, savedInstanceState: Bundle): Unit = {
     userHandleView
-    footerMenu
 
     val assetDrawable = new ImageAssetDrawable(
       userToConnectPicture,
@@ -187,6 +157,24 @@ class PendingConnectRequestFragment extends BaseFragment[PendingConnectRequestFr
 
       v.setPaddingRelative(0, paddingTop, 0, 0)
     }
+
+    footerMenu.setCallback(new FooterMenuCallback {
+      override def onLeftActionClicked(): Unit = userConnection.head foreach {
+        case ConnectionStatus.IGNORED |
+             ConnectionStatus.PENDING_FROM_OTHER if userRequester == IConnectStore.UserRequester.PARTICIPANTS =>
+          getContainer.onAcceptedConnectRequest(userId)
+        case ConnectionStatus.PENDING_FROM_USER =>
+          zms.head.map(_.connection.cancelConnection(userId)).foreach { _ =>
+            getActivity.onBackPressed()
+          }
+        case _ =>
+      }
+      override def onRightActionClicked(): Unit = userConnection.head foreach {
+        case ConnectionStatus.PENDING_FROM_OTHER if userRequester == IConnectStore.UserRequester.PARTICIPANTS =>
+          getContainer.showRemoveConfirmation(userId)
+        case _ =>
+      }
+    })
 
   }
 
