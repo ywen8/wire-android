@@ -80,7 +80,7 @@ case class OptionsMenuController(convId: ConvId, inConvList: Boolean)(implicit i
   val otherUser: Signal[Option[UserData]] = (for {
     zms          <- zMessaging
     isGroup      <- Signal.future(zms.conversations.isGroupConversation(convId))
-    id <- if (isGroup) Signal.const(Option.empty[UserId]) else zms.membersStorage.activeMembers(convId).filter(_ != zms.selfUserId).map(_.headOption)
+    id <- if (isGroup) Signal.const(Option.empty[UserId]) else zms.membersStorage.activeMembers(convId).map(_.filter(_ != zms.selfUserId)).map(_.headOption)
     user <- id.fold(Signal.const(Option.empty[UserData]))(zms.users.userSignal(_).map(Some(_)))
   } yield user)
     .orElse(Signal.const(Option.empty[UserData]))
@@ -122,7 +122,6 @@ case class OptionsMenuController(convId: ConvId, inConvList: Boolean)(implicit i
           builder ++= (if (inConvList) Set(CALL, PICTURE) else Set())
           builder +=  LEAVE
         }
-        builder += (if (conv.archived) UNARCHIVE else ARCHIVE)
         builder += DELETE
     }
     builder.result().toSeq.sortWith { case (l, r) => l.compareTo(r) < 0 }
