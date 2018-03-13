@@ -64,16 +64,13 @@ class PendingConnectRequestFragment extends BaseFragment[PendingConnectRequestFr
   private lazy val userRequester  = IConnectStore.UserRequester.valueOf(getArguments.getString(ArgUserRequester))
 
   private lazy val userToConnect  = usersController.user(userId)
+  private lazy val userConnection = userToConnect.map(_.connection)
   private lazy val userToConnectPicture: Signal[ImageSource] =
     userToConnect.map(_.picture).collect { case Some(p) => WireImage(p) }
   private lazy val userDisplayName = userToConnect.map(_.getDisplayName)
   private lazy val userHandle =
     userToConnect.map(user => StringUtils.formatHandle(user.handle.map(_.string).getOrElse("")))
 
-
-  private var isShowingFooterMenu: Boolean = false
-
-  private lazy val footerMenu = view[FooterMenu](R.id.fm__footer)
   private lazy val userNameView = returning(view[TypefaceTextView](R.id.user_name)) { vh =>
     userDisplayName.onUi(t => vh.foreach(_.setText(t)))
   }
@@ -81,6 +78,59 @@ class PendingConnectRequestFragment extends BaseFragment[PendingConnectRequestFr
     userHandle.onUi(t => vh.foreach(_.setText(t)))
   }
   private lazy val imageViewProfile = view[ImageView](R.id.pending_connect)
+
+  private lazy val footerMenu = returning(view[FooterMenu](R.id.fm__footer)) { vh =>
+
+    def setFooterForOutgoingConnectRequest(footerMenu: FooterMenu, userId: UserId): Unit = {
+      footerMenu.setVisibility(View.VISIBLE)
+      footerMenu.setRightActionText("")
+      footerMenu.setCallback(new FooterMenuCallback() {
+        override def onLeftActionClicked(): Unit = {
+          zms.head.map(_.connection.cancelConnection(userId)).foreach { _ =>
+            getActivity.onBackPressed()
+          }
+        }
+        override def onRightActionClicked(): Unit = ()
+      })
+    }
+
+    def setFooterForIncomingConnectRequest(footerMenu: FooterMenu): Unit = {
+      footerMenu.setVisibility(View.VISIBLE)
+      footerMenu.setRightActionText(getString(R.string.glyph__minus))
+      footerMenu.setCallback(new FooterMenuCallback() {
+        override def onLeftActionClicked(): Unit = getContainer.onAcceptedConnectRequest(userId)
+        override def onRightActionClicked(): Unit = getContainer.showRemoveConfirmation(userId)
+      })
+      footerMenu.setLeftActionText(getString(R.string.glyph__plus))
+      footerMenu.setLeftActionLabelText(getString(R.string.send_connect_request__connect_button__text))
+    }
+
+    def setFooterForIgnoredConnectRequest(footerMenu: FooterMenu): Unit = {
+      footerMenu.setVisibility(View.VISIBLE)
+      footerMenu.setRightActionText("")
+      footerMenu.setRightActionLabelText("")
+      footerMenu.setCallback(new FooterMenuCallback() {
+        override def onLeftActionClicked(): Unit = getContainer.onAcceptedConnectRequest(userId)
+        override def onRightActionClicked(): Unit = ()
+      })
+      footerMenu.setLeftActionText(getString(R.string.glyph__plus))
+      footerMenu.setLeftActionLabelText(getString(R.string.send_connect_request__connect_button__text))
+    }
+
+    userConnection.onUi { connection =>
+      vh.foreach { v =>
+        connection match {
+          case ConnectionStatus.PENDING_FROM_OTHER if userRequester == IConnectStore.UserRequester.PARTICIPANTS =>
+            setFooterForIncomingConnectRequest(v)
+          case ConnectionStatus.IGNORED =>
+            setFooterForIgnoredConnectRequest(v)
+          case ConnectionStatus.PENDING_FROM_USER =>
+            setFooterForOutgoingConnectRequest(v, userId)
+          case _ =>
+        }
+      }
+    }
+  }
 
   override def onCreateAnimation(transit: Int, enter: Boolean, nextAnim: Int): Animation = {
     def defaultAnimation = super.onCreateAnimation(transit, enter, nextAnim)
@@ -112,13 +162,8 @@ class PendingConnectRequestFragment extends BaseFragment[PendingConnectRequestFr
     inflater.inflate(R.layout.fragment_connect_request_pending, viewContainer, false)
 
   override def onViewCreated(view: View, savedInstanceState: Bundle): Unit = {
-    if (savedInstanceState != null) {
-      isShowingFooterMenu = savedInstanceState.getBoolean(StateIsShowingFooterMenu)
-    } else {
-      isShowingFooterMenu = false
-    }
-
     userHandleView
+    footerMenu
 
     val assetDrawable = new ImageAssetDrawable(
       userToConnectPicture,
@@ -143,75 +188,6 @@ class PendingConnectRequestFragment extends BaseFragment[PendingConnectRequestFr
       v.setPaddingRelative(0, paddingTop, 0, 0)
     }
 
-    userToConnect.onUi {user =>
-      user.connection match {
-        case ConnectionStatus.PENDING_FROM_OTHER =>
-          setFooterForIncomingConnectRequest(user.id)
-        case ConnectionStatus.IGNORED =>
-          setFooterForIgnoredConnectRequest(user.id)
-        case ConnectionStatus.PENDING_FROM_USER =>
-          setFooterForOutgoingConnectRequest(user.id)
-        case _ =>
-      }
-    }
-
-  }
-
-  override def onSaveInstanceState(outState: Bundle): Unit = {
-    // Save if footer menu was visible -> used to toggle accept & footer menu in incoming connect request opened from group participants
-    outState.putBoolean(StateIsShowingFooterMenu, isShowingFooterMenu)
-    super.onSaveInstanceState(outState)
-  }
-
-  private def setFooterForOutgoingConnectRequest(userId: UserId): Unit = footerMenu.foreach { v =>
-    v.setVisibility(View.VISIBLE)
-    isShowingFooterMenu = true
-    v.setRightActionText("")
-    v.setCallback(new FooterMenuCallback() {
-      override def onLeftActionClicked(): Unit = {
-        zms.head.map(_.connection.cancelConnection(userId)).foreach { _ =>
-          getActivity.onBackPressed()
-        }
-      }
-
-      override def onRightActionClicked(): Unit = {
-      }
-    })
-  }
-
-  private def setFooterForIncomingConnectRequest(userId: UserId): Unit =
-    if (userRequester == IConnectStore.UserRequester.PARTICIPANTS) {
-      footerMenu.foreach { v =>
-        v.setVisibility(View.VISIBLE)
-        v.setRightActionText(getString(R.string.glyph__minus))
-        v.setCallback(new FooterMenuCallback() {
-          override def onLeftActionClicked(): Unit = {
-            getContainer.onAcceptedConnectRequest(userId)
-          }
-
-          override def onRightActionClicked(): Unit = {
-            getContainer.showRemoveConfirmation(userId)
-          }
-        })
-        v.setLeftActionText(getString(R.string.glyph__plus))
-        v.setLeftActionLabelText(getString(R.string.send_connect_request__connect_button__text))
-      }
-    }
-
-  private def setFooterForIgnoredConnectRequest(userId: UserId): Unit = footerMenu.foreach { v =>
-    v.setVisibility(View.VISIBLE)
-    v.setRightActionText("")
-    v.setRightActionLabelText("")
-    v.setCallback(new FooterMenuCallback() {
-      override def onLeftActionClicked(): Unit = {
-        getContainer.onAcceptedConnectRequest(userId)
-      }
-
-      override def onRightActionClicked(): Unit = {
-      }
-    })
-    v.setLeftActionText(getString(R.string.glyph__plus))
-    v.setLeftActionLabelText(getString(R.string.send_connect_request__connect_button__text))
   }
 
 }
@@ -220,7 +196,6 @@ object PendingConnectRequestFragment {
   val Tag: String = classOf[PendingConnectRequestFragment].getName
   val ArgUserId = "ARGUMENT_USER_ID"
   val ArgUserRequester = "ARGUMENT_USER_REQUESTER"
-  val StateIsShowingFooterMenu = "STATE_IS_SHOWING_FOOTER_MENU"
 
   def newInstance(userId: UserId, userRequester: IConnectStore.UserRequester): PendingConnectRequestFragment =
     returning(new PendingConnectRequestFragment)(fragment =>
