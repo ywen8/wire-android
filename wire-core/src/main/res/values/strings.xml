@@ -421,7 +421,7 @@
     <!-- Block someone dialogue -->
     <string name="confirmation_menu__block_header">Block?</string>
     <string name="confirmation_menu__block_text_with_name">%1$s won\'t be able to contact you or add you to group conversations.</string>
-    <string name="confirmation_menu__confirm_block">BLOCK</string>
+    <string name="confirmation_menu__confirm_block">Block</string>
     <!-- RE-USING: confirmation_menu.cancel -->
     <string name="connect_request__footer__blocked_label">Blocked</string>
 
