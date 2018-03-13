@@ -25,7 +25,6 @@ import android.view.animation.Animation
 import android.view.{LayoutInflater, View, ViewGroup}
 import com.waz.ZLog.ImplicitTag._
 import com.waz.ZLog._
-import com.waz.api._
 import com.waz.model._
 import com.waz.model.otr.ClientId
 import com.waz.threading.Threading
@@ -272,8 +271,6 @@ class ParticipantFragment extends BaseFragment[ParticipantFragment.Container] wi
   override def onConnectRequestWasSentToUser(): Unit = screenController.hideUser()
 
   override def onHideOtrClient(): Unit = getChildFragmentManager.popBackStack()
-
-  override def onShowLikesList(message: Message): Unit = {}
 
   override def onConversationUpdated(conversation: ConvId): Unit = {}
 }

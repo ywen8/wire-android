@@ -44,7 +44,6 @@ class LikeDetailsView(context: Context, attrs: AttributeSet, style: Int) extends
   private val gtvMore: TextView = findById(R.id.gtv_more)
 
   def init(controller: FooterViewController): Unit = {
-    val messageId = controller.message.map(_.id)
     val likedBy = controller.messageAndLikes.map(_.likes)
 
     def getDisplayNameString(ids: Seq[UserId]): Signal[String] = {
@@ -57,8 +56,9 @@ class LikeDetailsView(context: Context, attrs: AttributeSet, style: Int) extends
         else names.mkString(", ")
     }
 
-    def showLikers() =
-      messageId.currentValue.foreach(inject[ScreenController].showUsersWhoLike)
+    def showLikers() = controller.message.map(_.id).head.foreach { mId =>
+      inject[ScreenController].showLikesForMessage ! Some(mId)
+    }(Threading.Ui)
 
     likedBy.on(Threading.Ui) { ids =>
       val show = showAvatars(ids)

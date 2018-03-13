@@ -444,8 +444,6 @@ class ConversationListManagerFragment extends Fragment
 
   override def onHideOtrClient() = {}
 
-  override def onShowLikesList(message: Message) = {}
-
   override def showRemoveConfirmation(userId: UserId) = {}
 }
 

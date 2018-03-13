@@ -17,7 +17,6 @@
  */
 package com.waz.zclient.pages.main.conversation.controller;
 
-import com.waz.api.Message;
 import com.waz.model.ConvId;
 
 public interface ConversationScreenControllerObserver {
@@ -29,6 +28,4 @@ public interface ConversationScreenControllerObserver {
     void onShowConversationMenu(boolean inConvList, ConvId convId);
 
     void onHideOtrClient();
-
-    void onShowLikesList(Message message);
 }
