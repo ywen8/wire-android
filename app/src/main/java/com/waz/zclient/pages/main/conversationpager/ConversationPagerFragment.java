@@ -42,8 +42,7 @@ import com.waz.zclient.utils.Callback;
 public class ConversationPagerFragment extends BaseFragment<ConversationPagerFragment.Container> implements OnBackPressedListener,
                                                                                                             PagerControllerObserver,
                                                                                                             NavigationControllerObserver,
-                                                                                                            FirstPageFragment.Container,
-                                                                                                            SecondPageFragment.Container {
+                                                                                                            FirstPageFragment.Container {
     public static final String TAG = ConversationPagerFragment.class.getName();
     private static final int PAGER_DELAY = 150;
 
@@ -225,11 +224,6 @@ public class ConversationPagerFragment extends BaseFragment<ConversationPagerFra
     //  Notifications
     //
     //////////////////////////////////////////////////////////////////////////////////////////
-
-    @Override
-    public void onOpenUrl(String url) {
-        getContainer().onOpenUrl(url);
-    }
 
     @Override
     public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) { }

@@ -30,7 +30,7 @@ import com.waz.threading.Threading
 import com.waz.utils.events.Signal
 import com.waz.utils.returning
 import com.waz.zclient.common.controllers.UserAccountsController
-import com.waz.zclient.common.controllers.global.AccentColorController
+import com.waz.zclient.common.controllers.global.{AccentColorController, KeyboardController}
 import com.waz.zclient.common.views.ImageAssetDrawable
 import com.waz.zclient.common.views.ImageAssetDrawable.{RequestBuilder, ScaleType}
 import com.waz.zclient.common.views.ImageController.{ImageSource, WireImage}
@@ -43,16 +43,11 @@ import com.waz.zclient.pages.main.connect.UserProfileContainer
 import com.waz.zclient.pages.main.participants.ProfileAnimation
 import com.waz.zclient.pages.main.participants.dialog.DialogLaunchMode
 import com.waz.zclient.ui.text.TypefaceTextView
-import com.waz.zclient.ui.utils.KeyboardUtils
 import com.waz.zclient.ui.views.ZetaButton
 import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.utils.{StringUtils, ViewUtils}
 import com.waz.zclient.views.menus.{FooterMenu, FooterMenuCallback}
 import com.waz.zclient.{FragmentHelper, R}
-
-/**
-  * Created by admin on 3/6/18.
-  */
 
 class SendConnectRequestFragment extends BaseFragment[SendConnectRequestFragment.Container]
   with FragmentHelper {
@@ -68,6 +63,7 @@ class SendConnectRequestFragment extends BaseFragment[SendConnectRequestFragment
   private lazy val usersController = inject[UsersController]
   private lazy val userAccountsController = inject[UserAccountsController]
   private lazy val conversationController = inject[ConversationController]
+  private lazy val keyboardController = inject[KeyboardController]
   private lazy val zms = inject[Signal[ZMessaging]]
 
   private lazy val accentColor = inject[AccentColorController].accentColor
@@ -75,35 +71,21 @@ class SendConnectRequestFragment extends BaseFragment[SendConnectRequestFragment
   private lazy val userDisplayName = userToConnect.map(_.getDisplayName)
   private lazy val userName = userToConnect.map(user => StringUtils.formatHandle(user.handle.map(_.string).getOrElse("")))
   private lazy val userPicture: Signal[ImageSource] = userToConnect.map(_.picture).collect { case Some(p) => WireImage(p) }
-  private lazy val hasRemoveConvMemberPermForCurrentConv = for {
+  private lazy val removeConvMemberFeatureEnabled = for {
     convId <- conversationController.currentConvId
     permission <- userAccountsController.hasRemoveConversationMemberPermission(convId)
-  } yield permission
+  } yield permission && userRequester == IConnectStore.UserRequester.PARTICIPANTS
+
+  private lazy val footerMenuRightActionText = removeConvMemberFeatureEnabled.map {
+    case true => getString(R.string.glyph__minus)
+    case false => ""
+  }
 
   private lazy val connectButton = returning(view[ZetaButton](R.id.zb__send_connect_request__connect_button)) { vh =>
     accentColor.onUi { color => vh.foreach(_.setAccentColor(color.getColor)) }
   }
   private lazy val footerMenu = returning(view[FooterMenu](R.id.fm__footer)) { vh =>
-    hasRemoveConvMemberPermForCurrentConv.onUi { hasPermission =>
-      val removeConvMemberFeatureEnabled = hasPermission &&
-        userRequester == IConnectStore.UserRequester.PARTICIPANTS
-
-      val text =
-        if (removeConvMemberFeatureEnabled) getString(R.string.glyph__minus)
-        else null
-      vh.foreach(_.setRightActionText(text))
-
-      val callback: FooterMenuCallback = new FooterMenuCallback() {
-        override def onLeftActionClicked(): Unit = {
-          showConnectButtonInsteadOfFooterMenu()
-        }
-        override def onRightActionClicked(): Unit = {
-          if (removeConvMemberFeatureEnabled)
-            getContainer.showRemoveConfirmation(userToConnectId)
-        }
-      }
-      vh.foreach(_.setCallback(callback))
-    }
+    footerMenuRightActionText.onUi(text => vh.foreach(_.setRightActionText(text)))
   }
   private lazy val imageViewProfile = view[ImageView](R.id.send_connect)
   private lazy val userNameView = returning(view[TypefaceTextView](R.id.user_name)) { vh =>
@@ -171,6 +153,14 @@ class SendConnectRequestFragment extends BaseFragment[SendConnectRequestFragment
       connectButton.setVisibility(View.VISIBLE)
     }
 
+    footerMenu.foreach(_.setCallback(new FooterMenuCallback {
+      override def onLeftActionClicked(): Unit = showConnectButtonInsteadOfFooterMenu()
+      override def onRightActionClicked(): Unit = removeConvMemberFeatureEnabled.head foreach {
+        case true => getContainer.showRemoveConfirmation(userToConnectId)
+        case _ =>
+      }
+    }))
+
     connectButton.onClick { _ =>
       for {
         uSelf <- usersController.selfUser.head
@@ -178,14 +168,14 @@ class SendConnectRequestFragment extends BaseFragment[SendConnectRequestFragment
         message = getString(R.string.connect__message, uToConnect.name, uSelf.name)
         maybeConversation <- zms.head.flatMap(_.connection.connectToUser(userToConnectId, message, uToConnect.displayName))
       } yield maybeConversation.foreach { _ =>
-        KeyboardUtils.hideKeyboard(getActivity)
+        keyboardController.hideKeyboardIfVisible()
         getContainer.onConnectRequestWasSentToUser()
       }
     }
   }
 
   override def onStop(): Unit = {
-    KeyboardUtils.hideKeyboard(getActivity)
+    keyboardController.hideKeyboardIfVisible()
     super.onStop()
   }
 

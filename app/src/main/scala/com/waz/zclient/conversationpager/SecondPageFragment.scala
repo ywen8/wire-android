@@ -25,19 +25,17 @@ import com.waz.ZLog._
 import com.waz.api.IConversation
 import com.waz.model.UserId
 import com.waz.threading.Threading
-import com.waz.zclient.common.controllers.UserAccountsController
+import com.waz.zclient.common.controllers.{BrowserController, UserAccountsController}
 import com.waz.zclient.connect.{ConnectRequestFragment, PendingConnectRequestManagerFragment}
 import com.waz.zclient.controllers.navigation.{INavigationController, Page, PagerControllerObserver}
 import com.waz.zclient.conversation.ConversationController
 import com.waz.zclient.core.stores.connect.IConnectStore
 import com.waz.zclient.core.stores.conversation.ConversationChangeRequester
-import com.waz.zclient.pages.BaseFragment
 import com.waz.zclient.pages.main.conversation.ConversationManagerFragment
 import com.waz.zclient.ui.utils.MathUtils
 import com.waz.zclient.{FragmentHelper, OnBackPressedListener, R}
 
-class SecondPageFragment extends BaseFragment[SecondPageFragment.Container]
-  with FragmentHelper
+class SecondPageFragment extends FragmentHelper
   with OnBackPressedListener
   with ConversationManagerFragment.Container
   with PagerControllerObserver
@@ -52,6 +50,7 @@ class SecondPageFragment extends BaseFragment[SecondPageFragment.Container]
   private lazy val navigationController   = inject[INavigationController]
   private lazy val userAccountsController = inject[UserAccountsController]
   private lazy val conversationController = inject[ConversationController]
+  private lazy val browserControler       = inject[BrowserController]
 
   override def setUserVisibleHint(isVisibleToUser: Boolean): Unit = {
     super.setUserVisibleHint(isVisibleToUser)
@@ -141,7 +140,7 @@ class SecondPageFragment extends BaseFragment[SecondPageFragment.Container]
       .foreach(transaction => transaction.commit())
   }
 
-  override def onOpenUrl(url: String): Unit = getContainer.onOpenUrl(url)
+  override def onOpenUrl(url: String): Unit = browserControler.openUrl(url)
 
   override def onBackPressed: Boolean = {
     val fragment = getChildFragmentManager.findFragmentById(R.id.fl__second_page_container)
@@ -189,11 +188,5 @@ object SecondPageFragment {
   val ArgConversationId = "ARGUMENT_CONVERSATION_ID"
   private val StateSecondPagePosition = "SECOND_PAGE_POSITION"
 
-
   def newInstance = new SecondPageFragment
-
-  trait Container {
-    def onOpenUrl(url: String): Unit
-  }
-
 }

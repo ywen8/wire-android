@@ -46,10 +46,6 @@ import com.waz.zclient.utils.StringUtils
 import com.waz.zclient.views.menus.{FooterMenu, FooterMenuCallback}
 import com.waz.zclient.{FragmentHelper, R}
 
-/**
-  * Created by admin on 3/7/18.
-  */
-
 class PendingConnectRequestFragment extends BaseFragment[PendingConnectRequestFragment.Container]
   with FragmentHelper {
 
@@ -72,7 +68,8 @@ class PendingConnectRequestFragment extends BaseFragment[PendingConnectRequestFr
   private lazy val userHandle =
     userToConnect.map(user => StringUtils.formatHandle(user.handle.map(_.string).getOrElse("")))
   private lazy val footerMenuVisibility = userConnection.collect {
-    case ConnectionStatus.IGNORED => View.VISIBLE
+    case ConnectionStatus.IGNORED | ConnectionStatus.PENDING_FROM_USER => View.VISIBLE
+    case ConnectionStatus.PENDING_FROM_OTHER if userRequester == UserRequester.PARTICIPANTS => View.VISIBLE
   }
   private lazy val footerMenuRightActionText = userConnection.collect {
     case ConnectionStatus.PENDING_FROM_OTHER if userRequester == UserRequester.PARTICIPANTS =>
@@ -134,6 +131,7 @@ class PendingConnectRequestFragment extends BaseFragment[PendingConnectRequestFr
 
   override def onViewCreated(view: View, savedInstanceState: Bundle): Unit = {
     userHandleView
+    footerMenu
 
     val assetDrawable = new ImageAssetDrawable(
       userToConnectPicture,
