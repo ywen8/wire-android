@@ -45,12 +45,10 @@ class SecondPageFragment extends FragmentHelper
   import Threading.Implicits.Ui
   import SecondPageFragment._
 
-  private var currentPage: Page = _
-
   private lazy val navigationController   = inject[INavigationController]
   private lazy val userAccountsController = inject[UserAccountsController]
   private lazy val conversationController = inject[ConversationController]
-  private lazy val browserControler       = inject[BrowserController]
+  private lazy val browserController       = inject[BrowserController]
 
   override def setUserVisibleHint(isVisibleToUser: Boolean): Unit = {
     super.setUserVisibleHint(isVisibleToUser)
@@ -65,12 +63,6 @@ class SecondPageFragment extends FragmentHelper
   }
 
   override def onViewCreated(view: View, savedInstanceState: Bundle): Unit = {
-    if (savedInstanceState == null) currentPage = Page.NONE
-    else {
-      val pos = savedInstanceState.getInt(StateSecondPagePosition)
-      currentPage = Page.values()(pos)
-    }
-
     (for {
       conv <- conversationController.currentConv
       convMembers <- conversationController.currentConvMembers
@@ -88,11 +80,6 @@ class SecondPageFragment extends FragmentHelper
 
   }
 
-  override def onSaveInstanceState(outState: Bundle): Unit = {
-    outState.putInt(StateSecondPagePosition, currentPage.ordinal)
-    super.onSaveInstanceState(outState)
-  }
-
   override def onActivityResult(requestCode: Int, resultCode: Int, data: Intent): Unit = {
     super.onActivityResult(requestCode, resultCode, data)
     val fragment = getChildFragmentManager.findFragmentById(R.id.fl__second_page_container)
@@ -101,7 +88,6 @@ class SecondPageFragment extends FragmentHelper
 
   private def openPage(page: Page, userId: UserId) = {
     info(s"openPage ${page.name} userId $userId")
-    currentPage = page
 
     Some(page)
       .collect {
@@ -140,7 +126,7 @@ class SecondPageFragment extends FragmentHelper
       .foreach(transaction => transaction.commit())
   }
 
-  override def onOpenUrl(url: String): Unit = browserControler.openUrl(url)
+  override def onOpenUrl(url: String): Unit = browserController.openUrl(url)
 
   override def onBackPressed: Boolean = {
     val fragment = getChildFragmentManager.findFragmentById(R.id.fl__second_page_container)
@@ -186,7 +172,6 @@ class SecondPageFragment extends FragmentHelper
 object SecondPageFragment {
   val Tag: String = classOf[SecondPageFragment].getName
   val ArgConversationId = "ARGUMENT_CONVERSATION_ID"
-  private val StateSecondPagePosition = "SECOND_PAGE_POSITION"
 
   def newInstance = new SecondPageFragment
 }
