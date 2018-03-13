@@ -74,6 +74,7 @@ class PendingConnectRequestFragment extends BaseFragment[PendingConnectRequestFr
   private lazy val footerMenuRightActionText = userConnection.collect {
     case ConnectionStatus.PENDING_FROM_OTHER if userRequester == UserRequester.PARTICIPANTS =>
       getString(R.string.glyph__minus)
+    case _ => ""
   }
   private lazy val footerMenuRightActionLabelText = userConnection.collect {
     case ConnectionStatus.IGNORED => ""
@@ -131,7 +132,6 @@ class PendingConnectRequestFragment extends BaseFragment[PendingConnectRequestFr
 
   override def onViewCreated(view: View, savedInstanceState: Bundle): Unit = {
     userHandleView
-    footerMenu
 
     val assetDrawable = new ImageAssetDrawable(
       userToConnectPicture,
