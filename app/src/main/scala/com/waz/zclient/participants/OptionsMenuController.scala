@@ -25,7 +25,7 @@ import com.waz.service.ZMessaging
 import com.waz.threading.{CancellableFuture, Threading}
 import com.waz.utils.events.{EventContext, EventStream, EventStreamWithAuxSignal, Signal}
 import com.waz.utils.returning
-import com.waz.zclient.common.controllers.{SoundController, ThemeController, UserAccountsController}
+import com.waz.zclient.common.controllers.{SoundController, ThemeController}
 import com.waz.zclient.controllers.calling.ICallingController
 import com.waz.zclient.controllers.camera.ICameraController
 import com.waz.zclient.controllers.confirmation.{ConfirmationRequest, IConfirmationController, TwoButtonConfirmationCallback}
@@ -34,7 +34,6 @@ import com.waz.zclient.conversation.ConversationController
 import com.waz.zclient.core.stores.conversation.ConversationChangeRequester
 import com.waz.zclient.messages.UsersController
 import com.waz.zclient.pages.main.conversation.controller.IConversationScreenController
-import com.waz.zclient.pages.main.pickuser.controller.IPickUserController
 import com.waz.zclient.pages.main.profile.camera.CameraContext
 import com.waz.zclient.participants.OptionsMenu.{AnimState, Closed, Opening}
 import com.waz.zclient.ui.optionsmenu.OptionsMenuItem
@@ -55,12 +54,10 @@ case class OptionsMenuController(convId: ConvId, inConvList: Boolean)(implicit i
   private val confirmationController = inject[IConfirmationController]
   private val themes                 = inject[ThemeController]
   private val sounds                 = inject[SoundController]
-  private val userAccounts           = inject[UserAccountsController]
   private val users                  = inject[UsersController]
   private val callingController      = inject[ICallingController]
   private val cameraController       = inject[ICameraController]
   private val screenController       = inject[IConversationScreenController]
-  private val pickUserController     = inject[IPickUserController]
 
   val onMenuItemClicked = EventStream[OptionsMenuItem]()
   val animationState    = Signal[AnimState](Closed)
@@ -122,7 +119,7 @@ case class OptionsMenuController(convId: ConvId, inConvList: Boolean)(implicit i
       case true =>
         if (conv.isActive) {
           builder +=  (if (conv.muted) UNSILENCE else SILENCE)
-          builder ++= (if (inConvList) Set(CALL, PICTURE) else Set(RENAME))
+          builder ++= (if (inConvList) Set(CALL, PICTURE) else Set())
           builder +=  LEAVE
         }
         builder += (if (conv.archived) UNARCHIVE else ARCHIVE)
@@ -163,7 +160,6 @@ case class OptionsMenuController(convId: ConvId, inConvList: Boolean)(implicit i
         }
         case CALL      => callConversation(cId)
         case PICTURE   => takePictureInConversation(cId)
-        case RENAME    => screenController.editConversationName(true)
         case _ =>
       }
     case _ =>
