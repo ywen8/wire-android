@@ -31,7 +31,7 @@ import com.waz.utils.events.Signal
 import com.waz.utils.returning
 import com.waz.zclient.common.views.ImageAssetDrawable
 import com.waz.zclient.common.views.ImageAssetDrawable.{RequestBuilder, ScaleType}
-import com.waz.zclient.common.views.ImageController.{ImageSource, WireImage}
+import com.waz.zclient.common.views.ImageController.WireImage
 import com.waz.zclient.core.stores.connect.IConnectStore
 import com.waz.zclient.core.stores.connect.IConnectStore.UserRequester
 import com.waz.zclient.messages.UsersController

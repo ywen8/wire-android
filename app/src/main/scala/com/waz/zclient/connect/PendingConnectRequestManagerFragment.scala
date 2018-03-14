@@ -28,7 +28,6 @@ import com.waz.zclient.core.stores.connect.IConnectStore
 import com.waz.zclient.messages.controllers.NavigationController
 import com.waz.zclient.pages.BaseFragment
 import com.waz.zclient.pages.main.connect.UserProfileContainer
-import com.waz.zclient.participants.OptionsMenuFragment
 import com.waz.zclient.utils.ViewUtils
 import com.waz.zclient.{FragmentHelper, OnBackPressedListener, R}
 
@@ -59,14 +58,6 @@ class PendingConnectRequestManagerFragment extends BaseFragment[PendingConnectRe
         getChildFragmentManager
           .beginTransaction
           .add(R.id.fl__pending_connect_request, newInstance(userId, userRequester), Tag)
-          .commit
-      }
-
-      {
-        import OptionsMenuFragment._
-        getChildFragmentManager
-          .beginTransaction
-          .add(R.id.fl__pending_connect_request__settings_box, newInstance(inConvList = false), Tag)
           .commit
       }
     }
