@@ -175,13 +175,9 @@ class ConversationFragment extends BaseFragment[ConversationFragment.Container] 
       guestsBanner.foreach { banner =>
         banner.setVisibility(View.VISIBLE)
         banner.setPivotY(0.0f)
-        banner.setScaleY(0.1f)
-        banner.animate().scaleY(1.0f).start()
+        banner.setScaleY(1.0f)
       }
-      guestsBannerText.foreach { text =>
-        text.setAlpha(0.0f)
-        text.animate().alpha(1.0f).start()
-      }
+      guestsBannerText.foreach(_.setAlpha(1.0f))
     }
   }
 
