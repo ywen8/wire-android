@@ -166,8 +166,11 @@ trait FragmentHelper extends Fragment with OnBackPressedListener with ViewFinder
   def withFragmentOpt[A](tag: String)(f: Option[Fragment] => A): A =
     f(Option(getChildFragmentManager.findFragmentByTag(tag)))
 
+  def findFragment(@IdRes id: Int): Option[Fragment] =
+    Option(getChildFragmentManager.findFragmentById(id))
+
   def withFragmentOpt[A](@IdRes id: Int)(f: Option[Fragment] => A): A =
-    f(Option(getChildFragmentManager.findFragmentById(id)))
+    f(findFragment(id))
 
   def findById[V <: View](parent: View, id: Int): V =
     parent.findViewById(id).asInstanceOf[V]

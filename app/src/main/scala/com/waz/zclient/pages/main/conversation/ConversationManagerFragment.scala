@@ -324,7 +324,6 @@ object ConversationManagerFragment {
   def newInstance = new ConversationManagerFragment
 
   trait Container {
-    def onOpenUrl(url: String): Unit
   }
 
 }

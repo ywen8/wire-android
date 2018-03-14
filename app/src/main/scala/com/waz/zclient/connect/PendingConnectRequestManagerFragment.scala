@@ -32,10 +32,6 @@ import com.waz.zclient.participants.OptionsMenuFragment
 import com.waz.zclient.utils.ViewUtils
 import com.waz.zclient.{FragmentHelper, OnBackPressedListener, R}
 
-/**
-  * Created by admin on 3/8/18.
-  */
-
 class PendingConnectRequestManagerFragment extends BaseFragment[PendingConnectRequestManagerFragment.Container]
   with FragmentHelper
   with PendingConnectRequestFragment.Container
@@ -108,8 +104,6 @@ class PendingConnectRequestManagerFragment extends BaseFragment[PendingConnectRe
 
   override def onAcceptedConnectRequest(userId: UserId): Unit =
     getContainer.onAcceptedConnectRequest(userId)
-
-  override def onBackPressed() = false
 
 }
 

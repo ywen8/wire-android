@@ -25,7 +25,7 @@ import com.waz.ZLog._
 import com.waz.api.IConversation
 import com.waz.model.UserId
 import com.waz.threading.Threading
-import com.waz.zclient.common.controllers.{BrowserController, UserAccountsController}
+import com.waz.zclient.common.controllers.UserAccountsController
 import com.waz.zclient.connect.{ConnectRequestFragment, PendingConnectRequestManagerFragment}
 import com.waz.zclient.controllers.navigation.{INavigationController, Page, PagerControllerObserver}
 import com.waz.zclient.conversation.ConversationController
@@ -42,13 +42,12 @@ class SecondPageFragment extends FragmentHelper
   with PendingConnectRequestManagerFragment.Container
   with ConnectRequestFragment.Container {
 
-  import Threading.Implicits.Ui
   import SecondPageFragment._
+  import Threading.Implicits.Ui
 
   private lazy val navigationController   = inject[INavigationController]
   private lazy val userAccountsController = inject[UserAccountsController]
   private lazy val conversationController = inject[ConversationController]
-  private lazy val browserController       = inject[BrowserController]
 
   override def setUserVisibleHint(isVisibleToUser: Boolean): Unit = {
     super.setUserVisibleHint(isVisibleToUser)
@@ -82,8 +81,8 @@ class SecondPageFragment extends FragmentHelper
 
   override def onActivityResult(requestCode: Int, resultCode: Int, data: Intent): Unit = {
     super.onActivityResult(requestCode, resultCode, data)
-    val fragment = getChildFragmentManager.findFragmentById(R.id.fl__second_page_container)
-    if (fragment != null) fragment.onActivityResult(requestCode, resultCode, data)
+    findFragment(R.id.fl__second_page_container)
+      .foreach(_.onActivityResult(requestCode, resultCode, data))
   }
 
   private def openPage(page: Page, userId: UserId) = {
@@ -124,8 +123,6 @@ class SecondPageFragment extends FragmentHelper
       }
       .foreach(transaction => transaction.commit())
   }
-
-  override def onOpenUrl(url: String): Unit = browserController.openUrl(url)
 
   override def onBackPressed: Boolean = {
     val fragment = getChildFragmentManager.findFragmentById(R.id.fl__second_page_container)

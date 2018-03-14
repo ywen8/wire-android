@@ -64,13 +64,11 @@ class SendConnectRequestFragment extends BaseFragment[SendConnectRequestFragment
   private lazy val userAccountsController = inject[UserAccountsController]
   private lazy val conversationController = inject[ConversationController]
   private lazy val keyboardController = inject[KeyboardController]
+  private lazy val accentColorController = inject[AccentColorController]
   private lazy val zms = inject[Signal[ZMessaging]]
 
-  private lazy val accentColor = inject[AccentColorController].accentColor
   private lazy val userToConnect = usersController.user(userToConnectId)
-  private lazy val userDisplayName = userToConnect.map(_.getDisplayName)
-  private lazy val userName = userToConnect.map(user => StringUtils.formatHandle(user.handle.map(_.string).getOrElse("")))
-  private lazy val userPicture: Signal[ImageSource] = userToConnect.map(_.picture).collect { case Some(p) => WireImage(p) }
+
   private lazy val removeConvMemberFeatureEnabled = for {
     convId <- conversationController.currentConvId
     permission <- userAccountsController.hasRemoveConversationMemberPermission(convId)
@@ -82,17 +80,18 @@ class SendConnectRequestFragment extends BaseFragment[SendConnectRequestFragment
   }
 
   private lazy val connectButton = returning(view[ZetaButton](R.id.zb__send_connect_request__connect_button)) { vh =>
-    accentColor.onUi { color => vh.foreach(_.setAccentColor(color.getColor)) }
+    accentColorController.accentColor.onUi { color => vh.foreach(_.setAccentColor(color.getColor)) }
   }
   private lazy val footerMenu = returning(view[FooterMenu](R.id.fm__footer)) { vh =>
     footerMenuRightActionText.onUi(text => vh.foreach(_.setRightActionText(text)))
   }
   private lazy val imageViewProfile = view[ImageView](R.id.send_connect)
   private lazy val userNameView = returning(view[TypefaceTextView](R.id.user_name)) { vh =>
-    userDisplayName.onUi(t => vh.foreach(_.setText(t)))
+    userToConnect.map(_.getDisplayName).onUi(t => vh.foreach(_.setText(t)))
   }
   private lazy val userHandleView = returning(view[TypefaceTextView](R.id.user_handle)) { vh =>
-    userName.onUi(t => vh.foreach(_.setText(t)))
+    userToConnect.map(user => StringUtils.formatHandle(user.handle.map(_.string).getOrElse("")))
+      .onUi(t => vh.foreach(_.setText(t)))
   }
 
   override def onCreateAnimation(transit: Int, enter: Boolean, nextAnim: Int): Animation = {
@@ -129,7 +128,7 @@ class SendConnectRequestFragment extends BaseFragment[SendConnectRequestFragment
     userHandleView
 
     val assetDrawable = new ImageAssetDrawable(
-      userPicture,
+      userToConnect.map(_.picture).collect { case Some(p) => WireImage(p) },
       scaleType = ScaleType.CenterInside,
       request = RequestBuilder.Round
     )

@@ -89,13 +89,13 @@ class PendingConnectRequestFragment extends BaseFragment[PendingConnectRequestFr
     }.onUi { text => vh.foreach(_.setRightActionText(text)) }
 
     isIgnoredConnection.map {
-      case true => getString(R.string.glyph__plus)
-      case false => getString(R.string.glyph__undo)
-    }.onUi { text => vh.foreach(_.setLeftActionText(text)) }
+      case true => R.string.glyph__plus
+      case false => R.string.glyph__undo
+    }.map(getString).onUi { text => vh.foreach(_.setLeftActionText(text)) }
     isIgnoredConnection.map {
-      case true => getString(R.string.send_connect_request__connect_button__text)
-      case false => getString(R.string.connect_request__cancel_request__label)
-    }.onUi { text => vh.foreach(_.setLeftActionLabelText(text)) }
+      case true => R.string.send_connect_request__connect_button__text
+      case false => R.string.connect_request__cancel_request__label
+    }.map(getString).onUi { text => vh.foreach(_.setLeftActionLabelText(text)) }
   }
 
   private lazy val imageViewProfile = view[ImageView](R.id.pending_connect)
@@ -126,14 +126,6 @@ class PendingConnectRequestFragment extends BaseFragment[PendingConnectRequestFr
     }
   }
 
-  private def connectToUser(userId: UserId): Future[Option[ConversationData]] =
-    for {
-      uSelf <- usersController.selfUser.head
-      uToConnect <- userToConnect.head
-      message = getString(R.string.connect__message, uToConnect.name, uSelf.name)
-      maybeConversation <- zms.head.flatMap(_.connection.connectToUser(userId, message, uToConnect.displayName))
-    } yield maybeConversation
-
   override def onCreateView(inflater: LayoutInflater, viewContainer: ViewGroup, savedInstanceState: Bundle): View =
     inflater.inflate(R.layout.fragment_connect_request_pending, viewContainer, false)
 
@@ -147,12 +139,13 @@ class PendingConnectRequestFragment extends BaseFragment[PendingConnectRequestFr
     )
     imageViewProfile.foreach(_.setImageDrawable(assetDrawable))
 
-    val backgroundContainer = findById[View](R.id.ll__pending_connect__background_container)
-    val popoverLaunchMode = getControllerFactory.getConversationScreenController.getPopoverLaunchMode
-    if (popoverLaunchMode == DialogLaunchMode.AVATAR || popoverLaunchMode == DialogLaunchMode.COMMON_USER) {
-      backgroundContainer.setClickable(true)
-    } else {
-      backgroundContainer.setBackgroundColor(Color.TRANSPARENT)
+    returning(findById[View](R.id.ll__pending_connect__background_container)) { container =>
+      val popoverLaunchMode = getControllerFactory.getConversationScreenController.getPopoverLaunchMode
+      if (popoverLaunchMode == DialogLaunchMode.AVATAR || popoverLaunchMode == DialogLaunchMode.COMMON_USER) {
+        container.setClickable(true)
+      } else {
+        container.setBackgroundColor(Color.TRANSPARENT)
+      }
     }
 
     userNameView.foreach { v =>
@@ -166,11 +159,11 @@ class PendingConnectRequestFragment extends BaseFragment[PendingConnectRequestFr
     footerMenu.setCallback(new FooterMenuCallback {
       override def onLeftActionClicked(): Unit = userConnection.head foreach {
         case ConnectionStatus.IGNORED =>
-          connectToUser(userId).foreach(_.foreach { _ =>
+          usersController.connectToUser(userId).foreach(_.foreach { _ =>
             getContainer.onAcceptedConnectRequest(userId)
           })
         case ConnectionStatus.PENDING_FROM_OTHER if userRequester == IConnectStore.UserRequester.PARTICIPANTS =>
-          connectToUser(userId).foreach(_.foreach { _ =>
+          usersController.connectToUser(userId).foreach(_.foreach { _ =>
             getContainer.onAcceptedConnectRequest(userId)
           })
         case ConnectionStatus.PENDING_FROM_USER =>

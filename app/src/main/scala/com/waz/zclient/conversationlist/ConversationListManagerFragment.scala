@@ -402,13 +402,6 @@ class ConversationListManagerFragment extends Fragment
     }
   }
 
-//  override def onAcceptedPendingOutgoingConnectRequest(userId: UserId) = {
-//    verbose(s"onAcceptedPendingOutgoingConnectRequest: $userId")
-//    userAccountsController.getConversationId(userId).flatMap { convId =>
-//      convController.selectConv(convId, ConversationChangeRequester.CONNECT_REQUEST_ACCEPTED)
-//    }
-//  }
-
   override def onUnblockedUser(restoredConversationWithUser: ConvId) = {
     pickUserController.hideUserProfile()
     verbose(s"onUnblockedUser $restoredConversationWithUser")
