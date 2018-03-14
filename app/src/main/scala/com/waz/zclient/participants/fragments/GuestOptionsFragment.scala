@@ -198,23 +198,28 @@ class GuestOptionsFragment extends FragmentHelper {
           setGuestsSwitchEnabled(false)
 
           if (!isChecked) {
-            ViewUtils.showAlertDialog(getContext,
-              R.string.empty_string,
-              R.string.allow_guests_warning_body,
-              R.string.allow_guests_warning_confirm,
-              android.R.string.cancel,
-              new DialogInterface.OnClickListener {
-                override def onClick(dialog: DialogInterface, which: Int): Unit = {
-                  setTeamOnly()
-                  dialog.dismiss()
-                }
-              }, new DialogInterface.OnClickListener {
-                override def onClick(dialog: DialogInterface, which: Int): Unit = {
-                  guestsSwitch.setChecked(true)
-                  setGuestsSwitchEnabled(true)
-                  dialog.dismiss()
-                }
-              })
+            convCtrl.currentConv.map(_.isTeamOnly).head.map {
+              case false =>
+                ViewUtils.showAlertDialog(getContext,
+                  R.string.empty_string,
+                  R.string.allow_guests_warning_body,
+                  R.string.allow_guests_warning_confirm,
+                  android.R.string.cancel,
+                  new DialogInterface.OnClickListener {
+                    override def onClick(dialog: DialogInterface, which: Int): Unit = {
+                      setTeamOnly()
+                      dialog.dismiss()
+                    }
+                  }, new DialogInterface.OnClickListener {
+                    override def onClick(dialog: DialogInterface, which: Int): Unit = {
+                      guestsSwitch.setChecked(true)
+                      setGuestsSwitchEnabled(true)
+                      dialog.dismiss()
+                    }
+                  })
+              case _ =>
+                setGuestsSwitchEnabled(true)
+            } (Threading.Ui)
           } else {
             setTeamOnly()
           }
