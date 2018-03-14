@@ -49,13 +49,6 @@ public class ConversationScreenController implements IConversationScreenControll
     }
 
     @Override
-    public void editConversationName(boolean edit) {
-        for (ConversationScreenControllerObserver conversationManagerScreenControllerObserver : conversationScreenControllerObservers) {
-            conversationManagerScreenControllerObserver.onShowEditConversationName(edit);
-        }
-    }
-
-    @Override
     public void setSingleConversation(boolean isSingleConversation) {
     }
 

@@ -28,33 +28,6 @@
         android:layout_height="match_parent"
         />
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:paddingTop="@dimen/wire__padding__huge"
-        android:layout_gravity="center_horizontal"
-        android:gravity="center_horizontal"
-        android:orientation="vertical">
-
-        <com.waz.zclient.ui.text.TypefaceTextView
-            android:id="@+id/ttv__settings_box__title"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textSize="@dimen/wire__text_size__small"
-            android:textAllCaps="true"
-            app:w_font="@string/wire__typeface__light"
-            />
-
-        <com.waz.zclient.common.views.UserDetailsView
-            android:id="@+id/udv__settings_box__user_details"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/wire__padding__small"
-            />
-
-    </LinearLayout>
-
-
 
     <LinearLayout
         android:id="@+id/ll__settings_box__container"
@@ -63,20 +36,22 @@
         android:layout_gravity="bottom"
         android:gravity="center"
         android:orientation="vertical"
+        android:background="@color/graphite"
+        android:paddingTop="@dimen/wire__padding__regular"
         >
 
         <com.waz.zclient.ui.text.TypefaceTextView
             android:id="@+id/ttv__settings_box__cancel_button"
             android:layout_width="wrap_content"
-            android:layout_height="@dimen/options_menu_cancel_height"
+            android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/options_menu_cancel_margin_top"
             android:layout_marginBottom="@dimen/options_menu_cancel_margin_bottom"
             android:gravity="center"
             android:textColor="@color/text__primary_light"
             android:textAllCaps="true"
-            android:textSize="@dimen/wire__text_size__small"
+            android:textSize="@dimen/wire__text_size__regular"
             android:text="@string/confirmation_menu__cancel"
-            app:w_font="@string/wire__typeface__medium"
+            app:w_font="@string/wire__typeface__regular"
             />
     </LinearLayout>
 

@@ -23,7 +23,7 @@ import android.support.v4.app.{Fragment, FragmentManager}
 import android.view.{LayoutInflater, ViewGroup}
 import android.widget.FrameLayout
 import com.waz.ZLog.ImplicitTag._
-import com.waz.ZLog.{verbose, warn}
+import com.waz.ZLog.verbose
 import com.waz.api.SyncState._
 import com.waz.api._
 import com.waz.model._
@@ -40,16 +40,14 @@ import com.waz.zclient.controllers.camera.ICameraController
 import com.waz.zclient.controllers.confirmation._
 import com.waz.zclient.controllers.navigation.{INavigationController, NavigationControllerObserver, Page}
 import com.waz.zclient.conversation.ConversationController
-import com.waz.zclient.conversation.creation.NewConversationFragment
 import com.waz.zclient.core.stores.connect.IConnectStore
 import com.waz.zclient.core.stores.conversation.ConversationChangeRequester
-import com.waz.zclient.integrations.IntegrationDetailsFragment
 import com.waz.zclient.messages.UsersController
 import com.waz.zclient.pages.main.connect.{BlockedUserProfileFragment, ConnectRequestLoadMode, PendingConnectRequestManagerFragment, SendConnectRequestFragment}
 import com.waz.zclient.pages.main.conversation.controller.{ConversationScreenControllerObserver, IConversationScreenController}
 import com.waz.zclient.pages.main.pickuser.controller.IPickUserController.Destination
 import com.waz.zclient.pages.main.pickuser.controller.{IPickUserController, PickUserControllerScreenObserver}
-import com.waz.zclient.participants.OptionsMenuFragment
+import com.waz.zclient.participants.OptionsMenu
 import com.waz.zclient.ui.animation.interpolators.penner.{Expo, Quart}
 import com.waz.zclient.ui.utils.KeyboardUtils
 import com.waz.zclient.usersearch.SearchUIFragment
@@ -156,7 +154,6 @@ class ConversationListManagerFragment extends Fragment
         fm.beginTransaction
           .add(R.id.fl__conversation_list_main, ConversationListFragment.newNormalInstance(), NormalConversationListFragment.TAG)
           .addToBackStack(NormalConversationListFragment.TAG)
-          .add(R.id.fl__conversation_list__settings_box, OptionsMenuFragment.newInstance(inConvList = true), OptionsMenuFragment.Tag)
           .commit
       }
 
@@ -387,22 +384,14 @@ class ConversationListManagerFragment extends Fragment
   }
 
   override def onBackPressed = {
-    if (closeMenu) true
-    else {
-      withBackstackHead {
-        case Some(f: IntegrationDetailsFragment) if f.onBackPressed() => true
-        case Some(f: SearchUIFragment) if f.onBackPressed() => true
-        case Some(f: ArchiveListFragment) if f.onBackPressed() => true
-        case Some(f: NewConversationFragment) if f.onBackPressed() => true
-        case _ if pickUserController.isShowingPickUser(getCurrentPickerDestination) =>
-          pickUserController.hidePickUser(getCurrentPickerDestination)
-          true
-        case _ => false
-      }
+    withBackstackHead {
+      case Some(f: FragmentHelper) if f.onBackPressed() => true
+      case _ if pickUserController.isShowingPickUser(getCurrentPickerDestination) =>
+        pickUserController.hidePickUser(getCurrentPickerDestination)
+        true
+      case _ => false
     }
   }
-
-  private def closeMenu = withOptionsMenu(_.close(), false)
 
   override def onAcceptedConnectRequest(convId: ConvId) = {
     verbose(s"onAcceptedConnectRequest $convId")
@@ -421,13 +410,7 @@ class ConversationListManagerFragment extends Fragment
   }
 
   override def onShowConversationMenu(inConvList: Boolean, convId: ConvId): Unit =
-    if (inConvList) withOptionsMenu(_.open(convId), {})
-
-  private def withOptionsMenu[A](f: OptionsMenuFragment => A, default: A): A =
-    withFragmentOpt(OptionsMenuFragment.Tag) {
-      case Some(frag: OptionsMenuFragment) => f(frag)
-      case _ => warn("OptionsMenuFragment not attached"); default
-    }
+    if (inConvList) OptionsMenu(getContext, inConvList, convId).show()
 
   override def dismissUserProfile() =
     pickUserController.hideUserProfile()
@@ -437,8 +420,6 @@ class ConversationListManagerFragment extends Fragment
 
   override def dismissSingleUserProfile() =
     dismissUserProfile()
-
-  override def onShowEditConversationName(show: Boolean) = {}
 
   override def onHideUser() = {}
 

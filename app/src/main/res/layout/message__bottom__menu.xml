@@ -20,8 +20,6 @@
 -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
               android:orientation="vertical"
-              android:paddingStart="@dimen/wire__padding__regular"
-              android:paddingEnd="@dimen/wire__padding__regular"
               android:paddingTop="@dimen/wire__padding__small"
               android:paddingBottom="@dimen/wire__padding__small"
               android:layout_width="match_parent"

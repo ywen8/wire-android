@@ -284,18 +284,18 @@
     <string name="content__location__no_map_placeholder">THE LOCATION WILL APPEAR ON THE MAP WHEN YOU ARE BACK ONLINE.</string>
 
     <!-- Conversation actions -->
-    <string name="conversation__action__rename">RENAME</string>
-    <string name="conversation__action__delete">DELETE</string>
-    <string name="conversation__action__archive">ARCHIVE</string>
-    <string name="conversation__action__unarchive">UNARCHIVE</string>
+    <string name="conversation__action__rename">Rename</string>
+    <string name="conversation__action__delete">Delete</string>
+    <string name="conversation__action__archive">Archive</string>
+    <string name="conversation__action__unarchive">Unarchive</string>
     <string name="conversation__action__add_people">ADD PEOPLE</string>
     <string name="conversation__action__create_group">CREATE GROUP</string>
-    <string name="conversation__action__silence">MUTE</string>
-    <string name="conversation__action__unsilence">UNMUTE</string>
-    <string name="conversation__action__leave">LEAVE</string>
-    <string name="conversation__action__remove">REMOVE</string>
-    <string name="conversation__action__call">CALL</string>
-    <string name="conversation__action__picture">PICTURE</string>
+    <string name="conversation__action__silence">Mute</string>
+    <string name="conversation__action__unsilence">Unmute</string>
+    <string name="conversation__action__leave">Leave</string>
+    <string name="conversation__action__remove">Remove</string>
+    <string name="conversation__action__call">Call</string>
+    <string name="conversation__action__picture">Picture</string>
 
     <!-- Conversation: Profile Popover -->
     <string name="popover__action__open">OPEN</string>
@@ -421,7 +421,7 @@
     <!-- Block someone dialogue -->
     <string name="confirmation_menu__block_header">Block?</string>
     <string name="confirmation_menu__block_text_with_name">%1$s won\'t be able to contact you or add you to group conversations.</string>
-    <string name="confirmation_menu__confirm_block">BLOCK</string>
+    <string name="confirmation_menu__confirm_block">Block</string>
     <!-- RE-USING: confirmation_menu.cancel -->
     <string name="connect_request__footer__blocked_label">Blocked</string>
 

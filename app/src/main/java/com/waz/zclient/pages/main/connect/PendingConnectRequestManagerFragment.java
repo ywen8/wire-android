@@ -30,7 +30,6 @@ import com.waz.zclient.controllers.navigation.Page;
 import com.waz.zclient.core.stores.connect.IConnectStore;
 import com.waz.zclient.core.stores.network.NetworkAction;
 import com.waz.zclient.pages.BaseFragment;
-import com.waz.zclient.participants.OptionsMenuFragment;
 import com.waz.zclient.utils.ViewUtils;
 
 public class PendingConnectRequestManagerFragment extends BaseFragment<PendingConnectRequestManagerFragment.Container> implements PendingConnectRequestFragment.Container,
@@ -78,11 +77,6 @@ public class PendingConnectRequestManagerFragment extends BaseFragment<PendingCo
                     .add(R.id.fl__pending_connect_request, PendingConnectRequestFragment.newInstance(userId, conversationId, loademode, userRequester), PendingConnectRequestFragment.TAG)
                     .commit();
 
-            getChildFragmentManager().beginTransaction()
-                                     .add(R.id.fl__pending_connect_request__settings_box,
-                                          OptionsMenuFragment.newInstance(false),
-                                          OptionsMenuFragment.Tag())
-                                     .commit();
         }
 
         return view;

@@ -300,8 +300,6 @@ class ConversationManagerFragment extends BaseFragment[Container] with FragmentH
       .commit
   }
 
-  override def onShowEditConversationName(show: Boolean): Unit = {}
-
   override def onHideUser(): Unit = {}
 
   override def onShowConversationMenu(inConvList: Boolean, convId: ConvId): Unit = {}
