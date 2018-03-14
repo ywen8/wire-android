@@ -51,6 +51,7 @@ class MenuRowButton(context: Context, attrs: AttributeSet, style: Int) extends R
     iconAttr.foreach(icon.setText)
     colorAttr.foreach(icon.setTextColor)
   }
+  val divider: View = findViewById[View](R.id.divider)
 
   setBackground(ContextUtils.getDrawable(R.drawable.selector__transparent_button))
   setClickable(true)

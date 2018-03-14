@@ -22,7 +22,7 @@ import android.os.Bundle
 import android.support.v4.app.ShareCompat
 import android.support.v7.widget.SwitchCompat
 import android.view.{LayoutInflater, View, ViewGroup}
-import android.widget.{CompoundButton, FrameLayout, LinearLayout, TextView}
+import android.widget.{CompoundButton, FrameLayout, TextView}
 import com.waz.ZLog.ImplicitTag._
 import com.waz.service.ZMessaging
 import com.waz.threading.Threading
@@ -67,7 +67,7 @@ class GuestOptionsFragment extends FragmentHelper {
         text.foreach(_.setVisibility(View.GONE))
     }
   }
-  private lazy val guestLinkCreate = returning(view[LinearLayout](R.id.link_button_create_link)) { text =>
+  private lazy val guestLinkCreate = returning(view[MenuRowButton](R.id.link_button_create_link)) { text =>
     convCtrl.currentConv.map(_.link.isDefined).onUi { hasLink =>
       text.foreach(_.setVisibility(if (hasLink) View.GONE else View.VISIBLE))
     }
@@ -99,7 +99,11 @@ class GuestOptionsFragment extends FragmentHelper {
   override def onViewCreated(view: View, savedInstanceState: Bundle): Unit = {
     guestsSwitch
     guestLinkText
-    guestLinkCreate
+    guestLinkCreate.foreach { v =>
+      v.divider.setVisibility(View.GONE)
+      v.setClickable(false)
+      v.setFocusable(false)
+    }
 
     linkButton.foreach(_.onClick {
       spinnerController.showSpinner(true)
@@ -114,7 +118,9 @@ class GuestOptionsFragment extends FragmentHelper {
               zms.conversations.createLink(conv.id).map {
                 case Left(_) =>
                   spinnerController.showSpinner(false)
-                  showToast(R.string.allow_guests_error_title)
+                  ViewUtils.showAlertDialog(getContext, R.string.empty_string, R.string.allow_guests_error_title, android.R.string.ok, new DialogInterface.OnClickListener {
+                    override def onClick(dialog: DialogInterface, which: Int): Unit = dialog.dismiss()
+                  }, true)
                 case _ =>
                   spinnerController.showSpinner(false)
               } (Threading.Ui)
@@ -150,7 +156,7 @@ class GuestOptionsFragment extends FragmentHelper {
             } yield res).map {
               case Left(_) =>
                 spinnerController.showSpinner(false)
-                ViewUtils.showAlertDialog(getContext, R.string.allow_guests_error_title, R.string.allow_guests_error_body, android.R.string.ok, new DialogInterface.OnClickListener {
+                ViewUtils.showAlertDialog(getContext, R.string.empty_string, R.string.allow_guests_error_title, android.R.string.ok, new DialogInterface.OnClickListener {
                   override def onClick(dialog: DialogInterface, which: Int): Unit = dialog.dismiss()
                 }, true)
               case _ =>
