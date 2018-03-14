@@ -33,7 +33,7 @@ import com.waz.zclient.common.controllers.UserAccountsController
 import com.waz.zclient.common.controllers.global.{AccentColorController, KeyboardController}
 import com.waz.zclient.common.views.ImageAssetDrawable
 import com.waz.zclient.common.views.ImageAssetDrawable.{RequestBuilder, ScaleType}
-import com.waz.zclient.common.views.ImageController.{ImageSource, WireImage}
+import com.waz.zclient.common.views.ImageController.WireImage
 import com.waz.zclient.connect.PendingConnectRequestFragment.ArgUserRequester
 import com.waz.zclient.conversation.ConversationController
 import com.waz.zclient.core.stores.connect.IConnectStore
@@ -41,7 +41,6 @@ import com.waz.zclient.messages.UsersController
 import com.waz.zclient.pages.BaseFragment
 import com.waz.zclient.pages.main.connect.UserProfileContainer
 import com.waz.zclient.pages.main.participants.ProfileAnimation
-import com.waz.zclient.pages.main.participants.dialog.DialogLaunchMode
 import com.waz.zclient.ui.text.TypefaceTextView
 import com.waz.zclient.ui.views.ZetaButton
 import com.waz.zclient.utils.ContextUtils._
@@ -67,45 +66,45 @@ class SendConnectRequestFragment extends BaseFragment[SendConnectRequestFragment
   private lazy val accentColorController = inject[AccentColorController]
   private lazy val zms = inject[Signal[ZMessaging]]
 
-  private lazy val userToConnect = usersController.user(userToConnectId)
+  private lazy val user = usersController.user(userToConnectId)
 
   private lazy val removeConvMemberFeatureEnabled = for {
     convId <- conversationController.currentConvId
     permission <- userAccountsController.hasRemoveConversationMemberPermission(convId)
   } yield permission && userRequester == IConnectStore.UserRequester.PARTICIPANTS
 
-  private lazy val footerMenuRightActionText = removeConvMemberFeatureEnabled.map {
-    case true => getString(R.string.glyph__minus)
-    case false => ""
-  }
-
   private lazy val connectButton = returning(view[ZetaButton](R.id.zb__send_connect_request__connect_button)) { vh =>
     accentColorController.accentColor.onUi { color => vh.foreach(_.setAccentColor(color.getColor)) }
+    vh.onClick { _ =>
+      usersController.connectToUser(userToConnectId).foreach(_.foreach { _ =>
+        keyboardController.hideKeyboardIfVisible()
+        getContainer.onConnectRequestWasSentToUser()
+      })
+    }
   }
   private lazy val footerMenu = returning(view[FooterMenu](R.id.fm__footer)) { vh =>
-    footerMenuRightActionText.onUi(text => vh.foreach(_.setRightActionText(text)))
+    removeConvMemberFeatureEnabled.map {
+      case true => getString(R.string.glyph__minus)
+      case false => ""
+    }.onUi(text => vh.foreach(_.setRightActionText(text)))
   }
   private lazy val imageViewProfile = view[ImageView](R.id.send_connect)
   private lazy val userNameView = returning(view[TypefaceTextView](R.id.user_name)) { vh =>
-    userToConnect.map(_.getDisplayName).onUi(t => vh.foreach(_.setText(t)))
+    user.map(_.getDisplayName).onUi(t => vh.foreach(_.setText(t)))
   }
   private lazy val userHandleView = returning(view[TypefaceTextView](R.id.user_handle)) { vh =>
-    userToConnect.map(user => StringUtils.formatHandle(user.handle.map(_.string).getOrElse("")))
+    user.map(user => StringUtils.formatHandle(user.handle.map(_.string).getOrElse("")))
       .onUi(t => vh.foreach(_.setText(t)))
   }
 
   override def onCreateAnimation(transit: Int, enter: Boolean, nextAnim: Int): Animation = {
     def defaultAnimation = super.onCreateAnimation(transit, enter, nextAnim)
-    def shownInConvList = {
-      val launchMode = getControllerFactory.getConversationScreenController.getPopoverLaunchMode
-      launchMode != DialogLaunchMode.AVATAR && launchMode != DialogLaunchMode.COMMON_USER
-    }
     def isConvRequester = {
       val userRequester = IConnectStore.UserRequester.valueOf(getArguments.getString(ArgUserRequester))
       userRequester == IConnectStore.UserRequester.CONVERSATION
     }
 
-    if (shownInConvList || isConvRequester || nextAnim != 0) defaultAnimation
+    if (isConvRequester || nextAnim != 0) defaultAnimation
     else {
       val centerX = getOrientationIndependentDisplayWidth(getActivity) / 2
       val centerY = getOrientationIndependentDisplayHeight(getActivity) / 2
@@ -128,7 +127,7 @@ class SendConnectRequestFragment extends BaseFragment[SendConnectRequestFragment
     userHandleView
 
     val assetDrawable = new ImageAssetDrawable(
-      userToConnect.map(_.picture).collect { case Some(p) => WireImage(p) },
+      user.map(_.picture).collect { case Some(p) => WireImage(p) },
       scaleType = ScaleType.CenterInside,
       request = RequestBuilder.Round
     )
@@ -137,14 +136,8 @@ class SendConnectRequestFragment extends BaseFragment[SendConnectRequestFragment
     val backgroundContainer = findById[View](R.id.background_container)
     backgroundContainer.setClickable(true)
 
-    val popoverLaunchMode = getControllerFactory.getConversationScreenController.getPopoverLaunchMode
-    if (userRequester == IConnectStore.UserRequester.PARTICIPANTS &&
-      popoverLaunchMode != DialogLaunchMode.AVATAR &&
-      popoverLaunchMode != DialogLaunchMode.COMMON_USER) {
-      backgroundContainer.setBackgroundColor(Color.TRANSPARENT)
-    }
-
     if (userRequester == IConnectStore.UserRequester.PARTICIPANTS) {
+      backgroundContainer.setBackgroundColor(Color.TRANSPARENT)
       footerMenu.setVisibility(View.VISIBLE)
       connectButton.setVisibility(View.GONE)
     } else {
@@ -159,18 +152,6 @@ class SendConnectRequestFragment extends BaseFragment[SendConnectRequestFragment
         case _ =>
       }
     }))
-
-    connectButton.onClick { _ =>
-      for {
-        uSelf <- usersController.selfUser.head
-        uToConnect <- userToConnect.head
-        message = getString(R.string.connect__message, uToConnect.name, uSelf.name)
-        maybeConversation <- zms.head.flatMap(_.connection.connectToUser(userToConnectId, message, uToConnect.displayName))
-      } yield maybeConversation.foreach { _ =>
-        keyboardController.hideKeyboardIfVisible()
-        getContainer.onConnectRequestWasSentToUser()
-      }
-    }
   }
 
   override def onStop(): Unit = {

@@ -135,7 +135,8 @@ class UsersController(implicit injector: Injector, context: Context) extends Inj
     } yield conv
   }
 
-  def connectToUser(userId: UserId): Future[Option[ConversationData]] =
+  def connectToUser(userId: UserId): Future[Option[ConversationData]] = {
+    import Threading.Implicits.Background
     for {
       uSelf <- selfUser.head
       uToConnect <- user(userId).head
@@ -143,6 +144,7 @@ class UsersController(implicit injector: Injector, context: Context) extends Inj
       message = getString(R.string.connect__message, uToConnect.name, uSelf.name)
       conv <- zms.connection.connectToUser(userId, message, uToConnect.displayName)
     } yield conv
+  }
 }
 
 object UsersController {

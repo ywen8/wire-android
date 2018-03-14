@@ -18,14 +18,13 @@
 package com.waz.zclient.connect
 
 import android.content.Context
-import android.graphics.Color
 import android.os.Bundle
 import android.view.animation.Animation
 import android.view.{LayoutInflater, View, ViewGroup}
 import android.widget.ImageView
 import com.waz.ZLog.ImplicitTag._
 import com.waz.api.User.ConnectionStatus
-import com.waz.model.{ConversationData, UserId}
+import com.waz.model.UserId
 import com.waz.service.ZMessaging
 import com.waz.threading.Threading
 import com.waz.utils.events.Signal
@@ -39,14 +38,11 @@ import com.waz.zclient.messages.UsersController
 import com.waz.zclient.pages.BaseFragment
 import com.waz.zclient.pages.main.connect.UserProfileContainer
 import com.waz.zclient.pages.main.participants.ProfileAnimation
-import com.waz.zclient.pages.main.participants.dialog.DialogLaunchMode
 import com.waz.zclient.ui.text.TypefaceTextView
 import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.utils.StringUtils
 import com.waz.zclient.views.menus.{FooterMenu, FooterMenuCallback}
 import com.waz.zclient.{FragmentHelper, R}
-
-import scala.concurrent.Future
 
 class PendingConnectRequestFragment extends BaseFragment[PendingConnectRequestFragment.Container]
   with FragmentHelper {
@@ -62,17 +58,16 @@ class PendingConnectRequestFragment extends BaseFragment[PendingConnectRequestFr
   private lazy val userId         = UserId(getArguments.getString(ArgUserId))
   private lazy val userRequester  = IConnectStore.UserRequester.valueOf(getArguments.getString(ArgUserRequester))
 
-  private lazy val userToConnect  = usersController.user(userId)
-  private lazy val userConnection = userToConnect.map(_.connection)
-  private lazy val userToConnectPicture: Signal[ImageSource] =
-    userToConnect.map(_.picture).collect { case Some(p) => WireImage(p) }
+  private lazy val user  = usersController.user(userId)
+  private lazy val userConnection = user.map(_.connection)
+
   private lazy val isIgnoredConnection = userConnection.map(_ == ConnectionStatus.IGNORED)
 
   private lazy val userNameView = returning(view[TypefaceTextView](R.id.user_name)) { vh =>
-    userToConnect.map(_.getDisplayName).onUi(t => vh.foreach(_.setText(t)))
+    user.map(_.getDisplayName).onUi(t => vh.foreach(_.setText(t)))
   }
   private lazy val userHandleView = returning(view[TypefaceTextView](R.id.user_handle)) { vh =>
-    userToConnect.map(user => StringUtils.formatHandle(user.handle.map(_.string).getOrElse("")))
+    user.map(user => StringUtils.formatHandle(user.handle.map(_.string).getOrElse("")))
       .onUi(t => vh.foreach(_.setText(t)))
   }
   private lazy val footerMenu = returning(view[FooterMenu](R.id.fm__footer)) { vh =>
@@ -102,16 +97,12 @@ class PendingConnectRequestFragment extends BaseFragment[PendingConnectRequestFr
 
   override def onCreateAnimation(transit: Int, enter: Boolean, nextAnim: Int): Animation = {
     def defaultAnimation = super.onCreateAnimation(transit, enter, nextAnim)
-    def shownInConvList = {
-      val launchMode = getControllerFactory.getConversationScreenController.getPopoverLaunchMode
-      launchMode != DialogLaunchMode.AVATAR && launchMode != DialogLaunchMode.COMMON_USER
-    }
     def isConvRequester = {
       val userRequester = IConnectStore.UserRequester.valueOf(getArguments.getString(ArgUserRequester))
       userRequester == IConnectStore.UserRequester.CONVERSATION
     }
 
-    if (shownInConvList || isConvRequester || nextAnim != 0) defaultAnimation
+    if (isConvRequester || nextAnim != 0) defaultAnimation
     else {
       val centerX = getOrientationIndependentDisplayWidth(getActivity) / 2
       val centerY = getOrientationIndependentDisplayHeight(getActivity) / 2
@@ -133,20 +124,11 @@ class PendingConnectRequestFragment extends BaseFragment[PendingConnectRequestFr
     userHandleView
 
     val assetDrawable = new ImageAssetDrawable(
-      userToConnectPicture,
+      user.map(_.picture).collect { case Some(p) => WireImage(p) },
       scaleType = ScaleType.CenterInside,
       request = RequestBuilder.Round
     )
     imageViewProfile.foreach(_.setImageDrawable(assetDrawable))
-
-    returning(findById[View](R.id.ll__pending_connect__background_container)) { container =>
-      val popoverLaunchMode = getControllerFactory.getConversationScreenController.getPopoverLaunchMode
-      if (popoverLaunchMode == DialogLaunchMode.AVATAR || popoverLaunchMode == DialogLaunchMode.COMMON_USER) {
-        container.setClickable(true)
-      } else {
-        container.setBackgroundColor(Color.TRANSPARENT)
-      }
-    }
 
     userNameView.foreach { v =>
       val paddingTop =

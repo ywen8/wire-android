@@ -81,8 +81,7 @@ class SecondPageFragment extends FragmentHelper
 
   override def onActivityResult(requestCode: Int, resultCode: Int, data: Intent): Unit = {
     super.onActivityResult(requestCode, resultCode, data)
-    findFragment(R.id.fl__second_page_container)
-      .foreach(_.onActivityResult(requestCode, resultCode, data))
+    withFragment(R.id.fl__second_page_container)(_.onActivityResult(requestCode, resultCode, data))
   }
 
   private def openPage(page: Page, userId: UserId) = {
