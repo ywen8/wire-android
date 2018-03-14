@@ -29,6 +29,7 @@ import com.waz.ZLog.ImplicitTag._
 import com.waz.threading.Threading
 import com.waz.utils.events.Signal
 import com.waz.utils.returning
+import com.waz.zclient.common.controllers.ThemeController
 import com.waz.zclient.common.controllers.global.{AccentColorController, KeyboardController}
 import com.waz.zclient.conversation.ConversationController
 import com.waz.zclient.conversation.creation.NewConversationFragment._
@@ -49,6 +50,7 @@ class NewConversationFragment extends FragmentHelper {
   private lazy val conversationController = inject[ConversationController]
   private lazy val keyboard               = inject[KeyboardController]
   private lazy val pickUserController     = inject[IPickUserController]
+  private lazy val themeController        = inject[ThemeController]
 
   private lazy val accentColor = inject[AccentColorController].accentColor.map(_.getColor)
 
@@ -86,9 +88,12 @@ class NewConversationFragment extends FragmentHelper {
   }
 
   private lazy val toolbar = returning(view[Toolbar](R.id.toolbar)) { vh =>
-    currentPage.map {
-      case PickerPage   => R.drawable.action_back_dark
-      case SettingsPage => R.drawable.ic_action_close_dark
+    Signal(currentPage, themeController.darkThemeSet).map {
+      case (PickerPage, true)   => R.drawable.action_back_light
+      case (PickerPage, false)   => R.drawable.action_back_dark
+      case (SettingsPage, false) => R.drawable.ic_action_close_dark
+      case (SettingsPage, true) => R.drawable.ic_action_close_light
+      case _ => R.drawable.ic_action_close_dark
     }.onUi(dr => vh.foreach(_.setNavigationIcon(dr)))
   }
 

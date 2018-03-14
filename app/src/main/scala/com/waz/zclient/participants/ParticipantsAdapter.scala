@@ -36,11 +36,11 @@ import com.waz.utils.returning
 import com.waz.zclient.common.controllers.ThemeController
 import com.waz.zclient.common.views.SingleUserRowView
 import com.waz.zclient.conversation.ConversationController
-import com.waz.zclient.paintcode.{ForwardNavigationIcon, GuestIcon}
+import com.waz.zclient.paintcode.{ForwardNavigationIcon, GuestIconWithColor}
 import com.waz.zclient.ui.text.TypefaceEditText.OnSelectionChangedListener
 import com.waz.zclient.ui.text.{GlyphTextView, TypefaceEditText}
 import com.waz.zclient.utils.ContextUtils._
-import com.waz.zclient.utils.{RichView, ViewUtils}
+import com.waz.zclient.utils.{ContextUtils, RichView, ViewUtils}
 import com.waz.zclient.{Injectable, Injector, R}
 
 class ParticipantsAdapter(numOfColumns: Int)(implicit context: Context, injector: Injector, eventContext: EventContext)
@@ -135,7 +135,7 @@ class ParticipantsAdapter(numOfColumns: Int)(implicit context: Context, injector
   }
 
   override def onBindViewHolder(holder: ViewHolder, position: Int): Unit = (items(position), holder) match {
-    case (Left(userData), h: ParticipantRowViewHolder)            => h.bind(userData, teamId)
+    case (Left(userData), h: ParticipantRowViewHolder)            => h.bind(userData, teamId, items.lift(position + 1).forall(_.isRight))
     case (Right(ConversationName), h: ConversationNameViewHolder) => for (id <- convId; name <- convName) h.bind(id, name, convVerified)
     case (Right(sepType), h: SeparatorViewHolder) if Set(PeopleSeparator, BotsSeparator).contains(sepType) =>
       val count = items.count {
@@ -186,7 +186,7 @@ object ParticipantsAdapter {
   case class GuestOptionsButtonViewHolder(view: View) extends ViewHolder(view) {
     private implicit val ctx = view.getContext
     view.setId(R.id.guest_options)
-    view.findViewById[ImageView](R.id.icon).setImageDrawable(GuestIcon(R.color.light_graphite))
+    view.findViewById[ImageView](R.id.icon).setImageDrawable(GuestIconWithColor(ContextUtils.getStyledColor(R.attr.wirePrimaryTextColor)))
     view.findViewById[ImageView](R.id.next_indicator).setImageDrawable(ForwardNavigationIcon(R.color.light_graphite_40))
   }
 
@@ -203,9 +203,10 @@ object ParticipantsAdapter {
 
     view.onClick(userId.foreach(onClick ! _))
 
-    def bind(participant: ParticipantData, teamId: Option[TeamId]): Unit = {
+    def bind(participant: ParticipantData, teamId: Option[TeamId], lastRow: Boolean): Unit = {
       userId = Some(participant.userData.id)
       view.setUserData(participant.userData, teamId)
+      view.setSeparatorVisible(!lastRow)
     }
   }
 
@@ -242,7 +243,7 @@ object ParticipantsAdapter {
 
     editText.setOnSelectionChangedListener(new OnSelectionChangedListener {
       override def onSelectionChanged(selStart: Int, selEnd: Int): Unit = {
-        isBeingEdited = selStart > 0 
+        isBeingEdited = selStart > 0
         penGlyph.animate().alpha(if (selStart >= 0) 0.0f else 1.0f).start()
       }
     })

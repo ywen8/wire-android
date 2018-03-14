@@ -27,7 +27,7 @@
             android:thickness="2dp"
             android:useLevel="false">
 
-            <solid android:color="@color/collection_background_light"/>
+            <solid android:color="@color/white_64"/>
 
             <size
                 android:width="24dp"

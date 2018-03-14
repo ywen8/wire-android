@@ -35,7 +35,6 @@ import com.waz.api.impl.ContentUriAssetForUpload
 import com.waz.model.ConversationData.ConversationType
 import com.waz.model.{MessageContent => _, _}
 import com.waz.permissions.PermissionsService
-import com.waz.service.ZMessaging
 import com.waz.threading.{CancellableFuture, Threading}
 import com.waz.utils.events.{EventStreamWithAuxSignal, Signal}
 import com.waz.utils.returningF
@@ -89,7 +88,6 @@ class ConversationFragment extends BaseFragment[ConversationFragment.Container] 
   import ConversationFragment._
   import Threading.Implicits.Ui
 
-  private lazy val zms                  = inject[Signal[ZMessaging]]
   private lazy val convController       = inject[ConversationController]
   private lazy val collectionController = inject[CollectionController]
   private lazy val permissions          = inject[PermissionsService]
@@ -117,6 +115,8 @@ class ConversationFragment extends BaseFragment[ConversationFragment.Container] 
 
   private lazy val guestsBanner = view[FrameLayout](R.id.guests_banner)
   private lazy val guestsBannerText = view[TypefaceTextView](R.id.guests_banner_text)
+
+  private var openBanner = false
 
   override def onCreateAnimation(transit: Int, enter: Boolean, nextAnim: Int): Animation = {
     implicit val ctx: Context = getActivity
@@ -170,27 +170,30 @@ class ConversationFragment extends BaseFragment[ConversationFragment.Container] 
   }
 
   private def openGuestsBanner(): Unit = {
-    guestsBanner.foreach { banner =>
-      banner.setVisibility(View.VISIBLE)
-      banner.setPivotY(0.0f)
-      banner.setScaleY(0.1f)
-      banner.animate().scaleY(1.0f).start()
-    }
-    guestsBannerText.foreach { text =>
-      text.setAlpha(0.0f)
-      text.animate().alpha(1.0f).start()
+    if (!openBanner) {
+      openBanner = true
+      guestsBanner.foreach { banner =>
+        banner.setVisibility(View.VISIBLE)
+        banner.setPivotY(0.0f)
+        banner.setScaleY(1.0f)
+      }
+      guestsBannerText.foreach(_.setAlpha(1.0f))
     }
   }
 
   private def collapseGuestsBanner(): Unit = {
-    guestsBanner.foreach { banner =>
-      banner.setPivotY(0.0f)
-      banner.animate().scaleY(0.1f).start()
+    if (openBanner) {
+      openBanner = false
+      guestsBanner.foreach { banner =>
+        banner.setPivotY(0.0f)
+        banner.animate().scaleY(0.1f).start()
+      }
+      guestsBannerText.foreach(_.animate().alpha(0.0f).start())
     }
-    guestsBannerText.foreach(_.animate().alpha(0.0f).start())
   }
 
   private def hideGuestsBanner(): Unit = {
+    openBanner = false
     guestsBanner.setVisibility(View.GONE)
   }
 
@@ -683,6 +686,10 @@ class ConversationFragment extends BaseFragment[ConversationFragment.Container] 
 
   private val navigationControllerObserver = new NavigationControllerObserver {
     override def onPageVisible(page: Page): Unit = if (page == Page.MESSAGE_STREAM) {
+      participantsController.containsGuest.currentValue.foreach {
+        case true => openGuestsBanner()
+        case false =>  hideGuestsBanner()
+      }
       inflateCollectionIcon()
       cursorView.enableMessageWriting()
     }

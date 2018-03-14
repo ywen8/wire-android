@@ -30,7 +30,8 @@ import com.waz.utils.returning
 import com.waz.zclient.common.views.SingleUserRowView._
 import com.waz.zclient.paintcode.{ForwardNavigationIcon, GuestIcon}
 import com.waz.zclient.ui.text.TypefaceTextView
-import com.waz.zclient.utils.{ContextUtils, StringUtils}
+import com.waz.zclient.utils.StringUtils
+import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.views.AvailabilityView
 import com.waz.zclient.{R, ViewHelper}
 
@@ -48,6 +49,7 @@ class SingleUserRowView(context: Context, attrs: AttributeSet, style: Int) exten
   private lazy val verifiedShield = findById[ImageView](R.id.verified_shield)
   private lazy val guestIndicator = returning(findById[ImageView](R.id.guest_indicator))(_.setImageDrawable(GuestIcon(R.color.light_graphite)))
   private lazy val nextIndicator = returning(findById[ImageView](R.id.next_indicator))(_.setImageDrawable(ForwardNavigationIcon(R.color.light_graphite_40)))
+  private lazy val separator = findById[View](R.id.separator)
 
   val onSelectionChanged: SourceStream[Boolean] = EventStream()
 
@@ -104,27 +106,32 @@ class SingleUserRowView(context: Context, attrs: AttributeSet, style: Int) exten
           btn.setLevel(1)
           checkbox.setButtonDrawable(btn)
         }
-        nameView.setTextColor(ContextUtils.getColor(R.color.wire__text_color_primary_light_selector))
-        setBackgroundColor(ContextUtils.getColor(R.color.background_light))
+        nameView.setTextColor(getColor(R.color.wire__text_color_primary_light_selector))
+        separator.setBackgroundColor(getStyledColor(R.attr.thinDividerColor))
+        setBackgroundColor(getColor(R.color.background_light))
       case Dark =>
         returning(ContextCompat.getDrawable(getContext, R.drawable.checkbox)){ btn =>
           btn.setLevel(1)
           checkbox.setButtonDrawable(btn)
         }
-        nameView.setTextColor(ContextUtils.getColor(R.color.wire__text_color_primary_dark_selector))
-        setBackgroundColor(ContextUtils.getColor(R.color.background_dark))
+        nameView.setTextColor(getColor(R.color.wire__text_color_primary_dark_selector))
+        separator.setBackgroundColor(getStyledColor(R.attr.thinDividerColor))
+        setBackgroundColor(getColor(R.color.background_dark))
       case Transparent =>
         returning(ContextCompat.getDrawable(getContext, R.drawable.checkbox)){ btn =>
           btn.setLevel(1)
           checkbox.setButtonDrawable(btn)
         }
-        nameView.setTextColor(ContextUtils.getColor(R.color.wire__text_color_primary_dark_selector))
-        setBackground(ContextUtils.getDrawable(R.drawable.selector__transparent_button))
+        nameView.setTextColor(getColor(R.color.wire__text_color_primary_dark_selector))
+        separator.setBackgroundColor(getColor(R.color.white_16))
+        setBackground(getDrawable(R.drawable.selector__transparent_button))
     }
   }
 
   def setAvailability(availability: Availability): Unit =
     AvailabilityView.displayLeftOfText(nameView, availability, nameView.getCurrentTextColor, pushDown = true)
+
+  def setSeparatorVisible(visible: Boolean): Unit = separator.setVisibility(if (visible) View.VISIBLE else View.GONE)
 }
 
 object SingleUserRowView {

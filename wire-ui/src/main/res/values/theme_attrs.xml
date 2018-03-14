@@ -91,6 +91,7 @@
     <attr name="wirePrimaryTextColor" format="color" />
     <attr name="wireSecondaryTextColor" format="color" />
     <attr name="wirePrimaryTextColorReverted" format="color" />
+    <attr name="thinDividerColor" format="color" />
 
     <!-- StartUI error labels -->
     <attr name="startUiErrorLabel" format="reference" />
