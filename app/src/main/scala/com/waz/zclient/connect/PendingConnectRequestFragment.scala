@@ -166,9 +166,13 @@ class PendingConnectRequestFragment extends BaseFragment[PendingConnectRequestFr
     footerMenu.setCallback(new FooterMenuCallback {
       override def onLeftActionClicked(): Unit = userConnection.head foreach {
         case ConnectionStatus.IGNORED =>
-          connectToUser(userId).foreach(_.foreach(_ => getContainer.onAcceptedConnectRequest(userId)))
+          connectToUser(userId).foreach(_.foreach { _ =>
+            getContainer.onAcceptedConnectRequest(userId)
+          })
         case ConnectionStatus.PENDING_FROM_OTHER if userRequester == IConnectStore.UserRequester.PARTICIPANTS =>
-          connectToUser(userId).foreach(_.foreach(_ => getContainer.onAcceptedConnectRequest(userId)))
+          connectToUser(userId).foreach(_.foreach { _ =>
+            getContainer.onAcceptedConnectRequest(userId)
+          })
         case ConnectionStatus.PENDING_FROM_USER =>
           zms.head.map(_.connection.cancelConnection(userId)).foreach { _ =>
             getActivity.onBackPressed()
