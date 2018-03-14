@@ -25,7 +25,7 @@ import android.view.{LayoutInflater, View, ViewGroup}
 import android.widget.ImageView
 import com.waz.ZLog.ImplicitTag._
 import com.waz.api.User.ConnectionStatus
-import com.waz.model.UserId
+import com.waz.model.{ConversationData, UserId}
 import com.waz.service.ZMessaging
 import com.waz.threading.Threading
 import com.waz.utils.events.Signal
@@ -45,6 +45,8 @@ import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.utils.StringUtils
 import com.waz.zclient.views.menus.{FooterMenu, FooterMenuCallback}
 import com.waz.zclient.{FragmentHelper, R}
+
+import scala.concurrent.Future
 
 class PendingConnectRequestFragment extends BaseFragment[PendingConnectRequestFragment.Container]
   with FragmentHelper {
@@ -124,6 +126,14 @@ class PendingConnectRequestFragment extends BaseFragment[PendingConnectRequestFr
     }
   }
 
+  private def connectToUser(userId: UserId): Future[Option[ConversationData]] =
+    for {
+      uSelf <- usersController.selfUser.head
+      uToConnect <- userToConnect.head
+      message = getString(R.string.connect__message, uToConnect.name, uSelf.name)
+      maybeConversation <- zms.head.flatMap(_.connection.connectToUser(userId, message, uToConnect.displayName))
+    } yield maybeConversation
+
   override def onCreateView(inflater: LayoutInflater, viewContainer: ViewGroup, savedInstanceState: Bundle): View =
     inflater.inflate(R.layout.fragment_connect_request_pending, viewContainer, false)
 
@@ -155,9 +165,10 @@ class PendingConnectRequestFragment extends BaseFragment[PendingConnectRequestFr
 
     footerMenu.setCallback(new FooterMenuCallback {
       override def onLeftActionClicked(): Unit = userConnection.head foreach {
-        case ConnectionStatus.IGNORED |
-             ConnectionStatus.PENDING_FROM_OTHER if userRequester == IConnectStore.UserRequester.PARTICIPANTS =>
-          getContainer.onAcceptedConnectRequest(userId)
+        case ConnectionStatus.IGNORED =>
+          connectToUser(userId).foreach(_.foreach(_ => getContainer.onAcceptedConnectRequest(userId)))
+        case ConnectionStatus.PENDING_FROM_OTHER if userRequester == IConnectStore.UserRequester.PARTICIPANTS =>
+          connectToUser(userId).foreach(_.foreach(_ => getContainer.onAcceptedConnectRequest(userId)))
         case ConnectionStatus.PENDING_FROM_USER =>
           zms.head.map(_.connection.cancelConnection(userId)).foreach { _ =>
             getActivity.onBackPressed()
