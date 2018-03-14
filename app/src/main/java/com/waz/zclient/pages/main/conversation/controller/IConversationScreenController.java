@@ -28,8 +28,6 @@ public interface IConversationScreenController {
 
     void removeConversationControllerObservers(ConversationScreenControllerObserver conversationScreenControllerObserver);
 
-    void editConversationName(boolean b);
-
     void setSingleConversation(boolean isSingleConversation);
 
     boolean showUser(UserId userId);

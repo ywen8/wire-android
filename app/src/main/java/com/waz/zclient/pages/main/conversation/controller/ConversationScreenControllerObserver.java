@@ -22,8 +22,6 @@ import com.waz.model.ConvId;
 
 public interface ConversationScreenControllerObserver {
 
-    void onShowEditConversationName(boolean show);
-
     void onHideUser();
 
     void onShowConversationMenu(boolean inConvList, ConvId convId);
