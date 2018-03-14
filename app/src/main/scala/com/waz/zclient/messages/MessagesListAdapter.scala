@@ -44,18 +44,20 @@ class MessagesListAdapter(listDim: Signal[Dim2])(implicit inj: Injector, ec: Eve
 
   val cursor = (for {
     zs      <- zms
-    conv    <- conversationController.currentConv
-    isGroup <- Signal.future(zs.conversations.isGroupConversation(conv.id))
-  } yield (zs, conv, isGroup)).map {
-    case (zs, c, group) => (new RecyclerCursor(c.id, zs, notifier), zs.teamId, c, group)
+    convId  <- conversationController.currentConvId
+    isGroup <- Signal.future(zs.conversations.isGroupConversation(convId))
+    conv    <- zs.convsStorage.signal(convId)
+  } yield (zs, conv.id, isGroup, isGroup && conv.team.isDefined && conv.team == zs.teamId && !conv.isTeamOnly)).map {
+    case (zs, convId, group, canHaveLink) => (new RecyclerCursor(convId, zs, notifier), zs.teamId, convId, group, canHaveLink)
   }
 
-  private var _cursor = Option.empty[RecyclerCursor]
-  private var conv    = Option.empty[ConversationData]
-  private var teamId  = Option.empty[TeamId]
-  private var isGroup = false
+  private var _cursor     = Option.empty[RecyclerCursor]
+  private var conv        = Option.empty[ConvId]
+  private var canHaveLink = false
+  private var teamId      = Option.empty[TeamId]
+  private var isGroup     = false
 
-  cursor.onUi { case (c, teamId, conv, group) =>
+  cursor.onUi { case (c, teamId, conv, group, canHaveLink) =>
     if (!_cursor.contains(c)) {
       verbose(s"cursor changed: ${c.count}")
       _cursor.foreach(_.close())
@@ -63,11 +65,12 @@ class MessagesListAdapter(listDim: Signal[Dim2])(implicit inj: Injector, ec: Eve
       this.conv = Some(conv)
       this.teamId = teamId
       this.isGroup = group
+      this.canHaveLink = canHaveLink
       notifier.notifyDataSetChanged()
     }
   }
 
-  override def getConvId = conv.map(_.id)
+  override def getConvId = conv
 
   override def getUnreadIndex = unreadIndex
 
@@ -91,7 +94,7 @@ class MessagesListAdapter(listDim: Signal[Dim2])(implicit inj: Injector, ec: Eve
     val isSelf = zms.currentValue.exists(_.selfUserId == data.message.userId)
     val isFirstUnread = pos > 0 && !isSelf && unreadIndex.index == pos
     val isLastSelf = listController.isLastSelf(data.message.id)
-    val opts = MsgBindOptions(pos, isSelf, isLast, isLastSelf, isFirstUnread = isFirstUnread, listDim.currentValue.getOrElse(Dim2(0, 0)), conv.get, isGroup, teamId)
+    val opts = MsgBindOptions(pos, isSelf, isLast, isLastSelf, isFirstUnread = isFirstUnread, listDim.currentValue.getOrElse(Dim2(0, 0)), isGroup, teamId, canHaveLink)
 
     val prev = if (pos == 0) None else Some(message(pos - 1).message)
     val next = if (isLast) None else Some(message(pos + 1).message)

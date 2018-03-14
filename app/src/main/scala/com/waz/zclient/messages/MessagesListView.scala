@@ -104,7 +104,7 @@ class MessagesListView(context: Context, attrs: AttributeSet, style: Int) extend
         scrollController.onScrolled(adapter.getItemCount - 1)
 
       case BottomScroll(true) =>
-        val target = adapter.getItemCount
+        val target = adapter.getItemCount - 1
         val current = layoutManager.findFirstVisibleItemPosition()
         layoutManager.snapToEnd()
         scrollCloseToTarget(target, current)
