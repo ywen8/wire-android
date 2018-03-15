@@ -52,8 +52,8 @@
         android:layout_marginTop="@dimen/wire__padding__small"
         app:w_font="@string/wire__typeface__regular"/>
 
-    <com.waz.zclient.views.images.ImageAssetImageView
-        android:id="@+id/iaiv__send_connect"
+    <ImageView
+        android:id="@+id/send_connect"
         android:layout_width="@dimen/profile__image__width"
         android:layout_height="@dimen/profile__image__height"
         android:layout_centerInParent="true"
@@ -70,6 +70,7 @@
             android:id="@+id/fm__footer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:visibility="gone"
             app:leftActionText="@string/glyph__plus"
             app:leftActionLabelText="@string/send_connect_request__connect_button__text"
             app:rightActionText=""
@@ -85,6 +86,7 @@
             android:gravity="center"
             android:background="@drawable/blue_button"
             android:textSize="@dimen/framework_confirmation_menu_button_font_size"
+            android:text="@string/send_connect_request__connect_button__text"
             android:textColor="@color/white"
             android:textAllCaps="true"
             app:w_font="@string/framework_confirmation_menu_button_font"

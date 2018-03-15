@@ -36,7 +36,7 @@ import com.waz.utils.events._
 import com.waz.zclient.common.controllers.UserAccountsController
 import com.waz.zclient.core.stores.connect.IConnectStore
 import com.waz.zclient.integrations.IntegrationDetailsController
-import com.waz.zclient.pages.main.connect.{BlockedUserProfileFragment, ConnectRequestLoadMode, PendingConnectRequestFragment, SendConnectRequestFragment}
+import com.waz.zclient.pages.main.connect.{BlockedUserProfileFragment}
 import com.waz.zclient.pages.main.conversation.controller.IConversationScreenController
 import com.waz.zclient.pages.main.pickuser.controller.IPickUserController
 import com.waz.zclient.participants.{ParticipantsAdapter, ParticipantsController}
@@ -143,16 +143,16 @@ class GroupParticipantsFragment extends FragmentHelper {
         openUserProfileFragment(SingleParticipantFragment.newInstance(), SingleParticipantFragment.Tag)
 
       case Some(user) if user.connection == PENDING_FROM_OTHER || user.connection == PENDING_FROM_USER || user.connection == IGNORED =>
-        import PendingConnectRequestFragment._
-        openUserProfileFragment(newInstance(userId.str, null, ConnectRequestLoadMode.LOAD_BY_USER_ID, IConnectStore.UserRequester.PARTICIPANTS), TAG)
+        import com.waz.zclient.connect.PendingConnectRequestFragment._
+        openUserProfileFragment(newInstance(userId, IConnectStore.UserRequester.PARTICIPANTS), Tag)
 
       case Some(user) if user.connection == BLOCKED =>
         import BlockedUserProfileFragment._
         openUserProfileFragment(newInstance(userId.str, IConnectStore.UserRequester.PARTICIPANTS), Tag)
 
       case Some(user) if user.connection == CANCELLED || user.connection == UNCONNECTED =>
-        import SendConnectRequestFragment._
-        openUserProfileFragment(newInstance(userId.str, IConnectStore.UserRequester.PARTICIPANTS), TAG)
+        import com.waz.zclient.connect.SendConnectRequestFragment._
+        openUserProfileFragment(newInstance(userId.str, IConnectStore.UserRequester.PARTICIPANTS), Tag)
       case _ =>
     }
   }
