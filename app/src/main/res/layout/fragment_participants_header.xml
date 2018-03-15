@@ -46,9 +46,9 @@
             android:ellipsize="end"
             android:maxLines="1"
             android:text="@string/participants_details_header_title"
-            android:textSize="@dimen/wire__text_size__small"
+            android:textSize="@dimen/wire__text_size__smaller"
             android:textColor="?wirePrimaryTextColor"
-            app:w_font="@string/wire__typeface__regular"
+            app:w_font="@string/wire__typeface__medium"
             />
         <!-- Close icon-->
         <com.waz.zclient.ui.text.GlyphTextView

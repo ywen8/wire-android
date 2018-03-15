@@ -67,6 +67,15 @@ class UserAccountsController(implicit injector: Injector, context: Context, ec: 
 
   teamMembersSignal.onUi(members => _teamMembers = members)
 
+  def hasRemoveConversationMemberPermission(convId: ConvId): Signal[Boolean] =
+    for {
+      maybeCurrentTeamId <- teamId
+      maybeConvData <- convCtrl.conversationData(convId)
+      maybeTeamId = maybeConvData.flatMap(_.team)
+      permissions <- permissions
+    } yield maybeTeamId.isEmpty ||
+      (maybeCurrentTeamId == maybeTeamId && permissions(AccountData.Permission.RemoveConversationMember))
+
   private def unreadCountForConv(conversationData: ConversationData): Int = {
     if (conversationData.archived || conversationData.muted || conversationData.hidden || conversationData.convType == ConversationData.ConversationType.Self)
       0
@@ -105,10 +114,7 @@ class UserAccountsController(implicit injector: Injector, context: Context, ec: 
   }
 
   def hasCreateConversationPermission: Boolean = !isTeamAccount || _permissions(AccountData.Permission.CreateConversation)
-  def hasRemoveConversationMemberPermission(convId: ConvId): Boolean = getTeamId(convId) match {
-    case Some(id) => isPartOfTeam(id) && _permissions(AccountData.Permission.RemoveConversationMember)
-    case _ => true
-  }
+
   def hasAddConversationMemberPermission(convId: ConvId): Boolean = getTeamId(convId) match {
     case Some(id) => isPartOfTeam(id) && _permissions(AccountData.Permission.AddConversationMember)
     case _ => true

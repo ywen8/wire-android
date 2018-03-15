@@ -30,7 +30,7 @@
         android:layout_height="@dimen/menu_item_height"
         android:paddingStart="@dimen/wire__padding__regular"
         android:paddingEnd="@dimen/wire__padding__regular"
-        android:layout_marginTop="@dimen/wire__padding__regular"
+        android:layout_marginTop="@dimen/participants_options_button_margin_top"
         style="?wireBackground">
 
         <com.waz.zclient.ui.text.TypefaceTextView
@@ -60,8 +60,109 @@
         android:paddingStart="@dimen/wire__padding__regular"
         android:paddingEnd="@dimen/wire__padding__regular"
         android:textColor="?wireSecondaryTextColor"
-        app:w_font="@string/wire__typeface__light"
+        app:w_font="@string/wire__typeface__regular"
         android:textSize="@dimen/wire__text_size__small"
     />
+
+    <LinearLayout
+        android:id="@+id/guest_link_options"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:layout_marginTop="@dimen/wire__padding__small">
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/wire__divider__height__thin"
+            android:background="?thinDividerColor"
+            android:layout_margin="@dimen/wire__padding__regular"/>
+
+        <com.waz.zclient.ui.text.TypefaceTextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/wire__padding__regular"
+            android:layout_marginEnd="@dimen/wire__padding__regular"
+            android:layout_marginTop="@dimen/wire__padding__small"
+            android:textAlignment="textStart"
+            android:gravity="center_vertical|start"
+            android:textSize="@dimen/wire__text_size__smaller"
+            android:textColor="?wireSecondaryTextColor"
+            app:w_font="@string/wire__typeface__medium"
+            android:text="@string/invitation_link_title"/>
+
+        <com.waz.zclient.ui.text.TypefaceTextView
+            android:id="@+id/link_description"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/wire__padding__small"
+            android:layout_marginStart="@dimen/wire__padding__regular"
+            android:layout_marginEnd="@dimen/wire__padding__regular"
+            android:textAlignment="textStart"
+            android:gravity="center_vertical|start"
+            android:textSize="@dimen/wire__text_size__small"
+            android:textColor="?wireSecondaryTextColor"
+            app:w_font="@string/wire__typeface__regular"
+            android:text="@string/invitation_link_description"
+            android:lineSpacingMultiplier="1.1"/>
+
+        <FrameLayout
+            android:id="@+id/link_button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/wire__padding__24"
+            android:minHeight="@dimen/menu_item_height"
+            style="?wireBackground"
+            android:clickable="true"
+            android:focusable="true">
+
+            <com.waz.zclient.ui.text.TypefaceTextView
+                android:id="@+id/link_button_link_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="?wirePrimaryTextColor"
+                app:w_font="@string/wire__typeface__light"
+                android:textSize="@dimen/wire__text_size__regular"
+                android:padding="@dimen/wire__padding__regular"
+                android:layout_gravity="center"
+                android:lineSpacingMultiplier="1.1"
+                android:visibility="gone"/>
+
+            <com.waz.zclient.common.views.MenuRowButton
+                android:id="@+id/link_button_create_link"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/menu_item_height"
+                app:buttonTextColor="@color/accent_blue"
+                app:buttonText="@string/create_link_button"
+                app:buttonIcon="@string/glyph__link"
+                />
+
+        </FrameLayout>
+
+        <com.waz.zclient.common.views.MenuRowButton
+            android:id="@+id/copy_link_button"
+            android:layout_marginTop="@dimen/wire__padding__24"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/menu_item_height"
+            app:buttonTextColor="?wirePrimaryTextColor"
+            app:buttonText="@string/copy_link_button"
+            app:buttonIcon="@string/glyph__copy"/>
+
+        <com.waz.zclient.common.views.MenuRowButton
+            android:id="@+id/share_link"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/menu_item_height"
+            app:buttonTextColor="?wirePrimaryTextColor"
+            app:buttonText="@string/share_link_button"
+            app:buttonIcon="@string/glyph__share"/>
+
+        <com.waz.zclient.common.views.MenuRowButton
+            android:id="@+id/revoke_link_button"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/menu_item_height"
+            app:buttonTextColor="@color/accent_red"
+            app:buttonText="@string/revoke_link_button"
+            app:buttonIcon="@string/glyph__close"/>
+
+    </LinearLayout>
 
 </LinearLayout>

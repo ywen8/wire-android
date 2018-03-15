@@ -33,7 +33,7 @@ class UserDetailsView(val context: Context, val attrs: AttributeSet, val defStyl
   def this(context: Context, attrs: AttributeSet) = this(context, attrs, 0)
   def this(context: Context) = this(context, null)
 
-  private lazy val userNameTextView: TextView = findById(R.id.ttv__user_details__user_name)
+  private lazy val userNameTextView: TextView = findById(R.id.user_handle)
   private lazy val userInfoTextView: TextView = findById(R.id.ttv__user_details__user_info)
   inflate(R.layout.user__details, this, addToParent = true)
 

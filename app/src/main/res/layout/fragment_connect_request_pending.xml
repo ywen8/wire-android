@@ -24,6 +24,7 @@
               android:layout_width="match_parent"
               android:layout_height="match_parent"
               android:orientation="vertical"
+              android:background="@android:color/transparent"
               style="?wireBackground"
     >
 
@@ -53,8 +54,8 @@
         android:layout_weight="1"
         >
 
-        <com.waz.zclient.views.images.ImageAssetImageView
-            android:id="@+id/iaiv__pending_connect"
+        <ImageView
+            android:id="@+id/pending_connect"
             android:layout_width="@dimen/profile__image__width"
             android:layout_height="@dimen/profile__image__height"
             android:layout_marginBottom="@dimen/wire__padding__regular"
@@ -70,36 +71,12 @@
         android:layout_height="@dimen/connect_request__footer_menu__height"
         >
 
-        <FrameLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="bottom"
-            android:layout_marginBottom="@dimen/connect_request__footer_menu__padding_bottom"
-            android:paddingStart="@dimen/wire__padding__big"
-            android:paddingEnd="@dimen/wire__padding__big"
-            >
-
-            <!-- Unblock button for blocked users -->
-            <com.waz.zclient.ui.views.ZetaButton
-                android:id="@+id/zb__connect_request__unblock_button"
-                android:layout_width="match_parent"
-                android:layout_height="@dimen/framework_confirmation_menu_button_height"
-                android:layout_gravity="bottom"
-                android:gravity="center"
-                android:text="@string/connect_request__unblock__button__text"
-                android:textAllCaps="true"
-                android:textSize="@dimen/wire__text_size__small"
-                android:textColor="@color/text__primary_light"
-                app:w_font="@string/wire__typeface__light"
-                />
-
-        </FrameLayout>
-
         <!-- Footer with left & right actions -->
         <com.waz.zclient.views.menus.FooterMenu
             android:id="@+id/fm__footer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:visibility="gone"
             app:leftActionText="@string/glyph__undo"
             app:rightActionText="@string/glyph__block"
             app:leftActionLabelText="@string/connect_request__cancel_request__label"

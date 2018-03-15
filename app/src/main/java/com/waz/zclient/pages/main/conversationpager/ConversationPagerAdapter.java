@@ -22,6 +22,8 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.view.ViewGroup;
 
+import com.waz.zclient.conversationpager.SecondPageFragment;
+
 import java.util.HashMap;
 import java.util.Map;
 
