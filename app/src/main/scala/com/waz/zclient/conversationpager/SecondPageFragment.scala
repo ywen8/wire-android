@@ -22,14 +22,14 @@ import android.os.Bundle
 import android.view.{LayoutInflater, View, ViewGroup}
 import com.waz.ZLog.ImplicitTag._
 import com.waz.ZLog._
-import com.waz.api.IConversation
+import com.waz.api.IConversation.Type
 import com.waz.model.UserId
 import com.waz.threading.Threading
 import com.waz.zclient.common.controllers.UserAccountsController
 import com.waz.zclient.connect.{ConnectRequestFragment, PendingConnectRequestManagerFragment}
 import com.waz.zclient.controllers.navigation.{INavigationController, Page, PagerControllerObserver}
 import com.waz.zclient.conversation.ConversationController
-import com.waz.zclient.core.stores.connect.IConnectStore
+import com.waz.zclient.core.stores.connect.IConnectStore.UserRequester
 import com.waz.zclient.core.stores.conversation.ConversationChangeRequester
 import com.waz.zclient.pages.main.conversation.ConversationManagerFragment
 import com.waz.zclient.ui.utils.MathUtils
@@ -65,16 +65,42 @@ class SecondPageFragment extends FragmentHelper
     (for {
       conv <- conversationController.currentConv
       convMembers <- conversationController.currentConvMembers
-    } yield conv -> convMembers.headOption).onUi { case (conv, userId) =>
+    } yield conv -> convMembers.headOption).onUi { case (conv, maybeUserId) =>
       info(s"Conversation: ${conv.id} type: ${conv.convType}")
 
-      // either starting from beginning or switching fragment
-      if (conv.convType == IConversation.Type.INCOMING_CONNECTION)
-        openPage(Page.CONNECT_REQUEST_INBOX, userId)
-      else if (conv.convType == IConversation.Type.WAIT_FOR_CONNECTION)
-        openPage(Page.CONNECT_REQUEST_PENDING, userId)
-      else
-        openPage(Page.MESSAGE_STREAM, userId)
+      val (page, fragment, tag) = (conv.convType, maybeUserId) match {
+        case (Type.INCOMING_CONNECTION, Some(userId)) =>
+          import ConnectRequestFragment._
+          (Page.CONNECT_REQUEST_INBOX, newInstance(userId), FragmentTag)
+        case (Type.WAIT_FOR_CONNECTION, Some(userId)) =>
+          import PendingConnectRequestManagerFragment._
+          (Page.PENDING_CONNECT_REQUEST_AS_CONVERSATION, newInstance(userId, UserRequester.CONVERSATION), Tag)
+        case _ =>
+          import ConversationManagerFragment._
+          (Page.MESSAGE_STREAM, newInstance, Tag)
+      }
+
+      info(s"openPage ${page.name} userId $maybeUserId")
+      navigationController.setRightPage(Page.CONNECT_REQUEST_INBOX, SecondPageFragment.Tag)
+
+      val transaction = getChildFragmentManager
+        .beginTransaction.replace(R.id.fl__second_page_container, fragment, tag)
+
+      val currentPage = navigationController.getCurrentPage
+      if (currentPage == Page.CONVERSATION_LIST)
+        transaction.setCustomAnimations(
+          R.anim.message_fade_in,
+          R.anim.message_fade_out,
+          R.anim.message_fade_in,
+          R.anim.message_fade_out
+        )
+      else if (currentPage == Page.CONNECT_REQUEST_INBOX || currentPage == Page.CONNECT_REQUEST_PENDING)
+        transaction.setCustomAnimations(
+          R.anim.fragment_animation_second_page_slide_in_from_right,
+          R.anim.fragment_animation_second_page_slide_out_to_left
+        )
+
+      transaction.commit()
     }
 
   }
@@ -82,45 +108,6 @@ class SecondPageFragment extends FragmentHelper
   override def onActivityResult(requestCode: Int, resultCode: Int, data: Intent): Unit = {
     super.onActivityResult(requestCode, resultCode, data)
     withFragment(R.id.fl__second_page_container)(_.onActivityResult(requestCode, resultCode, data))
-  }
-
-  private def openPage(page: Page, userId: Option[UserId]) = {
-    info(s"openPage ${page.name} userId $userId")
-
-    Some(page)
-      .collect {
-        case Page.CONNECT_REQUEST_PENDING =>
-          import PendingConnectRequestManagerFragment._
-          navigationController.setRightPage(Page.PENDING_CONNECT_REQUEST_AS_CONVERSATION, Tag)
-          Tag -> newInstance(userId.get, IConnectStore.UserRequester.CONVERSATION)
-        case Page.CONNECT_REQUEST_INBOX =>
-          import ConnectRequestFragment._
-          navigationController.setRightPage(Page.CONNECT_REQUEST_INBOX, SecondPageFragment.Tag)
-          FragmentTag -> newInstance(userId.get)
-        case Page.MESSAGE_STREAM =>
-          import ConversationManagerFragment._
-          navigationController.setRightPage(Page.MESSAGE_STREAM, SecondPageFragment.Tag)
-          Tag -> newInstance
-      }
-      .map { case (tag, pageFragment) =>
-        getChildFragmentManager.beginTransaction.replace(R.id.fl__second_page_container, pageFragment, tag)
-      }
-      .map(_ -> navigationController.getCurrentPage)
-      .collect {
-        case (transaction, Page.CONVERSATION_LIST) =>
-          transaction.setCustomAnimations(
-            R.anim.message_fade_in,
-            R.anim.message_fade_out,
-            R.anim.message_fade_in,
-            R.anim.message_fade_out
-          )
-        case (transaction, Page.CONNECT_REQUEST_INBOX | Page.CONNECT_REQUEST_PENDING) =>
-          transaction.setCustomAnimations(
-            R.anim.fragment_animation_second_page_slide_in_from_right,
-            R.anim.fragment_animation_second_page_slide_out_to_left
-          )
-      }
-      .foreach(transaction => transaction.commit())
   }
 
   override def onBackPressed: Boolean = {
