@@ -65,16 +65,16 @@ class SecondPageFragment extends FragmentHelper
     (for {
       conv <- conversationController.currentConv
       convMembers <- conversationController.currentConvMembers
-    } yield conv -> convMembers.head).onUi { case (conv, userId) =>
+    } yield conv -> convMembers.headOption).onUi { case (conv, userId) =>
       info(s"Conversation: ${conv.id} type: ${conv.convType}")
 
       // either starting from beginning or switching fragment
-      val switchingToPendingConnectRequest = conv.convType == IConversation.Type.WAIT_FOR_CONNECTION
-      val switchingToConnectRequestInbox = conv.convType == IConversation.Type.INCOMING_CONNECTION
-
-      if (switchingToConnectRequestInbox) openPage(Page.CONNECT_REQUEST_INBOX, userId)
-      else if (switchingToPendingConnectRequest) openPage(Page.CONNECT_REQUEST_PENDING, userId)
-      else openPage(Page.MESSAGE_STREAM, userId)
+      if (conv.convType == IConversation.Type.INCOMING_CONNECTION)
+        openPage(Page.CONNECT_REQUEST_INBOX, userId)
+      else if (conv.convType == IConversation.Type.WAIT_FOR_CONNECTION)
+        openPage(Page.CONNECT_REQUEST_PENDING, userId)
+      else
+        openPage(Page.MESSAGE_STREAM, userId)
     }
 
   }
@@ -84,7 +84,7 @@ class SecondPageFragment extends FragmentHelper
     withFragment(R.id.fl__second_page_container)(_.onActivityResult(requestCode, resultCode, data))
   }
 
-  private def openPage(page: Page, userId: UserId) = {
+  private def openPage(page: Page, userId: Option[UserId]) = {
     info(s"openPage ${page.name} userId $userId")
 
     Some(page)
@@ -92,11 +92,11 @@ class SecondPageFragment extends FragmentHelper
         case Page.CONNECT_REQUEST_PENDING =>
           import PendingConnectRequestManagerFragment._
           navigationController.setRightPage(Page.PENDING_CONNECT_REQUEST_AS_CONVERSATION, Tag)
-          Tag -> newInstance(userId, IConnectStore.UserRequester.CONVERSATION)
+          Tag -> newInstance(userId.get, IConnectStore.UserRequester.CONVERSATION)
         case Page.CONNECT_REQUEST_INBOX =>
           import ConnectRequestFragment._
           navigationController.setRightPage(Page.CONNECT_REQUEST_INBOX, SecondPageFragment.Tag)
-          FragmentTag -> newInstance(userId)
+          FragmentTag -> newInstance(userId.get)
         case Page.MESSAGE_STREAM =>
           import ConversationManagerFragment._
           navigationController.setRightPage(Page.MESSAGE_STREAM, SecondPageFragment.Tag)
