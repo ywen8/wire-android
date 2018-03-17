@@ -25,6 +25,7 @@ import com.waz.ZLog._
 import com.waz.api.IConversation.Type
 import com.waz.model.UserId
 import com.waz.threading.Threading
+import com.waz.utils.events.Signal
 import com.waz.zclient.common.controllers.UserAccountsController
 import com.waz.zclient.connect.{ConnectRequestFragment, PendingConnectRequestManagerFragment}
 import com.waz.zclient.controllers.navigation.{INavigationController, Page, PagerControllerObserver}
@@ -61,56 +62,65 @@ class SecondPageFragment extends FragmentHelper
     inflater.inflate(R.layout.fragment_pager_second, container, false)
   }
 
-  override def onViewCreated(view: View, savedInstanceState: Bundle): Unit = {
+  override def onViewCreated(view: View, savedInstanceState: Bundle): Unit =
     (for {
-      conv <- conversationController.currentConv
-      convMembers <- conversationController.currentConvMembers
-    } yield (conv.id, conv.convType, convMembers.headOption)).onUi { case (convId, convType, maybeUserId) =>
-      info(s"Conversation: $convId type: $convType")
+      conv  <- conversationController.currentConv
+      other <-
+        if (Set(Type.INCOMING_CONNECTION, Type.WAIT_FOR_CONNECTION).contains(conv.convType))
+          conversationController.currentConvMembers.map(_.headOption)
+        else Signal.const(Option.empty[UserId])
+    } yield (conv.convType, other)).onUi { case (convType, maybeUserId) =>
+      info(s"Conversation type: $convType, otherUser: $maybeUserId")
 
-      val (page, fragment, tag) = (convType, maybeUserId) match {
+      val (fragment, tag) = (convType, maybeUserId) match {
         case (Type.INCOMING_CONNECTION, Some(userId)) =>
           import ConnectRequestFragment._
-          (Page.CONNECT_REQUEST_INBOX, newInstance(userId), FragmentTag)
+          (newInstance(userId), FragmentTag)
         case (Type.WAIT_FOR_CONNECTION, Some(userId)) =>
           import PendingConnectRequestManagerFragment._
-          (Page.PENDING_CONNECT_REQUEST_AS_CONVERSATION, newInstance(userId, UserRequester.CONVERSATION), Tag)
+          (newInstance(userId, UserRequester.CONVERSATION), Tag)
         case _ =>
           import ConversationManagerFragment._
-          (Page.MESSAGE_STREAM, newInstance, Tag)
+          (newInstance, Tag)
       }
 
-      info(s"openPage ${page.name} userId $maybeUserId")
-      navigationController.setRightPage(Page.CONNECT_REQUEST_INBOX, SecondPageFragment.Tag)
+      def open() = {
+        info(s"openPage $tag")
+        navigationController.setRightPage(Page.CONNECT_REQUEST_INBOX, SecondPageFragment.Tag)
 
-      val transaction = getChildFragmentManager
-        .beginTransaction.replace(R.id.fl__second_page_container, fragment, tag)
+        val transaction = getChildFragmentManager
+          .beginTransaction.replace(R.id.fl__second_page_container, fragment, tag)
 
-      val currentPage = navigationController.getCurrentPage
-      if (currentPage == Page.CONVERSATION_LIST)
-        transaction.setCustomAnimations(
-          R.anim.message_fade_in,
-          R.anim.message_fade_out,
-          R.anim.message_fade_in,
-          R.anim.message_fade_out
-        )
-      else if (currentPage == Page.CONNECT_REQUEST_INBOX || currentPage == Page.CONNECT_REQUEST_PENDING)
-        transaction.setCustomAnimations(
-          R.anim.fragment_animation_second_page_slide_in_from_right,
-          R.anim.fragment_animation_second_page_slide_out_to_left
-        )
+        val currentPage = navigationController.getCurrentPage
+        if (currentPage == Page.CONVERSATION_LIST)
+          transaction.setCustomAnimations(
+            R.anim.message_fade_in,
+            R.anim.message_fade_out,
+            R.anim.message_fade_in,
+            R.anim.message_fade_out
+          )
+        else if (currentPage == Page.CONNECT_REQUEST_INBOX || currentPage == Page.CONNECT_REQUEST_PENDING)
+          transaction.setCustomAnimations(
+            R.anim.fragment_animation_second_page_slide_in_from_right,
+            R.anim.fragment_animation_second_page_slide_out_to_left
+          )
 
-      transaction.commit()
+        transaction.commit()
+      }
+
+      withFragmentOpt(R.id.fl__second_page_container) {
+        case Some(f) if f.getTag != tag => open()
+        case None => open()
+        case _ => //already showing correct fragment - nothing to do
+      }
     }
-
-  }
 
   override def onActivityResult(requestCode: Int, resultCode: Int, data: Intent): Unit = {
     super.onActivityResult(requestCode, resultCode, data)
     withFragment(R.id.fl__second_page_container)(_.onActivityResult(requestCode, resultCode, data))
   }
 
-  override def onBackPressed: Boolean = {
+  override def onBackPressed(): Boolean = {
     val fragment = getChildFragmentManager.findFragmentById(R.id.fl__second_page_container)
     fragment.isInstanceOf[OnBackPressedListener] && fragment.asInstanceOf[OnBackPressedListener].onBackPressed
   }
@@ -118,12 +128,6 @@ class SecondPageFragment extends FragmentHelper
   override def onPageScrolled(position: Int, positionOffset: Float, positionOffsetPixels: Int): Unit = {
     if (position == 0 || MathUtils.floatEqual(positionOffset, 0f)) getView.setAlpha(1f)
     else getView.setAlpha(Math.pow(positionOffset, 4).toFloat)
-  }
-
-  override def onPageSelected(position: Int): Unit = {
-  }
-
-  override def onPageScrollStateChanged(state: Int): Unit = {
   }
 
   override def onAcceptedConnectRequest(userId: UserId): Unit = {
@@ -138,17 +142,17 @@ class SecondPageFragment extends FragmentHelper
     navigationController.setVisiblePage(Page.CONVERSATION_LIST, Tag)
   }
 
-  override def onPagerEnabledStateHasChanged(enabled: Boolean): Unit = {
-  }
+  override def onPageSelected(position: Int): Unit = {}
 
-  override def dismissUserProfile(): Unit = {
-  }
+  override def onPageScrollStateChanged(state: Int): Unit = {}
 
-  override def dismissSingleUserProfile(): Unit = {
-  }
+  override def onPagerEnabledStateHasChanged(enabled: Boolean): Unit = {}
 
-  override def showRemoveConfirmation(userId: UserId): Unit = {
-  }
+  override def dismissUserProfile(): Unit = {}
+
+  override def dismissSingleUserProfile(): Unit = {}
+
+  override def showRemoveConfirmation(userId: UserId): Unit = {}
 }
 
 object SecondPageFragment {
