@@ -38,7 +38,6 @@ import com.waz.zclient.{FragmentHelper, OnBackPressedListener, R}
 
 class SecondPageFragment extends FragmentHelper
   with OnBackPressedListener
-  with ConversationManagerFragment.Container
   with PagerControllerObserver
   with PendingConnectRequestManagerFragment.Container
   with ConnectRequestFragment.Container {

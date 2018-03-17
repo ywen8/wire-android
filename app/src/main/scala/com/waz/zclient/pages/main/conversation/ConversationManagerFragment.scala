@@ -55,9 +55,7 @@ import com.waz.zclient.controllers.navigation.{INavigationController, Page}
 import com.waz.zclient.conversation.creation.{CreateConversationController, CreateConversationManagerFragment}
 import com.waz.zclient.conversation.{ConversationController, LikesListFragment}
 import com.waz.zclient.core.stores.conversation.ConversationChangeRequester
-import com.waz.zclient.pages.BaseFragment
 import com.waz.zclient.pages.main.connect.UserProfileContainer
-import com.waz.zclient.pages.main.conversation.ConversationManagerFragment._
 import com.waz.zclient.pages.main.conversation.controller.{ConversationScreenControllerObserver, IConversationScreenController}
 import com.waz.zclient.pages.main.drawing.DrawingFragment
 import com.waz.zclient.pages.main.profile.camera.{CameraContext, CameraFragment}
@@ -66,7 +64,7 @@ import com.waz.zclient.participants.fragments.ParticipantFragment
 import com.waz.zclient.views.ConversationFragment
 import com.waz.zclient.{FragmentHelper, R}
 
-class ConversationManagerFragment extends BaseFragment[Container] with FragmentHelper
+class ConversationManagerFragment extends FragmentHelper
   with ConversationScreenControllerObserver
   with DrawingObserver
   with DrawingFragment.Container
@@ -228,7 +226,6 @@ class ConversationManagerFragment extends BaseFragment[Container] with FragmentH
   override def onBitmapSelected(imageAsset: ImageAsset, imageFromCamera: Boolean, cameraContext: CameraContext): Unit = {
     if (cameraContext ne CameraContext.MESSAGE) return
     inject[ConversationController].sendMessage(imageAsset)
-    getStoreFactory.networkStore.doIfHasInternetOrNotifyUser(null)
     cameraController.closeCamera(CameraContext.MESSAGE)
   }
 
@@ -286,8 +283,4 @@ object ConversationManagerFragment {
   val Tag: String = classOf[ConversationManagerFragment].getName
 
   def newInstance = new ConversationManagerFragment
-
-  trait Container {
-  }
-
 }
