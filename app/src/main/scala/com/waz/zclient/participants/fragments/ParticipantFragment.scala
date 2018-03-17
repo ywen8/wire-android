@@ -135,7 +135,7 @@ class ParticipantFragment extends ManagerFragment
         true
       case Some(f: FragmentHelper) if f.onBackPressed() => true
       case Some(_: FragmentHelper) =>
-        if (getChildFragmentManager.getBackStackEntryCount <= 1) participantsController.onHideParticipants ! {}
+        if (getChildFragmentManager.getBackStackEntryCount <= 1) participantsController.onHideParticipants ! true
         else getChildFragmentManager.popBackStack()
         true
       case _ =>

@@ -111,7 +111,7 @@ class SingleParticipantFragment extends FragmentHelper {
               case _ => //
             }
             case _ => Future.successful {
-              participantsController.onHideParticipants ! {}
+              participantsController.onHideParticipants ! true
               participantsController.otherParticipantId.head.foreach {
                 case Some(userId) => userAccountsController.getOrCreateAndOpenConvFor(userId)
                 case _ =>

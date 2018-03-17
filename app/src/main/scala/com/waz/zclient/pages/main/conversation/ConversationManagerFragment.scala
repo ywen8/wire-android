@@ -116,6 +116,8 @@ class ConversationManagerFragment extends FragmentHelper
           cameraController.closeCamera(CameraContext.MESSAGE)
 
         screenController.showLikesForMessage ! None
+
+        participantsController.onHideParticipants ! false
       } else if (!change.noChange) {
         collectionController.closeCollection()
       }
@@ -132,9 +134,16 @@ class ConversationManagerFragment extends FragmentHelper
       showFragment(ParticipantFragment.newInstance(childTag), ParticipantFragment.TAG)
     }
 
-    subs += participantsController.onHideParticipants.onUi { _ =>
+    subs += participantsController.onHideParticipants.onUi { withAnimations =>
       navigationController.setRightPage(Page.MESSAGE_STREAM, ConversationManagerFragment.Tag)
-      getChildFragmentManager.popBackStack(ParticipantFragment.TAG, FragmentManager.POP_BACK_STACK_INCLUSIVE)
+
+      if (withAnimations)
+        getChildFragmentManager.popBackStack(ParticipantFragment.TAG, FragmentManager.POP_BACK_STACK_INCLUSIVE)
+      else {
+        FragmentHelper.allowAnimations = false
+        getChildFragmentManager.popBackStackImmediate(ParticipantFragment.TAG, FragmentManager.POP_BACK_STACK_INCLUSIVE)
+        FragmentHelper.allowAnimations = true
+      }
     }
 
     subs += createConvController.onShowCreateConversation.onUi {

@@ -154,6 +154,8 @@ trait FragmentHelper extends Fragment with OnBackPressedListener with ViewFinder
     Option(getParentFragment) match {
       case Some(parent: Fragment) if !enter && parent.isRemoving =>
         returning(new AlphaAnimation(1, 1))(_.setDuration(getNextAnimationDuration(parent)))
+      case _ if !FragmentHelper.allowAnimations =>
+        returning(new Animation() {})(_.setDuration(0))
       case _ =>
         super.onCreateAnimation(transit, enter, nextAnim)
     }
@@ -227,6 +229,8 @@ trait FragmentHelper extends Fragment with OnBackPressedListener with ViewFinder
 }
 
 object FragmentHelper {
+
+  var allowAnimations = true
 
   private val DefaultAnimationDuration = 350L //TODO is this value correct?
 
