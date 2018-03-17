@@ -27,7 +27,7 @@ import android.view.{LayoutInflater, View, ViewGroup}
 import android.widget.{ImageView, LinearLayout}
 import com.waz.ZLog.ImplicitTag._
 import com.waz.ZLog._
-import com.waz.model.ConversationData.ConversationType
+import com.waz.model.ConversationData.ConversationType._
 import com.waz.model._
 import com.waz.model.otr.Client
 import com.waz.service.ZMessaging
@@ -50,8 +50,8 @@ import com.waz.zclient.pages.main.pickuser.controller.IPickUserController
 import com.waz.zclient.paintcode.DownArrowDrawable
 import com.waz.zclient.preferences.PreferencesActivity
 import com.waz.zclient.ui.text.TypefaceTextView
-import com.waz.zclient.utils.RichView
 import com.waz.zclient.utils.ContextUtils._
+import com.waz.zclient.utils.RichView
 import com.waz.zclient.{FragmentHelper, OnBackPressedListener, R, ViewHolder}
 
 /**
@@ -83,15 +83,12 @@ abstract class ConversationListFragment extends BaseFragment[ConversationListFra
     }
 
     a.onConversationClick { conv =>
-      verbose(s"handleItemClick, switching conv to ${conv.id}")
-      conversationController.selectConv(Option(conv.id), ConversationChangeRequester.CONVERSATION_LIST)
+      verbose(s"handleItemClick, switching conv to $conv")
+      conversationController.selectConv(Option(conv), ConversationChangeRequester.CONVERSATION_LIST)
     }
 
     a.onConversationLongClick { conv =>
-      if (conv.convType != ConversationType.Group &&
-        conv.convType != ConversationType.OneToOne &&
-        conv.convType != ConversationType.WaitForConnection) {
-      } else
+      if (Set(Group, OneToOne, WaitForConnection).contains(conv.convType))
         screenController.showConversationMenu(true, conv.id)
     }
   }
@@ -183,8 +180,8 @@ class NormalConversationFragment extends ConversationListFragment {
     z <- zms
     convs <- z.convsStorage.convsSignal
   } yield {
-    (convs.conversations.exists(c => !c.archived && !c.hidden && !Set(ConversationType.Self, ConversationType.Unknown).contains(c.convType)),
-    convs.conversations.exists(c => c.archived && !c.hidden && !Set(ConversationType.Self, ConversationType.Unknown).contains(c.convType)))
+    (convs.conversations.exists(c => !c.archived && !c.hidden && !Set(Self, Unknown).contains(c.convType)),
+    convs.conversations.exists(c => c.archived && !c.hidden && !Set(Self, Unknown).contains(c.convType)))
   }
 
   lazy val archiveEnabled = hasConversationsAndArchive.map(_._2)

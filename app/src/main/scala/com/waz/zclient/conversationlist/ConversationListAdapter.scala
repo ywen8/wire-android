@@ -65,7 +65,7 @@ class ConversationListAdapter(implicit injector: Injector, eventContext: EventCo
     (z.accountId, regular, incoming)
   }
 
-  val onConversationClick = EventStream[ConversationData]()
+  val onConversationClick = EventStream[ConvId]()
   val onConversationLongClick = EventStream[ConversationData]()
 
   var maxAlpha = 1.0f
@@ -109,35 +109,29 @@ class ConversationListAdapter(implicit injector: Injector, eventContext: EventCo
   override def onCreateViewHolder(parent: ViewGroup, viewType: Int) = {
     viewType match {
       case NormalViewType =>
-        NormalConversationRowViewHolder(returning(ViewHelper.inflate[NormalConversationListRow](R.layout.normal_conv_list_item, parent, false)) { r =>
+        NormalConversationRowViewHolder(returning(ViewHelper.inflate[NormalConversationListRow](R.layout.normal_conv_list_item, parent, addToParent = false)) { r =>
           r.setAlpha(1f)
           r.setMaxAlpha(maxAlpha)
           r.setOnClickListener(new View.OnClickListener {
-            override def onClick(view: View): Unit = {
-              Option(view.getTag.asInstanceOf[ConversationData]).foreach { onConversationClick ! _ }
-            }
+            override def onClick(view: View): Unit =
+              r.conversationData.map(_.id).foreach(onConversationClick ! _ )
           })
           r.setOnLongClickListener(new OnLongClickListener {
             override def onLongClick(view: View): Boolean = {
-              Option(view.getTag.asInstanceOf[ConversationData]).foreach { onConversationLongClick ! _ }
+              r.conversationData.foreach(onConversationLongClick ! _)
               true
             }
           })
           r.setConversationCallback(new ConversationCallback {
-            override def onConversationListRowLongClicked(convId: String, view: View) = {
-              Option(view.getTag.asInstanceOf[ConversationData]).foreach { onConversationLongClick ! _ }
-            }
-            override def onConversationListRowSwiped(convId: String, view: View) = {
-              Option(view.getTag.asInstanceOf[ConversationData]).foreach { onConversationLongClick ! _ }
-            }
+            override def onConversationListRowSwiped(convId: String, view: View) =
+              r.conversationData.foreach(onConversationLongClick ! _)
           })
         })
       case IncomingViewType =>
-        IncomingConversationRowViewHolder(returning(ViewHelper.inflate[IncomingConversationListRow](R.layout.incoming_conv_list_item, parent, false)) { r =>
+        IncomingConversationRowViewHolder(returning(ViewHelper.inflate[IncomingConversationListRow](R.layout.incoming_conv_list_item, parent, addToParent = false)) { r =>
           r.setOnClickListener(new View.OnClickListener {
-            override def onClick(view: View): Unit = {
-              _incomingRequests._1.headOption.foreach(onConversationClick ! _ )
-            }
+            override def onClick(view: View): Unit =
+              _incomingRequests._1.headOption.map(_.id).foreach(onConversationClick ! _ )
           })
         })
     }
@@ -195,17 +189,13 @@ object ConversationListAdapter {
 
   trait ConversationRowViewHolder extends RecyclerView.ViewHolder
 
-  case class NormalConversationRowViewHolder(view: NormalConversationListRow) extends RecyclerView.ViewHolder(view) with ConversationRowViewHolder{
-    def bind(conversation: ConversationData): Unit = {
-      view.setTag(conversation)
+  case class NormalConversationRowViewHolder(view: NormalConversationListRow) extends RecyclerView.ViewHolder(view) with ConversationRowViewHolder {
+    def bind(conversation: ConversationData): Unit =
       view.setConversation(conversation)
-    }
   }
 
-  case class IncomingConversationRowViewHolder(view: IncomingConversationListRow) extends RecyclerView.ViewHolder(view) with ConversationRowViewHolder{
-    def bind(convsAndUsers: (Seq[ConversationData], Seq[UserId])): Unit = {
-      convsAndUsers._1.headOption.foreach(view.setTag)
+  case class IncomingConversationRowViewHolder(view: IncomingConversationListRow) extends RecyclerView.ViewHolder(view) with ConversationRowViewHolder {
+    def bind(convsAndUsers: (Seq[ConversationData], Seq[UserId])): Unit =
       view.setIncomingUsers(convsAndUsers._2)
-    }
   }
 }

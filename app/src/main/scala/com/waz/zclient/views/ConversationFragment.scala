@@ -399,8 +399,6 @@ class ConversationFragment extends BaseFragment[ConversationFragment.Container] 
       }
       audioMessageRecordingView.hide()
     }
-
-    getControllerFactory.getConversationScreenController.setSingleConversation(toConv.convType == IConversation.Type.ONE_TO_ONE)
     // TODO: ConversationScreenController should listen to this signal and do it itself
     extendedCursorContainer.close(true)
   }
