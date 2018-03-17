@@ -28,8 +28,8 @@ import com.waz.threading.Threading
 import com.waz.utils._
 import com.waz.zclient.common.controllers.{BrowserController, ThemeController, UserAccountsController}
 import com.waz.zclient.conversation.ConversationController
+import com.waz.zclient.conversation.creation.CreateConversationController
 import com.waz.zclient.pages.main.conversation.controller.IConversationScreenController
-import com.waz.zclient.pages.main.pickuser.controller.IPickUserController
 import com.waz.zclient.participants.{ParticipantOtrDeviceAdapter, ParticipantsController, TabbedParticipantPagerAdapter}
 import com.waz.zclient.ui.views.tab.TabIndicatorLayout
 import com.waz.zclient.utils.ContextUtils._
@@ -55,7 +55,7 @@ class SingleParticipantFragment extends FragmentHelper {
   private lazy val screenController       = inject[IConversationScreenController]
   private lazy val userAccountsController = inject[UserAccountsController]
   private lazy val browserController      = inject[BrowserController]
-  private lazy val pickUserController     = inject[IPickUserController]
+  private lazy val createConvController   = inject[CreateConversationController]
 
   private lazy val userNameView = returning(view[TextView](R.id.user_name)) { vh =>
     participantsController.otherParticipantId.map(_.isDefined).onUi { visible =>
@@ -107,7 +107,7 @@ class SingleParticipantFragment extends FragmentHelper {
         override def onLeftActionClicked(): Unit =
           participantsController.isGroup.head.flatMap {
             case false => userAccountsController.hasCreateConvPermission.head.map {
-              case true => pickUserController.showPickUser(IPickUserController.Destination.PARTICIPANTS)
+              case true => createConvController.onShowCreateConversation ! true
               case _ => //
             }
             case _ => Future.successful {

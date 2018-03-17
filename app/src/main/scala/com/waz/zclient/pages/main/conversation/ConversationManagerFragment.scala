@@ -41,16 +41,18 @@ import com.waz.ZLog.ImplicitTag._
 import com.waz.api._
 import com.waz.model.{MessageContent => _, _}
 import com.waz.service.tracking.GroupConversationEvent
+import com.waz.threading.Threading
 import com.waz.zclient.collection.controllers.CollectionController
 import com.waz.zclient.collection.fragments.CollectionFragment
 import com.waz.zclient.common.controllers.ScreenController
+import com.waz.zclient.common.controllers.global.KeyboardController
 import com.waz.zclient.controllers.camera.ICameraController
 import com.waz.zclient.controllers.collections.CollectionsObserver
 import com.waz.zclient.controllers.drawing.IDrawingController.DrawingDestination
 import com.waz.zclient.controllers.drawing.{DrawingObserver, IDrawingController}
 import com.waz.zclient.controllers.location.{ILocationController, LocationObserver}
 import com.waz.zclient.controllers.navigation.{INavigationController, Page}
-import com.waz.zclient.conversation.creation.{CreateConversationController, CreateConversationManagerFragment, AddParticipantsFragment}
+import com.waz.zclient.conversation.creation.{CreateConversationController, CreateConversationManagerFragment}
 import com.waz.zclient.conversation.{ConversationController, LikesListFragment}
 import com.waz.zclient.core.stores.conversation.ConversationChangeRequester
 import com.waz.zclient.pages.BaseFragment
@@ -58,37 +60,35 @@ import com.waz.zclient.pages.main.connect.UserProfileContainer
 import com.waz.zclient.pages.main.conversation.ConversationManagerFragment._
 import com.waz.zclient.pages.main.conversation.controller.{ConversationScreenControllerObserver, IConversationScreenController}
 import com.waz.zclient.pages.main.drawing.DrawingFragment
-import com.waz.zclient.pages.main.pickuser.controller.{IPickUserController, PickUserControllerScreenObserver}
 import com.waz.zclient.pages.main.profile.camera.{CameraContext, CameraFragment}
 import com.waz.zclient.participants.ParticipantsController
 import com.waz.zclient.participants.fragments.ParticipantFragment
-import com.waz.zclient.ui.utils.KeyboardUtils
 import com.waz.zclient.views.ConversationFragment
-import com.waz.zclient.{FragmentHelper, OnBackPressedListener, R}
+import com.waz.zclient.{FragmentHelper, R}
 
 class ConversationManagerFragment extends BaseFragment[Container] with FragmentHelper
   with ConversationScreenControllerObserver
   with DrawingObserver
   with DrawingFragment.Container
   with CameraFragment.Container
-  with PickUserControllerScreenObserver
   with LocationObserver
   with CollectionsObserver
   with UserProfileContainer {
 
-  private lazy val convController       = inject[ConversationController]
-  private lazy val collectionController = inject[CollectionController]
-  private lazy val navigationController = inject[INavigationController]
-  private lazy val cameraController     = inject[ICameraController]
-  private lazy val convScreenController = inject[IConversationScreenController]
-  private lazy val screenController     = inject[ScreenController]
-  private lazy val drawingController    = inject[IDrawingController]
-  private lazy val locationController   = inject[ILocationController]
-  private lazy val pickUserController   = inject[IPickUserController]
-  private lazy val newConvController    = inject[CreateConversationController]
-  private lazy val participantsController = inject[ParticipantsController]
+  import Threading.Implicits.Ui
 
-  private var pickUserDestination = Option.empty[IPickUserController.Destination]
+  private lazy val convController         = inject[ConversationController]
+  private lazy val collectionController   = inject[CollectionController]
+  private lazy val navigationController   = inject[INavigationController]
+  private lazy val cameraController       = inject[ICameraController]
+  private lazy val convScreenController   = inject[IConversationScreenController]
+  private lazy val screenController       = inject[ScreenController]
+  private lazy val drawingController      = inject[IDrawingController]
+  private lazy val locationController     = inject[ILocationController]
+  private lazy val createConvController   = inject[CreateConversationController]
+  private lazy val participantsController = inject[ParticipantsController]
+  private lazy val keyboard               = inject[KeyboardController]
+
   private var subs = Set.empty[com.waz.utils.events.Subscription]
 
   override def onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState: Bundle): View = {
@@ -128,15 +128,30 @@ class ConversationManagerFragment extends BaseFragment[Container] with FragmentH
       case None      => getChildFragmentManager.popBackStack(LikesListFragment.Tag, FragmentManager.POP_BACK_STACK_INCLUSIVE)
     }
 
-    participantsController.onShowParticipants.onUi { childTag =>
-      KeyboardUtils.hideKeyboard(getActivity)
+    subs += participantsController.onShowParticipants.onUi { childTag =>
+      keyboard.hideKeyboardIfVisible()
       navigationController.setRightPage(Page.PARTICIPANT, ConversationManagerFragment.Tag)
       showFragment(ParticipantFragment.newInstance(childTag), ParticipantFragment.TAG)
     }
 
-    participantsController.onHideParticipants.onUi { _ =>
+    subs += participantsController.onHideParticipants.onUi { _ =>
       navigationController.setRightPage(Page.MESSAGE_STREAM, ConversationManagerFragment.Tag)
       getChildFragmentManager.popBackStack(ParticipantFragment.TAG, FragmentManager.POP_BACK_STACK_INCLUSIVE)
+    }
+
+    subs += createConvController.onShowCreateConversation.onUi {
+      case true =>
+        keyboard.hideKeyboardIfVisible()
+        navigationController.setRightPage(Page.PICK_USER_ADD_TO_CONVERSATION, ConversationManagerFragment.Tag)
+        convController.currentConvMembers.head.map { members =>
+          createConvController.setCreateConversation(members, GroupConversationEvent.ConversationDetails)
+          import CreateConversationManagerFragment._
+          showFragment(newInstance, Tag)
+        }
+      case false =>
+        import CreateConversationManagerFragment._
+        navigationController.setRightPage(Page.MESSAGE_STREAM, Tag)
+        getChildFragmentManager.popBackStack()
     }
   }
 
@@ -145,14 +160,12 @@ class ConversationManagerFragment extends BaseFragment[Container] with FragmentH
     convScreenController.addConversationControllerObservers(this)
     drawingController.addDrawingObserver(this)
     cameraController.addCameraActionObserver(this)
-    pickUserController.addPickUserScreenControllerObserver(this)
     locationController.addObserver(this)
     collectionController.addObserver(this)
   }
 
   override def onStop(): Unit = {
     locationController.removeObserver(this)
-    pickUserController.removePickUserScreenControllerObserver(this)
     cameraController.removeCameraActionObserver(this)
     drawingController.removeDrawingObserver(this)
     convScreenController.removeConversationControllerObservers(this)
@@ -163,7 +176,6 @@ class ConversationManagerFragment extends BaseFragment[Container] with FragmentH
   override def onDestroyView(): Unit = {
     subs.foreach(_.destroy())
     subs = Set.empty
-
     super.onDestroyView()
   }
 
@@ -176,21 +188,8 @@ class ConversationManagerFragment extends BaseFragment[Container] with FragmentH
   override def onBackPressed(): Boolean = {
     val fragment = getChildFragmentManager.findFragmentById(R.id.fl__conversation_manager__message_list_container)
     fragment match {
-      case f: OnBackPressedListener if f.onBackPressed => true
-
-      case f: AddParticipantsFragment =>
-        f.onBackPressed()
-        pickUserDestination.foreach(pickUserController.hidePickUser)
-        true
-      case f: CreateConversationManagerFragment if pickUserDestination.isDefined  =>
-        f.onBackPressed()
-        pickUserDestination.foreach(pickUserController.hidePickUser)
-        true
-      case f: LikesListFragment =>
-        f.onBackPressed()
-        true
-      case _ =>
-        false
+      case f: FragmentHelper if f.onBackPressed() => true
+      case _ => false
     }
   }
 
@@ -247,27 +246,6 @@ class ConversationManagerFragment extends BaseFragment[Container] with FragmentH
     }
   }
 
-  override def onShowPickUser(destination: IPickUserController.Destination): Unit =
-    if (destination == IPickUserController.Destination.CURSOR || destination == IPickUserController.Destination.PARTICIPANTS) {
-      pickUserDestination = Option(destination)
-      KeyboardUtils.hideKeyboard(getActivity)
-      navigationController.setRightPage(Page.PICK_USER_ADD_TO_CONVERSATION, ConversationManagerFragment.Tag)
-
-      import com.waz.threading.Threading.Implicits.Ui
-      convController.currentConvMembers.head.map { members =>
-        newConvController.setCreateConversation(members, GroupConversationEvent.ConversationDetails)
-        showFragment(new CreateConversationManagerFragment, AddOrCreateTag)
-      }
-    }
-
-  override def onHidePickUser(destination: IPickUserController.Destination): Unit = {
-    if (pickUserDestination.contains(destination)) {
-      val page = if (pickUserDestination.contains(IPickUserController.Destination.CURSOR)) Page.MESSAGE_STREAM else Page.PARTICIPANT
-      navigationController.setRightPage(page, ConversationManagerFragment.Tag)
-      getChildFragmentManager.popBackStack(AddOrCreateTag, FragmentManager.POP_BACK_STACK_INCLUSIVE)
-    }
-  }
-
   override def onShowShareLocation(): Unit = {
     showFragment(LocationFragment.newInstance, LocationFragment.TAG)
     navigationController.setRightPage(Page.SHARE_LOCATION, ConversationManagerFragment.Tag)
@@ -301,15 +279,9 @@ class ConversationManagerFragment extends BaseFragment[Container] with FragmentH
   override def showRemoveConfirmation(userId: UserId): Unit = {}
 
   override def onCameraNotAvailable(): Unit = {}
-
-  override def onShowUserProfile(userId: UserId): Unit = {}
-
-  override def onHideUserProfile(): Unit = {}
 }
 
 object ConversationManagerFragment {
-
-  val AddOrCreateTag = "AddingToOrCreatingConversation"
 
   val Tag: String = classOf[ConversationManagerFragment].getName
 

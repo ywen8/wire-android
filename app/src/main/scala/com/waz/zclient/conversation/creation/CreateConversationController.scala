@@ -21,7 +21,7 @@ import com.waz.ZLog.ImplicitTag._
 import com.waz.model.{ConvId, UserId}
 import com.waz.service.ZMessaging
 import com.waz.service.tracking._
-import com.waz.utils.events.{EventContext, Signal}
+import com.waz.utils.events.{EventContext, EventStream, Signal}
 import com.waz.zclient.conversation.ConversationController
 import com.waz.zclient.utils.UiStorage
 import com.waz.zclient.{Injectable, Injector}
@@ -30,6 +30,8 @@ import scala.concurrent.Future
 
 class CreateConversationController(implicit inj: Injector, ev: EventContext) extends Injectable {
   import com.waz.threading.Threading.Implicits.Background
+
+  lazy val onShowCreateConversation = EventStream[Boolean]()
 
   private lazy val conversationController = inject[ConversationController]
   private lazy val zms = inject[Signal[ZMessaging]]

@@ -337,9 +337,6 @@ class SearchUIFragment extends BaseFragment[SearchUIFragment.Container]
     } (Threading.Ui)
   }
 
-  private def getCurrentPickerDestination: IPickUserController.Destination =
-    getContainer.getCurrentPickerDestination
-
   private def sendGenericInvite(fromSearch: Boolean): Unit =
     self.head.map { self =>
       val sharingIntent = IntentUtils.getInviteIntent(
@@ -353,7 +350,7 @@ class SearchUIFragment extends BaseFragment[SearchUIFragment.Container]
     adapter.filter ! ""
     integrationsController.searchQuery ! ""
     adapter.peopleOrServices ! false
-    pickUserController.hidePickUser(getCurrentPickerDestination)
+    pickUserController.hidePickUser()
   }
 
   // XXX Only show contact sharing dialogs for PERSONAL START UI
@@ -431,8 +428,6 @@ object SearchUIFragment {
     def showIncomingPendingConnectRequest(conv: ConvId): Unit
 
     def getLoadingViewIndicator: LoadingIndicatorView
-
-    def getCurrentPickerDestination: IPickUserController.Destination
   }
 
 }

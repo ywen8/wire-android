@@ -20,7 +20,6 @@ package com.waz.zclient.participants.fragments
 import android.content.Context
 import android.os.Bundle
 import android.support.annotation.Nullable
-import android.support.v4.app.FragmentManager
 import android.view.animation.Animation
 import android.view.{LayoutInflater, View, ViewGroup}
 import com.waz.ZLog.ImplicitTag._
@@ -28,20 +27,16 @@ import com.waz.ZLog._
 import com.waz.model._
 import com.waz.model.otr.ClientId
 import com.waz.threading.Threading
-import com.waz.utils.events.Subscription
 import com.waz.utils.returning
 import com.waz.zclient.common.controllers.UserAccountsController
 import com.waz.zclient.connect.{PendingConnectRequestFragment, SendConnectRequestFragment}
 import com.waz.zclient.controllers.singleimage.ISingleImageController
 import com.waz.zclient.conversation.ConversationController
 import com.waz.zclient.core.stores.conversation.ConversationChangeRequester
-import com.waz.zclient.core.stores.conversation.ConversationChangeRequester._
 import com.waz.zclient.integrations.IntegrationDetailsFragment
 import com.waz.zclient.pages.main.connect.BlockedUserProfileFragment
 import com.waz.zclient.pages.main.conversation.controller.{ConversationScreenControllerObserver, IConversationScreenController}
-import com.waz.zclient.pages.main.pickuser.controller.IPickUserController
 import com.waz.zclient.participants.{OptionsMenu, ParticipantsController}
-import com.waz.zclient.usersearch.SearchUIFragment
 import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.views.DefaultPageTransitionAnimation
 import com.waz.zclient.{FragmentHelper, ManagerFragment, R}
@@ -64,16 +59,11 @@ class ParticipantFragment extends ManagerFragment
   private lazy val bodyContainer             = view[View](R.id.fl__participant__container)
   private lazy val participantsContainerView = view[View](R.id.ll__participant__container)
 
-  private lazy val convChange = convController.convChanged.filter { _.to.isDefined }
-
   private lazy val convController         = inject[ConversationController]
   private lazy val participantsController = inject[ParticipantsController]
   private lazy val screenController       = inject[IConversationScreenController]
-  private lazy val pickUserController     = inject[IPickUserController]
   private lazy val singleImageController  = inject[ISingleImageController]
   private lazy val userAccountsController = inject[UserAccountsController]
-
-  private var subs = Set.empty[Subscription]
 
   private lazy val headerFragment  = ParticipantHeaderFragment.newInstance
 
@@ -91,45 +81,34 @@ class ParticipantFragment extends ManagerFragment
 
   override def onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState: Bundle): View =
     returning(inflater.inflate(R.layout.fragment_participant, container, false)) { _ =>
-      val fragmentManager = getChildFragmentManager
-      Option(fragmentManager.findFragmentById(R.id.fl__participant__overlay)).foreach {
-        fragmentManager.beginTransaction.remove(_).commit
-      }
+      withFragment(R.id.fl__participant__overlay)(getChildFragmentManager.beginTransaction.remove(_).commit)
     }
 
   override def onViewCreated(view: View, @Nullable savedInstanceState: Bundle): Unit = {
-    if (Option(savedInstanceState).isEmpty) {
-      (getStringArg(PageToOpenArg) match {
-        case Some(GuestOptionsFragment.Tag) => Future.successful((new GuestOptionsFragment, GuestOptionsFragment.Tag))
-        case Some(SingleParticipantFragment.TagDevices) => Future.successful((SingleParticipantFragment.newInstance(Some(SingleParticipantFragment.TagDevices)), SingleParticipantFragment.Tag))
-        case _ =>
-          participantsController.isGroupOrBot.head.map {
-            case true => (GroupParticipantsFragment.newInstance(), GroupParticipantsFragment.Tag)
-            case false => (SingleParticipantFragment.newInstance(), SingleParticipantFragment.Tag)
-          }
-      }).map {
-        case (f, tag) =>
-          getChildFragmentManager.beginTransaction
-            .replace(R.id.fl__participant__header__container, headerFragment, ParticipantHeaderFragment.TAG)
-            .replace(R.id.fl__participant__container, f, tag)
-            .addToBackStack(tag)
-            .commit
-      }
+
+    withFragmentOpt(R.id.fl__participant__container) {
+      case Some(_) => //no action to take, view was already set
+      case _ =>
+        (getStringArg(PageToOpenArg) match {
+          case Some(GuestOptionsFragment.Tag) => Future.successful((new GuestOptionsFragment, GuestOptionsFragment.Tag))
+          case Some(SingleParticipantFragment.TagDevices) => Future.successful((SingleParticipantFragment.newInstance(Some(SingleParticipantFragment.TagDevices)), SingleParticipantFragment.Tag))
+          case _ =>
+            participantsController.isGroupOrBot.head.map {
+              case true => (GroupParticipantsFragment.newInstance(), GroupParticipantsFragment.Tag)
+              case false => (SingleParticipantFragment.newInstance(), SingleParticipantFragment.Tag)
+            }
+        }).map {
+          case (f, tag) =>
+            getChildFragmentManager.beginTransaction
+              .replace(R.id.fl__participant__header__container, headerFragment, ParticipantHeaderFragment.TAG)
+              .replace(R.id.fl__participant__container, f, tag)
+              .addToBackStack(tag)
+              .commit
+        }
     }
 
     bodyContainer
     participantsContainerView
-
-    subs += convChange.map(_.requester).onUi {
-      case START_CONVERSATION | START_CONVERSATION_FOR_VIDEO_CALL | START_CONVERSATION_FOR_CALL | START_CONVERSATION_FOR_CAMERA =>
-        getChildFragmentManager.popBackStackImmediate(SearchUIFragment.TAG, FragmentManager.POP_BACK_STACK_INCLUSIVE)
-        pickUserController.hidePickUserWithoutAnimations(IPickUserController.Destination.PARTICIPANTS)
-      case _ =>
-    }
-
-    subs += participantsController.isGroupOrBot.onUi { isGroupOrBot =>
-      screenController.setSingleConversation(!isGroupOrBot)
-    }
   }
 
   override def onStart(): Unit = {
@@ -144,18 +123,11 @@ class ParticipantFragment extends ManagerFragment
 
   override def onDestroyView(): Unit = {
     singleImageController.clearReferences()
-    subs.foreach(_.destroy())
-    subs = Set.empty[Subscription]
-
     super.onDestroyView()
   }
 
   override def onBackPressed(): Boolean = {
     withContentFragment {
-      case _ if pickUserController.isShowingPickUser(IPickUserController.Destination.PARTICIPANTS) =>
-        verbose(s"onBackPressed with isShowingPickUser")
-        pickUserController.hidePickUser(IPickUserController.Destination.PARTICIPANTS)
-        true
       case _ if screenController.isShowingUser =>
         verbose(s"onBackPressed with screenController.isShowingUser")
         screenController.hideUser()

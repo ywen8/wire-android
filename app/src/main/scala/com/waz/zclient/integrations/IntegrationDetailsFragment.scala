@@ -38,9 +38,9 @@ import com.waz.zclient.common.views.ImageAssetDrawable.{RequestBuilder, ScaleTyp
 import com.waz.zclient.common.views.ImageController.{ImageSource, NoImage, WireImage}
 import com.waz.zclient.common.views.IntegrationAssetDrawable
 import com.waz.zclient.controllers.navigation.{INavigationController, Page}
+import com.waz.zclient.conversation.creation.CreateConversationController
 import com.waz.zclient.integrations.IntegrationDetailsViewPager._
 import com.waz.zclient.pages.main.pickuser.controller.IPickUserController
-import com.waz.zclient.pages.main.pickuser.controller.IPickUserController.Destination
 import com.waz.zclient.paintcode.ServicePlaceholderDrawable
 import com.waz.zclient.ui.text.{GlyphTextView, TypefaceTextView}
 import com.waz.zclient.usersearch.SearchUIFragment
@@ -56,6 +56,7 @@ class IntegrationDetailsFragment extends FragmentHelper {
   private lazy val integrationsController       = inject[IntegrationsController]
   private lazy val themeController              = inject[ThemeController]
   private lazy val tracking                     = inject[TrackingService]
+  private lazy val createConvControlelr         = inject[CreateConversationController]
 
   private lazy val providerId              = ProviderId(getArguments.getString(IntegrationDetailsFragment.ProviderId))
   private lazy val integrationId           = IntegrationId(getArguments.getString(IntegrationDetailsFragment.IntegrationId))
@@ -168,10 +169,10 @@ class IntegrationDetailsFragment extends FragmentHelper {
   def close(): Boolean = {
     getFragmentManager.popBackStack(SearchUIFragment.TAG, FragmentManager.POP_BACK_STACK_INCLUSIVE)
     if (integrationDetailsController.addingToConversation.nonEmpty) {
-      inject[IPickUserController].hidePickUser(Destination.PARTICIPANTS)
+      createConvControlelr.onShowCreateConversation ! false
       inject[INavigationController].setRightPage(Page.PARTICIPANT, IntegrationDetailsFragment.Tag)
     } else {
-      inject[IPickUserController].hidePickUser(Destination.CONVERSATION_LIST)
+      inject[IPickUserController].hidePickUser()
       inject[INavigationController].setLeftPage(Page.CONVERSATION_LIST, IntegrationDetailsFragment.Tag)
     }
     true

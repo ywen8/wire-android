@@ -241,7 +241,7 @@ public class ControllerFactory implements IControllerFactory {
   public IPickUserController getPickUserController() {
     verifyLifecycle();
     if (pickUserController == null) {
-      pickUserController = new PickUserController(this.context);
+      pickUserController = new PickUserController();
     }
     return pickUserController;
   }

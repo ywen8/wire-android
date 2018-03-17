@@ -21,9 +21,9 @@ import com.waz.model.UserId;
 
 public interface PickUserControllerScreenObserver {
 
-    void onShowPickUser(IPickUserController.Destination destination);
+    void onShowPickUser();
 
-    void onHidePickUser(IPickUserController.Destination destination);
+    void onHidePickUser();
 
     void onShowUserProfile(UserId userId);
 

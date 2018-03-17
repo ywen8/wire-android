@@ -237,7 +237,7 @@ class NormalConversationFragment extends ConversationListFragment {
 
   lazy val listActionsCallback = new Callback {
     override def onAvatarPress() =
-      getControllerFactory.getPickUserController.showPickUser(IPickUserController.Destination.CONVERSATION_LIST)
+      getControllerFactory.getPickUserController.showPickUser()
 
     override def onArchivePress() =
       Option(getContainer).foreach(_.showArchive())
@@ -262,7 +262,7 @@ class NormalConversationFragment extends ConversationListFragment {
     listActionsView.setScrolledToBottom(!conversationListView.canScrollVertically(1))
 
     noConvsMessage.foreach(_.onClick(
-      inject[IPickUserController].showPickUser(IPickUserController.Destination.CONVERSATION_LIST)
+      inject[IPickUserController].showPickUser()
     ))
 
     //initialise lazy vals

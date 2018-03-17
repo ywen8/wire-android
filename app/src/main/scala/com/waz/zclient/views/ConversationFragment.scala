@@ -128,15 +128,6 @@ class ConversationFragment extends BaseFragment[ConversationFragment.Container] 
       0,
       getOrientationDependentDisplayWidth - getResources.getDimensionPixelSize(R.dimen.framework__sidebar_width)
     )
-    else if (getControllerFactory.getPickUserController.isHideWithoutAnimations) new ConversationListAnimation(
-      0,
-      getResources.getDimensionPixelSize(R.dimen.open_new_conversation__thread_list__max_top_distance),
-      enter,
-      0,
-      0,
-      false,
-      1f
-    )
     else if (enter) new ConversationListAnimation(
       0,
       getResources.getDimensionPixelSize(R.dimen.open_new_conversation__thread_list__max_top_distance),
