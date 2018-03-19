@@ -32,7 +32,6 @@ import com.waz.zclient.controllers.location.ILocationController;
 import com.waz.zclient.controllers.navigation.INavigationController;
 import com.waz.zclient.controllers.orientation.IOrientationController;
 import com.waz.zclient.controllers.singleimage.ISingleImageController;
-import com.waz.zclient.controllers.usernames.IUsernamesController;
 import com.waz.zclient.controllers.userpreferences.IUserPreferencesController;
 import com.waz.zclient.controllers.verification.IVerificationController;
 import com.waz.zclient.pages.main.conversation.controller.IConversationScreenController;
@@ -81,6 +80,4 @@ public interface IControllerFactory {
   ICameraController getCameraController();
 
   IDrawingController getDrawingController();
-
-  IUsernamesController getUsernameController();
 }

@@ -45,8 +45,6 @@ import com.waz.zclient.controllers.orientation.IOrientationController;
 import com.waz.zclient.controllers.orientation.OrientationController;
 import com.waz.zclient.controllers.singleimage.ISingleImageController;
 import com.waz.zclient.controllers.singleimage.SingleImageController;
-import com.waz.zclient.controllers.usernames.IUsernamesController;
-import com.waz.zclient.controllers.usernames.UsernamesController;
 import com.waz.zclient.controllers.userpreferences.IUserPreferencesController;
 import com.waz.zclient.controllers.userpreferences.UserPreferencesController;
 import com.waz.zclient.controllers.verification.IVerificationController;
@@ -92,8 +90,6 @@ public class ControllerFactory implements IControllerFactory {
   protected ISlidingPaneController slidingPaneController;
 
   protected IPickUserController pickUserController;
-
-  protected IUsernamesController usernamesController;
 
   protected boolean isTornDown;
 
@@ -183,10 +179,6 @@ public class ControllerFactory implements IControllerFactory {
     if (pickUserController != null) {
       pickUserController.tearDown();
       pickUserController = null;
-    }
-    if (usernamesController != null) {
-      usernamesController.tearDown();
-      usernamesController = null;
     }
     this.context = null;
   }
@@ -318,7 +310,6 @@ public class ControllerFactory implements IControllerFactory {
   @Override
   public void setActivity(Activity activity) {
     getGlobalLayoutController().setActivity(activity);
-    getUsernameController().setActivity(activity);
   }
 
   @Override
@@ -356,13 +347,4 @@ public class ControllerFactory implements IControllerFactory {
     }
     return accentColorController;
   }
-
-    @Override
-    public IUsernamesController getUsernameController() {
-        verifyLifecycle();
-        if (usernamesController == null) {
-            usernamesController = new UsernamesController();
-        }
-        return usernamesController;
-    }
 }
