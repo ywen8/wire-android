@@ -142,7 +142,7 @@ case class OptionsMenuController(convId: ConvId, inConvList: Boolean)(implicit i
           convController.archive(cId, archive = true)
           if (!inConvList) CancellableFuture.delay(getInt(R.integer.framework_animation_duration_medium).millis).map { _ =>
             navController.setVisiblePage(Page.CONVERSATION_LIST, tag)
-            participantsController.onHideParticipants ! {}
+            participantsController.onHideParticipants ! true
           }
 
         case UNARCHIVE => convController.archive(cId, archive = false)

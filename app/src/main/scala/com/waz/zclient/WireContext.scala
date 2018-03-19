@@ -154,6 +154,8 @@ trait FragmentHelper extends Fragment with OnBackPressedListener with ViewFinder
     Option(getParentFragment) match {
       case Some(parent: Fragment) if !enter && parent.isRemoving =>
         returning(new AlphaAnimation(1, 1))(_.setDuration(getNextAnimationDuration(parent)))
+      case _ if !FragmentHelper.allowAnimations =>
+        returning(new Animation() {})(_.setDuration(0))
       case _ =>
         super.onCreateAnimation(transit, enter, nextAnim)
     }
@@ -162,6 +164,9 @@ trait FragmentHelper extends Fragment with OnBackPressedListener with ViewFinder
     import scala.collection.JavaConverters._
     f(getChildFragmentManager.getFragments.asScala.toList.flatMap(Option(_)).lastOption)
   }
+
+  def withParentFragmentOpt[A](f: Option[Fragment] => A): A =
+    f(Option(getParentFragment))
 
   def withFragmentOpt[A](tag: String)(f: Option[Fragment] => A): A =
     f(Option(getChildFragmentManager.findFragmentByTag(tag)))
@@ -225,6 +230,8 @@ trait FragmentHelper extends Fragment with OnBackPressedListener with ViewFinder
 
 object FragmentHelper {
 
+  var allowAnimations = true
+
   private val DefaultAnimationDuration = 350L //TODO is this value correct?
 
   def getNextAnimationDuration(fragment: Fragment) =
@@ -246,20 +253,26 @@ object FragmentHelper {
 trait ManagerFragment extends FragmentHelper {
   def contentId: Int
 
-  val currentContentTag = Signal(Option.empty[String])
+  import ManagerFragment._
+
+  val currentContent = Signal(Option.empty[Page])
 
   override def onCreate(savedInstanceState: Bundle): Unit = {
     super.onCreate(savedInstanceState)
 
     getChildFragmentManager.addOnBackStackChangedListener(new FragmentManager.OnBackStackChangedListener {
       override def onBackStackChanged(): Unit =
-        currentContentTag ! withFragmentOpt(contentId)(_.map(_.getTag))
+        currentContent ! withFragmentOpt(contentId)(_.map(_.getTag)).map(Page(_, getChildFragmentManager.getBackStackEntryCount <= 1))
     })
   }
 
   def getContentFragment: Option[Fragment] = withContentFragment(identity)
 
   def withContentFragment[A](f: Option[Fragment] => A): A = withFragmentOpt(contentId)(f)
+}
+
+object ManagerFragment {
+  case class Page(tag: String, firstPage: Boolean)
 }
 
 trait DialogHelper extends Dialog with Injectable with EventContext {

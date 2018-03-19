@@ -46,7 +46,6 @@ import com.waz.zclient.core.stores.conversation.ConversationChangeRequester
 import com.waz.zclient.messages.UsersController
 import com.waz.zclient.pages.main.connect.BlockedUserProfileFragment
 import com.waz.zclient.pages.main.conversation.controller.{ConversationScreenControllerObserver, IConversationScreenController}
-import com.waz.zclient.pages.main.pickuser.controller.IPickUserController.Destination
 import com.waz.zclient.pages.main.pickuser.controller.{IPickUserController, PickUserControllerScreenObserver}
 import com.waz.zclient.participants.OptionsMenu
 import com.waz.zclient.ui.animation.interpolators.penner.{Expo, Quart}
@@ -113,7 +112,7 @@ class ConversationListManagerFragment extends Fragment
 
   private def stripToConversationList() = {
     pickUserController.hideUserProfile() // Hide possibly open self profile
-    if (pickUserController.hidePickUser(getCurrentPickerDestination)) navController.setLeftPage(Page.CONVERSATION_LIST, Tag) // Hide possibly open start ui
+    if (pickUserController.hidePickUser()) navController.setLeftPage(Page.CONVERSATION_LIST, Tag) // Hide possibly open start ui
   }
 
   private def animateOnIncomingCall() = {
@@ -126,7 +125,7 @@ class ConversationListManagerFragment extends Fragment
     }
 
     CancellableFuture.delay(getInt(R.integer.calling_animation_duration_long).millis).map { _ =>
-      pickUserController.hidePickUserWithoutAnimations(getCurrentPickerDestination)
+      pickUserController.hidePickUserWithoutAnimations()
       Option(getView).foreach(_.setAlpha(1))
     }
   }
@@ -146,8 +145,8 @@ class ConversationListManagerFragment extends Fragment
         val fm = getChildFragmentManager
         // When re-starting app to open into specific page, child fragments may exist despite savedInstanceState == null
         if (isShowingUserProfile) hideUserProfile()
-        if (isShowingPickUser(Destination.CONVERSATION_LIST)) {
-          hidePickUser(Destination.CONVERSATION_LIST)
+        if (isShowingPickUser()) {
+          hidePickUser()
           Option(fm.findFragmentByTag(SearchUIFragment.TAG)).foreach { _ =>
             fm.popBackStack(SearchUIFragment.TAG, FragmentManager.POP_BACK_STACK_INCLUSIVE)
           }
@@ -191,51 +190,48 @@ class ConversationListManagerFragment extends Fragment
       }
     }
 
-  override def onShowPickUser(destination: Destination) =
-    if (getCurrentPickerDestination != destination) onHidePickUser(getCurrentPickerDestination)
-    else {
-      import Page._
-      navController.getCurrentLeftPage match {
-        // TODO: START is set as left page on tablet, fix
-        case START | CONVERSATION_LIST =>
-          withFragmentOpt(SearchUIFragment.TAG) {
-            case Some(_: SearchUIFragment) => // already showing
-            case _ =>
-              getChildFragmentManager.beginTransaction
-                .setCustomAnimations(
-                  R.anim.slide_in_from_bottom_pick_user,
-                  R.anim.open_new_conversation__thread_list_out,
-                  R.anim.open_new_conversation__thread_list_in,
-                  R.anim.slide_out_to_bottom_pick_user)
-                .replace(R.id.fl__conversation_list_main, SearchUIFragment.newInstance(), SearchUIFragment.TAG)
-                .addToBackStack(SearchUIFragment.TAG)
-                .commit
-          }
-        case _ => //
-      }
-      navController.setLeftPage(Page.PICK_USER, Tag)
+  override def onShowPickUser() = {
+    import Page._
+    navController.getCurrentLeftPage match {
+      // TODO: START is set as left page on tablet, fix
+      case START | CONVERSATION_LIST =>
+        withFragmentOpt(SearchUIFragment.TAG) {
+          case Some(_: SearchUIFragment) => // already showing
+          case _ =>
+            getChildFragmentManager.beginTransaction
+              .setCustomAnimations(
+                R.anim.slide_in_from_bottom_pick_user,
+                R.anim.open_new_conversation__thread_list_out,
+                R.anim.open_new_conversation__thread_list_in,
+                R.anim.slide_out_to_bottom_pick_user)
+              .replace(R.id.fl__conversation_list_main, SearchUIFragment.newInstance(), SearchUIFragment.TAG)
+              .addToBackStack(SearchUIFragment.TAG)
+              .commit
+        }
+      case _ => //
+    }
+    navController.setLeftPage(Page.PICK_USER, Tag)
   }
 
-  override def onHidePickUser(destination: Destination) =
-    if (destination == getCurrentPickerDestination) {
-      val page = navController.getCurrentLeftPage
-      import Page._
+  override def onHidePickUser() = {
+    val page = navController.getCurrentLeftPage
+    import Page._
 
-      def hide() = {
-        getChildFragmentManager.popBackStackImmediate(SearchUIFragment.TAG, FragmentManager.POP_BACK_STACK_INCLUSIVE)
-        KeyboardUtils.hideKeyboard(getActivity)
-      }
-
-      page match {
-        case SEND_CONNECT_REQUEST | BLOCK_USER | PENDING_CONNECT_REQUEST =>
-          pickUserController.hideUserProfile()
-          hide()
-        case PICK_USER | INTEGRATION_DETAILS => hide()
-        case _ => //
-      }
-
-      navController.setLeftPage(Page.CONVERSATION_LIST, Tag)
+    def hide() = {
+      getChildFragmentManager.popBackStackImmediate(SearchUIFragment.TAG, FragmentManager.POP_BACK_STACK_INCLUSIVE)
+      KeyboardUtils.hideKeyboard(getActivity)
     }
+
+    page match {
+      case SEND_CONNECT_REQUEST | BLOCK_USER | PENDING_CONNECT_REQUEST =>
+        pickUserController.hideUserProfile()
+        hide()
+      case PICK_USER | INTEGRATION_DETAILS => hide()
+      case _ => //
+    }
+
+    navController.setLeftPage(Page.CONVERSATION_LIST, Tag)
+  }
 
   override def onActivityResult(requestCode: Int, resultCode: Int, data: Intent) = {
     super.onActivityResult(requestCode, resultCode, data)
@@ -319,15 +315,12 @@ class ConversationListManagerFragment extends Fragment
 
   override def showIncomingPendingConnectRequest(conv: ConvId) = {
     verbose(s"showIncomingPendingConnectRequest $conv")
-    pickUserController.hidePickUser(getCurrentPickerDestination)
+    pickUserController.hidePickUser()
     convController.selectConv(conv, ConversationChangeRequester.INBOX) //todo stop doing this!!!
   }
 
   override def getLoadingViewIndicator =
     startUiLoadingIndicator
-
-  override def getCurrentPickerDestination =
-    IPickUserController.Destination.CONVERSATION_LIST
 
   override def onPageVisible(page: Page) =
     if (page != Page.ARCHIVE && page != Page.CONVERSATION_MENU_OVER_CONVERSATION_LIST) closeArchive()
@@ -378,7 +371,7 @@ class ConversationListManagerFragment extends Fragment
     import Page._
     navController.getCurrentLeftPage match { // TODO: START is set as left page on tablet, fix
       case PICK_USER =>
-        pickUserController.showPickUser(IPickUserController.Destination.CONVERSATION_LIST)
+        pickUserController.showPickUser()
       case BLOCK_USER | PENDING_CONNECT_REQUEST | SEND_CONNECT_REQUEST | COMMON_USER_PROFILE =>
         togglePeoplePicker(false)
       case _ => //
@@ -388,8 +381,8 @@ class ConversationListManagerFragment extends Fragment
   override def onBackPressed = {
     withBackstackHead {
       case Some(f: FragmentHelper) if f.onBackPressed() => true
-      case _ if pickUserController.isShowingPickUser(getCurrentPickerDestination) =>
-        pickUserController.hidePickUser(getCurrentPickerDestination)
+      case _ if pickUserController.isShowingPickUser() =>
+        pickUserController.hidePickUser()
         true
       case _ => false
     }

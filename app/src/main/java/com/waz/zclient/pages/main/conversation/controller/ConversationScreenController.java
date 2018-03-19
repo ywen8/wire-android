@@ -49,10 +49,6 @@ public class ConversationScreenController implements IConversationScreenControll
     }
 
     @Override
-    public void setSingleConversation(boolean isSingleConversation) {
-    }
-
-    @Override
     public boolean showUser(UserId userId) {
         if (userId == null || isShowingUser) {
             return false;

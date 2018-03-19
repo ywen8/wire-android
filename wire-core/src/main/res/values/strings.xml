@@ -1339,5 +1339,5 @@
 
     <string name="invite_button_description">People outside your team can join this conversation.</string>
     <string name="invite_people">Invite people</string>
-    <string name="guest_room_name">Guest Room</string>
+    <string name="guest_room_name">Guest room</string>
 </resources>

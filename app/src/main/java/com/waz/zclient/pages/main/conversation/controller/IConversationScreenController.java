@@ -27,8 +27,6 @@ public interface IConversationScreenController {
 
     void removeConversationControllerObservers(ConversationScreenControllerObserver conversationScreenControllerObserver);
 
-    void setSingleConversation(boolean isSingleConversation);
-
     boolean showUser(UserId userId);
 
     void hideUser();

@@ -21,29 +21,23 @@ import com.waz.model.UserId;
 
 public interface IPickUserController {
 
-    enum Destination {
-        CONVERSATION_LIST,
-        PARTICIPANTS,
-        CURSOR
-    }
-
     void addPickUserScreenControllerObserver(PickUserControllerScreenObserver observer);
 
     void removePickUserScreenControllerObserver(PickUserControllerScreenObserver observer);
 
     // Showing people picker
-    void showPickUser(Destination destination);
+    void showPickUser();
 
     /**
      * @return true, if a picker was hidden, false otherwise
      */
-    boolean hidePickUser(Destination destination);
+    boolean hidePickUser();
 
     boolean isHideWithoutAnimations();
 
-    void hidePickUserWithoutAnimations(Destination destination);
+    void hidePickUserWithoutAnimations();
 
-    boolean isShowingPickUser(Destination destination);
+    boolean isShowingPickUser();
 
     void showUserProfile(UserId userId);
 

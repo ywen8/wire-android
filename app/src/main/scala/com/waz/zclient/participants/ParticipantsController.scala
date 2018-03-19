@@ -46,7 +46,7 @@ class ParticipantsController(implicit injector: Injector, context: Context, ec: 
   private lazy val selectedParticipant = Signal(Option.empty[UserId])
 
   val onShowParticipants = EventStream[Option[String]]() //Option[String] = fragment tag //TODO use type?
-  val onHideParticipants = EventStream[Unit]()
+  val onHideParticipants = EventStream[Boolean]() //Boolean represents with or without animations
 
   lazy val otherParticipants = convController.currentConvMembers
   lazy val conv              = convController.currentConv
@@ -129,5 +129,7 @@ class ParticipantsController(implicit injector: Injector, context: Context, ec: 
       inject[SoundController].playAlert()
     case _ =>
   }(Threading.Ui)
+
+
 
 }

@@ -22,6 +22,4 @@ import android.view.View;
 public interface ConversationCallback {
 
     void onConversationListRowSwiped(String convId, View conversationListRowView);
-
-    void onConversationListRowLongClicked(String convId, View conversationListRowView);
 }

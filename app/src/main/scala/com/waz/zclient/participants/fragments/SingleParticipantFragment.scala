@@ -28,14 +28,16 @@ import com.waz.threading.Threading
 import com.waz.utils._
 import com.waz.zclient.common.controllers.{BrowserController, ThemeController, UserAccountsController}
 import com.waz.zclient.conversation.ConversationController
+import com.waz.zclient.conversation.creation.CreateConversationController
 import com.waz.zclient.pages.main.conversation.controller.IConversationScreenController
-import com.waz.zclient.pages.main.pickuser.controller.IPickUserController
 import com.waz.zclient.participants.{ParticipantOtrDeviceAdapter, ParticipantsController, TabbedParticipantPagerAdapter}
 import com.waz.zclient.ui.views.tab.TabIndicatorLayout
 import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.utils.{RichView, StringUtils}
 import com.waz.zclient.views.menus.FooterMenuCallback
 import com.waz.zclient.{FragmentHelper, R}
+
+import scala.concurrent.Future
 
 class SingleParticipantFragment extends FragmentHelper {
   import Threading.Implicits.Ui
@@ -53,7 +55,7 @@ class SingleParticipantFragment extends FragmentHelper {
   private lazy val screenController       = inject[IConversationScreenController]
   private lazy val userAccountsController = inject[UserAccountsController]
   private lazy val browserController      = inject[BrowserController]
-  private lazy val pickUserController     = inject[IPickUserController]
+  private lazy val createConvController   = inject[CreateConversationController]
 
   private lazy val userNameView = returning(view[TextView](R.id.user_name)) { vh =>
     participantsController.otherParticipantId.map(_.isDefined).onUi { visible =>
@@ -81,11 +83,16 @@ class SingleParticipantFragment extends FragmentHelper {
 
   private lazy val userHandle = returning(view[TextView](R.id.user_handle)) { vh =>
     val handle = participantsController.otherParticipant.map(_.handle.map(_.string))
-    handle.onUi { h => vh.foreach(_.setVisible(h.isDefined)) }
-    handle.map {
-      case Some(h) => StringUtils.formatHandle(h)
-      case _       => ""
-    }.onUi { str => vh.foreach(_.setText(str)) }
+
+    handle
+      .map(_.isDefined)
+      .onUi(vis => vh.foreach(_.setVisible(vis)))
+
+    handle
+      .map {
+        case Some(h) => StringUtils.formatHandle(h)
+        case _       => ""
+      }.onUi(str => vh.foreach(_.setText(str)))
   }
 
   override def onCreateView(inflater: LayoutInflater, viewGroup: ViewGroup, savedInstanceState: Bundle): View =
@@ -98,31 +105,36 @@ class SingleParticipantFragment extends FragmentHelper {
       pager.setAdapter(new TabbedParticipantPagerAdapter(participantOtrDeviceAdapter, new FooterMenuCallback {
 
         override def onLeftActionClicked(): Unit =
-          participantsController.isGroup.head.foreach {
-            case false if userAccountsController.hasCreateConversationPermission =>
-              pickUserController.showPickUser(IPickUserController.Destination.PARTICIPANTS)
-            case _ =>
-              participantsController.onHideParticipants ! {}
+          participantsController.isGroup.head.flatMap {
+            case false => userAccountsController.hasCreateConvPermission.head.map {
+              case true => createConvController.onShowCreateConversation ! true
+              case _ => //
+            }
+            case _ => Future.successful {
+              participantsController.onHideParticipants ! true
               participantsController.otherParticipantId.head.foreach {
                 case Some(userId) => userAccountsController.getOrCreateAndOpenConvFor(userId)
                 case _ =>
               }
+            }
           }
 
-        override def onRightActionClicked(): Unit = (for {
-          isGroup <- participantsController.isGroup.head
-          convId  <- convController.currentConvId.head
-          hasRemoveMemberPermission <- userAccountsController.hasRemoveConversationMemberPermission(convId).head
-        } yield (isGroup, convId, hasRemoveMemberPermission)).foreach {
-          case (false, convId, _) => screenController.showConversationMenu(false, convId)
-          case (true, convId, true) =>
-            participantsController.otherParticipantId.head.foreach {
-              case Some(userId) => participantsController.showRemoveConfirmation(userId)
-              case _            =>
+        override def onRightActionClicked(): Unit =
+          (for {
+            isGroup <- participantsController.isGroup.head
+            convId  <- convController.currentConvId.head
+          } yield (isGroup, convId)).flatMap {
+            case (false, convId) => Future.successful(screenController.showConversationMenu(false, convId))
+            case (true,  convId) => userAccountsController.hasRemoveConversationMemberPermission(convId).head.flatMap {
+              case true =>
+                participantsController.otherParticipantId.head.map {
+                  case Some(userId) => participantsController.showRemoveConfirmation(userId)
+                  case _ => //
+                }
+              case _ => Future.successful({})
             }
-          case _ =>
-        }
-      }))
+          }
+        }))
 
       val tabIndicatorLayout = findById[TabIndicatorLayout](v, R.id.til_single_participant_tabs)
       tabIndicatorLayout.setPrimaryColor(getColorWithTheme(if (themeController.isDarkTheme) R.color.text__secondary_dark else R.color.text__secondary_light, getContext))

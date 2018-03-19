@@ -38,7 +38,6 @@ import com.waz.zclient.conversationlist.views.NormalConversationListRow
 import com.waz.zclient.core.stores.conversation.ConversationChangeRequester
 import com.waz.zclient.integrations.IntegrationConversationsAdapter._
 import com.waz.zclient.pages.main.pickuser.controller.IPickUserController
-import com.waz.zclient.pages.main.pickuser.controller.IPickUserController.Destination
 import com.waz.zclient.usersearch.views.{PickerSpannableEditText, SearchEditText}
 import com.waz.zclient.utils.ContextUtils.showToast
 import com.waz.zclient.utils.{RichView, UiStorage}
@@ -112,7 +111,7 @@ class IntegrationConversationSearchFragment extends Fragment with FragmentHelper
     convsData.onUi(convsAdapter.setData)
   }
 
-  def close(): Unit = inject[IPickUserController].hidePickUser(Destination.CONVERSATION_LIST)
+  def close(): Unit = inject[IPickUserController].hidePickUser()
 }
 
 object IntegrationConversationSearchFragment {

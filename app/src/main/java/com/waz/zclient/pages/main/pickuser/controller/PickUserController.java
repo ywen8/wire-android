@@ -17,7 +17,6 @@
  */
 package com.waz.zclient.pages.main.pickuser.controller;
 
-import android.content.Context;
 import com.waz.model.UserId;
 
 import java.util.HashSet;
@@ -26,19 +25,16 @@ import java.util.Set;
 public class PickUserController implements IPickUserController {
 
     private Set<PickUserControllerScreenObserver> pickUserControllerScreenObservers;
-    private Set<Destination> visibleDestinations;
+    private boolean isUserVisible;
 
     private boolean isShowingUserProfile;
     private boolean hideWithoutAnimations;
 
-    private Context context;
-
-    public PickUserController(Context context) {
-        this.context = context;
+    public PickUserController() {
 
         pickUserControllerScreenObservers = new HashSet<>();
-        visibleDestinations = new HashSet<>();
 
+        isUserVisible = false;
         isShowingUserProfile = false;
         hideWithoutAnimations = false;
     }
@@ -61,25 +57,25 @@ public class PickUserController implements IPickUserController {
 
     // Showing people picker
     @Override
-    public void showPickUser(Destination destination) {
-        if (isShowingPickUser(destination)) {
+    public void showPickUser() {
+        if (isShowingPickUser()) {
             return;
         }
-        visibleDestinations.add(destination);
+        isUserVisible = true;
         for (PickUserControllerScreenObserver pickUserControllerScreenObserver : pickUserControllerScreenObservers) {
-            pickUserControllerScreenObserver.onShowPickUser(destination);
+            pickUserControllerScreenObserver.onShowPickUser();
         }
     }
 
     @Override
-    public boolean hidePickUser(Destination destination) {
-        if (!isShowingPickUser(destination)) {
+    public boolean hidePickUser() {
+        if (!isShowingPickUser()) {
             return false;
         }
         for (PickUserControllerScreenObserver pickUserControllerScreenObserver : pickUserControllerScreenObservers) {
-            pickUserControllerScreenObserver.onHidePickUser(destination);
+            pickUserControllerScreenObserver.onHidePickUser();
         }
-        visibleDestinations.remove(destination);
+        isUserVisible = false;
         return true;
     }
 
@@ -89,15 +85,15 @@ public class PickUserController implements IPickUserController {
     }
 
     @Override
-    public void hidePickUserWithoutAnimations(Destination destination) {
+    public void hidePickUserWithoutAnimations() {
         hideWithoutAnimations = true;
-        hidePickUser(destination);
+        hidePickUser();
         hideWithoutAnimations = false;
     }
 
     @Override
-    public boolean isShowingPickUser(Destination destination) {
-        return visibleDestinations.contains(destination);
+    public boolean isShowingPickUser() {
+        return isUserVisible;
     }
 
     @Override
@@ -125,7 +121,6 @@ public class PickUserController implements IPickUserController {
 
     @Override
     public void tearDown() {
-        context = null;
         if (pickUserControllerScreenObservers != null) {
             pickUserControllerScreenObservers.clear();
             pickUserControllerScreenObservers = null;
