@@ -347,7 +347,7 @@
         <item quantity="other">%1$d people in common</item>
     </plurals>
     <string name="connect_request__sub_header__pending_label">Pending</string>
-    <string name="connect_request__cancel_request__label">Cancel connection request</string>
+    <string name="connect_request__cancel_request__label">CANCEL CONNECTION REQUEST</string>
     <string name="connect_request__unblock__button__text">Unblock</string>
     <string name="send_connect_request__connect_button__text">CONNECT</string>
     <plurals name="connect_inbox__link__name">
