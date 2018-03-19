@@ -43,13 +43,17 @@
             app:initials_font_size="@dimen/participant_initials_text_size"
             />
 
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/wire__padding__24"/>
+
         <LinearLayout
             android:id="@+id/guest_indicator"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:layout_gravity="bottom|center_horizontal"
-            android:layout_marginTop="@dimen/wire__padding__32"
+            android:layout_marginTop="@dimen/wire__padding__8"
             android:visibility="gone">
 
             <ImageView
@@ -88,7 +92,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:layout_marginTop="@dimen/wire__margin__huge"
+            android:layout_marginTop="@dimen/wire__padding__8"
             android:visibility="gone"/>
 
     </LinearLayout>

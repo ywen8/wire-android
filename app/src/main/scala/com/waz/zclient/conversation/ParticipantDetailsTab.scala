@@ -93,7 +93,10 @@ class ParticipantDetailsTab(val context: Context, callback: FooterMenuCallback) 
     case _ => ""
   }).onUi(guestIndicatorTimer.setText)
 
-  usersController.availabilityVisible.onUi(userAvailability.setVisible)
+  Signal(participantsController.otherParticipant.map(_.expiresAt.isDefined), usersController.availabilityVisible).map {
+    case (true, _) => false
+    case (_, isTeamMember) => isTeamMember
+  }.onUi { userAvailability.setVisible }
 
   (for {
     Some(uId) <- participantsController.otherParticipantId

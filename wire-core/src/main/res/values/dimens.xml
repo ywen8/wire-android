@@ -407,8 +407,8 @@
     <dimen name="error__image__margin">32dp</dimen>
     <dimen name="profile__image__width_regular">260dp</dimen>
     <dimen name="profile__image__height_regular">260dp</dimen>
-    <dimen name="profile__image__width_small">116dp</dimen>
-    <dimen name="profile__image__height_small">116dp</dimen>
+    <dimen name="profile__image__width_small">96dp</dimen>
+    <dimen name="profile__image__height_small">96dp</dimen>
     <dimen name="profile__image__width">@dimen/profile__image__width_small</dimen>
     <dimen name="profile__image__height">@dimen/profile__image__height_small</dimen>
     <dimen name="prefs__verification__padding_top">24dp</dimen>
