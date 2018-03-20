@@ -56,8 +56,10 @@ class UserAccountsController(implicit injector: Injector, context: Context, ec: 
     accountData <- zms.account.accountData
   } yield accountData.selfPermissions
 
-  lazy val hasCreateConvPermission: Signal[Boolean] =
-    selfPermissions.map(_.contains(CreateConversation))
+  lazy val hasCreateConvPermission: Signal[Boolean] = teamId.flatMap {
+    case Some(_) => selfPermissions.map(_.contains(CreateConversation))
+    case  _ => Signal.const(true)
+  }
 
   def hasAddConversationMemberPermission(convId: ConvId): Signal[Boolean] =
     hasConvPermission(convId, AddConversationMember)
