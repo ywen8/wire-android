@@ -175,14 +175,17 @@ class SearchUIAdapter(adapterCallback: SearchUIAdapter.Callback, integrationsCon
       if (peopleOrServices.currentValue.contains(true)) {
         addIntegrations()
       } else {
-        addGroupCreationButton()
-        addGuestRoomCreationButton()
+        if (filter.currentValue.forall(_.isEmpty)){
+          addGroupCreationButton()
+          addGuestRoomCreationButton()
+        }
         addContacts()
         addGroupConversations()
         addConnections()
       }
     } else  {
-      addGroupCreationButton()
+      if (filter.currentValue.forall(_.isEmpty))
+        addGroupCreationButton()
       addTopPeople()
       addContacts()
       addGroupConversations()
