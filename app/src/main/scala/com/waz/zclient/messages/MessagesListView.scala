@@ -99,28 +99,33 @@ class MessagesListView(context: Context, attrs: AttributeSet, style: Int) extend
 
     scroll match {
       case BottomScroll(false) =>
+        val target = adapter.getItemCount - 1
         layoutManager.snapToEnd()
-        layoutManager.scrollToPosition(adapter.getItemCount - 1)
-        scrollController.onScrolled(adapter.getItemCount - 1)
+        layoutManager.scrollToPosition(target)
+        scrollController.onScrolled(target)
+        verbose(s"Scrolling target: $target, item count: ${adapter.getItemCount}")
 
       case BottomScroll(true) =>
-        val target = adapter.getItemCount - 1
+        val target = Math.max(0, adapter.getItemCount - 1)
         val current = layoutManager.findFirstVisibleItemPosition()
         layoutManager.snapToEnd()
         scrollCloseToTarget(target, current)
         smoothScrollToPosition(target)
+        verbose(s"Scrolling target: $target, current: $current, item count: ${adapter.getItemCount}")
 
       case PositionScroll(pos, false) =>
         val target = Math.min(pos, adapter.getItemCount - 1)
         layoutManager.snapToStart()
         layoutManager.scrollToPosition(target)
         scrollController.onScrolled(target)
+        verbose(s"Scrolling target: $target, item count: ${adapter.getItemCount}")
 
       case PositionScroll(pos, true) =>
         val current = layoutManager.findFirstVisibleItemPosition()
         layoutManager.snapToStart()
         scrollCloseToTarget(pos, current)
         smoothScrollToPosition(pos)
+        verbose(s"Scrolling target: $pos, current: $current, item count: ${adapter.getItemCount}")
     }
   }
 

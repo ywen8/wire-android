@@ -105,18 +105,21 @@ class SingleParticipantFragment extends FragmentHelper {
       pager.setAdapter(new TabbedParticipantPagerAdapter(participantOtrDeviceAdapter, new FooterMenuCallback {
 
         override def onLeftActionClicked(): Unit =
-          participantsController.isGroup.head.flatMap {
-            case false => userAccountsController.hasCreateConvPermission.head.map {
-              case true => createConvController.onShowCreateConversation ! true
-              case _ => //
-            }
-            case _ => Future.successful {
-              participantsController.onHideParticipants ! true
-              participantsController.otherParticipantId.head.foreach {
-                case Some(userId) => userAccountsController.getOrCreateAndOpenConvFor(userId)
-                case _ =>
+          participantsController.otherParticipant.map(_.expiresAt.isDefined).map {
+            case false => participantsController.isGroup.head.flatMap {
+              case false => userAccountsController.hasCreateConvPermission.head.map {
+                case true => createConvController.onShowCreateConversation ! true
+                case _ => //
+              }
+              case _ => Future.successful {
+                participantsController.onHideParticipants ! true
+                participantsController.otherParticipantId.head.foreach {
+                  case Some(userId) => userAccountsController.getOrCreateAndOpenConvFor(userId)
+                  case _ =>
+                }
               }
             }
+            case _ =>
           }
 
         override def onRightActionClicked(): Unit =
