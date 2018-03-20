@@ -132,7 +132,7 @@ class GroupParticipantsFragment extends FragmentHelper {
       userOpt      <- participantsController.getUser(userId)
       isTeamMember <- userAccountsController.isTeamMember(userId).head
     } userOpt match {
-      case Some(user) if user.connection == ACCEPTED || isTeamMember =>
+      case Some(user) if user.connection == ACCEPTED || user.expiresAt.isDefined || isTeamMember =>
         participantsController.selectParticipant(userId)
         openUserProfileFragment(SingleParticipantFragment.newInstance(), SingleParticipantFragment.Tag)
 

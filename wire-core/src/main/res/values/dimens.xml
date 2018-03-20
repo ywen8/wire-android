@@ -407,8 +407,8 @@
     <dimen name="error__image__margin">32dp</dimen>
     <dimen name="profile__image__width_regular">260dp</dimen>
     <dimen name="profile__image__height_regular">260dp</dimen>
-    <dimen name="profile__image__width_small">116dp</dimen>
-    <dimen name="profile__image__height_small">116dp</dimen>
+    <dimen name="profile__image__width_small">96dp</dimen>
+    <dimen name="profile__image__height_small">96dp</dimen>
     <dimen name="profile__image__width">@dimen/profile__image__width_small</dimen>
     <dimen name="profile__image__height">@dimen/profile__image__height_small</dimen>
     <dimen name="prefs__verification__padding_top">24dp</dimen>
@@ -944,4 +944,5 @@
     <dimen name="guest_badge_size">16dp</dimen>
     <dimen name="participants_options_button_margin_top">32dp</dimen>
     <dimen name="next_indicator_size">12dp</dimen>
+    <dimen name="participant_initials_text_size">64sp</dimen>
 </resources>

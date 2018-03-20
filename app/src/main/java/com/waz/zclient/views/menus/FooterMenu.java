@@ -93,19 +93,43 @@ public class FooterMenu extends FrameLayout {
     }
 
     public void setLeftActionText(String text) {
-        leftActionTextView.setText(text);
+        if (text == null || text.isEmpty()) {
+            leftActionTextView.setText("");
+            leftActionTextView.setVisibility(View.GONE);
+        } else {
+            leftActionTextView.setText(text);
+            leftActionTextView.setVisibility(View.VISIBLE);
+        }
     }
 
     public void setLeftActionLabelText(String text) {
-        leftLabelTextView.setText(text);
+        if (text == null || text.isEmpty()) {
+            leftLabelTextView.setText("");
+            leftLabelTextView.setVisibility(View.GONE);
+        } else {
+            leftLabelTextView.setText(text);
+            leftLabelTextView.setVisibility(View.VISIBLE);
+        }
     }
 
     public void setRightActionLabelText(String text) {
-        rightLabelTextView.setText(text);
+        if (text == null || text.isEmpty()) {
+            rightLabelTextView.setText("");
+            rightLabelTextView.setVisibility(View.GONE);
+        } else {
+            rightLabelTextView.setText(text);
+            rightLabelTextView.setVisibility(View.VISIBLE);
+        }
     }
 
     public void setRightActionText(String text) {
-        rightActionTextView.setText(text);
+        if (text == null || text.isEmpty()) {
+            rightActionTextView.setText("");
+            rightActionTextView.setVisibility(View.GONE);
+        } else {
+            rightActionTextView.setText(text);
+            rightActionTextView.setVisibility(View.VISIBLE);
+        }
     }
 
     public void setCallback(final FooterMenuCallback callback) {
