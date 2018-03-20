@@ -17,6 +17,7 @@
  */
 package com.waz.zclient.conversation.creation
 
+import android.app.FragmentManager
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.support.v4.app.FragmentManager.OnBackStackChangedListener
@@ -26,6 +27,7 @@ import android.view.animation.Animation
 import android.view.{LayoutInflater, View, ViewGroup}
 import com.waz.ZLog
 import com.waz.ZLog.ImplicitTag._
+import com.waz.service.tracking.GroupConversationEvent
 import com.waz.threading.Threading
 import com.waz.utils.events.Signal
 import com.waz.utils.returning
@@ -127,6 +129,15 @@ class CreateConversationManagerFragment extends FragmentHelper {
 
   override def onCreate(savedInstanceState: Bundle): Unit = {
     super.onCreate(savedInstanceState)
+
+    ctrl.onShowCreateConversation.onUi {
+      case false =>
+        ctrl.fromScreen.head.map {
+          case GroupConversationEvent.StartUi => getFragmentManager.popBackStack(Tag, FragmentManager.POP_BACK_STACK_INCLUSIVE)
+          case _ =>
+        } (Threading.Background)
+      case _ =>
+    }
 
     getChildFragmentManager.addOnBackStackChangedListener(new OnBackStackChangedListener {
       override def onBackStackChanged(): Unit =
