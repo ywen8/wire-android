@@ -24,6 +24,7 @@ import com.waz.api.{ClientRegistrationState, ImageAsset, KindOfAccess}
 import com.waz.client.RegistrationClientImpl.ActivateResult
 import com.waz.client.RegistrationClientImpl.ActivateResult.{Failure, PasswordExists}
 import com.waz.model._
+import com.waz.model.otr.{ClientId, UserClients}
 import com.waz.service.ZMessaging
 import com.waz.service.tracking.TrackingService
 import com.waz.threading.Threading
@@ -33,10 +34,9 @@ import com.waz.zclient.appentry.controllers.SignInController._
 import com.waz.zclient.appentry.{EntryError, GenericRegisterPhoneError}
 import com.waz.zclient.newreg.fragments.SignUpPhotoFragment
 import com.waz.zclient.newreg.fragments.SignUpPhotoFragment.RegistrationType
-import com.waz.zclient.tracking._
-import com.waz.znet.ZNetClient.ErrorOr
-import com.waz.zclient.tracking.{AddPhotoOnRegistrationEvent, GlobalTrackingController}
+import com.waz.zclient.tracking.{AddPhotoOnRegistrationEvent, GlobalTrackingController, _}
 import com.waz.zclient.{Injectable, Injector}
+import com.waz.znet.ZNetClient.ErrorOr
 
 import scala.concurrent.Future
 
@@ -50,6 +50,25 @@ class AppEntryController(implicit inj: Injector, eventContext: EventContext) ext
   val currentAccount = ZMessaging.currentAccounts.activeAccount
   val currentUser = optZms.flatMap{ _.fold(Signal.const(Option.empty[UserData]))(z => z.usersStorage.optSignal(z.selfUserId)) }
   val firstStage = Signal[FirstStage](FirstScreen)
+
+  val userClientsCount = for {
+    Some(manager) <- ZMessaging.currentAccounts.activeAccountManager
+    Some(user)  <- currentUser
+    selfClientId  <- manager.accountData.map(_.clientId)
+    clients       <- Signal.future(manager.storage.otrClientsStorage.get(user.id))
+  } yield clients.fold(0)(_.clients.values.count(client => !selfClientId.contains(client.id)))
+
+  val userHasOtherClients = for {
+    manager <- ZMessaging.currentAccounts.activeAccountManager
+    user <- currentUser.map(_.map(_.id))
+    selfClientId <- manager.fold(Signal.const(Option.empty[ClientId]))(_.accountData.map(_.clientId))
+    clients <- (manager, user) match {
+      case (Some(m), Some(u)) => m.storage.otrClientsStorage.signal(u).map(Some(_))
+      case _ => Signal.const(Option.empty[UserClients])
+    }
+    clientCount = clients.fold(0)(_.clients.values.count(client => !selfClientId.contains(client.id)))
+    _ = ZLog.verbose(s"userClientsCount $manager $user $clientCount")
+  } yield clientCount >= 1
 
   //Vars to persist text in edit boxes
   var teamName = ""
@@ -72,7 +91,8 @@ class AppEntryController(implicit inj: Injector, eventContext: EventContext) ext
     account <- currentAccount
     user <- currentUser.orElse(Signal.const(None))
     firstPageState <- firstStage
-    state <- Signal.const(stateForAccountAndUser(account, user, firstPageState)).collect{ case s if s != Waiting => s }
+    hasOtherClients <- userHasOtherClients
+    state <- Signal.const(stateForAccountAndUser(account, user, firstPageState, hasOtherClients)).collect{ case s if s != Waiting => s }
   } yield state
 
   entryStage.onUi { stage =>
@@ -90,8 +110,8 @@ class AppEntryController(implicit inj: Injector, eventContext: EventContext) ext
     case false =>
   }
 
-  def stateForAccountAndUser(account: Option[AccountData], user: Option[UserData], firstPageState: FirstStage): AppEntryStage = {
-    ZLog.verbose(s"Current account and user: $account $user")
+  def stateForAccountAndUser(account: Option[AccountData], user: Option[UserData], firstPageState: FirstStage, hasOtherClients: Boolean): AppEntryStage = {
+    ZLog.verbose(s"Current account and user: $account $user $hasOtherClients")
     (account, user) match {
       case (None, _) =>
         NoAccountState(firstPageState)
@@ -107,10 +127,12 @@ class AppEntryController(implicit inj: Injector, eventContext: EventContext) ext
         VerifyPhoneStage
       case (Some(accountData), _) if accountData.clientRegState == ClientRegistrationState.PASSWORD_MISSING || (accountData.pendingPhone == accountData.phone && !accountData.canLogin && accountData.cookie.isEmpty) =>
         InsertPasswordStage
+      case (Some(accountData), _) if accountData.email.isEmpty && accountData.pendingEmail.isEmpty && hasOtherClients =>
+        AddEmailStage
+      case (Some(accountData), _) if accountData.pendingEmail.isDefined && ((!accountData.verified && accountData.password.isDefined) || (accountData.email.isEmpty && hasOtherClients) ) =>
+        VerifyEmailStage
       case (Some(accountData), _) if accountData.clientRegState == ClientRegistrationState.LIMIT_REACHED =>
         DeviceLimitStage
-      case (Some(accountData), _) if accountData.pendingEmail.isDefined && accountData.password.isDefined && !accountData.verified =>
-        VerifyEmailStage
       case (Some(accountData), _) if accountData.regWaiting =>
         AddNameStage
       case (Some(accountData), None) if accountData.cookie.isDefined || accountData.accessToken.isDefined =>
@@ -125,7 +147,7 @@ class AppEntryController(implicit inj: Injector, eventContext: EventContext) ext
         AddHandleStage
       case (Some(accountData), Some(_)) if accountData.pendingTeamName.isDefined =>
         InviteToTeam
-      case (Some(accountData), Some(userData)) if accountData.firstLogin && accountData.clientRegState == ClientRegistrationState.REGISTERED =>
+      case (Some(accountData), Some(userData)) if accountData.firstLogin && accountData.clientRegState == ClientRegistrationState.REGISTERED && hasOtherClients =>
         FirstEnterAppStage
       case (Some(accountData), Some(userData)) if accountData.clientRegState == ClientRegistrationState.REGISTERED =>
         EnterAppStage
@@ -261,7 +283,9 @@ class AppEntryController(implicit inj: Injector, eventContext: EventContext) ext
     }
   }
 
-  def cancelVerification(): Unit = ZMessaging.currentAccounts.logout(false)
+  def removeCurrentAccount(): Unit = ZMessaging.currentAccounts.logout(false)
+
+  def cancelEmailVerification(): Unit = ZMessaging.currentAccounts.updateCurrentAccount(_.copy(pendingEmail = None))
 
   def setPicture(imageAsset: ImageAsset, source: SignUpPhotoFragment.Source, registrationType: RegistrationType): Unit = {
     optZms.head.map {
@@ -364,6 +388,7 @@ object AppEntryController {
   object VerifyPhoneStage    extends AppEntryStage
   object AddHandleStage      extends AppEntryStage
   object InsertPasswordStage extends AppEntryStage
+  object AddEmailStage       extends AppEntryStage
 
   object SetTeamEmail            extends AppEntryStage { override val depth = 2 }
   object VerifyTeamEmail         extends AppEntryStage { override val depth = 3 }
