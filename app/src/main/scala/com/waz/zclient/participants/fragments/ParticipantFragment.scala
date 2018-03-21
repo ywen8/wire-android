@@ -127,20 +127,24 @@ class ParticipantFragment extends ManagerFragment
   }
 
   override def onBackPressed(): Boolean = {
-    withContentFragment {
-      case _ if screenController.isShowingUser =>
-        verbose(s"onBackPressed with screenController.isShowingUser")
-        screenController.hideUser()
-        participantsController.unselectParticipant()
-        true
-      case Some(f: FragmentHelper) if f.onBackPressed() => true
-      case Some(_: FragmentHelper) =>
-        if (getChildFragmentManager.getBackStackEntryCount <= 1) participantsController.onHideParticipants ! true
-        else getChildFragmentManager.popBackStack()
-        true
+    withFragmentOpt(R.id.fl__participant__overlay) {
+      case Some(f: SingleOtrClientFragment) if f.onBackPressed() => true
       case _ =>
-        warn("OnBackPressed was not handled anywhere")
-        false
+        withContentFragment {
+          case _ if screenController.isShowingUser =>
+            verbose(s"onBackPressed with screenController.isShowingUser")
+            screenController.hideUser()
+            participantsController.unselectParticipant()
+            true
+          case Some(f: FragmentHelper) if f.onBackPressed() => true
+          case Some(_: FragmentHelper) =>
+            if (getChildFragmentManager.getBackStackEntryCount <= 1) participantsController.onHideParticipants ! true
+            else getChildFragmentManager.popBackStack()
+            true
+          case _ =>
+            warn("OnBackPressed was not handled anywhere")
+            false
+        }
     }
   }
 
