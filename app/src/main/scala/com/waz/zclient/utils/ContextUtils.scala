@@ -65,6 +65,7 @@ object ContextUtils {
   }
 
   def getIntArray(resId: Int)(implicit context: Context) = context.getResources.getIntArray(resId)
+  def getStringArray(resId: Int)(implicit context: Context) = context.getResources.getStringArray(resId)
   def getResEntryName(resId: Int)(implicit context: Context) = context.getResources.getResourceEntryName(resId)
 
   def getResourceFloat(resId: Int)(implicit context: Context) = ResourceUtils.getResourceFloat(context.getResources, resId)

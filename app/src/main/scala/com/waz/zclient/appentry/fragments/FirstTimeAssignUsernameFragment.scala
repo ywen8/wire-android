@@ -17,6 +17,10 @@
  */
 package com.waz.zclient.appentry.fragments
 
+import java.text.Normalizer
+import java.util.Locale
+
+import android.content.Context
 import android.graphics.{Color, PorterDuff}
 import android.os.Bundle
 import android.support.annotation.Nullable
@@ -25,19 +29,23 @@ import android.view.{LayoutInflater, View, ViewGroup}
 import android.widget.ImageView
 import com.waz.ZLog
 import com.waz.ZLog.ImplicitTag._
+import com.waz.model.Handle
 import com.waz.service.ZMessaging
+import com.waz.threading.Threading
+import com.waz.utils.crypto.ZSecureRandom
 import com.waz.utils.events.Signal
 import com.waz.zclient.common.controllers.global.AccentColorController
-import com.waz.zclient.controllers.usernames.UsernamesControllerObserver
 import com.waz.zclient.pages.BaseFragment
 import com.waz.zclient.ui.text.TypefaceTextView
 import com.waz.zclient.ui.utils.{BitmapUtils, ColorUtils, ResourceUtils, TextViewUtils}
 import com.waz.zclient.ui.views.ZetaButton
-import com.waz.zclient.utils.{StringUtils, ViewUtils}
+import com.waz.zclient.utils.{ContextUtils, StringUtils, ViewUtils}
 import com.waz.zclient.common.views.ImageAssetDrawable
 import com.waz.zclient.common.views.ImageAssetDrawable.{RequestBuilder, ScaleType}
 import com.waz.zclient.common.views.ImageController.{ImageSource, WireImage}
 import com.waz.zclient.{FragmentHelper, R}
+
+import scala.util.{Failure, Success}
 
 object FirstTimeAssignUsernameFragment {
   val TAG: String = classOf[FirstTimeAssignUsernameFragment].getName
@@ -53,8 +61,6 @@ object FirstTimeAssignUsernameFragment {
     fragment
   }
 
-  def newInstance: Fragment = new FirstTimeAssignUsernameFragment
-
   trait Container {
     def onChooseUsernameChosen(): Unit
 
@@ -66,8 +72,16 @@ object FirstTimeAssignUsernameFragment {
 }
 
 class FirstTimeAssignUsernameFragment extends BaseFragment[FirstTimeAssignUsernameFragment.Container]
-  with FragmentHelper
-  with UsernamesControllerObserver {
+  with FragmentHelper {
+
+  import Threading.Implicits.Ui
+
+  private implicit def context: Context = getActivity
+
+  private val USERNAME_MAX_LENGTH = 21
+  private val NORMAL_ATTEMPTS = 30
+  private val RANDOM_ATTEMPTS = 20
+  private val MAX_RANDOM_TRAILING_NUMBER = 1000
 
   private lazy val zms = inject[Signal[ZMessaging]]
   private lazy val accentColor = inject[AccentColorController].accentColor
@@ -77,7 +91,7 @@ class FirstTimeAssignUsernameFragment extends BaseFragment[FirstTimeAssignUserna
   private lazy val backgroundImageView  = findById[ImageView](getView, R.id.user_photo)
   private lazy val keepButton = findById[ZetaButton](getView, R.id.zb__username_first_assign__keep)
 
-  lazy val self = for {
+  private lazy val self = for {
     z <- zms
     userData <- z.usersStorage.signal(z.selfUserId)
   } yield userData
@@ -128,19 +142,8 @@ class FirstTimeAssignUsernameFragment extends BaseFragment[FirstTimeAssignUserna
       chooseYourOwnButton.setAccentColor(color.getColor)
       keepButton.setAccentColor(color.getColor)
     }
-    getControllerFactory.getUsernameController.setUser(getStoreFactory.zMessagingApiStore.getApi.getSelf)
-  }
 
-
-  override def onStart() = {
-    super.onStart()
-    getControllerFactory.getUsernameController.addUsernamesObserverAndUpdate(this)
-  }
-
-
-  override def onStop() = {
-    super.onStop()
-    getControllerFactory.getUsernameController.removeUsernamesObserver(this)
+    self.onUi(user => startUsernameGenerator(user.name))
   }
 
   override def onCreateView(inflater: LayoutInflater, @Nullable container: ViewGroup, @Nullable savedInstanceState: Bundle): View =
@@ -151,7 +154,7 @@ class FirstTimeAssignUsernameFragment extends BaseFragment[FirstTimeAssignUserna
     true
   }
 
-  override def onValidUsernameGenerated(name: String, generatedUsername: String) = {
+  def onValidUsernameGenerated(generatedUsername: String) = {
     ZLog.verbose(s"onValidUsernameGenerated $generatedUsername")
     suggestedUsername = generatedUsername
     usernameTextView.setText(StringUtils.formatHandle(suggestedUsername))
@@ -159,7 +162,51 @@ class FirstTimeAssignUsernameFragment extends BaseFragment[FirstTimeAssignUserna
     keepButton.setVisibility(View.VISIBLE)
   }
 
-  override def onUsernameAttemptsExhausted(name: String) = {}
+  private def startUsernameGenerator(baseName: String): Unit = {
+    val baseGeneratedUsername = generateUsernameFromName(baseName)
+    val randomUsername = generateUsernameFromName("")
+    zms.head.map { z =>
+      z.handlesClient.getHandlesValidation(getAttempts(baseGeneratedUsername, NORMAL_ATTEMPTS) ++ getAttempts(randomUsername, RANDOM_ATTEMPTS))
+      .onComplete {
+        case Success(response) =>
+          response match {
+            case Left(_) =>
+              ContextUtils.showToast(R.string.username__set__toast_error)
+            case Right(r) =>
+              r.foreach(nicks => onValidUsernameGenerated(nicks.head.username))
+          }
+        case Failure(_) =>
+          ContextUtils.showToast(R.string.username__set__toast_error)
+      }
+    }
+  }
 
-  override def onCloseFirstAssignUsernameScreen() = {}
+  private def getAttempts(base: String, attempts: Int): Seq[Handle] =
+    (0 until attempts).map(getTrailingNumber).map { tN =>
+      Handle(StringUtils.truncate(base, USERNAME_MAX_LENGTH - tN.length) + tN)
+    }
+
+  private def getTrailingNumber(attempt: Int): String = {
+    val blah = ZSecureRandom.nextInt(0, MAX_RANDOM_TRAILING_NUMBER * 10 ^ (attempt / 10))
+    if (attempt > 0) String.format(Locale.getDefault, "%d", Int.box(blah))
+    else ""
+  }
+
+  private def generateUsernameFromName(name: String): String = {
+    var cleanName: String = Handle.transliterated(name).toLowerCase
+    cleanName = Normalizer.normalize(cleanName, Normalizer.Form.NFD).replaceAll("\\p{InCombiningDiacriticalMarks}+", "")
+    cleanName = Normalizer.normalize(cleanName, Normalizer.Form.NFD).replaceAll("\\W+", "")
+    if (cleanName.isEmpty) {
+      cleanName = generateFromDictionary()
+    }
+    cleanName
+  }
+
+  private def generateFromDictionary(): String = {
+    val names = ContextUtils.getStringArray(R.array.random_names)
+    val adjectives = ContextUtils.getStringArray(R.array.random_adjectives)
+    val namesIndex = ZSecureRandom.nextInt(names.length)
+    val adjectivesIndex = ZSecureRandom.nextInt(adjectives.length)
+    (adjectives(adjectivesIndex) + names(namesIndex)).toLowerCase
+  }
 }

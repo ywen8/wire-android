@@ -285,7 +285,6 @@ class MainActivity extends BaseActivity
     verbose("onUserLoggedInAndVerified")
     getStoreFactory.profileStore.setUser(self)
     getControllerFactory.getAccentColorController.setColor(AccentColorChangeRequester.LOGIN, self.getAccent.getColor)
-    getControllerFactory.getUsernameController.setUser(self)
     if (getSupportFragmentManager.findFragmentByTag(MainPhoneFragment.TAG) == null) replaceMainFragment(new MainPhoneFragment, MainPhoneFragment.TAG)
   }
 
@@ -418,7 +417,6 @@ class MainActivity extends BaseActivity
   def logout() = {
     getSupportFragmentManager.popBackStackImmediate
     getStoreFactory.zMessagingApiStore.logout()
-    getControllerFactory.getUsernameController.logout()
   }
 
   def manageDevices() = {

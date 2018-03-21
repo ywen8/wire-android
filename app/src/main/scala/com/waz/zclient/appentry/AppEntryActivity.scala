@@ -350,8 +350,6 @@ class AppEntryActivity extends BaseActivity
     appEntryController.setUsername(username).map {
       case Left(_) =>
         Toast.makeText(AppEntryActivity.this, getString(R.string.username__set__toast_error), Toast.LENGTH_SHORT).show()
-        getControllerFactory.getUsernameController.logout()
-        getControllerFactory.getUsernameController.setUser(getStoreFactory.zMessagingApiStore.getApi.getSelf)
       case Right(_) =>
     } (Threading.Ui)
 }

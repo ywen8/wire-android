@@ -38,7 +38,6 @@ import com.waz.zclient.common.views.ImageAssetDrawable
 import com.waz.zclient.common.views.ImageAssetDrawable.{RequestBuilder, ScaleType}
 import com.waz.zclient.common.views.ImageController.{ImageSource, WireImage}
 import com.waz.zclient.pages.main.profile.preferences.dialogs.VerifyEmailPreferenceFragment
-import com.waz.zclient.preferences.PreferencesActivity
 import com.waz.zclient.preferences.dialogs.{AccentColorPickerFragment, ChangeEmailDialog, ChangePhoneDialog, VerifyPhoneFragment}
 import com.waz.zclient.preferences.views.{EditNameDialog, PictureTextButton, TextButton}
 import com.waz.zclient.ui.utils.TextViewUtils._
@@ -268,7 +267,6 @@ class AccountViewController(view: AccountView)(implicit inj: Injector, ec: Event
       getString(R.string.pref_account_sign_out_warning_cancel),
       new DialogInterface.OnClickListener() {
         def onClick(dialog: DialogInterface, which: Int) = {
-          context.asInstanceOf[PreferencesActivity].getControllerFactory.getUsernameController.tearDown()
           zms.map(_.account).head.flatMap(_.logout(true))(Threading.Ui)
           navigator.back()
           navigator.back()
