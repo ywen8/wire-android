@@ -77,6 +77,7 @@ class SingleParticipantFragment extends FragmentHelper {
         }
         val old = view.getCompoundDrawables
         view.setCompoundDrawablesRelative(shield.orNull, old(1), old(2), old(3))
+        view.setContentDescription(if (visible) "verified" else "unverified")
       }
     }
   }
