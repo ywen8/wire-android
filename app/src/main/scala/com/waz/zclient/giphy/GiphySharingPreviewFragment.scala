@@ -30,7 +30,7 @@ import com.waz.service.images.BitmapSignal
 import com.waz.service.tracking.ContributionEvent
 import com.waz.service.{NetworkModeService, ZMessaging}
 import com.waz.threading.Threading
-import com.waz.utils.events.Signal
+import com.waz.utils.events.{EventStream, Signal}
 import com.waz.utils.returning
 import com.waz.zclient._
 import com.waz.zclient.common.controllers.ThemeController
@@ -204,12 +204,16 @@ class GiphySharingPreviewFragment extends BaseFragment[GiphySharingPreviewFragme
     val gifDrawable = new ImageAssetDrawable(gifImage, scaleType = ScaleType.CenterInside)
     previewImage.setImageDrawable(gifDrawable)
 
-    searchTerm.onChanged.onUi(_ => spinnerController.showSpinner(LoadingIndicatorView.InfiniteLoadingBar))
-    giphySearchResults.onChanged.onUi(_ => spinnerController.hideSpinner())
-    selectedGif.filter(_.isDefined).onChanged.onUi(_ => spinnerController.showSpinner(LoadingIndicatorView.InfiniteLoadingBar))
-    isPreviewShown.onChanged.onUi(isPreviewShown => if (!isPreviewShown) spinnerController.hideSpinner())
-    gifDrawable.state.onChanged.collect { case _ : State.Loaded | _ : State.Failed => () }
-      .onUi(_ => spinnerController.hideSpinner())
+    EventStream.union(
+      searchTerm.onChanged.map(_ => true),
+      selectedGif.filter(_.isDefined).onChanged.map(_ => true),
+      giphySearchResults.onChanged.map(_ => false),
+      isPreviewShown.onChanged.filter(_ == false),
+      gifDrawable.state.onChanged.collect { case _ : State.Loaded | _ : State.Failed => false }
+    ) onUi {
+      case true  => spinnerController.showSpinner(LoadingIndicatorView.InfiniteLoadingBar)
+      case false => spinnerController.hideSpinner()
+    }
 
     giphyTitle.foreach(_.setVisibility(View.GONE))
   }
