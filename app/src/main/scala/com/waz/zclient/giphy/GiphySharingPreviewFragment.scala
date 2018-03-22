@@ -20,7 +20,7 @@ package com.waz.zclient.giphy
 
 import android.os.Bundle
 import android.support.v7.widget.{RecyclerView, StaggeredGridLayoutManager, Toolbar}
-import android.text.{Editable, TextUtils, TextWatcher}
+import android.text.TextUtils
 import android.view.{LayoutInflater, View, ViewGroup}
 import android.widget.{EditText, ImageView, TextView}
 import com.waz.ZLog.ImplicitTag._
@@ -30,7 +30,7 @@ import com.waz.service.images.BitmapSignal
 import com.waz.service.tracking.ContributionEvent
 import com.waz.service.{NetworkModeService, ZMessaging}
 import com.waz.threading.Threading
-import com.waz.utils.events.{EventContext, Signal, SourceSignal}
+import com.waz.utils.events.Signal
 import com.waz.utils.returning
 import com.waz.zclient._
 import com.waz.zclient.common.controllers.ThemeController
@@ -44,7 +44,7 @@ import com.waz.zclient.giphy.GiphyGridViewAdapter.ScrollGifCallback
 import com.waz.zclient.pages.BaseFragment
 import com.waz.zclient.pages.main.profile.views.{ConfirmationMenu, ConfirmationMenuListener}
 import com.waz.zclient.ui.utils.TextViewUtils
-import com.waz.zclient.utils.{ContextUtils, ViewUtils}
+import com.waz.zclient.utils.{ContextUtils, RichEditText, ViewUtils}
 import com.waz.zclient.views.LoadingIndicatorView
 
 class GiphySharingPreviewFragment extends BaseFragment[GiphySharingPreviewFragment.Container]
@@ -64,7 +64,7 @@ class GiphySharingPreviewFragment extends BaseFragment[GiphySharingPreviewFragme
   private lazy val giphyService = zms.map(_.giphy)
   private lazy val spinnerController = inject[SpinnerController]
 
-  private lazy val searchTerm = Signal[String]()
+  private lazy val searchTerm = Signal[String]("")
   private lazy val isPreviewShown = Signal[Boolean](false)
   private lazy val selectedGif = Signal[Option[AssetData]]()
   private lazy val gifImage: Signal[ImageSource] = selectedGif.map {
@@ -84,11 +84,8 @@ class GiphySharingPreviewFragment extends BaseFragment[GiphySharingPreviewFragme
     )
   } yield searchResults.map(GifData.tupled)
 
-  //TODO Move this signal to NetworkModeService
-  private lazy val isOnline = networkService.networkMode.map(_ => networkService.isOnlineMode)
-
   private lazy val previewImage = returning(view[ImageView](R.id.giphy_preview)) { vh =>
-    isOnline.onUi(isOnline => vh.foreach(_.setClickable(isOnline)))
+    networkService.isOnline.onUi(isOnline => vh.foreach(_.setClickable(isOnline)))
     isPreviewShown.map(isPreview => if (isPreview) showView else hideView)
       .onUi(animate => vh.foreach(animate))
   }
@@ -110,18 +107,6 @@ class GiphySharingPreviewFragment extends BaseFragment[GiphySharingPreviewFragme
       }
     }
     isPreviewShown.map(isPreview => if (isPreview) showView else hideView).onUi(animate => vh.foreach(animate))
-    vh.foreach { v =>
-      v.setConfirmationMenuListener(new ConfirmationMenuListener() {
-        override def confirm(): Unit = isOnline.head.filter(_ == true).foreach(_ => sendGif())
-        override def cancel(): Unit = {
-          isPreviewShown ! false
-          selectedGif ! None
-        }
-      })
-      v.setConfirm(getString(R.string.sharing__image_preview__confirm_action))
-      v.setCancel(getString(R.string.confirmation_menu__cancel))
-      v.setWireTheme(themeController.getThemeDependentOptionsTheme)
-    }
   }
 
   private lazy val toolbar = returning(view[Toolbar](R.id.t__giphy__toolbar)) { vh =>
@@ -133,17 +118,6 @@ class GiphySharingPreviewFragment extends BaseFragment[GiphySharingPreviewFragme
         if (themeController.isDarkTheme) R.drawable.ic_action_search_light
         else R.drawable.ic_action_search_dark
     }.onUi(icon => vh.foreach(_.setNavigationIcon(icon)))
-
-    vh.foreach { v =>
-      v.setNavigationOnClickListener(new View.OnClickListener() {
-        override def onClick(view: View): Unit = {
-          isPreviewShown.currentValue.foreach { _ =>
-            isPreviewShown ! false
-            selectedGif ! None
-          }
-        }
-      })
-    }
   }
   private lazy val giphySearchEditText = returning(view[EditText](R.id.cet__giphy_preview__search)) { vh =>
     vh.foreach { _.afterTextChangedSignal() pipeTo searchTerm }
@@ -152,7 +126,6 @@ class GiphySharingPreviewFragment extends BaseFragment[GiphySharingPreviewFragme
   }
 
   private lazy val errorView = returning(view[TextView](R.id.ttv__giphy_preview__error)) { vh =>
-    isPreviewShown.onUi(_ => vh.foreach(ViewUtils.fadeOutView))
     val isResultsEmpty = giphySearchResults.map(_.isEmpty)
     isResultsEmpty.map(isEmpty => if (isEmpty) View.VISIBLE else View.GONE)
       .onUi(visibility => vh.foreach(_.setVisibility(visibility)))
@@ -164,11 +137,9 @@ class GiphySharingPreviewFragment extends BaseFragment[GiphySharingPreviewFragme
   }
 
   private lazy val recyclerView: ViewHolder[RecyclerView] = returning(view[RecyclerView](R.id.rv__giphy_image_preview)) { vh =>
-    vh.foreach { v =>
-      v.setLayoutManager(new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL))
-      v.setAdapter(giphyGridViewAdapter)
-    }
     isPreviewShown.map(isPreview => if (isPreview) hideView else showView)
+      .onUi(animate => vh.foreach(animate))
+    giphySearchResults.map(results => if (results.isEmpty) hideView else showView)
       .onUi(animate => vh.foreach(animate))
   }
 
@@ -185,7 +156,7 @@ class GiphySharingPreviewFragment extends BaseFragment[GiphySharingPreviewFragme
       }
     },
     assetLoader = BitmapSignal.apply(zms.currentValue.get, _, _)
-  )) { adapter => giphySearchResults.filter(_.nonEmpty).onUi(adapter.setGiphyResults) }
+  )) { adapter => giphySearchResults.onUi(adapter.setGiphyResults) }
 
   override def onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState: Bundle): View =
     inflater.inflate(R.layout.fragment_giphy_preview, container, false)
@@ -193,24 +164,51 @@ class GiphySharingPreviewFragment extends BaseFragment[GiphySharingPreviewFragme
   override def onViewCreated(view: View, savedInstanceState: Bundle): Unit = {
     closeButton
     giphySearchEditText
-    recyclerView
-    errorView
-    confirmationMenu
-    toolbar
-
-    searchTerm.onUi(_ => spinnerController.showSpinner(LoadingIndicatorView.InfiniteLoadingBar))
-    giphySearchResults.onUi(_ => spinnerController.hideSpinner())
-    selectedGif.filter(_.isDefined).onUi(_ => spinnerController.showSpinner(LoadingIndicatorView.InfiniteLoadingBar))
-    isPreviewShown.filter(_ == false).onUi(_ => spinnerController.hideSpinner())
 
     Option(getArguments).orElse(Option(savedInstanceState)).foreach { bundle =>
       giphySearchEditText.foreach(_.setText(bundle.getString(ArgSearchTerm)))
     }
 
+    errorView.foreach(_.setVisibility(View.GONE))
+
+    recyclerView.foreach { v =>
+      v.setLayoutManager(new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL))
+      v.setAdapter(giphyGridViewAdapter)
+    }
+
+    confirmationMenu.foreach { v =>
+      v.setConfirmationMenuListener(new ConfirmationMenuListener() {
+        override def confirm(): Unit = networkService.isOnline.head.filter(_ == true).foreach(_ => sendGif())
+        override def cancel(): Unit = {
+          isPreviewShown ! false
+          selectedGif ! None
+        }
+      })
+      v.setConfirm(getString(R.string.sharing__image_preview__confirm_action))
+      v.setCancel(getString(R.string.confirmation_menu__cancel))
+      v.setWireTheme(themeController.getThemeDependentOptionsTheme)
+      v.setVisibility(View.GONE)
+    }
+
+    toolbar.foreach { v =>
+      v.setNavigationOnClickListener(new View.OnClickListener() {
+        override def onClick(view: View): Unit = {
+          isPreviewShown.currentValue.foreach { _ =>
+            isPreviewShown ! false
+            selectedGif ! None
+          }
+        }
+      })
+    }
+
     val gifDrawable = new ImageAssetDrawable(gifImage, scaleType = ScaleType.CenterInside)
     previewImage.setImageDrawable(gifDrawable)
-    gifDrawable.state
-      .collect { case _ : State.Loaded | _ : State.Failed => () }
+
+    searchTerm.onChanged.onUi(_ => spinnerController.showSpinner(LoadingIndicatorView.InfiniteLoadingBar))
+    giphySearchResults.onChanged.onUi(_ => spinnerController.hideSpinner())
+    selectedGif.filter(_.isDefined).onChanged.onUi(_ => spinnerController.showSpinner(LoadingIndicatorView.InfiniteLoadingBar))
+    isPreviewShown.onChanged.onUi(isPreviewShown => if (!isPreviewShown) spinnerController.hideSpinner())
+    gifDrawable.state.onChanged.collect { case _ : State.Loaded | _ : State.Failed => () }
       .onUi(_ => spinnerController.hideSpinner())
 
     giphyTitle.foreach(_.setVisibility(View.GONE))
@@ -250,29 +248,6 @@ class GiphySharingPreviewFragment extends BaseFragment[GiphySharingPreviewFragme
 }
 
 object GiphySharingPreviewFragment {
-
-  //TODO Move this to Signal class
-  implicit class RichSignal[T](signal: Signal[T]) {
-    def either[B](right: Signal[B]): Signal[Either[T, B]] =
-      signal.map(Left(_): Either[T, B]).orElse(right.map(Right.apply))
-
-    def pipeTo(sourceSignal: SourceSignal[T])(implicit ec: EventContext): Unit =
-      signal.foreach(sourceSignal ! _)
-  }
-
-  implicit class RichEditText(et: EditText) {
-    def afterTextChangedSignal(withInitialValue: Boolean = true): Signal[String] = new Signal[String]() {
-      if (withInitialValue) publish(et.getText.toString)
-      private val textWatcher = new TextWatcher {
-        override def onTextChanged(charSequence: CharSequence, i: Int, i1: Int, i2: Int): Unit = ()
-        override def afterTextChanged(editable: Editable): Unit = publish(editable.toString)
-        override def beforeTextChanged(charSequence: CharSequence, i: Int, i1: Int, i2: Int): Unit = ()
-      }
-
-      override protected def onWire(): Unit = et.addTextChangedListener(textWatcher)
-      override protected def onUnwire(): Unit = et.removeTextChangedListener(textWatcher)
-    }
-  }
 
   val Tag: String = classOf[GiphySharingPreviewFragment].getSimpleName
   val ArgSearchTerm = "SEARCH_TERM"

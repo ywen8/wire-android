@@ -28,8 +28,9 @@ import android.view.View._
 import android.view.ViewGroup.LayoutParams
 import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
 import android.view.{View, ViewGroup}
-import android.widget.{SeekBar, TextView}
+import android.widget.{EditText, SeekBar, TextView}
 import com.waz.model.otr.Client
+import com.waz.utils.events.Signal
 import com.waz.utils.returning
 import com.waz.zclient.ui.views.OnDoubleClickListener
 
@@ -136,6 +137,20 @@ package object utils {
       val thumbDrawable = Option(bar.getThumb)
       val filter = new LightingColorFilter(0xFF000000, color)
       Seq(progressDrawable, thumbDrawable).foreach(_.foreach(_.setColorFilter(filter)))
+    }
+  }
+
+  implicit class RichEditText(val et: EditText) extends AnyVal {
+    def afterTextChangedSignal(withInitialValue: Boolean = false): Signal[String] = new Signal[String]() {
+      if (withInitialValue) publish(et.getText.toString)
+      private val textWatcher = new TextWatcher {
+        override def onTextChanged(charSequence: CharSequence, i: Int, i1: Int, i2: Int): Unit = ()
+        override def afterTextChanged(editable: Editable): Unit = publish(editable.toString)
+        override def beforeTextChanged(charSequence: CharSequence, i: Int, i1: Int, i2: Int): Unit = ()
+      }
+
+      override protected def onWire(): Unit = et.addTextChangedListener(textWatcher)
+      override protected def onUnwire(): Unit = et.removeTextChangedListener(textWatcher)
     }
   }
 
