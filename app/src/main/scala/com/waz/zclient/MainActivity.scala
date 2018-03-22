@@ -126,7 +126,7 @@ class MainActivity extends BaseActivity
 
     appEntryController.entryStage.onUi {
       case EnterAppStage =>
-        if (getSupportFragmentManager.findFragmentByTag(MainPhoneFragment.TAG) == null) replaceMainFragment(new MainPhoneFragment, MainPhoneFragment.TAG)
+        if (getSupportFragmentManager.findFragmentByTag(MainPhoneFragment.Tag) == null) replaceMainFragment(new MainPhoneFragment, MainPhoneFragment.Tag)
       case DeviceLimitStage => showUnableToRegisterOtrClientDialog()
       case Unknown =>
         error("Unknown state")
