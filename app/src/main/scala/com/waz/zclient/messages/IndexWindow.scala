@@ -101,7 +101,7 @@ class IndexWindow(cursor: RecyclerCursor, notifier: RecyclerNotifier, size: Int 
     data = items
     totalCount = c.size
     val count = math.min(change.count, cursor.count - offset - change.index)
-    if (count > 5 && count > items.size / 2) {
+    if (count > 5 && count > items.size / 2 || items.size == totalCount) {
       // revert to reporting full data set change if detected change is big (most of the items, excluding small windows)
       notifier.notifyDataSetChanged()
     } else change match {

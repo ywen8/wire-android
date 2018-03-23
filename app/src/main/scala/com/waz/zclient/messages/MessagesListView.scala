@@ -152,7 +152,7 @@ class MessagesListView(context: Context, attrs: AttributeSet, style: Int) extend
     super.onLayout(changed, l, t, r, b)
   }
 
-  def scrollToBottom(): Unit = scrollController.onScrollToBottomRequested ! (())
+  def scrollToBottom(): Unit = scrollController.onScrollToBottomRequested ! true
 }
 
 object MessagesListView {

@@ -34,7 +34,7 @@ class ScrollController(adapter: MessagesListView.Adapter, listHeight: Signal[Int
   private var prevConv = Option.empty[ConvId]
 
   val scrollToPositionRequested = EventStream[Int]
-  val onScrollToBottomRequested = EventStream[Unit]
+  val onScrollToBottomRequested = EventStream[Boolean]
   private val onListLoaded = EventStream[UnreadIndex]
   private val onMessageAdded = EventStream[Int]
 
@@ -56,13 +56,13 @@ class ScrollController(adapter: MessagesListView.Adapter, listHeight: Signal[Int
 
   adapter.registerAdapterDataObserver(new RecyclerView.AdapterDataObserver {
     override def onChanged(): Unit = {
-      ZLog.verbose(s"AdapterDataObserver onChanged")
+      ZLog.verbose(s"AdapterDataObserver onChanged prevCount: $prevCount, adapter item count: ${adapter.getItemCount}, prevConv: $prevConv, adapter conv: ${adapter.getConvId}")
       if (prevConv.isDefined && prevConv != adapter.getConvId || prevCount == 0) {
         targetPosition match {
           case Some(pos) =>
             scrollToPositionRequested ! pos
           case _ if shouldScrollToBottom && lastVisiblePosition.lastMessage =>
-            onScrollToBottomRequested ! (())
+            onScrollToBottomRequested ! false
           case _ =>
             onListLoaded ! adapter.getUnreadIndex
         }
@@ -73,15 +73,15 @@ class ScrollController(adapter: MessagesListView.Adapter, listHeight: Signal[Int
     }
 
     override def onItemRangeInserted(positionStart: Int, itemCount: Int): Unit = {
-      ZLog.verbose(s"AdapterDataObserver onItemRangeInserted $positionStart $itemCount")
-      if (adapter.getItemCount == positionStart + itemCount)
+      ZLog.verbose(s"AdapterDataObserver onItemRangeInserted positionStart : $positionStart, itemCount: $itemCount, prevCount: $prevCount, adapter item count: ${adapter.getItemCount}")
+      if (adapter.getItemCount == positionStart + itemCount && positionStart != 0)
           onMessageAdded ! positionStart + itemCount - 1
     }
   })
 
   val onScroll: EventStream[Scroll] = EventStream.union(
     onListLoaded.filter(_.index > 0).map { case UnreadIndex(pos) => PositionScroll(pos, smooth = false) },
-    onScrollToBottomRequested.map(_ => BottomScroll(smooth = true)),
+    onScrollToBottomRequested.map(smooth => BottomScroll(smooth = smooth)),
     listHeight.onChanged.filter(_ => shouldScrollToBottom && targetPosition.isEmpty && lastVisiblePosition.lastMessage).map(_ => BottomScroll(smooth = false)),
     listHeight.onChanged.filter(_ => !shouldScrollToBottom && targetPosition.nonEmpty).map(_ => PositionScroll(targetPosition.get, smooth = false)),
     onMessageAdded.filter(_ => !dragging && targetPosition.isEmpty && lastVisiblePosition.lastMessage).map(pos => PositionScroll(pos, smooth = true)),
