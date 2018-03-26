@@ -19,6 +19,7 @@ package com.waz.zclient.preferences.pages
 
 import android.app.Activity
 import android.content.Context
+import android.net.Uri
 import android.os.Bundle
 import android.support.v4.app.ShareCompat
 import android.util.AttributeSet
@@ -57,7 +58,7 @@ class BackupExportView(context: Context, attrs: AttributeSet, style: Int) extend
       Some(accManager) <- z.accounts.activeAccountManager.head
       res              <- accManager.exportDatabase()
     } yield res).map { file =>
-      val intent = ShareCompat.IntentBuilder.from(context.asInstanceOf[Activity]).setType("text/plain").setText("backup").getIntent
+      val intent = ShareCompat.IntentBuilder.from(context.asInstanceOf[Activity]).setType("application/octet-stream").setStream(Uri.fromFile(file)).getIntent
       context.startActivity(intent)
       spinnerController.showDimmedSpinner(show = false)
     }
