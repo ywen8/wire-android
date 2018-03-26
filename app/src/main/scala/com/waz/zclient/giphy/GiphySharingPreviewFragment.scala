@@ -120,7 +120,6 @@ class GiphySharingPreviewFragment extends BaseFragment[GiphySharingPreviewFragme
     }.onUi(icon => vh.foreach(_.setNavigationIcon(icon)))
   }
   private lazy val giphySearchEditText = returning(view[EditText](R.id.cet__giphy_preview__search)) { vh =>
-    vh.foreach { _.afterTextChangedSignal() pipeTo searchTerm }
     isPreviewShown.map(isPreview => if (isPreview) hideView else showView)
       .onUi(animate => vh.foreach(animate))
   }
@@ -163,12 +162,12 @@ class GiphySharingPreviewFragment extends BaseFragment[GiphySharingPreviewFragme
 
   override def onViewCreated(view: View, savedInstanceState: Bundle): Unit = {
     closeButton
-    giphySearchEditText
 
     Option(getArguments).orElse(Option(savedInstanceState)).foreach { bundle =>
       giphySearchEditText.foreach(_.setText(bundle.getString(ArgSearchTerm)))
     }
 
+    giphySearchEditText.foreach { _.afterTextChangedSignal() pipeTo searchTerm }
     errorView.foreach(_.setVisibility(View.GONE))
 
     recyclerView.foreach { v =>
@@ -206,7 +205,7 @@ class GiphySharingPreviewFragment extends BaseFragment[GiphySharingPreviewFragme
 
     EventStream.union(
       searchTerm.onChanged.map(_ => true),
-      selectedGif.filter(_.isDefined).onChanged.map(_ => true),
+      selectedGif.onChanged.filter(_.isDefined).map(_ => true),
       giphySearchResults.onChanged.map(_ => false),
       isPreviewShown.onChanged.filter(_ == false),
       gifDrawable.state.onChanged.collect { case _ : State.Loaded | _ : State.Failed => false }
