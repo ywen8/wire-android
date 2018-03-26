@@ -77,6 +77,7 @@ class SingleParticipantFragment extends FragmentHelper {
         }
         val old = view.getCompoundDrawables
         view.setCompoundDrawablesRelative(shield.orNull, old(1), old(2), old(3))
+        view.setContentDescription(if (visible) "verified" else "unverified")
       }
     }
   }
@@ -105,7 +106,7 @@ class SingleParticipantFragment extends FragmentHelper {
       pager.setAdapter(new TabbedParticipantPagerAdapter(participantOtrDeviceAdapter, new FooterMenuCallback {
 
         override def onLeftActionClicked(): Unit =
-          participantsController.otherParticipant.map(_.expiresAt.isDefined).map {
+          participantsController.otherParticipant.map(_.expiresAt.isDefined).head.foreach {
             case false => participantsController.isGroup.head.flatMap {
               case false => userAccountsController.hasCreateConvPermission.head.map {
                 case true => createConvController.onShowCreateConversation ! true
