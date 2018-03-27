@@ -17,11 +17,10 @@
  */
 package com.waz.zclient.conversationlist
 
-import com.waz.ZLog.ImplicitTag._
 import com.waz.model.ConversationData.ConversationType
 import com.waz.model._
 import com.waz.service.ZMessaging
-import com.waz.threading.SerialDispatchQueue
+import com.waz.threading.{CancellableFuture, SerialDispatchQueue}
 import com.waz.utils._
 import com.waz.utils.events.{AggregatingSignal, EventContext, EventStream, Signal}
 import com.waz.zclient.common.controllers.UserAccountsController
@@ -107,7 +106,7 @@ object ConversationListController {
 
     private def updateEvents(conv: ConvId) = changeEvents.map(_.get(conv)).collect { case Some(m) => m }
 
-    private def getLastMessage(conv: ConvId) = zms.storage.db { MessageData.MessageDataDao.last(conv)(_) }
+    private def getLastMessage(conv: ConvId) = CancellableFuture.lift(zms.storage.db.read { MessageData.MessageDataDao.last(conv)(_) })
 
     def apply(conv: ConvId): Signal[Option[MessageData]] = cache.getOrElseUpdate(conv,
       new AggregatingSignal[MessageData, Option[MessageData]](updateEvents(conv), getLastMessage(conv), {
