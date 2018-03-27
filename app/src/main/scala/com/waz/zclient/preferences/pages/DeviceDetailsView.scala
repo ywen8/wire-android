@@ -199,9 +199,8 @@ case class DeviceDetailsViewController(view: DeviceDetailsView, clientId: Client
   client.map(_.isVerified).onUi(view.setVerified)
   fingerPrint.onUi{ _.foreach(view.setFingerPrint) }
 
-  val otrClientsService = zms.map(_.otrClientsService)
-
   view.onVerifiedChecked { checked =>
+    //TODO should this be a signal? Will create a new subscription every time the view is clicked...
     for {
       userId     <- accountManager.map(_.userId)
       otrStorage <- accountManager.map(_.storage.otrClientsStorage)
@@ -235,21 +234,21 @@ case class DeviceDetailsViewController(view: DeviceDetailsView, clientId: Client
 
   private def removeDevice(password: Password): Unit = {
     for {
-      am  <- accountManager.head
-      otr <- otrClientsService.head
+      am           <- accountManager.head
       limitReached <- am.clientState.head.map {
         case LimitReached => true
         case _ => false
       }
-      _ <- otr.deleteClient(clientId, password).map { //TODO use password instead of str
+      _ <- am.deleteClient(clientId, password).map { //TODO use password instead of str
         case Right(_) =>
           for {
             _ <- passwordController.setPassword(password)
-            _ <- if (limitReached) am.registerClient() else Future.successful({})
-          } yield context.asInstanceOf[BaseActivity].onBackPressed()
+            _ <- if (limitReached) am.registerClient(Some(password)) else Future.successful({})
+            _ <- Threading.Ui(context.asInstanceOf[BaseActivity].onBackPressed()) //TODO it can take a while to get here, maybe we need a spinner...
+          } yield {}
         case Left(ErrorResponse(_, msg, _)) =>
-          showRemoveDeviceDialog(Some(getString(R.string.otr__remove_device__error)))
-      } (Threading.Ui)
+          Threading.Ui(showRemoveDeviceDialog(Some(getString(R.string.otr__remove_device__error))))
+      }
     } yield ()
   }
 
@@ -263,6 +262,6 @@ case class DeviceDetailsViewController(view: DeviceDetailsView, clientId: Client
         .add(fragment, RemoveDeviceDialog.FragmentTag)
         .addToBackStack(RemoveDeviceDialog.FragmentTag)
         .commit
-    }
+    } (Threading.Ui)
   }
 }
