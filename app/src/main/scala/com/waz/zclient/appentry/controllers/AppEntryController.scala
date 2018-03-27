@@ -100,6 +100,7 @@ class AppEntryController(implicit inj: Injector, eventContext: EventContext) ext
     stage match {
       case NoAccountState(FirstScreen) => tracking.track(OpenedStartScreen())
       case NoAccountState(RegisterTeamScreen) => tracking.track(OpenedTeamRegistration())
+      case EnterAppStage => ZMessaging.currentAccounts.updateCurrentAccount(_.copy(firstLogin = false))
       case _ =>
     }
   }
