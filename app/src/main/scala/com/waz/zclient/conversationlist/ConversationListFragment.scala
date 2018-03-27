@@ -29,7 +29,7 @@ import com.waz.ZLog.ImplicitTag._
 import com.waz.ZLog._
 import com.waz.model.ConversationData.ConversationType._
 import com.waz.model._
-import com.waz.service.ZMessaging
+import com.waz.service.{AccountsService, ZMessaging}
 import com.waz.utils.events.{Signal, Subscription}
 import com.waz.utils.returning
 import com.waz.zclient.common.controllers.UserAccountsController
@@ -60,6 +60,7 @@ import com.waz.zclient.{FragmentHelper, OnBackPressedListener, R, ViewHolder}
 abstract class ConversationListFragment extends BaseFragment[ConversationListFragment.Container] with FragmentHelper {
 
   val layoutId: Int
+  lazy val accounts               = inject[AccountsService]
   lazy val userAccountsController = inject[UserAccountsController]
   lazy val conversationController = inject[ConversationController]
   lazy val usersController        = inject[UsersController]
@@ -172,7 +173,7 @@ class NormalConversationFragment extends ConversationListFragment {
   } yield clients
 
   private lazy val unreadCount = (for {
-    Some(accountId) <- ZMessaging.currentAccounts.activeAccountPref.signal
+    Some(accountId) <- accounts.activeAccountId
     count  <- userAccountsController.unreadCount.map(_.filterNot(_._1 == accountId).values.sum)
   } yield count).orElse(Signal.const(0))
 

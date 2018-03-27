@@ -199,7 +199,7 @@ case class DeviceDetailsViewController(view: DeviceDetailsView, clientId: Client
   client.map(_.isVerified).onUi(view.setVerified)
   fingerPrint.onUi{ _.foreach(view.setFingerPrint) }
 
-  val otrClientsService = accountManager.map(_.clientsService)
+  val otrClientsService = zms.map(_.otrClientsService)
 
   view.onVerifiedChecked { checked =>
     for {

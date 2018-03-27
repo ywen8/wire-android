@@ -102,7 +102,6 @@ class BaseActivity extends AppCompatActivity
 
   override def onDestroy() = {
     globalTrackingController.flushEvents()
-    ZMessaging.currentUi.onDestroy()
     permissions.unregisterProvider(this)
     super.onDestroy()
   }

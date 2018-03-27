@@ -80,7 +80,7 @@ class AccountTabButton(val context: Context, val attrs: AttributeSet, val defSty
 
   val selected = (for {
     acc    <- accountId
-    active <- ZMessaging.currentAccounts.activeAccountPref.signal
+    active <- accounts.activeAccountId
   } yield active.contains(acc))
     .disableAutowiring()
 

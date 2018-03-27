@@ -68,7 +68,7 @@ class AppEntryActivity extends BaseActivity
 
   import Threading.Implicits.Ui
 
-  private lazy val unsplashInitImageAsset = ImageAssetFactory.getImageAsset(AndroidURIUtil.parse(UNSPLASH_API_URL))
+//  private lazy val unsplashInitImageAsset = ImageAssetFactory.getImageAsset(AndroidURIUtil.parse(UNSPLASH_API_URL))
   private var unsplashInitLoadHandle: LoadHandle = null
   private lazy val progressView = ViewUtils.getView(this, R.id.liv__progress).asInstanceOf[LoadingIndicatorView]
   private lazy val countryController: CountryController = new CountryController(this)
@@ -115,11 +115,11 @@ class AppEntryActivity extends BaseActivity
       case None => showFragment(CreateTeamFragment.newInstance, CreateTeamFragment.TAG)
     }
 
-    unsplashInitLoadHandle = unsplashInitImageAsset.getSingleBitmap(AppEntryActivity.PREFETCH_IMAGE_WIDTH, new BitmapCallback() {
-      def onBitmapLoaded(b: Bitmap): Unit = {
-        verbose(s"onBitmapLoaded $b")
-      }
-    })
+//    unsplashInitLoadHandle = unsplashInitImageAsset.getSingleBitmap(AppEntryActivity.PREFETCH_IMAGE_WIDTH, new BitmapCallback() {
+//      def onBitmapLoaded(b: Bitmap): Unit = {
+//        verbose(s"onBitmapLoaded $b")
+//      }
+//    })
 
 //    appEntryController.entryStage.onUi {
 //      case EnterAppStage =>
@@ -307,7 +307,7 @@ class AppEntryActivity extends BaseActivity
     KeyboardUtils.showKeyboard(this)
   }
 
-  def getUnsplashImageAsset: ImageAsset = unsplashInitImageAsset
+  def getUnsplashImageAsset: ImageAsset = null// unsplashInitImageAsset
 
   def showError(entryError: EntryError, okCallback: => Unit = {}): Unit =
     ViewUtils.showAlertDialog(this,
