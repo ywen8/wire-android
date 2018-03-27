@@ -141,7 +141,7 @@ package object utils {
   }
 
   implicit class RichEditText(val et: EditText) extends AnyVal {
-    def afterTextChangedSignal(withInitialValue: Boolean = false): Signal[String] = new Signal[String]() {
+    def afterTextChangedSignal(withInitialValue: Boolean = true): Signal[String] = new Signal[String]() {
       if (withInitialValue) publish(et.getText.toString)
       private val textWatcher = new TextWatcher {
         override def onTextChanged(charSequence: CharSequence, i: Int, i1: Int, i2: Int): Unit = ()
