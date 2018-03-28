@@ -353,8 +353,6 @@ class ViewHolder[T <: View](id: Int, finder: ViewFinder) {
 
   def fold[B](ifEmpty: => B)(f: T => B): B = opt.fold(ifEmpty)(f)
 
-  def map[A](f: T => A): Option[A] = Option(get).map(f)
-
   def foreach(f: T => Unit): Unit = opt.foreach(f)
 
   def map[A](f: T => A): Option[A] = opt.map(f)
