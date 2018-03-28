@@ -126,10 +126,9 @@ trait ServiceHelper extends Service with Injectable with WireContext with EventC
 
 trait FragmentHelper extends Fragment with OnBackPressedListener with ViewFinder with Injectable with EventContext {
 
-  lazy implicit val injector = getActivity.asInstanceOf[WireContext].injector
+  lazy implicit val injector: Injector = getActivity.asInstanceOf[WireContext].injector
   override implicit def eventContext: EventContext = this
 
-  implicit def holder_to_view[T <: View](h: ViewHolder[T]): T = h.get
   private var views: List[ViewHolder[_]] = Nil
 
   @SuppressLint(Array("com.waz.ViewUtils"))
@@ -342,6 +341,8 @@ trait ActivityHelper extends AppCompatActivity with ViewFinder with Injectable w
 class ViewHolder[T <: View](id: Int, finder: ViewFinder) {
   private var view = Option.empty[T]
   private var onClickListener = Option.empty[OnClickListener]
+
+  def getOpt: Option[T] = view
 
   def get: T = view.getOrElse { returning(finder.findById[T](id)) { t => view = Some(t) } }
 

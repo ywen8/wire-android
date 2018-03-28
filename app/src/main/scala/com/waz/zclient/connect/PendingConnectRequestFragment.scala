@@ -138,7 +138,7 @@ class PendingConnectRequestFragment extends BaseFragment[PendingConnectRequestFr
       v.setPaddingRelative(0, paddingTop, 0, 0)
     }
 
-    footerMenu.setCallback(new FooterMenuCallback {
+    footerMenu.foreach(_.setCallback(new FooterMenuCallback {
       override def onLeftActionClicked(): Unit = userConnection.head foreach {
         case ConnectionStatus.IGNORED =>
           usersController.connectToUser(userId).foreach(_.foreach { _ =>
@@ -159,7 +159,7 @@ class PendingConnectRequestFragment extends BaseFragment[PendingConnectRequestFr
           getContainer.showRemoveConfirmation(userId)
         case _ =>
       }
-    })
+    }))
 
   }
 

@@ -91,7 +91,7 @@ class SendConnectRequestFragment extends BaseFragment[SendConnectRequestFragment
     user.map(_.expiresAt.isDefined).map {
       case true => ("", "")
       case _ => (getString(R.string.send_connect_request__connect_button__text), getString(R.string.glyph__plus))
-    }.onUi{ case (label, glyph) =>
+    }.onUi { case (label, glyph) =>
       vh.foreach { footer =>
         footer.setLeftActionLabelText(label)
         footer.setLeftActionText(glyph)
@@ -115,7 +115,7 @@ class SendConnectRequestFragment extends BaseFragment[SendConnectRequestFragment
     zms.flatMap(z => user.map(_.isGuest(z.teamId))).map {
       case true => View.VISIBLE
       case _ => View.GONE
-    }.onUi(indicator.setVisibility(_))
+    }.onUi(visibility => indicator.foreach(_.setVisibility(visibility)))
   }
 
   private lazy val guestIconDrawable = themeController.darkThemeSet.map {
@@ -139,6 +139,7 @@ class SendConnectRequestFragment extends BaseFragment[SendConnectRequestFragment
 
   override def onCreateAnimation(transit: Int, enter: Boolean, nextAnim: Int): Animation = {
     def defaultAnimation = super.onCreateAnimation(transit, enter, nextAnim)
+
     def isConvRequester = {
       val userRequester = IConnectStore.UserRequester.valueOf(getArguments.getString(ArgUserRequester))
       userRequester == IConnectStore.UserRequester.CONVERSATION
@@ -181,11 +182,11 @@ class SendConnectRequestFragment extends BaseFragment[SendConnectRequestFragment
 
     if (userRequester == IConnectStore.UserRequester.PARTICIPANTS) {
       backgroundContainer.setBackgroundColor(Color.TRANSPARENT)
-      footerMenu.setVisibility(View.VISIBLE)
-      connectButton.setVisibility(View.GONE)
+      footerMenu.foreach(_.setVisibility(View.VISIBLE))
+      connectButton.foreach(_.setVisibility(View.GONE))
     } else {
-      footerMenu.setVisibility(View.GONE)
-      connectButton.setVisibility(View.VISIBLE)
+      footerMenu.foreach(_.setVisibility(View.GONE))
+      connectButton.foreach(_.setVisibility(View.VISIBLE))
     }
 
     footerMenu.foreach(_.setCallback(new FooterMenuCallback {
@@ -193,6 +194,7 @@ class SendConnectRequestFragment extends BaseFragment[SendConnectRequestFragment
         case false => showConnectButtonInsteadOfFooterMenu()
         case _ =>
       }
+
       override def onRightActionClicked(): Unit = removeConvMemberFeatureEnabled.head foreach {
         case true => getContainer.showRemoveConfirmation(userToConnectId)
         case _ =>
@@ -206,13 +208,11 @@ class SendConnectRequestFragment extends BaseFragment[SendConnectRequestFragment
   }
 
   private def showConnectButtonInsteadOfFooterMenu(): Unit = {
-    if (connectButton.getVisibility != View.VISIBLE) {
+    connectButton.getOpt.filter(_.getVisibility != View.VISIBLE).foreach { connectButton =>
       footerMenu.foreach(_.setVisibility(View.GONE))
-      connectButton.foreach { btn =>
-        btn.setAlpha(0)
-        btn.setVisibility(View.VISIBLE)
-        ViewUtils.fadeInView(btn, getInt(R.integer.framework_animation_duration_long))
-      }
+      connectButton.setAlpha(0)
+      connectButton.setVisibility(View.VISIBLE)
+      ViewUtils.fadeInView(connectButton, getInt(R.integer.framework_animation_duration_long))
     }
   }
 }

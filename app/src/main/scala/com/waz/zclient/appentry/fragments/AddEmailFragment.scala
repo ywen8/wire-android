@@ -67,7 +67,7 @@ case class AddEmailFragment() extends BaseFragment[Container] with FragmentHelpe
         case _ =>
       }
     }
-    confirmationButton.setAccentColor(Color.WHITE)
+    confirmationButton.foreach(_.setAccentColor(Color.WHITE))
     setConfirmationButtonActive(addEmailController.isValid.currentValue.getOrElse(false))
     addEmailController.isValid.onUi { setConfirmationButtonActive }
   }
@@ -79,7 +79,7 @@ case class AddEmailFragment() extends BaseFragment[Container] with FragmentHelpe
   }
 
   private def setConfirmationButtonActive(active: Boolean): Unit =
-    confirmationButton.setState(if(active) CONFIRM else NONE)
+    confirmationButton.foreach(_.setState(if(active) CONFIRM else NONE))
 
   override def onBackPressed(): Boolean = true
 }

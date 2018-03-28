@@ -185,7 +185,7 @@ class ConversationFragment extends BaseFragment[ConversationFragment.Container] 
 
   private def hideGuestsBanner(): Unit = {
     openBanner = false
-    guestsBanner.setVisibility(View.GONE)
+    guestsBanner.foreach(_.setVisibility(View.GONE))
   }
 
   override def onCreateView(inflater: LayoutInflater, viewGroup: ViewGroup, savedInstanceState: Bundle): View = {

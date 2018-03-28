@@ -66,20 +66,20 @@ class EmailVerifyEmailFragment extends BaseFragment[EmailVerifyEmailFragment.Con
 
   override def onResume(): Unit = {
     super.onResume()
-    backButton.setOnClickListener(this)
-    resendTextView.setOnClickListener(this)
+    backButton.foreach(_.setOnClickListener(this))
+    resendTextView.foreach(_.setOnClickListener(this))
   }
 
   override def onPause(): Unit = {
     KeyboardUtils.hideKeyboard(getActivity)
-    backButton.setOnClickListener(null)
-    resendTextView.setOnClickListener(null)
+    backButton.foreach(_.setOnClickListener(null))
+    resendTextView.foreach(_.setOnClickListener(null))
     super.onPause()
   }
 
   private def setEmailText(email: String): Unit = {
-    checkEmailTextView.setText(getResources.getString(R.string.profile__email__verify__instructions, email))
-    TextViewUtils.boldText(checkEmailTextView)
+    checkEmailTextView.foreach(_.setText(getResources.getString(R.string.profile__email__verify__instructions, email)))
+    checkEmailTextView.foreach(TextViewUtils.boldText)
   }
 
   private def back(): Unit = {
@@ -97,12 +97,12 @@ class EmailVerifyEmailFragment extends BaseFragment[EmailVerifyEmailFragment.Con
       case R.id.ll__activation_button__back =>
         back()
       case R.id.ttv__pending_email__resend =>
-        didntGetEmailTextView.animate.alpha(0).start()
-        resendTextView.animate.alpha(0).withEndAction(new Runnable() {
+        didntGetEmailTextView.foreach(_.animate.alpha(0).start())
+        resendTextView.foreach(_.animate.alpha(0).withEndAction(new Runnable() {
           def run(): Unit = {
-            resendTextView.setEnabled(false)
+            resendTextView.foreach(_.setEnabled(false))
           }
-        }).start()
+        }).start())
         appEntryController.resendActivationEmail()
     }
   }

@@ -180,36 +180,40 @@ class SearchUIFragment extends BaseFragment[SearchUIFragment.Container]
   private var containerSub = Option.empty[Subscription] //TODO remove subscription...
 
   override def onViewCreated(rootView: View, savedInstanceState: Bundle): Unit = {
-    searchResultRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity))
-    searchResultRecyclerView.setAdapter(adapter)
+    searchResultRecyclerView.foreach { rv =>
+      rv.setLayoutManager(new LinearLayoutManager(getActivity))
+      rv.setAdapter(adapter)
+    }
 
-    searchBox.setCallback(searchBoxViewCallback)
+    searchBox.foreach(_.setCallback(searchBoxViewCallback))
 
-    inviteButton.setText(R.string.pref_invite_title)
-    inviteButton.setGlyph(R.string.glyph__invite)
+    inviteButton.foreach { btn =>
+      btn.setText(R.string.pref_invite_title)
+      btn.setGlyph(R.string.glyph__invite)
+    }
 
     emptyListButton.foreach(_.onClick(browser.openUrl(AndroidURIUtil.parse(getString(R.string.pick_user_manage_team_url)))))
     errorMessageView
     toolbarTitle
 
     // Use constant style for left side start ui
-    startUiToolbar.setVisibility(View.VISIBLE)
-    searchBox.applyDarkTheme(true)
-    startUiToolbar.inflateMenu(R.menu.toolbar_close_white)
-    startUiToolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
-      override def onMenuItemClick(item: MenuItem): Boolean = {
-        item.getItemId match {
-          case R.id.close =>
-            closeStartUI()
+    startUiToolbar.foreach(_.setVisibility(View.VISIBLE))
+    searchBox.foreach(_.applyDarkTheme(true))
+    startUiToolbar.foreach { toolbar =>
+      toolbar.inflateMenu(R.menu.toolbar_close_white)
+      toolbar.setOnMenuItemClickListener(new Toolbar.OnMenuItemClickListener() {
+        override def onMenuItemClick(item: MenuItem): Boolean = {
+          if (item.getItemId == R.id.close) closeStartUI()
+          false
         }
-        false
-      }
-    })
+      })
+    }
 
-    searchBox.setOnEditorActionListener(new OnEditorActionListener {
+
+    searchBox.foreach(_.setOnEditorActionListener(new OnEditorActionListener {
       override def onEditorAction(v: TextView, actionId: Int, event: KeyEvent): Boolean =
         if (actionId == EditorInfo.IME_ACTION_SEARCH) keyboard.hideKeyboardIfVisible() else false
-    })
+    }))
 
     val tabs = findById[TabLayout](rootView, R.id.pick_user_tabs)
     adapter.peopleOrServices.map(if (_) 1 else 0).head.foreach(tabs.getTabAt(_).select())
@@ -220,7 +224,7 @@ class SearchUIFragment extends BaseFragment[SearchUIFragment.Container]
           case 0 => adapter.peopleOrServices ! false
           case 1 => adapter.peopleOrServices ! true
         }
-        searchBox.removeAllElements()
+        searchBox.foreach(_.removeAllElements())
       }
 
       override def onTabUnselected(tab: TabLayout.Tab): Unit = {}

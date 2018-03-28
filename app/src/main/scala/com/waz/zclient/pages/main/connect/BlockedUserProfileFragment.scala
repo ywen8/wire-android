@@ -152,43 +152,56 @@ class BlockedUserProfileFragment extends BaseFragment[BlockedUserProfileFragment
   override def onViewCreated(view: View, savedInstanceState: Bundle): Unit = {
     userNameView
     userUsernameView
-    profileImageView.setImageDrawable(profileDrawable)
+    profileImageView.foreach(_.setImageDrawable(profileDrawable))
     unblockButton.foreach(_.setIsFilled(true))
     cancelButton.foreach(_.setIsFilled(true))
     smallUnblockButton.foreach(_.setIsFilled(true))
 
     if (userRequester.contains(IConnectStore.UserRequester.PARTICIPANTS)) {
-      unblockButton.setVisibility(View.GONE)
+      unblockButton.foreach(_.setVisibility(View.GONE))
       toggleUnblockAndFooterMenu(isShowingFooterMenu)
-      footerMenu.setLeftActionLabelText(getString(R.string.connect_request__footer__blocked_label))
-      footerMenu.setLeftActionText(getString(R.string.glyph__block))
-      footerMenu.setRightActionText(getString(R.string.glyph__minus))
-      footerMenu.setCallback(new FooterMenuCallback() {
-        override def onLeftActionClicked(): Unit = toggleUnblockAndFooterMenu(false)
-        override def onRightActionClicked(): Unit = getContainer.showRemoveConfirmation(userId)
-      })
-      cancelButton.setEnabled(true)
-      cancelButton.foreach(_.onClick(toggleUnblockAndFooterMenu(true)))
-      smallUnblockButton.setEnabled(true)
-      smallUnblockButton.foreach(_.onClick(unblockUser(userId)))
-      userNameView.setPaddingRelative(0, 0, 0, 0)
+      footerMenu.foreach { menu =>
+        menu.setLeftActionLabelText(getString(R.string.connect_request__footer__blocked_label))
+        menu.setLeftActionText(getString(R.string.glyph__block))
+        menu.setRightActionText(getString(R.string.glyph__minus))
+        menu.setCallback(new FooterMenuCallback() {
+          override def onLeftActionClicked(): Unit = toggleUnblockAndFooterMenu(false)
+          override def onRightActionClicked(): Unit = getContainer.showRemoveConfirmation(userId)
+        })
+      }
+      cancelButton.foreach { btn =>
+        btn.setEnabled(true)
+        btn.onClick(toggleUnblockAndFooterMenu(true))
+      }
+      smallUnblockButton.foreach { btn =>
+        btn.setEnabled(true)
+        btn.onClick(unblockUser(userId))
+      }
+      userNameView.foreach(_.setPaddingRelative(0, 0, 0, 0))
     } else {
-      footerMenu.setVisibility(View.GONE)
-      unblockMenu.setVisibility(View.GONE)
-      unblockButton.setVisibility(View.VISIBLE)
-      unblockButton.foreach(_.onClick(unblockUser(userId)))
-      userNameView.setPaddingRelative(0, getDimenPx(R.dimen.wire__padding__regular), 0, 0)
+      footerMenu.foreach(_.setVisibility(View.GONE))
+      unblockMenu.foreach(_.setVisibility(View.GONE))
+      unblockButton.foreach { btn =>
+        btn.setVisibility(View.VISIBLE)
+        btn.onClick(unblockUser(userId))
+      }
+
+      userNameView.foreach(_.setPaddingRelative(0, getDimenPx(R.dimen.wire__padding__regular), 0, 0))
     }
   }
 
+
   private def toggleUnblockAndFooterMenu(showFooterMenu: Boolean) = {
-    if (showFooterMenu) {
-      footerMenu.setVisibility(View.VISIBLE)
-      unblockMenu.setVisibility(View.GONE)
-    } else {
-      footerMenu.setVisibility(View.GONE)
-      unblockMenu.setVisibility(View.VISIBLE)
-    }
+//    footerMenu.foreach(_.setVisibility(if (showFooterMenu) View.VISIBLE else View.GONE))
+//    footerMenu.foreach(_.setVisibility(showFooterMenu ? (View.VISIBLE, View.GONE)))
+
+//    if (showFooterMenu) {
+//      footerMenu.setVisibility(View.VISIBLE)
+//      unblockMenu.setVisibility(View.GONE)
+//    } else {
+//      footerMenu.setVisibility(View.GONE)
+//      unblockMenu.setVisibility(View.VISIBLE)
+//    }
     isShowingFooterMenu = showFooterMenu
   }
 
