@@ -22,7 +22,6 @@ import android.view._
 import android.widget.LinearLayout
 import com.waz.utils.events.EventContext
 import com.waz.zclient._
-import com.waz.zclient.appentry.AppEntryButtonOnTouchListener
 import com.waz.zclient.appentry.controllers.AppEntryController
 
 case class FirstScreenViewHolder(root: View)(implicit val context: Context, eventContext: EventContext, injector: Injector) extends ViewHolder with Injectable {
@@ -36,7 +35,7 @@ case class FirstScreenViewHolder(root: View)(implicit val context: Context, even
   def onCreate(): Unit = {
 //    createAccountButton.setOnTouchListener(AppEntryButtonOnTouchListener({
       () =>
-        appEntryController.goToLoginScreen()
+//        appEntryController.goToLoginScreen()
 //        TODO
 //        if (LayoutSpec.isPhone(context))
 //          signInController.uiSignInState ! SignInMethod(Register, Phone)

@@ -35,7 +35,7 @@ class UserAccountsController(implicit injector: Injector, context: Context, ec: 
   val zms             = inject[Signal[ZMessaging]]
   val accountsService = inject[AccountsService]
 
-  val accounts = accountsService.loggedInAccounts.map(_.toSeq.sortBy(acc => (acc.teamId.isDefined, acc.id.str)))
+  val accounts = accountsService.accountManagers.map(_.toSeq.sortBy(acc => (acc.teamId.isDefined, acc.userId.str)))
   val convCtrl = inject[ConversationController]
 
   lazy val currentUser = for {

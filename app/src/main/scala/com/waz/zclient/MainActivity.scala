@@ -124,7 +124,7 @@ class MainActivity extends BaseActivity
       case _ =>
     }
 
-    accountsService.getActiveAccountManager.flatMap {
+    accountsService.activeAccountManager.head.flatMap {
       case Some(am) => am.clientState.head.map {
         case Registered(_) => if (getSupportFragmentManager.findFragmentByTag(MainPhoneFragment.Tag) == null) replaceMainFragment(new MainPhoneFragment, MainPhoneFragment.Tag)
         case LimitReached  => showUnableToRegisterOtrClientDialog()
@@ -265,8 +265,8 @@ class MainActivity extends BaseActivity
 
   private def onPasswordWasReset() =
     for {
-      Some(am) <- ZMessaging.currentAccounts.getActiveAccountManager
-      token    <- ZMessaging.currentAccounts.getActiveAccount.map(_.flatMap(_.accessToken))
+      Some(am) <- ZMessaging.currentAccounts.activeAccountManager.head
+      token    <- ZMessaging.currentAccounts.activeAccount.map(_.flatMap(_.accessToken)).head
       _        <- am.auth.checkLoggedIn(token)
     } yield {}
 

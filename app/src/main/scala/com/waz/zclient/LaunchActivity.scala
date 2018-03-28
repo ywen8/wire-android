@@ -18,6 +18,7 @@
 package com.waz.zclient
 
 import android.content.Intent
+import com.waz.ZLog.ImplicitTag._
 import com.waz.service.AccountsService
 import com.waz.threading.Threading
 import com.waz.zclient.appentry.AppEntryActivity
@@ -33,7 +34,7 @@ class LaunchActivity extends BaseActivity {
         superOnBaseActivityStart()
 
         //TODO - could this be racing with setting the active account?
-        inject[AccountsService].getActiveAccountId.map {
+        inject[AccountsService].activeAccountId.head.map {
           case Some(_) => startMain()
           case _       => startSignUp()
         } (Threading.Ui)

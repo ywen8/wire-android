@@ -46,7 +46,7 @@ class InvitationsController(implicit inj: Injector, eventContext: EventContext, 
     import com.waz.threading.Threading.Implicits.Background
     for {
       zms         <- zms.head
-      account     <- zms.accounts.getActiveAccount
+      account     <- zms.accounts.activeAccountManager.head
       alreadySent <- invitations.head
       name        <- zms.usersStorage.get(zms.selfUserId).map(_.map(_.name))
       response <- if (alreadySent.keySet.contains(email))
@@ -57,7 +57,7 @@ class InvitationsController(implicit inj: Injector, eventContext: EventContext, 
       response match {
         case Left(e) => Left(e)
         case Right(_) =>
-          track(TeamInviteSent(), account.map(_.id))
+          track(TeamInviteSent(), account.map(_.userId))
           Right(())
       }
   }

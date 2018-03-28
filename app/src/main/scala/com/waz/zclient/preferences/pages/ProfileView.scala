@@ -262,7 +262,7 @@ class ProfileViewController(view: ProfileView)(implicit inj: Injector, ec: Event
     .map(_.contains(AccountDataOld.Permission.AddTeamMember))
     .onUi(view.setManageTeamEnabled)
 
-  ZMessaging.currentAccounts.loggedInAccounts.map(_.size < MaxAccountsCount).onUi(view.setAddAccountEnabled)
+  ZMessaging.currentAccounts.accountsWithManagers.map(_.size < MaxAccountsCount).onUi(view.setAddAccountEnabled)
 
   view.onManageTeamClick { _ => tracking.track(OpenedManageTeam(), currentUser.currentValue) }
 }

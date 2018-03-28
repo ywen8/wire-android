@@ -75,7 +75,7 @@ class MessageNotificationsController(implicit inj: Injector, cxt: Context, event
   var accentColors = Map[UserId, Int]()
 
   val colors = for {
-    users    <- accounts.loggedInAccounts.map(_.map(_.id).toSeq)
+    users    <- accounts.accountsWithManagers.map(_.toSeq)
     zms      <- zms
     userData <- Signal.sequence(users.map(userId => zms.usersStorage.signal(userId)): _*)
   } yield userData.map(u => u.id -> AccentColor(u.accent).getColor).toMap
@@ -112,7 +112,7 @@ class MessageNotificationsController(implicit inj: Injector, cxt: Context, event
 
   val conversationsBeingDisplayed = for {
     gl <- Signal.future(ZMessaging.globalModule)
-    accounts <- accounts.loggedInAccounts
+    accounts <- accounts.accountsWithManagers
     zms <- zms
     uiActive <- gl.lifecycle.uiActive
     convId <- convController.currentConvId.map(Option(_)).orElse(Signal.const(Option.empty[ConvId]))
@@ -120,7 +120,7 @@ class MessageNotificationsController(implicit inj: Injector, cxt: Context, event
     page <- navigationController.visiblePage
   } yield (gl, accounts.map { acc =>
     val convs =
-      if (zms.selfUserId != acc.id || !uiActive) {
+      if (zms.selfUserId != acc || !uiActive) {
         Set.empty[ConvId]
       } else {
         page match {
@@ -132,7 +132,7 @@ class MessageNotificationsController(implicit inj: Injector, cxt: Context, event
             Set.empty[ConvId]
         }
       }
-    acc.id -> convs
+    acc -> convs
   }.toMap)
 
   conversationsBeingDisplayed {

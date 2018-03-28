@@ -124,7 +124,7 @@ class GlobalTrackingController(implicit inj: Injector, cxt: WireContext, eventCo
       event match {
         case _: OpenedTeamRegistration =>
           trackingEnabled.map {
-            case true => ZMessaging.currentAccounts.loggedInAccounts.head.map {
+            case true => ZMessaging.currentAccounts.accountManagers.head.map {
               _.size match {
                 case 0 =>
                   send(zms, event)

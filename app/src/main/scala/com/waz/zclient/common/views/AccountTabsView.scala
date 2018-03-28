@@ -56,7 +56,7 @@ class AccountTabsAdapter(context: Context)(implicit injector: Injector, eventCon
   val onItemClick = EventStream[AccountData]()
 
   private var accounts = Seq.empty[UserId]
-  controller.accounts.map(_.map(_.id)).onUi { accs =>
+  controller.accounts.map(_.map(_.userId)).onUi { accs =>
     accounts = accs
     notifyDataSetChanged()
   }

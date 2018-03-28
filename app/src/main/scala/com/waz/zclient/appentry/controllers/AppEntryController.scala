@@ -30,7 +30,6 @@ import com.waz.service.tracking.TrackingService
 import com.waz.threading.Threading
 import com.waz.utils.events.{EventContext, Signal}
 import com.waz.zclient.appentry.EntryError
-import com.waz.zclient.appentry.controllers.AppEntryController._
 import com.waz.zclient.newreg.fragments.SignUpPhotoFragment
 import com.waz.zclient.newreg.fragments.SignUpPhotoFragment.RegistrationType
 import com.waz.zclient.tracking.GlobalTrackingController
@@ -50,7 +49,7 @@ class AppEntryController(implicit inj: Injector, eventContext: EventContext) ext
 
   val currentAccount = ZMessaging.currentAccounts.activeAccount
   val currentUser    = optZms.flatMap{ _.fold(Signal.const(Option.empty[UserData]))(z => z.usersStorage.optSignal(z.selfUserId)) }
-  val firstStage     = Signal[FirstStage](FirstScreen)
+//  val firstStage     = Signal[FirstStage](FirstScreen)
 
   val userClientsCount = for {
     Some(manager) <- ZMessaging.currentAccounts.activeAccountManager
@@ -115,24 +114,24 @@ class AppEntryController(implicit inj: Injector, eventContext: EventContext) ext
 //    }
 //  }
 
-  ZMessaging.currentAccounts.loggedInAccounts.map(_.isEmpty) {
-    case true =>
-      firstStage ! FirstScreen
-    case false =>
-  }
+//  ZMessaging.currentAccounts.loggedInAccounts.map(_.isEmpty) {
+//    case true =>
+//      firstStage ! FirstScreen
+//    case false =>
+//  }
 
 
   def setTeamName(name: String): Future[Unit] =
     pendingTeamName := Some(name)
 
-  //TODO remove methods?
-  def gotToFirstPage(): Unit = firstStage ! FirstScreen
-
-  def createTeam(): Unit = firstStage ! RegisterTeamScreen
-
-  def cancelCreateTeam(): Unit = firstStage ! FirstScreen
-
-  def goToLoginScreen(): Unit = firstStage ! LoginScreen
+//  //TODO remove methods?
+//  def gotToFirstPage(): Unit = firstStage ! FirstScreen
+//
+//  def createTeam(): Unit = firstStage ! RegisterTeamScreen
+//
+//  def cancelCreateTeam(): Unit = firstStage ! FirstScreen
+//
+//  def goToLoginScreen(): Unit = firstStage ! LoginScreen
 
 
   def createTeamBack(): Unit = {

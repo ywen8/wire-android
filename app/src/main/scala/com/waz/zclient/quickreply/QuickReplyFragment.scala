@@ -27,10 +27,10 @@ import android.widget.TextView
 import com.waz.ZLog.ImplicitTag._
 import com.waz.ZLog.verbose
 import com.waz.api.{EphemeralExpiration, MessageContent}
-import com.waz.model.{AccountId, ConvId, UserId}
-import com.waz.service.{AccountsService, ZMessaging}
+import com.waz.model.{ConvId, UserId}
 import com.waz.service.tracking.ContributionEvent
 import com.waz.service.tracking.ContributionEvent.Action
+import com.waz.service.{AccountsService, ZMessaging}
 import com.waz.utils.events.Signal
 import com.waz.utils.returning
 import com.waz.zclient.common.controllers.SharingController
@@ -64,7 +64,7 @@ class QuickReplyFragment extends Fragment with FragmentHelper {
   lazy val accounts = inject[AccountsService]
 
   //TODO make an accounts/zms controller or something
-  lazy val zms = accounts.zms(accountId).collect { case Some(z) => z }
+  lazy val zms = accounts.zmsInstances.map(_.find(_.selfUserId == accountId)).collect { case Some(z) => z }
 
   lazy val sharing  = inject[SharingController]
 

@@ -336,9 +336,10 @@ class SignInFragment extends BaseFragment[Container]
             for {
               email    <- email.head
               password <- password.head
-              Right(_) <- accountsService.loginEmail(email, password).map(onResponse(_, m))
-              Some(am) <- accountsService.getActiveAccountManager
-              Right(client) <- am.registerClient().map(onResponse(_, m))
+              Right(id) <- accountsService.loginEmail(email, password).map(onResponse(_, m))
+              _        <- accountsService.enterAccount(id, None)
+              Some(am) <- accountsService.activeAccountManager.head
+              Right(_) <- am.registerClient().map(onResponse(_, m))
             } yield activity.onEnterApplication(openSettings = false)
           case _ => throw new NotImplementedError("Only login with email works right now") //TODO
         }

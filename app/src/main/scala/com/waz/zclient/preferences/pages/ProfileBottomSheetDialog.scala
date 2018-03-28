@@ -67,7 +67,7 @@ class ProfileBottomSheetDialog(val context: Context, theme: Int) extends BottomS
       }
     })
 
-    ZMessaging.currentAccounts.loggedInAccounts.map(_.size).on(Threading.Ui) { count =>
+    ZMessaging.currentAccounts.accountManagers.map(_.size).on(Threading.Ui) { count =>
       addAccountButton.setAlpha(if (count < MaxAccountsCount) 1f else 0.5f)
       addAccountButton.setEnabled(count < MaxAccountsCount)
     }

@@ -24,13 +24,13 @@ import android.view.ViewGroup.MarginLayoutParams
 import android.view.{View, ViewGroup}
 import android.widget.FrameLayout.LayoutParams
 import android.widget.{FrameLayout, ImageView, RelativeLayout}
+import com.waz.ZLog.ImplicitTag._
 import com.waz.api.impl.AccentColors
+import com.waz.content.{AccountStorage, TeamsStorage}
 import com.waz.model._
-import com.waz.service.{AccountsService, ZMessaging}
+import com.waz.service.AccountsService
 import com.waz.threading.Threading
 import com.waz.utils.NameParts
-import com.waz.ZLog.ImplicitTag._
-import com.waz.content.{AccountStorage, TeamsStorage}
 import com.waz.utils.events.Signal
 import com.waz.zclient.common.controllers.UserAccountsController
 import com.waz.zclient.common.controllers.global.AccentColorController
@@ -76,7 +76,10 @@ class AccountTabButton(val context: Context, val attrs: AttributeSet, val defSty
 
   private val accountId = Signal[UserId]()
 
-  val account = accountId.flatMap(ZMessaging.currentAccounts.storage.signal).disableAutowiring()
+  val account = (for {
+    id <- accountId
+    am <- accounts.accountManagers.map(_.find(_.userId == id))
+  } yield am).collect { case Some(a) => a }.disableAutowiring()
 
   val selected = (for {
     acc    <- accountId
@@ -88,7 +91,7 @@ class AccountTabButton(val context: Context, val attrs: AttributeSet, val defSty
     account.flatMap { acc =>
       acc.teamId match {
         case Some(t) => teams.signal(t).map(Left(_))
-        case _       => UserSignal(acc.id).map(Right(_))
+        case _       => UserSignal(acc.userId).map(Right(_))
       }
     }
 
