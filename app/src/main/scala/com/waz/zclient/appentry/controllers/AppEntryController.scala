@@ -17,17 +17,21 @@
  */
 package com.waz.zclient.appentry.controllers
 
+import java.io.File
+
 import com.waz.ZLog
 import com.waz.ZLog.ImplicitTag._
-import com.waz.api.ImageAsset
+import com.waz.api.{Credentials, EmailCredentials, ImageAsset, PhoneCredentials}
 import com.waz.api.impl.ErrorResponse
 import com.waz.content.GlobalPreferences
 import com.waz.content.Preferences.PrefKey
 import com.waz.model._
 import com.waz.model.otr.{ClientId, UserClients}
-import com.waz.service.ZMessaging
+import com.waz.service.AccountManager.ClientRegistrationState
+import com.waz.service.AccountManager.ClientRegistrationState.Registered
+import com.waz.service.{AccountsService, ZMessaging}
 import com.waz.service.tracking.TrackingService
-import com.waz.threading.Threading
+import com.waz.threading.{CancellableFuture, Threading}
 import com.waz.utils.events.{EventContext, Signal}
 import com.waz.zclient.appentry.EntryError
 import com.waz.zclient.newreg.fragments.SignUpPhotoFragment
@@ -37,6 +41,8 @@ import com.waz.zclient.{Injectable, Injector}
 import com.waz.znet.ZNetClient.ErrorOr
 
 import scala.concurrent.Future
+import scala.concurrent.duration._
+import scala.util.Random
 
 class AppEntryController(implicit inj: Injector, eventContext: EventContext) extends Injectable {
 
@@ -46,6 +52,7 @@ class AppEntryController(implicit inj: Injector, eventContext: EventContext) ext
   lazy val optZms     = inject[Signal[Option[ZMessaging]]]
   lazy val tracking   = inject[TrackingService]
   lazy val uiTracking = inject[GlobalTrackingController] //TODO slowly move away from referencing this class
+  lazy val accountsService    = inject[AccountsService]
 
   val currentAccount = ZMessaging.currentAccounts.activeAccount
   val currentUser    = optZms.flatMap{ _.fold(Signal.const(Option.empty[UserData]))(z => z.usersStorage.optSignal(z.selfUserId)) }
@@ -155,34 +162,7 @@ class AppEntryController(implicit inj: Injector, eventContext: EventContext) ext
 //    }
   }
 
-  def verifyPhone(code: String): Future[Either[EntryError, Unit]] = {
-    throw new NotImplementedError("")
-//    ZMessaging.currentAccounts.activeAccount.head.flatMap {
-//      case Some(accountData) if accountData.regWaiting =>
-//        val method = SignInMethod(Register, Phone)
-//        ZMessaging.currentAccounts.activatePhoneOnRegister(accountData.id, ConfirmationCode(code)).map {
-//          case Left(error) =>
-//            val entryError = EntryError(error.code, error.label, method)
-//            uiTracking.onEnterCode(Left(entryError), method)
-//            Left(entryError)
-//          case _ =>
-//            uiTracking.onEnterCode(Right(()), method)
-//            Right(())
-//        }
-//      case Some(accountData) =>
-//        val method = SignInMethod(Login, Phone)
-//        ZMessaging.currentAccounts.loginPhone(accountData.id, ConfirmationCode(code)).flatMap {
-//          case Left(error) =>
-//            val entryError = EntryError(error.code, error.label, method)
-//            uiTracking.onEnterCode(Left(entryError), method)
-//            Future.successful(Left(entryError))
-//          case _ =>
-//            uiTracking.onEnterCode(Right(()), method)
-//            ZMessaging.currentAccounts.switchAccount(accountData.id).map(_ => Right(()))
-//        }
-//      case _ => Future.successful(Left(GenericRegisterPhoneError))
-//    }
-  }
+  def verifyPhone(phone: String, code: String): ErrorOr[(UserId, Option[EmailAddress])] = login(PhoneCredentials(PhoneNumber(phone), ConfirmationCode(code)))
 
   def registerName(name: String): Future[Either[EntryError, Unit]] = {
     throw new NotImplementedError("")
@@ -320,6 +300,19 @@ class AppEntryController(implicit inj: Injector, eventContext: EventContext) ext
     throw new NotImplementedError("")
 //  ZMessaging.accountsService.flatMap(_.updateCurrentAccount(_.copy(pendingTeamName = None)))
 
+  def requestPhoneCode(phone: String): ErrorOr[Unit] = fakeOperation(())
+  def login(credentials: Credentials): ErrorOr[(UserId, Option[EmailAddress])] = credentials match {
+    case EmailCredentials(_, _, _) => accountsService.login(credentials)
+    case _ => fakeOperation((UserId(), Some(EmailAddress("a@b.com"))))
+  }
+
+  def enterAccount(userId: UserId, database: Option[File]): ErrorOr[Unit] = fakeOperation(())
+  def registerClient: ErrorOr[ClientRegistrationState] = fakeOperation(Registered(ClientId("123")))
+
+  private def fakeOperation[T](t: T, prob: Float = 0.5f): ErrorOr[T] = CancellableFuture.delayed(1000.millis)(Random.nextFloat()).map {
+    case r if r >= prob => Left(ErrorResponse.internalError("oops"))
+    case _ => Right(t)
+  }.future
 }
 
 object AppEntryController {

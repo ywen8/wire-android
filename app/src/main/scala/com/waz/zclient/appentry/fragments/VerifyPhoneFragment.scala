@@ -22,11 +22,11 @@ import android.support.v4.content.ContextCompat
 import android.text.{Editable, TextWatcher}
 import android.view.{LayoutInflater, View, ViewGroup}
 import android.widget.{TextView, Toast}
-import com.waz.service.ZMessaging
 import com.waz.threading.Threading
 import com.waz.zclient._
-import com.waz.zclient.appentry.EntryError
+import com.waz.zclient.appentry.{AppEntryActivity, EntryError}
 import com.waz.zclient.appentry.controllers.AppEntryController
+import com.waz.zclient.appentry.fragments.SignInFragment.{Login, Phone, SignInMethod}
 import com.waz.zclient.controllers.navigation.Page
 import com.waz.zclient.newreg.views.PhoneConfirmationButton
 import com.waz.zclient.pages.BaseFragment
@@ -170,23 +170,27 @@ class VerifyPhoneFragment extends BaseFragment[VerifyPhoneFragment.Container] wi
     }
   }
 
-  private def goBack(): Unit = {
-    appEntryController.removeCurrentAccount()
-  }
+  private def goBack(): Unit = getFragmentManager.popBackStack()
 
   private def confirmCode(): Unit = {
     getContainer.enableProgress(true)
     KeyboardUtils.hideKeyboard(getActivity)
-    appEntryController.verifyPhone(editTextCode.getText.toString).map {
-      case Left(entryError) =>
+    appEntryController.verifyPhone("", editTextCode.getText.toString).map {
+      case Left(error) =>
         getContainer.enableProgress(false)
-        getContainer.showError(entryError, {
-          if (getActivity == null) return
-          KeyboardUtils.showKeyboard(getActivity)
-          editTextCode.requestFocus
-          phoneConfirmationButton.setState(PhoneConfirmationButton.State.INVALID)
+        getContainer.showError(EntryError(error.code, error.label, SignInMethod(Login, Phone)), {
+          if (getActivity != null) {
+            KeyboardUtils.showKeyboard(getActivity)
+            editTextCode.requestFocus
+            phoneConfirmationButton.setState(PhoneConfirmationButton.State.INVALID)
+          }
         })
+      case Right((_, Some(email))) =>
+        getContainer.enableProgress(false)
+        activity.showFragment(InsertPasswordFragment(email.str), InsertPasswordFragment.Tag)
       case _ =>
+        getContainer.enableProgress(false)
+        activity.showFragment(AddEmailFragment(), AddEmailFragment.Tag)
     }
   }
 
@@ -234,4 +238,6 @@ class VerifyPhoneFragment extends BaseFragment[VerifyPhoneFragment.Container] wi
     goBack()
     true
   }
+
+  def activity = getActivity.asInstanceOf[AppEntryActivity]
 }

@@ -22,32 +22,39 @@ import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.support.v4.content.ContextCompat
 import android.view.{LayoutInflater, View, ViewGroup}
-import com.waz.service.ZMessaging
-import com.waz.threading.Threading
+import com.waz.model.UserId
+import com.waz.service.AccountManager.ClientRegistrationState
+import com.waz.service.AccountsService
 import com.waz.utils.returning
+import com.waz.zclient.appentry.AppEntryActivity
 import com.waz.zclient.appentry.controllers.AppEntryController
-import com.waz.zclient.pages.BaseFragment
 import com.waz.zclient.ui.views.ZetaButton
 import com.waz.zclient.{FragmentHelper, R}
+import FirstLaunchAfterLoginFragment._
 import com.waz.ZLog.ImplicitTag._
+import com.waz.threading.Threading
 
 object FirstLaunchAfterLoginFragment {
-  val TAG: String = classOf[FirstLaunchAfterLoginFragment].getName
+  val Tag: String = classOf[FirstLaunchAfterLoginFragment].getName
+  val UserIdArg = "user_id_arg"
 
-  def newInstance: Fragment = new FirstLaunchAfterLoginFragment
-
-  trait Container {}
+  def apply(): Fragment = new FirstLaunchAfterLoginFragment
+  def apply(userId: UserId): Fragment = returning(new FirstLaunchAfterLoginFragment) { f =>
+    val bundle = new Bundle()
+    bundle.putString(UserIdArg, userId.str)
+    f.setArguments(bundle)
+  }
 }
 
-class FirstLaunchAfterLoginFragment extends BaseFragment[FirstLaunchAfterLoginFragment.Container] with FragmentHelper with View.OnClickListener {
+class FirstLaunchAfterLoginFragment extends FragmentHelper with View.OnClickListener {
 
   lazy val appEntryController = inject[AppEntryController]
+  lazy val accountsService    = inject[AccountsService]
 
   private lazy val registerButton = returning(findById[ZetaButton](getView, R.id.zb__first_launch__confirm)){ v =>
     v.setIsFilled(true)
     v.setAccentColor(ContextCompat.getColor(getContext, R.color.text__primary_dark))
   }
-
 
   override def onViewCreated(view: View, savedInstanceState: Bundle) = {
     registerButton
@@ -69,15 +76,22 @@ class FirstLaunchAfterLoginFragment extends BaseFragment[FirstLaunchAfterLoginFr
   def onClick(view: View): Unit = {
     view.getId match {
       case R.id.zb__first_launch__confirm =>
-        onConfirmClicked()
+        implicit val ec = Threading.Ui
+        getStringArg(UserIdArg).map(UserId(_)).foreach { userId =>
+          for {
+            _ <- accountsService.enterAccount(userId, None)
+            Some(am) <- accountsService.activeAccountManager.head
+            Right(clientState) <- am.registerClient()
+          } yield {
+            clientState match {
+              case ClientRegistrationState.LimitReached => activity.onEnterApplication(true)
+              case _ => activity.onEnterApplication(false)
+            }
+          }
+        }
     }
   }
 
-  private def onConfirmClicked(): Unit = {
-    //TODO
-//    appEntryController.currentAccount.head.map {
-//      case Some(acc) => ZMessaging.currentAccounts.setLoggedIn(acc.id)
-//      case _ =>
-//    } (Threading.Ui)
-  }
+  def activity = getActivity.asInstanceOf[AppEntryActivity]
+
 }

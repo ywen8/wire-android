@@ -46,6 +46,7 @@
 
         <!-- Info Text -->
         <com.waz.zclient.ui.text.TypefaceTextView
+            android:id="@+id/info_title"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/otr__first_launch__header"
@@ -56,6 +57,7 @@
 
 
         <com.waz.zclient.ui.text.TypefaceTextView
+            android:id="@+id/info_text"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:paddingBottom="@dimen/wire__padding__small"

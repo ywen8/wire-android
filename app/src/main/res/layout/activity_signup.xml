@@ -52,15 +52,6 @@
         android:layout_height="match_parent"
         />
 
-    <!--
-        the container holding the web browser
-     -->
-    <FrameLayout
-        android:id="@+id/fl_main_web_view"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        />
-
 
     <FrameLayout
         android:id="@+id/container__country_box"

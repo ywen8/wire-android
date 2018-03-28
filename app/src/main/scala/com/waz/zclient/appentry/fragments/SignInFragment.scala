@@ -34,6 +34,7 @@ import com.waz.threading.Threading
 import com.waz.utils.events.Signal
 import com.waz.utils.returning
 import com.waz.zclient._
+import com.waz.zclient.appentry.controllers.AppEntryController
 import com.waz.zclient.appentry.fragments.SignInFragment._
 import com.waz.zclient.appentry.{AppEntryActivity, EntryError}
 import com.waz.zclient.common.controllers.BrowserController
@@ -58,9 +59,10 @@ class SignInFragment extends BaseFragment[Container]
 
   implicit def context: Context = getActivity
 
-  lazy val accountsService   = inject[AccountsService]
-  lazy val browserController = inject[BrowserController]
-  lazy val tracking          = inject[GlobalTrackingController]
+  lazy val accountsService    = inject[AccountsService]
+  lazy val browserController  = inject[BrowserController]
+  lazy val tracking           = inject[GlobalTrackingController]
+  lazy val appEntryController = inject[AppEntryController]
 
   lazy val isAddingAccount = accountsService.zmsInstances.map(_.nonEmpty)
 
@@ -179,7 +181,9 @@ class SignInFragment extends BaseFragment[Container]
   }
 
   override def onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState: Bundle) =
-    inflater.inflate(R.layout.sign_in_fragment, container, false)
+    returning(inflater.inflate(R.layout.sign_in_fragment, container, false)) { view =>
+      findById[TabIndicatorLayout](view, R.id.til__app_entry).setLabels(Array[Int](R.string.new_reg__phone_signup__create_account, R.string.i_have_an_account))
+    }
 
   override def onViewCreated(view: View, savedInstanceState: Bundle) = {
 
@@ -218,21 +222,6 @@ class SignInFragment extends BaseFragment[Container]
       case SignInMethod(Login, _) => tabSelector.setSelected(TabPages.SIGN_IN)
       case SignInMethod(Register, _) => tabSelector.setSelected(TabPages.CREATE_ACCOUNT)
     } (Threading.Ui)
-
-    //TODO: remove when login by email available on phones
-    //TODO put back after testing...
-//    if (LayoutSpec.isPhone(getActivity)) {
-//      signInController.uiSignInState.onUi {
-//        case SignInMethod(Register, Email) =>
-//          signInController.uiSignInState ! SignInMethod(Register, Phone)
-//        case SignInMethod(Register, _) =>
-//          phoneButton.setVisible(false)
-//          emailButton.setVisible(false)
-//        case _ =>
-//          phoneButton.setVisible(true)
-//          emailButton.setVisible(true)
-//      }
-//    }
 
     uiSignInState.onUi { state =>
       state match {
@@ -339,6 +328,16 @@ class SignInFragment extends BaseFragment[Container]
               Right(id) <- accountsService.loginEmail(email, password).map(onResponse(_, m))
               _         <- accountsService.enterAccount(id, None)
             } yield activity.onEnterApplication(openSettings = false)
+          case m@SignInMethod(Login, Phone) =>
+            activity.enableProgress(true)
+            phone.head.flatMap(appEntryController.requestPhoneCode).map {
+              case Left(error) =>
+                activity.enableProgress(false)
+                showError(EntryError(error.code, error.label, m))
+              case Right(_) =>
+                activity.enableProgress(false)
+                activity.showFragment(VerifyPhoneFragment.newInstance(false), VerifyPhoneFragment.TAG)
+            }
           case _ => throw new NotImplementedError("Only login with email works right now") //TODO
         }
 

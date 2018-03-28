@@ -59,7 +59,6 @@ class AppEntryActivity extends BaseActivity
   with SignUpPhotoFragment.Container
   with EmailVerifyEmailFragment.Container
   with CountryDialogFragment.Container
-  with FirstLaunchAfterLoginFragment.Container
   with SignInFragment.Container
   with FirstTimeAssignUsernameFragment.Container
   with InsertPasswordFragment.Container
@@ -86,15 +85,17 @@ class AppEntryActivity extends BaseActivity
 
   override def onBackPressed(): Unit = {
 
+
     val topFragment = getSupportFragmentManager.getFragments.asScala.find {
       case f: OnBackPressedListener if f.onBackPressed() => true
       case _ => false
     }
-
+/*
     topFragment match {
       case Some(f: OnBackPressedListener) if f.onBackPressed() => //
       case _ => abortAddAccount()
     }
+    */
   }
 
   override def onCreate(savedInstanceState: Bundle): Unit = {
@@ -273,7 +274,7 @@ class AppEntryActivity extends BaseActivity
     showFragment(VerifyPhoneFragment.newInstance(true), VerifyPhoneFragment.TAG)
 
   def onShowFirstLaunchPage(): Unit =
-    showFragment(FirstLaunchAfterLoginFragment.newInstance, FirstLaunchAfterLoginFragment.TAG)
+    showFragment(FirstLaunchAfterLoginFragment(), FirstLaunchAfterLoginFragment.Tag)
 
   def onShowPhoneNamePage(): Unit = {
     showFragment(PhoneSetNameFragment.newInstance, PhoneSetNameFragment.TAG)
@@ -326,7 +327,7 @@ class AppEntryActivity extends BaseActivity
     showFragment(FirstTimeAssignUsernameFragment.newInstance("", ""), FirstTimeAssignUsernameFragment.TAG)
 
   def onShowInsertPassword(): Unit =
-    showFragment(InsertPasswordFragment.newInstance(), InsertPasswordFragment.Tag)
+    showFragment(InsertPasswordFragment(), InsertPasswordFragment.Tag)
 
   def onShowAddEmail(): Unit =
     showFragment(AddEmailFragment(), AddEmailFragment.Tag)
@@ -334,6 +335,7 @@ class AppEntryActivity extends BaseActivity
   def showFragment(f: => Fragment, tag: String): Unit = {
     setDefaultAnimation(getSupportFragmentManager.beginTransaction)
       .replace(R.id.fl_main_content, f, tag)
+      .addToBackStack(tag)
       .commit
     enableProgress(false)
   }
