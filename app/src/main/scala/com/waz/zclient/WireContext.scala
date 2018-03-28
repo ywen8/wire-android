@@ -343,20 +343,25 @@ class ViewHolder[T <: View](id: Int, finder: ViewFinder) {
   private var view = Option.empty[T]
   private var onClickListener = Option.empty[OnClickListener]
 
-  def getOpt: Option[T] = view
-
   def get: T = view.getOrElse { returning(finder.findById[T](id)) { t => view = Some(t) } }
+
+  @inline
+  def opt: Option[T] = Option(get)
 
   def clear() =
     view = Option.empty
 
-  def foreach(f: T => Unit): Unit = Option(get).foreach(f)
-
-  def fold[B](ifEmpty: => B)(f: T => B): B = Option(get).fold(ifEmpty)(f)
+  def fold[B](ifEmpty: => B)(f: T => B): B = opt.fold(ifEmpty)(f)
 
   def map[A](f: T => A): Option[A] = Option(get).map(f)
 
-  def flatMap[A](f: T => Option[A]): Option[A] = Option(get).flatMap(f)
+  def foreach(f: T => Unit): Unit = opt.foreach(f)
+
+  def map[A](f: T => A): Option[A] = opt.map(f)
+
+  def flatMap[A](f: T => Option[A]): Option[A] = opt.flatMap(f)
+
+  def filter(p: T => Boolean): Option[T] = opt.filter(p)
 
   def onResume() = onClickListener.foreach(l => foreach(_.setOnClickListener(l)))
 

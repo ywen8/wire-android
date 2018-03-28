@@ -208,7 +208,7 @@ class SendConnectRequestFragment extends BaseFragment[SendConnectRequestFragment
   }
 
   private def showConnectButtonInsteadOfFooterMenu(): Unit = {
-    connectButton.getOpt.filter(_.getVisibility != View.VISIBLE).foreach { connectButton =>
+    connectButton.filter(_.getVisibility != View.VISIBLE).foreach { connectButton =>
       footerMenu.foreach(_.setVisibility(View.GONE))
       connectButton.setAlpha(0)
       connectButton.setVisibility(View.VISIBLE)

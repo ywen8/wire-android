@@ -190,18 +190,9 @@ class BlockedUserProfileFragment extends BaseFragment[BlockedUserProfileFragment
     }
   }
 
-
   private def toggleUnblockAndFooterMenu(showFooterMenu: Boolean) = {
-//    footerMenu.foreach(_.setVisibility(if (showFooterMenu) View.VISIBLE else View.GONE))
-//    footerMenu.foreach(_.setVisibility(showFooterMenu ? (View.VISIBLE, View.GONE)))
-
-//    if (showFooterMenu) {
-//      footerMenu.setVisibility(View.VISIBLE)
-//      unblockMenu.setVisibility(View.GONE)
-//    } else {
-//      footerMenu.setVisibility(View.GONE)
-//      unblockMenu.setVisibility(View.VISIBLE)
-//    }
+    footerMenu.foreach(_.setVisibility(if (showFooterMenu) View.VISIBLE else View.GONE))
+    unblockMenu.foreach(_.setVisibility(if (showFooterMenu) View.GONE else View.VISIBLE))
     isShowingFooterMenu = showFooterMenu
   }
 
