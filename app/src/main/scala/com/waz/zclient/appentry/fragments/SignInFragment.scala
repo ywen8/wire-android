@@ -29,6 +29,7 @@ import android.widget.{FrameLayout, LinearLayout}
 import com.waz.ZLog.ImplicitTag._
 import com.waz.ZLog._
 import com.waz.api.impl.ErrorResponse
+import com.waz.model.PhoneNumber
 import com.waz.service.{AccountsService, ZMessaging}
 import com.waz.threading.Threading
 import com.waz.utils.events.Signal
@@ -85,7 +86,7 @@ class SignInFragment extends BaseFragment[Container]
   val name     = Signal("")
   val phone    = Signal("")
 
-  lazy val countryController = new CountryController(context) //TODO rewrite && inject
+  lazy val countryController = activity.getCountryController //TODO rewrite && inject
   lazy val phoneCountry = Signal[Country]()
 
   lazy val nameValidator = new NameValidator()
@@ -329,14 +330,25 @@ class SignInFragment extends BaseFragment[Container]
               _         <- accountsService.enterAccount(id, None)
             } yield activity.onEnterApplication(openSettings = false)
           case m@SignInMethod(Login, Phone) =>
+            import com.waz.client.RegistrationClientImpl.ActivateResult._
             activity.enableProgress(true)
-            phone.head.flatMap(appEntryController.requestPhoneCode).map {
-              case Left(error) =>
+
+            for {
+              country <- phoneCountry.head
+              phoneStr <- phone.head
+              phone = PhoneNumber(s"+${country.getCountryCode}$phoneStr")
+              req <- accountsService.requestPhoneCode(phone, login = true)
+            } yield req match {
+              case Failure(error) =>
                 activity.enableProgress(false)
                 showError(EntryError(error.code, error.label, m))
-              case Right(_) =>
+              case PasswordExists =>
                 activity.enableProgress(false)
-                activity.showFragment(VerifyPhoneFragment.newInstance(false), VerifyPhoneFragment.TAG)
+                showToast("Password exists for this account, please login by email")
+                onBackPressed()
+              case Success =>
+                activity.enableProgress(false)
+                activity.showFragment(VerifyPhoneFragment(phone.str, showNotNowButton = false), VerifyPhoneFragment.TAG)
             }
           case _ => throw new NotImplementedError("Only login with email works right now") //TODO
         }

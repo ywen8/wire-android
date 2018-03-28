@@ -58,8 +58,7 @@ class CountryDialogFragment extends BaseDialogFragment[Container] with FragmentH
   }
 
   def onItemClick(adapterView: AdapterView[_], view: View, i: Int, l: Long): Unit = {
-    //TODO
-//    signInController.phoneCountry ! countryAdapter.getItem(i)
+    getContainer.getCountryController.setCountry(countryAdapter.getItem(i))
     dismiss()
   }
 }

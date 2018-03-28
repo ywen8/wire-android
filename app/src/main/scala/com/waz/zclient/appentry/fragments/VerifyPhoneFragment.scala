@@ -22,11 +22,13 @@ import android.support.v4.content.ContextCompat
 import android.text.{Editable, TextWatcher}
 import android.view.{LayoutInflater, View, ViewGroup}
 import android.widget.{TextView, Toast}
+import com.waz.service.AccountsService
 import com.waz.threading.Threading
+import com.waz.utils.returning
 import com.waz.zclient._
-import com.waz.zclient.appentry.{AppEntryActivity, EntryError}
 import com.waz.zclient.appentry.controllers.AppEntryController
 import com.waz.zclient.appentry.fragments.SignInFragment.{Login, Phone, SignInMethod}
+import com.waz.zclient.appentry.{AppEntryActivity, EntryError}
 import com.waz.zclient.controllers.navigation.Page
 import com.waz.zclient.newreg.views.PhoneConfirmationButton
 import com.waz.zclient.pages.BaseFragment
@@ -34,20 +36,30 @@ import com.waz.zclient.tracking.GlobalTrackingController
 import com.waz.zclient.ui.text.TypefaceEditText
 import com.waz.zclient.ui.utils.KeyboardUtils
 import com.waz.zclient.utils.DeprecationUtils
+import VerifyPhoneFragment._
 
 object VerifyPhoneFragment {
   val TAG: String = classOf[VerifyPhoneFragment].getName
-  private val ARG_SHOW_NOT_NOW: String = "ARG_SHOW_NOT_NOW"
+  private val ShowNotNowArg: String = "show_not_now_arg"
+  private val PhoneArg: String = "phone_arg"
   private val SHOW_RESEND_CODE_BUTTON_DELAY: Int = 15000
   private val RESEND_CODE_TIMER_INTERVAL: Int = 1000
 
   def newInstance(showNotNowButton: Boolean): VerifyPhoneFragment = {
     val fragment = new VerifyPhoneFragment
     val args = new Bundle
-    args.putBoolean(ARG_SHOW_NOT_NOW, showNotNowButton)
+    args.putBoolean(ShowNotNowArg, showNotNowButton)
     fragment.setArguments(args)
     fragment
   }
+
+  def apply(phone: String, showNotNowButton: Boolean): VerifyPhoneFragment =
+    returning(new VerifyPhoneFragment) { f =>
+      val args = new Bundle
+      args.putBoolean(ShowNotNowArg, showNotNowButton)
+      args.putString(PhoneArg, phone)
+      f.setArguments(args)
+    }
 
   trait Container {
     def enableProgress(enabled: Boolean): Unit
@@ -61,6 +73,7 @@ class VerifyPhoneFragment extends BaseFragment[VerifyPhoneFragment.Container] wi
   implicit val executionContext = Threading.Ui
 
   private lazy val appEntryController = inject[AppEntryController]
+  private lazy val accountService     = inject[AccountsService]
   private lazy val tracking           = inject[GlobalTrackingController]
 
   private lazy val resendCodeButton = findById[TextView](getView, R.id.ttv__resend_button)
@@ -175,22 +188,24 @@ class VerifyPhoneFragment extends BaseFragment[VerifyPhoneFragment.Container] wi
   private def confirmCode(): Unit = {
     getContainer.enableProgress(true)
     KeyboardUtils.hideKeyboard(getActivity)
-    appEntryController.verifyPhone("", editTextCode.getText.toString).map {
-      case Left(error) =>
-        getContainer.enableProgress(false)
-        getContainer.showError(EntryError(error.code, error.label, SignInMethod(Login, Phone)), {
-          if (getActivity != null) {
-            KeyboardUtils.showKeyboard(getActivity)
-            editTextCode.requestFocus
-            phoneConfirmationButton.setState(PhoneConfirmationButton.State.INVALID)
-          }
-        })
-      case Right((_, Some(email))) =>
-        getContainer.enableProgress(false)
-        activity.showFragment(InsertPasswordFragment(email.str), InsertPasswordFragment.Tag)
-      case _ =>
-        getContainer.enableProgress(false)
-        activity.showFragment(AddEmailFragment(), AddEmailFragment.Tag)
+    getStringArg(PhoneArg).fold(throw new NotImplementedError("PhoneArg empty")) { phone =>
+      accountService.loginPhone(phone, editTextCode.getText.toString).map {
+        case Left(error) =>
+          getContainer.enableProgress(false)
+          getContainer.showError(EntryError(error.code, error.label, SignInMethod(Login, Phone)), {
+            if (getActivity != null) {
+              KeyboardUtils.showKeyboard(getActivity)
+              editTextCode.requestFocus
+              phoneConfirmationButton.setState(PhoneConfirmationButton.State.INVALID)
+            }
+          })
+        case Right((_, Some(email))) =>
+          getContainer.enableProgress(false)
+          activity.showFragment(InsertPasswordFragment(email.str), InsertPasswordFragment.Tag)
+        case _ =>
+          getContainer.enableProgress(false)
+          activity.showFragment(AddEmailFragment(), AddEmailFragment.Tag)
+      }
     }
   }
 
