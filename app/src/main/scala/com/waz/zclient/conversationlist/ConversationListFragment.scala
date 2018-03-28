@@ -17,7 +17,7 @@
  */
 package com.waz.zclient.conversationlist
 
-import android.content.{Context, Intent}
+import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
 import android.support.v7.widget.{LinearLayoutManager, RecyclerView}
@@ -60,8 +60,6 @@ import com.waz.zclient.{FragmentHelper, OnBackPressedListener, R, ViewHolder}
   * trying to instantiate things in onViewCreated - be careful to tear them down again.
   */
 abstract class ConversationListFragment extends BaseFragment[ConversationListFragment.Container] with FragmentHelper {
-
-  implicit lazy val context: Context = getContext
 
   val layoutId: Int
   lazy val userAccountsController = inject[UserAccountsController]

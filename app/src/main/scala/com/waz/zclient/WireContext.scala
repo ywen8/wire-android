@@ -126,6 +126,7 @@ trait ServiceHelper extends Service with Injectable with WireContext with EventC
 
 trait FragmentHelper extends Fragment with OnBackPressedListener with ViewFinder with Injectable with EventContext {
 
+  implicit def currentAndroidContext: Context = getContext
   lazy implicit val injector: Injector = getActivity.asInstanceOf[WireContext].injector
   override implicit def eventContext: EventContext = this
 
