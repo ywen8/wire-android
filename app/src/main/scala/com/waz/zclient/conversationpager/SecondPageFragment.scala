@@ -71,21 +71,21 @@ class SecondPageFragment extends FragmentHelper
     } yield (conv.convType, other)).onUi { case (convType, maybeUserId) =>
       info(s"Conversation type: $convType, otherUser: $maybeUserId")
 
-      val (fragment, tag) = (convType, maybeUserId) match {
+      val (fragment, tag, page) = (convType, maybeUserId) match {
         case (Type.INCOMING_CONNECTION, Some(userId)) =>
           import ConnectRequestFragment._
-          (newInstance(userId), FragmentTag)
+          (newInstance(userId), FragmentTag, Page.CONNECT_REQUEST_INBOX)
         case (Type.WAIT_FOR_CONNECTION, Some(userId)) =>
           import PendingConnectRequestManagerFragment._
-          (newInstance(userId, UserRequester.CONVERSATION), Tag)
+          (newInstance(userId, UserRequester.CONVERSATION), Tag, Page.CONNECT_REQUEST_PENDING)
         case _ =>
           import ConversationManagerFragment._
-          (newInstance, Tag)
+          (newInstance, Tag, Page.MESSAGE_STREAM)
       }
 
       def open() = {
-        info(s"openPage $tag")
-        navigationController.setRightPage(Page.CONNECT_REQUEST_INBOX, SecondPageFragment.Tag)
+        info(s"openPage $tag ($page)")
+        navigationController.setRightPage(page, SecondPageFragment.Tag)
 
         val transaction = getChildFragmentManager
           .beginTransaction.replace(R.id.fl__second_page_container, fragment, tag)
