@@ -21,37 +21,40 @@ import android.os.{Build, Bundle, Handler}
 import android.support.v4.content.ContextCompat
 import android.text.{Editable, TextWatcher}
 import android.view.{LayoutInflater, View, ViewGroup}
-import android.widget.{TextView, Toast}
+import android.widget.TextView
+import com.waz.api.EmailCredentials
+import com.waz.client.RegistrationClientImpl.ActivateResult.{Failure, PasswordExists, Success}
+import com.waz.model.AccountData.Password
+import com.waz.model.{ConfirmationCode, EmailAddress}
 import com.waz.service.AccountsService
 import com.waz.threading.Threading
 import com.waz.utils.returning
 import com.waz.zclient._
-import com.waz.zclient.appentry.controllers.AppEntryController
-import com.waz.zclient.appentry.fragments.SignInFragment.{Login, Phone, Register, SignInMethod}
+import com.waz.zclient.appentry.fragments.SignInFragment._
+import com.waz.zclient.appentry.fragments.VerifyEmailFragment._
 import com.waz.zclient.appentry.{AppEntryActivity, EntryError}
+import com.waz.zclient.controllers.globallayout.IGlobalLayoutController
 import com.waz.zclient.controllers.navigation.Page
 import com.waz.zclient.newreg.views.PhoneConfirmationButton
-import com.waz.zclient.pages.BaseFragment
-import com.waz.zclient.tracking.GlobalTrackingController
 import com.waz.zclient.ui.text.TypefaceEditText
 import com.waz.zclient.ui.utils.KeyboardUtils
+import com.waz.zclient.utils.ContextUtils.showToast
 import com.waz.zclient.utils.DeprecationUtils
-import VerifyPhoneFragment._
-import com.waz.model.{ConfirmationCode, PhoneNumber}
-import com.waz.zclient.controllers.globallayout.IGlobalLayoutController
 
-object VerifyPhoneFragment {
-  val Tag: String = classOf[VerifyPhoneFragment].getName
-  private val PhoneArg: String = "phone_arg"
-  private val LoggingInArg: String = "logging_in_arg"
+object VerifyEmailFragment {
+  val Tag: String = classOf[VerifyEmailFragment].getName
+  private val EmailArg: String = "email_arg"
+  private val NameArg: String = "name_arg"
+  private val PasswordArg: String = "password_arg"
   private val SHOW_RESEND_CODE_BUTTON_DELAY: Int = 15000
   private val RESEND_CODE_TIMER_INTERVAL: Int = 1000
 
-  def apply(phone: String, login: Boolean): VerifyPhoneFragment =
-    returning(new VerifyPhoneFragment) { f =>
+  def apply(email: String, name: String, password: String): VerifyEmailFragment =
+    returning(new VerifyEmailFragment) { f =>
       val args = new Bundle
-      args.putBoolean(LoggingInArg, login)
-      args.putString(PhoneArg, phone)
+      args.putString(EmailArg, email)
+      args.putString(NameArg, name)
+      args.putString(PasswordArg, password)
       f.setArguments(args)
     }
 
@@ -62,13 +65,12 @@ object VerifyPhoneFragment {
 
 }
 
-class VerifyPhoneFragment extends BaseFragment[VerifyPhoneFragment.Container] with FragmentHelper with View.OnClickListener with TextWatcher with OnBackPressedListener {
+class VerifyEmailFragment extends FragmentHelper with View.OnClickListener with TextWatcher with OnBackPressedListener {
 
   implicit val executionContext = Threading.Ui
+  implicit lazy val ctx = getContext
 
-  private lazy val appEntryController = inject[AppEntryController]
   private lazy val accountService     = inject[AccountsService]
-  private lazy val tracking           = inject[GlobalTrackingController]
 
   private lazy val resendCodeButton = findById[TextView](getView, R.id.ttv__resend_button)
   private lazy val resendCodeTimer = findById[TextView](getView, R.id.ttv__resend_timer)
@@ -83,7 +85,7 @@ class VerifyPhoneFragment extends BaseFragment[VerifyPhoneFragment.Container] wi
   private lazy val resendCodeTimerHandler = new Handler
   private lazy val resendCodeTimerRunnable: Runnable = new Runnable() {
     def run(): Unit = {
-      milliSecondsToShowResendButton = milliSecondsToShowResendButton - VerifyPhoneFragment.RESEND_CODE_TIMER_INTERVAL
+      milliSecondsToShowResendButton = milliSecondsToShowResendButton - VerifyEmailFragment.RESEND_CODE_TIMER_INTERVAL
       if (milliSecondsToShowResendButton <= 0) {
         resendCodeTimer.setVisibility(View.GONE)
         resendCodeButton.setVisibility(View.VISIBLE)
@@ -92,10 +94,9 @@ class VerifyPhoneFragment extends BaseFragment[VerifyPhoneFragment.Container] wi
       }
       val sec = milliSecondsToShowResendButton / 1000
       resendCodeTimer.setText(getResources.getQuantityString(R.plurals.welcome__resend__timer_label, sec, Integer.valueOf(sec)))
-      resendCodeTimerHandler.postDelayed(resendCodeTimerRunnable, VerifyPhoneFragment.RESEND_CODE_TIMER_INTERVAL)
+      resendCodeTimerHandler.postDelayed(resendCodeTimerRunnable, VerifyEmailFragment.RESEND_CODE_TIMER_INTERVAL)
     }
   }
-
 
   override def onViewCreated(view: View, savedInstanceState: Bundle) = {
     super.onViewCreated(view, savedInstanceState)
@@ -106,7 +107,10 @@ class VerifyPhoneFragment extends BaseFragment[VerifyPhoneFragment.Container] wi
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
       editTextCode.setLetterSpacing(1)
     }
-    getStringArg(PhoneArg).foreach(phone => onPhoneNumberLoaded(phone))
+    getStringArg(EmailArg).foreach { email =>
+      val text = String.format(getResources.getString(R.string.activation_code_info_manual), email)
+      textViewInfo.setText(DeprecationUtils.fromHtml(text))
+    }
   }
 
   override def onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState: Bundle): View = {
@@ -150,68 +154,39 @@ class VerifyPhoneFragment extends BaseFragment[VerifyPhoneFragment.Container] wi
     super.onStop()
   }
 
-  private def onPhoneNumberLoaded(phone: String): Unit = {
-    val text = String.format(getResources.getString(R.string.activation_code_info_manual), phone)
-    textViewInfo.setText(DeprecationUtils.fromHtml(text))
-  }
+  private def name = getStringArg(NameArg).getOrElse("")
+  private def emailAddress = EmailAddress(getStringArg(EmailArg).getOrElse(""))
+  private def password = Password(getStringArg(PasswordArg).getOrElse(""))
+  private def confirmationCode = ConfirmationCode(editTextCode.getText.toString)
 
   private def requestCode(shouldCall: Boolean) = {
     editTextCode.setText("")
-    appEntryController.resendActivationPhoneCode(shouldCall = shouldCall).map { result =>
-      val isLoggingIn = getBooleanArg(LoggingInArg, default = true)
-      tracking.onRequestResendCode(result, SignInMethod(if (isLoggingIn) Login else Register, Phone), isCall = shouldCall)
-      result match {
-        case Left(entryError) =>
-          getContainer.showError(entryError)
-          editTextCode.requestFocus
-        case _ =>
-          Toast.makeText(getActivity, getResources.getString(R.string.new_reg__code_resent), Toast.LENGTH_LONG).show()
-      }
+    accountService.requestEmailCode(emailAddress).map {
+      case Failure(error) =>
+        activity.showError(EntryError(error.code, error.label, SignInMethod(Register, Email)))
+        editTextCode.requestFocus
+      case PasswordExists => showToast("Password exists for this account, please login by email")
+      case Success => showToast(R.string.new_reg__code_resent)
     }
   }
 
   private def goBack(): Unit = getFragmentManager.popBackStack()
 
   private def confirmCode(): Unit = {
-    getContainer.enableProgress(true)
+    activity.enableProgress(true)
     KeyboardUtils.hideKeyboard(getActivity)
-
-    val isLoggingIn = getBooleanArg(LoggingInArg, default = true)
-    val phone = getStringArg(PhoneArg).getOrElse("")
-    val code = editTextCode.getText.toString
-
-    if (isLoggingIn) {
-      accountService.loginPhone(phone, code).map {
-        case Left(error) =>
-          getContainer.enableProgress(false)
-          getContainer.showError(EntryError(error.code, error.label, SignInMethod(Login, Phone)), {
-            if (getActivity != null) {
-              KeyboardUtils.showKeyboard(getActivity)
-              editTextCode.requestFocus
-              phoneConfirmationButton.setState(PhoneConfirmationButton.State.INVALID)
-            }
-          })
-        case Right(userId) =>
-          getContainer.enableProgress(false)
-          accountService.enterAccount(userId, None).foreach(_ => activity.onEnterApplication(false))
-      }
-    } else {
-      accountService.verifyPhoneNumber(PhoneNumber(phone), ConfirmationCode(code), dryRun = true).foreach {
-        case Left(error) =>
-          getContainer.enableProgress(false)
-          getContainer.showError(EntryError(error.code, error.label, SignInMethod(Register, Phone)), {
-            if (getActivity != null) {
-              KeyboardUtils.showKeyboard(getActivity)
-              editTextCode.requestFocus
-              phoneConfirmationButton.setState(PhoneConfirmationButton.State.INVALID)
-            }
-          })
-        case _ =>
-          getContainer.enableProgress(false)
-          activity.showFragment(PhoneSetNameFragment(phone, code), PhoneSetNameFragment.Tag)
-      }
+    accountService.register(EmailCredentials(emailAddress, password, Some(confirmationCode)), name).foreach {
+      case Left(error) =>
+        activity.enableProgress(false)
+        activity.showError(EntryError(error.code, error.label, SignInMethod(Register, Phone)), {
+        KeyboardUtils.showKeyboard(activity)
+        editTextCode.requestFocus
+        phoneConfirmationButton.setState(PhoneConfirmationButton.State.INVALID)
+        })
+      case _ =>
+        activity.enableProgress(false)
+        activity.onEnterApplication(false)
     }
-
   }
 
   def onClick(view: View): Unit = {
@@ -245,13 +220,13 @@ class VerifyPhoneFragment extends BaseFragment[VerifyPhoneFragment.Container] wi
   }
 
   private def startResendCodeTimer(): Unit = {
-    milliSecondsToShowResendButton = VerifyPhoneFragment.SHOW_RESEND_CODE_BUTTON_DELAY
+    milliSecondsToShowResendButton = VerifyEmailFragment.SHOW_RESEND_CODE_BUTTON_DELAY
     resendCodeButton.setVisibility(View.GONE)
     resendCodeCallButton.setVisibility(View.GONE)
     resendCodeTimer.setVisibility(View.VISIBLE)
     val sec = milliSecondsToShowResendButton / 1000
     resendCodeTimer.setText(getResources.getQuantityString(R.plurals.welcome__resend__timer_label, sec, Integer.valueOf(sec)))
-    resendCodeTimerHandler.postDelayed(resendCodeTimerRunnable, VerifyPhoneFragment.RESEND_CODE_TIMER_INTERVAL)
+    resendCodeTimerHandler.postDelayed(resendCodeTimerRunnable, VerifyEmailFragment.RESEND_CODE_TIMER_INTERVAL)
   }
 
   override def onBackPressed() = {

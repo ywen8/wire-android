@@ -29,7 +29,7 @@ import android.widget.{FrameLayout, LinearLayout}
 import com.waz.ZLog.ImplicitTag._
 import com.waz.ZLog._
 import com.waz.api.impl.ErrorResponse
-import com.waz.model.PhoneNumber
+import com.waz.model.{EmailAddress, PhoneNumber}
 import com.waz.service.{AccountsService, ZMessaging}
 import com.waz.threading.Threading
 import com.waz.utils.events.Signal
@@ -37,7 +37,7 @@ import com.waz.utils.returning
 import com.waz.zclient._
 import com.waz.zclient.appentry.controllers.AppEntryController
 import com.waz.zclient.appentry.fragments.SignInFragment._
-import com.waz.zclient.appentry.{AppEntryActivity, EntryError}
+import com.waz.zclient.appentry.{AppEntryActivity, EntryError, GenericRegisterEmailError}
 import com.waz.zclient.common.controllers.BrowserController
 import com.waz.zclient.newreg.fragments.TabPages
 import com.waz.zclient.newreg.fragments.country.{Country, CountryController}
@@ -321,6 +321,7 @@ class SignInFragment extends BaseFragment[Container]
           })(tracking.onEnteredCredentials(_, m))
         }
 
+        import com.waz.client.RegistrationClientImpl.ActivateResult._
         uiSignInState.head.flatMap {
           case m@SignInMethod(Login, Email) =>
             for {
@@ -329,9 +330,25 @@ class SignInFragment extends BaseFragment[Container]
               Right(id) <- accountsService.loginEmail(email, password).map(onResponse(_, m))
               _         <- accountsService.enterAccount(id, None)
             } yield activity.onEnterApplication(openSettings = false)
+          case m@SignInMethod(Register, Email) =>
+            for {
+              email     <- email.head
+              password  <- password.head
+              name      <- name.head
+              req       <- accountsService.requestEmailCode(EmailAddress(email))
+            } yield req match {
+              case Failure(error) =>
+                activity.enableProgress(false)
+                showError(EntryError(error.code, error.label, m))
+              case PasswordExists =>
+                activity.enableProgress(false)
+                showError(GenericRegisterEmailError)
+              case Success =>
+                activity.enableProgress(false)
+                activity.showFragment(VerifyEmailFragment(email, name, password), VerifyEmailFragment.Tag)
+            }
           case m@SignInMethod(method, Phone) =>
             val isLogin = method == Login
-            import com.waz.client.RegistrationClientImpl.ActivateResult._
             activity.enableProgress(true)
             for {
               country <- phoneCountry.head
