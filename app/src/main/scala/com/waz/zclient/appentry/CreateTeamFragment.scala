@@ -17,7 +17,6 @@
   */
 package com.waz.zclient.appentry
 
-import android.content.Context
 import android.os.Bundle
 import android.view.View.OnLayoutChangeListener
 import android.view.{LayoutInflater, View, ViewGroup}
@@ -54,7 +53,6 @@ class CreateTeamFragment extends BaseFragment[Container] with FragmentHelper {
 
     appEntryController.entryStage.onUi { state =>
       val inflator = LayoutInflater.from(getActivity)
-      implicit val ctx: Context = getContext
 
       val viewHolder = state match {
         case NoAccountState(FirstScreen) => FirstScreenViewHolder(inflator.inflate(R.layout.app_entry_scene, null))
@@ -121,7 +119,7 @@ class CreateTeamFragment extends BaseFragment[Container] with FragmentHelper {
   }
 
   def setKeyboardAnimation(view: ViewGroup): Unit = {
-    implicit val ctx = getContext
+    val ctx = getContext
     view.getLayoutParams.height = ViewGroup.LayoutParams.WRAP_CONTENT
     view.addOnLayoutChangeListener(new OnLayoutChangeListener {
       override def onLayoutChange(v: View, left: Int, top: Int, right: Int, bottom: Int, oldLeft: Int, oldTop: Int, oldRight: Int, oldBottom: Int): Unit = {

@@ -128,8 +128,8 @@ class AddParticipantsFragment extends FragmentHelper {
     (for {
       zms <- zms.head
       selectedIds <- newConvController.users.head
-      selected <- Future.sequence(selectedIds.map(zms.users.getUser))
-    } yield selected.flatten).map(_.foreach { user => searchBox.addElement(PickableUser(user.id, user.name)) })(Threading.Ui)
+      selected <- Future.traverse(selectedIds)(zms.users.getUser)
+    } yield selected.flatten).map(_.foreach { user => searchBox.foreach(_.addElement(PickableUser(user.id, user.name))) })(Threading.Ui)
 
     //lazy init
     errorText

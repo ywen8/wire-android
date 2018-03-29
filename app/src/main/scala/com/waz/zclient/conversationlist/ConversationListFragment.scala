@@ -61,8 +61,6 @@ import com.waz.zclient.{FragmentHelper, OnBackPressedListener, R, ViewHolder}
   */
 abstract class ConversationListFragment extends BaseFragment[ConversationListFragment.Container] with FragmentHelper {
 
-  implicit lazy val context = getContext
-
   val layoutId: Int
   lazy val userAccountsController = inject[UserAccountsController]
   lazy val conversationController = inject[ConversationController]
@@ -72,7 +70,7 @@ abstract class ConversationListFragment extends BaseFragment[ConversationListFra
 
   protected var subs = Set.empty[Subscription]
 
-  lazy val topToolbar: ViewHolder[_ <: ConversationListTopToolbar] = view[ConversationListTopToolbar](R.id.conversation_list_top_toolbar)
+  protected lazy val topToolbar: ViewHolder[_ <: ConversationListTopToolbar] = view[ConversationListTopToolbar](R.id.conversation_list_top_toolbar)
   lazy val adapter = returning(new ConversationListAdapter) { a =>
     a.setMaxAlpha(getResourceFloat(R.dimen.list__swipe_max_alpha))
     (for {
@@ -93,8 +91,8 @@ abstract class ConversationListFragment extends BaseFragment[ConversationListFra
     }
   }
 
-  lazy val conversationListView = returning(view[SwipeListView](R.id.conversation_list_view)) { rv =>
-    userAccountsController.currentUser.onChanged.onUi(_ => rv.scrollToPosition(0))
+  lazy val conversationListView = returning(view[SwipeListView](R.id.conversation_list_view)) { vh =>
+    userAccountsController.currentUser.onChanged.onUi(_ => vh.foreach(_.scrollToPosition(0)))
   }
 
   lazy val conversationsListScrollListener = new RecyclerView.OnScrollListener {
@@ -108,15 +106,17 @@ abstract class ConversationListFragment extends BaseFragment[ConversationListFra
 
   override def onViewCreated(view: View, savedInstanceState: Bundle) = {
     super.onViewCreated(view, savedInstanceState)
-    conversationListView.setLayoutManager(new LinearLayoutManager(getContext))
-    conversationListView.setAdapter(adapter)
-    conversationListView.setAllowSwipeAway(true)
-    conversationListView.setOverScrollMode(View.OVER_SCROLL_NEVER)
-    conversationListView.addOnScrollListener(conversationsListScrollListener)
+    conversationListView.foreach { lv =>
+      lv.setLayoutManager(new LinearLayoutManager(getContext))
+      lv.setAdapter(adapter)
+      lv.setAllowSwipeAway(true)
+      lv.setOverScrollMode(View.OVER_SCROLL_NEVER)
+      lv.addOnScrollListener(conversationsListScrollListener)
+    }
   }
 
   override def onDestroyView() = {
-    conversationListView.removeOnScrollListener(conversationsListScrollListener)
+    conversationListView.foreach(_.removeOnScrollListener(conversationsListScrollListener))
     subs.foreach(_.destroy())
     super.onDestroyView()
   }
@@ -146,7 +146,9 @@ class ArchiveListFragment extends ConversationListFragment with OnBackPressedLis
   override def onViewCreated(view: View, savedInstanceState: Bundle) = {
     super.onViewCreated(view, savedInstanceState)
     adapter.currentMode ! ConversationListAdapter.Archive
-    subs += topToolbar.onRightButtonClick(_ => Option(getContainer).foreach(_.closeArchive()))
+    topToolbar.foreach { toolbar =>
+      subs += toolbar.onRightButtonClick(_ => Option(getContainer).foreach(_.closeArchive()))
+    }
   }
 
   override def onBackPressed() = {
@@ -193,43 +195,43 @@ class NormalConversationFragment extends ConversationListFragment {
     adapterAccount <- adapter.conversationListData.map(_._1)
   } yield waitingAcc != adapterAccount
 
-  override lazy val topToolbar = returning(view[NormalTopToolbar](R.id.conversation_list_top_toolbar)) { v =>
-    accentColor.map(_.getColor).onUi(v.setIndicatorColor(_))
+  override lazy val topToolbar = returning(view[NormalTopToolbar](R.id.conversation_list_top_toolbar)) { vh =>
+    accentColor.map(_.getColor).onUi(color => vh.foreach(_.setIndicatorColor(color)))
     Signal(unreadCount, incomingClients).onUi {
-      case (count, clients) => v.setIndicatorVisible(clients.nonEmpty || count > 0)
+      case (count, clients) => vh.foreach(_.setIndicatorVisible(clients.nonEmpty || count > 0))
     }
   }
 
   lazy val loadingListView = view[View](R.id.conversation_list_loading_indicator)
-  lazy val listActionsView = returning(view[ListActionsView](R.id.lav__conversation_list_actions)){ v =>
-   archiveEnabled.onUi(v.setArchiveEnabled(_))
+  lazy val listActionsView = returning(view[ListActionsView](R.id.lav__conversation_list_actions)){ vh =>
+    archiveEnabled.onUi(enabled => vh.foreach(_.setArchiveEnabled(enabled)))
     hasConversationsAndArchive.map {
       case (false, false) => true
       case _ => false
-    }.onUi(v.setContactsCentered(_))
+    }.onUi(centered => vh.foreach(_.setContactsCentered(centered)))
   }
 
-  lazy val noConvsTitle = returning(view[TypefaceTextView](R.id.conversation_list_empty_title)) { v =>
+  lazy val noConvsTitle = returning(view[TypefaceTextView](R.id.conversation_list_empty_title)) { vh =>
     hasConversationsAndArchive.map {
       case (false, true) => Some(R.string.all_archived__header)
       case _ => None
-    }.onUi(_.foreach(v.setText(_)))
+    }.onUi(_.foreach(text => vh.foreach(_.setText(text))))
     hasConversationsAndArchive.map {
       case (false, true) => VISIBLE
       case _ => GONE
-    }.onUi(v.setVisibility(_))
+    }.onUi(visibility => vh.foreach(_.setVisibility(visibility)))
   }
 
-  private lazy val noConvsMessage = returning(view[LinearLayout](R.id.empty_list_message)) { v =>
+  private lazy val noConvsMessage = returning(view[LinearLayout](R.id.empty_list_message)) { vh =>
     hasConversationsAndArchive.map {
       case (false, false) => VISIBLE
       case _ => GONE
-    }.onUi(v.setVisibility(_))
+    }.onUi(visibility => vh.foreach(_.setVisibility(visibility)))
   }
 
   lazy val listActionsScrollListener = new RecyclerView.OnScrollListener {
     override def onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) =
-      listActionsView.setScrolledToBottom(!recyclerView.canScrollVertically(1))
+      listActionsView.foreach(_.setScrolledToBottom(!recyclerView.canScrollVertically(1)))
   }
 
   lazy val listActionsCallback = new Callback {
@@ -243,7 +245,14 @@ class NormalConversationFragment extends ConversationListFragment {
   override def onViewCreated(v: View, savedInstanceState: Bundle) = {
     super.onViewCreated(v, savedInstanceState)
 
-    conversationListView.addOnScrollListener(listActionsScrollListener)
+    for {
+      convList <- conversationListView
+      actionsList <- listActionsView
+    } yield {
+      convList.addOnScrollListener(listActionsScrollListener)
+      actionsList.setCallback(listActionsCallback)
+      actionsList.setScrolledToBottom(!convList.canScrollVertically(1))
+    }
 
     adapter.currentMode ! ConversationListAdapter.Normal
 
@@ -253,19 +262,20 @@ class NormalConversationFragment extends ConversationListFragment {
         hideLoading()
         waitingAccount ! None
     }
-    subs += topToolbar.onRightButtonClick(_ => getActivity.startActivityForResult(PreferencesActivity.getDefaultIntent(getContext), PreferencesActivity.SwitchAccountCode))
 
-    listActionsView.setCallback(listActionsCallback)
-    listActionsView.setScrolledToBottom(!conversationListView.canScrollVertically(1))
+    topToolbar.foreach { toolbar =>
+      subs += toolbar.onRightButtonClick(_ =>
+        getActivity.startActivityForResult(PreferencesActivity.getDefaultIntent(getContext), PreferencesActivity.SwitchAccountCode)
+      )
+    }
 
-    noConvsMessage.foreach(_.onClick(
-      inject[IPickUserController].showPickUser()
-    ))
+
+    val pickUserController = inject[IPickUserController]
+    noConvsMessage.foreach(_.onClick(pickUserController.showPickUser()))
 
     //initialise lazy vals
     loadingListView
     noConvsTitle
-
 
     Option(findById[ImageView](v, R.id.empty_list_arrow)).foreach { v =>
       val drawable = DownArrowDrawable()
@@ -276,30 +286,35 @@ class NormalConversationFragment extends ConversationListFragment {
   }
 
   override def onDestroyView() = {
-    conversationListView.removeOnScrollListener(listActionsScrollListener)
-    listActionsView.setCallback(null)
+    conversationListView.foreach(_.removeOnScrollListener(listActionsScrollListener))
+    listActionsView.foreach(_.setCallback(null))
     super.onDestroyView()
   }
 
   private def showLoading(): Unit = {
-    conversationListView.setVisibility(View.INVISIBLE)
-    loadingListView.setVisibility(VISIBLE)
-    loadingListView.setAlpha(1f)
-    listActionsView.setAlpha(0.5f)
-    topToolbar.setLoading(true)
+    conversationListView.foreach(_.setVisibility(View.INVISIBLE))
+    loadingListView.foreach { lv =>
+      lv.setAlpha(1f)
+      lv.setVisibility(VISIBLE)
+    }
+    listActionsView.foreach(_.setAlpha(0.5f))
+    topToolbar.foreach(_.setLoading(true))
   }
 
   private def hideLoading(): Unit = {
-    if (conversationListView.getVisibility != VISIBLE) {
-      conversationListView.setVisibility(VISIBLE)
-      conversationListView.setAlpha(0f)
-      conversationListView.animate().alpha(1f).setDuration(500)
-      listActionsView.animate().alpha(1f).setDuration(500)
-      loadingListView.animate().alpha(0f).setDuration(500).withEndAction(new Runnable {
-        override def run() = loadingListView.foreach(_.setVisibility(GONE))
-      })
+    conversationListView.foreach { lv =>
+      if (lv.getVisibility != VISIBLE) {
+        lv.setVisibility(VISIBLE)
+        lv.setAlpha(0f)
+        lv.animate().alpha(1f).setDuration(500)
+      }
     }
-    topToolbar.setLoading(false)
+    listActionsView.foreach(_.animate().alpha(1f).setDuration(500))
+    loadingListView.foreach(_.animate().alpha(0f).setDuration(500).withEndAction(new Runnable {
+      override def run() = loadingListView.foreach(_.setVisibility(GONE))
+    }))
+
+    topToolbar.foreach(_.setLoading(false))
   }
 
   override def onActivityResult(requestCode: Int, resultCode: Int, data: Intent) = {

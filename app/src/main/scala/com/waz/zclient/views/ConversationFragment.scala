@@ -119,7 +119,6 @@ class ConversationFragment extends BaseFragment[ConversationFragment.Container] 
   private var openBanner = false
 
   override def onCreateAnimation(transit: Int, enter: Boolean, nextAnim: Int): Animation = {
-    implicit val ctx: Context = getActivity
     if (nextAnim == 0 || Option(getContainer).isEmpty || getControllerFactory.isTornDown) super.onCreateAnimation(transit, enter, nextAnim)
     else if (nextAnim == R.anim.fragment_animation_swap_profile_conversation_tablet_in ||
              nextAnim == R.anim.fragment_animation_swap_profile_conversation_tablet_out) new MessageStreamAnimation(
@@ -185,7 +184,7 @@ class ConversationFragment extends BaseFragment[ConversationFragment.Container] 
 
   private def hideGuestsBanner(): Unit = {
     openBanner = false
-    guestsBanner.setVisibility(View.GONE)
+    guestsBanner.foreach(_.setVisibility(View.GONE))
   }
 
   override def onCreateView(inflater: LayoutInflater, viewGroup: ViewGroup, savedInstanceState: Bundle): View = {
@@ -629,19 +628,17 @@ class ConversationFragment extends BaseFragment[ConversationFragment.Container] 
 
   private val orientationControllerObserver = new  OrientationControllerObserver {
     override def onOrientationHasChanged(squareOrientation: SquareOrientation): Unit = inLandscape.head.foreach { oldInLandscape =>
-      Option(getActivity).foreach { implicit ctx: Context =>
-        val newInLandscape = isInLandscape
-        oldInLandscape match {
-          case Some(landscape) if landscape != newInLandscape =>
-            val conversationListVisible = getControllerFactory.getNavigationController.getCurrentPage == Page.CONVERSATION_LIST
-            if (newInLandscape && !conversationListVisible)
-              CancellableFuture.delayed(getInt(R.integer.framework_animation_duration_short).millis){
-                Option(getActivity).foreach(_.onBackPressed())
-              }
-          case _ =>
-        }
-        inLandscape ! Some(newInLandscape)
+      val newInLandscape = isInLandscape
+      oldInLandscape match {
+        case Some(landscape) if landscape != newInLandscape =>
+          val conversationListVisible = getControllerFactory.getNavigationController.getCurrentPage == Page.CONVERSATION_LIST
+          if (newInLandscape && !conversationListVisible)
+            CancellableFuture.delayed(getInt(R.integer.framework_animation_duration_short).millis){
+              Option(getActivity).foreach(_.onBackPressed())
+            }
+        case _ =>
       }
+      inLandscape ! Some(newInLandscape)
     }
   }
 

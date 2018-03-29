@@ -97,12 +97,15 @@ class IntegrationConversationSearchFragment extends Fragment with FragmentHelper
     inflater.inflate(R.layout.fragment_integrations_pick_conv, container, false)
 
   override def onViewCreated(view: View, savedInstanceState: Bundle): Unit = {
-    listView.setLayoutManager(new LinearLayoutManager(getContext))
-    listView.setAdapter(convsAdapter)
-    searchBox.setCallback(new PickerSpannableEditText.Callback {
+    listView.foreach { lv =>
+      lv.setLayoutManager(new LinearLayoutManager(getContext))
+      lv.setAdapter(convsAdapter)
+    }
+
+    searchBox.foreach(_.setCallback(new PickerSpannableEditText.Callback {
       override def afterTextChanged(s: String): Unit = integrationDetailsController.searchFilter ! s
       override def onRemovedTokenSpan(element: PickableElement): Unit = {}
-    })
+    }))
   }
 
   override def onCreate(savedInstanceState: Bundle): Unit = {

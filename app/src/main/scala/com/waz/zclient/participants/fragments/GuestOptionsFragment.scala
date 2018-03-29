@@ -225,7 +225,7 @@ class GuestOptionsFragment extends FragmentHelper {
                     }
                   }, new DialogInterface.OnClickListener {
                     override def onClick(dialog: DialogInterface, which: Int): Unit = {
-                      guestsSwitch.setChecked(true)
+                      guestsSwitch.foreach(_.setChecked(true))
                       setGuestsSwitchEnabled(true)
                       dialog.dismiss()
                     }

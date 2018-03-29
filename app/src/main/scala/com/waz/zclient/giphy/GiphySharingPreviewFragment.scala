@@ -201,7 +201,7 @@ class GiphySharingPreviewFragment extends BaseFragment[GiphySharingPreviewFragme
     }
 
     val gifDrawable = new ImageAssetDrawable(gifImage, scaleType = ScaleType.CenterInside)
-    previewImage.setImageDrawable(gifDrawable)
+    previewImage.foreach(_.setImageDrawable(gifDrawable))
 
     EventStream.union(
       searchTerm.onChanged.map(_ => true),
