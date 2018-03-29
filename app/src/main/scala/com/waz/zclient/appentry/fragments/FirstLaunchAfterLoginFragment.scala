@@ -23,16 +23,14 @@ import android.support.v4.app.Fragment
 import android.support.v4.content.ContextCompat
 import android.view.{LayoutInflater, View, ViewGroup}
 import com.waz.model.UserId
-import com.waz.service.AccountManager.ClientRegistrationState
 import com.waz.service.AccountsService
+import com.waz.threading.Threading
 import com.waz.utils.returning
 import com.waz.zclient.appentry.AppEntryActivity
 import com.waz.zclient.appentry.controllers.AppEntryController
+import com.waz.zclient.appentry.fragments.FirstLaunchAfterLoginFragment._
 import com.waz.zclient.ui.views.ZetaButton
 import com.waz.zclient.{FragmentHelper, R}
-import FirstLaunchAfterLoginFragment._
-import com.waz.ZLog.ImplicitTag._
-import com.waz.threading.Threading
 
 object FirstLaunchAfterLoginFragment {
   val Tag: String = classOf[FirstLaunchAfterLoginFragment].getName
@@ -78,16 +76,7 @@ class FirstLaunchAfterLoginFragment extends FragmentHelper with View.OnClickList
       case R.id.zb__first_launch__confirm =>
         implicit val ec = Threading.Ui
         getStringArg(UserIdArg).map(UserId(_)).foreach { userId =>
-          for {
-            _ <- accountsService.enterAccount(userId, None)
-            Some(am) <- accountsService.activeAccountManager.head
-            Right(clientState) <- am.registerClient()
-          } yield {
-            clientState match {
-              case ClientRegistrationState.LimitReached => activity.onEnterApplication(true)
-              case _ => activity.onEnterApplication(false)
-            }
-          }
+          accountsService.enterAccount(userId, None).foreach(_ => activity.onEnterApplication(false))
         }
     }
   }

@@ -197,6 +197,12 @@ trait FragmentHelper extends Fragment with OnBackPressedListener with ViewFinder
   def getStringArg(key: String): Option[String] =
     Option(getArguments).flatMap(a => Option(a.getString(key)))
 
+  def getBooleanArg(key: String): Option[Boolean] =
+    Option(getArguments).map(_.getBoolean(key))
+
+  def getBooleanArg(key: String, default: Boolean): Boolean =
+    Option(getArguments).map(_.getBoolean(key, default)).getOrElse(default)
+
   override def onBackPressed(): Boolean = {
     verbose(s"onBackPressed")(getClass.getSimpleName)
     false

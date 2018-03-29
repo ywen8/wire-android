@@ -18,69 +18,85 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 -->
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:orientation="vertical"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:layout_gravity="bottom"
-    android:layout_marginBottom="@dimen/wire__padding__16"
-    android:layout_marginLeft="@dimen/new_reg__body_left_margin"
-    android:layout_marginRight="@dimen/new_reg__body_right_margin"
-    >
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+             xmlns:app="http://schemas.android.com/apk/res-auto"
+             android:layout_width="match_parent"
+             android:layout_height="match_parent">
 
-    <!-- Info Text Header-->
     <com.waz.zclient.ui.text.TypefaceTextView
-        android:layout_width="match_parent"
+        android:id="@+id/skip_button"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/new_reg__add_email"
-        app:w_font="@string/wire__typeface__medium"
-        android:textSize="@dimen/wire__text_size__regular"
+        android:text="@string/skip_button"
+        app:w_font="@string/wire__typeface__regular"
         android:textColor="@color/white"
-        />
-
-    <!-- Info Text -->
-    <com.waz.zclient.ui.text.TypefaceTextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/new_reg__add_email_info"
-        app:w_font="@string/wire__typeface__light"
         android:textSize="@dimen/wire__text_size__regular"
-        android:textColor="@color/white"
-        />
+        android:layout_gravity="end|top"
+        android:padding="@dimen/wire__padding__regular"/>
 
-    <!-- Email field -->
-    <com.waz.zclient.pages.main.profile.views.GuidedEditText
-        android:id="@+id/email_field"
-        android:layout_width="match_parent"
-        android:layout_height="@dimen/new_reg__input_height"
-        android:layout_marginTop="@dimen/wire__padding__small"
-        />
-
-    <!-- Password field-->
-    <FrameLayout
+    <LinearLayout
+        android:orientation="vertical"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/wire__padding__small"
+        android:layout_gravity="bottom"
+        android:layout_marginBottom="@dimen/wire__padding__16"
+        android:layout_marginLeft="@dimen/new_reg__body_left_margin"
+        android:layout_marginRight="@dimen/new_reg__body_right_margin"
         >
 
+        <!-- Info Text Header-->
+        <com.waz.zclient.ui.text.TypefaceTextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/new_reg__add_email"
+            app:w_font="@string/wire__typeface__medium"
+            android:textSize="@dimen/wire__text_size__regular"
+            android:textColor="@color/white"
+            />
+
+        <!-- Info Text -->
+        <com.waz.zclient.ui.text.TypefaceTextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/new_reg__add_email_info"
+            app:w_font="@string/wire__typeface__light"
+            android:textSize="@dimen/wire__text_size__regular"
+            android:textColor="@color/white"
+            />
+
+        <!-- Email field -->
         <com.waz.zclient.pages.main.profile.views.GuidedEditText
-            android:id="@+id/password_field"
+            android:id="@+id/email_field"
             android:layout_width="match_parent"
             android:layout_height="@dimen/new_reg__input_height"
+            android:layout_marginTop="@dimen/wire__padding__small"
             />
 
-        <com.waz.zclient.newreg.views.PhoneConfirmationButton
-            android:id="@+id/confirmation_button"
-            android:layout_width="@dimen/new_reg__input_height"
-            android:layout_height="@dimen/new_reg__input_height"
-            android:layout_gravity="right"
-            android:gravity="center"
-            android:textColor="@color/text__primary_light"
-            android:textSize="@dimen/wire__text_size__regular"
-            app:w_font="@string/wire__typeface__light"
-            />
-    </FrameLayout>
+        <!-- Password field-->
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/wire__padding__small"
+            >
 
-</LinearLayout>
+            <com.waz.zclient.pages.main.profile.views.GuidedEditText
+                android:id="@+id/password_field"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/new_reg__input_height"
+                />
+
+            <com.waz.zclient.newreg.views.PhoneConfirmationButton
+                android:id="@+id/confirmation_button"
+                android:layout_width="@dimen/new_reg__input_height"
+                android:layout_height="@dimen/new_reg__input_height"
+                android:layout_gravity="right"
+                android:gravity="center"
+                android:textColor="@color/text__primary_light"
+                android:textSize="@dimen/wire__text_size__regular"
+                app:w_font="@string/wire__typeface__light"
+                />
+        </FrameLayout>
+
+    </LinearLayout>
+
+</FrameLayout>

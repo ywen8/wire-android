@@ -23,10 +23,15 @@ import android.text.{Editable, TextWatcher}
 import android.view.inputmethod.EditorInfo
 import android.view.{KeyEvent, LayoutInflater, View, ViewGroup}
 import android.widget.TextView
+import com.waz.api.PhoneCredentials
+import com.waz.model.{ConfirmationCode, PhoneNumber}
+import com.waz.service.AccountsService
 import com.waz.threading.Threading
+import com.waz.utils.returning
 import com.waz.zclient._
-import com.waz.zclient.appentry.EntryError
-import com.waz.zclient.appentry.controllers.AppEntryController
+import com.waz.zclient.appentry.{AppEntryActivity, EntryError}
+import com.waz.zclient.appentry.fragments.PhoneSetNameFragment._
+import com.waz.zclient.appentry.fragments.SignInFragment.{Phone, Register, SignInMethod}
 import com.waz.zclient.controllers.navigation.Page
 import com.waz.zclient.newreg.views.PhoneConfirmationButton
 import com.waz.zclient.pages.BaseFragment
@@ -34,9 +39,18 @@ import com.waz.zclient.ui.text.TypefaceEditText
 import com.waz.zclient.ui.utils.KeyboardUtils
 
 object PhoneSetNameFragment {
-  val TAG = classOf[PhoneSetNameFragment].getName
+  val Tag = classOf[PhoneSetNameFragment].getName
 
-  def newInstance: PhoneSetNameFragment = new PhoneSetNameFragment
+  private val PhoneArg: String = "phone_arg"
+  private val CodeArg: String = "code_arg"
+
+  def apply(phone: String, code: String): PhoneSetNameFragment =
+    returning(new PhoneSetNameFragment) { f =>
+      val args = new Bundle
+      args.putString(PhoneArg, phone)
+      args.putString(CodeArg, code)
+      f.setArguments(args)
+    }
 
   trait Container {
     def enableProgress(enable: Boolean): Unit
@@ -49,7 +63,7 @@ class PhoneSetNameFragment extends BaseFragment[PhoneSetNameFragment.Container] 
 
   implicit val executionContext = Threading.Ui
 
-  private lazy val appEntryController = inject[AppEntryController]
+  private lazy val accountsService = inject[AccountsService]
 
   private lazy val editTextName = findById[TypefaceEditText](getView, R.id.et__reg__name)
   private lazy val nameConfirmationButton = findById[PhoneConfirmationButton](getView, R.id.pcb__signup)
@@ -96,17 +110,23 @@ class PhoneSetNameFragment extends BaseFragment[PhoneSetNameFragment.Container] 
   private def confirmName(): Unit = {
     getContainer.enableProgress(true)
     KeyboardUtils.hideKeyboard(getActivity)
-    val name: String = editTextName.getText.toString
-    appEntryController.registerName(name).map {
+
+    val phone = getStringArg(PhoneArg).getOrElse("")
+    val code = getStringArg(CodeArg).getOrElse("")
+    val name = editTextName.getText.toString
+
+    accountsService.register(PhoneCredentials(PhoneNumber(phone), ConfirmationCode(code)), name).map {
       case Left(error) =>
         getContainer.enableProgress(false)
-        getContainer.showError(error, {
+        getContainer.showError(EntryError(error.code, error.label, SignInMethod(Register, Phone)), {
           if (getActivity == null) return
           KeyboardUtils.showKeyboard(getActivity)
           editTextName.requestFocus
           nameConfirmationButton.setState(PhoneConfirmationButton.State.INVALID)
         })
       case _ =>
+        getContainer.enableProgress(false)
+        activity.onEnterApplication(false)
     }
   }
 
@@ -134,4 +154,10 @@ class PhoneSetNameFragment extends BaseFragment[PhoneSetNameFragment.Container] 
 
   private def isNameValid(name: String): Boolean = name != null && name.trim.length > 1
 
+  override def onBackPressed(): Boolean = {
+    getFragmentManager.popBackStack()
+    true
+  }
+
+  def activity = getActivity.asInstanceOf[AppEntryActivity]
 }

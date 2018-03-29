@@ -237,15 +237,6 @@ class AppEntryActivity extends BaseActivity
       case None => showFragment(CreateTeamFragment.newInstance, CreateTeamFragment.TAG)
     }
 
-
-  def onShowPhoneCodePage(): Unit =
-    if (!isPaused) {
-      showFragment(VerifyPhoneFragment.newInstance(false), VerifyPhoneFragment.TAG)
-    }
-
-  def onShowPhoneVerifyEmailPage(): Unit =
-    showFragment(VerifyPhoneFragment.newInstance(false), VerifyPhoneFragment.TAG)
-
   def onShowEmailVerifyEmailPage(): Unit =
     showFragment(EmailVerifyEmailFragment.newInstance, EmailVerifyEmailFragment.TAG)
 
@@ -270,15 +261,8 @@ class AppEntryActivity extends BaseActivity
 //        }
 //    }
 
-  def onShowEmailPhoneCodePage(): Unit =
-    showFragment(VerifyPhoneFragment.newInstance(true), VerifyPhoneFragment.TAG)
-
   def onShowFirstLaunchPage(): Unit =
     showFragment(FirstLaunchAfterLoginFragment(), FirstLaunchAfterLoginFragment.Tag)
-
-  def onShowPhoneNamePage(): Unit = {
-    showFragment(PhoneSetNameFragment.newInstance, PhoneSetNameFragment.TAG)
-  }
 
   def onEnterApplication(openSettings: Boolean): Unit = {
     getControllerFactory.getVerificationController.finishVerification()

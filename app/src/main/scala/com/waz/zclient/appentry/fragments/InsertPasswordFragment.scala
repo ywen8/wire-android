@@ -24,10 +24,10 @@ import com.waz.ZLog
 import com.waz.api.EmailCredentials
 import com.waz.model.AccountData.Password
 import com.waz.model.EmailAddress
+import com.waz.service.AccountsService
 import com.waz.threading.Threading
 import com.waz.utils.returning
 import com.waz.zclient.appentry.{AppEntryActivity, EntryError}
-import com.waz.zclient.appentry.controllers.AppEntryController
 import com.waz.zclient.appentry.fragments.InsertPasswordFragment._
 import com.waz.zclient.appentry.fragments.SignInFragment.{Email, Login, SignInMethod}
 import com.waz.zclient.newreg.views.PhoneConfirmationButton
@@ -39,7 +39,7 @@ import com.waz.zclient.{FragmentHelper, R}
 
 class InsertPasswordFragment extends BaseFragment[Container] with FragmentHelper with View.OnClickListener {
 
-  lazy val appEntryController = inject[AppEntryController]
+  lazy val accountsService = inject[AccountsService]
 
   lazy val emailValidator = EmailValidator.newInstance()
   lazy val passwordValidator = PasswordValidator.instance(getContext)
@@ -90,11 +90,11 @@ class InsertPasswordFragment extends BaseFragment[Container] with FragmentHelper
         getContainer.enableProgress(true)
         val passwordText = passwordField.map(_.getText).getOrElse("")
         val emailText = emailField.map(_.getText).getOrElse("")
-        appEntryController.login(EmailCredentials(EmailAddress(emailText), Password(passwordText))).map {
+        accountsService.login(EmailCredentials(EmailAddress(emailText), Password(passwordText))).map {
           case Left(error) =>
             getContainer.enableProgress(false)
             getContainer.showError(EntryError(error.code, error.label, SignInMethod(Login, Email)))
-          case Right((userId, _)) =>
+          case Right(userId) =>
             activity.showFragment(FirstLaunchAfterLoginFragment(userId), FirstLaunchAfterLoginFragment.Tag)
             getContainer.enableProgress(false)
         } (Threading.Ui)

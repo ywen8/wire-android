@@ -29,16 +29,17 @@ import com.waz.zclient.utils._
 import com.waz.zclient.{FragmentHelper, OnBackPressedListener, R}
 import AddEmailFragment._
 import com.waz.ZLog
-import com.waz.zclient.appentry.EntryError
+import com.waz.zclient.appentry.{AppEntryActivity, EntryError}
 import com.waz.ZLog.ImplicitTag._
 import com.waz.threading.Threading.Implicits.Ui
 import com.waz.zclient.appentry.fragments.SignInFragment.{Email, Register, SignInMethod}
 
-case class AddEmailFragment() extends BaseFragment[Container] with FragmentHelper with OnBackPressedListener {
+class AddEmailFragment extends BaseFragment[Container] with FragmentHelper with OnBackPressedListener {
 
   lazy val addEmailController = inject[AddEmailController]
 
   lazy val confirmationButton = view[PhoneConfirmationButton](R.id.confirmation_button)
+  lazy val skipButton = view[PhoneConfirmationButton](R.id.skip_button)
 
   override def onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState: Bundle) =
     inflater.inflate(R.layout.add_email_fragment, container, false)
@@ -67,6 +68,10 @@ case class AddEmailFragment() extends BaseFragment[Container] with FragmentHelpe
         case _ =>
       }
     }
+    skipButton.foreach(_.onClick {
+      activity.showFragment(FirstLaunchAfterLoginFragment(), FirstLaunchAfterLoginFragment.Tag)
+    })
+
     confirmationButton.foreach(_.setAccentColor(Color.WHITE))
     setConfirmationButtonActive(addEmailController.isValid.currentValue.getOrElse(false))
     addEmailController.isValid.onUi { setConfirmationButtonActive }
@@ -82,6 +87,8 @@ case class AddEmailFragment() extends BaseFragment[Container] with FragmentHelpe
     confirmationButton.foreach(_.setState(if(active) CONFIRM else NONE))
 
   override def onBackPressed(): Boolean = true
+
+  def activity = getActivity.asInstanceOf[AppEntryActivity]
 }
 
 object AddEmailFragment {
@@ -90,4 +97,6 @@ object AddEmailFragment {
     def enableProgress(enabled: Boolean): Unit
     def showError(entryError: EntryError, okCallback: => Unit = {}): Unit
   }
+
+  def apply(): AddEmailFragment = new AddEmailFragment()
 }

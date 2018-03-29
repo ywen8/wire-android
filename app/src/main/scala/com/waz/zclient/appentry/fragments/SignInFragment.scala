@@ -329,15 +329,15 @@ class SignInFragment extends BaseFragment[Container]
               Right(id) <- accountsService.loginEmail(email, password).map(onResponse(_, m))
               _         <- accountsService.enterAccount(id, None)
             } yield activity.onEnterApplication(openSettings = false)
-          case m@SignInMethod(Login, Phone) =>
+          case m@SignInMethod(method, Phone) =>
+            val isLogin = method == Login
             import com.waz.client.RegistrationClientImpl.ActivateResult._
             activity.enableProgress(true)
-
             for {
               country <- phoneCountry.head
               phoneStr <- phone.head
               phone = PhoneNumber(s"+${country.getCountryCode}$phoneStr")
-              req <- accountsService.requestPhoneCode(phone, login = true)
+              req <- accountsService.requestPhoneCode(phone, login = isLogin)
             } yield req match {
               case Failure(error) =>
                 activity.enableProgress(false)
@@ -345,10 +345,9 @@ class SignInFragment extends BaseFragment[Container]
               case PasswordExists =>
                 activity.enableProgress(false)
                 showToast("Password exists for this account, please login by email")
-                onBackPressed()
               case Success =>
                 activity.enableProgress(false)
-                activity.showFragment(VerifyPhoneFragment(phone.str, showNotNowButton = false), VerifyPhoneFragment.TAG)
+                activity.showFragment(VerifyPhoneFragment(phone.str, login = isLogin), VerifyPhoneFragment.Tag)
             }
           case _ => throw new NotImplementedError("Only login with email works right now") //TODO
         }

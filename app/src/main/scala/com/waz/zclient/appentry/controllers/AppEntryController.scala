@@ -162,8 +162,6 @@ class AppEntryController(implicit inj: Injector, eventContext: EventContext) ext
 //    }
   }
 
-  def verifyPhone(phone: String, code: String): ErrorOr[(UserId, Option[EmailAddress])] = login(PhoneCredentials(PhoneNumber(phone), ConfirmationCode(code)))
-
   def registerName(name: String): Future[Either[EntryError, Unit]] = {
     throw new NotImplementedError("")
 //    ZMessaging.currentAccounts.activeAccount.head.flatMap {
@@ -299,12 +297,6 @@ class AppEntryController(implicit inj: Injector, eventContext: EventContext) ext
   def skipInvitations(): Unit =
     throw new NotImplementedError("")
 //  ZMessaging.accountsService.flatMap(_.updateCurrentAccount(_.copy(pendingTeamName = None)))
-
-  def requestPhoneCode(phone: String): ErrorOr[Unit] = fakeOperation(())
-  def login(credentials: Credentials): ErrorOr[(UserId, Option[EmailAddress])] = credentials match {
-    case EmailCredentials(_, _, _) => accountsService.login(credentials)
-    case _ => fakeOperation((UserId(), Some(EmailAddress("a@b.com"))))
-  }
 
   def enterAccount(userId: UserId, database: Option[File]): ErrorOr[Unit] = fakeOperation(())
   def registerClient: ErrorOr[ClientRegistrationState] = fakeOperation(Registered(ClientId("123")))

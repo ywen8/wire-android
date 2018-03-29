@@ -27,7 +27,7 @@ import com.waz.threading.Threading
 import com.waz.utils.returning
 import com.waz.zclient._
 import com.waz.zclient.appentry.controllers.AppEntryController
-import com.waz.zclient.appentry.fragments.SignInFragment.{Login, Phone, SignInMethod}
+import com.waz.zclient.appentry.fragments.SignInFragment.{Login, Phone, Register, SignInMethod}
 import com.waz.zclient.appentry.{AppEntryActivity, EntryError}
 import com.waz.zclient.controllers.navigation.Page
 import com.waz.zclient.newreg.views.PhoneConfirmationButton
@@ -37,26 +37,19 @@ import com.waz.zclient.ui.text.TypefaceEditText
 import com.waz.zclient.ui.utils.KeyboardUtils
 import com.waz.zclient.utils.DeprecationUtils
 import VerifyPhoneFragment._
+import com.waz.model.{ConfirmationCode, PhoneNumber}
 
 object VerifyPhoneFragment {
-  val TAG: String = classOf[VerifyPhoneFragment].getName
-  private val ShowNotNowArg: String = "show_not_now_arg"
+  val Tag: String = classOf[VerifyPhoneFragment].getName
   private val PhoneArg: String = "phone_arg"
+  private val LoggingInArg: String = "logging_in_arg"
   private val SHOW_RESEND_CODE_BUTTON_DELAY: Int = 15000
   private val RESEND_CODE_TIMER_INTERVAL: Int = 1000
 
-  def newInstance(showNotNowButton: Boolean): VerifyPhoneFragment = {
-    val fragment = new VerifyPhoneFragment
-    val args = new Bundle
-    args.putBoolean(ShowNotNowArg, showNotNowButton)
-    fragment.setArguments(args)
-    fragment
-  }
-
-  def apply(phone: String, showNotNowButton: Boolean): VerifyPhoneFragment =
+  def apply(phone: String, login: Boolean): VerifyPhoneFragment =
     returning(new VerifyPhoneFragment) { f =>
       val args = new Bundle
-      args.putBoolean(ShowNotNowArg, showNotNowButton)
+      args.putBoolean(LoggingInArg, login)
       args.putString(PhoneArg, phone)
       f.setArguments(args)
     }
@@ -112,12 +105,7 @@ class VerifyPhoneFragment extends BaseFragment[VerifyPhoneFragment.Container] wi
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
       editTextCode.setLetterSpacing(1)
     }
-    //TODO
-//    appEntryController.currentAccount.map(_.flatMap(_.pendingPhone)).onUi{
-//      case Some(phone) =>
-//        onPhoneNumberLoaded(phone.str)
-//      case _ =>
-//    }
+    getStringArg(PhoneArg).foreach(phone => onPhoneNumberLoaded(phone))
   }
 
   override def onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState: Bundle): View = {
@@ -169,10 +157,8 @@ class VerifyPhoneFragment extends BaseFragment[VerifyPhoneFragment.Container] wi
   private def requestCode(shouldCall: Boolean) = {
     editTextCode.setText("")
     appEntryController.resendActivationPhoneCode(shouldCall = shouldCall).map { result =>
-      //TODO
-//      ZMessaging.currentAccounts.getActiveAccount.collect { case Some(acc) => acc.regWaiting }.map { reg =>
-//        tracking.onRequestResendCode(result, SignInMethod(if (reg) Register else Login, Phone), isCall = shouldCall)
-//      }
+      val isLoggingIn = getBooleanArg(LoggingInArg, default = true)
+      tracking.onRequestResendCode(result, SignInMethod(if (isLoggingIn) Login else Register, Phone), isCall = shouldCall)
       result match {
         case Left(entryError) =>
           getContainer.showError(entryError)
@@ -188,8 +174,13 @@ class VerifyPhoneFragment extends BaseFragment[VerifyPhoneFragment.Container] wi
   private def confirmCode(): Unit = {
     getContainer.enableProgress(true)
     KeyboardUtils.hideKeyboard(getActivity)
-    getStringArg(PhoneArg).fold(throw new NotImplementedError("PhoneArg empty")) { phone =>
-      accountService.loginPhone(phone, editTextCode.getText.toString).map {
+
+    val isLoggingIn = getBooleanArg(LoggingInArg, default = true)
+    val phone = getStringArg(PhoneArg).getOrElse("")
+    val code = editTextCode.getText.toString
+
+    if (isLoggingIn) {
+      accountService.loginPhone(phone, code).map {
         case Left(error) =>
           getContainer.enableProgress(false)
           getContainer.showError(EntryError(error.code, error.label, SignInMethod(Login, Phone)), {
@@ -199,14 +190,27 @@ class VerifyPhoneFragment extends BaseFragment[VerifyPhoneFragment.Container] wi
               phoneConfirmationButton.setState(PhoneConfirmationButton.State.INVALID)
             }
           })
-        case Right((_, Some(email))) =>
+        case Right(userId) =>
           getContainer.enableProgress(false)
-          activity.showFragment(InsertPasswordFragment(email.str), InsertPasswordFragment.Tag)
+          accountService.enterAccount(userId, None).foreach(_ => activity.onEnterApplication(false))
+      }
+    } else {
+      accountService.verifyPhoneNumber(PhoneNumber(phone), ConfirmationCode(code), dryRun = true).foreach {
+        case Left(error) =>
+          getContainer.enableProgress(false)
+          getContainer.showError(EntryError(error.code, error.label, SignInMethod(Register, Phone)), {
+            if (getActivity != null) {
+              KeyboardUtils.showKeyboard(getActivity)
+              editTextCode.requestFocus
+              phoneConfirmationButton.setState(PhoneConfirmationButton.State.INVALID)
+            }
+          })
         case _ =>
           getContainer.enableProgress(false)
-          activity.showFragment(AddEmailFragment(), AddEmailFragment.Tag)
+          activity.showFragment(PhoneSetNameFragment(phone, code), PhoneSetNameFragment.Tag)
       }
     }
+
   }
 
   def onClick(view: View): Unit = {
