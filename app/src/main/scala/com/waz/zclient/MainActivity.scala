@@ -125,10 +125,11 @@ class MainActivity extends BaseActivity
     }
 
     accountsService.activeAccountManager.head.flatMap {
-      case Some(am) => am.clientState.head.map {
-        case Registered(_) => if (getSupportFragmentManager.findFragmentByTag(MainPhoneFragment.Tag) == null) replaceMainFragment(new MainPhoneFragment, MainPhoneFragment.Tag)
-        case LimitReached  => showUnableToRegisterOtrClientDialog()
-        case _             => openSignUpPage() //TODO where to though?
+      case Some(am) => am.registerClient().map { //TODO require password??
+        case Right(Registered(_)) => if (getSupportFragmentManager.findFragmentByTag(MainPhoneFragment.Tag) == null) replaceMainFragment(new MainPhoneFragment, MainPhoneFragment.Tag)
+        case Right(LimitReached)  => showUnableToRegisterOtrClientDialog()
+          //TODO show errors
+        case _                    => openSignUpPage() //TODO where to though?
       } (Threading.Ui)
       case _ => ZLog.warn("This shouldn't happen!"); Future.successful({}) //TODO better warning...
     }
