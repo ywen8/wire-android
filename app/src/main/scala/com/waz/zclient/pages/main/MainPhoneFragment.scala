@@ -186,7 +186,7 @@ class MainPhoneFragment extends FragmentHelper
   override def closeCollection(): Unit = ()
 
   override def onRequestConfirmation(confirmationRequest: ConfirmationRequest, requester: Int): Unit = {
-    confirmationMenu.onRequestConfirmation(confirmationRequest)
+    confirmationMenu.foreach(_.onRequestConfirmation(confirmationRequest))
   }
 
   private def handleSyncError(error: ErrorData): Unit = {
