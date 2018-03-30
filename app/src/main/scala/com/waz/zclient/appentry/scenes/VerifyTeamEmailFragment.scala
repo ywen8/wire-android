@@ -67,7 +67,7 @@ case class VerifyTeamEmailFragment() extends CreateTeamFragment{
           case Left(error) =>
             Some(getString(EntryError(error.code, error.label, SignInMethod(Register, Email)).bodyResource))
           case _ =>
-            createTeamController.code = ""
+            createTeamController.code = code
             showFragment(SetNameFragment(), SetNameFragment.Tag)
             None
         }
