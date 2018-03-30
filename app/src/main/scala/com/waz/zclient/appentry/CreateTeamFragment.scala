@@ -119,7 +119,7 @@ class CreateTeamFragment extends BaseFragment[Container] with FragmentHelper {
     val inflator = LayoutInflater.from(getActivity)
     val viewHolder = FirstScreenViewHolder(inflator.inflate(R.layout.app_entry_scene, null))
     viewHolder.loginButton.onClick(activity.showFragment(SignInFragment.newInstance(), SignInFragment.Tag))
-    container.addView(viewHolder.root)
+    container.foreach(_.addView(viewHolder.root))
     viewHolder.onCreate()
   }
 

@@ -24,12 +24,11 @@ import android.graphics.drawable.ColorDrawable
 import android.graphics.{Color, Paint, PixelFormat}
 import android.os.{Build, Bundle}
 import android.support.v4.app.Fragment
-import com.waz.ZLog
 import com.waz.ZLog.ImplicitTag._
-import com.waz.ZLog.{error, info, verbose}
+import com.waz.ZLog.{error, info, verbose, warn}
 import com.waz.api.{NetworkMode, _}
 import com.waz.model.{ConvId, ConversationData, UserId}
-import com.waz.service.AccountManager.ClientRegistrationState.{LimitReached, Registered}
+import com.waz.service.AccountManager.ClientRegistrationState.{LimitReached, PasswordMissing, Registered, Unregistered}
 import com.waz.service.ZMessaging.clock
 import com.waz.service.{AccountsService, ZMessaging}
 import com.waz.threading.{CancellableFuture, Threading}
@@ -38,6 +37,7 @@ import com.waz.utils.{RichInstant, returning}
 import com.waz.zclient.Intents._
 import com.waz.zclient.appentry.AppEntryActivity
 import com.waz.zclient.appentry.controllers.AppEntryController
+import com.waz.zclient.appentry.fragments.AddEmailFragment
 import com.waz.zclient.calling.CallingActivity
 import com.waz.zclient.calling.controllers.CallPermissionsController
 import com.waz.zclient.common.controllers.global.{AccentColorController, KeyboardController}
@@ -51,6 +51,7 @@ import com.waz.zclient.pages.main.MainPhoneFragment
 import com.waz.zclient.pages.startup.UpdateFragment
 import com.waz.zclient.preferences.{PreferencesActivity, PreferencesController}
 import com.waz.zclient.tracking.{CrashController, UiTrackingController}
+import com.waz.zclient.utils.ContextUtils.showToast
 import com.waz.zclient.utils.PhoneUtils.PhoneState
 import com.waz.zclient.utils.StringUtils.TextDrawing
 import com.waz.zclient.utils.{BuildConfigUtils, ContextUtils, Emojis, IntentUtils, PhoneUtils, ViewUtils}
@@ -68,6 +69,8 @@ class MainActivity extends BaseActivity
   with NavigationControllerObserver
   with CallingObserver
   with OtrDeviceLimitFragment.Container {
+
+  implicit val cxt = this
 
   import Threading.Implicits.Background
 
@@ -120,21 +123,15 @@ class MainActivity extends BaseActivity
     val currentlyDarkTheme = themeController.darkThemeSet.currentValue.contains(true)
 
     themeController.darkThemeSet.onUi {
-      case theme if theme != currentlyDarkTheme => restartActivity()
+      case theme if theme != currentlyDarkTheme =>
+        info("restartActivity")
+        finish()
+        startActivity(getIntent)
+        overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
       case _ =>
     }
 
-    accountsService.activeAccountManager.head.flatMap {
-      case Some(am) => am.registerClient().map { //TODO require password??
-        case Right(Registered(_)) => if (getSupportFragmentManager.findFragmentByTag(MainPhoneFragment.Tag) == null) replaceMainFragment(new MainPhoneFragment, MainPhoneFragment.Tag)
-        case Right(LimitReached)  => showUnableToRegisterOtrClientDialog()
-          //TODO show errors
-        case _                    => openSignUpPage() //TODO where to though?
-      } (Threading.Ui)
-      case _ => ZLog.warn("This shouldn't happen!"); Future.successful({}) //TODO better warning...
-    }
-
-    userAccountsController.accounts.map(_.isEmpty).onUi {
+    accountsService.accountManagers.map(_.isEmpty).onUi {
       case true =>
         info("onLogout")
         getStoreFactory.reset()
@@ -193,6 +190,33 @@ class MainActivity extends BaseActivity
       CrashController.deleteCrashReports(getApplicationContext)
       NativeCrashManager.deleteDumpFiles(getApplicationContext)
     }
+
+    def replaceMainFragment(fragment: Fragment, tag: String) = {
+      verbose(s"replaceMainFragment: $tag")
+      if (getSupportFragmentManager.findFragmentByTag(tag) == null)
+        getSupportFragmentManager
+          .beginTransaction
+          .replace(R.id.fl_main_content, fragment, tag)
+          .addToBackStack(tag)
+          .commit
+    }
+
+    def openSignUpPage() = {
+      startActivity(new Intent(getApplicationContext, classOf[AppEntryActivity]))
+      finish()
+    }
+
+    accountsService.activeAccountManager.head.flatMap {
+      case Some(am) => am.registerClient().map {
+        case Right(Registered(_))   => replaceMainFragment(new MainPhoneFragment, MainPhoneFragment.Tag)
+        case Right(LimitReached)    => replaceMainFragment(OtrDeviceLimitFragment.newInstance, OtrDeviceLimitFragment.Tag)
+        case Right(PasswordMissing) => replaceMainFragment(AddEmailFragment(), AddEmailFragment.Tag)
+        case Right(Unregistered)    => warn("This shouldn't happen, going back to sign in..."); openSignUpPage()
+        case Left(err)              => showToast(s"Something went wrong: $err") //TODO handle errors
+      } (Threading.Ui)
+      case _ => warn("No logged in account, sending to Sign in")
+        Future.successful(openSignUpPage())
+    }
   }
 
   override protected def onPause() = {
@@ -214,14 +238,10 @@ class MainActivity extends BaseActivity
   }
 
   override def onBackPressed(): Unit = {
-    val backPressedAlready = Seq(R.id.fl__calling__container, R.id.fl_main_content, R.id.fl_main_otr_warning)
-      .map(getSupportFragmentManager.findFragmentById)
-      .exists {
-        case f: OnBackPressedListener => f.onBackPressed()
-        case _ => false
-      }
-
-    if(!backPressedAlready) super.onBackPressed()
+    Option(getSupportFragmentManager.findFragmentById(R.id.fl_main_content)).foreach {
+      case f: OnBackPressedListener if f.onBackPressed() => //
+      case _ => super.onBackPressed()
+    }
   }
 
   override protected def onActivityResult(requestCode: Int, resultCode: Int, data: Intent) = {
@@ -247,13 +267,6 @@ class MainActivity extends BaseActivity
     handleIntent(intent)
   }
 
-  private def restartActivity() = {
-    info("restartActivity")
-    finish()
-    startActivity(getIntent)
-    overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
-  }
-
   private def initializeControllers() = {
     //Ensure tracking is started
     inject[UiTrackingController]
@@ -266,8 +279,8 @@ class MainActivity extends BaseActivity
 
   private def onPasswordWasReset() =
     for {
-      Some(am) <- ZMessaging.currentAccounts.activeAccountManager.head
-      token    <- ZMessaging.currentAccounts.activeAccount.map(_.flatMap(_.accessToken)).head
+      Some(am) <- accountsService.activeAccountManager.head
+      token    <- accountsService.activeAccount.map(_.flatMap(_.accessToken)).head
       _        <- am.auth.checkLoggedIn(token)
     } yield {}
 
@@ -331,32 +344,12 @@ class MainActivity extends BaseActivity
     }
   }
 
-  private def openSignUpPage() = {
-    startActivity(new Intent(getApplicationContext, classOf[AppEntryActivity]))
-    finish()
-  }
-
-  private def replaceMainFragment(fragment: Fragment, TAG: String) = {
-    getSupportFragmentManager.beginTransaction.replace(R.id.fl_main_content, fragment, TAG).commit
-  }
-
   def onPageVisible(page: Page) =
     getControllerFactory.getGlobalLayoutController.setSoftInputModeForPage(page)
 
   def onInviteRequestSent(conversation: String) = {
     info(s"onInviteRequestSent($conversation)")
     conversationController.selectConv(Option(new ConvId(conversation)), ConversationChangeRequester.INVITE)
-  }
-
-  private def showUnableToRegisterOtrClientDialog() =
-    Option(getSupportFragmentManager.findFragmentById(R.id.fl_main_otr_warning)) match {
-      case Some(f) => //do nothing
-      case None =>
-        getSupportFragmentManager
-          .beginTransaction
-          .replace(R.id.fl_main_otr_warning, OtrDeviceLimitFragment.newInstance, OtrDeviceLimitFragment.Tag)
-          .addToBackStack(OtrDeviceLimitFragment.Tag)
-          .commitAllowingStateLoss
   }
 
   override def logout() = {

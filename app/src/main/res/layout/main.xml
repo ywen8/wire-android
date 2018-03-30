@@ -22,37 +22,13 @@
        android:layout_width="match_parent"
        android:layout_height="match_parent"
     >
-    <!--
-        the main container holding
-        pager, pick user and eventually sign up/in
-     -->
+
     <FrameLayout
         android:id="@+id/fl_main_content"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         />
 
-    <!--
-        the container holding the otr device limit warning
-     -->
-    <FrameLayout
-        android:id="@+id/fl_main_otr_warning"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        />
-
-    <!--
-        the container holding the calling box
-     -->
-    <FrameLayout
-        android:id="@+id/fl__calling__container"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        />
-
-    <!--
-        the container holding the offline indicator
-     -->
     <FrameLayout
         android:id="@+id/fl__offline__container"
         android:layout_width="match_parent"
