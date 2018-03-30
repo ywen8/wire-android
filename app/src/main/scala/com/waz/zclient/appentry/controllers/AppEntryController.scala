@@ -162,32 +162,7 @@ class AppEntryController(implicit inj: Injector, eventContext: EventContext) ext
 //    }
   }
 
-  def registerName(name: String): Future[Either[EntryError, Unit]] = {
-    throw new NotImplementedError("")
-//    ZMessaging.currentAccounts.activeAccount.head.flatMap {
-//      case Some(accountData) if accountData.phone.isDefined && accountData.regWaiting && accountData.code.isDefined =>
-//        ZMessaging.currentAccounts.registerNameOnPhone(accountData.id, name).flatMap {
-//          case Left(error) =>
-//            val entryError = EntryError(error.code, error.label, SignInMethod(Register, Phone))
-//            uiTracking.onAddNameOnRegistration(Left(entryError), SignInController.Phone)
-//            Future.successful(Left(entryError))
-//          case _ =>
-//            uiTracking.onAddNameOnRegistration(Right(()), SignInController.Phone)
-//            ZMessaging.currentAccounts.switchAccount(accountData.id).map(_ => Right(()))
-//        }
-//      case _ => Future.successful(Left(GenericRegisterPhoneError))
-//    }
-  }
-
-  def resendActivationEmail(): Unit = {
-    throw new NotImplementedError("")
-//    ZMessaging.currentAccounts.getActiveAccount.map {
-//      case Some(account) if account.pendingEmail.isDefined =>
-//        ZMessaging.currentAccounts.requestVerificationEmail(account.pendingEmail.get)
-//      case _ =>
-//    }
-  }
-
+  //TODO
   def resendActivationPhoneCode(shouldCall: Boolean = false): Future[Either[EntryError, Unit]] = {
     throw new NotImplementedError("")
 //
@@ -212,16 +187,6 @@ class AppEntryController(implicit inj: Injector, eventContext: EventContext) ext
 //        }
 //      case _ => Future.successful(Left(GenericRegisterPhoneError))
 //    }
-  }
-
-  def removeCurrentAccount(): Unit = {
-    throw new NotImplementedError("")
-//    ZMessaging.currentAccounts.logout(false)
-  }
-
-  def cancelEmailVerification(): Unit = {
-    throw new NotImplementedError("")
-//    ZMessaging.currentAccounts.updateCurrentAccount(_.copy(pendingEmail = None))
   }
 
   def setPicture(imageAsset: ImageAsset, source: SignUpPhotoFragment.Source, registrationType: RegistrationType): Unit = {
@@ -330,13 +295,4 @@ object AppEntryController {
   object AddHandleStage      extends AppEntryStage
   object InsertPasswordStage extends AppEntryStage
   object AddEmailStage       extends AppEntryStage
-
-  object SetTeamEmail            extends AppEntryStage { override val depth = 2 }
-  object VerifyTeamEmail         extends AppEntryStage { override val depth = 3 }
-  object SetUsersNameTeam        extends AppEntryStage { override val depth = 4 }
-  object SetPasswordTeam         extends AppEntryStage { override val depth = 5 }
-  object SetUsernameTeam         extends AppEntryStage { override val depth = 6 }
-  object TeamSetPicture          extends AppEntryStage { override val depth = 6 }
-  object InviteToTeam            extends AppEntryStage { override val depth = 7 }
-  case class NoAccountState(page: FirstStage) extends AppEntryStage { override val depth = page.depth }
 }

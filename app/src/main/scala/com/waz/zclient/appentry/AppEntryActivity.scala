@@ -32,6 +32,7 @@ import com.waz.utils.returning
 import com.waz.zclient._
 import com.waz.zclient.appentry.controllers.AppEntryController
 import com.waz.zclient.appentry.fragments._
+import com.waz.zclient.appentry.scenes.TeamNameFragment
 import com.waz.zclient.newreg.fragments.SignUpPhotoFragment
 import com.waz.zclient.newreg.fragments.country.CountryController
 import com.waz.zclient.preferences.PreferencesController
@@ -106,9 +107,9 @@ class AppEntryActivity extends BaseActivity
 //      signInController.clearCredentials()
 //    }
 
-    withFragmentOpt(CreateTeamFragment.TAG) {
+    withFragmentOpt(AppLaunchFragment.Tag) {
       case Some(_) =>
-      case None => showFragment(CreateTeamFragment.newInstance, CreateTeamFragment.TAG)
+      case None => showFragment(AppLaunchFragment(), AppLaunchFragment.Tag)
     }
 
 //    unsplashInitLoadHandle = unsplashInitImageAsset.getSingleBitmap(AppEntryActivity.PREFETCH_IMAGE_WIDTH, new BitmapCallback() {
@@ -227,9 +228,9 @@ class AppEntryActivity extends BaseActivity
     }
 
   def onShowCreateTeamFragment(): Unit =
-    withFragmentOpt(CreateTeamFragment.TAG) {
+    withFragmentOpt(TeamNameFragment.Tag) {
       case Some(_) =>
-      case None => showFragment(CreateTeamFragment.newInstance, CreateTeamFragment.TAG)
+      case None => showFragment(TeamNameFragment(), TeamNameFragment.Tag)
     }
 
   def onShowSignInPage(): Unit =

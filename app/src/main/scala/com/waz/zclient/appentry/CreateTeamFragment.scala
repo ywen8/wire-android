@@ -19,38 +19,37 @@ package com.waz.zclient.appentry
 
 import android.content.Context
 import android.os.Bundle
+import android.support.v4.app.Fragment
 import android.view.View.OnLayoutChangeListener
 import android.view.{LayoutInflater, View, ViewGroup}
 import android.widget.FrameLayout
 import com.waz.service.AccountsService
 import com.waz.utils.returning
-import com.waz.zclient.appentry.CreateTeamFragment._
 import com.waz.zclient.appentry.controllers.AppEntryController._
-import com.waz.zclient.appentry.controllers.{AppEntryController, InvitationsController}
-import com.waz.zclient.appentry.fragments.SignInFragment
-import com.waz.zclient.appentry.scenes.FirstScreenViewHolder
-import com.waz.zclient.pages.BaseFragment
+import com.waz.zclient.appentry.controllers.{CreateTeamController, InvitationsController}
 import com.waz.zclient.ui.text.{GlyphTextView, TypefaceTextView}
 import com.waz.zclient.ui.utils.KeyboardUtils
 import com.waz.zclient.utils.ContextUtils.getStatusBarHeight
 import com.waz.zclient.utils.{ContextUtils, RichView}
 import com.waz.zclient.{FragmentHelper, R}
 
-class CreateTeamFragment extends BaseFragment[Container] with FragmentHelper {
+trait CreateTeamFragment extends FragmentHelper {
 
-  def activity = getActivity.asInstanceOf[AppEntryActivity]
+  protected def activity = getActivity.asInstanceOf[AppEntryActivity]
   implicit def context: Context = activity
 
-  private lazy val appEntryController = inject[AppEntryController]
-  private lazy val accountsService    = inject[AccountsService]
-  private lazy val invitesController  = inject[InvitationsController]
+  protected lazy val createTeamController = inject[CreateTeamController]
+  protected lazy val accountsService    = inject[AccountsService]
+  protected lazy val invitesController  = inject[InvitationsController] //TODO: remove
 
   private var previousStage = Option.empty[AppEntryStage]
   private var lastKeyboardHeight = 0
 
   lazy val container = returning(view[FrameLayout](R.id.container)) { vh =>
-    vh.onClick(_ => getContainer.abortAddAccount())
+    //vh.onClick(_ => getContainer.abortAddAccount())
   }
+
+  val layoutId: Int
 
   lazy val closeButton = returning(view[GlyphTextView](R.id.close_button)) { vh =>
     //!Set(SetUsernameTeam, TeamSetPicture, InviteToTeam, EnterAppStage) TODO set invisible in these states?
@@ -58,7 +57,7 @@ class CreateTeamFragment extends BaseFragment[Container] with FragmentHelper {
   }
   lazy val skipButton = returning(view[TypefaceTextView](R.id.skip_button)) { vh =>
     //TODO set invisible until invitations page
-    vh.onClick(_ => appEntryController.skipInvitations())
+    //vh.onClick(_ => appEntryController.skipInvitations())
     invitesController.invitations.map(_.isEmpty).map {
       case true => R.string.teams_invitations_skip
       case false => R.string.teams_invitations_done
@@ -69,7 +68,7 @@ class CreateTeamFragment extends BaseFragment[Container] with FragmentHelper {
   }
 
   override def onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState: Bundle): View =
-    inflater.inflate(R.layout.app_entry_fragment, container, false)
+    inflater.inflate(layoutId, container, false)
 
   override def onViewCreated(view: View, savedInstanceState: Bundle): Unit = {
     //TODO
@@ -116,11 +115,11 @@ class CreateTeamFragment extends BaseFragment[Container] with FragmentHelper {
 //    }
 //    }
 
-    val inflator = LayoutInflater.from(getActivity)
-    val viewHolder = FirstScreenViewHolder(inflator.inflate(R.layout.app_entry_scene, null))
-    viewHolder.loginButton.onClick(activity.showFragment(SignInFragment.newInstance(), SignInFragment.Tag))
-    container.foreach(_.addView(viewHolder.root))
-    viewHolder.onCreate()
+//    val inflator = LayoutInflater.from(getActivity)
+//    val viewHolder = TeamNameFragment(inflator.inflate(R.layout.create_team_name_scene, null))
+//    //viewHolder.loginButton.onClick(activity.showFragment(SignInFragment(), SignInFragment.Tag))
+//    container.foreach(_.addView(viewHolder.root))
+//    viewHolder.onCreate()
   }
 
   def setKeyboardAnimation(view: ViewGroup): Unit = {
@@ -150,21 +149,18 @@ class CreateTeamFragment extends BaseFragment[Container] with FragmentHelper {
     })
   }
 
+  protected def showFragment(f: => Fragment, tag: String): Unit = activity.showFragment(f, tag)
+
   override def onBackPressed(): Boolean = {
-//    if (appEntryController.entryStage.currentValue.exists(_.isInstanceOf[NoAccountState]) && ZMessaging.currentAccounts.loggedInAccounts.currentValue.exists(_.nonEmpty))
-//      false
-//    else if (appEntryController.entryStage.currentValue.exists(_ != NoAccountState(FirstScreen))) {
-//      appEntryController.createTeamBack()
-//      true
-//    } else
-      false
+    getFragmentManager.popBackStack()
+    true
   }
 }
 
 object CreateTeamFragment {
-  val TAG: String = classOf[CreateTeamFragment].getName
+  //val Tag: String = classOf[CreateTeamFragment].getName
 
-  def newInstance = new CreateTeamFragment
+  //def apply() = new CreateTeamFragment
 
   trait Container {
     def abortAddAccount(): Unit

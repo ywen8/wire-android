@@ -68,16 +68,15 @@ class SignInFragment extends BaseFragment[Container]
   lazy val isAddingAccount = accountsService.zmsInstances.map(_.nonEmpty)
 
   lazy val uiSignInState = {
-    //TODO add a nicer method to FragmentHelper
-    val sign = Option(getArguments).map(_.getString(SignTypeArg, "Register") match {
-      case "Login" => Login
-      case _       => Register
-    }).getOrElse(Register)
+    val sign = getStringArg(SignTypeArg) match {
+      case Some(Login.str) => Login
+      case _               => Register
+    }
 
-    val input = Option(getArguments).map(_.getString(InputTypeArg, "Phone") match {
-      case "Email" => Email
-      case _       => Phone
-    }).getOrElse(Phone)
+    val input = getStringArg(InputTypeArg) match {
+      case Some(Email.str) => Email
+      case _               => Phone
+    }
     Signal(SignInMethod(sign, input))
   }
 
@@ -399,6 +398,12 @@ class SignInFragment extends BaseFragment[Container]
       },
       false)
 
+
+  override def onBackPressed(): Boolean = {
+    getFragmentManager.popBackStack()
+    true
+  }
+
   def activity = getActivity.asInstanceOf[AppEntryActivity]
 }
 
@@ -407,13 +412,13 @@ object SignInFragment {
   val SignTypeArg = "SIGN_IN_TYPE"
   val InputTypeArg = "INPUT_TYPE"
 
-  def newInstance() = new SignInFragment
+  def apply() = new SignInFragment
 
-  def newInstance(signInMethod: SignInMethod): SignInFragment = {
+  def apply(signInMethod: SignInMethod): SignInFragment = {
     returning(new SignInFragment()) {
       _.setArguments(returning(new Bundle) { b =>
-          b.putString(SignTypeArg, signInMethod.signType.toString)
-          b.putString(InputTypeArg, signInMethod.inputType.toString)
+          b.putString(SignTypeArg, signInMethod.signType.str)
+          b.putString(InputTypeArg, signInMethod.inputType.str)
       })
     }
   }
@@ -423,13 +428,17 @@ object SignInFragment {
     def abortAddAccount(): Unit
   }
 
-  sealed trait SignType
-  object Login extends SignType
-  object Register extends SignType
+  sealed trait SignType{
+    val str: String
+  }
+  object Login extends SignType { override val str = "Login" }
+  object Register extends SignType { override val str = "Register" }
 
-  sealed trait InputType
-  object Email extends InputType
-  object Phone extends InputType
+  sealed trait InputType {
+    val str: String
+  }
+  object Email extends InputType { override val str = "Email" }
+  object Phone extends InputType { override val str = "Phone" }
 
   case class SignInMethod(signType: SignType, inputType: InputType)
 }

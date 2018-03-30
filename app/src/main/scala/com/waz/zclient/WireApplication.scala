@@ -37,7 +37,7 @@ import com.waz.service.tracking.TrackingService
 import com.waz.service._
 import com.waz.utils.events.{EventContext, Signal}
 import com.waz.zclient.api.scala.ScalaStoreFactory
-import com.waz.zclient.appentry.controllers.{AddEmailController, AppEntryController, InvitationsController}
+import com.waz.zclient.appentry.controllers.{AddEmailController, AppEntryController, CreateTeamController, InvitationsController}
 import com.waz.zclient.calling.controllers.{CallPermissionsController, CurrentCallController, GlobalCallingController}
 import com.waz.zclient.camera.controllers.{AndroidCameraFactory, GlobalCameraController}
 import com.waz.zclient.collection.controllers.CollectionController
@@ -159,6 +159,7 @@ object WireApplication {
     bind [IntegrationDetailsController]    to new IntegrationDetailsController()
     bind [IntegrationsController]          to new IntegrationsController()
     bind [ClientsController]               to new ClientsController()
+    bind [CreateTeamController]            to new CreateTeamController()
 
     // current conversation data
     bind [Signal[ConversationData]] to inject[ConversationController].currentConv

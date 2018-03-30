@@ -18,42 +18,50 @@
 package com.waz.zclient.appentry.scenes
 
 import android.app.Activity
-import android.content.{Context, Intent}
+import android.content.Intent
 import android.net.Uri
+import android.os.Bundle
 import android.view.View
-import com.waz.service.tracking.TrackingService
+import com.waz.ZLog
 import com.waz.threading.Threading
-import com.waz.utils.events.EventContext
 import com.waz.zclient._
-import com.waz.zclient.appentry.controllers.AppEntryController
+import com.waz.zclient.appentry.CreateTeamFragment
 import com.waz.zclient.common.views.InputBox
 import com.waz.zclient.common.views.InputBox.NameValidator
 import com.waz.zclient.ui.utils.KeyboardUtils
 import com.waz.zclient.utils._
 
-case class TeamNameViewHolder(root: View)(implicit val context: Context, eventContext: EventContext, injector: Injector) extends ViewHolder with Injectable {
+import scala.concurrent.Future
 
-  val appEntryController = inject[AppEntryController]
-  val tracking = inject[TrackingService]
+case class TeamNameFragment() extends CreateTeamFragment {
 
-  lazy val inputField = root.findViewById[InputBox](R.id.input_field)
-  lazy val about = root.findViewById[View](R.id.about)
+  override val layoutId: Int = R.layout.create_team_name_scene
 
-  def onCreate(): Unit = {
+  private lazy val inputField = view[InputBox](R.id.input_field)
+  private lazy val about = view[View](R.id.about)
+
+  override def onViewCreated(view: View, savedInstanceState: Bundle): Unit = {
     import Threading.Implicits.Ui
-    inputField.setValidator(NameValidator)
-    inputField.editText.setText(appEntryController.teamName)
-    inputField.editText.addTextListener(appEntryController.teamName = _)
-    inputField.editText.requestFocus()
-    KeyboardUtils.showKeyboard(context.asInstanceOf[Activity])
-    inputField.setOnClick( text =>
-      appEntryController.setTeamName(text).map(_ => None)
-    )
-    about.setOnClickListener(new View.OnClickListener {
-      override def onClick(v: View): Unit = openUrl(R.string.url_about_teams)
-    })
+    inputField.foreach { inputField =>
+      inputField.setValidator(NameValidator)
+      inputField.editText.setText(createTeamController.teamName)
+      inputField.editText.requestFocus()
+      KeyboardUtils.showKeyboard(context.asInstanceOf[Activity])
+      inputField.setOnClick( text =>
+        Future{
+          createTeamController.teamName = text
+          showFragment(SetTeamEmailFragment(), SetTeamEmailFragment.Tag)
+          None
+        }
+      )
+    }
+    about.foreach(_.onClick(openUrl(R.string.url_about_teams)))
   }
 
   private def openUrl(id: Int): Unit =
     context.startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(context.getString(id))))
+}
+
+object TeamNameFragment {
+  val Tag: String = ZLog.ImplicitTag.implicitLogTag
 }
