@@ -19,7 +19,6 @@ package com.waz.zclient.appentry
 
 import android.content.res.Configuration
 import android.content.{DialogInterface, Intent}
-import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Bundle
 import android.support.v4.app.{Fragment, FragmentTransaction}
@@ -30,12 +29,10 @@ import com.waz.api._
 import com.waz.service.ZMessaging
 import com.waz.threading.Threading
 import com.waz.utils.returning
-import com.waz.utils.wrappers.AndroidURIUtil
 import com.waz.zclient._
 import com.waz.zclient.appentry.controllers.AppEntryController
 import com.waz.zclient.appentry.fragments._
 import com.waz.zclient.newreg.fragments.SignUpPhotoFragment
-import com.waz.zclient.newreg.fragments.SignUpPhotoFragment.UNSPLASH_API_URL
 import com.waz.zclient.newreg.fragments.country.CountryController
 import com.waz.zclient.preferences.PreferencesController
 import com.waz.zclient.tracking.CrashController
@@ -57,13 +54,11 @@ class AppEntryActivity extends BaseActivity
   with VerifyPhoneFragment.Container
   with PhoneSetNameFragment.Container
   with SignUpPhotoFragment.Container
-  with EmailVerifyEmailFragment.Container
   with CountryDialogFragment.Container
   with SignInFragment.Container
   with FirstTimeAssignUsernameFragment.Container
   with InsertPasswordFragment.Container
-  with CreateTeamFragment.Container
-  with AddEmailFragment.Container {
+  with CreateTeamFragment.Container {
 
   import Threading.Implicits.Ui
 
@@ -237,9 +232,6 @@ class AppEntryActivity extends BaseActivity
       case None => showFragment(CreateTeamFragment.newInstance, CreateTeamFragment.TAG)
     }
 
-  def onShowEmailVerifyEmailPage(): Unit =
-    showFragment(EmailVerifyEmailFragment.newInstance, EmailVerifyEmailFragment.TAG)
-
   def onShowSignInPage(): Unit =
     withFragmentOpt(SignInFragment.Tag) {
       case Some(_) =>
@@ -312,9 +304,6 @@ class AppEntryActivity extends BaseActivity
 
   def onShowInsertPassword(): Unit =
     showFragment(InsertPasswordFragment(), InsertPasswordFragment.Tag)
-
-  def onShowAddEmail(): Unit =
-    showFragment(AddEmailFragment(), AddEmailFragment.Tag)
 
   def showFragment(f: => Fragment, tag: String): Unit = {
     setDefaultAnimation(getSupportFragmentManager.beginTransaction)

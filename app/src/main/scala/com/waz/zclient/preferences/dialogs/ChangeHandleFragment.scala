@@ -31,7 +31,7 @@ import android.view.{LayoutInflater, View, ViewGroup, WindowManager}
 import com.waz.ZLog.ImplicitTag._
 import com.waz.ZLog.warn
 import com.waz.model.Handle
-import com.waz.service.{AccountManager, ZMessaging}
+import com.waz.service.ZMessaging
 import com.waz.sync.client.HandlesClient
 import com.waz.threading.Threading
 import com.waz.utils.events.Signal
@@ -59,7 +59,8 @@ class ChangeHandleFragment extends DialogFragment with FragmentHelper {
   private var cancelEnabled:   Boolean = true
 
   lazy val zms = inject[Signal[ZMessaging]]
-  lazy val currentHandle = zms.flatMap(_.users.selfUser.map(_.handle))
+  lazy val users = zms.map(_.users)
+  lazy val currentHandle = users.flatMap(_.selfUser.map(_.handle))
 
   private val handleTextWatcher = new TextWatcher() {
     private var lastText: String = ""
@@ -238,7 +239,7 @@ class ChangeHandleFragment extends DialogFragment with FragmentHelper {
     handleEditText.startAnimation(AnimationUtils.loadAnimation(getContext, R.anim.shake_animation))
 
   private def updateHandle(handle: String) =
-    inject[Signal[AccountManager]].head.flatMap(_.updateHandle(Handle(handle)))
+    users.head.flatMap(_.updateHandle(Handle(handle)))
 }
 
 object ChangeHandleFragment {

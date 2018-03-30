@@ -26,6 +26,7 @@ import android.support.v4.app.{Fragment, FragmentTransaction}
 import android.util.AttributeSet
 import android.view.View
 import android.widget.LinearLayout
+import com.waz.ZLog.ImplicitTag._
 import com.waz.api.impl.AccentColor
 import com.waz.model.{EmailAddress, PhoneNumber}
 import com.waz.service.{AccountsService, ZMessaging}
@@ -37,15 +38,12 @@ import com.waz.zclient.common.controllers.global.PasswordController
 import com.waz.zclient.common.views.ImageAssetDrawable
 import com.waz.zclient.common.views.ImageAssetDrawable.{RequestBuilder, ScaleType}
 import com.waz.zclient.common.views.ImageController.{ImageSource, WireImage}
-import com.waz.zclient.preferences.dialogs.VerifyEmailFragment
-import com.waz.zclient.preferences.dialogs.{AccentColorPickerFragment, ChangeEmailDialog, ChangePhoneDialog, VerifyPhoneFragment}
+import com.waz.zclient.preferences.dialogs._
 import com.waz.zclient.preferences.views.{EditNameDialog, PictureTextButton, TextButton}
 import com.waz.zclient.ui.utils.TextViewUtils._
 import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.utils.ViewUtils._
-import com.waz.zclient.utils.{BackStackKey, BackStackNavigator, RichView, StringUtils, UiStorage, UserSignal}
-import com.waz.ZLog.ImplicitTag._
-import com.waz.content.UserPreferences
+import com.waz.zclient.utils.{BackStackKey, BackStackNavigator, RichView, StringUtils, UiStorage}
 
 trait AccountView {
   val onNameClick:          EventStream[Unit]
@@ -136,20 +134,16 @@ object AccountBackStackKey {
 class AccountViewController(view: AccountView)(implicit inj: Injector, ec: EventContext, context: Context) extends Injectable {
 
   val zms                = inject[Signal[ZMessaging]]
+  val self               = zms.flatMap(_.users.selfUser)
   val accounts           = inject[AccountsService]
   implicit val uiStorage = inject[UiStorage]
   val navigator          = inject[BackStackNavigator]
   val password           = inject[PasswordController].password
 
-  val self = for {
-    zms <- zms
-    self <- UserSignal(zms.selfUserId)
-  } yield self
-
   val isTeam = zms.map(_.teamId.isDefined)
 
-  val phone = zms.flatMap(_.userPrefs(UserPreferences.Phone).signal)
-  val email = zms.flatMap(_.userPrefs(UserPreferences.Email).signal)
+  val phone = self.map(_.phone)
+  val email = self.map(_.email)
 
   val isPhoneNumberEnabled = for {
     p      <- phone
@@ -202,16 +196,13 @@ class AccountViewController(view: AccountView)(implicit inj: Injector, ec: Event
 
   view.onEmailClick.onUi { _ =>
     import Threading.Implicits.Ui
-    for {
-      email <- self.head.map(_.email)
-      pw    <- password.head
-    } {
+    self.head.map(_.email).map { email =>
       showPrefDialog(
         returning(ChangeEmailDialog(addingEmail = email.isEmpty)) {
           _.onEmailChanged { e =>
-            val f = VerifyEmailFragment.newInstance(e)
+            val f = VerifyEmailFragment(e)
             //hide the verification screen when complete
-            self.map(_.email).onChanged.filter(_.contains(EmailAddress(e))).onUi { _ =>
+            self.map(_.email).onChanged.filter(_.contains(e)).onUi { _ =>
               f.dismiss()
             }
             showPrefDialog(f, VerifyEmailFragment.Tag)

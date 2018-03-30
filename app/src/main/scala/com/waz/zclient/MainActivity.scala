@@ -30,14 +30,14 @@ import com.waz.api.{NetworkMode, _}
 import com.waz.model.{ConvId, ConversationData, UserId}
 import com.waz.service.AccountManager.ClientRegistrationState.{LimitReached, PasswordMissing, Registered, Unregistered}
 import com.waz.service.ZMessaging.clock
-import com.waz.service.{AccountsService, ZMessaging}
+import com.waz.service.{AccountManager, AccountsService, ZMessaging}
 import com.waz.threading.{CancellableFuture, Threading}
 import com.waz.utils.events.Signal
 import com.waz.utils.{RichInstant, returning}
 import com.waz.zclient.Intents._
 import com.waz.zclient.appentry.AppEntryActivity
 import com.waz.zclient.appentry.controllers.AppEntryController
-import com.waz.zclient.appentry.fragments.AddEmailFragment
+import com.waz.zclient.appentry.fragments.{AddEmailFragment, EmailVerifyEmailFragment}
 import com.waz.zclient.calling.CallingActivity
 import com.waz.zclient.calling.controllers.CallPermissionsController
 import com.waz.zclient.common.controllers.global.{AccentColorController, KeyboardController}
@@ -75,6 +75,7 @@ class MainActivity extends BaseActivity
   import Threading.Implicits.Background
 
   lazy val zms                      = inject[Signal[ZMessaging]]
+  lazy val account                  = inject[Signal[Option[AccountManager]]]
   lazy val accountsService          = inject[AccountsService]
   lazy val sharingController        = inject[SharingController]
   lazy val accentColorController    = inject[AccentColorController]
@@ -191,32 +192,41 @@ class MainActivity extends BaseActivity
       NativeCrashManager.deleteDumpFiles(getApplicationContext)
     }
 
-    def replaceMainFragment(fragment: Fragment, tag: String) = {
-      verbose(s"replaceMainFragment: $tag")
-      if (getSupportFragmentManager.findFragmentByTag(tag) == null)
-        getSupportFragmentManager
-          .beginTransaction
-          .replace(R.id.fl_main_content, fragment, tag)
-          .addToBackStack(tag)
-          .commit
-    }
-
-    def openSignUpPage() = {
+    def openSignUpPage(): Unit = {
       startActivity(new Intent(getApplicationContext, classOf[AppEntryActivity]))
       finish()
     }
 
-    accountsService.activeAccountManager.head.flatMap {
-      case Some(am) => am.registerClient().map {
-        case Right(Registered(_))   => replaceMainFragment(new MainPhoneFragment, MainPhoneFragment.Tag)
-        case Right(LimitReached)    => replaceMainFragment(OtrDeviceLimitFragment.newInstance, OtrDeviceLimitFragment.Tag)
-        case Right(PasswordMissing) => replaceMainFragment(AddEmailFragment(), AddEmailFragment.Tag)
-        case Right(Unregistered)    => warn("This shouldn't happen, going back to sign in..."); openSignUpPage()
-        case Left(err)              => showToast(s"Something went wrong: $err") //TODO handle errors
-      } (Threading.Ui)
+    account.head.flatMap {
+      case Some(am) =>
+        am.registerClient().flatMap {
+          case Right(Registered(_))   =>
+            for {
+              z               <- zms.head
+              hasEmail        <- z.users.selfUser.map(_.email.isDefined).head
+              multipleClients <- z.otrClientsStorage.getClients(z.selfUserId).map(_.size >= 2)
+            } yield
+              if (!hasEmail && multipleClients) replaceMainFragment(AddEmailFragment(skippable = false), AddEmailFragment.Tag) //TODO skippable?
+              else replaceMainFragment(new MainPhoneFragment, MainPhoneFragment.Tag)
+
+          case Right(LimitReached)    => Future.successful(replaceMainFragment(OtrDeviceLimitFragment.newInstance, OtrDeviceLimitFragment.Tag))
+          case Right(PasswordMissing) => Future.successful(replaceMainFragment(AddEmailFragment(skippable = false), AddEmailFragment.Tag))
+          case Right(Unregistered)    => warn("This shouldn't happen, going back to sign in..."); Future.successful(openSignUpPage())
+          case Left(err)              => Future.successful(showToast(s"Something went wrong: $err")) //TODO handle errors
+        } (Threading.Ui)
       case _ => warn("No logged in account, sending to Sign in")
         Future.successful(openSignUpPage())
     }
+  }
+
+  def replaceMainFragment(fragment: Fragment, tag: String): Unit = {
+    verbose(s"replaceMainFragment: $tag")
+    if (getSupportFragmentManager.findFragmentByTag(tag) == null)
+      getSupportFragmentManager
+        .beginTransaction
+        .replace(R.id.fl_main_content, fragment, tag)
+        .addToBackStack(tag)
+        .commit
   }
 
   override protected def onPause() = {

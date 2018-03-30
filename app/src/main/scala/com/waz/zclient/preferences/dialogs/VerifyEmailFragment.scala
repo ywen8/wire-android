@@ -35,10 +35,10 @@ object VerifyEmailFragment {
   val ARG_EMAIL: String = "ARG_EMAIL"
   val Tag: String = com.waz.ZLog.ImplicitTag.implicitLogTag
 
-  def newInstance(email: String): VerifyEmailFragment = {
+  def apply(email: EmailAddress): VerifyEmailFragment = {
     val fragment = new VerifyEmailFragment
     val arg = new Bundle()
-    arg.putString(ARG_EMAIL, email)
+    arg.putString(ARG_EMAIL, email.str)
     fragment.setArguments(arg)
     fragment
   }
@@ -48,7 +48,7 @@ class VerifyEmailFragment extends DialogFragment with FragmentHelper {
 
   import VerifyEmailFragment.ARG_EMAIL
 
-  private lazy val email = TextUtils.htmlEncode(getArguments.getString(ARG_EMAIL, ""))
+  private lazy val email = TextUtils.htmlEncode(getStringArg(ARG_EMAIL).getOrElse(""))
 
   private lazy val resendButton = view[TextView](R.id.tv__resend_button)
 

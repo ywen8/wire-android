@@ -65,7 +65,7 @@ class EditNameDialog extends BaseDialogFragment[Container] with FragmentHelper {
             implicit val ec = Threading.Ui
             for {
               z <- zms.head
-              _ <- z.users.updateSelf(name = Some(newName))
+              _ <- z.users.updateName(newName)
             } yield {}
             dismiss()
           }

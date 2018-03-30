@@ -30,18 +30,7 @@ import scala.concurrent.Future
 
 class AddEmailController(implicit inj: Injector, eventContext: EventContext, context: Context) extends Injectable {
 
-  lazy val zms = inject[Signal[ZMessaging]]
 
-  val email = Signal("")
-  val password = Signal("")
-
-  lazy val emailValidator = EmailValidator.newInstance()
-  lazy val passwordValidator = PasswordValidator.instance(context)
-
-  lazy val isValid: Signal[Boolean] = for {
-    email <- email
-    password <- password
-  } yield emailValidator.validate(email) && passwordValidator.validate(password)
 
   //TODO
 //  (for {

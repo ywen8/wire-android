@@ -138,6 +138,7 @@ object WireApplication {
     bind [GlobalCameraController]  to new GlobalCameraController(new AndroidCameraFactory)
     bind [SoundController]         to new SoundController
     bind [ThemeController]         to new ThemeController
+    bind [SpinnerController]       to new SpinnerController()
 
     //notifications
     bind [MessageNotificationsController]  to new MessageNotificationsController()
@@ -200,10 +201,9 @@ object WireApplication {
     bind [CursorController]             to new CursorController()
     bind [ConversationListController]   to new ConversationListController()
     bind [IntegrationDetailsController] to new IntegrationDetailsController()
-    bind [CreateConversationController]    to new CreateConversationController()
+    bind [CreateConversationController] to new CreateConversationController()
     bind [ParticipantsController]       to new ParticipantsController()
     bind [UsersController]              to new UsersController()
-    bind [SpinnerController]            to new SpinnerController()
     bind [AddEmailController]           to new AddEmailController()
 
     bind [ErrorsController]             to new ErrorsController()

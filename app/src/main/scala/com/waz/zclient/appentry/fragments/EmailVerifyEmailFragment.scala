@@ -21,48 +21,58 @@ import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.view.{LayoutInflater, View, ViewGroup}
 import android.widget.TextView
-import com.waz.zclient.appentry.controllers.AppEntryController
-import com.waz.zclient.pages.BaseFragment
-import com.waz.zclient.ui.utils.{KeyboardUtils, TextViewUtils}
-import com.waz.zclient.{FragmentHelper, R}
 import com.waz.ZLog.ImplicitTag._
+import com.waz.content.UserPreferences.PendingEmail
+import com.waz.service.{AccountsService, ZMessaging}
+import com.waz.utils.events.Signal
+import com.waz.utils.returning
+import com.waz.zclient.pages.main.MainPhoneFragment
+import com.waz.zclient.ui.utils.{KeyboardUtils, TextViewUtils}
+import com.waz.zclient.{FragmentHelper, MainActivity, R}
+
+import scala.concurrent.Future
 
 object EmailVerifyEmailFragment {
-  val TAG: String = classOf[EmailVerifyEmailFragment].getName
+  val Tag: String = classOf[EmailVerifyEmailFragment].getName
 
-  def newInstance: Fragment = new EmailVerifyEmailFragment
-
-  trait Container
-
+  //TODO allow to be skippable?
+  def apply(): Fragment = new EmailVerifyEmailFragment
 }
 
-class EmailVerifyEmailFragment extends BaseFragment[EmailVerifyEmailFragment.Container] with FragmentHelper with View.OnClickListener {
+class EmailVerifyEmailFragment extends FragmentHelper with View.OnClickListener {
 
-  private lazy val resendTextView = view[TextView](R.id.ttv__pending_email__resend)
-  private lazy val checkEmailTextView = view[TextView](R.id.ttv__sign_up__check_email)
-  private lazy val didntGetEmailTextView = view[TextView](R.id.ttv__sign_up__didnt_get)
-  private lazy val backButton = view[View](R.id.ll__activation_button__back)
+  import com.waz.threading.Threading.Implicits.Ui
 
-  lazy val appEntryController = inject[AppEntryController]
+  lazy val pendingEmail = inject[Signal[ZMessaging]].flatMap(_.userPrefs(PendingEmail).signal)
+  lazy val accounts = inject[AccountsService]
 
-  override def onViewCreated(view: View, savedInstanceState: Bundle): Unit = {
+  lazy val resendTextView = view[TextView](R.id.ttv__pending_email__resend)
 
-    findById[View](view, R.id.gtv__not_now__close).setVisibility(View.GONE)
-    findById[View](view, R.id.fl__confirmation_checkmark).setVisibility(View.GONE)
+  lazy val checkEmailTextView = returning(view[TextView](R.id.ttv__sign_up__check_email)) { vh =>
+    pendingEmail.onUi {
+      case Some(e) =>
+        vh.foreach(_.setText(getResources.getString(R.string.profile__email__verify__instructions, e.str)))
+        vh.foreach(TextViewUtils.boldText)
+      case _ => //
+    }
   }
 
-  override def onCreate(savedInstanceState: Bundle): Unit = {
-    super.onCreate(savedInstanceState)
+  lazy val didntGetEmailTextView = view[TextView](R.id.ttv__sign_up__didnt_get)
+  lazy val backButton = view[View](R.id.ll__activation_button__back)
 
-    //TODO
-//    appEntryController.currentAccount.map(_.flatMap(acc => acc.pendingEmail.orElse(acc.email))).onUi {
-//      case Some(email) => setEmailText(email.str)
-//      case _ => setEmailText("")
-//    }
-  }
-
-  override def onCreateView(inflater: LayoutInflater, viewGroup: ViewGroup, savedInstanceState: Bundle): View = {
+  override def onCreateView(inflater: LayoutInflater, viewGroup: ViewGroup, savedInstanceState: Bundle): View =
     inflater.inflate(R.layout.fragment_pending_email_email_confirmation, viewGroup, false)
+
+  override def onViewCreated(view: View, savedInstanceState: Bundle) = {
+    super.onViewCreated(view, savedInstanceState)
+    checkEmailTextView
+    resendTextView
+    didntGetEmailTextView
+    backButton
+
+    pendingEmail.onChanged.filter(_.isEmpty).onUi { _ =>
+      activity.replaceMainFragment(new MainPhoneFragment, MainPhoneFragment.Tag)
+    }
   }
 
   override def onResume(): Unit = {
@@ -78,20 +88,7 @@ class EmailVerifyEmailFragment extends BaseFragment[EmailVerifyEmailFragment.Con
     super.onPause()
   }
 
-  private def setEmailText(email: String): Unit = {
-    checkEmailTextView.foreach(_.setText(getResources.getString(R.string.profile__email__verify__instructions, email)))
-    checkEmailTextView.foreach(TextViewUtils.boldText)
-  }
-
-  private def back(): Unit = {
-    import com.waz.threading.Threading.Implicits.Background
-//    appEntryController.currentAccount.map(_.map(_.phone.isDefined)).head.foreach { //TODO
-//      case Some(true) =>
-//        appEntryController.cancelEmailVerification()
-//      case _ =>
-//        appEntryController.removeCurrentAccount()
-//    }
-  }
+  private def back() = activity.replaceMainFragment(AddEmailFragment(skippable = false), AddEmailFragment.Tag)
 
   def onClick(v: View): Unit = {
     v.getId match {
@@ -104,9 +101,14 @@ class EmailVerifyEmailFragment extends BaseFragment[EmailVerifyEmailFragment.Con
             resendTextView.foreach(_.setEnabled(false))
           }
         }).start())
-        appEntryController.resendActivationEmail()
+        pendingEmail.head.flatMap {
+          case Some(e) => accounts.requestVerificationEmail(e)
+          case _ => Future.successful({})
+        }
     }
   }
+
+  def activity = getActivity.asInstanceOf[MainActivity]
 
   override def onBackPressed(): Boolean = {
     back()

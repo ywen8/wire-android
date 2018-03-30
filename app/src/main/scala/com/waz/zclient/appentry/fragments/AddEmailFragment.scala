@@ -20,83 +20,109 @@ package com.waz.zclient.appentry.fragments
 import android.graphics.Color
 import android.os.Bundle
 import android.view.{LayoutInflater, View, ViewGroup}
-import com.waz.zclient.appentry.controllers.AddEmailController
+import com.waz.ZLog
+import com.waz.ZLog.ImplicitTag._
+import com.waz.model.AccountData.Password
+import com.waz.model.EmailAddress
+import com.waz.service.{AccountManager, ZMessaging}
+import com.waz.threading.Threading.Implicits.Ui
+import com.waz.utils.events.Signal
+import com.waz.utils.returning
+import com.waz.zclient.appentry.fragments.AddEmailFragment._
 import com.waz.zclient.newreg.views.PhoneConfirmationButton
 import com.waz.zclient.newreg.views.PhoneConfirmationButton.State.{CONFIRM, NONE}
-import com.waz.zclient.pages.BaseFragment
+import com.waz.zclient.pages.main.profile.validator.{EmailValidator, PasswordValidator}
 import com.waz.zclient.pages.main.profile.views.GuidedEditText
+import com.waz.zclient.ui.text.TypefaceTextView
+import com.waz.zclient.utils.ContextUtils.showToast
 import com.waz.zclient.utils._
-import com.waz.zclient.{FragmentHelper, OnBackPressedListener, R}
-import AddEmailFragment._
-import com.waz.ZLog
-import com.waz.zclient.appentry.{AppEntryActivity, EntryError}
-import com.waz.ZLog.ImplicitTag._
-import com.waz.threading.Threading.Implicits.Ui
-import com.waz.zclient.appentry.fragments.SignInFragment.{Email, Register, SignInMethod}
+import com.waz.zclient.views.LoadingIndicatorView
+import com.waz.zclient._
+import com.waz.zclient.pages.main.MainPhoneFragment
 
-class AddEmailFragment extends BaseFragment[Container] with FragmentHelper with OnBackPressedListener {
+class AddEmailFragment extends FragmentHelper with OnBackPressedListener {
 
-  lazy val addEmailController = inject[AddEmailController]
+  lazy val zms = inject[Signal[ZMessaging]]
+  lazy val users = zms.map(_.users)
+  lazy val am  = inject[Signal[AccountManager]]
+  lazy val spinnerController = inject[SpinnerController]
 
-  lazy val confirmationButton = view[PhoneConfirmationButton](R.id.confirmation_button)
-  lazy val skipButton = view[PhoneConfirmationButton](R.id.skip_button)
+  val email    = Signal(Option.empty[EmailAddress])
+  val password = Signal(Option.empty[Password])
+
+  lazy val emailValidator    = EmailValidator.newInstance()
+  lazy val passwordValidator = PasswordValidator.instance(getContext)
+
+  lazy val isValid: Signal[Boolean] = for {
+    email    <- email
+    password <- password
+  } yield (email, password) match {
+    case (Some(e), Some(p)) => emailValidator.validate(e.str) && passwordValidator.validate(p.str)
+    case _ => false
+  }
+
+  lazy val confirmationButton = returning(view[PhoneConfirmationButton](R.id.confirmation_button)) { vh =>
+    vh.onClick { _ =>
+      spinnerController.showSpinner(LoadingIndicatorView.Spinner)
+      for {
+        Some(e) <- email.head
+        Some(p) <- password.head
+        users   <- users.head
+        resp    <- users.setEmail(e, p)
+      } yield {
+        spinnerController.hideSpinner()
+        resp match {
+          case Right(_) =>
+            activity.replaceMainFragment(EmailVerifyEmailFragment(), EmailVerifyEmailFragment.Tag)
+          case Left(err) =>
+            //getContainer.showError(EntryError(error.getCode, error.getLabel, SignInMethod(Register, Email)))
+            showToast(s"Something went wrong: $err") //TODO show error to user
+        }
+      }
+    }
+
+    isValid.map( if(_) CONFIRM else NONE).onUi ( st => vh.foreach(_.setState(st)))
+  }
 
   override def onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState: Bundle) =
     inflater.inflate(R.layout.add_email_fragment, container, false)
 
   override def onViewCreated(view: View, savedInstanceState: Bundle) = {
+    //TODO handle back press from verification screen and re-fill this field, also don't send another request if it doesn't change
     Option(findById[GuidedEditText](getView, R.id.email_field)).foreach { field =>
-      field.setValidator(addEmailController.emailValidator)
+      field.setValidator(emailValidator)
       field.setResource(R.layout.guided_edit_text_sign_in__email)
-      addEmailController.email.head.map { field.setText }
-      field.getEditText.addTextListener(addEmailController.email ! _)
+      field.getEditText.addTextListener(txt => email ! Some(EmailAddress(txt)))
     }
 
     Option(findById[GuidedEditText](getView, R.id.password_field)).foreach { field =>
-      field.setValidator(addEmailController.passwordValidator)
+      field.setValidator(passwordValidator)
       field.setResource(R.layout.guided_edit_text_sign_in__password)
-      addEmailController.password.head.map { field.setText }
-      field.getEditText.addTextListener(addEmailController.password ! _)
+      field.getEditText.addTextListener(txt => password ! Some(Password(txt)))
     }
-
-    confirmationButton.get.onClick {
-      getContainer.enableProgress(true)
-      addEmailController.addEmailAndPassword().map {
-        case Left(error) =>
-          getContainer.enableProgress(false)
-          getContainer.showError(EntryError(error.getCode, error.getLabel, SignInMethod(Register, Email)))
-        case _ =>
-      }
-    }
-    skipButton.foreach(_.onClick {
-      activity.showFragment(FirstLaunchAfterLoginFragment(), FirstLaunchAfterLoginFragment.Tag)
-    })
 
     confirmationButton.foreach(_.setAccentColor(Color.WHITE))
-    setConfirmationButtonActive(addEmailController.isValid.currentValue.getOrElse(false))
-    addEmailController.isValid.onUi { setConfirmationButtonActive }
+
+    returning(findById[TypefaceTextView](R.id.skip_button)) { v =>
+      v.setVisible(getBooleanArg(SkippableArg, default = false))
+      v.onClick(activity.replaceMainFragment(new MainPhoneFragment, MainPhoneFragment.Tag))
+    }
   }
-
-
-  override def onCreate(savedInstanceState: Bundle): Unit = {
-    super.onCreate(savedInstanceState)
-    addEmailController.isValid.onUi { setConfirmationButtonActive }
-  }
-
-  private def setConfirmationButtonActive(active: Boolean): Unit =
-    confirmationButton.foreach(_.setState(if(active) CONFIRM else NONE))
 
   override def onBackPressed(): Boolean = true
 
-  def activity = getActivity.asInstanceOf[AppEntryActivity]
+  def activity = getActivity.asInstanceOf[MainActivity]
 }
 
 object AddEmailFragment {
   val Tag = ZLog.ImplicitTag.implicitLogTag
-  trait Container {
-    def enableProgress(enabled: Boolean): Unit
-    def showError(entryError: EntryError, okCallback: => Unit = {}): Unit
-  }
 
-  def apply(): AddEmailFragment = new AddEmailFragment()
+  val SkippableArg = "SKIPPABLE"
+
+  def apply(skippable: Boolean): AddEmailFragment =
+    returning(new AddEmailFragment()) {
+      _.setArguments(returning(new Bundle) { b =>
+        b.putBoolean(SkippableArg, skippable)
+      })
+    }
 }
