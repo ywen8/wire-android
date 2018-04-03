@@ -20,6 +20,7 @@ package com.waz.zclient
 import android.os.Bundle
 import android.view.{LayoutInflater, View, ViewGroup}
 import com.waz.ZLog
+import com.waz.ZLog.ImplicitTag._
 import com.waz.content.UserPreferences.{PendingEmail, PendingPassword}
 import com.waz.model.EmailAddress
 import com.waz.service.AccountManager
