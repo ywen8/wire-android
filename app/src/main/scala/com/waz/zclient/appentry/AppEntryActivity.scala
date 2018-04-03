@@ -22,25 +22,26 @@ import android.content.{DialogInterface, Intent}
 import android.net.Uri
 import android.os.Bundle
 import android.support.v4.app.{Fragment, FragmentTransaction}
-import android.widget.Toast
+import android.view.View
 import com.waz.ZLog.ImplicitTag._
 import com.waz.ZLog._
 import com.waz.api._
-import com.waz.service.ZMessaging
+import com.waz.service.{AccountsService, ZMessaging}
 import com.waz.threading.Threading
 import com.waz.utils.returning
 import com.waz.zclient._
-import com.waz.zclient.appentry.controllers.AppEntryController
 import com.waz.zclient.appentry.fragments._
 import com.waz.zclient.appentry.scenes.TeamNameFragment
 import com.waz.zclient.newreg.fragments.SignUpPhotoFragment
 import com.waz.zclient.newreg.fragments.country.CountryController
 import com.waz.zclient.preferences.PreferencesController
 import com.waz.zclient.tracking.CrashController
+import com.waz.zclient.ui.text.GlyphTextView
 import com.waz.zclient.ui.utils.KeyboardUtils
 import com.waz.zclient.utils.ViewUtils
 import com.waz.zclient.views.LoadingIndicatorView
 import net.hockeyapp.android.NativeCrashManager
+import com.waz.zclient.utils.RichView
 
 import scala.collection.JavaConverters._
 
@@ -57,20 +58,21 @@ class AppEntryActivity extends BaseActivity
   with SignUpPhotoFragment.Container
   with CountryDialogFragment.Container
   with SignInFragment.Container
-  with FirstTimeAssignUsernameFragment.Container
-  with InsertPasswordFragment.Container
-  with CreateTeamFragment.Container {
+  with InsertPasswordFragment.Container {
 
   import Threading.Implicits.Ui
 
-//  private lazy val unsplashInitImageAsset = ImageAssetFactory.getImageAsset(AndroidURIUtil.parse(UNSPLASH_API_URL))
   private var unsplashInitLoadHandle: LoadHandle = null
   private lazy val progressView = ViewUtils.getView(this, R.id.liv__progress).asInstanceOf[LoadingIndicatorView]
   private lazy val countryController: CountryController = new CountryController(this)
   private var createdFromSavedInstance: Boolean = false
   private var isPaused: Boolean = false
 
-  private lazy val appEntryController = inject[AppEntryController]
+  private lazy val accountsService = inject[AccountsService]
+
+  lazy val closeButton = returning(ViewUtils.getView(this, R.id.close_button).asInstanceOf[GlyphTextView]) { v =>
+    accountsService.zmsInstances.map(_.nonEmpty).onUi(vis => v.setVisibility(if (vis) View.VISIBLE else View.GONE))
+  }
 
   ZMessaging.currentGlobal.blacklist.upToDate.onUi {
     case false =>
@@ -80,18 +82,10 @@ class AppEntryActivity extends BaseActivity
   }
 
   override def onBackPressed(): Unit = {
-
-
-    val topFragment = getSupportFragmentManager.getFragments.asScala.find {
+    getSupportFragmentManager.getFragments.asScala.find {
       case f: OnBackPressedListener if f.onBackPressed() => true
       case _ => false
     }
-/*
-    topFragment match {
-      case Some(f: OnBackPressedListener) if f.onBackPressed() => //
-      case _ => abortAddAccount()
-    }
-    */
   }
 
   override def onCreate(savedInstanceState: Bundle): Unit = {
@@ -102,51 +96,11 @@ class AppEntryActivity extends BaseActivity
     enableProgress(false)
     createdFromSavedInstance = savedInstanceState != null
 
-//    if (!createdFromSavedInstance) {
-//      appEntryController.clearCredentials()
-//      signInController.clearCredentials()
-//    }
-
+    closeButton.onClick(onEnterApplication(false))
     withFragmentOpt(AppLaunchFragment.Tag) {
       case Some(_) =>
       case None => showFragment(AppLaunchFragment(), AppLaunchFragment.Tag)
     }
-
-//    unsplashInitLoadHandle = unsplashInitImageAsset.getSingleBitmap(AppEntryActivity.PREFETCH_IMAGE_WIDTH, new BitmapCallback() {
-//      def onBitmapLoaded(b: Bitmap): Unit = {
-//        verbose(s"onBitmapLoaded $b")
-//      }
-//    })
-
-//    appEntryController.entryStage.onUi {
-//      case EnterAppStage =>
-//        onEnterApplication(false)
-//      case FirstEnterAppStage =>
-//        onShowFirstLaunchPage()
-//      case NoAccountState(LoginScreen) =>
-//        onShowSignInPage()
-//      case NoAccountState(_) | SetTeamEmail | VerifyTeamEmail | SetUsersNameTeam | SetPasswordTeam | SetUsernameTeam | InviteToTeam =>
-//        onShowCreateTeamFragment()
-//      case DeviceLimitStage =>
-//        onEnterApplication(false)
-//      case AddNameStage =>
-//        onShowPhoneNamePage()
-//      case AddPictureStage =>
-//        onShowSetPicturePage()
-//      case VerifyEmailStage =>
-//        onShowEmailVerifyEmailPage()
-//      case VerifyPhoneStage =>
-//        onShowPhoneCodePage()
-//      case AddHandleStage =>
-//        onShowSetUsername()
-//      case InsertPasswordStage =>
-//        onShowInsertPassword()
-//      case TeamSetPicture =>
-//        appEntryController.setPicture(unsplashInitImageAsset, SignUpPhotoFragment.Source.Auto, SignUpPhotoFragment.RegistrationType.Email)
-//      case AddEmailStage =>
-//        onShowAddEmail()
-//      case _ =>
-//    }
   }
 
   override protected def onResume(): Unit = {
@@ -240,20 +194,6 @@ class AppEntryActivity extends BaseActivity
         showFragment(new SignInFragment, SignInFragment.Tag)
     }
 
-  def onShowSetPicturePage(): Unit = {}
-//    withFragmentOpt(SignUpPhotoFragment.TAG) {
-//      case Some(_) => //
-//      case None =>
-//        ZMessaging.currentAccounts.getActiveAccount.map { accountData =>
-//          import SignUpPhotoFragment._
-//          val tpe = accountData match {
-//            case Some(acc) if acc.phone.isDefined && acc.email.isEmpty => RegistrationType.Phone
-//            case _ => RegistrationType.Email
-//          }
-//          showFragment(newInstance(tpe), TAG)
-//        }
-//    }
-
   def onShowFirstLaunchPage(): Unit =
     showFragment(FirstLaunchAfterLoginFragment(), FirstLaunchAfterLoginFragment.Tag)
 
@@ -264,7 +204,11 @@ class AppEntryActivity extends BaseActivity
   }
 
   private def setDefaultAnimation(transaction: FragmentTransaction): FragmentTransaction = {
-    transaction.setCustomAnimations(R.anim.new_reg_in, R.anim.new_reg_out)
+    transaction.setCustomAnimations(
+      R.anim.fragment_animation_second_page_slide_in_from_right,
+      R.anim.fragment_animation_second_page_slide_out_to_left,
+      R.anim.fragment_animation_second_page_slide_in_from_left,
+      R.anim.fragment_animation_second_page_slide_out_to_right)
     transaction
   }
 
@@ -313,21 +257,4 @@ class AppEntryActivity extends BaseActivity
       .commit
     enableProgress(false)
   }
-
-  override def onChooseUsernameChosen() = {
-//    ZMessaging.currentAccounts.getActiveAccount.map(_.flatMap(_.handle.map(_.string)).getOrElse("")).map { userName =>
-//      getSupportFragmentManager.beginTransaction
-//        .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
-//        .add(ChangeHandleFragment.newInstance(userName, cancellable = false), ChangeHandleFragment.FragmentTag)
-//        .addToBackStack(ChangeHandleFragment.FragmentTag)
-//        .commit
-//    }
-  }
-
-  override def onKeepUsernameChosen(username: String) =
-    appEntryController.setUsername(username).map {
-      case Left(_) =>
-        Toast.makeText(AppEntryActivity.this, getString(R.string.username__set__toast_error), Toast.LENGTH_SHORT).show()
-      case Right(_) =>
-    }
 }

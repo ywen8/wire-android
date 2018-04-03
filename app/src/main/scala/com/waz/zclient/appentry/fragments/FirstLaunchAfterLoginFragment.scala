@@ -27,7 +27,6 @@ import com.waz.service.AccountsService
 import com.waz.threading.Threading
 import com.waz.utils.returning
 import com.waz.zclient.appentry.AppEntryActivity
-import com.waz.zclient.appentry.controllers.AppEntryController
 import com.waz.zclient.appentry.fragments.FirstLaunchAfterLoginFragment._
 import com.waz.zclient.ui.views.ZetaButton
 import com.waz.zclient.{FragmentHelper, R}
@@ -46,7 +45,6 @@ object FirstLaunchAfterLoginFragment {
 
 class FirstLaunchAfterLoginFragment extends FragmentHelper with View.OnClickListener {
 
-  lazy val appEntryController = inject[AppEntryController]
   lazy val accountsService    = inject[AccountsService]
 
   private lazy val registerButton = returning(findById[ZetaButton](getView, R.id.zb__first_launch__confirm)){ v =>

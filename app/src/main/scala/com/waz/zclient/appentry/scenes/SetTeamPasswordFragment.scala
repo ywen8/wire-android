@@ -63,7 +63,7 @@ case class SetTeamPasswordFragment() extends CreateTeamFragment {
               case Left(error) =>
                 Some(getString(EntryError(error.code, error.label, SignInMethod(Register, Email)).bodyResource))
               case _ =>
-
+                showFragment(InviteToTeamFragment(), InviteToTeamFragment.Tag)
                 None
             }
           case false =>

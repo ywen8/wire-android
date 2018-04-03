@@ -35,7 +35,6 @@ import com.waz.threading.Threading
 import com.waz.utils.events.Signal
 import com.waz.utils.returning
 import com.waz.zclient._
-import com.waz.zclient.appentry.controllers.AppEntryController
 import com.waz.zclient.appentry.fragments.SignInFragment._
 import com.waz.zclient.appentry.{AppEntryActivity, EntryError, GenericRegisterEmailError}
 import com.waz.zclient.common.controllers.BrowserController
@@ -63,7 +62,6 @@ class SignInFragment extends BaseFragment[Container]
   lazy val accountsService    = inject[AccountsService]
   lazy val browserController  = inject[BrowserController]
   lazy val tracking           = inject[GlobalTrackingController]
-  lazy val appEntryController = inject[AppEntryController]
 
   lazy val isAddingAccount = accountsService.zmsInstances.map(_.nonEmpty)
 
@@ -183,6 +181,7 @@ class SignInFragment extends BaseFragment[Container]
   override def onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState: Bundle) =
     returning(inflater.inflate(R.layout.sign_in_fragment, container, false)) { view =>
       findById[TabIndicatorLayout](view, R.id.til__app_entry).setLabels(Array[Int](R.string.new_reg__phone_signup__create_account, R.string.i_have_an_account))
+      container.setBackgroundColor(Color.TRANSPARENT)
     }
 
   override def onViewCreated(view: View, savedInstanceState: Bundle) = {

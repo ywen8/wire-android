@@ -26,15 +26,10 @@ import android.view.View.OnClickListener
 import android.widget.LinearLayout
 import com.waz.service.ZMessaging
 import com.waz.threading.Threading
-import com.waz.threading.Threading.Implicits.Ui
-import com.waz.zclient.appentry.controllers.AppEntryController
-import com.waz.zclient.appentry.controllers.AppEntryController.LoginScreen
-import com.waz.zclient.appentry.fragments.SignInFragment.{Email, Login, SignInMethod}
 import com.waz.zclient.{DialogHelper, R}
 
 class ProfileBottomSheetDialog(val context: Context, theme: Int) extends BottomSheetDialog(context, theme) with DialogHelper {
 
-  lazy val appEntryController = inject[AppEntryController]
   val MaxAccountsCount = 2
 
   override def onCreate(savedInstanceState: Bundle): Unit = {

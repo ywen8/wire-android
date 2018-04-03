@@ -19,10 +19,10 @@ package com.waz.zclient.appentry.controllers
 
 import com.waz.utils.events.EventContext
 import com.waz.zclient.{Injectable, Injector}
+import com.waz.znet.ZNetClient.ErrorOr
 
 class CreateTeamController(implicit inj: Injector, eventContext: EventContext) extends Injectable {
 
-  //Vars to persist text in edit boxes
   var teamName = ""
   var teamEmail = ""
   var code = ""
@@ -42,13 +42,7 @@ class CreateTeamController(implicit inj: Injector, eventContext: EventContext) e
   def goTo(): Unit = {
 
   }
+
+  def setUsername(username: String): ErrorOr[Unit] =
+    throw new NotImplementedError("")
 }
-/*
-  object SetTeamEmail            extends AppEntryStage { override val depth = 2 }
-  object VerifyTeamEmail         extends AppEntryStage { override val depth = 3 }
-  object SetUsersNameTeam        extends AppEntryStage { override val depth = 4 }
-  object SetPasswordTeam         extends AppEntryStage { override val depth = 5 }
-  object SetUsernameTeam         extends AppEntryStage { override val depth = 6 }
-  object TeamSetPicture          extends AppEntryStage { override val depth = 6 }
-  object InviteToTeam            extends AppEntryStage { override val depth = 7 }
- */

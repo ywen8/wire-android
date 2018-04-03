@@ -18,39 +18,39 @@
 package com.waz.zclient.appentry.scenes
 
 import android.app.Activity
-import android.content.Context
+import android.os.Bundle
 import android.view.View
 import com.waz.api.impl.ErrorResponse
 import com.waz.threading.Threading
-import com.waz.utils.events.EventContext
 import com.waz.zclient._
-import com.waz.zclient.appentry.controllers.AppEntryController
+import com.waz.zclient.appentry.CreateTeamFragment
 import com.waz.zclient.common.views.InputBox
 import com.waz.zclient.common.views.InputBox.UsernameValidator
 import com.waz.zclient.ui.utils.KeyboardUtils
-import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.utils._
 
-case class SetUsernameViewHolder(root: View)(implicit val context: Context, eventContext: EventContext, injector: Injector) extends ViewHolder with Injectable {
+case class SetUsernameViewHolder() extends CreateTeamFragment {
 
-  private val appEntryController = inject[AppEntryController]
+  lazy val inputField = view[InputBox](R.id.input_field)
 
-  lazy val inputField = root.findViewById[InputBox](R.id.input_field)
+  override val layoutId: Int = R.layout.set_username_scene
 
-  def onCreate(): Unit = {
-    inputField.setValidator(UsernameValidator)
-    inputField.editText.setText(appEntryController.teamUserUsername)
-    inputField.editText.addTextListener(appEntryController.teamUserUsername = _)
-    inputField.startText.setText("@")
-    inputField.editText.requestFocus()
-    KeyboardUtils.showKeyboard(context.asInstanceOf[Activity])
-    //TODO: do the checks on change?
-    inputField.setOnClick( text => appEntryController.setUsername(text).map {
-      case Left(ErrorResponse(409, _, "handle-exists")) =>
-        Some(getString(R.string.pref__account_action__dialog__change_username__error_already_taken))
-      case Left(_) =>
-        Some(getString(R.string.pref__account_action__dialog__change_username__error_unknown))
-      case _ => None
-    } (Threading.Ui))
+  override def onViewCreated(view: View, savedInstanceState: Bundle): Unit = {
+    inputField.foreach { inputField =>
+      inputField.setValidator(UsernameValidator)
+      inputField.editText.setText(createTeamController.teamUserUsername)
+      inputField.editText.addTextListener(createTeamController.teamUserUsername = _)
+      inputField.startText.setText("@")
+      inputField.editText.requestFocus()
+      KeyboardUtils.showKeyboard(context.asInstanceOf[Activity])
+      //TODO: do the checks on change?
+      inputField.setOnClick( text => createTeamController.setUsername(text).map {
+        case Left(ErrorResponse(409, _, "handle-exists")) =>
+          Some(getString(R.string.pref__account_action__dialog__change_username__error_already_taken))
+        case Left(_) =>
+          Some(getString(R.string.pref__account_action__dialog__change_username__error_unknown))
+        case _ => None
+      } (Threading.Ui))
+    }
   }
 }

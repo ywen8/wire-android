@@ -36,8 +36,7 @@ import com.waz.utils.events.Signal
 import com.waz.utils.{RichInstant, returning}
 import com.waz.zclient.Intents._
 import com.waz.zclient.appentry.AppEntryActivity
-import com.waz.zclient.appentry.controllers.AppEntryController
-import com.waz.zclient.appentry.fragments.{AddEmailFragment, EmailVerifyEmailFragment}
+import com.waz.zclient.appentry.fragments.AddEmailFragment
 import com.waz.zclient.calling.CallingActivity
 import com.waz.zclient.calling.controllers.CallPermissionsController
 import com.waz.zclient.common.controllers.global.{AccentColorController, KeyboardController}
@@ -82,7 +81,6 @@ class MainActivity extends BaseActivity
   lazy val callPermissionController = inject[CallPermissionsController]
   lazy val conversationController   = inject[ConversationController]
   lazy val userAccountsController   = inject[UserAccountsController]
-  lazy val appEntryController       = inject[AppEntryController]
   lazy val spinnerController        = inject[SpinnerController]
 
   override def onAttachedToWindow() = {

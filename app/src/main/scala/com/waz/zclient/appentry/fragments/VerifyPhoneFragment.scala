@@ -22,13 +22,16 @@ import android.support.v4.content.ContextCompat
 import android.text.{Editable, TextWatcher}
 import android.view.{LayoutInflater, View, ViewGroup}
 import android.widget.{TextView, Toast}
+import com.waz.client.RegistrationClientImpl.ActivateResult
+import com.waz.model.{ConfirmationCode, PhoneNumber}
 import com.waz.service.AccountsService
 import com.waz.threading.Threading
 import com.waz.utils.returning
 import com.waz.zclient._
-import com.waz.zclient.appentry.controllers.AppEntryController
 import com.waz.zclient.appentry.fragments.SignInFragment.{Login, Phone, Register, SignInMethod}
-import com.waz.zclient.appentry.{AppEntryActivity, EntryError}
+import com.waz.zclient.appentry.fragments.VerifyPhoneFragment._
+import com.waz.zclient.appentry.{AppEntryActivity, EntryError, GenericLoginPhoneError, GenericRegisterPhoneError}
+import com.waz.zclient.controllers.globallayout.IGlobalLayoutController
 import com.waz.zclient.controllers.navigation.Page
 import com.waz.zclient.newreg.views.PhoneConfirmationButton
 import com.waz.zclient.pages.BaseFragment
@@ -36,9 +39,6 @@ import com.waz.zclient.tracking.GlobalTrackingController
 import com.waz.zclient.ui.text.TypefaceEditText
 import com.waz.zclient.ui.utils.KeyboardUtils
 import com.waz.zclient.utils.DeprecationUtils
-import VerifyPhoneFragment._
-import com.waz.model.{ConfirmationCode, PhoneNumber}
-import com.waz.zclient.controllers.globallayout.IGlobalLayoutController
 
 object VerifyPhoneFragment {
   val Tag: String = classOf[VerifyPhoneFragment].getName
@@ -65,8 +65,6 @@ object VerifyPhoneFragment {
 class VerifyPhoneFragment extends BaseFragment[VerifyPhoneFragment.Container] with FragmentHelper with View.OnClickListener with TextWatcher with OnBackPressedListener {
 
   implicit val executionContext = Threading.Ui
-
-  private lazy val appEntryController = inject[AppEntryController]
   private lazy val accountService     = inject[AccountsService]
   private lazy val tracking           = inject[GlobalTrackingController]
 
@@ -157,8 +155,13 @@ class VerifyPhoneFragment extends BaseFragment[VerifyPhoneFragment.Container] wi
 
   private def requestCode(shouldCall: Boolean) = {
     editTextCode.setText("")
-    appEntryController.resendActivationPhoneCode(shouldCall = shouldCall).map { result =>
-      val isLoggingIn = getBooleanArg(LoggingInArg, default = true)
+    val isLoggingIn = getBooleanArg(LoggingInArg, default = true)
+    val phone = getStringArg(PhoneArg).getOrElse("")
+    accountService.requestPhoneCode(PhoneNumber(phone), login = isLoggingIn, call = shouldCall).map {
+      case ActivateResult.Success => Right(())
+      case ActivateResult.PasswordExists => Left(if (isLoggingIn) GenericLoginPhoneError else GenericRegisterPhoneError)
+      case ActivateResult.Failure(error) => Left(EntryError(error.code, error.label, SignInMethod(if (isLoggingIn) Login else Register, Phone)))
+    }.map { result =>
       tracking.onRequestResendCode(result, SignInMethod(if (isLoggingIn) Login else Register, Phone), isCall = shouldCall)
       result match {
         case Left(entryError) =>

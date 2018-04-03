@@ -51,4 +51,5 @@ case class EntryError(code: Int, label: String, signInMethod: SignInMethod) {
 
 object GenericRegisterEmailError extends EntryError(0, "", SignInMethod(Register, Email))
 object GenericRegisterPhoneError extends EntryError(0, "", SignInMethod(Register, Phone))
+object GenericLoginPhoneError extends EntryError(0, "", SignInMethod(Login, Phone))
 object PhoneExistsError extends EntryError(409, "key-exists", SignInMethod(Register, Phone))
