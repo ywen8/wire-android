@@ -22,7 +22,7 @@
                 xmlns:app="http://schemas.android.com/apk/res-auto"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-    >
+>
 
 
     <com.waz.zclient.ui.text.GlyphTextView
@@ -34,7 +34,7 @@
         android:textSize="@dimen/wire__text_size__huge"
         android:layout_marginLeft="@dimen/wire__padding__16"
         android:layout_above="@+id/ttv__sign_up__check_email"
-        />
+    />
 
 
     <com.waz.zclient.ui.text.TypefaceTextView
@@ -47,7 +47,7 @@
         app:w_font="@string/wire__typeface__light"
         android:layout_marginLeft="@dimen/wire__padding__16"
         android:layout_centerVertical="true"
-        />
+    />
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -57,7 +57,7 @@
         android:layout_marginTop="@dimen/wire__padding__32"
         android:orientation="vertical"
         android:layout_below="@+id/ttv__sign_up__check_email"
-        >
+    >
 
 
         <com.waz.zclient.ui.text.TypefaceTextView
@@ -68,7 +68,7 @@
             android:textColor="@color/text__primary_dark"
             android:textSize="@dimen/wire__text_size__regular"
             app:w_font="@string/wire__typeface__light"
-            />
+        />
 
         <com.waz.zclient.ui.text.TypefaceTextView
             android:id="@+id/ttv__pending_email__resend"
@@ -80,7 +80,7 @@
             android:textSize="@dimen/wire__text_size__small"
             app:w_font="@string/wire__typeface__light"
             android:textColor="@color/text__primary_dark"
-            />
+        />
     </LinearLayout>
 
     <!-- Back button -->
@@ -91,7 +91,7 @@
         android:layout_gravity="top|left"
         android:layout_marginLeft="@dimen/first_time__create_account__padding_left"
         android:layout_marginTop="@dimen/first_time__logo__padding_top"
-        >
+    >
 
         <com.waz.zclient.ui.text.GlyphTextView
             android:layout_width="wrap_content"
@@ -100,7 +100,7 @@
             android:textColor="@color/text__primary_dark"
             android:textSize="@dimen/wire__text_size__regular"
             app:w_font="@string/wire__typeface__light"
-            />
+        />
 
         <com.waz.zclient.ui.text.TypefaceTextView
             android:layout_width="0dp"
@@ -113,7 +113,7 @@
             android:textAllCaps="true"
             android:textSize="@dimen/wire__text_size__small"
             app:w_font="@string/wire__typeface__light"
-            />
+        />
     </LinearLayout>
 
     <!-- Close button -->
@@ -132,7 +132,7 @@
         android:textColor="@color/text__primary_dark"
         android:textSize="@dimen/wire__icon_button__text_size"
         android:visibility="gone"
-        />
+    />
 
     <com.waz.zclient.views.feedback.FeedbackCheckmarkView
         android:id="@+id/fl__confirmation_checkmark"

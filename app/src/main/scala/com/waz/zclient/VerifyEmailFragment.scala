@@ -20,89 +20,81 @@ package com.waz.zclient
 import android.os.Bundle
 import android.view.{LayoutInflater, View, ViewGroup}
 import android.widget.TextView
-import com.waz.ZLog.ImplicitTag._
-import com.waz.content.UserPreferences.PendingEmail
-import com.waz.service.{AccountsService, ZMessaging}
+import com.waz.model.EmailAddress
+import com.waz.service.{AccountManager, AccountsService}
 import com.waz.utils.events.Signal
 import com.waz.utils.returning
-import com.waz.zclient.pages.main.MainPhoneFragment
 import com.waz.zclient.ui.utils.{KeyboardUtils, TextViewUtils}
-
-import scala.concurrent.Future
 
 object VerifyEmailFragment {
   val Tag: String = classOf[VerifyEmailFragment].getName
-  def apply(canGoBack: Boolean = true): VerifyEmailFragment = new VerifyEmailFragment
+
+  val EmailArg = "EMAIL_ARG"
+
+  def apply(email: EmailAddress): VerifyEmailFragment = {
+    val f = new VerifyEmailFragment
+    f.setArguments(returning(new Bundle()) { b =>
+      b.putString(EmailArg, email.str)
+    })
+    f
+  }
 }
 
-class VerifyEmailFragment extends FragmentHelper with View.OnClickListener {
+class VerifyEmailFragment extends FragmentHelper {
 
-  import com.waz.threading.Threading.Implicits.Ui
+  import VerifyEmailFragment._
 
-  lazy val pendingEmail = inject[Signal[ZMessaging]].flatMap(_.userPrefs(PendingEmail).signal)
+  lazy val am = inject[Signal[AccountManager]]
+
+  lazy val email = getStringArg(EmailArg).map(EmailAddress)
   lazy val accounts = inject[AccountsService]
 
-  lazy val resendTextView = view[TextView](R.id.ttv__pending_email__resend)
-
-  lazy val checkEmailTextView = returning(view[TextView](R.id.ttv__sign_up__check_email)) { vh =>
-    pendingEmail.onUi {
-      case Some(e) =>
-        vh.foreach(_.setText(getResources.getString(R.string.profile__email__verify__instructions, e.str)))
-        vh.foreach(TextViewUtils.boldText)
-      case _ => //
+  lazy val resendTextView = returning(view[TextView](R.id.ttv__pending_email__resend)) { vh =>
+    vh.onClick { _ =>
+      didntGetEmailTextView.foreach(_.animate.alpha(0).start())
+      vh.foreach(_.animate.alpha(0).withEndAction(new Runnable() {
+        def run(): Unit = {
+          vh.foreach(_.setEnabled(false))
+        }
+      }).start())
+      email.foreach(accounts.requestVerificationEmail)
     }
   }
 
-  lazy val didntGetEmailTextView = view[TextView](R.id.ttv__sign_up__didnt_get)
+  lazy val didntGetEmailTextView = returning(view[TextView](R.id.ttv__sign_up__didnt_get)) { vh =>
+    vh.onClick(_ => back())
+  }
+
   lazy val backButton = view[View](R.id.ll__activation_button__back)
 
   override def onCreateView(inflater: LayoutInflater, viewGroup: ViewGroup, savedInstanceState: Bundle): View =
-    inflater.inflate(R.layout.fragment_pending_email_email_confirmation, viewGroup, false)
+    inflater.inflate(R.layout.fragment_main_start_verify_email, viewGroup, false)
 
   override def onViewCreated(view: View, savedInstanceState: Bundle) = {
     super.onViewCreated(view, savedInstanceState)
-    checkEmailTextView
     resendTextView
     didntGetEmailTextView
     backButton
 
-    pendingEmail.onChanged.filter(_.isEmpty).onUi { _ =>
-      activity.replaceMainFragment(new MainPhoneFragment, MainPhoneFragment.Tag)
+    Option(findById[TextView](view, R.id.ttv__sign_up__check_email)).foreach { v =>
+      email.foreach { e =>
+        v.setText(getResources.getString(R.string.profile__email__verify__instructions, e.str))
+        TextViewUtils.boldText(v)
+      }
     }
-  }
 
-  override def onResume(): Unit = {
-    super.onResume()
-    backButton.foreach(_.setOnClickListener(this))
-    resendTextView.foreach(_.setOnClickListener(this))
+    //TODO we now need to poll in the account manager when waiting for verification...
+//    email.onChanged.filter(_.isEmpty).onUi { _ =>
+//      activity.replaceMainFragment(new MainPhoneFragment, MainPhoneFragment.Tag)
+//    }
   }
 
   override def onPause(): Unit = {
     KeyboardUtils.hideKeyboard(getActivity)
-    backButton.foreach(_.setOnClickListener(null))
-    resendTextView.foreach(_.setOnClickListener(null))
     super.onPause()
   }
 
-  private def back() = activity.replaceMainFragment(RequestPasswordWithEmailFragment(skippable = false), RequestPasswordWithEmailFragment.Tag)
-
-  def onClick(v: View): Unit = {
-    v.getId match {
-      case R.id.ll__activation_button__back =>
-        back()
-      case R.id.ttv__pending_email__resend =>
-        didntGetEmailTextView.foreach(_.animate.alpha(0).start())
-        resendTextView.foreach(_.animate.alpha(0).withEndAction(new Runnable() {
-          def run(): Unit = {
-            resendTextView.foreach(_.setEnabled(false))
-          }
-        }).start())
-        pendingEmail.head.flatMap {
-          case Some(e) => accounts.requestVerificationEmail(e)
-          case _ => Future.successful({})
-        }
-    }
-  }
+  private def back() = activity.replaceMainFragment(AddEmailFragment(skippable = false), AddEmailFragment.Tag)
 
   def activity = getActivity.asInstanceOf[MainActivity]
 
