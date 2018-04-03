@@ -27,16 +27,18 @@ import android.support.v4.app.Fragment
 import com.waz.ZLog.ImplicitTag._
 import com.waz.ZLog.{error, info, verbose, warn}
 import com.waz.api.{NetworkMode, _}
-import com.waz.model.{ConvId, ConversationData, UserId}
+import com.waz.content.UserPreferences
+import com.waz.content.UserPreferences.{PendingEmail, PendingPassword}
+import com.waz.model.{ConvId, ConversationData, UserId, UserInfo}
 import com.waz.service.AccountManager.ClientRegistrationState.{LimitReached, PasswordMissing, Registered, Unregistered}
 import com.waz.service.ZMessaging.clock
-import com.waz.service.{AccountManager, AccountsService, ZMessaging}
+import com.waz.service.{AccountManager, AccountsService, AccountsServiceImpl, ZMessaging}
 import com.waz.threading.{CancellableFuture, Threading}
 import com.waz.utils.events.Signal
 import com.waz.utils.{RichInstant, returning}
 import com.waz.zclient.Intents._
 import com.waz.zclient.appentry.AppEntryActivity
-import com.waz.zclient.appentry.fragments.AddEmailFragment
+import com.waz.zclient.appentry.fragments.{AddEmailAndPasswordFragment, VerifyEmailFragment}
 import com.waz.zclient.calling.CallingActivity
 import com.waz.zclient.calling.controllers.CallPermissionsController
 import com.waz.zclient.common.controllers.global.{AccentColorController, KeyboardController}
@@ -130,6 +132,7 @@ class MainActivity extends BaseActivity
       case _ =>
     }
 
+    //TODO - do we need this?
     accountsService.accountManagers.map(_.isEmpty).onUi {
       case true =>
         info("onLogout")
@@ -140,6 +143,8 @@ class MainActivity extends BaseActivity
         startActivity(returning(new Intent(this, classOf[MainActivity]))(_.setFlags(FLAG_ACTIVITY_NEW_TASK | FLAG_ACTIVITY_CLEAR_TASK)))
       case _ =>
     }
+
+    startFirstFragment()
 
     ZMessaging.currentGlobal.blacklist.upToDate.head.map {
       case false =>
@@ -189,7 +194,9 @@ class MainActivity extends BaseActivity
       CrashController.deleteCrashReports(getApplicationContext)
       NativeCrashManager.deleteDumpFiles(getApplicationContext)
     }
+  }
 
+  def startFirstFragment(): Unit = { //TODO better method name
     def openSignUpPage(): Unit = {
       startActivity(new Intent(getApplicationContext, classOf[AppEntryActivity]))
       finish()
@@ -200,17 +207,45 @@ class MainActivity extends BaseActivity
         am.registerClient().flatMap {
           case Right(Registered(_))   =>
             for {
-              z               <- zms.head
-              hasEmail        <- z.users.selfUser.map(_.email.isDefined).head
-              multipleClients <- z.otrClientsStorage.getClients(z.selfUserId).map(_.size >= 2)
+              z            <- zms.head
+              hasEmail     <- z.users.selfUser.map(_.email.isDefined).head
+              clientCount  <- z.otrClientsStorage.getClients(z.selfUserId)
+              pendingPw    <- z.userPrefs(PendingPassword).apply()
+              pendingEmail <- z.userPrefs(PendingEmail).apply()
+              handle       <- z.users.selfUser.map(_.handle).head
             } yield
-              if (!hasEmail && multipleClients) replaceMainFragment(AddEmailFragment(skippable = false), AddEmailFragment.Tag) //TODO skippable?
+              if (hasEmail && pendingPw) replaceMainFragment(SetPasswordFragment(), SetPasswordFragment.Tag)
+              else if (pendingEmail.isDefined) replaceMainFragment(VerifyEmailFragment(), VerifyEmailFragment.Tag)
+              else if (!hasEmail && clientCount.size >= 2) replaceMainFragment(AddEmailFragment(skippable = true), AddEmailFragment.Tag)
+              else if (handle.isEmpty) replaceMainFragment(SetHandleFragment(), SetHandleFragment.Tag)
               else replaceMainFragment(new MainPhoneFragment, MainPhoneFragment.Tag)
 
-          case Right(LimitReached)    => Future.successful(replaceMainFragment(OtrDeviceLimitFragment.newInstance, OtrDeviceLimitFragment.Tag))
-          case Right(PasswordMissing) => Future.successful(replaceMainFragment(AddEmailFragment(skippable = false), AddEmailFragment.Tag))
-          case Right(Unregistered)    => warn("This shouldn't happen, going back to sign in..."); Future.successful(openSignUpPage())
-          case Left(err)              => Future.successful(showToast(s"Something went wrong: $err")) //TODO handle errors
+          case Right(LimitReached) =>
+            am.getSelf.flatMap {
+              case Right(self) =>
+                for {
+                  pendingPw    <- am.storage.userPrefs(PendingPassword).apply()
+                  pendingEmail <- am.storage.userPrefs(PendingEmail).apply()
+                } yield
+                  if(self.email.isDefined && pendingPw) replaceMainFragment(SetPasswordFragment(), SetPasswordFragment.Tag)
+                  else if (pendingEmail.isDefined) replaceMainFragment(VerifyEmailFragment(), VerifyEmailFragment.Tag)
+                  else if (self.email.isEmpty) replaceMainFragment(AddEmailFragment(skippable = false), AddEmailFragment.Tag)
+                  else replaceMainFragment(OtrDeviceLimitFragment.newInstance, OtrDeviceLimitFragment.Tag)
+              case Left(err) => Future.successful(showToast(s"Something went wrong: $err")) //TODO show dialog and ask user to try again
+            }
+
+          case Right(PasswordMissing) =>
+            am.getSelf.flatMap {
+              case Right(self) =>
+                am.storage.userPrefs(PendingEmail).apply().map { pendingEmail =>
+                  if(self.email.isDefined) replaceMainFragment(RequestPasswordWithEmailFragment(), RequestPasswordWithEmailFragment.Tag)
+                  else if (pendingEmail.isDefined) replaceMainFragment(VerifyEmailFragment(), VerifyEmailFragment.Tag)
+                  else replaceMainFragment(AddEmailFragment(skippable = false), AddEmailFragment.Tag)
+                }
+              case Left(err) => Future.successful(showToast(s"Something went wrong: $err")) //TODO show dialog and ask user to try again
+            }
+          case Right(Unregistered) => warn("This shouldn't happen, going back to sign in..."); Future.successful(openSignUpPage())
+          case Left(err) => Future.successful(showToast(s"Something went wrong: $err")) //TODO show dialog and ask user to try again
         } (Threading.Ui)
       case _ => warn("No logged in account, sending to Sign in")
         Future.successful(openSignUpPage())

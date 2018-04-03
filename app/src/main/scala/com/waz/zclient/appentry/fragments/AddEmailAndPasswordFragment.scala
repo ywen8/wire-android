@@ -22,13 +22,14 @@ import android.os.Bundle
 import android.view.{LayoutInflater, View, ViewGroup}
 import com.waz.ZLog
 import com.waz.ZLog.ImplicitTag._
+import com.waz.content.UserPreferences
 import com.waz.model.AccountData.Password
 import com.waz.model.EmailAddress
 import com.waz.service.{AccountManager, ZMessaging}
 import com.waz.threading.Threading.Implicits.Ui
 import com.waz.utils.events.Signal
 import com.waz.utils.returning
-import com.waz.zclient.appentry.fragments.AddEmailFragment._
+import com.waz.zclient.appentry.fragments.AddEmailAndPasswordFragment._
 import com.waz.zclient.newreg.views.PhoneConfirmationButton
 import com.waz.zclient.newreg.views.PhoneConfirmationButton.State.{CONFIRM, NONE}
 import com.waz.zclient.pages.main.profile.validator.{EmailValidator, PasswordValidator}
@@ -40,7 +41,7 @@ import com.waz.zclient.views.LoadingIndicatorView
 import com.waz.zclient._
 import com.waz.zclient.pages.main.MainPhoneFragment
 
-class AddEmailFragment extends FragmentHelper with OnBackPressedListener {
+class AddEmailAndPasswordFragment extends FragmentHelper with OnBackPressedListener {
 
   lazy val zms = inject[Signal[ZMessaging]]
   lazy val users = zms.map(_.users)
@@ -61,6 +62,8 @@ class AddEmailFragment extends FragmentHelper with OnBackPressedListener {
     case _ => false
   }
 
+  lazy val skippable = getBooleanArg(SkippableArg, default = false)
+
   lazy val confirmationButton = returning(view[PhoneConfirmationButton](R.id.confirmation_button)) { vh =>
     vh.onClick { _ =>
       spinnerController.showSpinner(LoadingIndicatorView.Spinner)
@@ -73,7 +76,7 @@ class AddEmailFragment extends FragmentHelper with OnBackPressedListener {
         spinnerController.hideSpinner()
         resp match {
           case Right(_) =>
-            activity.replaceMainFragment(EmailVerifyEmailFragment(), EmailVerifyEmailFragment.Tag)
+            activity.replaceMainFragment(VerifyEmailFragment(canGoBack = true), VerifyEmailFragment.Tag)
           case Left(err) =>
             //getContainer.showError(EntryError(error.getCode, error.getLabel, SignInMethod(Register, Email)))
             showToast(s"Something went wrong: $err") //TODO show error to user
@@ -104,23 +107,23 @@ class AddEmailFragment extends FragmentHelper with OnBackPressedListener {
     confirmationButton.foreach(_.setAccentColor(Color.WHITE))
 
     returning(findById[TypefaceTextView](R.id.skip_button)) { v =>
-      v.setVisible(getBooleanArg(SkippableArg, default = false))
+      v.setVisible(skippable)
       v.onClick(activity.replaceMainFragment(new MainPhoneFragment, MainPhoneFragment.Tag))
     }
   }
 
-  override def onBackPressed(): Boolean = true
+  override def onBackPressed() = !skippable
 
   def activity = getActivity.asInstanceOf[MainActivity]
 }
 
-object AddEmailFragment {
+object AddEmailAndPasswordFragment {
   val Tag = ZLog.ImplicitTag.implicitLogTag
 
   val SkippableArg = "SKIPPABLE"
 
-  def apply(skippable: Boolean): AddEmailFragment =
-    returning(new AddEmailFragment()) {
+  def apply(skippable: Boolean, email: Option[EmailAddress] = None): AddEmailAndPasswordFragment =
+    returning(new AddEmailAndPasswordFragment()) {
       _.setArguments(returning(new Bundle) { b =>
         b.putBoolean(SkippableArg, skippable)
       })

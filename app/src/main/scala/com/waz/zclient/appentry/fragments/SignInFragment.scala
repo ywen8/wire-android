@@ -343,7 +343,7 @@ class SignInFragment extends BaseFragment[Container]
                 showError(GenericRegisterEmailError)
               case Success =>
                 activity.enableProgress(false)
-                activity.showFragment(VerifyEmailFragment(email, name, password), VerifyEmailFragment.Tag)
+                activity.showFragment(VerifyEmailWithCodeFragment(email, name, password), VerifyEmailWithCodeFragment.Tag)
             }
           case m@SignInMethod(method, Phone) =>
             val isLogin = method == Login
