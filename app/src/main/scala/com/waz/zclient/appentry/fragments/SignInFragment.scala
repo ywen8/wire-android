@@ -398,10 +398,13 @@ class SignInFragment extends BaseFragment[Container]
       false)
 
 
-  override def onBackPressed(): Boolean = {
-    getFragmentManager.popBackStack()
-    true
-  }
+  override def onBackPressed(): Boolean =
+    if (getFragmentManager.getBackStackEntryCount > 1) {
+      getFragmentManager.popBackStack()
+      true
+    } else {
+      false
+    }
 
   def activity = getActivity.asInstanceOf[AppEntryActivity]
 }

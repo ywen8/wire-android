@@ -23,7 +23,7 @@ import android.content.{DialogInterface, Intent}
 import android.graphics.drawable.ColorDrawable
 import android.graphics.{Color, Paint, PixelFormat}
 import android.os.{Build, Bundle}
-import android.support.v4.app.Fragment
+import android.support.v4.app.{Fragment, FragmentTransaction}
 import com.waz.ZLog.ImplicitTag._
 import com.waz.ZLog.{error, info, verbose, warn}
 import com.waz.api.{NetworkMode, _}
@@ -38,7 +38,6 @@ import com.waz.utils.events.Signal
 import com.waz.utils.{RichInstant, returning}
 import com.waz.zclient.Intents._
 import com.waz.zclient.appentry.AppEntryActivity
-import com.waz.zclient.appentry.fragments.{AddEmailAndPasswordFragment, VerifyEmailFragment}
 import com.waz.zclient.calling.CallingActivity
 import com.waz.zclient.calling.controllers.CallPermissionsController
 import com.waz.zclient.common.controllers.global.{AccentColorController, KeyboardController}
@@ -50,6 +49,7 @@ import com.waz.zclient.core.stores.conversation.ConversationChangeRequester
 import com.waz.zclient.fragments.ConnectivityFragment
 import com.waz.zclient.pages.main.MainPhoneFragment
 import com.waz.zclient.pages.startup.UpdateFragment
+import com.waz.zclient.preferences.dialogs.ChangeHandleFragment
 import com.waz.zclient.preferences.{PreferencesActivity, PreferencesController}
 import com.waz.zclient.tracking.{CrashController, UiTrackingController}
 import com.waz.zclient.utils.ContextUtils.showToast
@@ -69,7 +69,8 @@ class MainActivity extends BaseActivity
   with UpdateFragment.Container
   with NavigationControllerObserver
   with CallingObserver
-  with OtrDeviceLimitFragment.Container {
+  with OtrDeviceLimitFragment.Container
+  with SetHandleFragment.Container {
 
   implicit val cxt = this
 
@@ -238,7 +239,7 @@ class MainActivity extends BaseActivity
             am.getSelf.flatMap {
               case Right(self) =>
                 am.storage.userPrefs(PendingEmail).apply().map { pendingEmail =>
-                  if(self.email.isDefined) replaceMainFragment(RequestPasswordWithEmailFragment(), RequestPasswordWithEmailFragment.Tag)
+                  if(self.email.isDefined) replaceMainFragment(RequestPasswordWithEmailFragment(skippable = false), RequestPasswordWithEmailFragment.Tag)
                   else if (pendingEmail.isDefined) replaceMainFragment(VerifyEmailFragment(), VerifyEmailFragment.Tag)
                   else replaceMainFragment(AddEmailFragment(skippable = false), AddEmailFragment.Tag)
                 }
@@ -492,5 +493,15 @@ class MainActivity extends BaseActivity
 
       if (missing.nonEmpty) prefs.setUnsupportedEmoji(missing.asJava, Emojis.VERSION)
     }
+
+  override def onChooseUsernameChosen(): Unit =
+    getSupportFragmentManager
+      .beginTransaction
+      .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
+      .add(ChangeHandleFragment.newInstance("", cancellable = false), ChangeHandleFragment.Tag)
+      .addToBackStack(ChangeHandleFragment.Tag)
+      .commit
+
+  override def onKeepUsernameChosen(username: String): Unit = replaceMainFragment(new MainPhoneFragment, MainPhoneFragment.Tag)
 }
 

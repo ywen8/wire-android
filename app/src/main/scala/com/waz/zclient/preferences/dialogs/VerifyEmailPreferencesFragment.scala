@@ -30,13 +30,13 @@ import com.waz.zclient.ui.text.TypefaceTextView
 import com.waz.zclient.utils.DeprecationUtils
 import com.waz.zclient.{FragmentHelper, R}
 
-object VerifyEmailFragment {
+object VerifyEmailPreferencesFragment {
 
   val ARG_EMAIL: String = "ARG_EMAIL"
   val Tag: String = com.waz.ZLog.ImplicitTag.implicitLogTag
 
-  def apply(email: EmailAddress): VerifyEmailFragment = {
-    val fragment = new VerifyEmailFragment
+  def apply(email: EmailAddress): VerifyEmailPreferencesFragment = {
+    val fragment = new VerifyEmailPreferencesFragment
     val arg = new Bundle()
     arg.putString(ARG_EMAIL, email.str)
     fragment.setArguments(arg)
@@ -44,9 +44,9 @@ object VerifyEmailFragment {
   }
 }
 
-class VerifyEmailFragment extends DialogFragment with FragmentHelper {
+class VerifyEmailPreferencesFragment extends DialogFragment with FragmentHelper {
 
-  import VerifyEmailFragment.ARG_EMAIL
+  import VerifyEmailPreferencesFragment.ARG_EMAIL
 
   private lazy val email = TextUtils.htmlEncode(getStringArg(ARG_EMAIL).getOrElse(""))
 

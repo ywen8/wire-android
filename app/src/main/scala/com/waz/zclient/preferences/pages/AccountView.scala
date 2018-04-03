@@ -190,7 +190,7 @@ class AccountViewController(view: AccountView)(implicit inj: Injector, ec: Event
   view.onHandleClick.onUi { _ =>
     self.head.map { self =>
       import com.waz.zclient.preferences.dialogs.ChangeHandleFragment._
-      showPrefDialog(newInstance(self.handle.fold("")(_.string), cancellable = true), FragmentTag)
+      showPrefDialog(newInstance(self.handle.fold("")(_.string), cancellable = true), Tag)
     } (Threading.Ui)
   }
 
@@ -200,12 +200,12 @@ class AccountViewController(view: AccountView)(implicit inj: Injector, ec: Event
       showPrefDialog(
         returning(ChangeEmailDialog(addingEmail = email.isEmpty)) {
           _.onEmailChanged { e =>
-            val f = VerifyEmailFragment(e)
+            val f = VerifyEmailPreferencesFragment(e)
             //hide the verification screen when complete
             self.map(_.email).onChanged.filter(_.contains(e)).onUi { _ =>
               f.dismiss()
             }
-            showPrefDialog(f, VerifyEmailFragment.Tag)
+            showPrefDialog(f, VerifyEmailPreferencesFragment.Tag)
           }
         },
         ChangeEmailDialog.FragmentTag)

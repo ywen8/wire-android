@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package com.waz.zclient.appentry.fragments
+package com.waz.zclient
 
 import android.os.Bundle
 import android.view.{LayoutInflater, View, ViewGroup}
@@ -27,13 +27,12 @@ import com.waz.utils.events.Signal
 import com.waz.utils.returning
 import com.waz.zclient.pages.main.MainPhoneFragment
 import com.waz.zclient.ui.utils.{KeyboardUtils, TextViewUtils}
-import com.waz.zclient.{FragmentHelper, MainActivity, R}
 
 import scala.concurrent.Future
 
 object VerifyEmailFragment {
   val Tag: String = classOf[VerifyEmailFragment].getName
-  def apply(): VerifyEmailFragment = new VerifyEmailFragment
+  def apply(canGoBack: Boolean = true): VerifyEmailFragment = new VerifyEmailFragment
 }
 
 class VerifyEmailFragment extends FragmentHelper with View.OnClickListener {
@@ -85,7 +84,7 @@ class VerifyEmailFragment extends FragmentHelper with View.OnClickListener {
     super.onPause()
   }
 
-  private def back() = activity.replaceMainFragment(AddEmailAndPasswordFragment(skippable = false), AddEmailAndPasswordFragment.Tag)
+  private def back() = activity.replaceMainFragment(RequestPasswordWithEmailFragment(skippable = false), RequestPasswordWithEmailFragment.Tag)
 
   def onClick(v: View): Unit = {
     v.getId match {

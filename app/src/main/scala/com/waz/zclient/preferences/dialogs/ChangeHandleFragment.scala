@@ -28,6 +28,7 @@ import android.text.{Editable, TextWatcher}
 import android.view.View.OnClickListener
 import android.view.animation.AnimationUtils
 import android.view.{LayoutInflater, View, ViewGroup, WindowManager}
+import com.waz.ZLog
 import com.waz.ZLog.ImplicitTag._
 import com.waz.ZLog.warn
 import com.waz.model.Handle
@@ -244,7 +245,7 @@ class ChangeHandleFragment extends DialogFragment with FragmentHelper {
 
 object ChangeHandleFragment {
 
-  val FragmentTag = "ChangeHandleFragment"
+  val Tag: String = ZLog.ImplicitTag.implicitLogTag
 
   private val ArgCancelEnabled = "ARG_CANCEL_ENABLED"
   private val ArgHandle        = "ARG_HANDLE"

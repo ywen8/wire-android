@@ -30,8 +30,7 @@ import com.waz.service.{AccountsService, ZMessaging}
 import com.waz.threading.Threading
 import com.waz.utils.returning
 import com.waz.zclient._
-import com.waz.zclient.appentry.fragments._
-import com.waz.zclient.appentry.scenes.TeamNameFragment
+import com.waz.zclient.appentry.fragments.{TeamNameFragment, _}
 import com.waz.zclient.newreg.fragments.country.CountryController
 import com.waz.zclient.preferences.PreferencesController
 import com.waz.zclient.tracking.CrashController
@@ -270,9 +269,6 @@ class AppEntryActivity extends BaseActivity
         }
       },
       false)
-
-  def onShowSetUsername(): Unit =
-    showFragment(FirstTimeAssignUsernameFragment.newInstance("", ""), FirstTimeAssignUsernameFragment.TAG)
 
   def onShowInsertPassword(): Unit =
     showFragment(InsertPasswordFragment(), InsertPasswordFragment.Tag)

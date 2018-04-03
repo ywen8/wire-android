@@ -15,33 +15,31 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package com.waz.zclient.appentry.fragments
+package com.waz.zclient
 
 import android.graphics.Color
 import android.os.Bundle
 import android.view.{LayoutInflater, View, ViewGroup}
 import com.waz.ZLog
 import com.waz.ZLog.ImplicitTag._
-import com.waz.content.UserPreferences
 import com.waz.model.AccountData.Password
 import com.waz.model.EmailAddress
 import com.waz.service.{AccountManager, ZMessaging}
 import com.waz.threading.Threading.Implicits.Ui
 import com.waz.utils.events.Signal
 import com.waz.utils.returning
-import com.waz.zclient.appentry.fragments.AddEmailAndPasswordFragment._
+import com.waz.zclient.RequestPasswordWithEmailFragment._
 import com.waz.zclient.newreg.views.PhoneConfirmationButton
 import com.waz.zclient.newreg.views.PhoneConfirmationButton.State.{CONFIRM, NONE}
+import com.waz.zclient.pages.main.MainPhoneFragment
 import com.waz.zclient.pages.main.profile.validator.{EmailValidator, PasswordValidator}
 import com.waz.zclient.pages.main.profile.views.GuidedEditText
 import com.waz.zclient.ui.text.TypefaceTextView
 import com.waz.zclient.utils.ContextUtils.showToast
 import com.waz.zclient.utils._
 import com.waz.zclient.views.LoadingIndicatorView
-import com.waz.zclient._
-import com.waz.zclient.pages.main.MainPhoneFragment
 
-class AddEmailAndPasswordFragment extends FragmentHelper with OnBackPressedListener {
+class RequestPasswordWithEmailFragment extends FragmentHelper with OnBackPressedListener {
 
   lazy val zms = inject[Signal[ZMessaging]]
   lazy val users = zms.map(_.users)
@@ -76,7 +74,7 @@ class AddEmailAndPasswordFragment extends FragmentHelper with OnBackPressedListe
         spinnerController.hideSpinner()
         resp match {
           case Right(_) =>
-            activity.replaceMainFragment(VerifyEmailFragment(canGoBack = true), VerifyEmailFragment.Tag)
+            activity.replaceMainFragment(VerifyEmailFragment(), VerifyEmailFragment.Tag)
           case Left(err) =>
             //getContainer.showError(EntryError(error.getCode, error.getLabel, SignInMethod(Register, Email)))
             showToast(s"Something went wrong: $err") //TODO show error to user
@@ -117,13 +115,13 @@ class AddEmailAndPasswordFragment extends FragmentHelper with OnBackPressedListe
   def activity = getActivity.asInstanceOf[MainActivity]
 }
 
-object AddEmailAndPasswordFragment {
+object RequestPasswordWithEmailFragment {
   val Tag = ZLog.ImplicitTag.implicitLogTag
 
   val SkippableArg = "SKIPPABLE"
 
-  def apply(skippable: Boolean, email: Option[EmailAddress] = None): AddEmailAndPasswordFragment =
-    returning(new AddEmailAndPasswordFragment()) {
+  def apply(skippable: Boolean, email: Option[EmailAddress] = None): RequestPasswordWithEmailFragment =
+    returning(new RequestPasswordWithEmailFragment()) {
       _.setArguments(returning(new Bundle) { b =>
         b.putBoolean(SkippableArg, skippable)
       })

@@ -21,9 +21,8 @@ import android.os.Bundle
 import android.view.{LayoutInflater, View, ViewGroup}
 import android.widget.LinearLayout
 import com.waz.ZLog
-import com.waz.zclient.appentry.fragments.SignInFragment
+import com.waz.zclient.appentry.fragments.{SignInFragment, TeamNameFragment}
 import com.waz.zclient.appentry.fragments.SignInFragment._
-import com.waz.zclient.appentry.scenes.TeamNameFragment
 import com.waz.zclient.{FragmentHelper, R}
 import com.waz.zclient.utils.{LayoutSpec, RichView}
 
