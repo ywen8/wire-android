@@ -22,20 +22,17 @@ import android.support.v4.app.Fragment;
 import com.waz.zclient.BaseActivity;
 import com.waz.zclient.ServiceContainer;
 import com.waz.zclient.controllers.IControllerFactory;
-import com.waz.zclient.core.stores.IStoreFactory;
 
 public class BaseFragment<T> extends Fragment implements ServiceContainer {
 
     private T container;
     private IControllerFactory controllerFactory;
-    private IStoreFactory storeFactory;
 
     @Override
     public final void onAttach(Activity activity) {
         super.onAttach(activity);
         if (activity instanceof ServiceContainer) {
             controllerFactory = ((ServiceContainer) activity).getControllerFactory();
-            storeFactory = ((ServiceContainer) activity).getStoreFactory();
         }
         Fragment fragment = getParentFragment();
         if (fragment != null) {
@@ -59,11 +56,6 @@ public class BaseFragment<T> extends Fragment implements ServiceContainer {
 
     public final T getContainer() {
         return container;
-    }
-
-    @Override
-    public final IStoreFactory getStoreFactory() {
-        return storeFactory;
     }
 
     @Override

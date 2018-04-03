@@ -32,7 +32,6 @@ import com.waz.permissions.PermissionsService.{Permission, PermissionProvider}
 import com.waz.utils.returning
 import com.waz.zclient.common.controllers.ThemeController
 import com.waz.zclient.controllers.IControllerFactory
-import com.waz.zclient.core.stores.IStoreFactory
 import com.waz.zclient.tracking.GlobalTrackingController
 import com.waz.zclient.utils.ViewUtils
 
@@ -105,8 +104,6 @@ class BaseActivity extends AppCompatActivity
     permissions.unregisterProvider(this)
     super.onDestroy()
   }
-
-  def getStoreFactory: IStoreFactory = ZApplication.from(this).getStoreFactory
 
   def getControllerFactory: IControllerFactory = ZApplication.from(this).getControllerFactory
 

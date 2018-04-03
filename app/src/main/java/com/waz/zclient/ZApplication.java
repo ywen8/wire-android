@@ -23,7 +23,6 @@ import android.support.annotation.Nullable;
 import com.jakewharton.threetenabp.AndroidThreeTen;
 import com.waz.api.impl.AccentColors;
 import com.waz.zclient.controllers.IControllerFactory;
-import com.waz.zclient.core.stores.IStoreFactory;
 import com.waz.zclient.ui.text.TypefaceFactory;
 import com.waz.zclient.ui.text.TypefaceLoader;
 import com.waz.zclient.utils.WireLoggerTree;
@@ -109,11 +108,6 @@ public class ZApplication extends WireApplication implements ServiceContainer {
         } else {
             Timber.plant(new WireLoggerTree());
         }
-    }
-
-    @Override
-    public IStoreFactory getStoreFactory() {
-        return storeFactory();
     }
 
     @Override

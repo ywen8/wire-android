@@ -36,7 +36,6 @@ import com.waz.permissions.PermissionsService
 import com.waz.service.tracking.TrackingService
 import com.waz.service._
 import com.waz.utils.events.{EventContext, Signal}
-import com.waz.zclient.api.scala.ScalaStoreFactory
 import com.waz.zclient.appentry.controllers.{AddEmailController, CreateTeamController, InvitationsController}
 import com.waz.zclient.calling.controllers.{CallPermissionsController, CurrentCallController, GlobalCallingController}
 import com.waz.zclient.camera.controllers.{AndroidCameraFactory, GlobalCameraController}
@@ -59,7 +58,6 @@ import com.waz.zclient.controllers.userpreferences.IUserPreferencesController
 import com.waz.zclient.conversation.ConversationController
 import com.waz.zclient.conversation.creation.CreateConversationController
 import com.waz.zclient.conversationlist.ConversationListController
-import com.waz.zclient.core.stores.IStoreFactory
 import com.waz.zclient.cursor.CursorController
 import com.waz.zclient.integrations.IntegrationDetailsController
 import com.waz.zclient.messages.controllers.{MessageActionsController, NavigationController}
@@ -94,7 +92,6 @@ object WireApplication {
     bind [RenderScript]         to RenderScript.create(ctx)
 
     def controllerFactory = APP_INSTANCE.asInstanceOf[ZApplication].getControllerFactory
-    def storeFactory = APP_INSTANCE.asInstanceOf[ZApplication].getStoreFactory
 
     //SE Services
     bind [GlobalModule]                   to ZMessaging.currentGlobal
@@ -240,7 +237,6 @@ class WireApplication extends MultiDexApplication with WireContext with Injectab
   lazy val module: Injector = Global
 
   protected var controllerFactory: IControllerFactory = _
-  protected var storeFactory: IStoreFactory = _
 
   def contextModule(ctx: WireContext): Injector = controllers(ctx)
 
@@ -259,10 +255,7 @@ class WireApplication extends MultiDexApplication with WireContext with Injectab
   }
 
   def ensureInitialized() = {
-    if (storeFactory == null) {
-      ZMessaging.onCreate(this)
-      storeFactory = new ScalaStoreFactory(getApplicationContext)
-    }
+    ZMessaging.onCreate(this)
 
     inject[MessageNotificationsController]
     inject[ImageNotificationsController]
@@ -278,8 +271,6 @@ class WireApplication extends MultiDexApplication with WireContext with Injectab
 
   override def onTerminate(): Unit = {
     controllerFactory.tearDown()
-    storeFactory.tearDown()
-    storeFactory = null
     controllerFactory = null
     if (Build.VERSION.SDK_INT > 22){
       RenderScript.releaseAllContexts()

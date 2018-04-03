@@ -263,17 +263,16 @@ class ConversationFragment extends BaseFragment[ConversationFragment.Container] 
 
         // Saving factories since this fragment may be re-created before the runnable is done,
         // but we still want runnable to work.
-        val storeFactory = Option(getStoreFactory)
         val controllerFactory = Option(getControllerFactory)
         // TODO: Remove when call issue is resolved with https://wearezeta.atlassian.net/browse/CM-645
         // And also why do we use the ConversationFragment to start a call from somewhere else....
         CancellableFuture.delay(1000.millis).map { _ =>
-          (storeFactory, controllerFactory, requester) match {
-            case (Some(sf), Some(cf), ConversationChangeRequester.START_CONVERSATION_FOR_VIDEO_CALL) if !sf.isTornDown && !cf.isTornDown =>
+          (controllerFactory, requester) match {
+            case (Some(cf), ConversationChangeRequester.START_CONVERSATION_FOR_VIDEO_CALL) if !cf.isTornDown =>
               cf.getCallingController.startCall(true)
-            case (Some(sf), Some(cf), ConversationChangeRequester.START_CONVERSATION_FOR_CALL) if !sf.isTornDown && !cf.isTornDown =>
+            case (Some(cf), ConversationChangeRequester.START_CONVERSATION_FOR_CALL) if !cf.isTornDown =>
               cf.getCallingController.startCall(false)
-            case (Some(sf), Some(cf), ConversationChangeRequester.START_CONVERSATION_FOR_CAMERA) if !sf.isTornDown && !cf.isTornDown =>
+            case (Some(cf), ConversationChangeRequester.START_CONVERSATION_FOR_CAMERA) if !cf.isTornDown =>
               cf.getCameraController.openCamera(CameraContext.MESSAGE)
             case _ =>
           }

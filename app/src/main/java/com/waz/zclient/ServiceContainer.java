@@ -18,11 +18,8 @@
 package com.waz.zclient;
 
 import com.waz.zclient.controllers.IControllerFactory;
-import com.waz.zclient.core.stores.IStoreFactory;
 
 
 public interface ServiceContainer {
-    IStoreFactory getStoreFactory();
-
     IControllerFactory getControllerFactory();
 }
