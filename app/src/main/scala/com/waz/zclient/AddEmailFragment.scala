@@ -34,12 +34,13 @@ import com.waz.zclient.pages.main.profile.views.GuidedEditText
 import com.waz.zclient.utils.ContextUtils.showToast
 import com.waz.zclient.utils._
 import com.waz.zclient.views.LoadingIndicatorView
-
+import com.waz.threading.Threading
 import scala.concurrent.Future
 
 //Do not rely on having ZMS!
 class AddEmailFragment extends FragmentHelper {
   import AddEmailFragment._
+  import Threading.Implicits.Ui
 
   lazy val am  = inject[Signal[AccountManager]]
   lazy val spinnerController = inject[SpinnerController]
