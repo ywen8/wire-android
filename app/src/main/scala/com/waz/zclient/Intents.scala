@@ -63,6 +63,9 @@ object Intents {
   def ShowDevicesIntent(implicit context: Context) =
     new Intent(context, classOf[PreferencesActivity]).putExtra(OpenPageExtra, Page.Devices)
 
+  def OpenSettingsIntent(implicit context: Context) =
+    new Intent(context, classOf[PreferencesActivity])
+
   private def Intent(context:     Context,
                      userId:      UserId,
                      convId:      Option[ConvId] = None,

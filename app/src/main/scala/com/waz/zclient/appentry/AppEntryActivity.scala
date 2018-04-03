@@ -32,7 +32,6 @@ import com.waz.utils.returning
 import com.waz.zclient._
 import com.waz.zclient.appentry.fragments._
 import com.waz.zclient.appentry.scenes.TeamNameFragment
-import com.waz.zclient.newreg.fragments.SignUpPhotoFragment
 import com.waz.zclient.newreg.fragments.country.CountryController
 import com.waz.zclient.preferences.PreferencesController
 import com.waz.zclient.tracking.CrashController
@@ -44,18 +43,32 @@ import net.hockeyapp.android.NativeCrashManager
 import com.waz.zclient.utils.RichView
 
 import scala.collection.JavaConverters._
+import AppEntryActivity._
 
 object AppEntryActivity {
   val TAG: String = classOf[AppEntryActivity].getName
   private val HTTPS_PREFIX: String = "https://"
   private val HTTP_PREFIX: String = "http://"
   val PREFETCH_IMAGE_WIDTH: Int = 4
+
+  val MethodArg: String = "method_arg"
+  val LoginArgVal: Int = 0
+  val CreateTeamArgVal: Int = 1
+
+  def getLoginArgs: Bundle =
+    returning(new Bundle()) { b =>
+      b.putInt(MethodArg, LoginArgVal)
+    }
+
+  def getCreateTeamArgs: Bundle =
+    returning(new Bundle()) { b =>
+      b.putInt(MethodArg, CreateTeamArgVal)
+    }
 }
 
 class AppEntryActivity extends BaseActivity
   with VerifyPhoneFragment.Container
   with PhoneSetNameFragment.Container
-  with SignUpPhotoFragment.Container
   with CountryDialogFragment.Container
   with SignInFragment.Container
   with InsertPasswordFragment.Container {
@@ -96,10 +109,26 @@ class AppEntryActivity extends BaseActivity
     enableProgress(false)
     createdFromSavedInstance = savedInstanceState != null
 
-    closeButton.onClick(onEnterApplication(false))
+    closeButton.onClick {
+      accountsService.accountsWithManagers.map(_.headOption).head.foreach { userId =>
+        accountsService.setAccount(userId)
+        Option(getIntent.getExtras).map(_.getInt(MethodArg, -1)) match {
+          case Some(LoginArgVal | CreateTeamArgVal) =>
+            startActivity(Intents.OpenSettingsIntent(this))
+          case _ =>
+            onEnterApplication(false)
+        }
+      }
+    }
+
     withFragmentOpt(AppLaunchFragment.Tag) {
       case Some(_) =>
-      case None => showFragment(AppLaunchFragment(), AppLaunchFragment.Tag)
+      case None =>
+        Option(getIntent.getExtras).map(_.getInt(MethodArg)) match {
+          case Some(LoginArgVal) => showFragment(SignInFragment(), SignInFragment.Tag, animated = false)
+          case Some(CreateTeamArgVal) => showFragment(TeamNameFragment(), TeamNameFragment.Tag, animated = false)
+          case _ => showFragment(AppLaunchFragment(), AppLaunchFragment.Tag, animated = false)
+      }
     }
   }
 
@@ -229,8 +258,6 @@ class AppEntryActivity extends BaseActivity
     KeyboardUtils.showKeyboard(this)
   }
 
-  def getUnsplashImageAsset: ImageAsset = null// unsplashInitImageAsset
-
   def showError(entryError: EntryError, okCallback: => Unit = {}): Unit =
     ViewUtils.showAlertDialog(this,
       entryError.headerResource,
@@ -250,8 +277,10 @@ class AppEntryActivity extends BaseActivity
   def onShowInsertPassword(): Unit =
     showFragment(InsertPasswordFragment(), InsertPasswordFragment.Tag)
 
-  def showFragment(f: => Fragment, tag: String): Unit = {
-    setDefaultAnimation(getSupportFragmentManager.beginTransaction)
+  def showFragment(f: => Fragment, tag: String, animated: Boolean = true): Unit = {
+    val transaction = getSupportFragmentManager.beginTransaction()
+    if (animated) setDefaultAnimation(transaction)
+      transaction
       .replace(R.id.fl_main_content, f, tag)
       .addToBackStack(tag)
       .commit

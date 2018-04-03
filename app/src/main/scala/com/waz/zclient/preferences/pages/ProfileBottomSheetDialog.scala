@@ -18,14 +18,15 @@
 
 package com.waz.zclient.preferences.pages
 
-import android.content.Context
+import android.content.{Context, Intent}
 import android.os.Bundle
 import android.support.design.widget.BottomSheetDialog
 import android.view.View
-import android.view.View.OnClickListener
 import android.widget.LinearLayout
 import com.waz.service.ZMessaging
 import com.waz.threading.Threading
+import com.waz.zclient.appentry.AppEntryActivity
+import com.waz.zclient.utils.RichView
 import com.waz.zclient.{DialogHelper, R}
 
 class ProfileBottomSheetDialog(val context: Context, theme: Int) extends BottomSheetDialog(context, theme) with DialogHelper {
@@ -41,26 +42,21 @@ class ProfileBottomSheetDialog(val context: Context, theme: Int) extends BottomS
     val createTeamButton = findViewById(R.id.profile_menu_create).asInstanceOf[View]
     val addAccountButton = findViewById(R.id.profile_menu_add).asInstanceOf[View]
 
-    createTeamButton.setOnClickListener(new OnClickListener {
-      override def onClick(v: View): Unit = {
-        createTeamButton.setEnabled(false)
-        //TODO
-//        ZMessaging.currentAccounts.logout(false).map( _ => appEntryController.firstStage ! RegisterTeamScreen)
-        dismiss()
-      }
-    })
+    createTeamButton.onClick {
+      createTeamButton.setEnabled(false)
+      val intent = new Intent(getContext, classOf[AppEntryActivity])
+      intent.putExtras(AppEntryActivity.getCreateTeamArgs)
+      getContext.startActivity(intent)
+      dismiss()
+    }
 
-    addAccountButton.setOnClickListener(new OnClickListener {
-      override def onClick(v: View): Unit = {
-        addAccountButton.setEnabled(false)
-        //TODO
-//        ZMessaging.currentAccounts.logout(false).map{ _ =>
-//          appEntryController.firstStage ! LoginScreen
-//          signInController.uiSignInState ! SignInMethod(Login, Email)
-//        }
-        dismiss()
-      }
-    })
+    addAccountButton.onClick {
+      addAccountButton.setEnabled(false)
+      val intent = new Intent(getContext, classOf[AppEntryActivity])
+      intent.putExtras(AppEntryActivity.getLoginArgs)
+      getContext.startActivity(intent)
+      dismiss()
+    }
 
     ZMessaging.currentAccounts.accountManagers.map(_.size).on(Threading.Ui) { count =>
       addAccountButton.setAlpha(if (count < MaxAccountsCount) 1f else 0.5f)

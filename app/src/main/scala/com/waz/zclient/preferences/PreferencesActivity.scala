@@ -88,16 +88,6 @@ class PreferencesActivity extends BaseActivity
       backStackNavigator.onRestore(findViewById(R.id.content).asInstanceOf[ViewGroup], savedInstanceState)
     }
 
-    (for {
-      loggedIn <- ZMessaging.currentAccounts.accountsWithManagers
-      active <- ZMessaging.currentAccounts.activeAccount
-    } yield loggedIn.isEmpty || active.isEmpty).onUi{
-      case true =>
-        startActivity(returning(new Intent(this, classOf[MainActivity]))(_.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK)))
-        finish()
-      case _ =>
-    }
-
     accentColor.on(Threading.Ui) { color =>
       getControllerFactory.getUserPreferencesController.setLastAccentColor(color.getColor())
       getControllerFactory.getAccentColorController.setColor(color.getColor())
