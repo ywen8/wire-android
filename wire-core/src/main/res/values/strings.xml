@@ -97,6 +97,7 @@
     <string name="new_reg_internet_connectivity_error_header">No Internet Connection</string>
     <string name="new_reg_internet_connectivity_error_message">Please check your Internet connection and try again</string>
     <string name="new_reg__code_resent">A new code was sent to you via SMS</string>
+    <string name="new_reg__email_code_resent">A new code was sent to you via email</string>
     <string name="new_reg__code_resent__call">Stand by for a call</string>
     <string name="new_reg__invalid_code__auto_verification__manual">Something went wrong.\nPlease confirm that phone number and code are correct.</string>
     <string name="new_reg__default_country">de</string> <!-- consider updating this for every new language -->

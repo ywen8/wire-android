@@ -74,7 +74,6 @@ class VerifyEmailWithCodeFragment extends FragmentHelper with View.OnClickListen
 
   private lazy val resendCodeButton = findById[TextView](getView, R.id.ttv__resend_button)
   private lazy val resendCodeTimer = findById[TextView](getView, R.id.ttv__resend_timer)
-  private lazy val resendCodeCallButton = findById[View](getView, R.id.ttv__call_me_button)
   private lazy val editTextCode = findById[TypefaceEditText](getView, R.id.et__reg__code)
   private lazy val phoneConfirmationButton = findById[PhoneConfirmationButton](getView, R.id.pcb__activate)
   private lazy val buttonBack = findById[View](getView, R.id.ll__activation_button__back)
@@ -89,7 +88,6 @@ class VerifyEmailWithCodeFragment extends FragmentHelper with View.OnClickListen
       if (milliSecondsToShowResendButton <= 0) {
         resendCodeTimer.setVisibility(View.GONE)
         resendCodeButton.setVisibility(View.VISIBLE)
-        resendCodeCallButton.setVisibility(View.VISIBLE)
         return
       }
       val sec = milliSecondsToShowResendButton / 1000
@@ -103,7 +101,6 @@ class VerifyEmailWithCodeFragment extends FragmentHelper with View.OnClickListen
     findById[View](view, R.id.fl__confirmation_checkmark).setVisibility(View.GONE)
     findById[View](view, R.id.gtv__not_now__close).setVisibility(View.GONE)
     resendCodeButton.setVisibility(View.GONE)
-    resendCodeCallButton.setVisibility(View.GONE)
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
       editTextCode.setLetterSpacing(1)
     }
@@ -114,7 +111,7 @@ class VerifyEmailWithCodeFragment extends FragmentHelper with View.OnClickListen
   }
 
   override def onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState: Bundle): View = {
-    inflater.inflate(R.layout.fragment_phone__activation, container, false)
+    inflater.inflate(R.layout.fragment_email_code_activation, container, false)
   }
 
   override def onStart(): Unit = {
@@ -136,7 +133,6 @@ class VerifyEmailWithCodeFragment extends FragmentHelper with View.OnClickListen
     resendCodeButton.setOnClickListener(this)
     buttonBack.setOnClickListener(this)
     editTextCode.addTextChangedListener(this)
-    resendCodeCallButton.setOnClickListener(this)
   }
 
   override def onPause(): Unit = {
@@ -144,7 +140,6 @@ class VerifyEmailWithCodeFragment extends FragmentHelper with View.OnClickListen
     resendCodeButton.setOnClickListener(null)
     buttonBack.setOnClickListener(null)
     editTextCode.removeTextChangedListener(this)
-    resendCodeCallButton.setOnClickListener(null)
     super.onPause()
   }
 
@@ -159,14 +154,14 @@ class VerifyEmailWithCodeFragment extends FragmentHelper with View.OnClickListen
   private def password = Password(getStringArg(PasswordArg).getOrElse(""))
   private def confirmationCode = ConfirmationCode(editTextCode.getText.toString)
 
-  private def requestCode(shouldCall: Boolean) = {
+  private def requestCode() = {
     editTextCode.setText("")
     accountService.requestEmailCode(emailAddress).map {
       case Failure(error) =>
         activity.showError(EntryError(error.code, error.label, SignInMethod(Register, Email)))
         editTextCode.requestFocus
       case PasswordExists => showToast("Password exists for this account, please login by email")
-      case Success => showToast(R.string.new_reg__code_resent)
+      case Success => showToast(R.string.new_reg__email_code_resent)
     }
   }
 
@@ -194,13 +189,10 @@ class VerifyEmailWithCodeFragment extends FragmentHelper with View.OnClickListen
       case R.id.ll__activation_button__back =>
         goBack()
       case R.id.ttv__resend_button =>
-        requestCode(shouldCall = false)
+        requestCode()
         startResendCodeTimer()
       case R.id.pcb__activate =>
         confirmCode()
-      case R.id.ttv__call_me_button =>
-        requestCode(shouldCall = true)
-        startResendCodeTimer()
     }
   }
 
@@ -222,7 +214,6 @@ class VerifyEmailWithCodeFragment extends FragmentHelper with View.OnClickListen
   private def startResendCodeTimer(): Unit = {
     milliSecondsToShowResendButton = VerifyEmailWithCodeFragment.SHOW_RESEND_CODE_BUTTON_DELAY
     resendCodeButton.setVisibility(View.GONE)
-    resendCodeCallButton.setVisibility(View.GONE)
     resendCodeTimer.setVisibility(View.VISIBLE)
     val sec = milliSecondsToShowResendButton / 1000
     resendCodeTimer.setText(getResources.getQuantityString(R.plurals.welcome__resend__timer_label, sec, Integer.valueOf(sec)))
