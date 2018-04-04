@@ -30,6 +30,7 @@ import com.waz.utils.returning
 import com.waz.zclient.ui.utils.{KeyboardUtils, TextViewUtils}
 import com.waz.utils._
 import com.waz.zclient.utils.ContextUtils
+import com.waz.ZLog.ImplicitTag._
 
 import scala.concurrent.Future
 
