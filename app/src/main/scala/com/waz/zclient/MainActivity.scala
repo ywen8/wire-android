@@ -143,8 +143,6 @@ class MainActivity extends BaseActivity
       case _ =>
     }
 
-    startFirstFragment()
-
     ZMessaging.currentGlobal.blacklist.upToDate.head.map {
       case false =>
         startActivity(new Intent(getApplicationContext, classOf[ForceUpdateActivity]))
@@ -179,6 +177,8 @@ class MainActivity extends BaseActivity
 
     if (!getControllerFactory.getUserPreferencesController.hasCheckedForUnsupportedEmojis(Emojis.VERSION))
       Future(checkForUnsupportedEmojis())(Threading.Background)
+
+    startFirstFragment()
   }
 
   override protected def onResume() = {
