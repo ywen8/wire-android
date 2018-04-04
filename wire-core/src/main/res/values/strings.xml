@@ -1344,4 +1344,11 @@
     <string name="guest_time_left_hours">%1$sh left</string>
     <string name="guest_time_left_hours_minutes">%1$s.%2$sh left</string>
     <string name="guest_time_left_minutes">Less than %1$sm left</string>
+
+    <string name="add_email_address">Add email address</string>
+    <string name="add_email_address_explanation">It helps you recover your password if you forget it.</string>
+
+    <string name="add_password">Add password</string>
+    <string name="add_password_explanation">It helps you log in if you are locked out or lose your phone.</string>
+
 </resources>

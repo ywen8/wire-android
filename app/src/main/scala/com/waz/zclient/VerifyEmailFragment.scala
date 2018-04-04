@@ -57,11 +57,11 @@ class VerifyEmailFragment extends FragmentHelper {
     }
   }
 
-  lazy val didntGetEmailTextView = returning(view[TextView](R.id.ttv__sign_up__didnt_get)) { vh =>
+  lazy val didntGetEmailTextView = view[TextView](R.id.ttv__sign_up__didnt_get)
+
+  lazy val backButton = returning(view[View](R.id.ll__activation_button__back)) { vh =>
     vh.onClick(_ => back())
   }
-
-  lazy val backButton = view[View](R.id.ll__activation_button__back)
 
   override def onCreateView(inflater: LayoutInflater, viewGroup: ViewGroup, savedInstanceState: Bundle): View =
     inflater.inflate(R.layout.fragment_main_start_verify_email, viewGroup, false)
