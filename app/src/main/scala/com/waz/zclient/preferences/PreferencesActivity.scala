@@ -35,14 +35,13 @@ import com.waz.content.UserPreferences
 import com.waz.service.ZMessaging
 import com.waz.threading.Threading
 import com.waz.utils.events.Signal
-import com.waz.utils.returning
 import com.waz.zclient.Intents._
 import com.waz.zclient.common.controllers.global.AccentColorController
 import com.waz.zclient.common.views.AccountTabsView
 import com.waz.zclient.pages.main.profile.camera.{CameraContext, CameraFragment}
 import com.waz.zclient.preferences.pages.{DevicesBackStackKey, OptionsView, ProfileBackStackKey}
 import com.waz.zclient.utils.{BackStackNavigator, RingtoneUtils, ViewUtils}
-import com.waz.zclient.{ActivityHelper, BaseActivity, MainActivity, R}
+import com.waz.zclient.{ActivityHelper, BaseActivity, R}
 
 class PreferencesActivity extends BaseActivity
   with ActivityHelper

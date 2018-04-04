@@ -17,6 +17,7 @@
  */
 package com.waz.zclient.preferences.pages
 
+import android.app.Activity
 import android.content.{Context, DialogInterface, Intent}
 import android.graphics.drawable.Drawable
 import android.graphics.{Canvas, ColorFilter, Paint, PixelFormat}
@@ -34,6 +35,7 @@ import com.waz.threading.Threading
 import com.waz.utils.events.{EventContext, EventStream, Signal}
 import com.waz.utils.returning
 import com.waz.zclient._
+import com.waz.zclient.appentry.AppEntryActivity
 import com.waz.zclient.common.controllers.global.PasswordController
 import com.waz.zclient.common.views.ImageAssetDrawable
 import com.waz.zclient.common.views.ImageAssetDrawable.{RequestBuilder, ScaleType}
@@ -256,9 +258,16 @@ class AccountViewController(view: AccountView)(implicit inj: Injector, ec: Event
       getString(R.string.pref_account_sign_out_warning_cancel),
       new DialogInterface.OnClickListener() {
         def onClick(dialog: DialogInterface, which: Int) = {
-          zms.map(_.selfUserId).head.flatMap(accounts.logout)(Threading.Ui)
-          navigator.back()
-          navigator.back()
+          import Threading.Implicits.Ui
+          zms.map(_.selfUserId).head.flatMap(accounts.logout)
+            .flatMap(_ => accounts.accountsWithManagers.head.map(_.isEmpty)).map {
+            case true =>
+              context.startActivity(new Intent(context, classOf[AppEntryActivity]))
+              Option(context.asInstanceOf[Activity]).foreach(_.finish())
+            case false =>
+              navigator.back()
+              navigator.back()
+          }
         }
       }, null)
   }
