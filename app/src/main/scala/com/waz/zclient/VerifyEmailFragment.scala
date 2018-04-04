@@ -34,24 +34,9 @@ import com.waz.ZLog.ImplicitTag._
 
 import scala.concurrent.Future
 
-object VerifyEmailFragment {
+class VerifyEmailFragment extends FragmentHelper {
 
   import com.waz.threading.Threading.Implicits.Ui
-
-  val Tag: String = classOf[VerifyEmailFragment].getName
-
-  val EmailArg = "EMAIL_ARG"
-
-  def apply(email: EmailAddress): VerifyEmailFragment = {
-    val f = new VerifyEmailFragment
-    f.setArguments(returning(new Bundle()) { b =>
-      b.putString(EmailArg, email.str)
-    })
-    f
-  }
-}
-
-class VerifyEmailFragment extends FragmentHelper {
 
   import VerifyEmailFragment._
 
@@ -123,5 +108,20 @@ class VerifyEmailFragment extends FragmentHelper {
   override def onBackPressed(): Boolean = {
     back()
     true
+  }
+}
+
+object VerifyEmailFragment {
+
+  val Tag: String = classOf[VerifyEmailFragment].getName
+
+  val EmailArg = "EMAIL_ARG"
+
+  def apply(email: EmailAddress): VerifyEmailFragment = {
+    val f = new VerifyEmailFragment
+    f.setArguments(returning(new Bundle()) { b =>
+      b.putString(EmailArg, email.str)
+    })
+    f
   }
 }
