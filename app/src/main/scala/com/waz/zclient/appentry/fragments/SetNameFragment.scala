@@ -17,7 +17,7 @@
  */
 package com.waz.zclient.appentry.fragments
 
-import android.app.Activity
+import android.app.{Activity, FragmentManager}
 import android.os.Bundle
 import android.text.InputType
 import android.view.View
@@ -55,6 +55,12 @@ case class SetNameFragment() extends CreateTeamFragment {
         }
       )
     }
+  }
+
+  override def onBackPressed(): Boolean = {
+    createTeamController.code = ""
+    getFragmentManager.popBackStack(VerifyTeamEmailFragment.Tag, FragmentManager.POP_BACK_STACK_INCLUSIVE)
+    true
   }
 }
 
