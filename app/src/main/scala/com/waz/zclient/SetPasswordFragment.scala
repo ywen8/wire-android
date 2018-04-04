@@ -22,19 +22,17 @@ import android.os.Bundle
 import android.view.{LayoutInflater, View, ViewGroup}
 import com.waz.ZLog
 import com.waz.ZLog.ImplicitTag._
-import com.waz.content.UserPreferences
 import com.waz.content.UserPreferences.PendingPassword
 import com.waz.model.AccountData.Password
 import com.waz.model.EmailAddress
-import com.waz.service.{AccountManager, ZMessaging}
+import com.waz.service.AccountManager
 import com.waz.threading.Threading.Implicits.Ui
 import com.waz.utils.events.Signal
 import com.waz.utils.returning
-import com.waz.zclient.SetPasswordFragment._
 import com.waz.zclient.newreg.views.PhoneConfirmationButton
 import com.waz.zclient.newreg.views.PhoneConfirmationButton.State.{CONFIRM, NONE}
 import com.waz.zclient.pages.main.MainPhoneFragment
-import com.waz.zclient.pages.main.profile.validator.{EmailValidator, PasswordValidator}
+import com.waz.zclient.pages.main.profile.validator.PasswordValidator
 import com.waz.zclient.pages.main.profile.views.GuidedEditText
 import com.waz.zclient.ui.text.TypefaceTextView
 import com.waz.zclient.utils.ContextUtils.showToast

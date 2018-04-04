@@ -20,13 +20,23 @@ package com.waz.zclient
 import android.os.Bundle
 import android.view.{LayoutInflater, View, ViewGroup}
 import android.widget.TextView
+import com.waz.api.impl.ErrorResponse
+import com.waz.content.UserPreferences
 import com.waz.model.EmailAddress
 import com.waz.service.{AccountManager, AccountsService}
+import com.waz.threading.CancellableFuture
 import com.waz.utils.events.Signal
 import com.waz.utils.returning
 import com.waz.zclient.ui.utils.{KeyboardUtils, TextViewUtils}
+import com.waz.utils._
+import com.waz.zclient.utils.ContextUtils
+
+import scala.concurrent.Future
 
 object VerifyEmailFragment {
+
+  import com.waz.threading.Threading.Implicits.Ui
+
   val Tag: String = classOf[VerifyEmailFragment].getName
 
   val EmailArg = "EMAIL_ARG"
@@ -83,10 +93,21 @@ class VerifyEmailFragment extends FragmentHelper {
       }
     }
 
-    //TODO we now need to poll in the account manager when waiting for verification...
-//    email.onChanged.filter(_.isEmpty).onUi { _ =>
-//      activity.replaceMainFragment(new MainPhoneFragment, MainPhoneFragment.Tag)
-//    }
+    for {
+      am           <- am.head
+      pendingEmail <- am.storage.userPrefs(UserPreferences.PendingEmail).apply()
+      resp         <- pendingEmail.fold2(CancellableFuture.successful(Left(ErrorResponse.internalError("No pending email set"))), am.checkEmailActivation).future
+      _ <- resp.fold(e => Future.successful(Left(e)), _ =>
+        for {
+          _ <- am.storage.userPrefs(UserPreferences.PendingEmail) := None
+          _ <- am.storage.userPrefs(UserPreferences.PendingPassword) := true
+        } yield {}
+      )
+    } yield resp match {
+      case Right(_) => activity.replaceMainFragment(SetPasswordFragment(pendingEmail.get), SetPasswordFragment.Tag)
+      case Left(_) => ContextUtils.showToast("Something went wrong") //TODO show user error and retry
+    }
+
   }
 
   override def onPause(): Unit = {
