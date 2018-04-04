@@ -31,10 +31,8 @@ import com.waz.utils.events.Signal
 import com.waz.utils.returning
 import com.waz.zclient.newreg.views.PhoneConfirmationButton
 import com.waz.zclient.newreg.views.PhoneConfirmationButton.State.{CONFIRM, NONE}
-import com.waz.zclient.pages.main.MainPhoneFragment
 import com.waz.zclient.pages.main.profile.validator.PasswordValidator
 import com.waz.zclient.pages.main.profile.views.GuidedEditText
-import com.waz.zclient.ui.text.TypefaceTextView
 import com.waz.zclient.utils.ContextUtils.showToast
 import com.waz.zclient.utils._
 import com.waz.zclient.views.LoadingIndicatorView
@@ -88,7 +86,7 @@ class SetPasswordFragment extends FragmentHelper with OnBackPressedListener {
   }
 
   override def onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState: Bundle) =
-    inflater.inflate(R.layout.fragment_main_start_request_password_with_email, container, false)
+    inflater.inflate(R.layout.fragment_main_start_set_password, container, false)
 
   override def onViewCreated(view: View, savedInstanceState: Bundle) = {
     Option(findById[GuidedEditText](getView, R.id.password_field)).foreach { field =>
@@ -98,10 +96,6 @@ class SetPasswordFragment extends FragmentHelper with OnBackPressedListener {
     }
 
     confirmationButton.foreach(_.setAccentColor(Color.WHITE))
-
-    returning(findById[TypefaceTextView](R.id.skip_button)) { v =>
-      v.onClick(activity.replaceMainFragment(new MainPhoneFragment, MainPhoneFragment.Tag))
-    }
   }
 
   override def onBackPressed() = true // can't go back...

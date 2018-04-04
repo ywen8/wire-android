@@ -254,13 +254,15 @@ class MainActivity extends BaseActivity
 
   def replaceMainFragment(fragment: Fragment, tag: String, addToBackStack: Boolean = true): Unit = {
     verbose(s"replaceMainFragment: $tag")
-    if (getSupportFragmentManager.findFragmentByTag(tag) == null) {
-      val transaction = getSupportFragmentManager
-        .beginTransaction
-        .replace(R.id.fl_main_content, fragment, tag)
-      if (addToBackStack) transaction.addToBackStack(tag)
-      transaction.commit
+    val frag = Option(getSupportFragmentManager.findFragmentByTag(tag)) match {
+      case Some(f) => f
+      case _       => fragment
     }
+    val transaction = getSupportFragmentManager
+      .beginTransaction
+      .replace(R.id.fl_main_content, frag, tag)
+    if (addToBackStack) transaction.addToBackStack(tag)
+    transaction.commit
   }
 
   override protected def onPause() = {

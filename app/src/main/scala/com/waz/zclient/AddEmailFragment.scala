@@ -21,9 +21,10 @@ import android.os.Bundle
 import android.view.{LayoutInflater, View, ViewGroup}
 import com.waz.ZLog
 import com.waz.ZLog.ImplicitTag._
-import com.waz.content.UserPreferences.{PendingEmail, PendingPassword}
+import com.waz.content.UserPreferences.PendingEmail
 import com.waz.model.EmailAddress
 import com.waz.service.AccountManager
+import com.waz.threading.Threading
 import com.waz.utils.events.Signal
 import com.waz.utils.returning
 import com.waz.zclient.newreg.views.PhoneConfirmationButton
@@ -34,7 +35,7 @@ import com.waz.zclient.pages.main.profile.views.GuidedEditText
 import com.waz.zclient.utils.ContextUtils.showToast
 import com.waz.zclient.utils._
 import com.waz.zclient.views.LoadingIndicatorView
-import com.waz.threading.Threading
+
 import scala.concurrent.Future
 
 //Do not rely on having ZMS!
@@ -50,7 +51,7 @@ class AddEmailFragment extends FragmentHelper {
 
 
   lazy val isValid = email.map {
-    case Some(p) => emailValidator.validate(p.str)
+    case Some(e) => emailValidator.validate(e.str)
     case _ => false
   }
 
@@ -66,10 +67,7 @@ class AddEmailFragment extends FragmentHelper {
         Some(e) <- email.head
         resp    <- am.setEmail(e)
         _       <- resp match {
-          case Right(_) => for {
-            _ <- am.storage.userPrefs(PendingPassword) := true
-            _ <- am.storage.userPrefs(PendingEmail) := Some(e)
-          } yield {}
+          case Right(_) => am.storage.userPrefs(PendingEmail) := Some(e)
           case Left(_) => Future.successful({})
         }
       } yield {
@@ -98,7 +96,7 @@ class AddEmailFragment extends FragmentHelper {
       field.setResource(R.layout.guided_edit_text_sign_in__email)
       field.getEditText.addTextListener(txt => email ! Some(EmailAddress(txt)))
     }
-
+    confirmationButton
     skipButton.foreach(_.setVisible(getBooleanArg(SkippableArg, default = false)))
   }
 
