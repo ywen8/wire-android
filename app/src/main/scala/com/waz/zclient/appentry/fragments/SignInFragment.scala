@@ -108,7 +108,7 @@ class SignInFragment extends BaseFragment[Container]
     case _ => Signal.empty[Boolean]
   }
 
-  lazy val container = getView.findViewById(R.id.sign_in_container).asInstanceOf[FrameLayout]
+  lazy val container = view[FrameLayout](R.id.sign_in_container)
   lazy val scenes = Array(
     R.layout.sign_in_email_scene,
     R.layout.sign_in_phone_scene,
@@ -116,10 +116,10 @@ class SignInFragment extends BaseFragment[Container]
     R.layout.sign_up_phone_scene
   )
 
-  lazy val phoneButton = findById[TypefaceTextView](getView, R.id.ttv__new_reg__sign_in__go_to__phone)
-  lazy val emailButton = findById[TypefaceTextView](getView, R.id.ttv__new_reg__sign_in__go_to__email)
-  lazy val tabSelector = findById[TabIndicatorLayout](getView, R.id.til__app_entry)
-  lazy val closeButton = findById[GlyphTextView](getView, R.id.close_button)
+  lazy val phoneButton = view[TypefaceTextView](R.id.ttv__new_reg__sign_in__go_to__phone)
+  lazy val emailButton = view[TypefaceTextView](R.id.ttv__new_reg__sign_in__go_to__email)
+  lazy val tabSelector = view[TabIndicatorLayout](R.id.til__app_entry)
+  lazy val closeButton = view[GlyphTextView](R.id.close_button)
 
   def nameField = Option(findById[GuidedEditText](getView, R.id.get__sign_in__name))
 
@@ -186,41 +186,47 @@ class SignInFragment extends BaseFragment[Container]
 
   override def onViewCreated(view: View, savedInstanceState: Bundle) = {
 
-    val transition = if (SDK_INT >= KITKAT) Option(new AutoTransition2()) else None
+    phoneButton.foreach(_.setOnClickListener(this))
+    emailButton.foreach(_.setOnClickListener(this))
+    closeButton.foreach(_.setOnClickListener(this))
+    tabSelector.foreach { tabSelector =>
+      tabSelector.setLabels(Array[Int](R.string.new_reg__phone_signup__create_account, R.string.i_have_an_account))
+      tabSelector.setTextColor(ContextCompat.getColorStateList(getContext, R.color.wire__text_color_dark_selector))
+      tabSelector.setSelected(TabPages.SIGN_IN)
 
-    def switchScene(sceneIndex: Int) = transition.fold[Unit]({
-      container.removeAllViews()
-      LayoutInflater.from(getContext).inflate(scenes(sceneIndex), container)
-    })( TransitionManager.go(Scene.getSceneForLayout(container, scenes(sceneIndex), getContext), _) )
-
-    phoneButton.setOnClickListener(this)
-    emailButton.setOnClickListener(this)
-    closeButton.setOnClickListener(this)
-    tabSelector.setLabels(Array[Int](R.string.new_reg__phone_signup__create_account, R.string.i_have_an_account))
-    tabSelector.setTextColor(ContextCompat.getColorStateList(getContext, R.color.wire__text_color_dark_selector))
-    tabSelector.setSelected(TabPages.SIGN_IN)
-
-    tabSelector.setCallback(new Callback {
-      override def onItemSelected(pos: Int) = {
-        pos match  {
-          case TabPages.CREATE_ACCOUNT =>
-            tabSelector.setSelected(TabPages.CREATE_ACCOUNT)
-            uiSignInState.mutate(_ => SignInMethod(Register, Phone))
-          case TabPages.SIGN_IN =>
-            tabSelector.setSelected(TabPages.SIGN_IN)
-            uiSignInState.mutate {
-              case SignInMethod(Register, _) => SignInMethod(Login, Email)
-              case other => other
-            }
-          case _ =>
+      tabSelector.setCallback(new Callback {
+        override def onItemSelected(pos: Int) = {
+          pos match  {
+            case TabPages.CREATE_ACCOUNT =>
+              tabSelector.setSelected(TabPages.CREATE_ACCOUNT)
+              uiSignInState.mutate(_ => SignInMethod(Register, Phone))
+            case TabPages.SIGN_IN =>
+              tabSelector.setSelected(TabPages.SIGN_IN)
+              uiSignInState.mutate {
+                case SignInMethod(Register, _) => SignInMethod(Login, Email)
+                case other => other
+              }
+            case _ =>
+          }
         }
-      }
-    })
+      })
+    }
 
     uiSignInState.head.map {
-      case SignInMethod(Login, _) => tabSelector.setSelected(TabPages.SIGN_IN)
-      case SignInMethod(Register, _) => tabSelector.setSelected(TabPages.CREATE_ACCOUNT)
+      case SignInMethod(Login, _) => tabSelector.foreach(_.setSelected(TabPages.SIGN_IN))
+      case SignInMethod(Register, _) => tabSelector.foreach(_.setSelected(TabPages.CREATE_ACCOUNT))
     } (Threading.Ui)
+  }
+
+  override def onCreate(savedInstanceState: Bundle): Unit = {
+    super.onCreate(savedInstanceState)
+
+    val transition = if (SDK_INT >= KITKAT) Option(new AutoTransition2()) else None
+
+    def switchScene(sceneIndex: Int): Unit = transition.fold[Unit]({
+      container.foreach(_.removeAllViews())
+      container.foreach(c => LayoutInflater.from(getContext).inflate(scenes(sceneIndex), c))
+    })(tr => container.foreach(c => TransitionManager.go(Scene.getSceneForLayout(c, scenes(sceneIndex), getContext), tr)))
 
     uiSignInState.onUi { state =>
       state match {
@@ -254,7 +260,7 @@ class SignInFragment extends BaseFragment[Container]
 
     isValid.onUi(setConfirmationButtonActive)
     phoneCountry.onUi(onCountryHasChanged)
-    isAddingAccount.onUi(closeButton.setVisible)
+    isAddingAccount.onUi(isAdding => closeButton.foreach(_.setVisible(isAdding)))
   }
 
   private def setConfirmationButtonActive(active: Boolean): Unit = {
@@ -262,18 +268,26 @@ class SignInFragment extends BaseFragment[Container]
     confirmationButton.foreach(_.setState(if (active) CONFIRM else NONE))
   }
 
-  private def setPhoneButtonSelected() = {
-    phoneButton.setBackground(getDrawable(R.drawable.selector__reg__signin))
-    phoneButton.setTextColor(getColor(R.color.white))
-    emailButton.setBackground(null)
-    emailButton.setTextColor(getColor(R.color.white_40))
+  private def setPhoneButtonSelected(): Unit = {
+    phoneButton.foreach { phoneButton =>
+      phoneButton.setBackground(getDrawable(R.drawable.selector__reg__signin))
+      phoneButton.setTextColor(getColor(R.color.white))
+    }
+    emailButton.foreach { emailButton =>
+      emailButton.setBackground(null)
+      emailButton.setTextColor(getColor(R.color.white_40))
+    }
   }
 
-  private def setEmailButtonSelected() = {
-    emailButton.setBackground(getDrawable(R.drawable.selector__reg__signin))
-    emailButton.setTextColor(getColor(R.color.white))
-    phoneButton.setBackground(null)
-    phoneButton.setTextColor(getColor(R.color.white_40))
+  private def setEmailButtonSelected(): Unit = {
+    emailButton.foreach { emailButton =>
+      emailButton.setBackground(getDrawable(R.drawable.selector__reg__signin))
+      emailButton.setTextColor(getColor(R.color.white))
+    }
+    phoneButton.foreach { phoneButton =>
+      phoneButton.setBackground(null)
+      phoneButton.setTextColor(getColor(R.color.white_40))
+    }
   }
 
 
