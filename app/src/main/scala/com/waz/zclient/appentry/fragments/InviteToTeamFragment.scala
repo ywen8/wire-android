@@ -50,13 +50,6 @@ case class InviteToTeamFragment() extends CreateTeamFragment {
   private lazy val learnMoreButton = view[TypefaceTextView](R.id.about_button)
   private lazy val inputField = view[InputBox](R.id.input_field)
 
-  private lazy val skipButton = returning(view[TypefaceTextView](R.id.skip_button)) { vh =>
-    invitesController.invitations.map(_.isEmpty).map {
-      case true => R.string.teams_invitations_skip
-      case false => R.string.teams_invitations_done
-    }.onUi(t => vh.foreach(_.setText(t)))
-  }
-
   override val layoutId: Int = R.layout.invite_team_scene
 
   override def onViewCreated(view: View, savedInstanceState: Bundle): Unit = {
@@ -112,7 +105,6 @@ case class InviteToTeamFragment() extends CreateTeamFragment {
           layoutManager.scrollToPosition(adapter.getItemCount - 1)
       })
     }
-    skipButton.foreach(_.onClick(activity.onEnterApplication(false)))
   }
 
   override def onBackPressed(): Boolean = {

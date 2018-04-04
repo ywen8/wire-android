@@ -34,7 +34,7 @@ import com.waz.zclient.appentry.fragments.{TeamNameFragment, _}
 import com.waz.zclient.newreg.fragments.country.CountryController
 import com.waz.zclient.preferences.PreferencesController
 import com.waz.zclient.tracking.CrashController
-import com.waz.zclient.ui.text.GlyphTextView
+import com.waz.zclient.ui.text.{GlyphTextView, TypefaceTextView}
 import com.waz.zclient.ui.utils.KeyboardUtils
 import com.waz.zclient.utils.ViewUtils
 import com.waz.zclient.views.LoadingIndicatorView
@@ -43,6 +43,8 @@ import com.waz.zclient.utils.RichView
 
 import scala.collection.JavaConverters._
 import AppEntryActivity._
+import android.support.v4.app.FragmentManager.OnBackStackChangedListener
+import com.waz.zclient.appentry.controllers.InvitationsController
 
 object AppEntryActivity {
   val TAG: String = classOf[AppEntryActivity].getName
@@ -77,13 +79,21 @@ class AppEntryActivity extends BaseActivity
   private var unsplashInitLoadHandle: LoadHandle = null
   private lazy val progressView = ViewUtils.getView(this, R.id.liv__progress).asInstanceOf[LoadingIndicatorView]
   private lazy val countryController: CountryController = new CountryController(this)
+  private lazy val invitesController = inject[InvitationsController]
   private var createdFromSavedInstance: Boolean = false
   private var isPaused: Boolean = false
 
   private lazy val accountsService = inject[AccountsService]
 
-  lazy val closeButton = returning(ViewUtils.getView(this, R.id.close_button).asInstanceOf[GlyphTextView]) { v =>
+  private lazy val closeButton = returning(ViewUtils.getView(this, R.id.close_button).asInstanceOf[GlyphTextView]) { v =>
     accountsService.zmsInstances.map(_.nonEmpty).onUi(vis => v.setVisibility(if (vis) View.VISIBLE else View.GONE))
+  }
+
+  private lazy val skipButton = returning(findById[TypefaceTextView](R.id.skip_button)) { v =>
+    invitesController.invitations.map(_.isEmpty).map {
+      case true => R.string.teams_invitations_skip
+      case false => R.string.teams_invitations_done
+    }.onUi(t => v.setText(t))
   }
 
   ZMessaging.currentGlobal.blacklist.upToDate.onUi {
@@ -129,6 +139,17 @@ class AppEntryActivity extends BaseActivity
           case _ => showFragment(AppLaunchFragment(), AppLaunchFragment.Tag, animated = false)
       }
     }
+
+    skipButton.setVisibility(View.GONE)
+    getSupportFragmentManager.addOnBackStackChangedListener(new OnBackStackChangedListener {
+      override def onBackStackChanged(): Unit = {
+        withFragmentOpt(InviteToTeamFragment.Tag) {
+          case Some(_) => skipButton.setVisibility(View.VISIBLE)
+          case _ => skipButton.setVisibility(View.GONE)
+        }
+      }
+    })
+    skipButton.onClick(onEnterApplication(false))
   }
 
   override protected def onResume(): Unit = {
