@@ -97,7 +97,7 @@ class AppEntryActivity extends BaseActivity
     getSupportFragmentManager.getFragments.asScala.find {
       case f: OnBackPressedListener if f.onBackPressed() => true
       case _ => false
-    }
+    }.fold(finish())(_ => ())
   }
 
   override def onCreate(savedInstanceState: Bundle): Unit = {
