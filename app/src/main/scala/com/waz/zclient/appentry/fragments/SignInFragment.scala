@@ -325,9 +325,15 @@ class SignInFragment extends BaseFragment[Container]
             for {
               email     <- email.head
               password  <- password.head
-              Right(id) <- accountsService.loginEmail(email, password).map(onResponse(_, m))
-              _         <- accountsService.enterAccount(id, None)
-            } yield activity.onEnterApplication(openSettings = false)
+              req       <- accountsService.loginEmail(email, password).map(onResponse(_, m))
+            } yield req match {
+              case Left(error) =>
+                activity.enableProgress(false)
+                showError(EntryError(error.code, error.label, m))
+              case Right(id) =>
+                activity.enableProgress(false)
+                activity.showFragment(FirstLaunchAfterLoginFragment(id), FirstLaunchAfterLoginFragment.Tag)
+            }
           case m@SignInMethod(Register, Email) =>
             for {
               email     <- email.head
