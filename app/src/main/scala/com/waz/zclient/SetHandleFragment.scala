@@ -32,6 +32,7 @@ import com.waz.service.ZMessaging
 import com.waz.threading.Threading
 import com.waz.utils.crypto.ZSecureRandom
 import com.waz.utils.events.Signal
+import com.waz.utils.returning
 import com.waz.zclient.common.controllers.BrowserController
 import com.waz.zclient.common.controllers.global.AccentColorController
 import com.waz.zclient.pages.BaseFragment
@@ -72,9 +73,17 @@ class SetHandleFragment extends BaseFragment[SetHandleFragment.Container] with F
   private lazy val zms = inject[Signal[ZMessaging]]
   private lazy val accentColor = inject[AccentColorController].accentColor
 
-  private lazy val nameTextView = findById[TypefaceTextView](getView, R.id.ttv__name)
-  private lazy val usernameTextView = findById[TypefaceTextView](getView, R.id.ttv__username)
-  private lazy val keepButton = findById[ZetaButton](getView, R.id.zb__username_first_assign__keep)
+  private lazy val nameTextView = returning(view[TypefaceTextView](R.id.ttv__name)) { vh =>
+    self.map(_.getDisplayName).onUi(name => vh.foreach(_.setText(name)))
+  }
+  private lazy val usernameTextView = view[TypefaceTextView](R.id.ttv__username)
+  private lazy val keepButton = returning(view[ZetaButton](R.id.zb__username_first_assign__keep)){ vh =>
+    accentColor.map(_.getColor).onUi(color => vh.foreach(_.setAccentColor(color)))
+  }
+  private lazy val chooseYourOwnButton = returning(view[ZetaButton](R.id.zb__username_first_assign__choose)) { vh =>
+    accentColor.map(_.getColor).onUi(color => vh.foreach(_.setAccentColor(color)))
+  }
+  private lazy val summaryTextView = view[TypefaceTextView](R.id.ttv__username_first_assign__summary)
 
   private lazy val self = for {
     z <- zms
@@ -84,40 +93,38 @@ class SetHandleFragment extends BaseFragment[SetHandleFragment.Container] with F
   private var suggestedUsername: String = ""
 
   override def onViewCreated(view: View, savedInstanceState: Bundle) = {
-    val chooseYourOwnButton: ZetaButton = ViewUtils.getView(view, R.id.zb__username_first_assign__choose)
-    val summaryTextView: TypefaceTextView = ViewUtils.getView(view, R.id.ttv__username_first_assign__summary)
 
-    usernameTextView.setVisibility(View.INVISIBLE)
-    keepButton.setVisibility(View.GONE)
+    usernameTextView.foreach(_.setVisibility(View.INVISIBLE))
+    keepButton.foreach(_.setVisibility(View.GONE))
 
-    chooseYourOwnButton.setIsFilled(true)
-    chooseYourOwnButton.onClick(getContainer.onChooseUsernameChosen())
+    chooseYourOwnButton.foreach { chooseYourOwnButton =>
+      chooseYourOwnButton.setIsFilled(true)
+      chooseYourOwnButton.onClick(getContainer.onChooseUsernameChosen())
+    }
 
-    keepButton.setIsFilled(false)
-    keepButton.onClick {
-      zms.head.map(_.users.updateHandle(Handle(suggestedUsername))).map { _ =>
-        getContainer.onKeepUsernameChosen(suggestedUsername)
+    keepButton.foreach { keepButton =>
+      keepButton.setIsFilled(false)
+      keepButton.onClick {
+        zms.head.map(_.users.updateHandle(Handle(suggestedUsername))).map { _ =>
+          getContainer.onKeepUsernameChosen(suggestedUsername)
+        }
       }
     }
 
-    TextViewUtils.linkifyText(summaryTextView, Color.WHITE, com.waz.zclient.ui.R.string.wire__typeface__light, false, new Runnable() {
-      def run(): Unit = browser.openUrl(getString(R.string.usernames__learn_more__link))
-    })
+    summaryTextView.foreach { summaryTextView =>
+      TextViewUtils.linkifyText(summaryTextView, Color.WHITE, com.waz.zclient.ui.R.string.wire__typeface__light, false, new Runnable() {
+        def run(): Unit = browser.openUrl(getString(R.string.usernames__learn_more__link))
+      })
+    }
 
-    self.onUi { self =>
+    self.head.foreach { self =>
       self.handle.foreach{ handle =>
         suggestedUsername = handle.string
-        usernameTextView.setText(StringUtils.formatHandle(handle.string))
+        usernameTextView.foreach(_.setText(StringUtils.formatHandle(handle.string)))
       }
-      nameTextView.setText(self.getDisplayName)
+      startUsernameGenerator(self.name)
     }
-
-    accentColor.onUi { color =>
-      chooseYourOwnButton.setAccentColor(color.getColor)
-      keepButton.setAccentColor(color.getColor)
-    }
-
-    self.onUi(user => startUsernameGenerator(user.name))
+    nameTextView
   }
 
   override def onCreateView(inflater: LayoutInflater, @Nullable container: ViewGroup, @Nullable savedInstanceState: Bundle): View =
@@ -131,9 +138,11 @@ class SetHandleFragment extends BaseFragment[SetHandleFragment.Container] with F
   def onValidUsernameGenerated(generatedUsername: String) = {
     ZLog.verbose(s"onValidUsernameGenerated $generatedUsername")
     suggestedUsername = generatedUsername
-    usernameTextView.setText(StringUtils.formatHandle(suggestedUsername))
-    usernameTextView.setVisibility(View.VISIBLE)
-    keepButton.setVisibility(View.VISIBLE)
+    usernameTextView.foreach { usernameTextView =>
+      usernameTextView.setText(StringUtils.formatHandle(suggestedUsername))
+      usernameTextView.setVisibility(View.VISIBLE)
+    }
+    keepButton.foreach(_.setVisibility(View.VISIBLE))
   }
 
   private def startUsernameGenerator(baseName: String): Unit = {

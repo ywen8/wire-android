@@ -75,8 +75,6 @@ class AppEntryActivity extends BaseActivity
   with SignInFragment.Container
   with InsertPasswordFragment.Container {
 
-  import Threading.Implicits.Ui
-
   private var unsplashInitLoadHandle: LoadHandle = null
   private lazy val progressView = ViewUtils.getView(this, R.id.liv__progress).asInstanceOf[LoadingIndicatorView]
   private lazy val countryController: CountryController = new CountryController(this)
