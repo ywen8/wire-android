@@ -29,6 +29,8 @@ import android.widget.{FrameLayout, LinearLayout}
 import com.waz.ZLog.ImplicitTag._
 import com.waz.ZLog._
 import com.waz.api.impl.ErrorResponse
+import com.waz.client.RegistrationClientImpl.ActivateResult
+import com.waz.client.RegistrationClientImpl.ActivateResult.{Failure, PasswordExists, Success}
 import com.waz.model.{EmailAddress, PhoneNumber}
 import com.waz.service.{AccountsService, ZMessaging}
 import com.waz.threading.Threading
@@ -36,7 +38,7 @@ import com.waz.utils.events.Signal
 import com.waz.utils.returning
 import com.waz.zclient._
 import com.waz.zclient.appentry.fragments.SignInFragment._
-import com.waz.zclient.appentry.{AppEntryActivity, EntryError, GenericRegisterEmailError}
+import com.waz.zclient.appentry.{AppEntryActivity, EntryError}
 import com.waz.zclient.common.controllers.BrowserController
 import com.waz.zclient.newreg.fragments.TabPages
 import com.waz.zclient.newreg.fragments.country.{Country, CountryController}
@@ -326,14 +328,19 @@ class SignInFragment extends BaseFragment[Container]
 
         def onResponse[A](resp: Either[ErrorResponse, A], m: SignInMethod) = {
           returning(resp match {
-            case Left(error) =>
-              activity.enableProgress(false)
-              Left(EntryError(error.code, error.label, m))
+            case Left(error) => Left(EntryError(error.code, error.label, m))
             case Right(ret) => Right(ret)
           })(tracking.onEnteredCredentials(_, m))
         }
 
-        import com.waz.client.RegistrationClientImpl.ActivateResult._
+        def onActivateResponse(resp: ActivateResult, m: SignInMethod): Either[EntryError, Unit] = {
+          returning(resp match {
+            case Failure(error) => Left(EntryError(error.code, error.label, m))
+            case PasswordExists => Left(EntryError(ErrorResponse.Forbidden, "password-exists", m))
+            case Success => Right(())
+          })(tracking.onEnteredCredentials(_, m))
+        }
+
         uiSignInState.head.flatMap {
           case m@SignInMethod(Login, Email) =>
             for {
@@ -343,7 +350,7 @@ class SignInFragment extends BaseFragment[Container]
             } yield req match {
               case Left(error) =>
                 activity.enableProgress(false)
-                showError(EntryError(error.code, error.label, m))
+                showError(error)
               case Right(id) =>
                 activity.enableProgress(false)
                 activity.showFragment(FirstLaunchAfterLoginFragment(id), FirstLaunchAfterLoginFragment.Tag)
@@ -353,15 +360,12 @@ class SignInFragment extends BaseFragment[Container]
               email     <- email.head
               password  <- password.head
               name      <- name.head
-              req       <- accountsService.requestEmailCode(EmailAddress(email))
+              req       <- accountsService.requestEmailCode(EmailAddress(email)).map(onActivateResponse(_, m))
             } yield req match {
-              case Failure(error) =>
+              case Left(error) =>
                 activity.enableProgress(false)
-                showError(EntryError(error.code, error.label, m))
-              case PasswordExists =>
-                activity.enableProgress(false)
-                showError(GenericRegisterEmailError)
-              case Success =>
+                showError(error)
+              case Right(_) =>
                 activity.enableProgress(false)
                 activity.showFragment(VerifyEmailWithCodeFragment(email, name, password), VerifyEmailWithCodeFragment.Tag)
             }
@@ -372,15 +376,12 @@ class SignInFragment extends BaseFragment[Container]
               country <- phoneCountry.head
               phoneStr <- phone.head
               phone = PhoneNumber(s"+${country.getCountryCode}$phoneStr")
-              req <- accountsService.requestPhoneCode(phone, login = isLogin)
+              req <- accountsService.requestPhoneCode(phone, login = isLogin).map(onActivateResponse(_, m))
             } yield req match {
-              case Failure(error) =>
+              case Left(error) =>
                 activity.enableProgress(false)
-                showError(EntryError(error.code, error.label, m))
-              case PasswordExists =>
-                activity.enableProgress(false)
-                showToast("Password exists for this account, please login by email")
-              case Success =>
+                showError(error)
+              case Right(_) =>
                 activity.enableProgress(false)
                 activity.showFragment(VerifyPhoneFragment(phone.str, login = isLogin), VerifyPhoneFragment.Tag)
             }
