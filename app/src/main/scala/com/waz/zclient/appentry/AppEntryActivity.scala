@@ -44,6 +44,7 @@ import com.waz.zclient.utils.RichView
 import scala.collection.JavaConverters._
 import AppEntryActivity._
 import android.support.v4.app.FragmentManager.OnBackStackChangedListener
+import com.waz.utils.events.Signal
 import com.waz.zclient.appentry.controllers.InvitationsController
 
 object AppEntryActivity {
@@ -84,9 +85,14 @@ class AppEntryActivity extends BaseActivity
   private var isPaused: Boolean = false
 
   private lazy val accountsService = inject[AccountsService]
+  private lazy val attachedFragment = Signal[String]()
 
   private lazy val closeButton = returning(ViewUtils.getView(this, R.id.close_button).asInstanceOf[GlyphTextView]) { v =>
-    accountsService.zmsInstances.map(_.nonEmpty).onUi(vis => v.setVisibility(if (vis) View.VISIBLE else View.GONE))
+    Signal(accountsService.zmsInstances.map(_.nonEmpty), attachedFragment).map {
+      case (false, _) => View.GONE
+      case (true, fragment) if Set(SignInFragment.Tag, FirstLaunchAfterLoginFragment.Tag, VerifyEmailWithCodeFragment.Tag, VerifyPhoneFragment.Tag).contains(fragment) => View.GONE
+      case _ => View.VISIBLE
+    }.onUi(v.setVisibility(_))
   }
 
   private lazy val skipButton = returning(findById[TypefaceTextView](R.id.skip_button)) { v =>
@@ -118,17 +124,7 @@ class AppEntryActivity extends BaseActivity
     enableProgress(false)
     createdFromSavedInstance = savedInstanceState != null
 
-    closeButton.onClick {
-      accountsService.accountsWithManagers.map(_.headOption).head.foreach { userId =>
-        accountsService.setAccount(userId)
-        Option(getIntent.getExtras).map(_.getInt(MethodArg, -1)) match {
-          case Some(LoginArgVal | CreateTeamArgVal) =>
-            startActivity(Intents.OpenSettingsIntent(this))
-          case _ =>
-            onEnterApplication(false)
-        }
-      }
-    }
+    closeButton.onClick(abortAddAccount())
 
     withFragmentOpt(AppLaunchFragment.Tag) {
       case Some(_) =>
@@ -166,6 +162,11 @@ class AppEntryActivity extends BaseActivity
     }
   }
 
+  override def onAttachFragment(fragment: Fragment): Unit = {
+    super.onAttachFragment(fragment)
+    attachedFragment ! fragment.getTag
+  }
+
   override protected def onPostResume(): Unit = {
     super.onPostResume()
     isPaused = false
@@ -197,25 +198,13 @@ class AppEntryActivity extends BaseActivity
       progressView.hide()
   }
 
-  def abortAddAccount(): Unit = {
-    enableProgress(true)
-//    ZMessaging.currentAccounts.loggedInAccounts.head.map { accounts =>
-//      accounts.headOption.fold {
-//        if (appEntryController.entryStage.currentValue.exists(_ != NoAccountState(FirstScreen))) {
-//          appEntryController.gotToFirstPage()
-//        } else {
-//          if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP)
-//            finish()
-//          else
-//            finishAfterTransition()
-//        }
-//      } { acc =>
-//        ZMessaging.currentAccounts.switchAccount(acc.id).map { _ =>
-//          onEnterApplication(openSettings = true)
-//        }
-//      }
-//    }
-  }
+  def abortAddAccount(): Unit =
+    Option(getIntent.getExtras).map(_.getInt(MethodArg, -1)) match {
+      case Some(LoginArgVal | CreateTeamArgVal) =>
+        startActivity(Intents.OpenSettingsIntent(this))
+      case _ =>
+        onEnterApplication(false)
+    }
 
   def onOpenUrl(url: String): Unit =
     try {
