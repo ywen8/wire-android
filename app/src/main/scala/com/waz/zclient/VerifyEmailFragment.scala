@@ -20,25 +20,23 @@ package com.waz.zclient
 import android.os.Bundle
 import android.view.{LayoutInflater, View, ViewGroup}
 import android.widget.TextView
+import com.waz.ZLog.ImplicitTag._
 import com.waz.api.impl.ErrorResponse
 import com.waz.content.UserPreferences
 import com.waz.model.EmailAddress
 import com.waz.service.{AccountManager, AccountsService}
 import com.waz.threading.CancellableFuture
 import com.waz.utils.events.Signal
-import com.waz.utils.returning
+import com.waz.utils.{returning, _}
 import com.waz.zclient.ui.utils.{KeyboardUtils, TextViewUtils}
-import com.waz.utils._
 import com.waz.zclient.utils.ContextUtils
-import com.waz.ZLog.ImplicitTag._
 
 import scala.concurrent.Future
 
 class VerifyEmailFragment extends FragmentHelper {
 
-  import com.waz.threading.Threading.Implicits.Ui
-
   import VerifyEmailFragment._
+  import com.waz.threading.Threading.Implicits.Ui
 
   lazy val am = inject[Signal[AccountManager]]
 
@@ -63,6 +61,8 @@ class VerifyEmailFragment extends FragmentHelper {
     vh.onClick(_ => back())
   }
 
+  private var emailChecking: CancellableFuture[Unit] = _
+
   override def onCreateView(inflater: LayoutInflater, viewGroup: ViewGroup, savedInstanceState: Bundle): View =
     inflater.inflate(R.layout.fragment_main_start_verify_email, viewGroup, false)
 
@@ -78,27 +78,41 @@ class VerifyEmailFragment extends FragmentHelper {
         TextViewUtils.boldText(v)
       }
     }
-
-    for {
-      am           <- am.head
-      pendingEmail <- am.storage.userPrefs(UserPreferences.PendingEmail).apply()
-      resp         <- pendingEmail.fold2(CancellableFuture.successful(Left(ErrorResponse.internalError("No pending email set"))), am.checkEmailActivation).future
-      _ <- resp.fold(e => Future.successful(Left(e)), _ =>
-        for {
-          _ <- am.storage.userPrefs(UserPreferences.PendingEmail) := None
-          _ <- am.storage.userPrefs(UserPreferences.PendingPassword) := true
-        } yield {}
-      )
-    } yield resp match {
-      case Right(_) => activity.replaceMainFragment(SetPasswordFragment(pendingEmail.get), SetPasswordFragment.Tag)
-      case Left(_) => ContextUtils.showToast("Something went wrong") //TODO show user error and retry
-    }
-
   }
 
   override def onPause(): Unit = {
     KeyboardUtils.hideKeyboard(getActivity)
     super.onPause()
+  }
+
+
+  override def onStart(): Unit = {
+    super.onStart()
+    emailChecking = for {
+      am           <- CancellableFuture.lift(am.head)
+      pendingEmail <- CancellableFuture.lift(am.storage.userPrefs(UserPreferences.PendingEmail).apply())
+      resp         <- pendingEmail.fold2(CancellableFuture.successful(Left(ErrorResponse.internalError("No pending email set"))), am.checkEmailActivation)
+      _ <- CancellableFuture.lift(resp.fold(e => Future.successful(Left(e)), _ =>
+        for {
+          _ <- am.storage.userPrefs(UserPreferences.PendingEmail) := None
+          _ <- am.storage.userPrefs(UserPreferences.PendingPassword) := true
+        } yield {}
+      ))
+    } yield resp match {
+      case Right(_) => activity.replaceMainFragment(SetPasswordFragment(pendingEmail.get), SetPasswordFragment.Tag)
+      case Left(_) => ContextUtils.showToast("Something went wrong") //TODO show user error and retry
+    }
+  }
+
+
+  override def onStop(): Unit = {
+    super.onStop()
+    emailChecking.cancel()
+  }
+
+
+  override def onDestroy(): Unit = {
+    super.onDestroy()
   }
 
   private def back() = activity.replaceMainFragment(AddEmailFragment(skippable = false), AddEmailFragment.Tag)
