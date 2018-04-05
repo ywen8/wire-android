@@ -84,6 +84,10 @@ public class AssetIntentsManager {
         openDocument("*/*", IntentType.FILE_SHARING);
     }
 
+    public void openBackupImport() {
+        openDocument("application/zip", IntentType.BACKUP_IMPORT);
+    }
+
     public void captureVideo(Context context) {
         Intent intent = new Intent(MediaStore.ACTION_VIDEO_CAPTURE);
         pendingFileUri = getOutputMediaFileUri(context, IntentType.VIDEO);
@@ -188,7 +192,8 @@ public class AssetIntentsManager {
         SKETCH_FROM_GALLERY(9416),
         VIDEO(9412),
         CAMERA(9413),
-        FILE_SHARING(9414);
+        FILE_SHARING(9414),
+        BACKUP_IMPORT(9415);
 
         public int requestCode;
 

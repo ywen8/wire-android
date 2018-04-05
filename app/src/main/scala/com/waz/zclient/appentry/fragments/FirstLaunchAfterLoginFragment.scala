@@ -18,6 +18,7 @@
 
 package com.waz.zclient.appentry.fragments
 
+import android.content.Intent
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.support.v4.content.ContextCompat
@@ -26,8 +27,10 @@ import com.waz.model.UserId
 import com.waz.service.AccountsService
 import com.waz.threading.Threading
 import com.waz.utils.returning
+import com.waz.utils.wrappers.URI
 import com.waz.zclient.appentry.AppEntryActivity
 import com.waz.zclient.appentry.fragments.FirstLaunchAfterLoginFragment._
+import com.waz.zclient.pages.main.conversation.AssetIntentsManager
 import com.waz.zclient.ui.views.ZetaButton
 import com.waz.zclient.{FragmentHelper, R}
 
@@ -47,27 +50,41 @@ class FirstLaunchAfterLoginFragment extends FragmentHelper with View.OnClickList
 
   lazy val accountsService    = inject[AccountsService]
 
-  private lazy val registerButton = returning(findById[ZetaButton](getView, R.id.zb__first_launch__confirm)){ v =>
-    v.setIsFilled(true)
-    v.setAccentColor(ContextCompat.getColor(getContext, R.color.text__primary_dark))
+  private lazy val restoreButton = view[ZetaButton](R.id.restore_button)
+
+  private lazy val registerButton = view[ZetaButton](R.id.zb__first_launch__confirm)
+
+  private val assetIntentsManagerCallback = new AssetIntentsManager.Callback {
+    override def onDataReceived(`type`: AssetIntentsManager.IntentType, uri: URI): Unit = {}
+    override def onCanceled(`type`: AssetIntentsManager.IntentType): Unit = {}
+    override def onFailed(`type`: AssetIntentsManager.IntentType): Unit = {}
+    override def openIntent(intent: Intent, intentType: AssetIntentsManager.IntentType): Unit = {
+      startActivityForResult(intent, intentType.requestCode)
+    }
+  }
+
+  private var assetIntentsManager = Option.empty[AssetIntentsManager]
+
+  override def onCreate(savedInstanceState: Bundle): Unit = {
+    super.onCreate(savedInstanceState)
+    assetIntentsManager = Option(new AssetIntentsManager(getActivity, assetIntentsManagerCallback, savedInstanceState))
   }
 
   override def onViewCreated(view: View, savedInstanceState: Bundle) = {
-    registerButton
+    registerButton.foreach { registerButton =>
+      registerButton.setOnClickListener(this)
+      registerButton.setIsFilled(true)
+      registerButton.setAccentColor(ContextCompat.getColor(getContext, R.color.text__primary_dark))
+    }
+    restoreButton.foreach{ restoreButton =>
+      restoreButton.setOnClickListener(this)
+      restoreButton.setIsFilled(false)
+      restoreButton.setAccentColor(ContextCompat.getColor(getContext, R.color.text__primary_dark))
+    }
   }
 
   override def onCreateView(inflater: LayoutInflater, viewGroup: ViewGroup, savedInstanceState: Bundle): View =
     inflater.inflate(R.layout.fragment_login_first_launch, viewGroup, false)
-
-  override def onResume(): Unit = {
-    super.onResume()
-    registerButton.setOnClickListener(this)
-  }
-
-  override def onPause(): Unit = {
-    registerButton.setOnClickListener(null)
-    super.onPause()
-  }
 
   def onClick(view: View): Unit = {
     view.getId match {
@@ -78,6 +95,8 @@ class FirstLaunchAfterLoginFragment extends FragmentHelper with View.OnClickList
             .flatMap(_ => accountsService.setAccount(Some(userId)))
             .foreach(_ => activity.onEnterApplication(false))
         }
+      case R.id.restore_button =>
+        assetIntentsManager.foreach(_.openBackupImport())
     }
   }
 

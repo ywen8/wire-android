@@ -1351,4 +1351,5 @@
     <string name="add_password">Add password</string>
     <string name="add_password_explanation">It helps you log in if you are locked out or lose your phone.</string>
 
+    <string name="restore_from_backup_button">RESTORE FROM BACKUP</string>
 </resources>
