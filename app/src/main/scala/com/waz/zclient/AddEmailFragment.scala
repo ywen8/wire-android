@@ -17,6 +17,7 @@
  */
 package com.waz.zclient
 
+import android.graphics.Color
 import android.os.Bundle
 import android.view.{LayoutInflater, View, ViewGroup}
 import com.waz.ZLog
@@ -96,7 +97,7 @@ class AddEmailFragment extends FragmentHelper {
       field.setResource(R.layout.guided_edit_text_sign_in__email)
       field.getEditText.addTextListener(txt => email ! Some(EmailAddress(txt)))
     }
-    confirmationButton
+    confirmationButton.foreach(_.setAccentColor(Color.WHITE))
     skipButton.foreach(_.setVisible(getBooleanArg(SkippableArg, default = false)))
   }
 

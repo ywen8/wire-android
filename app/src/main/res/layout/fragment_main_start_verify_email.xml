@@ -22,8 +22,14 @@
                 xmlns:app="http://schemas.android.com/apk/res-auto"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:background="@color/accent_blue"
 >
+
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="centerCrop"
+        android:src="@drawable/launchscreen"
+    />
 
 
     <com.waz.zclient.ui.text.GlyphTextView
@@ -111,29 +117,12 @@
             android:layout_weight="1"
             android:gravity="center_vertical"
             android:text="@string/edit_email"
+            android:textColor="@color/text__primary_dark"
             android:textAllCaps="true"
             android:textSize="@dimen/wire__text_size__small"
             app:w_font="@string/wire__typeface__light"
         />
     </LinearLayout>
-
-    <!-- Close button -->
-    <com.waz.zclient.ui.text.GlyphTextView
-        android:id="@+id/gtv__not_now__close"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="top|right"
-        android:layout_marginRight="@dimen/wire__padding__small"
-        android:layout_marginTop="@dimen/wire__padding__small"
-        android:clickable="true"
-        android:gravity="center"
-        android:minHeight="@dimen/touch_target_buttons"
-        android:minWidth="@dimen/touch_target_buttons"
-        android:text="@string/glyph__close"
-        android:textColor="@color/text__primary_dark"
-        android:textSize="@dimen/wire__icon_button__text_size"
-        android:visibility="gone"
-    />
 
     <com.waz.zclient.views.feedback.FeedbackCheckmarkView
         android:id="@+id/fl__confirmation_checkmark"

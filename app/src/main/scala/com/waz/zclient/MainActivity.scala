@@ -195,7 +195,7 @@ class MainActivity extends BaseActivity
     }
   }
 
-  def startFirstFragment(): Unit = { //TODO better method name
+  def startFirstFragment(): Unit = {
     def openSignUpPage(): Unit = {
       startActivity(new Intent(getApplicationContext, classOf[AppEntryActivity]))
       finish()
@@ -212,13 +212,15 @@ class MainActivity extends BaseActivity
               pendingPw    <- z.userPrefs(PendingPassword).apply()
               pendingEmail <- z.userPrefs(PendingEmail).apply()
               handle       <- z.users.selfUser.map(_.handle).head
-            } yield
-            //TODO this logic is repeated below twice
-              if (email.isDefined && pendingPw) replaceMainFragment(SetPasswordFragment(email.get), SetPasswordFragment.Tag, addToBackStack = false)
-              else if (pendingEmail.isDefined) replaceMainFragment(VerifyEmailFragment(pendingEmail.get), VerifyEmailFragment.Tag, addToBackStack = false)
-              else if (email.isEmpty && clientCount.size >= 2) replaceMainFragment(AddEmailFragment(skippable = true), AddEmailFragment.Tag, addToBackStack = false)
-              else if (handle.isEmpty) replaceMainFragment(SetHandleFragment(), SetHandleFragment.Tag, addToBackStack = false)
-              else replaceMainFragment(new MainPhoneFragment, MainPhoneFragment.Tag, addToBackStack = false)
+            } yield {
+              val (f, t) =
+                if (email.isDefined && pendingPw)                (SetPasswordFragment(email.get),        SetPasswordFragment.Tag)
+                else if (pendingEmail.isDefined)                 (VerifyEmailFragment(pendingEmail.get), VerifyEmailFragment.Tag)
+                else if (email.isEmpty && clientCount.size >= 2) (AddEmailFragment(skippable = true),    AddEmailFragment.Tag)
+                else if (handle.isEmpty)                         (SetHandleFragment(),                   SetHandleFragment.Tag)
+                else                                             (new MainPhoneFragment,                 MainPhoneFragment.Tag)
+              replaceMainFragment(f, t, addToBackStack = false)
+            }
 
           case Right(LimitReached) =>
             am.getSelf.flatMap {
@@ -226,11 +228,14 @@ class MainActivity extends BaseActivity
                 for {
                   pendingPw    <- am.storage.userPrefs(PendingPassword).apply()
                   pendingEmail <- am.storage.userPrefs(PendingEmail).apply()
-                } yield
-                  if(self.email.isDefined && pendingPw) replaceMainFragment(SetPasswordFragment(self.email.get), SetPasswordFragment.Tag, addToBackStack = false)
-                  else if (pendingEmail.isDefined) replaceMainFragment(VerifyEmailFragment(pendingEmail.get), VerifyEmailFragment.Tag, addToBackStack = false)
-                  else if (self.email.isEmpty) replaceMainFragment(AddEmailFragment(skippable = false), AddEmailFragment.Tag, addToBackStack = false)
-                  else replaceMainFragment(OtrDeviceLimitFragment.newInstance, OtrDeviceLimitFragment.Tag, addToBackStack = false)
+                } yield {
+                  val (f, t) =
+                    if(self.email.isDefined && pendingPw) (SetPasswordFragment(self.email.get),   SetPasswordFragment.Tag)
+                    else if (pendingEmail.isDefined)      (VerifyEmailFragment(pendingEmail.get), VerifyEmailFragment.Tag)
+                    else if (self.email.isEmpty)          (AddEmailFragment(skippable = false),   AddEmailFragment.Tag)
+                    else                                  (OtrDeviceLimitFragment.newInstance,    OtrDeviceLimitFragment.Tag)
+                  replaceMainFragment(f, t, addToBackStack = false)
+                }
               case Left(err) => Future.successful(showToast(s"Something went wrong: $err")) //TODO show dialog and ask user to try again
             }
 
@@ -238,9 +243,11 @@ class MainActivity extends BaseActivity
             am.getSelf.flatMap {
               case Right(self) =>
                 am.storage.userPrefs(PendingEmail).apply().map { pendingEmail =>
-                  if(self.email.isDefined) replaceMainFragment(SetPasswordFragment(self.email.get), SetPasswordFragment.Tag, addToBackStack = false)
-                  else if (pendingEmail.isDefined) replaceMainFragment(VerifyEmailFragment(pendingEmail.get), VerifyEmailFragment.Tag, addToBackStack = false)
-                  else replaceMainFragment(AddEmailFragment(skippable = false), AddEmailFragment.Tag, addToBackStack = false)
+                  val (f ,t) =
+                    if(self.email.isDefined)         (SetPasswordFragment(self.email.get),   SetPasswordFragment.Tag)
+                    else if (pendingEmail.isDefined) (VerifyEmailFragment(pendingEmail.get), VerifyEmailFragment.Tag)
+                    else                             (AddEmailFragment(skippable = false),   AddEmailFragment.Tag)
+                  replaceMainFragment(f, t, addToBackStack = false)
                 }
               case Left(err) => Future.successful(showToast(s"Something went wrong: $err")) //TODO show dialog and ask user to try again
             }

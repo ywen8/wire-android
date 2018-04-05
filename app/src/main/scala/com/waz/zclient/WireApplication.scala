@@ -36,7 +36,7 @@ import com.waz.permissions.PermissionsService
 import com.waz.service.tracking.TrackingService
 import com.waz.service._
 import com.waz.utils.events.{EventContext, Signal}
-import com.waz.zclient.appentry.controllers.{AddEmailController, CreateTeamController, InvitationsController}
+import com.waz.zclient.appentry.controllers.{CreateTeamController, InvitationsController}
 import com.waz.zclient.calling.controllers.{CallPermissionsController, CurrentCallController, GlobalCallingController}
 import com.waz.zclient.camera.controllers.{AndroidCameraFactory, GlobalCameraController}
 import com.waz.zclient.collection.controllers.CollectionController
@@ -201,7 +201,6 @@ object WireApplication {
     bind [CreateConversationController] to new CreateConversationController()
     bind [ParticipantsController]       to new ParticipantsController()
     bind [UsersController]              to new UsersController()
-    bind [AddEmailController]           to new AddEmailController()
 
     bind [ErrorsController]             to new ErrorsController()
 
