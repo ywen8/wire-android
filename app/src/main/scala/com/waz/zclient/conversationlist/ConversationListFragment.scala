@@ -187,7 +187,7 @@ class NormalConversationFragment extends ConversationListFragment {
 
   lazy val archiveEnabled = hasConversationsAndArchive.map(_._2)
 
-  private val waitingAccount = Signal[Option[AccountId]](None)
+  private val waitingAccount = Signal[Option[UserId]](None)
 
   lazy val loading = for {
     Some(waitingAcc) <- waitingAccount
@@ -317,7 +317,7 @@ class NormalConversationFragment extends ConversationListFragment {
   override def onActivityResult(requestCode: Int, resultCode: Int, data: Intent) = {
     if (requestCode == PreferencesActivity.SwitchAccountCode && data != null) {
       showLoading()
-      waitingAccount ! Some(AccountId(data.getStringExtra(PreferencesActivity.SwitchAccountExtra)))
+      waitingAccount ! Some(UserId(data.getStringExtra(PreferencesActivity.SwitchAccountExtra)))
     }
   }
 }

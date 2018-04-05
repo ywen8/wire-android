@@ -61,13 +61,13 @@ class SignInFragment extends BaseFragment[Container]
 
   implicit def context: Context = getActivity
 
-  lazy val accountsService    = inject[AccountsService]
-  lazy val browserController  = inject[BrowserController]
-  lazy val tracking           = inject[GlobalTrackingController]
+  private lazy val accountsService    = inject[AccountsService]
+  private lazy val browserController  = inject[BrowserController]
+  private lazy val tracking           = inject[GlobalTrackingController]
 
-  lazy val isAddingAccount = accountsService.zmsInstances.map(_.nonEmpty)
+  private lazy val isAddingAccount = accountsService.zmsInstances.map(_.nonEmpty)
 
-  lazy val uiSignInState = {
+  private lazy val uiSignInState = {
     val sign = getStringArg(SignTypeArg) match {
       case Some(Login.str) => Login
       case _               => Register
@@ -80,18 +80,18 @@ class SignInFragment extends BaseFragment[Container]
     Signal(SignInMethod(sign, input))
   }
 
-  val email    = Signal("")
-  val password = Signal("")
-  val name     = Signal("")
-  val phone    = Signal("")
+  private val email    = Signal("")
+  private val password = Signal("")
+  private val name     = Signal("")
+  private val phone    = Signal("")
 
-  lazy val countryController = activity.getCountryController //TODO rewrite && inject
-  lazy val phoneCountry = Signal[Country]()
+  private lazy val countryController = activity.getCountryController //TODO rewrite && inject
+  private lazy val phoneCountry = Signal[Country]()
 
-  lazy val nameValidator = new NameValidator()
-  lazy val emailValidator = EmailValidator.newInstance()
-  lazy val passwordValidator = PasswordValidator.instance(context)
-  lazy val legacyPasswordValidator = PasswordValidator.instanceLegacy(context)
+  private lazy val nameValidator = new NameValidator()
+  private lazy val emailValidator = EmailValidator.newInstance()
+  private lazy val passwordValidator = PasswordValidator.instance(context)
+  private lazy val legacyPasswordValidator = PasswordValidator.instanceLegacy(context)
 
   lazy val isValid: Signal[Boolean] = uiSignInState.flatMap {
     case SignInMethod(Login, Email) =>
@@ -110,18 +110,18 @@ class SignInFragment extends BaseFragment[Container]
     case _ => Signal.empty[Boolean]
   }
 
-  lazy val container = view[FrameLayout](R.id.sign_in_container)
-  lazy val scenes = Array(
+  private lazy val container = view[FrameLayout](R.id.sign_in_container)
+  private lazy val scenes = Array(
     R.layout.sign_in_email_scene,
     R.layout.sign_in_phone_scene,
     R.layout.sign_up_email_scene,
     R.layout.sign_up_phone_scene
   )
 
-  lazy val phoneButton = view[TypefaceTextView](R.id.ttv__new_reg__sign_in__go_to__phone)
-  lazy val emailButton = view[TypefaceTextView](R.id.ttv__new_reg__sign_in__go_to__email)
-  lazy val tabSelector = view[TabIndicatorLayout](R.id.til__app_entry)
-  lazy val closeButton = view[GlyphTextView](R.id.close_button)
+  private lazy val phoneButton = view[TypefaceTextView](R.id.ttv__new_reg__sign_in__go_to__phone)
+  private lazy val emailButton = view[TypefaceTextView](R.id.ttv__new_reg__sign_in__go_to__email)
+  private lazy val tabSelector = view[TabIndicatorLayout](R.id.til__app_entry)
+  private lazy val closeButton = view[GlyphTextView](R.id.close_button)
 
   def nameField = Option(findById[GuidedEditText](getView, R.id.get__sign_in__name))
 
@@ -169,7 +169,7 @@ class SignInFragment extends BaseFragment[Container]
 
     termsOfService.foreach { text =>
       TextViewUtils.linkifyText(text, getColor(R.color.white), true, new Runnable {
-        override def run() = browserController.openUrl(getString(R.string.url_terms_of_service_personal))
+        override def run(): Unit = browserController.openUrl(getString(R.string.url_terms_of_service_personal))
       })
     }
     countryButton.foreach(_.setOnClickListener(this))
@@ -180,13 +180,13 @@ class SignInFragment extends BaseFragment[Container]
     forgotPasswordButton.foreach(_.setOnClickListener(this))
   }
 
-  override def onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState: Bundle) =
+  override def onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState: Bundle): View =
     returning(inflater.inflate(R.layout.sign_in_fragment, container, false)) { view =>
       findById[TabIndicatorLayout](view, R.id.til__app_entry).setLabels(Array[Int](R.string.new_reg__phone_signup__create_account, R.string.i_have_an_account))
       container.setBackgroundColor(Color.TRANSPARENT)
     }
 
-  override def onViewCreated(view: View, savedInstanceState: Bundle) = {
+  override def onViewCreated(view: View, savedInstanceState: Bundle): Unit = {
 
     phoneButton.foreach(_.setOnClickListener(this))
     emailButton.foreach(_.setOnClickListener(this))
@@ -197,7 +197,7 @@ class SignInFragment extends BaseFragment[Container]
       tabSelector.setSelected(TabPages.SIGN_IN)
 
       tabSelector.setCallback(new Callback {
-        override def onItemSelected(pos: Int) = {
+        override def onItemSelected(pos: Int): Unit = {
           pos match  {
             case TabPages.CREATE_ACCOUNT =>
               tabSelector.setSelected(TabPages.CREATE_ACCOUNT)
@@ -402,7 +402,7 @@ class SignInFragment extends BaseFragment[Container]
     countryNameText.foreach(_.setText(country.getName))
   }
 
-  def clearCredentials() =
+  def clearCredentials(): Unit =
     Set(email, password, name, phone).foreach(_ ! "")
 
   def showError(entryError: EntryError, okCallback: => Unit = {}): Unit =
