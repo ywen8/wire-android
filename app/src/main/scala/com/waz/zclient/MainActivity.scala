@@ -203,7 +203,7 @@ class MainActivity extends BaseActivity
 
     account.head.flatMap {
       case Some(am) =>
-        am.registerClient().flatMap {
+        am.getOrRegisterClient().flatMap {
           case Right(Registered(_))   =>
             for {
               z            <- zms.head

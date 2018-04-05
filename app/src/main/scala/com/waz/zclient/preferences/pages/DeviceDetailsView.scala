@@ -243,7 +243,7 @@ case class DeviceDetailsViewController(view: DeviceDetailsView, clientId: Client
         case Right(_) =>
           for {
             _ <- passwordController.setPassword(password)
-            _ <- if (limitReached) am.registerClient(Some(password)) else Future.successful({})
+            _ <- if (limitReached) am.getOrRegisterClient(Some(password)) else Future.successful({})
             _ <- Threading.Ui(context.asInstanceOf[BaseActivity].onBackPressed()) //TODO it can take a while to get here, maybe we need a spinner...
           } yield {}
         case Left(ErrorResponse(_, msg, _)) =>

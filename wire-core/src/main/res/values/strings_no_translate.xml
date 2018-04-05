@@ -142,6 +142,10 @@
     <string translatable="false" name="pref_dev_otr_only_summary">Send only encrypted messages</string>
     <string translatable="false" name="pref_dev_version_info_id_key">USER_PREFS_DEV_VERSIONS_ID</string>
     <string translatable="false" name="pref_dev_version_info_id_title">Versions</string>
+    <string translatable="false" name="pref_dev_register_new_client_title">Register Another Client</string>
+    <string translatable="false" name="pref_dev_register_new_client_summary">Useful for testing too many devices. This button will grey itself out when you reach the limit</string>
+
+    <string translatable="false" name="provide_password">Provide account password</string>
 
     <!--Notifications preferences-->
     <string translatable="false" name="pref_dev_category_notifications_key">PREF_NOTIFICATIONS_CATEGORY</string>
