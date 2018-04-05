@@ -106,7 +106,7 @@ class PreferencesActivity extends BaseActivity
     }
 
     accounts.activeAccountId.map(_.isEmpty).onUi {
-      case false => finish()
+      case true => finish()
       case _ =>
     }
   }
