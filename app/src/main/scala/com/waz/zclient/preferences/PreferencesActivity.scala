@@ -32,7 +32,7 @@ import android.widget._
 import com.waz.ZLog.ImplicitTag._
 import com.waz.api.ImageAsset
 import com.waz.content.UserPreferences
-import com.waz.service.ZMessaging
+import com.waz.service.{AccountsService, ZMessaging}
 import com.waz.threading.Threading
 import com.waz.utils.events.Signal
 import com.waz.zclient.Intents._
@@ -57,6 +57,7 @@ class PreferencesActivity extends BaseActivity
   private lazy val zms = inject[Signal[ZMessaging]]
 
   lazy val accentColor = inject[AccentColorController].accentColor
+  lazy val accounts = inject[AccountsService]
 
   @SuppressLint(Array("PrivateResource"))
   override def onCreate(@Nullable savedInstanceState: Bundle) = {
@@ -102,6 +103,11 @@ class PreferencesActivity extends BaseActivity
         setResult(Activity.RESULT_CANCELED, intent)
       }
       finish()
+    }
+
+    accounts.activeAccountId.map(_.isEmpty).onUi {
+      case false => finish()
+      case _ =>
     }
   }
 
