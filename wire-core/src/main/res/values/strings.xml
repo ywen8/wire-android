@@ -1373,4 +1373,7 @@ The back up is not protected by Wire end-to-end encryption.</string>
     <string name="pref_account_backup_warning_title">Set an email and password.</string>
     <string name="pref_account_backup_warning_message">You need an email and a password in order to back up your conversation history. You can do it from the account page in Settings.</string>
     <string name="pref_account_backup_warning_ok">OK</string>
+
+    <string name="export_generic_error_title">Something went wrong</string>
+    <string name="export_generic_error_text">Please try again later</string>
 </resources>

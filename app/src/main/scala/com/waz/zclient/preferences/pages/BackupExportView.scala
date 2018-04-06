@@ -30,7 +30,7 @@ import com.waz.service.ZMessaging
 import com.waz.threading.{CancellableFuture, Threading}
 import com.waz.utils.events.Signal
 import com.waz.zclient.common.views.MenuRowButton
-import com.waz.zclient.utils.{BackStackKey, BackStackNavigator, ContextUtils}
+import com.waz.zclient.utils.{BackStackKey, BackStackNavigator, ContextUtils, ViewUtils}
 import com.waz.zclient.{R, SpinnerController, ViewHelper}
 
 import scala.concurrent.Future
@@ -59,10 +59,13 @@ class BackupExportView(context: Context, attrs: AttributeSet, style: Int) extend
       Some(accManager) <- z.accounts.activeAccountManager.head
       _ <- CancellableFuture.delay(3000.millis).future
       res              <- accManager.exportDatabase
-    } yield res).map { file =>
-      val intent = ShareCompat.IntentBuilder.from(context.asInstanceOf[Activity]).setType("application/octet-stream").setStream(Uri.fromFile(file)).getIntent
-      context.startActivity(intent)
-      spinnerController.hideSpinner(Some(ContextUtils.getString(R.string.back_up_progress_complete)))
+    } yield res).map {
+      case Left(_) =>
+        ViewUtils.showAlertDialog(getContext, R.string.export_generic_error_title, R.string.export_generic_error_text, android.R.string.ok, null, true)
+      case Right(file) =>
+        val intent = ShareCompat.IntentBuilder.from(context.asInstanceOf[Activity]).setType("application/octet-stream").setStream(Uri.fromFile(file)).getIntent
+        context.startActivity(intent)
+        spinnerController.hideSpinner(Some(ContextUtils.getString(R.string.back_up_progress_complete)))
     }
   }
 }

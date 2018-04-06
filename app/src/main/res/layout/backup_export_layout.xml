@@ -26,8 +26,8 @@
 
     <com.waz.zclient.paintcode.RestoreIconView
         android:id="@+id/backup_export_icon"
-        android:layout_width="96dp"
-        android:layout_height="96dp"
+        android:layout_width="@dimen/backup_export_icon_size"
+        android:layout_height="@dimen/backup_export_icon_size"
         android:layout_marginTop="@dimen/wire__padding__regular"
         android:layout_gravity="center_horizontal"
         android:padding="@dimen/wire__padding__regular"/>
