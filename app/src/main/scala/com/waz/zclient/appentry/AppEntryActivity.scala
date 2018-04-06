@@ -70,8 +70,7 @@ class AppEntryActivity extends BaseActivity
   with VerifyPhoneFragment.Container
   with PhoneSetNameFragment.Container
   with CountryDialogFragment.Container
-  with SignInFragment.Container
-  with InsertPasswordFragment.Container {
+  with SignInFragment.Container {
 
   private var unsplashInitLoadHandle: LoadHandle = null
   private lazy val progressView = ViewUtils.getView(this, R.id.liv__progress).asInstanceOf[LoadingIndicatorView]
@@ -275,9 +274,6 @@ class AppEntryActivity extends BaseActivity
         }
       },
       false)
-
-  def onShowInsertPassword(): Unit =
-    showFragment(InsertPasswordFragment(), InsertPasswordFragment.Tag)
 
   def showFragment(f: => Fragment, tag: String, animated: Boolean = true): Unit = {
     val transaction = getSupportFragmentManager.beginTransaction()
