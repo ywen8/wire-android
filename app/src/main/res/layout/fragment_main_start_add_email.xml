@@ -30,16 +30,18 @@
         android:src="@drawable/launchscreen"
     />
 
-    <com.waz.zclient.ui.text.TypefaceTextView
-        android:id="@+id/skip_button"
+    <com.waz.zclient.ui.text.GlyphTextView
+        android:id="@+id/back_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/skip_button"
-        app:w_font="@string/wire__typeface__regular"
-        android:textColor="@color/white"
+        android:paddingRight="@dimen/first_time__create_account__padding_right"
+        android:paddingLeft="@dimen/first_time__create_account__padding_left"
+        android:paddingTop="@dimen/wire__padding__big"
+        app:w_font="@string/wire__typeface__light"
         android:textSize="@dimen/wire__text_size__regular"
-        android:layout_gravity="end|top"
-        android:padding="@dimen/wire__padding__regular"/>
+        android:text="@string/glyph__previous"
+        android:textColor="@color/text__primary_dark"
+    />
 
     <LinearLayout
         android:orientation="vertical"

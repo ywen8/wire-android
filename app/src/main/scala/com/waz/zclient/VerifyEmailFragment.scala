@@ -117,7 +117,7 @@ class VerifyEmailFragment extends FragmentHelper {
     super.onDestroy()
   }
 
-  private def back() = activity.replaceMainFragment(AddEmailFragment(skippable = false, hasPw), AddEmailFragment.Tag)
+  private def back() = activity.replaceMainFragment(AddEmailFragment(hasPw), AddEmailFragment.Tag)
 
   def activity = getActivity.asInstanceOf[MainActivity]
 

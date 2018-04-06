@@ -24,14 +24,13 @@ import com.waz.ZLog
 import com.waz.ZLog.ImplicitTag._
 import com.waz.content.UserPreferences.PendingEmail
 import com.waz.model.EmailAddress
-import com.waz.service.AccountManager
+import com.waz.service.{AccountManager, AccountsService}
 import com.waz.threading.Threading
 import com.waz.utils.events.Signal
 import com.waz.utils.returning
 import com.waz.zclient.common.controllers.global.KeyboardController
 import com.waz.zclient.newreg.views.PhoneConfirmationButton
 import com.waz.zclient.newreg.views.PhoneConfirmationButton.State.{CONFIRM, NONE}
-import com.waz.zclient.pages.main.MainPhoneFragment
 import com.waz.zclient.pages.main.profile.validator.EmailValidator
 import com.waz.zclient.pages.main.profile.views.GuidedEditText
 import com.waz.zclient.utils.ContextUtils.showToast
@@ -46,6 +45,7 @@ class AddEmailFragment extends FragmentHelper {
   import Threading.Implicits.Ui
 
   lazy val am  = inject[Signal[AccountManager]]
+  lazy val accounts = inject[AccountsService]
   lazy val spinnerController = inject[SpinnerController]
 
   lazy val emailValidator = EmailValidator.newInstance()
@@ -57,8 +57,14 @@ class AddEmailFragment extends FragmentHelper {
     case _ => false
   }
 
-  lazy val skipButton = returning(view[View](R.id.skip_button)) { vh =>
-    vh.onClick(_ => activity.replaceMainFragment(new MainPhoneFragment(), MainPhoneFragment.Tag))
+  lazy val backButton = returning(view[View](R.id.back_button)) { vh =>
+    vh.onClick { _ =>
+      for {
+        am <- am.head
+        _  <- am.storage.userPrefs(PendingEmail) := None
+        _  <- accounts.logout(am.userId)
+      } yield activity.startFirstFragment() // send user back to login screen
+    }
   }
 
   lazy val confirmationButton = returning(view[PhoneConfirmationButton](R.id.confirmation_button)) { vh =>
@@ -98,8 +104,9 @@ class AddEmailFragment extends FragmentHelper {
       field.setResource(R.layout.guided_edit_text_sign_in__email)
       field.getEditText.addTextListener(txt => email ! Some(EmailAddress(txt)))
     }
+
+    backButton
     confirmationButton.foreach(_.setAccentColor(Color.WHITE))
-    skipButton.foreach(_.setVisible(getBooleanArg(SkippableArg)))
   }
 
   def activity = getActivity.asInstanceOf[MainActivity]
@@ -108,13 +115,11 @@ class AddEmailFragment extends FragmentHelper {
 object AddEmailFragment {
   val Tag: String = ZLog.ImplicitTag.implicitLogTag
 
-  val SkippableArg = "SKIPPABLE"
   val HasPasswordArg = "HAS_PASSWORD_ARG"
 
-  def apply(skippable: Boolean, hasPassword: Boolean = false): AddEmailFragment = {
+  def apply(hasPassword: Boolean = false): AddEmailFragment = {
     val f = new AddEmailFragment()
     f.setArguments(returning(new Bundle()) { b =>
-      b.putBoolean(SkippableArg, skippable)
       b.putBoolean(HasPasswordArg, hasPassword)
     })
     f

@@ -216,7 +216,7 @@ class MainActivity extends BaseActivity
               val (f, t) =
                 if (email.isDefined && pendingPw)                (SetOrRequestPasswordFragment(email.get), SetOrRequestPasswordFragment.Tag)
                 else if (pendingEmail.isDefined)                 (VerifyEmailFragment(pendingEmail.get),   VerifyEmailFragment.Tag)
-                else if (email.isEmpty && clientCount.size >= 2) (AddEmailFragment(skippable = true),      AddEmailFragment.Tag)
+                else if (email.isEmpty && clientCount.size >= 2) (AddEmailFragment(),                      AddEmailFragment.Tag)
                 else if (handle.isEmpty)                         (SetHandleFragment(),                     SetHandleFragment.Tag)
                 else                                             (new MainPhoneFragment,                   MainPhoneFragment.Tag)
               replaceMainFragment(f, t, addToBackStack = false)
@@ -232,7 +232,7 @@ class MainActivity extends BaseActivity
                   val (f, t) =
                     if(self.email.isDefined && pendingPw) (SetOrRequestPasswordFragment(self.email.get), SetOrRequestPasswordFragment.Tag)
                     else if (pendingEmail.isDefined)      (VerifyEmailFragment(pendingEmail.get),        VerifyEmailFragment.Tag)
-                    else if (self.email.isEmpty)          (AddEmailFragment(skippable = false),          AddEmailFragment.Tag)
+                    else if (self.email.isEmpty)          (AddEmailFragment(),                           AddEmailFragment.Tag)
                     else                                  (OtrDeviceLimitFragment.newInstance,           OtrDeviceLimitFragment.Tag)
                   replaceMainFragment(f, t, addToBackStack = false)
                 }
@@ -246,7 +246,7 @@ class MainActivity extends BaseActivity
                   val (f ,t) =
                     if(self.email.isDefined)         (SetOrRequestPasswordFragment(self.email.get, hasPassword = true), SetOrRequestPasswordFragment.Tag)
                     else if (pendingEmail.isDefined) (VerifyEmailFragment(pendingEmail.get, hasPassword = true),        VerifyEmailFragment.Tag)
-                    else                             (AddEmailFragment(skippable = false, hasPassword = true),          AddEmailFragment.Tag)
+                    else                             (AddEmailFragment(hasPassword = true),                             AddEmailFragment.Tag)
                   replaceMainFragment(f, t, addToBackStack = false)
                 }
               case Left(err) => Future.successful(showToast(s"Something went wrong: $err")) //TODO show dialog and ask user to try again
