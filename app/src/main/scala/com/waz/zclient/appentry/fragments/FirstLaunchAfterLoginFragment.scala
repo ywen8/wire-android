@@ -18,7 +18,7 @@
 
 package com.waz.zclient.appentry.fragments
 
-import android.content.Intent
+import android.content.{DialogInterface, Intent}
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.support.v4.content.ContextCompat
@@ -31,7 +31,9 @@ import com.waz.utils.wrappers.URI
 import com.waz.zclient.appentry.AppEntryActivity
 import com.waz.zclient.appentry.fragments.FirstLaunchAfterLoginFragment._
 import com.waz.zclient.pages.main.conversation.AssetIntentsManager
+import com.waz.zclient.ui.text.TypefaceTextView
 import com.waz.zclient.ui.views.ZetaButton
+import com.waz.zclient.utils.ViewUtils
 import com.waz.zclient.{FragmentHelper, R}
 
 object FirstLaunchAfterLoginFragment {
@@ -51,11 +53,14 @@ class FirstLaunchAfterLoginFragment extends FragmentHelper with View.OnClickList
   lazy val accountsService    = inject[AccountsService]
 
   private lazy val restoreButton = view[ZetaButton](R.id.restore_button)
-
   private lazy val registerButton = view[ZetaButton](R.id.zb__first_launch__confirm)
+  private lazy val infoTitle = view[TypefaceTextView](R.id.info_title)
+  private lazy val infoText = view[TypefaceTextView](R.id.info_text)
 
   private val assetIntentsManagerCallback = new AssetIntentsManager.Callback {
-    override def onDataReceived(`type`: AssetIntentsManager.IntentType, uri: URI): Unit = {}
+    override def onDataReceived(`type`: AssetIntentsManager.IntentType, uri: URI): Unit = {
+      //TODO: handle database!
+    }
     override def onCanceled(`type`: AssetIntentsManager.IntentType): Unit = {}
     override def onFailed(`type`: AssetIntentsManager.IntentType): Unit = {}
     override def openIntent(intent: Intent, intentType: AssetIntentsManager.IntentType): Unit = {
@@ -81,7 +86,13 @@ class FirstLaunchAfterLoginFragment extends FragmentHelper with View.OnClickList
       restoreButton.setIsFilled(false)
       restoreButton.setAccentColor(ContextCompat.getColor(getContext, R.color.text__primary_dark))
     }
+    if (databaseExists) {
+      infoTitle.foreach(_.setText(R.string.second_launch__header))
+      infoText.foreach(_.setText(R.string.second_launch__sub_header))
+    }
   }
+
+  private def databaseExists = getStringArg(UserIdArg).exists(userId => getContext.getDatabasePath(userId).exists())
 
   override def onCreateView(inflater: LayoutInflater, viewGroup: ViewGroup, savedInstanceState: Bundle): View =
     inflater.inflate(R.layout.fragment_login_first_launch, viewGroup, false)
@@ -96,7 +107,15 @@ class FirstLaunchAfterLoginFragment extends FragmentHelper with View.OnClickList
             .foreach(_ => activity.onEnterApplication(false))
         }
       case R.id.restore_button =>
-        assetIntentsManager.foreach(_.openBackupImport())
+        if (databaseExists) {
+          ViewUtils.showAlertDialog(getContext, R.string.restore_override_alert_title, R.string.restore_override_alert_text, R.string.restore_override_alert_ok, android.R.string.cancel,
+            new DialogInterface.OnClickListener {
+              override def onClick(dialog: DialogInterface, which: Int): Unit = assetIntentsManager.foreach(_.openBackupImport())
+            }
+            , null)
+        } else {
+          assetIntentsManager.foreach(_.openBackupImport())
+        }
     }
   }
 

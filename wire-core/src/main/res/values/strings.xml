@@ -1352,4 +1352,12 @@
     <string name="add_password_explanation">It helps you log in if you are locked out or lose your phone.</string>
 
     <string name="restore_from_backup_button">RESTORE FROM BACKUP</string>
+
+    <string name="second_launch__header">You\'ve used Wire on this device before.</string>
+    <string name="second_launch__sub_header">If that was long ago, some messages may not appear here.</string>
+
+    <string name="restore_override_alert_title">Restore history</string>
+    <string name="restore_override_alert_text">The backup contents will replace the conversation history on this device. You can only restore history from a backup of the same platform.</string>
+    <string name="restore_override_alert_ok">Choose backup file</string>
+
 </resources>
