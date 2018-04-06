@@ -21,31 +21,29 @@ import android.content.res.Configuration
 import android.content.{DialogInterface, Intent}
 import android.net.Uri
 import android.os.Bundle
+import android.support.v4.app.FragmentManager.OnBackStackChangedListener
 import android.support.v4.app.{Fragment, FragmentTransaction}
 import android.view.View
 import com.waz.ZLog.ImplicitTag._
 import com.waz.ZLog._
 import com.waz.api._
 import com.waz.service.{AccountsService, ZMessaging}
-import com.waz.threading.Threading
+import com.waz.utils.events.Signal
 import com.waz.utils.returning
 import com.waz.zclient._
+import com.waz.zclient.appentry.AppEntryActivity._
+import com.waz.zclient.appentry.controllers.InvitationsController
 import com.waz.zclient.appentry.fragments.{TeamNameFragment, _}
 import com.waz.zclient.newreg.fragments.country.CountryController
 import com.waz.zclient.preferences.PreferencesController
 import com.waz.zclient.tracking.CrashController
 import com.waz.zclient.ui.text.{GlyphTextView, TypefaceTextView}
 import com.waz.zclient.ui.utils.KeyboardUtils
-import com.waz.zclient.utils.ViewUtils
+import com.waz.zclient.utils.{RichView, ViewUtils}
 import com.waz.zclient.views.LoadingIndicatorView
 import net.hockeyapp.android.NativeCrashManager
-import com.waz.zclient.utils.RichView
 
 import scala.collection.JavaConverters._
-import AppEntryActivity._
-import android.support.v4.app.FragmentManager.OnBackStackChangedListener
-import com.waz.utils.events.Signal
-import com.waz.zclient.appentry.controllers.InvitationsController
 
 object AppEntryActivity {
   val TAG: String = classOf[AppEntryActivity].getName

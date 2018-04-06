@@ -41,6 +41,8 @@ class VerifyEmailFragment extends FragmentHelper {
   lazy val am = inject[Signal[AccountManager]]
 
   lazy val email = getStringArg(EmailArg).map(EmailAddress)
+  lazy val hasPw = getBooleanArg(HasPasswordArg)
+
   lazy val accounts = inject[AccountsService]
 
   lazy val resendTextView = returning(view[TextView](R.id.ttv__pending_email__resend)) { vh =>
@@ -99,7 +101,7 @@ class VerifyEmailFragment extends FragmentHelper {
         } yield {}
       ))
     } yield resp match {
-      case Right(_) => activity.replaceMainFragment(SetPasswordFragment(pendingEmail.get), SetPasswordFragment.Tag)
+      case Right(_) => activity.replaceMainFragment(SetOrRequestPasswordFragment(pendingEmail.get, hasPw), SetOrRequestPasswordFragment.Tag)
       case Left(_) => ContextUtils.showToast("Something went wrong") //TODO show user error and retry
     }
   }
@@ -115,7 +117,7 @@ class VerifyEmailFragment extends FragmentHelper {
     super.onDestroy()
   }
 
-  private def back() = activity.replaceMainFragment(AddEmailFragment(skippable = false), AddEmailFragment.Tag)
+  private def back() = activity.replaceMainFragment(AddEmailFragment(skippable = false, hasPw), AddEmailFragment.Tag)
 
   def activity = getActivity.asInstanceOf[MainActivity]
 
@@ -130,11 +132,13 @@ object VerifyEmailFragment {
   val Tag: String = classOf[VerifyEmailFragment].getName
 
   val EmailArg = "EMAIL_ARG"
+  val HasPasswordArg = "HAS_PASSWORD_ARG"
 
-  def apply(email: EmailAddress): VerifyEmailFragment = {
+  def apply(email: EmailAddress, hasPassword: Boolean = false): VerifyEmailFragment = {
     val f = new VerifyEmailFragment
     f.setArguments(returning(new Bundle()) { b =>
       b.putString(EmailArg, email.str)
+      b.putBoolean(HasPasswordArg, hasPassword)
     })
     f
   }

@@ -214,11 +214,11 @@ class MainActivity extends BaseActivity
               handle       <- z.users.selfUser.map(_.handle).head
             } yield {
               val (f, t) =
-                if (email.isDefined && pendingPw)                (SetPasswordFragment(email.get),        SetPasswordFragment.Tag)
-                else if (pendingEmail.isDefined)                 (VerifyEmailFragment(pendingEmail.get), VerifyEmailFragment.Tag)
-                else if (email.isEmpty && clientCount.size >= 2) (AddEmailFragment(skippable = true),    AddEmailFragment.Tag)
-                else if (handle.isEmpty)                         (SetHandleFragment(),                   SetHandleFragment.Tag)
-                else                                             (new MainPhoneFragment,                 MainPhoneFragment.Tag)
+                if (email.isDefined && pendingPw)                (SetOrRequestPasswordFragment(email.get), SetOrRequestPasswordFragment.Tag)
+                else if (pendingEmail.isDefined)                 (VerifyEmailFragment(pendingEmail.get),   VerifyEmailFragment.Tag)
+                else if (email.isEmpty && clientCount.size >= 2) (AddEmailFragment(skippable = true),      AddEmailFragment.Tag)
+                else if (handle.isEmpty)                         (SetHandleFragment(),                     SetHandleFragment.Tag)
+                else                                             (new MainPhoneFragment,                   MainPhoneFragment.Tag)
               replaceMainFragment(f, t, addToBackStack = false)
             }
 
@@ -230,10 +230,10 @@ class MainActivity extends BaseActivity
                   pendingEmail <- am.storage.userPrefs(PendingEmail).apply()
                 } yield {
                   val (f, t) =
-                    if(self.email.isDefined && pendingPw) (SetPasswordFragment(self.email.get),   SetPasswordFragment.Tag)
-                    else if (pendingEmail.isDefined)      (VerifyEmailFragment(pendingEmail.get), VerifyEmailFragment.Tag)
-                    else if (self.email.isEmpty)          (AddEmailFragment(skippable = false),   AddEmailFragment.Tag)
-                    else                                  (OtrDeviceLimitFragment.newInstance,    OtrDeviceLimitFragment.Tag)
+                    if(self.email.isDefined && pendingPw) (SetOrRequestPasswordFragment(self.email.get), SetOrRequestPasswordFragment.Tag)
+                    else if (pendingEmail.isDefined)      (VerifyEmailFragment(pendingEmail.get),        VerifyEmailFragment.Tag)
+                    else if (self.email.isEmpty)          (AddEmailFragment(skippable = false),          AddEmailFragment.Tag)
+                    else                                  (OtrDeviceLimitFragment.newInstance,           OtrDeviceLimitFragment.Tag)
                   replaceMainFragment(f, t, addToBackStack = false)
                 }
               case Left(err) => Future.successful(showToast(s"Something went wrong: $err")) //TODO show dialog and ask user to try again
@@ -244,9 +244,9 @@ class MainActivity extends BaseActivity
               case Right(self) =>
                 am.storage.userPrefs(PendingEmail).apply().map { pendingEmail =>
                   val (f ,t) =
-                    if(self.email.isDefined)         (SetPasswordFragment(self.email.get),   SetPasswordFragment.Tag)
-                    else if (pendingEmail.isDefined) (VerifyEmailFragment(pendingEmail.get), VerifyEmailFragment.Tag)
-                    else                             (AddEmailFragment(skippable = false),   AddEmailFragment.Tag)
+                    if(self.email.isDefined)         (SetOrRequestPasswordFragment(self.email.get, hasPassword = true), SetOrRequestPasswordFragment.Tag)
+                    else if (pendingEmail.isDefined) (VerifyEmailFragment(pendingEmail.get, hasPassword = true),        VerifyEmailFragment.Tag)
+                    else                             (AddEmailFragment(skippable = false, hasPassword = true),          AddEmailFragment.Tag)
                   replaceMainFragment(f, t, addToBackStack = false)
                 }
               case Left(err) => Future.successful(showToast(s"Something went wrong: $err")) //TODO show dialog and ask user to try again
@@ -270,6 +270,7 @@ class MainActivity extends BaseActivity
       .replace(R.id.fl_main_content, frag, tag)
     if (addToBackStack) transaction.addToBackStack(tag)
     transaction.commit
+    spinnerController.hideSpinner()
   }
 
   override protected def onPause() = {

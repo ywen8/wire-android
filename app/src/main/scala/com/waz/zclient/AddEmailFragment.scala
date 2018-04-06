@@ -28,6 +28,7 @@ import com.waz.service.AccountManager
 import com.waz.threading.Threading
 import com.waz.utils.events.Signal
 import com.waz.utils.returning
+import com.waz.zclient.common.controllers.global.KeyboardController
 import com.waz.zclient.newreg.views.PhoneConfirmationButton
 import com.waz.zclient.newreg.views.PhoneConfirmationButton.State.{CONFIRM, NONE}
 import com.waz.zclient.pages.main.MainPhoneFragment
@@ -71,14 +72,14 @@ class AddEmailFragment extends FragmentHelper {
           case Right(_) => am.storage.userPrefs(PendingEmail) := Some(e)
           case Left(_) => Future.successful({})
         }
-      } yield {
-        spinnerController.hideSpinner()
-        resp match {
-          case Right(_) => activity.replaceMainFragment(VerifyEmailFragment(e), VerifyEmailFragment.Tag)
-          case Left(err) =>
-            //getContainer.showError(EntryError(error.getCode, error.getLabel, SignInMethod(Register, Email)))
-            showToast(s"Something went wrong: $err") //TODO show error to user
-        }
+      } yield resp match {
+        case Right(_) =>
+          inject[KeyboardController].hideKeyboardIfVisible()
+          activity.replaceMainFragment(VerifyEmailFragment(e, hasPassword = getBooleanArg(HasPasswordArg)), VerifyEmailFragment.Tag)
+        case Left(err) =>
+          spinnerController.hideSpinner()
+          //getContainer.showError(EntryError(error.getCode, error.getLabel, SignInMethod(Register, Email)))
+          showToast(s"Something went wrong: $err") //TODO show error to user
       }
     }
 
@@ -98,7 +99,7 @@ class AddEmailFragment extends FragmentHelper {
       field.getEditText.addTextListener(txt => email ! Some(EmailAddress(txt)))
     }
     confirmationButton.foreach(_.setAccentColor(Color.WHITE))
-    skipButton.foreach(_.setVisible(getBooleanArg(SkippableArg, default = false)))
+    skipButton.foreach(_.setVisible(getBooleanArg(SkippableArg)))
   }
 
   def activity = getActivity.asInstanceOf[MainActivity]
@@ -106,12 +107,15 @@ class AddEmailFragment extends FragmentHelper {
 
 object AddEmailFragment {
   val Tag: String = ZLog.ImplicitTag.implicitLogTag
-  val SkippableArg = "SKIPPABLE"
 
-  def apply(skippable: Boolean): AddEmailFragment = {
+  val SkippableArg = "SKIPPABLE"
+  val HasPasswordArg = "HAS_PASSWORD_ARG"
+
+  def apply(skippable: Boolean, hasPassword: Boolean = false): AddEmailFragment = {
     val f = new AddEmailFragment()
     f.setArguments(returning(new Bundle()) { b =>
       b.putBoolean(SkippableArg, skippable)
+      b.putBoolean(HasPasswordArg, hasPassword)
     })
     f
   }

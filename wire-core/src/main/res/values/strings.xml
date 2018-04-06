@@ -1349,7 +1349,10 @@
     <string name="add_email_address_explanation">It helps you recover your password if you forget it.</string>
 
     <string name="add_password">Add password</string>
-    <string name="add_password_explanation">It helps you log in if you are locked out or lose your phone.</string>
+    <string name="add_password_explanation">Please add an account for the email: %1$s. This helps you log in if you are locked out or lose your phone.</string>
+
+    <string name="provide_password">Provide your password</string>
+    <string name="provide_password_explanation">It seems you already have a password on the account with email: %1$s. Please provide it here.</string>
 
     <string name="restore_from_backup_button">RESTORE FROM BACKUP</string>
 

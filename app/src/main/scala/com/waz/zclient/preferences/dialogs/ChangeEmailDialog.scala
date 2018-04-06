@@ -54,7 +54,7 @@ class ChangeEmailDialog extends DialogFragment with FragmentHelper {
   lazy val usersService = zms.map(_.users)
   lazy val passwordController = inject[PasswordController]
 
-  private lazy val addingNewEmail = getBooleanArg(AddingNewEmailArg, default = false)
+  private lazy val addingNewEmail = getBooleanArg(AddingNewEmailArg)
 
   private lazy val root = LayoutInflater.from(getActivity).inflate(R.layout.preference_dialog_add_email_password, null)
 

@@ -62,8 +62,8 @@ class RequestPasswordDialog extends DialogFragment with FragmentHelper {
     Option(getArguments.getString(ErrorArg)).foreach(textInputLayout.setError)
     new AlertDialog.Builder(getActivity)
       .setView(root)
-      .setTitle(getString(R.string.provide_password))
-      .setMessage(R.string.provide_password)
+      .setTitle(getString(R.string.pref_dev_provide_password))
+      .setMessage(R.string.pref_dev_provide_password)
       .setPositiveButton(R.string.otr__remove_device__button_delete, null)
       .setNegativeButton(R.string.otr__remove_device__button_cancel, null)
       .create

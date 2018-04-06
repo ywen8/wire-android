@@ -145,7 +145,7 @@
     <string translatable="false" name="pref_dev_register_new_client_title">Register Another Client</string>
     <string translatable="false" name="pref_dev_register_new_client_summary">Useful for testing too many devices. This button will grey itself out when you reach the limit</string>
 
-    <string translatable="false" name="provide_password">Provide account password</string>
+    <string translatable="false" name="pref_dev_provide_password">Provide account password</string>
 
     <!--Notifications preferences-->
     <string translatable="false" name="pref_dev_category_notifications_key">PREF_NOTIFICATIONS_CATEGORY</string>
