@@ -82,7 +82,7 @@ class SetOrRequestPasswordFragment extends FragmentHelper with OnBackPressedList
           }
         case Left(err) => showError(err)
       } else
-        am.setPassword(pw).flatMap {
+        am.setPassword(pw).flatMap { //TODO perform login request after setting password in case the user has reset their password in the meantime
           case Right(_)  => (am.storage.userPrefs(PendingPassword) := false).map(_ => Right({}))
           case Left(err) => Future.successful(Left(err))
         }.map {
