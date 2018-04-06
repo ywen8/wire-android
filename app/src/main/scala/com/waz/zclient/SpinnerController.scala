@@ -22,12 +22,12 @@ import com.waz.zclient.views.LoadingIndicatorView._
 
 class SpinnerController(implicit inj: Injector, cxt: WireContext, eventContext: EventContext) extends Injectable {
 
-  val spinnerShowing: SourceSignal[Option[AnimationType]] = Signal(None)
+  val spinnerShowing: SourceSignal[Either[AnimationType, Option[String]]] = Signal(Right(None))
 
-  def showSpinner(animationType: AnimationType = Spinner): Unit = spinnerShowing ! Some(animationType)
+  def showSpinner(animationType: AnimationType = Spinner): Unit = spinnerShowing ! Left(animationType)
 
-  def hideSpinner(): Unit = spinnerShowing ! None
+  def hideSpinner(message: Option[String] = None): Unit = spinnerShowing ! Right(message)
 
-  def showSpinner(show: Boolean): Unit = spinnerShowing ! (if (show) Some(Spinner) else None)
-  def showDimmedSpinner(show: Boolean, text: String = ""): Unit = spinnerShowing ! (if (show) Some(SpinnerWithDimmedBackground(text)) else None)
+  def showSpinner(show: Boolean): Unit = spinnerShowing ! (if (show) Left(Spinner) else Right(None))
+  def showDimmedSpinner(show: Boolean, text: String = ""): Unit = spinnerShowing ! (if (show) Left(SpinnerWithDimmedBackground(text)) else Right(None))
 }

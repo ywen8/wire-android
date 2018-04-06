@@ -156,8 +156,9 @@ class MainActivity extends BaseActivity
       darkTheme <- themeController.darkThemeSet
       show <- spinnerController.spinnerShowing
     }  yield (show, darkTheme)).onUi{
-      case (Some(animation), theme) => loadingIndicator.show(animation, theme, 300)
-      case (None, _) => loadingIndicator.hide()
+      case (Left(animation), theme) => loadingIndicator.show(animation, theme, 300)
+      case (Right(Some(message)), _) => loadingIndicator.hideWithMessage(message, 750)
+      case (Right(_), _) => loadingIndicator.hide()
     }
   }
 

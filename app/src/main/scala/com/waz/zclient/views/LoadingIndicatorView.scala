@@ -51,6 +51,7 @@ class LoadingIndicatorView(context: Context, attrs: AttributeSet, defStyle: Int)
       ViewUtils.fadeInView(LoadingIndicatorView.this)
     }
     case Spinner => () => if (setToVisible) {
+      progressView.setText(R.string.glyph__loading)
       progressView.setVisible(true)
       infiniteLoadingBarView.setVisible(false)
       progressLoadingBarView.setVisible(false)
@@ -58,6 +59,7 @@ class LoadingIndicatorView(context: Context, attrs: AttributeSet, defStyle: Int)
       ViewUtils.fadeInView(LoadingIndicatorView.this)
     }
     case SpinnerWithDimmedBackground(text) => () => if (setToVisible) {
+      progressView.setText(R.string.glyph__loading)
       progressView.setVisible(true)
       textView.setVisible(true)
       textView.setText(text)
@@ -130,6 +132,19 @@ class LoadingIndicatorView(context: Context, attrs: AttributeSet, defStyle: Int)
   def hide(): Unit = {
     setToVisible = false
     Future {
+      progressView.setVisible(false)
+      textView.setVisible(false)
+      ViewUtils.fadeOutView(LoadingIndicatorView.this)
+    }
+  }
+
+  def hideWithMessage(message: String, delayMs: Long): Unit = {
+    setToVisible = false
+    progressView.setText(R.string.glyph__check)
+    progressView.stopAnimation()
+    progressView.setRotation(0)
+    textView.setText(message)
+    CancellableFuture.delayed(delayMs.millis) {
       progressView.setVisible(false)
       textView.setVisible(false)
       ViewUtils.fadeOutView(LoadingIndicatorView.this)

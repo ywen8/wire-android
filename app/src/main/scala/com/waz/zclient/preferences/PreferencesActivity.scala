@@ -116,8 +116,9 @@ class PreferencesActivity extends BaseActivity
     val loadingIndicator = findViewById[LoadingIndicatorView](R.id.progress_spinner)
 
     spinnerController.spinnerShowing.onUi {
-      case Some(animation) => loadingIndicator.show(animation, darkTheme = true)
-      case None => loadingIndicator.hide()
+      case Left(animation) => loadingIndicator.show(animation, darkTheme = true)
+      case Right(Some(message)) => loadingIndicator.hideWithMessage(message, 1000)
+      case _ => loadingIndicator.hide()
     }
   }
 
