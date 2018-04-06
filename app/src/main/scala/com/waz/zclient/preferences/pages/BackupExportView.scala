@@ -45,7 +45,7 @@ class BackupExportView(context: Context, attrs: AttributeSet, style: Int) extend
   val navigator          = inject[BackStackNavigator]
   val spinnerController  = inject[SpinnerController]
 
-  private lazy val backupButton = findById[MenuRowButton](R.id.backup_button)
+  private val backupButton = findById[MenuRowButton](R.id.backup_button)
 
   backupButton.setOnClickProcess(backupData, showSpinner = false)
 
@@ -56,7 +56,7 @@ class BackupExportView(context: Context, attrs: AttributeSet, style: Int) extend
     (for {
       z                <- zms.head
       Some(accManager) <- z.accounts.activeAccountManager.head
-      res              <- accManager.exportDatabase()
+      res              <- accManager.exportDatabase
     } yield res).map { file =>
       val intent = ShareCompat.IntentBuilder.from(context.asInstanceOf[Activity]).setType("application/octet-stream").setStream(Uri.fromFile(file)).getIntent
       context.startActivity(intent)

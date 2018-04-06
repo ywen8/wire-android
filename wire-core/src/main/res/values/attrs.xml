@@ -270,4 +270,8 @@
         <attr name="isFilled" format="boolean"/>
     </declare-styleable>
 
+    <declare-styleable name="StyleKitView">
+        <attr name="drawableColor" format="color"/>
+    </declare-styleable>
+
 </resources>

@@ -24,12 +24,13 @@
               android:layout_width="match_parent"
               android:layout_height="match_parent">
 
-    <ImageView
-        android:layout_width="128dp"
-        android:layout_height="128dp"
+    <com.waz.zclient.paintcode.RestoreIconView
+        android:id="@+id/backup_export_icon"
+        android:layout_width="96dp"
+        android:layout_height="96dp"
         android:layout_marginTop="@dimen/wire__padding__regular"
         android:layout_gravity="center_horizontal"
-        android:src="@drawable/com_mixpanel_android_ic_sync"/>
+        android:padding="@dimen/wire__padding__regular"/>
 
     <com.waz.zclient.ui.text.TypefaceTextView
         android:layout_width="wrap_content"
