@@ -512,6 +512,6 @@ class MainActivity extends BaseActivity
       .addToBackStack(ChangeHandleFragment.Tag)
       .commit
 
-  override def onKeepUsernameChosen(username: String): Unit = replaceMainFragment(new MainPhoneFragment, MainPhoneFragment.Tag, addToBackStack = false)
+  override def onUsernameSet(): Unit = replaceMainFragment(new MainPhoneFragment, MainPhoneFragment.Tag, addToBackStack = false)
 }
 

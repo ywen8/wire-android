@@ -52,7 +52,7 @@ object SetHandleFragment {
   trait Container {
     def onChooseUsernameChosen(): Unit
 
-    def onKeepUsernameChosen(username: String): Unit
+    def onUsernameSet(): Unit
   }
 
 }
@@ -106,7 +106,7 @@ class SetHandleFragment extends BaseFragment[SetHandleFragment.Container] with F
       keepButton.setIsFilled(false)
       keepButton.onClick {
         zms.head.map(_.users.updateHandle(Handle(suggestedUsername))).map { _ =>
-          getContainer.onKeepUsernameChosen(suggestedUsername)
+          getContainer.onUsernameSet()
         }
       }
     }
@@ -125,6 +125,15 @@ class SetHandleFragment extends BaseFragment[SetHandleFragment.Container] with F
       startUsernameGenerator(self.name)
     }
     nameTextView
+  }
+
+
+  override def onCreate(savedInstanceState: Bundle): Unit = {
+    super.onCreate(savedInstanceState)
+    self.map(_.handle.nonEmpty).onUi {
+      case true => getContainer.onUsernameSet()
+      case _ =>
+    }
   }
 
   override def onCreateView(inflater: LayoutInflater, @Nullable container: ViewGroup, @Nullable savedInstanceState: Bundle): View =
