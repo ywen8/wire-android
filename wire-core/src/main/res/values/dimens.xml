@@ -945,4 +945,5 @@
     <dimen name="participants_options_button_margin_top">32dp</dimen>
     <dimen name="next_indicator_size">12dp</dimen>
     <dimen name="participant_initials_text_size">64sp</dimen>
+    <dimen name="backup_export_icon_size">96dp</dimen>
 </resources>

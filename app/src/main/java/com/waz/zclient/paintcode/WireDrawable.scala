@@ -106,3 +106,8 @@ case class ForwardNavigationIcon(colorRes: Int)(implicit context: Context) exten
   setColor(getColor(colorRes))
   override def draw(canvas: Canvas) = drawNavigationArrow(canvas, new RectF(canvas.getClipBounds), ResizingBehavior.AspectFit, paint.getColor)
 }
+
+case class BackupRestoreIcon(color: Int)(implicit context: Context) extends WireDrawable {
+  setColor(color)
+  override def draw(canvas: Canvas) = drawRestore(canvas, new RectF(canvas.getClipBounds), ResizingBehavior.AspectFit, paint.getColor)
+}
