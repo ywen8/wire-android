@@ -40,8 +40,8 @@
             android:layout_width="@dimen/conversation_list__avatar__size"
             android:layout_height="@dimen/conversation_list__avatar__size"
             android:layout_gravity="center"
-            android:layout_marginEnd="@dimen/conversation_list__avatar__outer_margin"
-            android:layout_marginStart="@dimen/conversation_list__avatar__outer_margin"
+            android:layout_marginEnd="@dimen/wire__padding__regular"
+            android:layout_marginStart="@dimen/wire__padding__regular"
             />
 
         <RelativeLayout

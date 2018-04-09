@@ -27,6 +27,7 @@ import com.waz.zclient.paintcode.WireStyleKit._
 trait WireDrawable extends Drawable {
 
   protected val paint = new Paint()
+  protected val padding = new Rect(0, 0, 0, 0)
 
   override def setColorFilter(colorFilter: ColorFilter): Unit = paint.setColorFilter(colorFilter)
 
@@ -35,6 +36,18 @@ trait WireDrawable extends Drawable {
   override def setAlpha(alpha: Int): Unit = paint.setAlpha(alpha)
 
   def setColor(color: Int): Unit = paint.setColor(color)
+
+  protected def getDrawingRect = new RectF(getBounds.left + padding.left, getBounds.top + padding.top, getBounds.right - padding.right, getBounds.bottom - padding.bottom)
+
+  def setPadding(rect: Rect): Unit = {
+    padding.set(rect)
+    invalidateSelf()
+  }
+
+  override def getPadding(padding: Rect): Boolean = {
+    padding.set(this.padding)
+    true
+  }
 }
 
 case class DownArrowDrawable() extends WireDrawable {
@@ -89,12 +102,12 @@ object ServicePlaceholderDrawable {
 
 case class CreateGroupIcon(colorRes: Int)(implicit context: Context) extends WireDrawable {
   setColor(getColor(colorRes))
-  override def draw(canvas: Canvas) = drawGroupIcon(canvas, new RectF(canvas.getClipBounds), ResizingBehavior.AspectFit, paint.getColor)
+  override def draw(canvas: Canvas) = drawGroupIcon(canvas, getDrawingRect, ResizingBehavior.AspectFit, paint.getColor)
 }
 
 case class GuestIcon(colorRes: Int)(implicit context: Context) extends WireDrawable {
   setColor(getColor(colorRes))
-  override def draw(canvas: Canvas) = drawGuestIcon(canvas, new RectF(canvas.getClipBounds), ResizingBehavior.AspectFit, paint.getColor)
+  override def draw(canvas: Canvas) = drawGuestIcon(canvas, getDrawingRect, ResizingBehavior.AspectFit, paint.getColor)
 }
 
 case class GuestIconWithColor(color: Int)(implicit context: Context) extends WireDrawable {

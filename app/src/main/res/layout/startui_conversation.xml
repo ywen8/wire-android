@@ -23,5 +23,4 @@
     android:id="@+id/srcrv_startui_conversation"
     android:layout_width="match_parent"
     android:layout_height="@dimen/conversation_list__row__height"
-    android:layout_marginStart="@dimen/wire__padding__12"
     />
