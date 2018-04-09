@@ -21,7 +21,6 @@ import com.waz.model.Availability
 import com.waz.service.tracking.TrackingEvent
 import com.waz.utils.{returning, _}
 import com.waz.zclient.appentry.fragments.SignInFragment._
-import com.waz.zclient.tracking.AddPhotoOnRegistrationEvent.Source
 import com.waz.zclient.tracking.AvailabilityChanged.Method
 import com.waz.zclient.tracking.TeamAcceptedTerms.Occurrence
 import org.json.JSONObject
@@ -83,33 +82,6 @@ case class RegistrationSuccessfulEvent() extends TrackingEvent {
   override val props = Some(returning (new JSONObject()) { o =>
     o.put("context", "phone")
   })
-}
-
-case class AddPhotoOnRegistrationEvent(inputType: InputType, error: Option[(Int, String)], source: Source) extends TrackingEvent {
-  override val name = "registration.added_photo"
-
-  override val props = Some(returning(new JSONObject()) { o =>
-    val outcome = error.fold2("success", _ => "fail")
-    val context = inputType match {
-      case Phone => "phone"
-      case Email => "email"
-    }
-
-    o.put("context", context)
-    o.put("source", source.value)
-    o.put("outcome", outcome)
-    error.foreach { case (code, label) =>
-      o.put("error", code)
-      o.put("error_message", label)
-    }
-  })
-}
-
-object AddPhotoOnRegistrationEvent {
-  case class Source(value: String)
-
-  val Unsplash = Source("unsplash")
-  val Gallery = Source("gallery")
 }
 
 case class ResendVerificationEvent(method: SignInMethod, isCall: Boolean, error: Option[(Int, String)]) extends TrackingEvent {

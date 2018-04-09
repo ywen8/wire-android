@@ -72,7 +72,6 @@ class AppEntryActivity extends BaseActivity
   with CountryDialogFragment.Container
   with SignInFragment.Container {
 
-  private var unsplashInitLoadHandle: LoadHandle = null
   private lazy val progressView = ViewUtils.getView(this, R.id.liv__progress).asInstanceOf[LoadingIndicatorView]
   private lazy val countryController: CountryController = new CountryController(this)
   private lazy val invitesController = inject[InvitationsController]
@@ -171,14 +170,6 @@ class AppEntryActivity extends BaseActivity
   override protected def onPause(): Unit = {
     isPaused = true
     super.onPause()
-  }
-
-  override def onStop(): Unit = {
-    if (unsplashInitLoadHandle != null) {
-      unsplashInitLoadHandle.cancel()
-      unsplashInitLoadHandle = null
-    }
-    super.onStop()
   }
 
   override protected def onActivityResult(requestCode: Int, resultCode: Int, data: Intent): Unit = {

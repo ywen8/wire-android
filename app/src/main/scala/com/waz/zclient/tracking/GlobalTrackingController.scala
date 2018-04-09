@@ -34,7 +34,6 @@ import com.waz.utils.{RichThreetenBPDuration, _}
 import com.waz.zclient._
 import com.waz.zclient.appentry.EntryError
 import com.waz.zclient.appentry.fragments.SignInFragment.{InputType, SignInMethod}
-import com.waz.zclient.tracking.AddPhotoOnRegistrationEvent.Source
 import com.waz.zclient.utils.DeprecationUtils
 import net.hockeyapp.android.CrashManagerListener
 import org.json.JSONObject
@@ -198,9 +197,6 @@ class GlobalTrackingController(implicit inj: Injector, cxt: WireContext, eventCo
       track(EnteredNameOnRegistrationEvent(inputType, responseToErrorPair(response)), Some(acc.id))
       track(RegistrationSuccessfulEvent(), Some(acc.id))
     }
-
-  def onAddPhotoOnRegistration(inputType: InputType, source: Source, response: Either[EntryError, Unit] = Right(())): Unit =
-    track(AddPhotoOnRegistrationEvent(inputType, responseToErrorPair(response), source))
 
   def flushEvents(): Unit = mixpanelGuard.flush()
 }
