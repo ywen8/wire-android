@@ -85,7 +85,8 @@ class AppEntryActivity extends BaseActivity
   private lazy val closeButton = returning(ViewUtils.getView(this, R.id.close_button).asInstanceOf[GlyphTextView]) { v =>
     Signal(accountsService.zmsInstances.map(_.nonEmpty), attachedFragment).map {
       case (false, _) => View.GONE
-      case (true, fragment) if Set(SignInFragment.Tag, FirstLaunchAfterLoginFragment.Tag, VerifyEmailWithCodeFragment.Tag, VerifyPhoneFragment.Tag, CountryDialogFragment.TAG).contains(fragment) => View.GONE
+      case (true, fragment) if Set(SignInFragment.Tag, FirstLaunchAfterLoginFragment.Tag, VerifyEmailWithCodeFragment.Tag,
+          VerifyPhoneFragment.Tag, CountryDialogFragment.TAG, PhoneSetNameFragment.Tag).contains(fragment) => View.GONE
       case _ => View.VISIBLE
     }.onUi(v.setVisibility(_))
   }

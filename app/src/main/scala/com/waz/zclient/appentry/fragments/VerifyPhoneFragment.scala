@@ -68,13 +68,13 @@ class VerifyPhoneFragment extends BaseFragment[VerifyPhoneFragment.Container] wi
   private lazy val accountService     = inject[AccountsService]
   private lazy val tracking           = inject[GlobalTrackingController]
 
-  private lazy val resendCodeButton = findById[TextView](getView, R.id.ttv__resend_button)
-  private lazy val resendCodeTimer = findById[TextView](getView, R.id.ttv__resend_timer)
-  private lazy val resendCodeCallButton = findById[View](getView, R.id.ttv__call_me_button)
-  private lazy val editTextCode = findById[TypefaceEditText](getView, R.id.et__reg__code)
-  private lazy val phoneConfirmationButton = findById[PhoneConfirmationButton](getView, R.id.pcb__activate)
-  private lazy val buttonBack = findById[View](getView, R.id.ll__activation_button__back)
-  private lazy val textViewInfo = findById[TextView](getView, R.id.ttv__info_text)
+  private lazy val resendCodeButton = view[TextView](R.id.ttv__resend_button)
+  private lazy val resendCodeTimer = view[TextView](R.id.ttv__resend_timer)
+  private lazy val resendCodeCallButton = view[View](R.id.ttv__call_me_button)
+  private lazy val editTextCode = view[TypefaceEditText](R.id.et__reg__code)
+  private lazy val phoneConfirmationButton = view[PhoneConfirmationButton](R.id.pcb__activate)
+  private lazy val buttonBack = view[View](R.id.ll__activation_button__back)
+  private lazy val textViewInfo = view[TextView](R.id.ttv__info_text)
   private lazy val phoneVerificationCodeMinLength = getResources.getInteger(R.integer.new_reg__phone_verification_code__min_length)
 
   private var milliSecondsToShowResendButton = 0
@@ -83,13 +83,13 @@ class VerifyPhoneFragment extends BaseFragment[VerifyPhoneFragment.Container] wi
     def run(): Unit = {
       milliSecondsToShowResendButton = milliSecondsToShowResendButton - VerifyPhoneFragment.RESEND_CODE_TIMER_INTERVAL
       if (milliSecondsToShowResendButton <= 0) {
-        resendCodeTimer.setVisibility(View.GONE)
-        resendCodeButton.setVisibility(View.VISIBLE)
-        resendCodeCallButton.setVisibility(View.VISIBLE)
+        resendCodeTimer.foreach(_.setVisibility(View.GONE))
+        resendCodeButton.foreach(_.setVisibility(View.VISIBLE))
+        resendCodeCallButton.foreach(_.setVisibility(View.VISIBLE))
         return
       }
       val sec = milliSecondsToShowResendButton / 1000
-      resendCodeTimer.setText(getResources.getQuantityString(R.plurals.welcome__resend__timer_label, sec, Integer.valueOf(sec)))
+      resendCodeTimer.foreach(_.setText(getResources.getQuantityString(R.plurals.welcome__resend__timer_label, sec, Integer.valueOf(sec))))
       resendCodeTimerHandler.postDelayed(resendCodeTimerRunnable, VerifyPhoneFragment.RESEND_CODE_TIMER_INTERVAL)
     }
   }
@@ -99,10 +99,10 @@ class VerifyPhoneFragment extends BaseFragment[VerifyPhoneFragment.Container] wi
     super.onViewCreated(view, savedInstanceState)
     findById[View](view, R.id.fl__confirmation_checkmark).setVisibility(View.GONE)
     findById[View](view, R.id.gtv__not_now__close).setVisibility(View.GONE)
-    resendCodeButton.setVisibility(View.GONE)
-    resendCodeCallButton.setVisibility(View.GONE)
+    resendCodeButton.foreach(_.setVisibility(View.GONE))
+    resendCodeCallButton.foreach(_.setVisibility(View.GONE))
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-      editTextCode.setLetterSpacing(1)
+      editTextCode.foreach(_.setLetterSpacing(1))
     }
     getStringArg(PhoneArg).foreach(phone => onPhoneNumberLoaded(phone))
   }
@@ -113,12 +113,12 @@ class VerifyPhoneFragment extends BaseFragment[VerifyPhoneFragment.Container] wi
 
   override def onStart(): Unit = {
     super.onStart()
-    editTextCode.requestFocus
+    editTextCode.foreach(_.requestFocus)
     val color = ContextCompat.getColor(getActivity, R.color.text__primary_dark)
-    editTextCode.setAccentColor(color)
-    phoneConfirmationButton.setAccentColor(color)
-    resendCodeButton.setTextColor(color)
-    textViewInfo.setTextColor(color)
+    editTextCode.foreach(_.setAccentColor(color))
+    phoneConfirmationButton.foreach(_.setAccentColor(color))
+    resendCodeButton.foreach(_.setTextColor(color))
+    textViewInfo.foreach(_.setTextColor(color))
     inject[IGlobalLayoutController].setSoftInputModeForPage(Page.PHONE_VERIFY_CODE)
     KeyboardUtils.showKeyboard(getActivity)
     startResendCodeTimer()
@@ -126,19 +126,20 @@ class VerifyPhoneFragment extends BaseFragment[VerifyPhoneFragment.Container] wi
 
   override def onResume(): Unit = {
     super.onResume()
-    phoneConfirmationButton.setOnClickListener(this)
-    resendCodeButton.setOnClickListener(this)
-    buttonBack.setOnClickListener(this)
-    editTextCode.addTextChangedListener(this)
-    resendCodeCallButton.setOnClickListener(this)
+    editTextCode.map(_.getText.toString).foreach(text => onTextChanged(text, 0, text.length, text.length))
+    phoneConfirmationButton.foreach(_.setOnClickListener(this))
+    resendCodeButton.foreach(_.setOnClickListener(this))
+    buttonBack.foreach(_.setOnClickListener(this))
+    editTextCode.foreach(_.addTextChangedListener(this))
+    resendCodeCallButton.foreach(_.setOnClickListener(this))
   }
 
   override def onPause(): Unit = {
-    phoneConfirmationButton.setOnClickListener(null)
-    resendCodeButton.setOnClickListener(null)
-    buttonBack.setOnClickListener(null)
-    editTextCode.removeTextChangedListener(this)
-    resendCodeCallButton.setOnClickListener(null)
+    phoneConfirmationButton.foreach(_.setOnClickListener(null))
+    resendCodeButton.foreach(_.setOnClickListener(null))
+    buttonBack.foreach(_.setOnClickListener(null))
+    editTextCode.foreach(_.removeTextChangedListener(this))
+    resendCodeCallButton.foreach(_.setOnClickListener(null))
     super.onPause()
   }
 
@@ -150,11 +151,11 @@ class VerifyPhoneFragment extends BaseFragment[VerifyPhoneFragment.Container] wi
 
   private def onPhoneNumberLoaded(phone: String): Unit = {
     val text = String.format(getResources.getString(R.string.activation_code_info_manual), phone)
-    textViewInfo.setText(DeprecationUtils.fromHtml(text))
+    textViewInfo.foreach(_.setText(DeprecationUtils.fromHtml(text)))
   }
 
   private def requestCode(shouldCall: Boolean) = {
-    editTextCode.setText("")
+    editTextCode.foreach(_.setText(""))
     val isLoggingIn = getBooleanArg(LoggingInArg, default = true)
     val phone = getStringArg(PhoneArg).getOrElse("")
     accountService.requestPhoneCode(PhoneNumber(phone), login = isLoggingIn, call = shouldCall).map {
@@ -166,7 +167,7 @@ class VerifyPhoneFragment extends BaseFragment[VerifyPhoneFragment.Container] wi
       result match {
         case Left(entryError) =>
           getContainer.showError(entryError)
-          editTextCode.requestFocus
+          editTextCode.foreach(_.requestFocus)
         case _ =>
           if (shouldCall)
             Toast.makeText(getActivity, getResources.getString(R.string.new_reg__code_resent__call), Toast.LENGTH_LONG).show()
@@ -184,7 +185,7 @@ class VerifyPhoneFragment extends BaseFragment[VerifyPhoneFragment.Container] wi
 
     val isLoggingIn = getBooleanArg(LoggingInArg, default = true)
     val phone = getStringArg(PhoneArg).getOrElse("")
-    val code = editTextCode.getText.toString
+    val code = editTextCode.map(_.getText.toString).getOrElse("")
 
     if (isLoggingIn) {
       accountService.loginPhone(phone, code).map {
@@ -193,8 +194,8 @@ class VerifyPhoneFragment extends BaseFragment[VerifyPhoneFragment.Container] wi
           getContainer.showError(EntryError(error.code, error.label, SignInMethod(Login, Phone)), {
             if (getActivity != null) {
               KeyboardUtils.showKeyboard(getActivity)
-              editTextCode.requestFocus
-              phoneConfirmationButton.setState(PhoneConfirmationButton.State.INVALID)
+              editTextCode.foreach(_.requestFocus)
+              phoneConfirmationButton.foreach(_.setState(PhoneConfirmationButton.State.INVALID))
             }
           })
         case Right(userId) =>
@@ -208,8 +209,8 @@ class VerifyPhoneFragment extends BaseFragment[VerifyPhoneFragment.Container] wi
           getContainer.showError(EntryError(error.code, error.label, SignInMethod(Register, Phone)), {
             if (getActivity != null) {
               KeyboardUtils.showKeyboard(getActivity)
-              editTextCode.requestFocus
-              phoneConfirmationButton.setState(PhoneConfirmationButton.State.INVALID)
+              editTextCode.foreach(_.requestFocus)
+              phoneConfirmationButton.foreach(_.setState(PhoneConfirmationButton.State.INVALID))
             }
           })
         case _ =>
@@ -238,7 +239,7 @@ class VerifyPhoneFragment extends BaseFragment[VerifyPhoneFragment.Container] wi
   def beforeTextChanged(s: CharSequence, start: Int, count: Int, after: Int): Unit = {}
 
   def onTextChanged(charSequence: CharSequence, i: Int, i1: Int, i2: Int): Unit = {
-    phoneConfirmationButton.setState(validatePhoneNumber(charSequence.toString))
+    phoneConfirmationButton.foreach(_.setState(validatePhoneNumber(charSequence.toString)))
   }
 
   def afterTextChanged(s: Editable): Unit = {}
@@ -252,11 +253,11 @@ class VerifyPhoneFragment extends BaseFragment[VerifyPhoneFragment.Container] wi
 
   private def startResendCodeTimer(): Unit = {
     milliSecondsToShowResendButton = VerifyPhoneFragment.SHOW_RESEND_CODE_BUTTON_DELAY
-    resendCodeButton.setVisibility(View.GONE)
-    resendCodeCallButton.setVisibility(View.GONE)
-    resendCodeTimer.setVisibility(View.VISIBLE)
+    resendCodeButton.foreach(_.setVisibility(View.GONE))
+    resendCodeCallButton.foreach(_.setVisibility(View.GONE))
+    resendCodeTimer.foreach(_.setVisibility(View.VISIBLE))
     val sec = milliSecondsToShowResendButton / 1000
-    resendCodeTimer.setText(getResources.getQuantityString(R.plurals.welcome__resend__timer_label, sec, Integer.valueOf(sec)))
+    resendCodeTimer.foreach(_.setText(getResources.getQuantityString(R.plurals.welcome__resend__timer_label, sec, Integer.valueOf(sec))))
     resendCodeTimerHandler.postDelayed(resendCodeTimerRunnable, VerifyPhoneFragment.RESEND_CODE_TIMER_INTERVAL)
   }
 
