@@ -49,7 +49,7 @@
         android:layout_width="match_parent"
         android:layout_height="@dimen/menu_item_height"
         app:buttonTextColor="?wirePrimaryTextColor"
-        app:buttonText="Backup now"
+        app:buttonText="@string/backup_button"
         app:rowDividerVisible="false"
         app:buttonTextFont="@string/wire__typeface__light"/>
 
