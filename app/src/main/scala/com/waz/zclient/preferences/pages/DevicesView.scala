@@ -110,7 +110,7 @@ case class DevicesViewController(view: DevicesView)(implicit inj: Injector, ec: 
   } yield clients
 
   val selfClient = for {
-    zms <- zms
+    zms <- zms.orElse(Signal.const(None))
     selfClient <- zms.fold(Signal.const(Option.empty[Client]))(_.otrClientsService.selfClient.map(Option(_)))
   } yield selfClient
 
