@@ -262,7 +262,7 @@ class MainActivity extends BaseActivity
   def replaceMainFragment(fragment: Fragment, tag: String, addToBackStack: Boolean = true): Unit = {
     verbose(s"replaceMainFragment: $tag")
     val frag = Option(getSupportFragmentManager.findFragmentByTag(tag)) match {
-      case Some(f) => f
+      case Some(f) => returning(f)(_.setArguments(fragment.getArguments))
       case _       => fragment
     }
     val transaction = getSupportFragmentManager

@@ -40,8 +40,8 @@ class VerifyEmailFragment extends FragmentHelper {
 
   lazy val am = inject[Signal[AccountManager]]
 
-  lazy val email = getStringArg(EmailArg).map(EmailAddress)
-  lazy val hasPw = getBooleanArg(HasPasswordArg)
+  def email = getStringArg(EmailArg).map(EmailAddress)
+  def hasPw = getBooleanArg(HasPasswordArg)
 
   lazy val accounts = inject[AccountsService]
 
