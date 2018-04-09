@@ -17,6 +17,7 @@
  */
 package com.waz.zclient
 
+import java.io.File
 import java.util.Calendar
 
 import android.app.{Activity, ActivityManager, NotificationManager}
@@ -215,14 +216,17 @@ object WireApplication {
   protected def clearOldVideoFiles(context: Context): Unit = {
     val oneWeekAgo = Calendar.getInstance
     oneWeekAgo.add(Calendar.DAY_OF_YEAR, -7)
-    Option(context.getExternalCacheDir).foreach { _.listFiles().foreach { file =>
-      val fileName = file.getName
-      val fileModified = Calendar.getInstance()
-      fileModified.setTimeInMillis(file.lastModified)
-      if (fileName.startsWith("VID_") && fileName.endsWith(".mp4") && fileModified.before(oneWeekAgo)) {
-        file.delete()
+    Option(context.getExternalCacheDir).foreach { dir =>
+      Option(dir.listFiles).fold[List[File]](Nil)(_.toList).foreach { file =>
+        val fileName = file.getName
+        val fileModified = Calendar.getInstance()
+        fileModified.setTimeInMillis(file.lastModified)
+        if (fileName.startsWith("VID_") &&
+            fileName.endsWith(".mp4") &&
+            fileModified.before(oneWeekAgo)
+        ) file.delete()
       }
-    }}
+    }
   }
 }
 
