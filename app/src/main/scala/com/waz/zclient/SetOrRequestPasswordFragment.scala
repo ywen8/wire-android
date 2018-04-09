@@ -124,9 +124,10 @@ class SetOrRequestPasswordFragment extends FragmentHelper with OnBackPressedList
 
     confirmationButton.foreach(_.setAccentColor(Color.WHITE))
 
-    Option(findById[View](R.id.ttv_signin_forgot_password)).foreach(_.onClick {
-      inject[BrowserController].openUrl(getString(R.string.url_password_reset))
-    })
+    Option(findById[View](R.id.ttv_signin_forgot_password)).foreach { forgotPw =>
+      forgotPw.onClick(inject[BrowserController].openUrl(getString(R.string.url_password_reset)))
+      forgotPw.setVisible(hasPw)
+    }
   }
 
   override def onBackPressed() = true // can't go back...
