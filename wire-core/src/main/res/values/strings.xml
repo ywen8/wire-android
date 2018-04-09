@@ -1361,6 +1361,6 @@
 
     <string name="restore_override_alert_title">Restore history</string>
     <string name="restore_override_alert_text">The backup contents will replace the conversation history on this device. You can only restore history from a backup of the same platform.</string>
-    <string name="restore_override_alert_ok">Choose backup file</string>
+    <string name="restore_override_alert_ok">Choose Backup File</string>
 
 </resources>
