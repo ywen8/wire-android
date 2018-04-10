@@ -227,7 +227,7 @@ class VerifyEmailFragment extends CredentialsFragment {
     emailChecking.cancel()
   }
 
-  private def back() = activity.replaceMainFragment(AddEmailFragment(hasPw), AddEmailFragment.Tag)
+  private def back() = activity.replaceMainFragment(AddEmailFragment(hasPw), AddEmailFragment.Tag, reverse = true)
 
   override def onBackPressed(): Boolean = {
     back()
