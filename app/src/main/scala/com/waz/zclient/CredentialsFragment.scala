@@ -316,7 +316,7 @@ class SetOrRequestPasswordFragment extends CredentialsFragment {
 
     Option(findById[View](R.id.ttv_signin_forgot_password)).foreach { forgotPw =>
       forgotPw.onClick(inject[BrowserController].openUrl(getString(R.string.url_password_reset)))
-      forgotPw.setVisible(hasPw)
+      forgotPw.setVisibility(if (hasPw) View.VISIBLE else View.INVISIBLE)
     }
   }
 }
