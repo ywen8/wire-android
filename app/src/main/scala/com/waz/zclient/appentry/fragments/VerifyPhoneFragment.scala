@@ -200,7 +200,10 @@ class VerifyPhoneFragment extends BaseFragment[VerifyPhoneFragment.Container] wi
           })
         case Right(userId) =>
           getContainer.enableProgress(false)
-          accountService.createAccountManager(userId, None).foreach(_ => activity.onEnterApplication(false))
+          for {
+            _ <- accountService.createAccountManager(userId, None)
+            _ <- accountService.setAccount(Some(userId))
+          } yield activity.onEnterApplication(false)
       }
     } else {
       accountService.verifyPhoneNumber(PhoneNumber(phone), ConfirmationCode(code), dryRun = true).foreach {
