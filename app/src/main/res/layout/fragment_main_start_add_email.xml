@@ -67,7 +67,7 @@
         <com.waz.zclient.ui.text.TypefaceTextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/add_email_address_explanation"
+            android:text="@string/email_and_password_explanation"
             app:w_font="@string/wire__typeface__light"
             android:textSize="@dimen/wire__text_size__regular"
             android:textColor="@color/white"

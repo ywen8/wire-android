@@ -283,8 +283,10 @@ class SetOrRequestPasswordFragment extends CredentialsFragment {
           } yield resp match {
             case Right(_) => activity.startFirstFragment()
             case Left(ErrorResponse(Status.Forbidden, _, _)) =>
-              showToast()
-            case Left(err) => showError(err) //TODO handle failure on set password because password already set
+              //TODO implement new BE check to see if user has a password - avoid this scenario
+              showToast(R.string.set_password_failed_message)
+              accounts.logout(am.userId).map(_ => activity.startFirstFragment())
+            case Left(err) => showError(err)
           }
       } yield {}
     }
@@ -297,8 +299,8 @@ class SetOrRequestPasswordFragment extends CredentialsFragment {
 
   override def onViewCreated(view: View, savedInstanceState: Bundle) = {
 
-    val header = getString(if (hasPw) R.string.provide_password else R.string.add_password)
-    val info   = getString(if (hasPw) R.string.provide_password_explanation else R.string.add_email_address_explanation, email.str)
+    val header = getString(if (hasPw) R.string.new_device_password else R.string.set_a_password)
+    val info   = getString(if (hasPw) R.string.new_device_password_explanation else R.string.email_and_password_explanation, email.str)
 
     findById[TextView](getView, R.id.info_text_header).setText(header)
     findById[TextView](getView, R.id.info_text).setText(info)
