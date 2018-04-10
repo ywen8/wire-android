@@ -22,6 +22,7 @@ import android.os.Bundle
 import android.view.{LayoutInflater, View, ViewGroup}
 import android.widget.TextView
 import com.waz.ZLog.ImplicitTag._
+import com.waz.api.EmailCredentials
 import com.waz.api.impl.ErrorResponse
 import com.waz.content.UserPreferences
 import com.waz.content.UserPreferences.{PendingEmail, PendingPassword}
@@ -65,7 +66,7 @@ abstract class CredentialsFragment extends FragmentHelper {
     super.onPause()
   }
 
-  def showError(err: ErrorResponse) = { //this method is needed to avoid a compiler error - don't inline
+  def showError(err: ErrorResponse) = {
     spinner.hideSpinner()
     //getContainer.showError(EntryError(error.getCode, error.getLabel, SignInMethod(Register, Email)))
     showToast(err match { // TODO show proper dialog...
@@ -252,31 +253,40 @@ class SetOrRequestPasswordFragment extends CredentialsFragment {
     case _ => false
   }
 
+  lazy val email = displayEmail.get //email is a necessary paramater for the fragment, it should always be set - let's just crash if it's not
+
   lazy val confirmationButton = returning(view[PhoneConfirmationButton](R.id.confirmation_button)) { vh =>
     vh.onClick { _ =>
       spinner.showSpinner(LoadingIndicatorView.Spinner)
       for {
         am       <- am.head
         Some(pw) <- password.head //pw should be defined
-      } yield
-        if (hasPw) am.getOrRegisterClient(Some(pw)).map {
-          case Right(state) =>
-            (am.storage.userPrefs(PendingPassword) := false).map { _ =>
-              keyboard.hideKeyboardIfVisible()
-              state match {
-                case LimitReached => activity.replaceMainFragment(OtrDeviceLimitFragment.newInstance, OtrDeviceLimitFragment.Tag, addToBackStack = false)
-                case _ => activity.startFirstFragment()
+        _        <- if (hasPw)
+          for {
+            resp  <- am.auth.onPasswordReset(Some(EmailCredentials(email, pw)))
+            resp2 <- resp.fold(e => Future.successful(Left(e)), _ => am.getOrRegisterClient(Some(pw)))
+          } yield resp2 match {
+            case Right(state) =>
+              (am.storage.userPrefs(PendingPassword) := false).map { _ =>
+                keyboard.hideKeyboardIfVisible()
+                state match {
+                  case LimitReached => activity.replaceMainFragment(OtrDeviceLimitFragment.newInstance, OtrDeviceLimitFragment.Tag, addToBackStack = false)
+                  case _ => activity.startFirstFragment()
+                }
               }
-            }
-          case Left(err) => showError(err)
-        } else
-          am.setPassword(pw).flatMap { //TODO perform login request after setting password in case the user has reset their password in the meantime
-            case Right(_)  => (am.storage.userPrefs(PendingPassword) := false).map(_ => Right({}))
-            case Left(err) => Future.successful(Left(err))
-          }.map {
-            case Right(_) => activity.startFirstFragment()
             case Left(err) => showError(err)
           }
+        else
+          for {
+            resp <- am.setPassword(pw)
+            _    <- resp.fold(e => Future.successful(Left(e)), _ => (am.storage.userPrefs(PendingPassword) := false).map(_ => Right({})))
+          } yield resp match {
+            case Right(_) => activity.startFirstFragment()
+            case Left(ErrorResponse(Status.Forbidden, _, _)) =>
+              showToast()
+            case Left(err) => showError(err) //TODO handle failure on set password because password already set
+          }
+      } yield {}
     }
 
     isValid.map( if(_) CONFIRM else NONE).onUi ( st => vh.foreach(_.setState(st)))
@@ -288,7 +298,7 @@ class SetOrRequestPasswordFragment extends CredentialsFragment {
   override def onViewCreated(view: View, savedInstanceState: Bundle) = {
 
     val header = getString(if (hasPw) R.string.provide_password else R.string.add_password)
-    val info   = getString(if (hasPw) R.string.provide_password_explanation else R.string.add_email_address_explanation, displayEmail.map(_.str).getOrElse("no_email_set"))
+    val info   = getString(if (hasPw) R.string.provide_password_explanation else R.string.add_email_address_explanation, email.str)
 
     findById[TextView](getView, R.id.info_text_header).setText(header)
     findById[TextView](getView, R.id.info_text).setText(info)

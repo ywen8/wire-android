@@ -335,8 +335,7 @@ class MainActivity extends BaseActivity
   private def onPasswordWasReset() =
     for {
       Some(am) <- accountsService.activeAccountManager.head
-      token    <- accountsService.activeAccount.map(_.flatMap(_.accessToken)).head
-      _        <- am.auth.checkLoggedIn(token)
+      _        <- am.auth.onPasswordReset(emailCredentials = None)
     } yield {}
 
   def handleIntent(intent: Intent) = {
