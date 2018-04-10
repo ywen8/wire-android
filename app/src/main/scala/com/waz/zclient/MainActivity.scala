@@ -260,7 +260,7 @@ class MainActivity extends BaseActivity
     }
   }
 
-  def replaceMainFragment(fragment: Fragment, tag: String, addToBackStack: Boolean = true): Unit = {
+  def replaceMainFragment(fragment: Fragment, tag: String, reverse: Boolean = false, addToBackStack: Boolean = true): Unit = {
     verbose(s"replaceMainFragment: $tag")
     val frag = Option(getSupportFragmentManager.findFragmentByTag(tag)) match {
       case Some(f) => returning(f)(_.setArguments(fragment.getArguments))
@@ -268,6 +268,10 @@ class MainActivity extends BaseActivity
     }
     val transaction = getSupportFragmentManager
       .beginTransaction
+      .setCustomAnimations(
+        if (reverse) R.anim.fragment_animation_second_page_slide_in_from_left_no_alpha else R.anim.fragment_animation_second_page_slide_in_from_right_no_alpha,
+        if (reverse) R.anim.fragment_animation_second_page_slide_out_to_right_no_alpha else R.anim.fragment_animation_second_page_slide_out_to_left_no_alpha
+      )
       .replace(R.id.fl_main_content, frag, tag)
     if (addToBackStack) transaction.addToBackStack(tag)
     transaction.commit

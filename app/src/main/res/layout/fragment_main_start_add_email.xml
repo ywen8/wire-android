@@ -34,8 +34,8 @@
         android:id="@+id/back_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:paddingRight="@dimen/first_time__create_account__padding_right"
-        android:paddingLeft="@dimen/first_time__create_account__padding_left"
+        android:paddingRight="@dimen/wire__padding__regular"
+        android:paddingLeft="@dimen/wire__padding__regular"
         android:paddingTop="@dimen/wire__padding__big"
         app:w_font="@string/wire__typeface__light"
         android:textSize="@dimen/wire__text_size__regular"
@@ -49,8 +49,8 @@
         android:layout_height="wrap_content"
         android:layout_gravity="bottom"
         android:layout_marginBottom="@dimen/credentials_fragment_bottom_padding"
-        android:layout_marginLeft="@dimen/new_reg__body_left_margin"
-        android:layout_marginRight="@dimen/new_reg__body_right_margin"
+        android:layout_marginLeft="@dimen/wire__padding__regular"
+        android:layout_marginRight="@dimen/wire__padding__regular"
         >
 
         <!-- Info Text Header-->
@@ -68,6 +68,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/email_and_password_explanation"
+            android:layout_marginTop="@dimen/wire__padding__small"
             app:w_font="@string/wire__typeface__light"
             android:textSize="@dimen/wire__text_size__regular"
             android:textColor="@color/white"
@@ -77,7 +78,7 @@
         <FrameLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/wire__padding__small"
+            android:layout_marginTop="@dimen/wire__padding__regular"
         >
 
             <com.waz.zclient.pages.main.profile.views.GuidedEditText

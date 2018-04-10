@@ -120,8 +120,9 @@ class AddEmailFragment extends CredentialsFragment {
       spinner.showSpinner(LoadingIndicatorView.Spinner)
       for {
         am      <- am.head
+        pending <- am.storage.userPrefs(PendingEmail).apply()
         Some(e) <- email.head
-        resp    <- am.setEmail(e)
+        resp    <- if (!pending.contains(e)) am.setEmail(e) else Future.successful(Right({})) //email already set, avoid unecessary request
         _       <- resp match {
           case Right(_) => am.storage.userPrefs(PendingEmail) := Some(e)
           case Left(_) => Future.successful({})
@@ -227,7 +228,7 @@ class VerifyEmailFragment extends CredentialsFragment {
     emailChecking.cancel()
   }
 
-  private def back() = activity.replaceMainFragment(AddEmailFragment(hasPw), AddEmailFragment.Tag)
+  private def back() = activity.replaceMainFragment(AddEmailFragment(hasPw), AddEmailFragment.Tag, reverse = true)
 
   override def onBackPressed(): Boolean = {
     back()
@@ -316,7 +317,7 @@ class SetOrRequestPasswordFragment extends CredentialsFragment {
 
     Option(findById[View](R.id.ttv_signin_forgot_password)).foreach { forgotPw =>
       forgotPw.onClick(inject[BrowserController].openUrl(getString(R.string.url_password_reset)))
-      forgotPw.setVisible(hasPw)
+      forgotPw.setVisibility(if (hasPw) View.VISIBLE else View.INVISIBLE)
     }
   }
 }
