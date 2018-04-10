@@ -407,8 +407,9 @@ class MainActivity extends BaseActivity
   }
 
   override def logout() = {
-    getSupportFragmentManager.popBackStackImmediate
-    accountsService.activeAccountId.head.flatMap(_.fold(Future.successful({}))(accountsService.logout))
+    accountsService.activeAccountId.head.flatMap(_.fold(Future.successful({}))(accountsService.logout)).map { _ =>
+      startFirstFragment()
+    } (Threading.Ui)
   }
 
   def manageDevices() = {
