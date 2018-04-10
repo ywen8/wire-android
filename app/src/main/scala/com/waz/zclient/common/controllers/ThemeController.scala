@@ -20,7 +20,7 @@ package com.waz.zclient.common.controllers
 import android.content.Context
 import com.waz.ZLog.ImplicitTag._
 import com.waz.content.UserPreferences.DarkTheme
-import com.waz.service.ZMessaging
+import com.waz.service.AccountManager
 import com.waz.threading.Threading
 import com.waz.utils.events.{EventContext, Signal}
 import com.waz.zclient.ui.theme.{OptionsDarkTheme, OptionsLightTheme, OptionsTheme}
@@ -30,14 +30,14 @@ import scala.concurrent.Await
 import scala.concurrent.duration._
 
 class ThemeController(implicit injector: Injector, context: Context, ec: EventContext) extends Injectable {
-  private val zms = inject[Signal[ZMessaging]]
+  private val am = inject[Signal[AccountManager]]
 
   import Threading.Implicits.Background
 
   val optionsDarkTheme:  OptionsTheme = new OptionsDarkTheme(context)
   val optionsLightTheme: OptionsTheme = new OptionsLightTheme(context)
 
-  val darkThemePref = zms.map(_.userPrefs.preference(DarkTheme))
+  val darkThemePref = am.map(_.userPrefs.preference(DarkTheme))
 
   val darkThemeSet = darkThemePref.flatMap(_.signal).disableAutowiring()
 

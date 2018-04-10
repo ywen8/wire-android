@@ -96,7 +96,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="top|left"
-        android:layout_marginLeft="@dimen/first_time__create_account__padding_left"
+        android:layout_marginLeft="@dimen/wire__padding__regular"
         android:layout_marginTop="@dimen/first_time__logo__padding_top"
     >
 
