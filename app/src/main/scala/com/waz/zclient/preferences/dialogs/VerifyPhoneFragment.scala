@@ -26,7 +26,10 @@ import android.view.View.OnKeyListener
 import android.view.WindowManager.LayoutParams.{SOFT_INPUT_ADJUST_RESIZE, SOFT_INPUT_STATE_ALWAYS_HIDDEN}
 import android.view.{KeyEvent, LayoutInflater, View, ViewGroup}
 import android.widget.{EditText, TextView}
-import com.waz.model.PhoneNumber
+import com.waz.client.RegistrationClientImpl.ActivateResult
+import com.waz.model.{ConfirmationCode, PhoneNumber}
+import com.waz.service.AccountsService
+import com.waz.threading.Threading
 import com.waz.utils.returning
 import com.waz.zclient.pages.main.profile.views.OnTextChangedListener
 import com.waz.zclient.ui.utils.TypefaceUtils
@@ -38,6 +41,7 @@ class VerifyPhoneFragment extends DialogFragment with FragmentHelper {
 
   private val verificationCode = new Array[Char](CodeLength)
   private var textBoxes = Seq.empty[EditText]
+  private lazy val accountsService = inject[AccountsService]
 
   override def onCreate(savedInstanceState: Bundle) = {
     super.onCreate(savedInstanceState)
@@ -65,13 +69,10 @@ class VerifyPhoneFragment extends DialogFragment with FragmentHelper {
     val okButton = returning(findById[View](view, R.id.tv__ok_button)) { v =>
       v.setEnabled(false)
       v.onClick {
-        //TODO
-//        ZMessaging.accountsService.flatMap {
-//          _.verifyPhoneNumber(PhoneCredentials(phoneNumber, Option(ConfirmationCode(new String(verificationCode)))), KindOfVerification.VERIFY_ON_UPDATE).map {
-//            case Right(()) => dismiss()
-//            case _         => verificationCodeInputLayout.setError(getString(R.string.new_reg_phone_generic_error_header))
-//          } (Threading.Ui)
-//        }
+        accountsService.verifyPhoneNumber(phoneNumber, ConfirmationCode(new String(verificationCode)), dryRun = false).map {
+          case Right(()) => dismiss()
+          case _ => verificationCodeInputLayout.setError(getString(R.string.new_reg_phone_generic_error_header))
+        }(Threading.Ui)
       }
     }
 
@@ -82,17 +83,14 @@ class VerifyPhoneFragment extends DialogFragment with FragmentHelper {
       v.onClick {
         v.animate.alpha(0f).start()
 
-        //TODO
-//        ZMessaging.accountsService.flatMap {
-//          _.requestPhoneConfirmationCode(phoneNumber, KindOfAccess.REGISTRATION).map {
-//            case ActivateResult.Success =>
-//              v.animate.alpha(1f).start()
-//            case _ =>
-//              v.animate.alpha(1f).start()
-//              verificationCodeInputLayout.setError(getString(R.string.new_reg_phone_generic_error_header))
-//            //TODO: error dialog
-//          } (Threading.Ui)
-//        }
+        accountsService.requestPhoneCode(phoneNumber, login = false).map {
+          case ActivateResult.Success =>
+            v.animate.alpha(1f).start()
+          case _ =>
+            v.animate.alpha(1f).start()
+            verificationCodeInputLayout.setError(getString(R.string.new_reg_phone_generic_error_header))
+          //TODO: error dialog
+        }(Threading.Ui)
       }
     }
 
