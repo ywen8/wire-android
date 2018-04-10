@@ -120,8 +120,9 @@ class AddEmailFragment extends CredentialsFragment {
       spinner.showSpinner(LoadingIndicatorView.Spinner)
       for {
         am      <- am.head
+        pending <- am.storage.userPrefs(PendingEmail).apply()
         Some(e) <- email.head
-        resp    <- am.setEmail(e)
+        resp    <- if (!pending.contains(e)) am.setEmail(e) else Future.successful(Right({})) //email already set, avoid unecessary request
         _       <- resp match {
           case Right(_) => am.storage.userPrefs(PendingEmail) := Some(e)
           case Left(_) => Future.successful({})
