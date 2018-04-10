@@ -102,7 +102,7 @@ class FirstLaunchAfterLoginFragment extends FragmentHelper with View.OnClickList
       case R.id.zb__first_launch__confirm =>
         implicit val ec = Threading.Ui
         getStringArg(UserIdArg).map(UserId(_)).foreach { userId =>
-          accountsService.enterAccount(userId, None)
+          accountsService.createAccountManager(userId, None)
             .flatMap(_ => accountsService.setAccount(Some(userId)))
             .foreach(_ => activity.onEnterApplication(false))
         }
