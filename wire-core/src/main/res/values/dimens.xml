@@ -946,4 +946,7 @@
     <dimen name="next_indicator_size">12dp</dimen>
     <dimen name="participant_initials_text_size">64sp</dimen>
     <dimen name="backup_export_icon_size">96dp</dimen>
+    <dimen name="credentials_fragment_bottom_padding">36dp</dimen>
+
+
 </resources>

@@ -282,11 +282,12 @@ class SetOrRequestPasswordFragment extends CredentialsFragment {
             _    <- resp.fold(e => Future.successful(Left(e)), _ => (am.storage.userPrefs(PendingPassword) := false).map(_ => Right({})))
           } yield resp match {
             case Right(_) => activity.startFirstFragment()
-            case Left(ErrorResponse(Status.Forbidden, _, _)) =>
-              //TODO implement new BE check to see if user has a password - avoid this scenario
-              showToast(R.string.set_password_failed_message)
-              accounts.logout(am.userId).map(_ => activity.startFirstFragment())
-            case Left(err) => showError(err)
+            case Left(err) =>
+              if (err.code == Status.Forbidden) {
+                //TODO implement new BE check to see if user has a password - avoid this scenario
+                showToast(R.string.set_password_failed_message)
+                accounts.logout(am.userId).map(_ => activity.startFirstFragment())
+              } else showError(err)
           }
       } yield {}
     }
