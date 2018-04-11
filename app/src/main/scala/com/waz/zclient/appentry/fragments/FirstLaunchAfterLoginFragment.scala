@@ -150,7 +150,7 @@ class FirstLaunchAfterLoginFragment extends FragmentHelper with View.OnClickList
     async {
       val userId = getStringArg(UserIdArg).map(UserId(_))
       if (userId.nonEmpty) {
-        await { accountsService.enterAccount(userId.get, backup) }
+        await { accountsService.createAccountManager(userId.get, backup) }
         await { accountsService.setAccount(userId) }
         activity.onEnterApplication(openSettings = false)
       }
