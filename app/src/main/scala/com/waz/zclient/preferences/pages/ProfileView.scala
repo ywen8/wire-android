@@ -174,7 +174,7 @@ class ProfileViewImpl(context: Context, attrs: AttributeSet, style: Int) extends
           case _ =>
             ""
         }
-      s"${device.model} (${device.label})\n$time"
+      s"${device.model}${if (device.label.isEmpty) "" else s" (${device.label})"}\n$time"
     }.mkString("\n\n")
 
     val infoMessage = context.getString(R.string.new_devices_dialog_info)
