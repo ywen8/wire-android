@@ -25,7 +25,7 @@ import com.waz.utils.events.EventContext
 import com.waz.utils.returning
 import com.waz.zclient.conversation.ParticipantDetailsTab
 import com.waz.zclient.utils.ContextUtils._
-import com.waz.zclient.utils.ViewUtils
+import com.waz.zclient.utils.RichView
 import com.waz.zclient.views.menus.FooterMenuCallback
 import com.waz.zclient.{Injectable, Injector, R}
 
@@ -44,7 +44,7 @@ class TabbedParticipantPagerAdapter(participantOtrDeviceAdapter: ParticipantOtrD
           rv.setLayoutManager(new LinearLayoutManager(context))
           rv.setHasFixedSize(true)
           rv.setAdapter(participantOtrDeviceAdapter)
-          ViewUtils.setPaddingBottom(rv, getDimenPx(R.dimen.participants__otr_device__padding_bottom))
+          rv.setPaddingBottomRes(R.dimen.participants__otr_device__padding_bottom)
           rv.setClipToPadding(false)
         }
       case _ => throw new RuntimeException("Unexpected ViewPager position")

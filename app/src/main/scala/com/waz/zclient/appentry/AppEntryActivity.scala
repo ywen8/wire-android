@@ -17,8 +17,8 @@
  */
 package com.waz.zclient.appentry
 
+import android.content.Intent
 import android.content.res.Configuration
-import android.content.{DialogInterface, Intent}
 import android.net.Uri
 import android.os.Bundle
 import android.support.v4.app.FragmentManager.OnBackStackChangedListener
@@ -67,11 +67,7 @@ object AppEntryActivity {
     }
 }
 
-class AppEntryActivity extends BaseActivity
-  with VerifyPhoneFragment.Container
-  with PhoneSetNameFragment.Container
-  with CountryDialogFragment.Container
-  with SignInFragment.Container {
+class AppEntryActivity extends BaseActivity {
 
   private lazy val progressView = ViewUtils.getView(this, R.id.liv__progress).asInstanceOf[LoadingIndicatorView]
   private lazy val countryController: CountryController = new CountryController(this)
@@ -263,19 +259,6 @@ class AppEntryActivity extends BaseActivity
     getSupportFragmentManager.popBackStackImmediate
     KeyboardUtils.showKeyboard(this)
   }
-
-  def showError(entryError: EntryError, okCallback: => Unit = {}): Unit =
-    ViewUtils.showAlertDialog(this,
-      entryError.headerResource,
-      entryError.bodyResource,
-      R.string.reg__phone_alert__button,
-      new DialogInterface.OnClickListener() {
-        def onClick(dialog: DialogInterface, which: Int): Unit = {
-          dialog.dismiss()
-          okCallback
-        }
-      },
-      false)
 
   def showFragment(f: => Fragment, tag: String, animated: Boolean = true): Unit = {
     val transaction = getSupportFragmentManager.beginTransaction()

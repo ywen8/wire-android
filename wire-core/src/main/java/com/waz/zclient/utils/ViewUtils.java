@@ -28,8 +28,6 @@ import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.graphics.Point;
 import android.graphics.drawable.Drawable;
-import android.graphics.drawable.ShapeDrawable;
-import android.graphics.drawable.shapes.RoundRectShape;
 import android.support.annotation.IdRes;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -49,10 +47,6 @@ public class ViewUtils {
 
     private static boolean isInPortrait(@NonNull Configuration configuration) {
         return configuration.orientation == Configuration.ORIENTATION_PORTRAIT;
-    }
-
-    public static void lockCurrentOrientation(Activity activity, SquareOrientation squareOrientation) {
-        activity.setRequestedOrientation(squareOrientation.activityOrientation);
     }
 
     public static void unlockOrientation(Activity activity) {
@@ -116,50 +110,14 @@ public class ViewUtils {
         return (int) (dp * scale + 0.5f);
     }
 
-    public static void setPaddingStart(View view, int startPadding) {
-        view.setPaddingRelative(startPadding, view.getPaddingTop(), view.getPaddingEnd(), view.getPaddingBottom());
-    }
-
-    public static void setPaddingEnd(View view, int endPadding) {
-        view.setPaddingRelative(view.getPaddingStart(), view.getPaddingTop(), endPadding, view.getPaddingBottom());
-    }
-
-    public static void setPaddingLeft(View view, int leftPadding) {
-        view.setPadding(leftPadding, view.getPaddingTop(), view.getPaddingRight(), view.getPaddingBottom());
-    }
-
-    public static void setPaddingTop(View view, int topPadding) {
-        view.setPadding(view.getPaddingLeft(), topPadding, view.getPaddingRight(), view.getPaddingBottom());
-    }
-
-    public static void setPaddingRight(View view, int rightPadding) {
-        view.setPadding(view.getPaddingLeft(), view.getPaddingTop(), rightPadding, view.getPaddingBottom());
-    }
-
     public static void setPaddingBottom(View view, int bottomPadding) {
         view.setPadding(view.getPaddingLeft(), view.getPaddingTop(), view.getPaddingRight(), bottomPadding);
-    }
-
-    public static void setPaddingLeftRight(View view, int padding) {
-        view.setPadding(padding, view.getPaddingTop(), padding, view.getPaddingBottom());
     }
 
     public static Point getLocationOnScreen(View view) {
         int[] location = new int[2];
         view.getLocationOnScreen(location);
         return new Point(location[0], location[1]);
-    }
-
-    public static Drawable getRoundedRect(int cornerRadius, int backgroundColor) {
-        RoundRectShape rect = new RoundRectShape(
-            new float[] {cornerRadius, cornerRadius, cornerRadius, cornerRadius, cornerRadius, cornerRadius, cornerRadius, cornerRadius},
-            null,
-            null);
-
-        ShapeDrawable background = new ShapeDrawable(rect);
-        background.getPaint().setColor(backgroundColor);
-
-        return background;
     }
 
     public static void fadeInView(@Nullable final View view) {
@@ -224,43 +182,13 @@ public class ViewUtils {
             .start();
     }
 
-    public static void setHeight(View v, int height) {
-        ViewGroup.LayoutParams params = v.getLayoutParams();
-        if (params == null) {
-            params = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, height);
-        } else {
-            params.height = height;
-        }
-        v.setLayoutParams(params);
-
-    }
-
-    public static void setWidth(View v, int width) {
-        ViewGroup.LayoutParams params = v.getLayoutParams();
-        if (params == null) {
-            params = new ViewGroup.LayoutParams(width, ViewGroup.LayoutParams.WRAP_CONTENT);
-        } else {
-            params.width = width;
-        }
-        v.setLayoutParams(params);
-    }
-
     public static void setMarginTop(View v, int topMargin) {
         ((ViewGroup.MarginLayoutParams) v.getLayoutParams()).topMargin = topMargin;
-        v.invalidate();
-    }
-    public static void setMarginBottom(View v, int bottomMargin) {
-        ((ViewGroup.MarginLayoutParams) v.getLayoutParams()).bottomMargin = bottomMargin;
         v.invalidate();
     }
 
     public static void setMarginLeft(View v, int leftMargin) {
         ((ViewGroup.MarginLayoutParams) v.getLayoutParams()).leftMargin = leftMargin;
-        v.invalidate();
-    }
-
-    public static void setMarginRight(View v, int rightMargin) {
-        ((ViewGroup.MarginLayoutParams) v.getLayoutParams()).rightMargin = rightMargin;
         v.invalidate();
     }
 

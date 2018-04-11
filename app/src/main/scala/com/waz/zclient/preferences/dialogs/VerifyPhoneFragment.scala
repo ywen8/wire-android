@@ -26,7 +26,6 @@ import android.view.View.OnKeyListener
 import android.view.WindowManager.LayoutParams.{SOFT_INPUT_ADJUST_RESIZE, SOFT_INPUT_STATE_ALWAYS_HIDDEN}
 import android.view.{KeyEvent, LayoutInflater, View, ViewGroup}
 import android.widget.{EditText, TextView}
-import com.waz.client.RegistrationClientImpl.ActivateResult
 import com.waz.model.{ConfirmationCode, PhoneNumber}
 import com.waz.service.AccountsService
 import com.waz.threading.Threading
@@ -71,7 +70,7 @@ class VerifyPhoneFragment extends DialogFragment with FragmentHelper {
       v.onClick {
         accountsService.verifyPhoneNumber(phoneNumber, ConfirmationCode(new String(verificationCode)), dryRun = false).map {
           case Right(()) => dismiss()
-          case _ => verificationCodeInputLayout.setError(getString(R.string.new_reg_phone_generic_error_header))
+          case _ => verificationCodeInputLayout.setError(getString(R.string.generic_error_header))
         }(Threading.Ui)
       }
     }
@@ -83,13 +82,11 @@ class VerifyPhoneFragment extends DialogFragment with FragmentHelper {
       v.onClick {
         v.animate.alpha(0f).start()
 
-        accountsService.requestPhoneCode(phoneNumber, login = false).map {
-          case ActivateResult.Success =>
-            v.animate.alpha(1f).start()
-          case _ =>
-            v.animate.alpha(1f).start()
-            verificationCodeInputLayout.setError(getString(R.string.new_reg_phone_generic_error_header))
-          //TODO: error dialog
+        accountsService.requestPhoneCode(phoneNumber, login = false).map { res =>
+          v.animate.alpha(1f).start()
+          res.left.foreach { _ =>
+            verificationCodeInputLayout.setError(getString(R.string.generic_error_header))
+          }
         }(Threading.Ui)
       }
     }

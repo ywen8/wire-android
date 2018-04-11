@@ -20,24 +20,20 @@ package com.waz.zclient.appentry.fragments
 import android.app.{AlertDialog, Dialog}
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
+import android.support.v4.app.DialogFragment
 import android.support.v4.content.ContextCompat
 import android.view.{LayoutInflater, View}
 import android.widget.{AdapterView, ListView}
-import com.waz.zclient.appentry.fragments.CountryDialogFragment._
-import com.waz.zclient.newreg.fragments.country.{CountryCodeAdapter, CountryController}
-import com.waz.zclient.pages.BaseDialogFragment
+import com.waz.zclient.appentry.AppEntryActivity
+import com.waz.zclient.newreg.fragments.country.CountryCodeAdapter
 import com.waz.zclient.utils.ViewUtils
 import com.waz.zclient.{FragmentHelper, R}
 
 object CountryDialogFragment {
   val TAG  = classOf[CountryDialogFragment].getName
-
-  trait Container {
-    def getCountryController: CountryController
-  }
 }
 
-class CountryDialogFragment extends BaseDialogFragment[Container] with FragmentHelper with AdapterView.OnItemClickListener {
+class CountryDialogFragment extends DialogFragment with FragmentHelper with AdapterView.OnItemClickListener {
 
   private lazy val countryAdapter = new CountryCodeAdapter
 
@@ -54,11 +50,13 @@ class CountryDialogFragment extends BaseDialogFragment[Container] with FragmentH
 
   override def onStart() = {
     super.onStart()
-    countryAdapter.setCountryList(getContainer.getCountryController.getSortedCountries)
+    countryAdapter.setCountryList(activity.getCountryController.getSortedCountries)
   }
 
-  def onItemClick(adapterView: AdapterView[_], view: View, i: Int, l: Long): Unit = {
-    getContainer.getCountryController.setCountry(countryAdapter.getItem(i))
+  def activity = getActivity.asInstanceOf[AppEntryActivity]
+
+  override def onItemClick(adapterView: AdapterView[_], view: View, i: Int, l: Long): Unit = {
+    activity.getCountryController.setCountry(countryAdapter.getItem(i))
     dismiss()
   }
 }

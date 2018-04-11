@@ -34,6 +34,7 @@ import com.waz.threading.Threading.Implicits.Ui
 import com.waz.threading.{CancellableFuture, Threading}
 import com.waz.utils.events.Signal
 import com.waz.utils.{returning, _}
+import com.waz.zclient.appentry.DialogErrorMessage.EmailError
 import com.waz.zclient.common.controllers.BrowserController
 import com.waz.zclient.common.controllers.global.KeyboardController
 import com.waz.zclient.newreg.views.PhoneConfirmationButton
@@ -41,7 +42,7 @@ import com.waz.zclient.newreg.views.PhoneConfirmationButton.State.{CONFIRM, NONE
 import com.waz.zclient.pages.main.profile.validator.{EmailValidator, PasswordValidator}
 import com.waz.zclient.pages.main.profile.views.GuidedEditText
 import com.waz.zclient.ui.utils.TextViewUtils
-import com.waz.zclient.utils.ContextUtils.showToast
+import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.utils._
 import com.waz.zclient.views.LoadingIndicatorView
 import com.waz.znet.Response.Status
@@ -68,11 +69,7 @@ abstract class CredentialsFragment extends FragmentHelper {
 
   def showError(err: ErrorResponse) = {
     spinner.hideSpinner()
-    //getContainer.showError(EntryError(error.getCode, error.getLabel, SignInMethod(Register, Email)))
-    showToast(err match { // TODO show proper dialog...
-      case _@ErrorResponse(Status.Forbidden, _, "invalid-credentials") => "Password incorrect - please try again"
-      case _ => s"Something went wrong, please try again: $err"
-    })
+    showErrorDialog(EmailError(err))
   }
 
   def activity = getActivity.asInstanceOf[MainActivity]
@@ -115,6 +112,8 @@ class AddEmailFragment extends CredentialsFragment {
     }
   }
 
+  lazy val emailInput = view[GuidedEditText](R.id.email_field)
+
   lazy val confirmationButton = returning(view[PhoneConfirmationButton](R.id.confirmation_button)) { vh =>
     vh.onClick { _ =>
       spinner.showSpinner(LoadingIndicatorView.Spinner)
@@ -138,6 +137,14 @@ class AddEmailFragment extends CredentialsFragment {
     isValid.map( if(_) CONFIRM else NONE).onUi ( st => vh.foreach(_.setState(st)))
   }
 
+  override def showError(err: ErrorResponse) = {
+    super.showError(err).map(_ =>
+      if (!isDetached) {
+        keyboard.showKeyboardIfHidden()
+        emailInput.foreach(_.requestFocus())
+      }
+    )
+  }
 
   override def onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState: Bundle) =
     inflater.inflate(R.layout.fragment_main_start_add_email, container, false)
@@ -145,10 +152,10 @@ class AddEmailFragment extends CredentialsFragment {
   override def onViewCreated(view: View, savedInstanceState: Bundle) = {
     super.onViewCreated(view, savedInstanceState)
 
-    Option(findById[GuidedEditText](view, R.id.email_field)).foreach { field =>
-      field.setValidator(emailValidator)
-      field.setResource(R.layout.guided_edit_text_sign_in__email)
-      field.getEditText.addTextListener(txt => email ! Some(EmailAddress(txt)))
+    emailInput.foreach { v =>
+      v.setValidator(emailValidator)
+      v.setResource(R.layout.guided_edit_text_sign_in__email)
+      v.getEditText.addTextListener(txt => email ! Some(EmailAddress(txt)))
     }
 
     backButton
@@ -256,6 +263,9 @@ class SetOrRequestPasswordFragment extends CredentialsFragment {
 
   lazy val email = displayEmail.get //email is a necessary paramater for the fragment, it should always be set - let's just crash if it's not
 
+  lazy val passwordInput = view[GuidedEditText](R.id.password_field)
+
+
   lazy val confirmationButton = returning(view[PhoneConfirmationButton](R.id.confirmation_button)) { vh =>
     vh.onClick { _ =>
       spinner.showSpinner(LoadingIndicatorView.Spinner)
@@ -285,8 +295,6 @@ class SetOrRequestPasswordFragment extends CredentialsFragment {
             case Right(_) => activity.startFirstFragment()
             case Left(err) =>
               if (err.code == Status.Forbidden) {
-                //TODO implement new BE check to see if user has a password - avoid this scenario
-                showToast(R.string.set_password_failed_message)
                 accounts.logout(am.userId).map(_ => activity.startFirstFragment())
               } else showError(err)
           }
@@ -294,6 +302,15 @@ class SetOrRequestPasswordFragment extends CredentialsFragment {
     }
 
     isValid.map( if(_) CONFIRM else NONE).onUi ( st => vh.foreach(_.setState(st)))
+  }
+
+  override def showError(err: ErrorResponse) = {
+    super.showError(err).map(_ =>
+      if (!isDetached) {
+        keyboard.showKeyboardIfHidden()
+        passwordInput.foreach(_.requestFocus())
+      }
+    )
   }
 
   override def onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState: Bundle) =
@@ -307,10 +324,10 @@ class SetOrRequestPasswordFragment extends CredentialsFragment {
     findById[TextView](getView, R.id.info_text_header).setText(header)
     findById[TextView](getView, R.id.info_text).setText(info)
 
-    Option(findById[GuidedEditText](getView, R.id.password_field)).foreach { field =>
-      field.setValidator(passwordValidator)
-      field.setResource(R.layout.guided_edit_text_sign_in__password)
-      field.getEditText.addTextListener(txt => password ! Some(Password(txt)))
+    passwordInput.foreach { v =>
+      v.setValidator(passwordValidator)
+      v.setResource(R.layout.guided_edit_text_sign_in__password)
+      v.getEditText.addTextListener(txt => password ! Some(Password(txt)))
     }
 
     confirmationButton.foreach(_.setAccentColor(Color.WHITE))

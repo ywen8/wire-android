@@ -22,7 +22,6 @@ import android.os.Bundle
 import android.text.InputType
 import android.view.View
 import com.waz.ZLog
-import com.waz.threading.Threading
 import com.waz.zclient._
 import com.waz.zclient.appentry.CreateTeamFragment
 import com.waz.zclient.common.views.InputBox
@@ -39,7 +38,6 @@ case class SetNameFragment() extends CreateTeamFragment {
   lazy val inputField = view[InputBox](R.id.input_field)
 
   override def onViewCreated(view: View, savedInstanceState: Bundle): Unit = {
-    import Threading.Implicits.Ui
     inputField.foreach { inputField =>
       inputField.setValidator(NameValidator)
       inputField.editText.requestFocus()
@@ -48,7 +46,7 @@ case class SetNameFragment() extends CreateTeamFragment {
       inputField.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PERSON_NAME)
       KeyboardUtils.showKeyboard(context.asInstanceOf[Activity])
       inputField.setOnClick(text =>
-        Future {
+        Future.successful {
           createTeamController.teamUserName = text
           showFragment(SetTeamPasswordFragment(), SetTeamPasswordFragment.Tag)
           None

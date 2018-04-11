@@ -28,8 +28,8 @@ import com.waz.model.{ConfirmationCode, EmailAddress}
 import com.waz.service.tracking.TrackingService
 import com.waz.threading.Threading
 import com.waz.zclient._
-import com.waz.zclient.appentry.fragments.SignInFragment.{Email, Register, SignInMethod}
-import com.waz.zclient.appentry.{AppEntryDialogs, CreateTeamFragment, EntryError}
+import com.waz.zclient.appentry.DialogErrorMessage.EmailError
+import com.waz.zclient.appentry.{AppEntryDialogs, CreateTeamFragment}
 import com.waz.zclient.common.views.InputBox
 import com.waz.zclient.common.views.InputBox.PasswordValidator
 import com.waz.zclient.tracking.TeamAcceptedTerms
@@ -61,7 +61,7 @@ case class SetTeamPasswordFragment() extends CreateTeamFragment {
             val credentials = EmailCredentials(EmailAddress(createTeamController.teamEmail), Password(text), Some(ConfirmationCode(createTeamController.code)))
             accountsService.register(credentials, createTeamController.teamUserName, Some(createTeamController.teamName)).map {
               case Left(error) =>
-                Some(getString(EntryError(error.code, error.label, SignInMethod(Register, Email)).bodyResource))
+                Some(getString(EmailError(error).bodyResource))
               case _ =>
                 showFragment(InviteToTeamFragment(), InviteToTeamFragment.Tag)
                 None

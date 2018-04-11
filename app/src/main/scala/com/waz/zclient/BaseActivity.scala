@@ -26,9 +26,9 @@ import android.support.v7.app.AppCompatActivity
 import com.waz.ZLog.ImplicitTag._
 import com.waz.ZLog.verbose
 import com.waz.log.InternalLog
-import com.waz.service.{UiLifeCycle, ZMessaging}
 import com.waz.permissions.PermissionsService
 import com.waz.permissions.PermissionsService.{Permission, PermissionProvider}
+import com.waz.service.{UiLifeCycle, ZMessaging}
 import com.waz.utils.returning
 import com.waz.zclient.common.controllers.ThemeController
 import com.waz.zclient.controllers.IControllerFactory
@@ -97,7 +97,6 @@ class BaseActivity extends AppCompatActivity
     }
     super.finish()
   }
-
 
   override def onDestroy() = {
     globalTrackingController.flushEvents()

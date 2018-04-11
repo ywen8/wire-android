@@ -21,6 +21,7 @@ import android.content.Context
 import android.renderscript.RSRuntimeException
 import com.waz.ZLog.ImplicitTag._
 import com.waz.ZLog._
+import com.waz.api.impl.ErrorResponse
 import com.waz.content.Preferences.PrefKey
 import com.waz.content.{GlobalPreferences, UsersStorage}
 import com.waz.model.ConversationData.ConversationType
@@ -32,7 +33,6 @@ import com.waz.threading.{SerialDispatchQueue, Threading}
 import com.waz.utils.events.{EventContext, Signal}
 import com.waz.utils.{RichThreetenBPDuration, _}
 import com.waz.zclient._
-import com.waz.zclient.appentry.EntryError
 import com.waz.zclient.appentry.fragments.SignInFragment.{InputType, SignInMethod}
 import com.waz.zclient.utils.DeprecationUtils
 import net.hockeyapp.android.CrashManagerListener
@@ -173,22 +173,22 @@ class GlobalTrackingController(implicit inj: Injector, cxt: WireContext, eventCo
     }
   }
 
-  private def responseToErrorPair(response: Either[EntryError, _]) = response.fold({ e => Option((e.code, e.label))}, _ => Option.empty[(Int, String)])
+  private def responseToErrorPair(response: Either[ErrorResponse, _]) = response.fold({ e => Option((e.code, e.label))}, _ => Option.empty[(Int, String)])
 
-  def onEnteredCredentials(response: Either[EntryError, _], method: SignInMethod): Unit =
+  def onEnteredCredentials(response: Either[ErrorResponse, _], method: SignInMethod): Unit =
     for {
       //Should wait until a ZMS instance exists before firing the event
       _   <- ZMessaging.currentAccounts.activeZms.collect { case Some(z) => z }.head
       acc <- ZMessaging.currentAccounts.activeAccount.collect { case Some(acc) => acc }.head
     } yield track(EnteredCredentialsEvent(method, responseToErrorPair(response)), Some(acc.id))
 
-  def onEnterCode(response: Either[EntryError, Unit], method: SignInMethod): Unit =
+  def onEnterCode(response: Either[ErrorResponse, Unit], method: SignInMethod): Unit =
     track(EnteredCodeEvent(method, responseToErrorPair(response)))
 
-  def onRequestResendCode(response: Either[EntryError, Unit], method: SignInMethod, isCall: Boolean): Unit =
+  def onRequestResendCode(response: Either[ErrorResponse, Unit], method: SignInMethod, isCall: Boolean): Unit =
     track(ResendVerificationEvent(method, isCall, responseToErrorPair(response)))
 
-  def onAddNameOnRegistration(response: Either[EntryError, Unit], inputType: InputType): Unit =
+  def onAddNameOnRegistration(response: Either[ErrorResponse, Unit], inputType: InputType): Unit =
     for {
     //Should wait until a ZMS instance exists before firing the event
       _   <- ZMessaging.currentAccounts.activeZms.collect { case Some(z) => z }.head

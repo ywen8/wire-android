@@ -23,22 +23,21 @@ import android.text.{Editable, TextWatcher}
 import android.view.{LayoutInflater, View, ViewGroup}
 import android.widget.TextView
 import com.waz.api.EmailCredentials
-import com.waz.client.RegistrationClientImpl.ActivateResult.{Failure, PasswordExists, Success}
 import com.waz.model.AccountData.Password
 import com.waz.model.{ConfirmationCode, EmailAddress}
 import com.waz.service.AccountsService
 import com.waz.threading.Threading
 import com.waz.utils.returning
 import com.waz.zclient._
-import com.waz.zclient.appentry.fragments.SignInFragment._
+import com.waz.zclient.appentry.AppEntryActivity
+import com.waz.zclient.appentry.DialogErrorMessage.EmailError
 import com.waz.zclient.appentry.fragments.VerifyEmailWithCodeFragment._
-import com.waz.zclient.appentry.{AppEntryActivity, EntryError}
 import com.waz.zclient.controllers.globallayout.IGlobalLayoutController
 import com.waz.zclient.controllers.navigation.Page
 import com.waz.zclient.newreg.views.PhoneConfirmationButton
 import com.waz.zclient.ui.text.TypefaceEditText
 import com.waz.zclient.ui.utils.KeyboardUtils
-import com.waz.zclient.utils.ContextUtils.showToast
+import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.utils.DeprecationUtils
 
 object VerifyEmailWithCodeFragment {
@@ -60,7 +59,6 @@ object VerifyEmailWithCodeFragment {
 
   trait Container {
     def enableProgress(enabled: Boolean): Unit
-    def showError(entryError: EntryError, okCallback: => Unit = {}): Unit
   }
 
 }
@@ -157,11 +155,10 @@ class VerifyEmailWithCodeFragment extends FragmentHelper with View.OnClickListen
   private def requestCode() = {
     editTextCode.setText("")
     accountService.requestEmailCode(emailAddress).map {
-      case Failure(error) =>
-        activity.showError(EntryError(error.code, error.label, SignInMethod(Register, Email)))
+      case Right(_) => showToast(R.string.new_reg__email_code_resent)
+      case Left(err) =>
+        showErrorDialog(EmailError(err))
         editTextCode.requestFocus
-      case PasswordExists => showToast("Password exists for this account, please login by email")
-      case Success => showToast(R.string.new_reg__email_code_resent)
     }
   }
 
@@ -173,11 +170,11 @@ class VerifyEmailWithCodeFragment extends FragmentHelper with View.OnClickListen
     accountService.register(EmailCredentials(emailAddress, password, Some(confirmationCode)), name).foreach {
       case Left(error) =>
         activity.enableProgress(false)
-        activity.showError(EntryError(error.code, error.label, SignInMethod(Register, Phone)), {
-        KeyboardUtils.showKeyboard(activity)
-        editTextCode.requestFocus
-        phoneConfirmationButton.setState(PhoneConfirmationButton.State.INVALID)
-        })
+        showErrorDialog(EmailError(error)).map { _ =>
+          KeyboardUtils.showKeyboard(activity)
+          editTextCode.requestFocus
+          phoneConfirmationButton.setState(PhoneConfirmationButton.State.INVALID)
+        }
       case _ =>
         activity.enableProgress(false)
         activity.onEnterApplication(false)

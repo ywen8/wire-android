@@ -19,6 +19,8 @@
 
 -->
 <resources>
+    <dimen name="zero">0dp</dimen>
+
     <dimen name="circle_icon_button_stroke">0dp</dimen>
     <dimen name="cursor_position_threshold">40dp</dimen>
     <dimen name="cursor_high_speed_threshold">5dp</dimen>

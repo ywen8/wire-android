@@ -19,6 +19,51 @@
 
 -->
 <resources xmlns:tools="http://schemas.android.com/tools">
+
+    <!--*********************************************** ERRORS ***********************************************-->
+    <string name="generic_error_header">Something went wrong</string>
+    <string name="generic_error_message">Please try again</string>
+
+    <string name="internet_connectivity_error_header">No Internet Connection</string>
+    <string name="internet_connectivity_error_message">Please check your Internet connection and try again</string>
+
+    <string name="too_many_attempts_header">Too many attempts</string>
+    <string name="login_later_message">Please try to log in later</string>
+    <string name="register_again_message">Please try to register again</string>
+
+    <string name="email_exists_header">Email address already taken</string>
+    <string name="email_exists_message">This email address has already been registered</string>
+
+    <string name="email_invalid_header">Invalid email address</string>
+    <string name="email_invalid_message">Please enter a valid email address</string>
+
+    <string name="invalid_credentials_header">Invalid information</string>
+    <string name="invalid_credentials_message">Please verify your details and try again</string>
+
+    <string name="phone_exists_header">Phone number already taken</string>
+    <string name="phone_exists_message">The phone number you provided has already been registered. Please try again</string>
+
+    <string name="phone_invalid_format_header">Invalid phone number</string>
+    <string name="phone_invalid_format_message">Please enter a valid phone number</string>
+
+    <string name="phone_password_exists_header">Password exists</string>
+    <string name="phone_password_exists_message">This account already has a password and email associated. Please login by email.</string>
+
+    <string name="invalid_code_header">Invalid code</string>
+    <string name="incorrect_code_header">Incorrect Code</string>
+    <string name="wrong_code_message">Please enter a valid code</string>
+
+    <string name="phone_pending_login_header">Code Already Sent</string>
+    <string name="phone_pending_login_message">We already sent you a code via SMS. Tap Resend after 10 minutes to get a new one.</string>
+
+    <string name="password_invalid_header">Invalid Password</string>
+    <string name="password_invalid_message">Please verify your details and try again</string>
+
+    <string name="phone_budget_exhausted_header">Too many requests</string>
+    <string name="phone_budget_exhausted_message">Please try again later.</string>
+
+    <!--*********************************************** ERRORS ***********************************************-->
+
     <string name="permissions_denied_dialog_acknowledge">OK</string>
     <string name="permissions_denied_dialog_settings">Settings</string>
 
@@ -27,9 +72,7 @@
     <string name="camera_permissions_denied_message">To take and send photos, grant permission to access the camera</string>
 
     <!-- Registration and Sign in -->
-    <string name="welcome__slogan">Modern, private communication.</string>
     <string name="welcome__terms_of_service">BY CONTINUING YOU AGREE TO _TERMS OF USE_.</string>
-    <string name="profile__photo__guidance">HI %1$s, \n\n WIRE IS SO MUCH NICER\n WITH A PICTURE.</string>
     <string name="profile__name__guidance__tooshort__title">AT LEAST 2 CHARACTERS</string>
     <string name="profile__email__placeholder">Email</string>
     <string name="profile__password__placeholder">Password</string>
@@ -37,79 +80,13 @@
     <string name="profile__email__verify__instructions">We sent an email to \n[[%1$s]]. \nFollow the link to verify your address.</string>
     <string name="profile__email__verify__didnt_get">Didn\'t get the message?</string>
     <string name="profile__email__verify__resend">Re-send</string>
-    <string name="sign_up__account_creation_error__duplicate_email_header">Email address already taken</string>
-    <string name="sign_up__account_creation_error__duplicate_email_message">This email address has already been registered</string>
     <string name="profile__guidance__invalid_email">The email address you entered is not valid. Please verify and try again</string>
-    <string name="profile__phone__guidance__first_time__title"
-            tools:ignore="UnusedResources">_VERIFY_ YOUR NUMBER</string>
-    <string name="profile__phone__guidance__first_time__explanation" tools:ignore="UnusedResources">YOUR NUMBER IS OPTIONAL, BUT IT MAKES IT EASIER FOR US TO FIND PEOPLE YOU KNOW. TO MAKE SURE IT\'S YOU, WE\'LL SEND A CONFIRMATION CODE VIA SMS.</string>
-    <string name="profile__phone__guidance__nocountrycode__title"
-            tools:ignore="UnusedResources">ADD A COUNTRY CODE</string>
-    <string name="profile__sms__guidance__title" tools:ignore="UnusedResources">ENTER THE 3-DIGIT CONFIRMATION CODE FROM THE SMS.</string>
-    <string name="profile__sms__guidance__resend__explanation"
-            tools:ignore="UnusedResources">DIDN\'T GET THE MESSAGE? </string>
-    <string name="profile__sms__guidance__resend__link" tools:ignore="UnusedResources">RE-SEND</string>
-    <string name="profile__sms__validate__button" tools:ignore="UnusedResources">CONFIRM</string>
 
-    <!-- New Reg-->
-    <string name="new_reg__phone_signup__info">Create an account</string>
-    <string name="new_reg_phone__change_country">_CHANGE COUNTRY_</string>
-    <string name="new_reg__add_email">Add email address and password</string>
-    <string name="new_reg__add_email_info">It helps you log in if you are locked out or lose your phone.</string>
-    <string name="new_reg__otr__add_email_info">Add your email address and a password.</string>
-    <string name="new_reg__otr__add_email_sub_info">This lets you use Wire on multiple devices.</string>
-    <string name="new_reg_email_exists_header">@string/sign_up__account_creation_error__duplicate_email_header</string>
-    <string name="new_reg_email_exists_message">@string/sign_up__account_creation_error__duplicate_email_message</string>
-    <string name="new_reg_email_invalid_header">Invalid email address</string>
-    <string name="new_reg_email_invalid_message">Please enter a valid email address</string>
-    <string name="new_reg_email_generic_error_header">Something went wrong</string>
-    <string name="new_reg_email_generic_error_message">Please try to register again</string>
-    <string name="new_reg_email_register_generic_error_header">Invalid information</string>
-    <string name="new_reg_email_register_generic_error_message">Please enter your full name and a valid email address and password.</string>
-    <string name="new_reg_email_invalid_login_credentials_header">Invalid information</string>
-    <string name="new_reg_email_invalid_login_credentials_message">Please verify your details and try again</string>
-    <string name="new_reg_phone_exists_header">Phone number already taken</string>
-    <string name="new_reg_phone_exists_message">The phone number you provided has already been registered. Please try again</string>
-    <string name="new_reg_phone_invalid_format_header">Invalid phone number</string>
-    <string name="new_reg_phone_invalid_format_message">Please enter a valid phone number</string>
-    <string name="new_reg_phone_invalid_registration_code_header">Invalid code</string>
-    <string name="new_reg_phone_invalid_registration_code_message">Please enter a valid code</string>
-    <string name="new_reg_phone_invalid_add_code_header">Invalid code</string>
-    <string name="new_reg_phone_invalid_add_code_message">Please enter a valid code</string>
-    <string name="new_reg_phone_invalid_login_code_header">Incorrect Code</string>
-    <string name="new_reg_phone_invalid_login_code_message">Please enter a valid code</string>
-    <string name="new_reg_phone_pending_login_header">Code Already Sent</string>
-    <string name="new_reg_phone_pending_login_message">We already sent you a code via SMS. Tap Resend after 10 minutes to get a new one.</string>
-    <string name="new_reg_phone_add_password_header">Invalid Password</string>
-    <string name="new_reg_phone_add_password_message">Please verify your details and try again</string>
-    <string name="new_reg_phone_generic_error_header">Something went wrong</string>
-    <string name="new_reg_phone_generic_error_message">Please try to register again</string>
-    <string name="new_sign_in_generic_error_header">Something went wrong</string>
-    <string name="new_sign_in_generic_error_message">Please try to login again</string>
-    <string name="profile_generic_error_header">Something went wrong</string>
-    <string name="profile_generic_error_message">Please try again</string>
-    <string name="profile_phone_generic_error_header">Invalid phone number</string>
-    <string name="profile_phone_generic_error_message">Please enter a valid phone number</string>
-    <string name="new_reg_phone_too_man_attempts_header">Too many attempts</string>
-    <string name="new_reg_phone_too_man_attempts_message">Please try to log in later</string>
-    <string name="new_reg_server_connectivity_error_header">Something went wrong</string>
-    <string name="new_reg_server_connectivity_error_message">Please check your Internet connection and try again</string>
-    <string name="new_reg_internet_connectivity_error_header">No Internet Connection</string>
-    <string name="new_reg_internet_connectivity_error_message">Please check your Internet connection and try again</string>
     <string name="new_reg__code_resent">A new code was sent to you via SMS</string>
     <string name="new_reg__email_code_resent">A new code was sent to you via email</string>
     <string name="new_reg__code_resent__call">Stand by for a call</string>
-    <string name="new_reg__invalid_code__auto_verification__manual">Something went wrong.\nPlease confirm that phone number and code are correct.</string>
     <string name="new_reg__default_country">de</string> <!-- consider updating this for every new language -->
-    <string name="new_reg_phone_budget_exhausted_title">Too many requests</string>
-    <string name="new_reg_phone_budget_exhausted_message">Please try again later.</string>
     <string name="your_phone_number">Your phone number</string>
-    <string name="new_reg_phone_password_exists_header">Password exists</string>
-    <string name="new_reg_phone_password_exists_message">This account already has a password and email associated. Please login by email.</string>
-
-    <string name="new_reg_phone__title__variant_1">Call, messaging, share.\nIn private or with groups.</string>
-    <string name="new_reg_phone__title__variant_2">Private and secure calls,\nmessaging and sharing.</string>
-
 
     <!-- Receive email/sms invitation -->
     <string name="invitation_email__normal_phone_signup_button">Sign up using phone number</string>
@@ -132,7 +109,7 @@
     <string name="choose_conversation">SEARCH</string>
     <string name="people_picker__top_users_header_title">Top people</string>
     <string name="people_picker__address_book_matches_title">Connect</string>
-    <string name="people_picker__search_result_conversations_header_title">Groups</string>
+    <string name="people_picker__search_result_conversations_header_title">Gryour_phone_numberoups</string>
     <string name="people_picker__search_result_team_conversations_header_title">%1$s Groups</string>
     <string name="people_picker__search_result_connections_header_title">Contacts</string>
     <string name="people_picker__search_result_others_header_title">Connect</string>
@@ -1353,7 +1330,6 @@
     <string name="add_email_address">Add your email address</string>
     <string name="set_a_password">Set a password</string>
     <string name="email_and_password_explanation">You need an email address and a password to use Wire on multiple devices.</string>
-    <string name="set_password_failed_message">Something went wrong.\nPlease try to log in again.</string>
     <string name="new_device_password">New device</string>
     <string name="new_device_password_explanation">Confirm by entering your password.</string>
 
