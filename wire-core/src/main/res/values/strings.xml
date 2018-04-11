@@ -1375,4 +1375,10 @@
     <string name="export_generic_error_title">The file could not be saved</string>
     <string name="export_generic_error_text">You may not have enough space or permission to save it there.</string>
     <string name="backup_button">Try again</string>
+
+
+    <string name="backup_import_error_unknown">Something went wrong</string>
+    <string name="backup_import_error_unsupported_version">Cannot read backup because it\'s from an unsupported version</string>
+    <string name="backup_import_error_wrong_account">Cannot read backup because it\'s from a different account</string>
+
 </resources>

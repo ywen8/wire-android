@@ -85,7 +85,7 @@ public class AssetIntentsManager {
     }
 
     public void openBackupImport() {
-        openDocument("application/zip", IntentType.BACKUP_IMPORT);
+        openDocument("*/*", IntentType.BACKUP_IMPORT);
     }
 
     public void captureVideo(Context context) {
@@ -221,6 +221,10 @@ public class AssetIntentsManager {
 
             if (requestCode == FILE_SHARING.requestCode) {
                 return FILE_SHARING;
+            }
+
+            if (requestCode == BACKUP_IMPORT.requestCode) {
+                return  BACKUP_IMPORT;
             }
 
             return UNKNOWN;
