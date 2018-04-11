@@ -52,7 +52,7 @@ class VerifyEmailPreferencesFragment extends DialogFragment with FragmentHelper 
 
   private lazy val resendButton = view[TextView](R.id.tv__resend_button)
 
-  returning(view(R.id.tv__back_button)) { vh =>
+  returning(view[TypefaceTextView](R.id.tv__back_button)) { vh =>
     vh.onClick { _ =>
       dismiss()
     }
