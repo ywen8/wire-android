@@ -57,6 +57,8 @@ import com.waz.zclient.utils.StringUtils.TextDrawing
 import com.waz.zclient.utils.{BuildConfigUtils, ContextUtils, Emojis, IntentUtils, PhoneUtils, ViewUtils}
 import com.waz.zclient.views.LoadingIndicatorView
 import net.hockeyapp.android.NativeCrashManager
+import MainActivity._
+import com.waz.content.Preferences.Preference.PrefCodec
 
 import scala.collection.JavaConverters._
 import scala.concurrent.duration._
@@ -204,7 +206,12 @@ class MainActivity extends BaseActivity
 
     account.head.flatMap {
       case Some(am) =>
-        am.getOrRegisterClient().flatMap {
+        (Option(getIntent).flatMap(i => Option(i.getStringExtra(ClientRegStateArg))) match {
+          case Some(clientRegState) =>
+            getIntent.removeExtra(ClientRegStateArg)
+            Future.successful(Right(PrefCodec.SelfClientIdCodec.decode(clientRegState)))
+          case _ => am.getOrRegisterClient()
+        }).flatMap {
           case Right(Registered(_))   =>
             for {
               z            <- zms.head
@@ -535,6 +542,8 @@ class MainActivity extends BaseActivity
 }
 
 object MainActivity {
+  val ClientRegStateArg: String = "ClientRegStateArg"
+
   private val slideAnimations = Set(
     (SetOrRequestPasswordFragment.Tag, VerifyEmailFragment.Tag),
     (SetOrRequestPasswordFragment.Tag,  AddEmailFragment.Tag),

@@ -28,13 +28,14 @@ import android.support.v4.content.ContextCompat
 import android.support.v7.app.AlertDialog
 import android.view.{LayoutInflater, View, ViewGroup}
 import com.waz.ZLog.ImplicitTag._
+import com.waz.api.impl.ErrorResponse
 import com.waz.model.UserId
 import com.waz.permissions.PermissionsService
 import com.waz.service.AccountsService
 import com.waz.service.BackupManager.InvalidMetadata
 import com.waz.threading.Threading
-import com.waz.utils.{RichFuture, returning}
 import com.waz.utils.wrappers.{AndroidURI, URI}
+import com.waz.utils.{RichFuture, returning, _}
 import com.waz.zclient.appentry.AppEntryActivity
 import com.waz.zclient.appentry.fragments.FirstLaunchAfterLoginFragment._
 import com.waz.zclient.pages.main.conversation.AssetIntentsManager
@@ -148,22 +149,28 @@ class FirstLaunchAfterLoginFragment extends FragmentHelper with View.OnClickList
     ViewUtils.showAlertDialog(getContext, R.string.export_generic_error_title, _, android.R.string.ok, null, true)
 
   private def enter(backup: Option[File]) = {
+    activity.enableProgress(true)
     async {
       val userId = getStringArg(UserIdArg).map(UserId(_))
       if (userId.nonEmpty) {
         val accountManager = await { accountsService.createAccountManager(userId.get, backup) }
-        val account = await { accountsService.activeAccount.head }
         await { accountsService.setAccount(userId) }
-        await { (for {
-          account <- account
-          accountManager <- accountManager
-        } yield accountManager.getOrRegisterClient(account.password)).getOrElse(Future.successful(())) }
-        activity.onEnterApplication(openSettings = false)
+        val registrationState = await { accountManager.fold2(Future.successful(Left(ErrorResponse.internalError(""))), _.getOrRegisterClient()) }
+        registrationState match {
+          case Right(regState) => activity.onEnterApplication(openSettings = false, Some(regState))
+          case _ => activity.onEnterApplication(openSettings = false)
+        }
       }
     } logFailure() recover {
-      case InvalidMetadata.UserId => displayError(R.string.backup_import_error_wrong_account)
-      case _: InvalidMetadata => displayError(R.string.backup_import_error_unsupported_version)
-      case _ => displayError(R.string.backup_import_error_unknown)
+      case InvalidMetadata.UserId =>
+        activity.enableProgress(false)
+        displayError(R.string.backup_import_error_wrong_account)
+      case _: InvalidMetadata =>
+        activity.enableProgress(false)
+        displayError(R.string.backup_import_error_unsupported_version)
+      case _ =>
+        activity.enableProgress(false)
+        displayError(R.string.backup_import_error_unknown)
     }
   }
 

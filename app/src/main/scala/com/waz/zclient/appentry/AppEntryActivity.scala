@@ -26,7 +26,8 @@ import android.support.v4.app.{Fragment, FragmentTransaction}
 import android.view.View
 import com.waz.ZLog.ImplicitTag._
 import com.waz.ZLog._
-import com.waz.api._
+import com.waz.content.Preferences.Preference.PrefCodec
+import com.waz.service.AccountManager.ClientRegistrationState
 import com.waz.service.{AccountsService, ZMessaging}
 import com.waz.utils.events.Signal
 import com.waz.utils.returning
@@ -222,9 +223,11 @@ class AppEntryActivity extends BaseActivity
   def onShowFirstLaunchPage(): Unit =
     showFragment(FirstLaunchAfterLoginFragment(), FirstLaunchAfterLoginFragment.Tag)
 
-  def onEnterApplication(openSettings: Boolean): Unit = {
+  def onEnterApplication(openSettings: Boolean, clientRegState: Option[ClientRegistrationState] = None): Unit = {
     getControllerFactory.getVerificationController.finishVerification()
-    startActivity(Intents.EnterAppIntent(openSettings)(this))
+    val intent = Intents.EnterAppIntent(openSettings)(this)
+    clientRegState.foreach(state => intent.putExtra(MainActivity.ClientRegStateArg, PrefCodec.SelfClientIdCodec.encode(state)))
+    startActivity(intent)
     finish()
   }
 

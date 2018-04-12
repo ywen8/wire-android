@@ -22,6 +22,7 @@ import android.support.v4.content.ContextCompat
 import android.text.{Editable, TextWatcher}
 import android.view.{LayoutInflater, View, ViewGroup}
 import android.widget.{TextView, Toast}
+import com.waz.api.impl.ErrorResponse
 import com.waz.client.RegistrationClientImpl.ActivateResult
 import com.waz.model.{ConfirmationCode, PhoneNumber}
 import com.waz.service.AccountsService
@@ -39,6 +40,7 @@ import com.waz.zclient.tracking.GlobalTrackingController
 import com.waz.zclient.ui.text.TypefaceEditText
 import com.waz.zclient.ui.utils.KeyboardUtils
 import com.waz.zclient.utils.DeprecationUtils
+import com.waz.utils._
 
 import scala.concurrent.Future
 
@@ -201,12 +203,11 @@ class VerifyPhoneFragment extends BaseFragment[VerifyPhoneFragment.Container] wi
             }
           })
         case Right(userId) =>
-          getContainer.enableProgress(false)
           for {
             am <- accountService.createAccountManager(userId, None)
-            _ <- am.fold(Future.successful(()))(_.getOrRegisterClient(None).map(_ => ()))
             _ <- accountService.setAccount(Some(userId))
-          } yield activity.onEnterApplication(false)
+            regState <- am.fold2(Future.successful(Left(ErrorResponse.internalError(""))), _.getOrRegisterClient(None))
+          } yield activity.onEnterApplication(openSettings = false, regState.fold(_ => None, Some(_)))
       }
     } else {
       accountService.verifyPhoneNumber(PhoneNumber(phone), ConfirmationCode(code), dryRun = true).foreach {
