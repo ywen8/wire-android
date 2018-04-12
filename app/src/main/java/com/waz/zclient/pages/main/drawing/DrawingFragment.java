@@ -23,6 +23,7 @@ import android.graphics.Bitmap;
 import android.graphics.Rect;
 import android.hardware.Sensor;
 import android.hardware.SensorManager;
+import android.media.ExifInterface;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.Toolbar;
@@ -522,7 +523,7 @@ public class DrawingFragment extends BaseFragment<DrawingFragment.Container> imp
         } catch (Throwable t) {
             // ignore
         }
-        return null; // TODO ... ImageAssetFactory.getImageAsset(finalBitmap, ExifInterface.ORIENTATION_NORMAL);
+        return ImageAssetFactory.getImageAsset(finalBitmap, ExifInterface.ORIENTATION_NORMAL);
     }
 
     @Override
