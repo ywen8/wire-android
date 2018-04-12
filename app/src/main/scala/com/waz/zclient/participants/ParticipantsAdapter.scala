@@ -42,6 +42,7 @@ import com.waz.zclient.ui.text.{GlyphTextView, TypefaceEditText}
 import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.utils.{ContextUtils, RichView, ViewUtils}
 import com.waz.zclient.{Injectable, Injector, R}
+
 import scala.concurrent.duration._
 
 class ParticipantsAdapter(numOfColumns: Int)(implicit context: Context, injector: Injector, eventContext: EventContext)
@@ -251,12 +252,13 @@ object ParticipantsAdapter {
     })
 
     def bind(id: ConvId, displayName: String, verified: Boolean): Unit = {
-      convId = Some(id)
-      convName = Some(displayName)
-
-      editText.setText(displayName)
-      Selection.removeSelection(editText.getText)
-      verifiedShield.setVisible(verified)
+      if (!convId.contains(id)) convId = Some(id)
+      if (verifiedShield.isVisible != verified) verifiedShield.setVisible(verified)
+      if (!convName.contains(displayName)) {
+        convName = Some(displayName)
+        editText.setText(displayName)
+        Selection.removeSelection(editText.getText)
+      }
     }
 
     def onBackPressed(): Boolean =

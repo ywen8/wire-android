@@ -28,11 +28,12 @@ import android.text.{Editable, TextWatcher}
 import android.view.View.OnClickListener
 import android.view.animation.AnimationUtils
 import android.view.{LayoutInflater, View, ViewGroup, WindowManager}
+import com.waz.ZLog
 import com.waz.ZLog.ImplicitTag._
 import com.waz.ZLog.warn
-import com.waz.api.impl.Usernames
 import com.waz.model.Handle
 import com.waz.service.ZMessaging
+import com.waz.sync.client.HandlesClient
 import com.waz.threading.Threading
 import com.waz.utils.events.Signal
 import com.waz.utils.returning
@@ -59,7 +60,8 @@ class ChangeHandleFragment extends DialogFragment with FragmentHelper {
   private var cancelEnabled:   Boolean = true
 
   lazy val zms = inject[Signal[ZMessaging]]
-  lazy val currentHandle = zms.flatMap(_.users.selfUser.map(_.handle))
+  lazy val users = zms.map(_.users)
+  lazy val currentHandle = users.flatMap(_.selfUser.map(_.handle))
 
   private val handleTextWatcher = new TextWatcher() {
     private var lastText: String = ""
@@ -86,7 +88,7 @@ class ChangeHandleFragment extends DialogFragment with FragmentHelper {
               z         <- zms.head
               curHandle <- currentHandle.head
               if !curHandle.map(_.string).contains(normalText)
-              _ <- z.zNetClient.withErrorHandling("isUsernameAvailable", Request.Head(Usernames.checkSingleAvailabilityPath + normalText)) {
+              _ <- z.zNetClient.withErrorHandling("isUsernameAvailable", Request.Head(HandlesClient.checkSingleAvailabilityPath + normalText)) {
                 case Response(SuccessHttpStatus(), _, _) =>
                   setErrorMessage(AlreadyTaken)
                   okButton.setEnabled(false)
@@ -127,7 +129,6 @@ class ChangeHandleFragment extends DialogFragment with FragmentHelper {
               case NoError =>
                 disableEditing()
                 updateHandle(inputHandle).map {
-
                   case Right(_) =>
                     dismiss()
 
@@ -239,12 +240,12 @@ class ChangeHandleFragment extends DialogFragment with FragmentHelper {
     handleEditText.startAnimation(AnimationUtils.loadAnimation(getContext, R.anim.shake_animation))
 
   private def updateHandle(handle: String) =
-    zms.map(_.account).head.flatMap(_.updateHandle(Handle(handle)))
+    users.head.flatMap(_.updateHandle(Handle(handle)))
 }
 
 object ChangeHandleFragment {
 
-  val FragmentTag = "ChangeHandleFragment"
+  val Tag: String = ZLog.ImplicitTag.implicitLogTag
 
   private val ArgCancelEnabled = "ARG_CANCEL_ENABLED"
   private val ArgHandle        = "ARG_HANDLE"

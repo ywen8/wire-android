@@ -29,9 +29,7 @@ import com.waz.ZLog.ImplicitTag._
 import com.waz.ZLog._
 import com.waz.model.ConversationData.ConversationType._
 import com.waz.model._
-import com.waz.model.otr.Client
-import com.waz.service.ZMessaging
-import com.waz.threading.Threading
+import com.waz.service.{AccountsService, ZMessaging}
 import com.waz.utils.events.{Signal, Subscription}
 import com.waz.utils.returning
 import com.waz.zclient.common.controllers.UserAccountsController
@@ -62,22 +60,25 @@ import com.waz.zclient.{FragmentHelper, OnBackPressedListener, R, ViewHolder}
 abstract class ConversationListFragment extends BaseFragment[ConversationListFragment.Container] with FragmentHelper {
 
   val layoutId: Int
+  lazy val accounts               = inject[AccountsService]
   lazy val userAccountsController = inject[UserAccountsController]
   lazy val conversationController = inject[ConversationController]
   lazy val usersController        = inject[UsersController]
   lazy val screenController       = inject[IConversationScreenController]
   lazy val pickUserController     = inject[IPickUserController]
+  lazy val convListController     = inject[ConversationListController]
 
   protected var subs = Set.empty[Subscription]
+  protected val adapterMode: ConversationListAdapter.ListMode
 
   protected lazy val topToolbar: ViewHolder[_ <: ConversationListTopToolbar] = view[ConversationListTopToolbar](R.id.conversation_list_top_toolbar)
   lazy val adapter = returning(new ConversationListAdapter) { a =>
     a.setMaxAlpha(getResourceFloat(R.dimen.list__swipe_max_alpha))
-    (for {
-      mode <- a.currentMode
-      user <- userAccountsController.currentUser
-    } yield (mode, user)).on(Threading.Ui) {
-      case (mode,user) => topToolbar.get.setTitle(mode, user)
+
+    userAccountsController.currentUser.onUi(user => topToolbar.get.setTitle(adapterMode, user))
+
+    convListController.conversationListData(adapterMode).onUi {
+      case (aId, regular, incoming) => a.setData(regular, incoming)
     }
 
     a.onConversationClick { conv =>
@@ -142,13 +143,11 @@ class ArchiveListFragment extends ConversationListFragment with OnBackPressedLis
 
   override val layoutId = R.layout.fragment_archive_list
   override lazy val topToolbar = view[ArchiveTopToolbar](R.id.conversation_list_top_toolbar)
+  override protected val adapterMode = ConversationListAdapter.Archive
 
   override def onViewCreated(view: View, savedInstanceState: Bundle) = {
     super.onViewCreated(view, savedInstanceState)
-    adapter.currentMode ! ConversationListAdapter.Archive
-    topToolbar.foreach { toolbar =>
-      subs += toolbar.onRightButtonClick(_ => Option(getContainer).foreach(_.closeArchive()))
-    }
+    topToolbar.foreach(toolbar => subs += toolbar.onRightButtonClick(_ => Option(getContainer).foreach(_.closeArchive())))
   }
 
   override def onBackPressed() = {
@@ -164,17 +163,17 @@ object NormalConversationListFragment {
 class NormalConversationFragment extends ConversationListFragment {
 
   override val layoutId = R.layout.fragment_conversation_list
+  override protected val adapterMode = ConversationListAdapter.Normal
 
   lazy val zms = inject[Signal[ZMessaging]]
   lazy val accentColor = inject[AccentColorController].accentColor
   lazy val incomingClients = for{
     z       <- zms
-    acc     <- z.account.accountData
-    clients <- acc.clientId.fold(Signal.empty[Seq[Client]])(aid => z.otrClientsStorage.incomingClientsSignal(z.selfUserId, aid))
+    clients <- z.otrClientsStorage.incomingClientsSignal(z.selfUserId, z.clientId)
   } yield clients
 
   private lazy val unreadCount = (for {
-    Some(accountId) <- ZMessaging.currentAccounts.activeAccountPref.signal
+    Some(accountId) <- accounts.activeAccountId
     count  <- userAccountsController.unreadCount.map(_.filterNot(_._1 == accountId).values.sum)
   } yield count).orElse(Signal.const(0))
 
@@ -188,11 +187,11 @@ class NormalConversationFragment extends ConversationListFragment {
 
   lazy val archiveEnabled = hasConversationsAndArchive.map(_._2)
 
-  private val waitingAccount = Signal[Option[AccountId]](None)
+  private val waitingAccount = Signal[Option[UserId]](None)
 
   lazy val loading = for {
     Some(waitingAcc) <- waitingAccount
-    adapterAccount <- adapter.conversationListData.map(_._1)
+    adapterAccount <- convListController.conversationListData(ConversationListAdapter.Normal).map(_._1)
   } yield waitingAcc != adapterAccount
 
   override lazy val topToolbar = returning(view[NormalTopToolbar](R.id.conversation_list_top_toolbar)) { vh =>
@@ -253,8 +252,6 @@ class NormalConversationFragment extends ConversationListFragment {
       actionsList.setCallback(listActionsCallback)
       actionsList.setScrolledToBottom(!convList.canScrollVertically(1))
     }
-
-    adapter.currentMode ! ConversationListAdapter.Normal
 
     subs += loading.onUi {
       case true => showLoading()
@@ -320,7 +317,7 @@ class NormalConversationFragment extends ConversationListFragment {
   override def onActivityResult(requestCode: Int, resultCode: Int, data: Intent) = {
     if (requestCode == PreferencesActivity.SwitchAccountCode && data != null) {
       showLoading()
-      waitingAccount ! Some(AccountId(data.getStringExtra(PreferencesActivity.SwitchAccountExtra)))
+      waitingAccount ! Some(UserId(data.getStringExtra(PreferencesActivity.SwitchAccountExtra)))
     }
   }
 }

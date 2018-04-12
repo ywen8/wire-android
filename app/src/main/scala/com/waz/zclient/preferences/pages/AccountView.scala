@@ -17,6 +17,7 @@
  */
 package com.waz.zclient.preferences.pages
 
+import android.app.Activity
 import android.content.{Context, DialogInterface, Intent}
 import android.graphics.drawable.Drawable
 import android.graphics.{Canvas, ColorFilter, Paint, PixelFormat}
@@ -26,25 +27,25 @@ import android.support.v4.app.{Fragment, FragmentTransaction}
 import android.util.AttributeSet
 import android.view.View
 import android.widget.LinearLayout
+import com.waz.ZLog.ImplicitTag._
 import com.waz.api.impl.AccentColor
-import com.waz.model.EmailAddress
-import com.waz.service.ZMessaging
+import com.waz.model.{EmailAddress, PhoneNumber}
+import com.waz.service.{AccountsService, ZMessaging}
 import com.waz.threading.Threading
 import com.waz.utils.events.{EventContext, EventStream, Signal}
 import com.waz.utils.returning
 import com.waz.zclient._
+import com.waz.zclient.appentry.AppEntryActivity
 import com.waz.zclient.common.controllers.global.PasswordController
 import com.waz.zclient.common.views.ImageAssetDrawable
 import com.waz.zclient.common.views.ImageAssetDrawable.{RequestBuilder, ScaleType}
 import com.waz.zclient.common.views.ImageController.{ImageSource, WireImage}
-import com.waz.zclient.pages.main.profile.preferences.dialogs.VerifyEmailPreferenceFragment
-import com.waz.zclient.preferences.dialogs.{AccentColorPickerFragment, ChangeEmailDialog, ChangePhoneDialog, VerifyPhoneFragment}
+import com.waz.zclient.preferences.dialogs._
 import com.waz.zclient.preferences.views.{EditNameDialog, PictureTextButton, TextButton}
 import com.waz.zclient.ui.utils.TextViewUtils._
 import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.utils.ViewUtils._
-import com.waz.zclient.utils.{BackStackKey, BackStackNavigator, RichView, StringUtils, UiStorage, UserSignal}
-import com.waz.ZLog.ImplicitTag._
+import com.waz.zclient.utils.{BackStackKey, BackStackNavigator, RichView, StringUtils, UiStorage}
 
 trait AccountView {
   val onNameClick:          EventStream[Unit]
@@ -56,11 +57,12 @@ trait AccountView {
   val onPasswordResetClick: EventStream[Unit]
   val onLogoutClick:        EventStream[Unit]
   val onDeleteClick:        EventStream[Unit]
+  val onBackupClick:        EventStream[Unit]
 
   def setName(name: String): Unit
   def setHandle(handle: String): Unit
-  def setEmail(email: Option[String]): Unit
-  def setPhone(phone: Option[String]): Unit
+  def setEmail(email: Option[EmailAddress]): Unit
+  def setPhone(phone: Option[PhoneNumber]): Unit
   def setPictureDrawable(drawable: Drawable): Unit
   def setAccentDrawable(drawable: Drawable): Unit
   def setDeleteAccountEnabled(enabled: Boolean): Unit
@@ -82,6 +84,7 @@ class AccountViewImpl(context: Context, attrs: AttributeSet, style: Int) extends
   val resetPasswordButton = findById[TextButton](R.id.preferences_account_reset_pw)
   val logoutButton        = findById[TextButton](R.id.preferences_account_logout)
   val deleteAccountButton = findById[TextButton](R.id.preferences_account_delete)
+  val backupButton        = findById[TextButton](R.id.preferences_backup)
 
   override val onNameClick          = nameButton.onClickEvent.map(_ => ())
   override val onHandleClick        = handleButton.onClickEvent.map(_ => ())
@@ -92,14 +95,15 @@ class AccountViewImpl(context: Context, attrs: AttributeSet, style: Int) extends
   override val onPasswordResetClick = resetPasswordButton.onClickEvent.map(_ => ())
   override val onLogoutClick        = logoutButton.onClickEvent.map(_ => ())
   override val onDeleteClick        = deleteAccountButton.onClickEvent.map(_ => ())
+  override val onBackupClick        = backupButton.onClickEvent.map(_ => ())
 
   override def setName(name: String) = nameButton.setTitle(name)
 
   override def setHandle(handle: String) = handleButton.setTitle(handle)
 
-  override def setEmail(email: Option[String]) = emailButton.setTitle(email.getOrElse(getString(R.string.pref_account_add_email_title)))
+  override def setEmail(email: Option[EmailAddress]) = emailButton.setTitle(email.map(_.str).getOrElse(getString(R.string.pref_account_add_email_title)))
 
-  override def setPhone(phone: Option[String]) = phoneButton.setTitle(phone.getOrElse(getString(R.string.pref_account_add_phone_title)))
+  override def setPhone(phone: Option[PhoneNumber]) = phoneButton.setTitle(phone.map(_.str).getOrElse(getString(R.string.pref_account_add_phone_title)))
 
   override def setPictureDrawable(drawable: Drawable) = pictureButton.setDrawableStart(Some(drawable))
 
@@ -108,6 +112,7 @@ class AccountViewImpl(context: Context, attrs: AttributeSet, style: Int) extends
   override def setDeleteAccountEnabled(enabled: Boolean) = deleteAccountButton.setVisible(enabled)
 
   override def setPhoneNumberEnabled(enabled: Boolean) = phoneButton.setVisible(enabled)
+
 }
 
 case class AccountBackStackKey(args: Bundle = new Bundle()) extends BackStackKey(args) {
@@ -135,26 +140,21 @@ object AccountBackStackKey {
 class AccountViewController(view: AccountView)(implicit inj: Injector, ec: EventContext, context: Context) extends Injectable {
 
   val zms                = inject[Signal[ZMessaging]]
+  val self               = zms.flatMap(_.users.selfUser)
+  val accounts           = inject[AccountsService]
   implicit val uiStorage = inject[UiStorage]
   val navigator          = inject[BackStackNavigator]
   val password           = inject[PasswordController].password
 
-  val self = for {
-    zms <- zms
-    self <- UserSignal(zms.selfUserId)
-  } yield self
-
-  val account = for {
-    zms <- zms
-    account <- zms.account.accountData
-  } yield account
-
   val isTeam = zms.map(_.teamId.isDefined)
 
-  val isPhoneNumerEnabled = for {
-    hasPhone <- account.map(a => a.phone.isDefined || a.pendingPhone.isDefined)
+  val phone = self.map(_.phone)
+  val email = self.map(_.email)
+
+  val isPhoneNumberEnabled = for {
+    p      <- phone
     isTeam <- isTeam
-  } yield hasPhone || !isTeam
+  } yield p.isDefined || !isTeam
 
   val selfPicture: Signal[ImageSource] = self.map(_.picture).collect{case Some(pic) => WireImage(pic)}
 
@@ -180,14 +180,12 @@ class AccountViewController(view: AccountView)(implicit inj: Injector, ec: Event
     })
   }
 
-  account.onUi { account =>
-    view.setEmail(account.email.map(_.str))
-    view.setPhone(account.phone.map(_.str))
-  }
+  phone.onUi(view.setPhone)
+  email.onUi(view.setEmail)
 
   isTeam.onUi(t => view.setDeleteAccountEnabled(!t))
 
-  isPhoneNumerEnabled.onUi(view.setPhoneNumberEnabled)
+  isPhoneNumberEnabled.onUi(view.setPhoneNumberEnabled)
 
   view.onNameClick.onUi { _ =>
     self.head.map { self =>
@@ -198,25 +196,22 @@ class AccountViewController(view: AccountView)(implicit inj: Injector, ec: Event
   view.onHandleClick.onUi { _ =>
     self.head.map { self =>
       import com.waz.zclient.preferences.dialogs.ChangeHandleFragment._
-      showPrefDialog(newInstance(self.handle.fold("")(_.string), cancellable = true), FragmentTag)
+      showPrefDialog(newInstance(self.handle.fold("")(_.string), cancellable = true), Tag)
     } (Threading.Ui)
   }
 
   view.onEmailClick.onUi { _ =>
     import Threading.Implicits.Ui
-    for {
-      email <- self.head.map(_.email)
-      pw    <- password.head
-    } {
+    self.head.map(_.email).map { email =>
       showPrefDialog(
         returning(ChangeEmailDialog(addingEmail = email.isEmpty)) {
           _.onEmailChanged { e =>
-            val f = VerifyEmailPreferenceFragment.newInstance(e)
+            val f = VerifyEmailPreferencesFragment(e)
             //hide the verification screen when complete
-            self.map(_.email).onChanged.filter(_.contains(EmailAddress(e))).onUi { _ =>
+            self.map(_.email).onChanged.filter(_.contains(e)).onUi { _ =>
               f.dismiss()
             }
-            showPrefDialog(f, VerifyEmailPreferenceFragment.TAG)
+            showPrefDialog(f, VerifyEmailPreferencesFragment.Tag)
           }
         },
         ChangeEmailDialog.FragmentTag)
@@ -267,9 +262,16 @@ class AccountViewController(view: AccountView)(implicit inj: Injector, ec: Event
       getString(R.string.pref_account_sign_out_warning_cancel),
       new DialogInterface.OnClickListener() {
         def onClick(dialog: DialogInterface, which: Int) = {
-          zms.map(_.account).head.flatMap(_.logout(true))(Threading.Ui)
-          navigator.back()
-          navigator.back()
+          import Threading.Implicits.Ui
+          zms.map(_.selfUserId).head.flatMap(accounts.logout)
+            .flatMap(_ => accounts.accountsWithManagers.head.map(_.isEmpty)).map {
+            case true =>
+              context.startActivity(new Intent(context, classOf[AppEntryActivity]))
+              Option(context.asInstanceOf[Activity]).foreach(_.finish())
+            case false =>
+              navigator.back()
+              navigator.back()
+          }
         }
       }, null)
   }
@@ -294,6 +296,20 @@ class AccountViewController(view: AccountView)(implicit inj: Injector, ec: Event
           def onClick(dialog: DialogInterface, which: Int) =
             zms.head.map(_.users.deleteAccount())(Threading.Background)
         }, null)
+    }(Threading.Ui)
+  }
+
+  view.onBackupClick.onUi { _ =>
+    email.head.map {
+      case Some(_) => navigator.goTo(BackupExportKey())
+      case _ =>
+        showAlertDialog(context,
+          R.string.pref_account_backup_warning_title,
+          R.string.pref_account_backup_warning_message,
+          R.string.pref_account_backup_warning_ok,
+          new DialogInterface.OnClickListener() {
+            def onClick(dialog: DialogInterface, which: Int) = dialog.dismiss()
+          }, true)
     }(Threading.Ui)
   }
 

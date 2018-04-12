@@ -18,7 +18,7 @@
 package com.waz.zclient.appentry
 
 import com.waz.zclient.R
-import com.waz.zclient.appentry.controllers.SignInController._
+import com.waz.zclient.appentry.fragments.SignInFragment._
 
 case class EntryError(code: Int, label: String, signInMethod: SignInMethod) {
   def headerResource: Int = error._1
@@ -49,5 +49,7 @@ case class EntryError(code: Int, label: String, signInMethod: SignInMethod) {
   }
 }
 
+object GenericRegisterEmailError extends EntryError(0, "", SignInMethod(Register, Email))
 object GenericRegisterPhoneError extends EntryError(0, "", SignInMethod(Register, Phone))
+object GenericLoginPhoneError extends EntryError(0, "", SignInMethod(Login, Phone))
 object PhoneExistsError extends EntryError(409, "key-exists", SignInMethod(Register, Phone))

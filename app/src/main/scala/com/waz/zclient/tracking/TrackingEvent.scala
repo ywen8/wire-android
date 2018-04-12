@@ -17,37 +17,23 @@
   */
 package com.waz.zclient.tracking
 
-import com.waz.api.Invitations.PersonalToken
 import com.waz.model.Availability
 import com.waz.service.tracking.TrackingEvent
-import com.waz.utils.returning
-import com.waz.zclient.appentry.controllers.SignInController._
-import org.json.JSONObject
-import com.waz.utils._
-import com.waz.zclient.tracking.AddPhotoOnRegistrationEvent.Source
+import com.waz.utils.{returning, _}
+import com.waz.zclient.appentry.fragments.SignInFragment._
 import com.waz.zclient.tracking.AvailabilityChanged.Method
 import com.waz.zclient.tracking.TeamAcceptedTerms.Occurrence
+import org.json.JSONObject
 
-//TODO - handle generic invitation tokens
-case class EnteredCredentialsEvent(method: SignInMethod, error: Option[(Int, String)], invitation: Option[PersonalToken]) extends TrackingEvent {
+case class EnteredCredentialsEvent(method: SignInMethod, error: Option[(Int, String)]) extends TrackingEvent {
   override val name = method match {
     case SignInMethod(Register, Phone) => "registration.entered_phone"
     case SignInMethod(Register, Email) => "registration.entered_email_and_password"
     case SignInMethod(Login, _) => "account.entered_login_credentials"
   }
   override val props = Some(returning(new JSONObject()) { o =>
-    val input = if (method.inputType == Email) "email" else "phone"
-    val outcome = error.fold2("success", _ => "fail")
-
-    val context = method.signType match {
-      case Login => input
-      case Register if invitation.isEmpty => input
-      case _ => s"personal_invite_$input"
-      //TODO - handle generic invitation tokens
-      // case _ => s"generic_invite_$input"
-    }
-    o.put("context", context)
-    o.put("outcome", outcome)
+    o.put("context", if (method.inputType == Email) "email" else "phone")
+    o.put("outcome", error.fold2("success", _ => "fail"))
     error.foreach { case (code, label) =>
         o.put("error", code)
         o.put("error_message", label)
@@ -91,38 +77,11 @@ case class EnteredNameOnRegistrationEvent(inputType: InputType, error: Option[(I
 }
 
 //TODO - this needs to be re-implemented for emails. For now, this only affects tablets (not super critical)
-case class RegistrationSuccessfulEvent(invitation: Option[PersonalToken]) extends TrackingEvent {
+case class RegistrationSuccessfulEvent() extends TrackingEvent {
   override val name = "registration.succeeded"
   override val props = Some(returning (new JSONObject()) { o =>
-    o.put("context", if (invitation.isEmpty) "phone" else s"personal_invite_phone")
+    o.put("context", "phone")
   })
-}
-
-case class AddPhotoOnRegistrationEvent(inputType: InputType, error: Option[(Int, String)], source: Source) extends TrackingEvent {
-  override val name = "registration.added_photo"
-
-  override val props = Some(returning(new JSONObject()) { o =>
-    val outcome = error.fold2("success", _ => "fail")
-    val context = inputType match {
-      case Phone => "phone"
-      case Email => "email"
-    }
-
-    o.put("context", context)
-    o.put("source", source.value)
-    o.put("outcome", outcome)
-    error.foreach { case (code, label) =>
-      o.put("error", code)
-      o.put("error_message", label)
-    }
-  })
-}
-
-object AddPhotoOnRegistrationEvent {
-  case class Source(value: String)
-
-  val Unsplash = Source("unsplash")
-  val Gallery = Source("gallery")
 }
 
 case class ResendVerificationEvent(method: SignInMethod, isCall: Boolean, error: Option[(Int, String)]) extends TrackingEvent {

@@ -31,20 +31,19 @@ import android.view.{MenuItem, View, ViewGroup}
 import android.widget._
 import com.waz.ZLog.ImplicitTag._
 import com.waz.api.ImageAsset
-import com.waz.content.GlobalPreferences.CurrentAccountPref
-import com.waz.content.{GlobalPreferences, UserPreferences}
-import com.waz.service.ZMessaging
+import com.waz.content.UserPreferences
+import com.waz.service.{AccountsService, ZMessaging}
 import com.waz.threading.Threading
 import com.waz.utils.events.Signal
-import com.waz.utils.returning
 import com.waz.zclient.Intents._
 import com.waz.zclient.common.controllers.global.AccentColorController
 import com.waz.zclient.common.views.AccountTabsView
-import com.waz.zclient.controllers.accentcolor.AccentColorChangeRequester
 import com.waz.zclient.pages.main.profile.camera.{CameraContext, CameraFragment}
 import com.waz.zclient.preferences.pages.{DevicesBackStackKey, OptionsView, ProfileBackStackKey}
 import com.waz.zclient.utils.{BackStackNavigator, RingtoneUtils, ViewUtils}
-import com.waz.zclient.{ActivityHelper, BaseActivity, MainActivity, R}
+import com.waz.zclient.{ActivityHelper, BaseActivity, R}
+import com.waz.zclient.views.LoadingIndicatorView
+import com.waz.zclient._
 
 class PreferencesActivity extends BaseActivity
   with ActivityHelper
@@ -58,9 +57,10 @@ class PreferencesActivity extends BaseActivity
 
   private lazy val backStackNavigator = inject[BackStackNavigator]
   private lazy val zms = inject[Signal[ZMessaging]]
+  private lazy val spinnerController = inject[SpinnerController]
 
-  lazy val currentAccountPref = inject[GlobalPreferences].preference(CurrentAccountPref)
   lazy val accentColor = inject[AccentColorController].accentColor
+  lazy val accounts = inject[AccountsService]
 
   @SuppressLint(Array("PrivateResource"))
   override def onCreate(@Nullable savedInstanceState: Bundle) = {
@@ -79,7 +79,7 @@ class PreferencesActivity extends BaseActivity
         case _                  => backStackNavigator.goTo(ProfileBackStackKey())
       }
 
-      Signal(backStackNavigator.currentState, ZMessaging.currentAccounts.loggedInAccounts.map(_.toSeq.length)).on(Threading.Ui){
+      Signal(backStackNavigator.currentState, ZMessaging.currentAccounts.accountsWithManagers.map(_.toSeq.length)).on(Threading.Ui){
         case (state: ProfileBackStackKey, c) if c > 1 =>
           setTitle(R.string.empty_string)
           accountTabsContainer.setVisibility(View.VISIBLE)
@@ -91,19 +91,9 @@ class PreferencesActivity extends BaseActivity
       backStackNavigator.onRestore(findViewById(R.id.content).asInstanceOf[ViewGroup], savedInstanceState)
     }
 
-    (for {
-      loggedIn <- ZMessaging.currentAccounts.loggedInAccounts
-      active <- ZMessaging.currentAccounts.activeAccount
-    } yield loggedIn.isEmpty || active.isEmpty).onUi{
-      case true =>
-        startActivity(returning(new Intent(this, classOf[MainActivity]))(_.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK)))
-        finish()
-      case _ =>
-    }
-
     accentColor.on(Threading.Ui) { color =>
       getControllerFactory.getUserPreferencesController.setLastAccentColor(color.getColor())
-      getControllerFactory.getAccentColorController.setColor(AccentColorChangeRequester.REMOTE, color.getColor())
+      getControllerFactory.getAccentColorController.setColor(color.getColor())
     }
 
     accountTabs.onTabClick.onUi { account =>
@@ -112,10 +102,23 @@ class PreferencesActivity extends BaseActivity
         intent.putExtra(SwitchAccountExtra, account.id.str)
         setResult(Activity.RESULT_OK, intent)
       } else {
-        ZMessaging.currentAccounts.switchAccount(account.id)
+        ZMessaging.currentAccounts.setAccount(Some(account.id))
         setResult(Activity.RESULT_CANCELED, intent)
       }
       finish()
+    }
+
+    accounts.activeAccountId.map(_.isEmpty).onUi {
+      case true => finish()
+      case _ =>
+    }
+
+    val loadingIndicator = findViewById[LoadingIndicatorView](R.id.progress_spinner)
+
+    spinnerController.spinnerShowing.onUi {
+      case Left(animation) => loadingIndicator.show(animation, darkTheme = true)
+      case Right(Some(message)) => loadingIndicator.hideWithMessage(message, 1000)
+      case _ => loadingIndicator.hide()
     }
   }
 

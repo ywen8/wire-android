@@ -18,45 +18,50 @@
 package com.waz.zclient.appentry.controllers
 
 import android.content.Context
+import com.waz.ZLog.ImplicitTag._
 import com.waz.api.impl.ErrorResponse
 import com.waz.model.EmailAddress
-import com.waz.service.ZMessaging
+import com.waz.service.AccountsService
 import com.waz.service.tracking.TrackingService._
 import com.waz.sync.client.InvitationClient.ConfirmedTeamInvitation
 import com.waz.threading.CancellableFuture
+import com.waz.utils._
 import com.waz.utils.events.{EventContext, Signal}
 import com.waz.zclient.appentry.controllers.InvitationsController._
 import com.waz.zclient.tracking.TeamInviteSent
 import com.waz.zclient.{Injectable, Injector}
-import com.waz.ZLog.ImplicitTag._
 
+import scala.collection.immutable.ListMap
 import scala.concurrent.Future
 
 class InvitationsController(implicit inj: Injector, eventContext: EventContext, context: Context) extends Injectable {
 
-  private val zms = inject[Signal[ZMessaging]]
+  private lazy val accountsService      = inject[AccountsService]
+  private lazy val createTeamController = inject[CreateTeamController]
 
   var inputEmail = ""
 
-  val invitations = zms.flatMap(_.invitations.invitedToTeam).map(_.map {
-    case (inv, response) => inv.emailAddress -> InvitationStatus(response)
-  })
+  val invitations: Signal[ListMap[EmailAddress, InvitationStatus]] = accountsService.activeAccountManager.flatMap {
+    case None => Signal.const(ListMap.empty[EmailAddress, InvitationStatus])
+    case Some(account) => account.invitedToTeam.map(_.map {
+      case (inv, response) => inv.emailAddress -> InvitationStatus(response)
+    })
+  }
 
   def sendInvite(email: EmailAddress): Future[Either[ErrorResponse, Unit]] = {
-    import com.waz.threading.Threading.Implicits.Background
     for {
-      zms <- zms.head
-      account <- zms.accounts.getActiveAccount
+      account     <- accountsService.activeAccountManager.head
       alreadySent <- invitations.head
       response <- if (alreadySent.keySet.contains(email))
           CancellableFuture.successful(Left(ErrorResponse(ErrorResponse.InternalErrorCode, "Already sent", "already-sent")))
         else
-          zms.invitations.inviteToTeam(email, account.flatMap(_.name))
+          account.fold2(CancellableFuture.successful(Left(ErrorResponse.internalError("No account manager available"))),
+            _.inviteToTeam(email, Some(createTeamController.teamUserName)))
     } yield
       response match {
         case Left(e) => Left(e)
         case Right(_) =>
-          track(TeamInviteSent(), account.map(_.id))
+          track(TeamInviteSent(), account.map(_.userId))
           Right(())
       }
   }

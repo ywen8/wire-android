@@ -23,7 +23,6 @@ import android.os.Bundle
 import android.support.v4.content.ContextCompat
 import android.view.{LayoutInflater, View}
 import android.widget.{AdapterView, ListView}
-import com.waz.zclient.appentry.controllers.SignInController
 import com.waz.zclient.appentry.fragments.CountryDialogFragment._
 import com.waz.zclient.newreg.fragments.country.{CountryCodeAdapter, CountryController}
 import com.waz.zclient.pages.BaseDialogFragment
@@ -40,7 +39,6 @@ object CountryDialogFragment {
 
 class CountryDialogFragment extends BaseDialogFragment[Container] with FragmentHelper with AdapterView.OnItemClickListener {
 
-  private lazy val signInController = inject[SignInController]
   private lazy val countryAdapter = new CountryCodeAdapter
 
   override def onCreateDialog(savedInstanceState: Bundle): Dialog = {
@@ -60,7 +58,7 @@ class CountryDialogFragment extends BaseDialogFragment[Container] with FragmentH
   }
 
   def onItemClick(adapterView: AdapterView[_], view: View, i: Int, l: Long): Unit = {
-    signInController.phoneCountry ! countryAdapter.getItem(i)
+    getContainer.getCountryController.setCountry(countryAdapter.getItem(i))
     dismiss()
   }
 }

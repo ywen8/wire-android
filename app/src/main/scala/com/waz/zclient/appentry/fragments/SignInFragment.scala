@@ -17,7 +17,7 @@
  */
 package com.waz.zclient.appentry.fragments
 
-import android.content.DialogInterface
+import android.content.{Context, DialogInterface}
 import android.graphics.Color
 import android.os.Build.VERSION.SDK_INT
 import android.os.Build.VERSION_CODES.KITKAT
@@ -28,41 +28,100 @@ import android.view.{LayoutInflater, View, ViewGroup}
 import android.widget.{FrameLayout, LinearLayout}
 import com.waz.ZLog.ImplicitTag._
 import com.waz.ZLog._
-import com.waz.service.ZMessaging
+import com.waz.api.impl.ErrorResponse
+import com.waz.client.RegistrationClientImpl.ActivateResult
+import com.waz.client.RegistrationClientImpl.ActivateResult.{Failure, PasswordExists, Success}
+import com.waz.model.{EmailAddress, PhoneNumber}
+import com.waz.service.{AccountsService, ZMessaging}
 import com.waz.threading.Threading
+import com.waz.utils.events.Signal
+import com.waz.utils.returning
 import com.waz.zclient._
-import com.waz.zclient.appentry.controllers.SignInController
-import com.waz.zclient.appentry.controllers.SignInController._
 import com.waz.zclient.appentry.fragments.SignInFragment._
 import com.waz.zclient.appentry.{AppEntryActivity, EntryError}
+import com.waz.zclient.common.controllers.BrowserController
 import com.waz.zclient.newreg.fragments.TabPages
-import com.waz.zclient.newreg.fragments.country.Country
+import com.waz.zclient.newreg.fragments.country.{Country, CountryController}
 import com.waz.zclient.newreg.views.PhoneConfirmationButton
 import com.waz.zclient.pages.BaseFragment
+import com.waz.zclient.pages.main.profile.validator.{EmailValidator, NameValidator, PasswordValidator}
 import com.waz.zclient.pages.main.profile.views.GuidedEditText
-import com.waz.zclient.tracking.SignUpScreenEvent
+import com.waz.zclient.tracking.{GlobalTrackingController, SignUpScreenEvent}
 import com.waz.zclient.ui.text.{GlyphTextView, TypefaceEditText, TypefaceTextView}
 import com.waz.zclient.ui.utils.{KeyboardUtils, TextViewUtils}
 import com.waz.zclient.ui.views.tab.TabIndicatorLayout
 import com.waz.zclient.ui.views.tab.TabIndicatorLayout.Callback
+import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.utils._
 
-class SignInFragment extends BaseFragment[Container] with FragmentHelper with View.OnClickListener {
+class SignInFragment extends BaseFragment[Container]
+  with FragmentHelper
+  with View.OnClickListener
+  with CountryController.Observer {
 
-  lazy val signInController = inject[SignInController]
+  implicit def context: Context = getActivity
 
-  lazy val container = getView.findViewById(R.id.sign_in_container).asInstanceOf[FrameLayout]
-  lazy val scenes = Array(
+  private lazy val accountsService    = inject[AccountsService]
+  private lazy val browserController  = inject[BrowserController]
+  private lazy val tracking           = inject[GlobalTrackingController]
+
+  private lazy val isAddingAccount = accountsService.zmsInstances.map(_.nonEmpty)
+
+  private lazy val uiSignInState = {
+    val sign = getStringArg(SignTypeArg) match {
+      case Some(Login.str) => Login
+      case _               => Register
+    }
+
+    val input = getStringArg(InputTypeArg) match {
+      case Some(Email.str) => Email
+      case _               => Phone
+    }
+    Signal(SignInMethod(sign, input))
+  }
+
+  private val email    = Signal("")
+  private val password = Signal("")
+  private val name     = Signal("")
+  private val phone    = Signal("")
+
+  private lazy val countryController = activity.getCountryController //TODO rewrite && inject
+  private lazy val phoneCountry = Signal[Country]()
+
+  private lazy val nameValidator = new NameValidator()
+  private lazy val emailValidator = EmailValidator.newInstance()
+  private lazy val passwordValidator = PasswordValidator.instance(context)
+  private lazy val legacyPasswordValidator = PasswordValidator.instanceLegacy(context)
+
+  lazy val isValid: Signal[Boolean] = uiSignInState.flatMap {
+    case SignInMethod(Login, Email) =>
+      for {
+        email <- email
+        password <- password
+      } yield emailValidator.validate(email) && legacyPasswordValidator.validate(password)
+    case SignInMethod(Register, Email) =>
+      for {
+        name <- name
+        email <- email
+        password <- password
+      } yield nameValidator.validate(name) && emailValidator.validate(email) && passwordValidator.validate(password)
+    case SignInMethod(_, Phone) =>
+      phone.map(_.nonEmpty)
+    case _ => Signal.empty[Boolean]
+  }
+
+  private lazy val container = view[FrameLayout](R.id.sign_in_container)
+  private lazy val scenes = Array(
     R.layout.sign_in_email_scene,
     R.layout.sign_in_phone_scene,
     R.layout.sign_up_email_scene,
     R.layout.sign_up_phone_scene
   )
 
-  lazy val phoneButton = findById[TypefaceTextView](getView, R.id.ttv__new_reg__sign_in__go_to__phone)
-  lazy val emailButton = findById[TypefaceTextView](getView, R.id.ttv__new_reg__sign_in__go_to__email)
-  lazy val tabSelector = findById[TabIndicatorLayout](getView, R.id.til__app_entry)
-  lazy val closeButton = findById[GlyphTextView](getView, R.id.close_button)
+  private lazy val phoneButton = view[TypefaceTextView](R.id.ttv__new_reg__sign_in__go_to__phone)
+  private lazy val emailButton = view[TypefaceTextView](R.id.ttv__new_reg__sign_in__go_to__email)
+  private lazy val tabSelector = view[TabIndicatorLayout](R.id.til__app_entry)
+  private lazy val closeButton = view[GlyphTextView](R.id.close_button)
 
   def nameField = Option(findById[GuidedEditText](getView, R.id.get__sign_in__name))
 
@@ -83,100 +142,95 @@ class SignInFragment extends BaseFragment[Container] with FragmentHelper with Vi
   def setupViews(): Unit = {
 
     emailField.foreach { field =>
-      field.setValidator(signInController.emailValidator)
+      field.setValidator(emailValidator)
       field.setResource(R.layout.guided_edit_text_sign_in__email)
-      field.setText(signInController.email.currentValue.getOrElse(""))
-      field.getEditText.addTextListener(signInController.email ! _)
+      field.setText(email.currentValue.getOrElse(""))
+      field.getEditText.addTextListener(email ! _)
     }
 
     passwordField.foreach { field =>
-      field.setValidator(signInController.passwordValidator)
+      field.setValidator(passwordValidator)
       field.setResource(R.layout.guided_edit_text_sign_in__password)
-      field.setText(signInController.password.currentValue.getOrElse(""))
-      field.getEditText.addTextListener(signInController.password ! _)
+      field.setText(password.currentValue.getOrElse(""))
+      field.getEditText.addTextListener(password ! _)
     }
 
     nameField.foreach { field =>
-      field.setValidator(signInController.nameValidator)
+      field.setValidator(nameValidator)
       field.setResource(R.layout.guided_edit_text_sign_in__name)
-      field.setText(signInController.name.currentValue.getOrElse(""))
-      field.getEditText.addTextListener(signInController.name ! _)
+      field.setText(name.currentValue.getOrElse(""))
+      field.getEditText.addTextListener(name ! _)
     }
 
     phoneField.foreach { field =>
-      field.setText(signInController.phone.currentValue.getOrElse(""))
-      field.addTextListener(signInController.phone ! _)
+      field.setText(phone.currentValue.getOrElse(""))
+      field.addTextListener(phone ! _)
     }
 
     termsOfService.foreach { text =>
-      TextViewUtils.linkifyText(text, ContextCompat.getColor(getContext, R.color.white), true, new Runnable {
-        override def run() = getContainer.onOpenUrl(getString(R.string.url_terms_of_service_personal))
+      TextViewUtils.linkifyText(text, getColor(R.color.white), true, new Runnable {
+        override def run(): Unit = browserController.openUrl(getString(R.string.url_terms_of_service_personal))
       })
     }
     countryButton.foreach(_.setOnClickListener(this))
     countryCodeText.foreach(_.setOnClickListener(this))
     confirmationButton.foreach(_.setOnClickListener(this))
     confirmationButton.foreach(_.setAccentColor(Color.WHITE))
-    setConfirmationButtonActive(signInController.isValid.currentValue.getOrElse(false))
+    setConfirmationButtonActive(isValid.currentValue.getOrElse(false))
     forgotPasswordButton.foreach(_.setOnClickListener(this))
   }
 
-  override def onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState: Bundle) =
-    inflater.inflate(R.layout.sign_in_fragment, container, false)
+  override def onCreateView(inflater: LayoutInflater, container: ViewGroup, savedInstanceState: Bundle): View =
+    returning(inflater.inflate(R.layout.sign_in_fragment, container, false)) { view =>
+      findById[TabIndicatorLayout](view, R.id.til__app_entry).setLabels(Array[Int](R.string.new_reg__phone_signup__create_account, R.string.i_have_an_account))
+      container.setBackgroundColor(Color.TRANSPARENT)
+    }
 
-  override def onViewCreated(view: View, savedInstanceState: Bundle) = {
+  override def onViewCreated(view: View, savedInstanceState: Bundle): Unit = {
+
+    phoneButton.foreach(_.setOnClickListener(this))
+    emailButton.foreach(_.setOnClickListener(this))
+    closeButton.foreach(_.setOnClickListener(this))
+    tabSelector.foreach { tabSelector =>
+      tabSelector.setLabels(Array[Int](R.string.new_reg__phone_signup__create_account, R.string.i_have_an_account))
+      tabSelector.setTextColor(ContextCompat.getColorStateList(getContext, R.color.wire__text_color_dark_selector))
+      tabSelector.setSelected(TabPages.SIGN_IN)
+
+      tabSelector.setCallback(new Callback {
+        override def onItemSelected(pos: Int): Unit = {
+          pos match  {
+            case TabPages.CREATE_ACCOUNT =>
+              tabSelector.setSelected(TabPages.CREATE_ACCOUNT)
+              uiSignInState.mutate(_ => SignInMethod(Register, Phone))
+            case TabPages.SIGN_IN =>
+              tabSelector.setSelected(TabPages.SIGN_IN)
+              uiSignInState.mutate {
+                case SignInMethod(Register, _) => SignInMethod(Login, Email)
+                case other => other
+              }
+            case _ =>
+          }
+        }
+      })
+    }
+
+    uiSignInState.head.map {
+      case SignInMethod(Login, _) => tabSelector.foreach(_.setSelected(TabPages.SIGN_IN))
+      case SignInMethod(Register, _) => tabSelector.foreach(_.setSelected(TabPages.CREATE_ACCOUNT))
+    } (Threading.Ui)
+  }
+
+  override def onCreate(savedInstanceState: Bundle): Unit = {
+    super.onCreate(savedInstanceState)
 
     val transition = if (SDK_INT >= KITKAT) Option(new AutoTransition2()) else None
 
-    def switchScene(sceneIndex: Int) = transition.fold[Unit]({
-      container.removeAllViews()
-      LayoutInflater.from(getContext).inflate(scenes(sceneIndex), container)
-    })( TransitionManager.go(Scene.getSceneForLayout(container, scenes(sceneIndex), getContext), _) )
+    def switchScene(sceneIndex: Int): Unit = transition.fold[Unit]({
+      container.foreach(_.removeAllViews())
+      container.foreach(c => LayoutInflater.from(getContext).inflate(scenes(sceneIndex), c))
+    })(tr => container.foreach(c => TransitionManager.go(Scene.getSceneForLayout(c, scenes(sceneIndex), getContext), tr)))
 
-    phoneButton.setOnClickListener(this)
-    emailButton.setOnClickListener(this)
-    closeButton.setOnClickListener(this)
-    tabSelector.setLabels(Array[Int](R.string.new_reg__phone_signup__create_account, R.string.i_have_an_account))
-    tabSelector.setTextColor(ContextCompat.getColorStateList(getContext, R.color.wire__text_color_dark_selector))
-    tabSelector.setSelected(TabPages.SIGN_IN)
-
-    tabSelector.setCallback(new Callback {
-      override def onItemSelected(pos: Int) = {
-        pos match  {
-          case TabPages.CREATE_ACCOUNT =>
-            tabSelector.setSelected(TabPages.CREATE_ACCOUNT)
-            signInController.uiSignInState.mutate(_ => SignInMethod(Register, Phone))
-          case TabPages.SIGN_IN =>
-            tabSelector.setSelected(TabPages.SIGN_IN)
-            signInController.uiSignInState.mutate {
-              case SignInMethod(Register, _) => SignInMethod(Login, Email)
-              case other => other
-            }
-          case _ =>
-        }
-      }
-    })
-
-    signInController.uiSignInState.head.map {
-      case SignInMethod(Login, _) => tabSelector.setSelected(TabPages.SIGN_IN)
-      case SignInMethod(Register, _) => tabSelector.setSelected(TabPages.CREATE_ACCOUNT)
-    } (Threading.Ui)
-
-    //TODO: remove when login by email available on phones
-    if (LayoutSpec.isPhone(getActivity)) {
-      signInController.uiSignInState.onUi {
-        case SignInMethod(Register, Email) =>
-          signInController.uiSignInState ! SignInMethod(Register, Phone)
-        case SignInMethod(Register, _) =>
-          phoneButton.setVisible(false)
-          emailButton.setVisible(false)
-        case _ =>
-          phoneButton.setVisible(true)
-          emailButton.setVisible(true)
-      }
-    }
-
-    signInController.uiSignInState.onUi { state =>
+    uiSignInState.onUi { state =>
       state match {
         case SignInMethod(Login, Email) =>
           switchScene(0)
@@ -199,78 +253,157 @@ class SignInFragment extends BaseFragment[Container] with FragmentHelper with Vi
           setPhoneButtonSelected()
           phoneField.foreach(_.requestFocus())
       }
-      signInController.phoneCountry.currentValue.foreach{ onCountryHasChanged }
+      phoneCountry.currentValue.foreach(onCountryHasChanged)
     }
 
-    signInController.uiSignInState.map(s => SignInMethod(s.signType, Phone)).onUi { method =>
+    uiSignInState.map(s => SignInMethod(s.signType, Phone)).onUi { method =>
       ZMessaging.globalModule.map(_.trackingService.track(SignUpScreenEvent(method)))(Threading.Ui)
     }
 
-    signInController.isValid.onUi { setConfirmationButtonActive }
-    signInController.phoneCountry.onUi { onCountryHasChanged }
-    signInController.isAddingAccount.onUi { closeButton.setVisible }
+    isValid.onUi(setConfirmationButtonActive)
+    phoneCountry.onUi(onCountryHasChanged)
+    isAddingAccount.onUi(isAdding => closeButton.foreach(_.setVisible(isAdding)))
   }
 
   private def setConfirmationButtonActive(active: Boolean): Unit = {
-    if(active)
-      confirmationButton.foreach(_.setState(PhoneConfirmationButton.State.CONFIRM))
-    else
-      confirmationButton.foreach(_.setState(PhoneConfirmationButton.State.NONE))
+    import PhoneConfirmationButton.State._
+    confirmationButton.foreach(_.setState(if (active) CONFIRM else NONE))
   }
 
-  private def setPhoneButtonSelected() = {
-    phoneButton.setBackground(ContextCompat.getDrawable(getContext, R.drawable.selector__reg__signin))
-    phoneButton.setTextColor(ContextCompat.getColor(getContext, R.color.white))
-    emailButton.setBackground(null)
-    emailButton.setTextColor(ContextCompat.getColor(getContext, R.color.white_40))
+  private def setPhoneButtonSelected(): Unit = {
+    phoneButton.foreach { phoneButton =>
+      phoneButton.setBackground(getDrawable(R.drawable.selector__reg__signin))
+      phoneButton.setTextColor(getColor(R.color.white))
+    }
+    emailButton.foreach { emailButton =>
+      emailButton.setBackground(null)
+      emailButton.setTextColor(getColor(R.color.white_40))
+    }
   }
 
-  private def setEmailButtonSelected() = {
-    emailButton.setBackground(ContextCompat.getDrawable(getContext, R.drawable.selector__reg__signin))
-    emailButton.setTextColor(ContextCompat.getColor(getContext, R.color.white))
-    phoneButton.setBackground(null)
-    phoneButton.setTextColor(ContextCompat.getColor(getContext, R.color.white_40))
+  private def setEmailButtonSelected(): Unit = {
+    emailButton.foreach { emailButton =>
+      emailButton.setBackground(getDrawable(R.drawable.selector__reg__signin))
+      emailButton.setTextColor(getColor(R.color.white))
+    }
+    phoneButton.foreach { phoneButton =>
+      phoneButton.setBackground(null)
+      phoneButton.setTextColor(getColor(R.color.white_40))
+    }
+  }
+
+
+  override def onResume() = {
+    super.onResume()
+    countryController.addObserver(this)
+  }
+
+
+  override def onPause() = {
+    super.onPause()
+    countryController.removeObserver(this)
   }
 
   override def onClick(v: View) = {
     v.getId match {
       case R.id.ttv__new_reg__sign_in__go_to__email =>
-        signInController.uiSignInState.mutate {
+        uiSignInState.mutate {
           case SignInMethod(x, Phone) => SignInMethod(x, Email)
           case other => other
         }
 
       case R.id.ttv__new_reg__sign_in__go_to__phone =>
-        signInController.uiSignInState.mutate {
+        uiSignInState.mutate {
           case SignInMethod(x, Email) => SignInMethod(x, Phone)
           case other => other
         }
 
       case R.id.ll__signup__country_code__button | R.id.tv__country_code =>
-        getActivity.asInstanceOf[AppEntryActivity].openCountryBox()
+        activity.openCountryBox()
 
-      case R.id.pcb__signin__email =>
+      case R.id.pcb__signin__email => //TODO rename!
         implicit val ec = Threading.Ui
         KeyboardUtils.closeKeyboardIfShown(getActivity)
-        getActivity.asInstanceOf[AppEntryActivity].enableProgress(true)
-        signInController.attemptSignIn().map {
-          case Left(error) =>
-            getActivity.asInstanceOf[AppEntryActivity].enableProgress(false)
-            showError(error)
-          case _ =>
+        activity.enableProgress(true)
+
+        def onResponse[A](resp: Either[ErrorResponse, A], m: SignInMethod) = {
+          returning(resp match {
+            case Left(error) => Left(EntryError(error.code, error.label, m))
+            case Right(ret) => Right(ret)
+          })(tracking.onEnteredCredentials(_, m))
         }
+
+        def onActivateResponse(resp: ActivateResult, m: SignInMethod): Either[EntryError, Unit] = {
+          returning(resp match {
+            case Failure(error) => Left(EntryError(error.code, error.label, m))
+            case PasswordExists => Left(EntryError(ErrorResponse.Forbidden, "password-exists", m))
+            case Success => Right(())
+          })(tracking.onEnteredCredentials(_, m))
+        }
+
+        uiSignInState.head.flatMap {
+          case m@SignInMethod(Login, Email) =>
+            for {
+              email     <- email.head
+              password  <- password.head
+              req       <- accountsService.loginEmail(email, password).map(onResponse(_, m))
+            } yield req match {
+              case Left(error) =>
+                activity.enableProgress(false)
+                showError(error)
+              case Right(id) =>
+                activity.enableProgress(false)
+                activity.showFragment(FirstLaunchAfterLoginFragment(id), FirstLaunchAfterLoginFragment.Tag)
+            }
+          case m@SignInMethod(Register, Email) =>
+            for {
+              email     <- email.head
+              password  <- password.head
+              name      <- name.head
+              req       <- accountsService.requestEmailCode(EmailAddress(email)).map(onActivateResponse(_, m))
+            } yield req match {
+              case Left(error) =>
+                activity.enableProgress(false)
+                showError(error)
+              case Right(_) =>
+                activity.enableProgress(false)
+                activity.showFragment(VerifyEmailWithCodeFragment(email, name, password), VerifyEmailWithCodeFragment.Tag)
+            }
+          case m@SignInMethod(method, Phone) =>
+            val isLogin = method == Login
+            activity.enableProgress(true)
+            for {
+              country <- phoneCountry.head
+              phoneStr <- phone.head
+              phone = PhoneNumber(s"+${country.getCountryCode}$phoneStr")
+              req <- accountsService.requestPhoneCode(phone, login = isLogin).map(onActivateResponse(_, m))
+            } yield req match {
+              case Left(error) =>
+                activity.enableProgress(false)
+                showError(error)
+              case Right(_) =>
+                activity.enableProgress(false)
+                activity.showFragment(VerifyPhoneFragment(phone.str, login = isLogin), VerifyPhoneFragment.Tag)
+            }
+          case _ => throw new NotImplementedError("Only login with email works right now") //TODO
+        }
+
       case R.id.ttv_signin_forgot_password =>
-        getContainer.onOpenUrl(getString(R.string.url_password_reset))
+        browserController.openUrl(getString(R.string.url_password_reset))
       case R.id.close_button =>
         getContainer.abortAddAccount()
       case _ =>
     }
   }
 
-  def onCountryHasChanged(country: Country): Unit = {
+  override def onCountryHasChanged(country: Country): Unit = {
+    phoneCountry ! country
     countryCodeText.foreach(_.setText(String.format("+%s", country.getCountryCode)) )
     countryNameText.foreach(_.setText(country.getName))
   }
+
+  def clearCredentials(): Unit =
+    Set(email, password, name, phone).foreach(_ ! "")
 
   def showError(entryError: EntryError, okCallback: => Unit = {}): Unit =
     ViewUtils.showAlertDialog(getActivity,
@@ -284,14 +417,53 @@ class SignInFragment extends BaseFragment[Container] with FragmentHelper with Vi
         }
       },
       false)
+
+
+  override def onBackPressed(): Boolean =
+    if (getFragmentManager.getBackStackEntryCount > 1) {
+      getFragmentManager.popBackStack()
+      true
+    } else {
+      false
+    }
+
+  def activity = getActivity.asInstanceOf[AppEntryActivity]
 }
 
 object SignInFragment {
+
+  val SignTypeArg = "SIGN_IN_TYPE"
+  val InputTypeArg = "INPUT_TYPE"
+
+  def apply() = new SignInFragment
+
+  def apply(signInMethod: SignInMethod): SignInFragment = {
+    returning(new SignInFragment()) {
+      _.setArguments(returning(new Bundle) { b =>
+          b.putString(SignTypeArg, signInMethod.signType.str)
+          b.putString(InputTypeArg, signInMethod.inputType.str)
+      })
+    }
+  }
+
   val Tag = logTagFor[SignInFragment]
   trait Container {
     def abortAddAccount(): Unit
-    def onOpenUrl(url: String): Unit
   }
+
+  sealed trait SignType{
+    val str: String
+  }
+  object Login extends SignType { override val str = "Login" }
+  object Register extends SignType { override val str = "Register" }
+
+  sealed trait InputType {
+    val str: String
+  }
+  object Email extends InputType { override val str = "Email" }
+  object Phone extends InputType { override val str = "Phone" }
+
+  case class SignInMethod(signType: SignType, inputType: InputType)
 }
 
 class AutoTransition2 extends TransitionSet {

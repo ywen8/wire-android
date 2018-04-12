@@ -23,7 +23,6 @@ import com.waz.content.GlobalPreferences._
 import com.waz.content.Preferences.PrefKey
 import com.waz.content.UserPreferences._
 import com.waz.service.ZMessaging
-import com.waz.zclient.appentry.controllers.AppEntryController
 import com.waz.zclient.controllers.userpreferences.IUserPreferencesController._
 import com.waz.zclient.controllers.userpreferences.UserPreferencesController
 import com.waz.zclient.controllers.userpreferences.UserPreferencesController._
@@ -81,8 +80,7 @@ trait AbstractPreferenceReceiver extends BroadcastReceiver {
       case TEAM_CREATION_TOU_AB_INTENT =>
         val wireApplication = context.getApplicationContext.asInstanceOf[WireApplication]
         implicit val injector = wireApplication.module
-        val appEntryController = wireApplication.inject[AppEntryController]
-        appEntryController.termsOfUseAB = intent.getBooleanExtra(TEAM_CREATION_TOU_AB_EXTRA_KEY, false)
+        //TODO coordinate remove of this block with QA
       case _ =>
         setResultData("Unknown Intent!")
         setResultCode(Activity.RESULT_CANCELED)

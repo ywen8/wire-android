@@ -38,10 +38,11 @@ import android.text.TextUtils
 import android.view.inputmethod.EditorInfo
 import android.view.{KeyEvent, LayoutInflater, View, WindowManager}
 import android.widget.{EditText, TextView}
+import com.waz.ZLog.ImplicitTag._
 import com.waz.api.impl.ErrorResponse
 import com.waz.model.PhoneNumber
-import com.waz.service.ZMessaging
 import com.waz.permissions.PermissionsService
+import com.waz.service.ZMessaging
 import com.waz.threading.Threading
 import com.waz.utils.events.{EventStream, Signal}
 import com.waz.utils.returning
@@ -51,19 +52,19 @@ import com.waz.zclient.controllers.deviceuser.IDeviceUserController
 import com.waz.zclient.newreg.fragments.country.{Country, CountryController}
 import com.waz.zclient.ui.utils.{DrawableUtils, MathUtils}
 import com.waz.zclient.utils.{DeprecationUtils, RichView, ViewUtils}
-import com.waz.ZLog.ImplicitTag._
 
-import scala.concurrent.Future
 import scala.util.Try
 
 class ChangePhoneDialog extends DialogFragment with FragmentHelper with CountryController.Observer {
   import ChangePhoneDialog._
+  import Threading.Implicits.Ui
 
   private lazy val root = LayoutInflater.from(getContext).inflate(R.layout.preference_dialog_add_phone, null)
 
   val onPhoneChanged = EventStream[Option[PhoneNumber]]()
 
   lazy val zms = inject[Signal[ZMessaging]]
+  lazy val users = zms.map(_.users)
   lazy val deviceUserController = inject[IDeviceUserController]
 
   private lazy val countryController = new CountryController(getActivity)
@@ -162,18 +163,17 @@ class ChangePhoneDialog extends DialogFragment with FragmentHelper with CountryC
       getString(android.R.string.ok), getString(android.R.string.cancel),
       new DialogInterface.OnClickListener() {
         def onClick(dialog: DialogInterface, which: Int) =
-          zms.head.flatMap(_.account.clearPhone().map {
+          users.head.flatMap(_.clearPhone()).map {
             case Right(_) =>
               onPhoneChanged ! None
               dismiss()
             case Left(_) =>
               showError(getString(R.string.pref__account_action__dialog__delete_phone__error))
-          }(Threading.Ui))(Threading.Background)
+          }
       }, null)
   }
 
   private def handleInput(): Unit = {
-    import Threading.Implicits.Background
 
     val newCountryCode = Option(countryEditText.getText.toString.trim).filter { cc =>
       cc.nonEmpty && cc.matches("\\+([0-9])+")
@@ -192,11 +192,8 @@ class ChangePhoneDialog extends DialogFragment with FragmentHelper with CountryC
           getString(android.R.string.ok),
           getString(android.R.string.cancel),
           new DialogInterface.OnClickListener() {
-            def onClick(dialog: DialogInterface, which: Int) = for {
-              z <- zms.head
-              p <- z.account.accountData.head.map(_.phone)
-              _ <- if (p.contains(n)) Future(dismiss())(Threading.Ui)
-              else z.account.updatePhone(n).future.map {
+            def onClick(dialog: DialogInterface, which: Int) =
+              users.head.flatMap(_.updatePhone(n)).map { //TODO what if the number is already set?
                 case Right(_) =>
                   onPhoneChanged ! Some(n)
                   dismiss()
@@ -205,8 +202,7 @@ class ChangePhoneDialog extends DialogFragment with FragmentHelper with CountryC
                     showError(getString(PhoneExistsError.headerResource))
                   else
                     showError(getString(GenericRegisterPhoneError.headerResource))
-              } (Threading.Ui)
-            } yield {}
+              }
           },
           null
         )

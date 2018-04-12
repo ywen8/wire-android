@@ -904,7 +904,7 @@
     <dimen name="new_cursor_menu_button_width">56dp</dimen>
     <dimen name="new_cursor_button_horizontal_margin">16dp</dimen>
     <dimen name="new_cursor_button_left_margin">4dp</dimen>
-    <dimen name="phone_sign_in_container_height">160dp</dimen>
+    <dimen name="phone_sign_in_container_height">180dp</dimen>
     <dimen name="settings_divider_margin_start">48dp</dimen>
 
     <dimen name="teams_input_margin_top">80dp</dimen>
@@ -945,4 +945,8 @@
     <dimen name="participants_options_button_margin_top">32dp</dimen>
     <dimen name="next_indicator_size">12dp</dimen>
     <dimen name="participant_initials_text_size">64sp</dimen>
+    <dimen name="backup_export_icon_size">96dp</dimen>
+    <dimen name="credentials_fragment_bottom_padding">36dp</dimen>
+
+
 </resources>

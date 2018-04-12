@@ -18,6 +18,7 @@
 package com.waz.zclient.ui.views;
 
 import android.content.Context;
+import android.content.res.TypedArray;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
@@ -47,6 +48,10 @@ public class ZetaButton extends TypefaceTextView {
     public ZetaButton(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
         init();
+        if (attrs != null) {
+            TypedArray array = context.getTheme().obtainStyledAttributes(attrs, R.styleable.ZetaButton, 0, 0);
+            setIsFilled(array.getBoolean(R.styleable.ZetaButton_isFilled, isFilled));
+        }
     }
 
     @Override

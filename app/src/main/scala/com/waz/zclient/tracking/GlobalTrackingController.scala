@@ -22,7 +22,7 @@ import android.renderscript.RSRuntimeException
 import com.waz.ZLog.ImplicitTag._
 import com.waz.ZLog._
 import com.waz.content.Preferences.PrefKey
-import com.waz.content.{GlobalPreferences, MembersStorage, UsersStorage}
+import com.waz.content.{GlobalPreferences, UsersStorage}
 import com.waz.model.ConversationData.ConversationType
 import com.waz.model.{UserId, _}
 import com.waz.service.tracking.TrackingService.{NoReporting, track}
@@ -33,16 +33,15 @@ import com.waz.utils.events.{EventContext, Signal}
 import com.waz.utils.{RichThreetenBPDuration, _}
 import com.waz.zclient._
 import com.waz.zclient.appentry.EntryError
-import com.waz.zclient.appentry.controllers.SignInController.{InputType, SignInMethod}
-import com.waz.zclient.tracking.AddPhotoOnRegistrationEvent.Source
+import com.waz.zclient.appentry.fragments.SignInFragment.{InputType, SignInMethod}
 import com.waz.zclient.utils.DeprecationUtils
 import net.hockeyapp.android.CrashManagerListener
 import org.json.JSONObject
 
 import scala.collection.JavaConverters._
+import scala.concurrent.Future
 import scala.concurrent.Future._
 import scala.concurrent.duration._
-import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Try
 
 class GlobalTrackingController(implicit inj: Injector, cxt: WireContext, eventContext: EventContext) extends Injectable {
@@ -124,7 +123,7 @@ class GlobalTrackingController(implicit inj: Injector, cxt: WireContext, eventCo
       event match {
         case _: OpenedTeamRegistration =>
           trackingEnabled.map {
-            case true => ZMessaging.currentAccounts.loggedInAccounts.head.map {
+            case true => ZMessaging.currentAccounts.accountManagers.head.map {
               _.size match {
                 case 0 =>
                   send(zms, event)
@@ -174,18 +173,14 @@ class GlobalTrackingController(implicit inj: Injector, cxt: WireContext, eventCo
     }
   }
 
-  private def responseToErrorPair(response: Either[EntryError, Unit]) = response.fold({ e => Option((e.code, e.label))}, _ => Option.empty[(Int, String)])
+  private def responseToErrorPair(response: Either[EntryError, _]) = response.fold({ e => Option((e.code, e.label))}, _ => Option.empty[(Int, String)])
 
-  def onEnteredCredentials(response: Either[EntryError, Unit], method: SignInMethod): Unit =
-
-  for {
-    //Should wait until a ZMS instance exists before firing the event
-    _   <- ZMessaging.currentAccounts.activeZms.collect { case Some(z) => z }.head
-    acc <- ZMessaging.currentAccounts.activeAccount.collect { case Some(acc) => acc }.head
-  } yield {
-    //TODO when are generic tokens still used?
-    track(EnteredCredentialsEvent(method, responseToErrorPair(response), acc.invitationToken), Some(acc.id))
-  }
+  def onEnteredCredentials(response: Either[EntryError, _], method: SignInMethod): Unit =
+    for {
+      //Should wait until a ZMS instance exists before firing the event
+      _   <- ZMessaging.currentAccounts.activeZms.collect { case Some(z) => z }.head
+      acc <- ZMessaging.currentAccounts.activeAccount.collect { case Some(acc) => acc }.head
+    } yield track(EnteredCredentialsEvent(method, responseToErrorPair(response)), Some(acc.id))
 
   def onEnterCode(response: Either[EntryError, Unit], method: SignInMethod): Unit =
     track(EnteredCodeEvent(method, responseToErrorPair(response)))
@@ -200,11 +195,8 @@ class GlobalTrackingController(implicit inj: Injector, cxt: WireContext, eventCo
       acc <- ZMessaging.currentAccounts.activeAccount.collect { case Some(acc) => acc }.head
     } yield {
       track(EnteredNameOnRegistrationEvent(inputType, responseToErrorPair(response)), Some(acc.id))
-      track(RegistrationSuccessfulEvent(acc.invitationToken), Some(acc.id))
+      track(RegistrationSuccessfulEvent(), Some(acc.id))
     }
-
-  def onAddPhotoOnRegistration(inputType: InputType, source: Source, response: Either[EntryError, Unit] = Right(())): Unit =
-    track(AddPhotoOnRegistrationEvent(inputType, responseToErrorPair(response), source))
 
   def flushEvents(): Unit = mixpanelGuard.flush()
 }
@@ -235,13 +227,5 @@ object GlobalTrackingController {
   def isBot(conv: ConversationData, users: UsersStorage): Future[Boolean] =
     if (conv.convType == ConversationType.OneToOne) users.get(UserId(conv.id.str)).map(_.exists(_.isWireBot))(Threading.Background)
     else successful(false)
-
-  //TODO remove workarounds for 1:1 team conversations when supported on backend
-  def convType(conv: ConversationData, membersStorage: MembersStorage)(implicit executionContext: ExecutionContext): Future[ConversationType] =
-  if (conv.team.isEmpty) Future.successful(conv.convType)
-  else membersStorage.getByConv(conv.id).map(_.map(_.userId).size > 2).map {
-    case true => ConversationType.Group
-    case _ => ConversationType.OneToOne
-  }
 
 }

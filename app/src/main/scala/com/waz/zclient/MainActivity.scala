@@ -22,44 +22,41 @@ import android.content.res.Configuration
 import android.content.{DialogInterface, Intent}
 import android.graphics.drawable.ColorDrawable
 import android.graphics.{Color, Paint, PixelFormat}
-import android.net.Uri
 import android.os.{Build, Bundle}
-import android.support.v4.app.Fragment
+import android.support.v4.app.{Fragment, FragmentTransaction}
 import com.waz.ZLog.ImplicitTag._
-import com.waz.ZLog.{error, info, verbose}
-import com.waz.api.{NetworkMode, User, _}
-import com.waz.model.{AccountId, ConvId, ConversationData}
-import com.waz.service.ZMessaging
+import com.waz.ZLog.{error, info, verbose, warn}
+import com.waz.api.{NetworkMode, _}
+import com.waz.content.UserPreferences.{PendingEmail, PendingPassword}
+import com.waz.model.{ConvId, ConversationData, UserId}
+import com.waz.service.AccountManager.ClientRegistrationState.{LimitReached, PasswordMissing, Registered, Unregistered}
 import com.waz.service.ZMessaging.clock
+import com.waz.service.{AccountManager, AccountsService, ZMessaging}
 import com.waz.threading.{CancellableFuture, Threading}
 import com.waz.utils.events.Signal
 import com.waz.utils.{RichInstant, returning}
 import com.waz.zclient.Intents._
 import com.waz.zclient.appentry.AppEntryActivity
-import com.waz.zclient.appentry.controllers.AppEntryController
-import com.waz.zclient.appentry.controllers.AppEntryController.{DeviceLimitStage, EnterAppStage, Unknown}
 import com.waz.zclient.calling.CallingActivity
 import com.waz.zclient.calling.controllers.CallPermissionsController
 import com.waz.zclient.common.controllers.global.{AccentColorController, KeyboardController}
 import com.waz.zclient.common.controllers.{SharingController, UserAccountsController}
-import com.waz.zclient.controllers.accentcolor.AccentColorChangeRequester
 import com.waz.zclient.controllers.calling.CallingObserver
 import com.waz.zclient.controllers.navigation.{NavigationControllerObserver, Page}
 import com.waz.zclient.conversation.ConversationController
-import com.waz.zclient.core.stores.api.ZMessagingApiStoreObserver
-import com.waz.zclient.core.stores.connect.{ConnectStoreObserver, IConnectStore}
 import com.waz.zclient.core.stores.conversation.ConversationChangeRequester
-import com.waz.zclient.core.stores.profile.ProfileStoreObserver
 import com.waz.zclient.fragments.ConnectivityFragment
 import com.waz.zclient.pages.main.MainPhoneFragment
 import com.waz.zclient.pages.startup.UpdateFragment
+import com.waz.zclient.preferences.dialogs.ChangeHandleFragment
 import com.waz.zclient.preferences.{PreferencesActivity, PreferencesController}
 import com.waz.zclient.tracking.{CrashController, UiTrackingController}
+import com.waz.zclient.utils.ContextUtils.showToast
 import com.waz.zclient.utils.PhoneUtils.PhoneState
 import com.waz.zclient.utils.StringUtils.TextDrawing
 import com.waz.zclient.utils.{BuildConfigUtils, ContextUtils, Emojis, IntentUtils, PhoneUtils, ViewUtils}
 import com.waz.zclient.views.LoadingIndicatorView
-import net.hockeyapp.android.{ExceptionHandler, NativeCrashManager}
+import net.hockeyapp.android.NativeCrashManager
 
 import scala.collection.JavaConverters._
 import scala.concurrent.duration._
@@ -68,24 +65,24 @@ import scala.util.control.NonFatal
 
 class MainActivity extends BaseActivity
   with ActivityHelper
-  with MainPhoneFragment.Container
   with UpdateFragment.Container
-  with ProfileStoreObserver
-  with ConnectStoreObserver
   with NavigationControllerObserver
   with CallingObserver
   with OtrDeviceLimitFragment.Container
-  with ZMessagingApiStoreObserver {
+  with SetHandleFragment.Container {
+
+  implicit val cxt = this
 
   import Threading.Implicits.Background
 
   lazy val zms                      = inject[Signal[ZMessaging]]
+  lazy val account                  = inject[Signal[Option[AccountManager]]]
+  lazy val accountsService          = inject[AccountsService]
   lazy val sharingController        = inject[SharingController]
   lazy val accentColorController    = inject[AccentColorController]
   lazy val callPermissionController = inject[CallPermissionsController]
   lazy val conversationController   = inject[ConversationController]
   lazy val userAccountsController   = inject[UserAccountsController]
-  lazy val appEntryController       = inject[AppEntryController]
   lazy val spinnerController        = inject[SpinnerController]
 
   override def onAttachedToWindow() = {
@@ -117,24 +114,41 @@ class MainActivity extends BaseActivity
     if (BuildConfigUtils.isHockeyUpdateEnabled && !BuildConfigUtils.isLocalBuild(this))
       CrashController.checkForUpdates(this)
 
-    accentColorController.accentColor.map(_.getColor)(getControllerFactory.getUserPreferencesController.setLastAccentColor)
+    accentColorController.accentColor.map(_.getColor) { color =>
+      getControllerFactory.getUserPreferencesController.setLastAccentColor(color)
+      getControllerFactory.getAccentColorController.setColor(color)
+    }
 
     handleIntent(getIntent)
 
     val currentlyDarkTheme = themeController.darkThemeSet.currentValue.contains(true)
 
     themeController.darkThemeSet.onUi {
-      case theme if theme != currentlyDarkTheme => restartActivity()
+      case theme if theme != currentlyDarkTheme =>
+        info("restartActivity")
+        finish()
+        startActivity(getIntent)
+        overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
       case _ =>
     }
 
-    appEntryController.entryStage.onUi {
-      case EnterAppStage => onUserLoggedInAndVerified(getStoreFactory.zMessagingApiStore.getApi.getSelf)
-      case DeviceLimitStage => showUnableToRegisterOtrClientDialog()
-      case Unknown =>
-        error("Unknown state")
-      case _ => openSignUpPage()
+    //TODO - do we need this?
+    accountsService.accountManagers.map(_.isEmpty).onUi {
+      case true =>
+        info("onLogout")
+        getControllerFactory.getPickUserController.hideUserProfile()
+        getControllerFactory.getNavigationController.resetPagerPositionToDefault()
+        finish()
+        startActivity(returning(new Intent(this, classOf[AppEntryActivity]))(_.setFlags(FLAG_ACTIVITY_NEW_TASK | FLAG_ACTIVITY_CLEAR_TASK)))
+      case _ =>
     }
+
+    ZMessaging.currentGlobal.blacklist.upToDate.head.map {
+      case false =>
+        startActivity(new Intent(getApplicationContext, classOf[ForceUpdateActivity]))
+        finish()
+      case _ => //
+    } (Threading.Ui)
 
     val loadingIndicator = findViewById[LoadingIndicatorView](R.id.progress_spinner)
 
@@ -142,21 +156,19 @@ class MainActivity extends BaseActivity
       darkTheme <- themeController.darkThemeSet
       show <- spinnerController.spinnerShowing
     }  yield (show, darkTheme)).onUi{
-      case (Some(animation), theme) => loadingIndicator.show(animation, theme, 300)
-      case (None, _) => loadingIndicator.hide()
+      case (Left(animation), theme) => loadingIndicator.show(animation, theme, 300)
+      case (Right(Some(message)), _) => loadingIndicator.hideWithMessage(message, 750)
+      case (Right(_), _) => loadingIndicator.hide()
     }
   }
 
   override protected def onResumeFragments() = {
     info("onResumeFragments")
     super.onResumeFragments()
-    getStoreFactory.zMessagingApiStore.addApiObserver(this)
   }
 
   override def onStart() = {
     info("onStart")
-    getStoreFactory.profileStore.addProfileStoreObserver(this)
-    getStoreFactory.connectStore.addConnectRequestObserver(this)
     getControllerFactory.getNavigationController.addNavigationControllerObserver(this)
     getControllerFactory.getCallingController.addCallingObserver(this)
 
@@ -167,16 +179,7 @@ class MainActivity extends BaseActivity
     if (!getControllerFactory.getUserPreferencesController.hasCheckedForUnsupportedEmojis(Emojis.VERSION))
       Future(checkForUnsupportedEmojis())(Threading.Background)
 
-    try
-        if ("com.wire" == getApplicationContext.getPackageName) {
-          Option(getStoreFactory.profileStore.getMyEmail).filter(e => e.endsWith("@wire.com") || e.endsWith("@wearezeta.com")).foreach { email =>
-            ExceptionHandler.saveException(new RuntimeException(email), null, null)
-            ViewUtils.showAlertDialog(this, "Yo dude!", "Please use Wire Internal", "I promise", null, false)
-          }
-        }
-    catch {
-      case _: Throwable => /*noop*/
-    }
+    startFirstFragment()
   }
 
   override protected def onResume() = {
@@ -191,6 +194,88 @@ class MainActivity extends BaseActivity
       CrashController.deleteCrashReports(getApplicationContext)
       NativeCrashManager.deleteDumpFiles(getApplicationContext)
     }
+  }
+
+  def startFirstFragment(): Unit = {
+    def openSignUpPage(): Unit = {
+      startActivity(new Intent(getApplicationContext, classOf[AppEntryActivity]))
+      finish()
+    }
+
+    account.head.flatMap {
+      case Some(am) =>
+        am.getOrRegisterClient().flatMap {
+          case Right(Registered(_))   =>
+            for {
+              z            <- zms.head
+              email        <- z.users.selfUser.map(_.email).head
+              clientCount  <- z.otrClientsStorage.getClients(z.selfUserId)
+              pendingPw    <- z.userPrefs(PendingPassword).apply()
+              pendingEmail <- z.userPrefs(PendingEmail).apply()
+              handle       <- z.users.selfUser.map(_.handle).head
+            } yield {
+              val (f, t) =
+                if (email.isDefined && pendingPw)                (SetOrRequestPasswordFragment(email.get), SetOrRequestPasswordFragment.Tag)
+                else if (pendingEmail.isDefined)                 (VerifyEmailFragment(pendingEmail.get),   VerifyEmailFragment.Tag)
+                else if (email.isEmpty && clientCount.size >= 2) (AddEmailFragment(),                      AddEmailFragment.Tag)
+                else if (handle.isEmpty)                         (SetHandleFragment(),                     SetHandleFragment.Tag)
+                else                                             (new MainPhoneFragment,                   MainPhoneFragment.Tag)
+              replaceMainFragment(f, t, addToBackStack = false)
+            }
+
+          case Right(LimitReached) =>
+            am.getSelf.flatMap {
+              case Right(self) =>
+                for {
+                  pendingPw    <- am.storage.userPrefs(PendingPassword).apply()
+                  pendingEmail <- am.storage.userPrefs(PendingEmail).apply()
+                } yield {
+                  val (f, t) =
+                    if(self.email.isDefined && pendingPw) (SetOrRequestPasswordFragment(self.email.get), SetOrRequestPasswordFragment.Tag)
+                    else if (pendingEmail.isDefined)      (VerifyEmailFragment(pendingEmail.get),        VerifyEmailFragment.Tag)
+                    else if (self.email.isEmpty)          (AddEmailFragment(),                           AddEmailFragment.Tag)
+                    else                                  (OtrDeviceLimitFragment.newInstance,           OtrDeviceLimitFragment.Tag)
+                  replaceMainFragment(f, t, addToBackStack = false)
+                }
+              case Left(err) => Future.successful(showToast(s"Something went wrong: $err")) //TODO show dialog and ask user to try again
+            }
+
+          case Right(PasswordMissing) =>
+            am.getSelf.flatMap {
+              case Right(self) =>
+                am.storage.userPrefs(PendingEmail).apply().map { pendingEmail =>
+                  val (f ,t) =
+                    if(self.email.isDefined)         (SetOrRequestPasswordFragment(self.email.get, hasPassword = true), SetOrRequestPasswordFragment.Tag)
+                    else if (pendingEmail.isDefined) (VerifyEmailFragment(pendingEmail.get, hasPassword = true),        VerifyEmailFragment.Tag)
+                    else                             (AddEmailFragment(hasPassword = true),                             AddEmailFragment.Tag)
+                  replaceMainFragment(f, t, addToBackStack = false)
+                }
+              case Left(err) => Future.successful(showToast(s"Something went wrong: $err")) //TODO show dialog and ask user to try again
+            }
+          case Right(Unregistered) => warn("This shouldn't happen, going back to sign in..."); Future.successful(openSignUpPage())
+          case Left(err) => Future.successful(showToast(s"Something went wrong: $err")) //TODO show dialog and ask user to try again
+        } (Threading.Ui)
+      case _ => warn("No logged in account, sending to Sign in")
+        Future.successful(openSignUpPage())
+    }
+  }
+
+  def replaceMainFragment(fragment: Fragment, tag: String, reverse: Boolean = false, addToBackStack: Boolean = true): Unit = {
+    verbose(s"replaceMainFragment: $tag")
+    val frag = Option(getSupportFragmentManager.findFragmentByTag(tag)) match {
+      case Some(f) => returning(f)(_.setArguments(fragment.getArguments))
+      case _       => fragment
+    }
+    val transaction = getSupportFragmentManager
+      .beginTransaction
+      .setCustomAnimations(
+        if (reverse) R.anim.fragment_animation_second_page_slide_in_from_left_no_alpha else R.anim.fragment_animation_second_page_slide_in_from_right_no_alpha,
+        if (reverse) R.anim.fragment_animation_second_page_slide_out_to_right_no_alpha else R.anim.fragment_animation_second_page_slide_out_to_left_no_alpha
+      )
+      .replace(R.id.fl_main_content, frag, tag)
+    if (addToBackStack) transaction.addToBackStack(tag)
+    transaction.commit
+    spinnerController.hideSpinner()
   }
 
   override protected def onPause() = {
@@ -208,21 +293,14 @@ class MainActivity extends BaseActivity
     super.onStop()
     info("onStop")
     getControllerFactory.getCallingController.removeCallingObserver(this)
-    getStoreFactory.zMessagingApiStore.removeApiObserver(this)
-    getStoreFactory.connectStore.removeConnectRequestObserver(this)
-    getStoreFactory.profileStore.removeProfileStoreObserver(this)
     getControllerFactory.getNavigationController.removeNavigationControllerObserver(this)
   }
 
   override def onBackPressed(): Unit = {
-    val backPressedAlready = Seq(R.id.fl__calling__container, R.id.fl_main_content, R.id.fl_main_otr_warning)
-      .map(getSupportFragmentManager.findFragmentById)
-      .exists {
-        case f: OnBackPressedListener => f.onBackPressed()
-        case _ => false
-      }
-
-    if(!backPressedAlready) super.onBackPressed()
+    Option(getSupportFragmentManager.findFragmentById(R.id.fl_main_content)).foreach {
+      case f: OnBackPressedListener if f.onBackPressed() => //
+      case _ => super.onBackPressed()
+    }
   }
 
   override protected def onActivityResult(requestCode: Int, resultCode: Int, data: Intent) = {
@@ -233,7 +311,7 @@ class MainActivity extends BaseActivity
 
     if (requestCode == PreferencesActivity.SwitchAccountCode && data != null) {
       Option(data.getStringExtra(PreferencesActivity.SwitchAccountExtra)).foreach { extraStr =>
-        ZMessaging.currentAccounts.switchAccount(AccountId(extraStr))
+        accountsService.setAccount(Some(UserId(extraStr)))
       }
     }
   }
@@ -248,13 +326,6 @@ class MainActivity extends BaseActivity
     handleIntent(intent)
   }
 
-  private def restartActivity() = {
-    info("restartActivity")
-    finish()
-    startActivity(getIntent)
-    overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
-  }
-
   private def initializeControllers() = {
     //Ensure tracking is started
     inject[UiTrackingController]
@@ -265,27 +336,11 @@ class MainActivity extends BaseActivity
     getControllerFactory.getNavigationController.setIsLandscape(ContextUtils.isInLandscape(this))
   }
 
-  private def enterApplication(): Unit = {
-    verbose("Entering application")
-    if (IntentUtils.isPasswordResetIntent(getIntent)) {
-      verbose("Password was reset")
-      onPasswordWasReset()
-    }
-  }
-
   private def onPasswordWasReset() =
     for {
-      Some(am) <- ZMessaging.currentAccounts.getActiveAccountManager
-      token    <- ZMessaging.currentAccounts.getActiveAccount.map(_.flatMap(_.accessToken))
-      _        <- am.auth.checkLoggedIn(token)
+      Some(am) <- accountsService.activeAccountManager.head
+      _        <- am.auth.onPasswordReset(emailCredentials = None)
     } yield {}
-
-  private def onUserLoggedInAndVerified(self: Self) = {
-    verbose("onUserLoggedInAndVerified")
-    getStoreFactory.profileStore.setUser(self)
-    getControllerFactory.getAccentColorController.setColor(AccentColorChangeRequester.LOGIN, self.getAccent.getColor)
-    if (getSupportFragmentManager.findFragmentByTag(MainPhoneFragment.TAG) == null) replaceMainFragment(new MainPhoneFragment, MainPhoneFragment.TAG)
-  }
 
   def handleIntent(intent: Intent) = {
     verbose(s"handleIntent: ${intent.log}")
@@ -308,10 +363,9 @@ class MainActivity extends BaseActivity
       case NotificationIntent(accountId, convId, startCall) =>
         verbose(s"notification intent, accountId=$accountId, convId=$convId")
         val switchAccount = {
-          val accounts = ZMessaging.currentAccounts
-          accounts.activeAccount.head.flatMap {
+          accountsService.activeAccount.head.flatMap {
             case Some(acc) if intent.accountId.contains(acc.id) => Future.successful(false)
-            case _ => accounts.switchAccount(intent.accountId.get).map(_ => true)
+            case _ => accountsService.setAccount(intent.accountId).map(_ => true)
           }
         }
 
@@ -348,74 +402,18 @@ class MainActivity extends BaseActivity
     }
   }
 
-  private def openSignUpPage() = {
-    startActivity(new Intent(getApplicationContext, classOf[AppEntryActivity]))
-    finish()
-  }
-
-  private def openForceUpdatePage() = {
-    startActivity(new Intent(getApplicationContext, classOf[ForceUpdateActivity]))
-    finish()
-  }
-
-  private def replaceMainFragment(fragment: Fragment, TAG: String) = {
-    getSupportFragmentManager.beginTransaction.replace(R.id.fl_main_content, fragment, TAG).commit
-  }
-
-  def onLogout() = {
-    userAccountsController.accounts.head.map{ accounts =>
-      if (accounts.isEmpty) {
-        info("onLogout")
-        getStoreFactory.reset()
-        getControllerFactory.getPickUserController.hideUserProfile()
-        getControllerFactory.getNavigationController.resetPagerPositionToDefault()
-        val intent: Intent = new Intent(this, classOf[MainActivity])
-        intent.setFlags(FLAG_ACTIVITY_NEW_TASK | FLAG_ACTIVITY_CLEAR_TASK)
-        finish()
-        startActivity(intent)
-      }
-    } (Threading.Ui)
-  }
-
-  def onForceClientUpdate() = openForceUpdatePage()
-
-  def onAccentColorChangedRemotely(sender: Any, color: Int) = getControllerFactory.getAccentColorController.setColor(AccentColorChangeRequester.REMOTE, color)
-
   def onPageVisible(page: Page) =
     getControllerFactory.getGlobalLayoutController.setSoftInputModeForPage(page)
-
-  def onConnectUserUpdated(user: User, userRequester: IConnectStore.UserRequester): Unit = {}
 
   def onInviteRequestSent(conversation: String) = {
     info(s"onInviteRequestSent($conversation)")
     conversationController.selectConv(Option(new ConvId(conversation)), ConversationChangeRequester.INVITE)
   }
 
-  def onOpenUrl(url: String) = {
-    try {
-      val normUrl = Uri.parse(if (!url.startsWith("http://") && !url.startsWith("https://")) s"http://$url" else url)
-      val browserIntent = returning(new Intent(ACTION_VIEW, normUrl))(_.addFlags(FLAG_ACTIVITY_NEW_TASK))
-      startActivity(browserIntent)
-    }
-    catch {
-      case e: Exception => error(s"Failed to open URL: $url")
-    }
-  }
-
-  private def showUnableToRegisterOtrClientDialog() =
-    Option(getSupportFragmentManager.findFragmentById(R.id.fl_main_otr_warning)) match {
-      case Some(f) => //do nothing
-      case None =>
-        getSupportFragmentManager
-          .beginTransaction
-          .replace(R.id.fl_main_otr_warning, OtrDeviceLimitFragment.newInstance, OtrDeviceLimitFragment.TAG)
-          .addToBackStack(OtrDeviceLimitFragment.TAG)
-          .commitAllowingStateLoss
-  }
-
-  def logout() = {
-    getSupportFragmentManager.popBackStackImmediate
-    getStoreFactory.zMessagingApiStore.logout()
+  override def logout() = {
+    accountsService.activeAccountId.head.flatMap(_.fold(Future.successful({}))(accountsService.logout)).map { _ =>
+      startFirstFragment()
+    } (Threading.Ui)
   }
 
   def manageDevices() = {
@@ -424,8 +422,6 @@ class MainActivity extends BaseActivity
   }
 
   def dismissOtrDeviceLimitFragment() = getSupportFragmentManager.popBackStackImmediate
-
-  def onInitialized(self: Self) = enterApplication()
 
   def onStartCall(withVideo: Boolean) = conversationController.currentConv.head.map { conv =>
     handleOnStartCall(withVideo, conv)
@@ -512,5 +508,15 @@ class MainActivity extends BaseActivity
 
       if (missing.nonEmpty) prefs.setUnsupportedEmoji(missing.asJava, Emojis.VERSION)
     }
+
+  override def onChooseUsernameChosen(): Unit =
+    getSupportFragmentManager
+      .beginTransaction
+      .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
+      .add(ChangeHandleFragment.newInstance("", cancellable = false), ChangeHandleFragment.Tag)
+      .addToBackStack(ChangeHandleFragment.Tag)
+      .commit
+
+  override def onUsernameSet(): Unit = replaceMainFragment(new MainPhoneFragment, MainPhoneFragment.Tag, addToBackStack = false)
 }
 

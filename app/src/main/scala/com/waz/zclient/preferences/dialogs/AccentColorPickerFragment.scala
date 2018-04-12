@@ -90,10 +90,7 @@ class AccentColorPickerFragment extends DialogFragment with FragmentHelper {
     viewColor.onChanged.on(Threading.Ui) { color =>
       itemView.setOnClickListener(new OnClickListener {
         override def onClick(v: View): Unit =
-          for {
-            users <- zms.map(_.users).head
-            _     <- users.updateSelf(accent = Some(color))
-          } yield dismiss()
+          zms.map(_.users).head.flatMap(_.updateAccentColor(color)).map(_ => dismiss())
       })
     }
   }

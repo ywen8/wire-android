@@ -29,7 +29,7 @@ import android.support.v4.app.ShareCompat
 import com.waz.ZLog.ImplicitTag._
 import com.waz.ZLog.{verbose, warn}
 import com.waz.permissions.PermissionsService
-import com.waz.service.ZMessaging
+import com.waz.service.AccountsService
 import com.waz.threading.Threading
 import com.waz.utils.returning
 import com.waz.utils.wrappers.AndroidURI
@@ -48,6 +48,7 @@ class ShareActivity extends BaseActivity with ActivityHelper {
   import ShareActivity._
 
   lazy val sharing = inject[SharingController]
+  lazy val accounts = inject[AccountsService]
 
   private lazy val confirmationMenu = returning(findById[ConfirmationMenu](R.id.cm__conversation_list__login_prompt)) { cm =>
     cm.setCallback(new TwoButtonConfirmationCallback() {
@@ -57,7 +58,7 @@ class ShareActivity extends BaseActivity with ActivityHelper {
     })
 
     inject[AccentColorController].accentColor.map(_.getColor).onUi(cm.setButtonColor)
-    ZMessaging.currentAccounts.loggedInAccounts.map(_.isEmpty).onUi(cm.animateToShow)
+    accounts.accountManagers.map(_.isEmpty).onUi(cm.animateToShow)
   }
 
   override def onCreate(savedInstanceState: Bundle) = {

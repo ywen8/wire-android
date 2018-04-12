@@ -494,9 +494,6 @@ public class LocationFragment extends BaseFragment<LocationFragment.Container> i
                 }
                 break;
             case R.id.ttv__location_send_button:
-                if (getStoreFactory() == null || getStoreFactory().isTornDown()) {
-                    return;
-                }
                 MessageContent.Location location;
                 if (currentLatLng == null) {
                     if (!BuildConfig.DEBUG) {
@@ -654,7 +651,7 @@ public class LocationFragment extends BaseFragment<LocationFragment.Container> i
     }
 
     @Override
-    public void onAccentColorHasChanged(Object sender, int color) {
+    public void onAccentColorHasChanged(int color) {
         selectedLocationPin.setTextColor(color);
         marker = null;
     }
