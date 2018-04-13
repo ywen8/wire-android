@@ -173,8 +173,9 @@ object ShareActivity {
       }).flatMap { u =>
         //filter out attempts to trick us into sending application/sensitive data
         val path = u.getPath
-        if (path.contains(context.getPackageName) ||
-            path.startsWith("/proc")) {
+
+        if (!u.getLastPathSegment.contains(".Android_wbu") && (path.contains(context.getPackageName) ||
+            path.startsWith("/proc"))) {
           None
         } else {
           Some(u)

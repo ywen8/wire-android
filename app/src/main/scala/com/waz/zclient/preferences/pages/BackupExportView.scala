@@ -18,7 +18,8 @@
 package com.waz.zclient.preferences.pages
 
 import android.app.Activity
-import android.content.Context
+import android.content.pm.PackageManager
+import android.content.{Context, Intent}
 import android.net.Uri
 import android.os.Bundle
 import android.support.v4.app.ShareCompat
@@ -66,7 +67,9 @@ class BackupExportView(context: Context, attrs: AttributeSet, style: Int) extend
     backupProcess.onComplete {
       case Success(file) =>
         val intent = ShareCompat.IntentBuilder.from(context.asInstanceOf[Activity]).setType("application/octet-stream").setStream(Uri.fromFile(file)).getIntent
-        if (BuildConfig.DEVELOPER_FEATURES_ENABLED) intent.setPackage("com.wire.testinggallery")
+        if (BuildConfig.DEVELOPER_FEATURES_ENABLED && !context.getPackageManager.queryIntentActivities(new Intent("com.wire.testinggallery"), PackageManager.MATCH_ALL).isEmpty) {
+          intent.setPackage("com.wire.testinggallery")
+        }
         context.startActivity(intent)
         spinnerController.hideSpinner(Some(ContextUtils.getString(R.string.back_up_progress_complete)))
       case Failure(err) =>
