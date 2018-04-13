@@ -480,7 +480,7 @@
     <string name="pref_developer_screen_title">Developer Settings</string>
     <string name="pref_dev_avs_screen_title">AVS Settings</string>
     <string name="pref_profile_screen_title">Profile</string>
-    <string name="pref_backup_screen_title">Backup Conversations</string>
+    <string name="pref_backup_screen_title">Back Up Conversations</string>
 
     <!-- Account -->
     <string name="pref_account_screen_title">Account</string>
@@ -1347,8 +1347,8 @@
     <string name="guest_time_left_hours_minutes">%1$s.%2$sh left</string>
     <string name="guest_time_left_minutes">Less than %1$sm left</string>
     <string name="backup_description">Create a backup to preserve your conversation history. You can use this to restore history if you lose your device or switch to a new one.
-        The backup file is not protected by Wire end-to-end encryption, so store it in a safe place.</string>
-    <string name="pref_account_backup_title">Backup conversations</string>
+        \nThe backup file is not protected by Wire end-to-end encryption, so store it in a safe place.</string>
+    <string name="pref_account_backup_title">Back Up Conversations</string>
 
     <string name="add_email_address">Add your email address</string>
     <string name="set_a_password">Set a password</string>
@@ -1367,7 +1367,7 @@
     <string name="restore_override_alert_ok">Choose Backup File</string>
 
     <string name="back_up_progress">BACKING UP…</string>
-    <string name="back_up_progress_complete">Complete</string>
+    <string name="back_up_progress_complete">COMPLETE</string>
     <string name="pref_account_backup_warning_title">Set an email and password.</string>
     <string name="pref_account_backup_warning_message">You need an email and a password in order to back up your conversation history. You can do it from the account page in Settings.</string>
     <string name="pref_account_backup_warning_ok">OK</string>
@@ -1377,8 +1377,8 @@
     <string name="backup_button">Back Up Now</string>
 
 
-    <string name="backup_import_error_unknown">Something went wrong</string>
-    <string name="backup_import_error_unsupported_version">Cannot read backup because it\'s from an unsupported version</string>
-    <string name="backup_import_error_wrong_account">Cannot read backup because it\'s from a different account</string>
+    <string name="backup_import_error_unknown">Your history could not be restored.</string>
+    <string name="backup_import_error_unsupported_version">This backup was created by a newer or outdated version of Wire and cannot be restored here.</string>
+    <string name="backup_import_error_wrong_account">You cannot restore history from a different account.</string>
 
 </resources>

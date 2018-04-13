@@ -38,6 +38,7 @@ import com.waz.zclient.{BuildConfig, R, SpinnerController, ViewHelper}
 import scala.concurrent.Future
 import scala.concurrent.duration._
 import scala.util.{Failure, Success}
+import BackupExportView._
 
 class BackupExportView(context: Context, attrs: AttributeSet, style: Int) extends LinearLayout(context, attrs, style) with ViewHelper {
   def this(context: Context, attrs: AttributeSet) = this(context, attrs, 0)
@@ -67,8 +68,8 @@ class BackupExportView(context: Context, attrs: AttributeSet, style: Int) extend
     backupProcess.onComplete {
       case Success(file) =>
         val intent = ShareCompat.IntentBuilder.from(context.asInstanceOf[Activity]).setType("application/octet-stream").setStream(Uri.fromFile(file)).getIntent
-        if (BuildConfig.DEVELOPER_FEATURES_ENABLED && !context.getPackageManager.queryIntentActivities(new Intent("com.wire.testinggallery"), PackageManager.MATCH_ALL).isEmpty) {
-          intent.setPackage("com.wire.testinggallery")
+        if (BuildConfig.DEVELOPER_FEATURES_ENABLED && !context.getPackageManager.queryIntentActivities(new Intent(TestingGalleryPackage), PackageManager.MATCH_ALL).isEmpty) {
+          intent.setPackage(TestingGalleryPackage)
         }
         context.startActivity(intent)
         spinnerController.hideSpinner(Some(ContextUtils.getString(R.string.back_up_progress_complete)))
@@ -82,7 +83,7 @@ class BackupExportView(context: Context, attrs: AttributeSet, style: Int) extend
 }
 
 object BackupExportView {
-
+  val TestingGalleryPackage = "com.wire.testinggallery"
 }
 
 case class BackupExportKey(args: Bundle = new Bundle()) extends BackStackKey(args) {

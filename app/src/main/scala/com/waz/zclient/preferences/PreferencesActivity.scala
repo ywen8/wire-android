@@ -170,7 +170,7 @@ class PreferencesActivity extends BaseActivity
 
   override def onBackPressed() = {
     Option(getSupportFragmentManager.findFragmentByTag(CameraFragment.TAG).asInstanceOf[CameraFragment]).fold{
-      if (!backStackNavigator.back())
+      if (!spinnerController.spinnerShowing.currentValue.exists(_.isLeft) && !backStackNavigator.back())
         finish()
     }{ _.onBackPressed() }
   }

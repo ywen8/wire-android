@@ -18,7 +18,7 @@
 
 package com.waz.zclient.appentry.fragments
 
-import java.io.File
+import java.io.{File, FileOutputStream, OutputStream}
 
 import android.Manifest.permission._
 import android.content.{DialogInterface, Intent}
@@ -33,8 +33,9 @@ import com.waz.model.UserId
 import com.waz.permissions.PermissionsService
 import com.waz.service.AccountsService
 import com.waz.service.BackupManager.InvalidMetadata
+import com.waz.service.downloads.AssetLoader
 import com.waz.threading.Threading
-import com.waz.utils.wrappers.{AndroidURI, URI}
+import com.waz.utils.wrappers.{AndroidURI, AndroidURIUtil, URI}
 import com.waz.utils.{RichFuture, returning, _}
 import com.waz.zclient.appentry.AppEntryActivity
 import com.waz.zclient.appentry.fragments.FirstLaunchAfterLoginFragment._
@@ -73,9 +74,7 @@ class FirstLaunchAfterLoginFragment extends FragmentHelper with View.OnClickList
 
   private val assetIntentsManagerCallback = new AssetIntentsManager.Callback {
     override def onDataReceived(`type`: AssetIntentsManager.IntentType, uri: URI): Unit = {
-      ShareActivity.getPath(getContext, uri.asInstanceOf[AndroidURI].uri).map(_.getPath).map(new File(_)).foreach(file =>
-        enter(Some(file))
-      )
+      enter(Some(uri))
     }
     override def onCanceled(`type`: AssetIntentsManager.IntentType): Unit = {}
     override def onFailed(`type`: AssetIntentsManager.IntentType): Unit = {}
@@ -148,12 +147,22 @@ class FirstLaunchAfterLoginFragment extends FragmentHelper with View.OnClickList
   private def displayError: Int => AlertDialog =
     ViewUtils.showAlertDialog(getContext, R.string.export_generic_error_title, _, android.R.string.ok, null, true)
 
-  private def enter(backup: Option[File]) = {
+  private def enter(backup: Option[URI]) = {
     activity.enableProgress(true)
     async {
       val userId = getStringArg(UserIdArg).map(UserId(_))
       if (userId.nonEmpty) {
-        val accountManager = await { accountsService.createAccountManager(userId.get, backup) }
+
+        val backupFile = backup.map { uri =>
+          val inputStream = getContext.getContentResolver.openInputStream(AndroidURIUtil.unwrap(uri))
+          val file = File.createTempFile("wire", null)
+          val outputStream = new FileOutputStream(file)
+          IoUtils.copy(inputStream, outputStream)
+          file
+        }
+
+        val accountManager = await { accountsService.createAccountManager(userId.get, backupFile) }
+        backupFile.foreach(_.delete())
         await { accountsService.setAccount(userId) }
         val registrationState = await { accountManager.fold2(Future.successful(Left(ErrorResponse.internalError(""))), _.getOrRegisterClient()) }
         registrationState match {
