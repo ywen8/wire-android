@@ -52,7 +52,7 @@ class ChangeEmailDialog extends DialogFragment with FragmentHelper {
   lazy val usersService = zms.map(_.users)
   lazy val passwordController = inject[PasswordController]
 
-  private lazy val addingNewEmail = getBooleanArg(AddingNewEmailArg)
+  private lazy val hasPassword = getBooleanArg(HasPasswordArg)
 
   private lazy val root = LayoutInflater.from(getActivity).inflate(R.layout.preference_dialog_add_email_password, null)
 
@@ -91,10 +91,10 @@ class ChangeEmailDialog extends DialogFragment with FragmentHelper {
     passwordInputLayout
     passwordEditText
 
-    passwordInputLayout.setVisible(addingNewEmail)
+    passwordInputLayout.setVisible(!hasPassword)
 
     val alertDialog = new AlertDialog.Builder(getActivity)
-      .setTitle(if (addingNewEmail) R.string.pref__account_action__dialog__add_email_password__title else R.string.pref__account_action__dialog__change_email__title)
+      .setTitle(if (hasPassword) R.string.pref__account_action__dialog__add_email_password__title else R.string.pref__account_action__dialog__change_email__title)
       .setView(root)
       .setPositiveButton(android.R.string.ok, null)
       .setNegativeButton(android.R.string.cancel, null)
@@ -127,27 +127,27 @@ class ChangeEmailDialog extends DialogFragment with FragmentHelper {
     }
 
     (email, password) match {
-      case (Some(e), Some(pw)) if addingNewEmail  => setEmail(e, _.setEmail(e, pw))
-      case (Some(e), _)        if !addingNewEmail => setEmail(e, _.updateEmail(e))
+      case (Some(e), Some(pw)) if !hasPassword  => setEmail(e, _.setEmail(e, pw))
+      case (Some(e), _)        if hasPassword => setEmail(e, _.updateEmail(e))
       case _ =>
     }
 
     if (email.isEmpty) emailInputLayout.setError(getString(R.string.pref__account_action__dialog__add_email_password__error__invalid_email))
-    if (password.isEmpty && addingNewEmail) passwordEditText.setError(getString(R.string.pref__account_action__dialog__add_email_password__error__invalid_password))
+    if (password.isEmpty && hasPassword) passwordEditText.setError(getString(R.string.pref__account_action__dialog__add_email_password__error__invalid_password))
   }
 
 }
 
 object ChangeEmailDialog {
 
-  val AddingNewEmailArg = "ARG_ADDING_NEW_EMAIL"
+  val HasPasswordArg = "ARG_ADDING_NEW_EMAIL"
 
   val FragmentTag = ChangeEmailDialog.getClass.getSimpleName
 
-  def apply(addingEmail: Boolean) =
+  def apply(hasPassword: Boolean) =
     returning(new ChangeEmailDialog()) {
       _.setArguments(returning(new Bundle()) { b =>
-        b.putBoolean(AddingNewEmailArg, addingEmail)
+        b.putBoolean(HasPasswordArg, hasPassword)
       })
     }
 }
