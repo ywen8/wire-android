@@ -186,7 +186,6 @@ task ci(dependsOn: [
                     // Different Lint checks
                     ':app:lintDevDebug',
                     ':wire-core:lintDebug',
-                    ':wire-ui:lintDebug',
 
                     // By default on whole app
                     //':app:checkstyle',

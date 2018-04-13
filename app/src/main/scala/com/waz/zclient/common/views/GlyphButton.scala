@@ -25,7 +25,7 @@ import android.graphics.drawable.GradientDrawable.Orientation.BOTTOM_TOP
 import android.graphics.drawable.{GradientDrawable, StateListDrawable}
 import android.util.AttributeSet
 import com.waz.utils.returning
-import com.waz.zclient.ui.R
+import com.waz.zclient.R
 import com.waz.zclient.ui.text.GlyphTextView
 import com.waz.zclient.ui.theme.ThemeUtils.isDarkTheme
 import com.waz.zclient.ui.utils.ColorUtils
