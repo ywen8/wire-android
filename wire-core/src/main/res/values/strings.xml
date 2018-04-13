@@ -1377,8 +1377,11 @@
     <string name="backup_button">Back Up Now</string>
 
 
+    <string name="backup_import_error_unknown_title">Something went wrong</string>
     <string name="backup_import_error_unknown">Your history could not be restored.</string>
+    <string name="backup_import_error_unsupported_version_title">Incompatible backup</string>
     <string name="backup_import_error_unsupported_version">This backup was created by a newer or outdated version of Wire and cannot be restored here.</string>
+    <string name="backup_import_error_wrong_account_title">Wrong backup</string>
     <string name="backup_import_error_wrong_account">You cannot restore history from a different account.</string>
 
 </resources>

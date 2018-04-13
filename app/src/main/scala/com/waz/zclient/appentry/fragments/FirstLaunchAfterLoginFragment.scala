@@ -144,8 +144,8 @@ class FirstLaunchAfterLoginFragment extends FragmentHelper with View.OnClickList
     else openBackupChooser()
   }
 
-  private def displayError: Int => AlertDialog =
-    ViewUtils.showAlertDialog(getContext, R.string.export_generic_error_title, _, android.R.string.ok, null, true)
+  private def displayError(title: Int, text: Int) =
+    ViewUtils.showAlertDialog(getContext, title, text, android.R.string.ok, null, true)
 
   private def enter(backup: Option[URI]) = {
     activity.enableProgress(true)
@@ -173,13 +173,13 @@ class FirstLaunchAfterLoginFragment extends FragmentHelper with View.OnClickList
     } logFailure() recover {
       case InvalidMetadata.UserId =>
         activity.enableProgress(false)
-        displayError(R.string.backup_import_error_wrong_account)
+        displayError(R.string.backup_import_error_wrong_account_title, R.string.backup_import_error_wrong_account)
       case _: InvalidMetadata =>
         activity.enableProgress(false)
-        displayError(R.string.backup_import_error_unsupported_version)
+        displayError(R.string.backup_import_error_unsupported_version_title, R.string.backup_import_error_unsupported_version)
       case _ =>
         activity.enableProgress(false)
-        displayError(R.string.backup_import_error_unknown)
+        displayError(R.string.backup_import_error_unknown_title, R.string.backup_import_error_unknown)
     }
   }
 
