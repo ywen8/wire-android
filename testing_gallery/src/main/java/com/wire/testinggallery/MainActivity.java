@@ -201,7 +201,7 @@ public class MainActivity extends AppCompatActivity {
         String type = intent.getType();
         if (Intent.ACTION_SEND.equals(action) && type != null) {
             Uri uri = intent.getParcelableExtra(Intent.EXTRA_STREAM);
-            handleFile(uri);
+            handleFile(uri, intent.getScheme());
         }
     }
 
@@ -212,8 +212,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @TargetApi(Build.VERSION_CODES.CUPCAKE)
-    private void handleFile(Uri backupUri) {
-        String fileName = getFilename(backupUri);
+    private void handleFile(Uri backupUri, String scheme) {
+        String fileName = getFilename(backupUri, scheme);
         if (!fileName.isEmpty()) {
             File targetFile = new File(String.format("%s/%s", WIRE_TESTING_FILES_DIRECTORY, fileName));
             if (targetFile.exists()) {
@@ -249,12 +249,24 @@ public class MainActivity extends AppCompatActivity {
         showAlert("Received file has no name!!!");
     }
 
-    private String getFilename(Uri uri) {
-        Cursor cursor =
-            getContentResolver().query(uri, null, null, null, null);
-        int nameIndex = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
-        cursor.moveToFirst();
-        return cursor.getString(nameIndex);
+    private String getFilename(Uri uri, String scheme) {
+        if (scheme.equals("content")) {
+            Cursor cursor =
+                getContentResolver().query(uri, null, null, null, null);
+            if (cursor != null) {
+                int nameIndex = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME);
+                cursor.moveToFirst();
+                String fileName = cursor.getString(nameIndex);
+                cursor.close();
+                return fileName;
+            }
+            return "";
+
+        }
+        if (scheme.equals("file")) {
+            return new File(uri.getPath()).getName();
+        }
+        return "";
     }
 
     private void showAlert(String message) {
