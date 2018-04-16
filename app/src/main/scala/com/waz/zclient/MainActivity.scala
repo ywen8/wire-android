@@ -54,7 +54,7 @@ import com.waz.zclient.tracking.{CrashController, UiTrackingController}
 import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.utils.PhoneUtils.PhoneState
 import com.waz.zclient.utils.StringUtils.TextDrawing
-import com.waz.zclient.utils.{BuildConfigUtils, ContextUtils, Emojis, IntentUtils, PhoneUtils, ViewUtils}
+import com.waz.zclient.utils.{BuildConfigUtils, Emojis, IntentUtils, PhoneUtils, ViewUtils}
 import com.waz.zclient.views.LoadingIndicatorView
 import net.hockeyapp.android.NativeCrashManager
 import MainActivity._

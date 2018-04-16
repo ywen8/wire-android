@@ -17,8 +17,8 @@
  */
 package com.waz.zclient.utils
 
-import android.content.{Context, DialogInterface}
 import android.content.res.{Configuration, Resources, TypedArray}
+import android.content.{Context, DialogInterface}
 import android.graphics.drawable.Drawable
 import android.os.Build
 import android.support.annotation.StyleableRes
@@ -27,7 +27,6 @@ import android.support.v7.app.AlertDialog
 import android.util.{AttributeSet, DisplayMetrics, TypedValue}
 import android.view.WindowManager
 import android.widget.Toast
-import com.waz.api.impl.ErrorResponse
 import com.waz.zclient.R
 import com.waz.zclient.appentry.DialogErrorMessage
 import com.waz.zclient.ui.utils.ResourceUtils

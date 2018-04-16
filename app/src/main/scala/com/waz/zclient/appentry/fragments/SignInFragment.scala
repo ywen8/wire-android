@@ -23,14 +23,13 @@ import android.os.Build.VERSION.SDK_INT
 import android.os.Build.VERSION_CODES.KITKAT
 import android.os.Bundle
 import android.support.v4.content.ContextCompat
-import android.text.InputType
 import android.transition._
 import android.view.{LayoutInflater, View, ViewGroup}
 import android.widget.{FrameLayout, LinearLayout}
 import com.waz.ZLog.ImplicitTag._
 import com.waz.ZLog._
 import com.waz.api.impl.ErrorResponse
-import com.waz.model.{EmailAddress, PhoneNumber, UserId}
+import com.waz.model.{EmailAddress, PhoneNumber}
 import com.waz.service.{AccountsService, ZMessaging}
 import com.waz.threading.Threading
 import com.waz.utils.events.Signal
@@ -52,7 +51,6 @@ import com.waz.zclient.ui.views.tab.TabIndicatorLayout
 import com.waz.zclient.ui.views.tab.TabIndicatorLayout.Callback
 import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.utils._
-import com.waz.znet.ZNetClient.ErrorOr
 
 class SignInFragment extends FragmentHelper
   with View.OnClickListener

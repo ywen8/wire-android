@@ -19,8 +19,8 @@ package com.waz.zclient
 
 import android.os.Bundle
 import android.view.{LayoutInflater, View, ViewGroup}
+import com.waz.service.AccountManager
 import com.waz.service.AccountManager.ClientRegistrationState.LimitReached
-import com.waz.service.{AccountManager, ZMessaging}
 import com.waz.utils.events.{Signal, Subscription}
 import com.waz.utils.returning
 import com.waz.zclient.pages.BaseDialogFragment
