@@ -212,7 +212,7 @@ class MainActivity extends BaseActivity
             getIntent.removeExtra(ClientRegStateArg)
             Future.successful(Right(PrefCodec.SelfClientIdCodec.decode(clientRegState)))
           case _ => am.getOrRegisterClient()
-        }).flatMap {
+        }).map {
           case Right(Registered(_))   =>
             for {
               z            <- zms.head
@@ -232,36 +232,31 @@ class MainActivity extends BaseActivity
             }
 
           case Right(LimitReached) =>
-            am.getSelf.flatMap {
-              case Right(self) =>
-                for {
-                  pendingPw    <- am.storage.userPrefs(PendingPassword).apply()
-                  pendingEmail <- am.storage.userPrefs(PendingEmail).apply()
-                } yield {
-                  val (f, t) =
-                    if (self.email.isDefined && pendingPw) (SetOrRequestPasswordFragment(self.email.get), SetOrRequestPasswordFragment.Tag)
-                    else if (pendingEmail.isDefined)       (VerifyEmailFragment(pendingEmail.get),        VerifyEmailFragment.Tag)
-                    else if (self.email.isEmpty)           (AddEmailFragment(),                           AddEmailFragment.Tag)
-                    else                                   (OtrDeviceLimitFragment.newInstance,           OtrDeviceLimitFragment.Tag)
-                  replaceMainFragment(f, t, addToBackStack = false)
-                }
-              case Left(_) => showGenericErrorDialog()
+            for {
+              self         <- am.getSelf
+              pendingPw    <- am.storage.userPrefs(PendingPassword).apply()
+              pendingEmail <- am.storage.userPrefs(PendingEmail).apply()
+            } yield {
+              val (f, t) =
+                if (self.email.isDefined && pendingPw) (SetOrRequestPasswordFragment(self.email.get), SetOrRequestPasswordFragment.Tag)
+                else if (pendingEmail.isDefined)       (VerifyEmailFragment(pendingEmail.get),        VerifyEmailFragment.Tag)
+                else if (self.email.isEmpty)           (AddEmailFragment(),                           AddEmailFragment.Tag)
+                else                                   (OtrDeviceLimitFragment.newInstance,           OtrDeviceLimitFragment.Tag)
+              replaceMainFragment(f, t, addToBackStack = false)
             }
-
           case Right(PasswordMissing) =>
-            am.getSelf.flatMap {
-              case Right(self) =>
-                am.storage.userPrefs(PendingEmail).apply().map { pendingEmail =>
-                  val (f ,t) =
-                    if (self.email.isDefined)        (SetOrRequestPasswordFragment(self.email.get, hasPassword = true), SetOrRequestPasswordFragment.Tag)
-                    else if (pendingEmail.isDefined) (VerifyEmailFragment(pendingEmail.get, hasPassword = true),        VerifyEmailFragment.Tag)
-                    else                             (AddEmailFragment(hasPassword = true),                             AddEmailFragment.Tag)
-                  replaceMainFragment(f, t, addToBackStack = false)
-                }
-              case Left(_) => showGenericErrorDialog()
+            for {
+              self         <- am.getSelf
+              pendingEmail <- am.storage.userPrefs(PendingEmail).apply()
+            } {
+              val (f ,t) =
+                if (self.email.isDefined)        (SetOrRequestPasswordFragment(self.email.get, hasPassword = true), SetOrRequestPasswordFragment.Tag)
+                else if (pendingEmail.isDefined) (VerifyEmailFragment(pendingEmail.get, hasPassword = true),        VerifyEmailFragment.Tag)
+                else                             (AddEmailFragment(hasPassword = true),                             AddEmailFragment.Tag)
+              replaceMainFragment(f, t, addToBackStack = false)
             }
           case Right(Unregistered) => warn("This shouldn't happen, going back to sign in..."); Future.successful(openSignUpPage())
-          case Left(err) => showGenericErrorDialog()
+          case Left(_) => showGenericErrorDialog()
         } (Threading.Ui)
       case _ =>
         warn("No logged in account, sending to Sign in")
