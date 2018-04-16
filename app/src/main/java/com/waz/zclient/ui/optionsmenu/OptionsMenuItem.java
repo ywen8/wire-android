@@ -18,7 +18,7 @@
 package com.waz.zclient.ui.optionsmenu;
 
 
-import com.waz.zclient.ui.R;
+import com.waz.zclient.R;
 
 public enum OptionsMenuItem {
 

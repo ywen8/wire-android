@@ -21,9 +21,8 @@ import android.content.Context
 import android.util.AttributeSet
 import android.widget.ImageView
 import com.waz.utils.returning
-import com.waz.zclient.ViewHelper
+import com.waz.zclient.{R, ViewHelper}
 import com.waz.zclient.conversation.ConversationController
-import com.waz.zclient.ui.R
 import com.waz.zclient.utils.RichView
 
 class ShieldView(context: Context, attrs: AttributeSet, defStyleAttr: Int) extends ImageView(context, attrs, defStyleAttr) with ViewHelper {

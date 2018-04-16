@@ -22,9 +22,8 @@ import android.util.{AttributeSet, TypedValue}
 import com.waz.api.EphemeralExpiration
 import com.waz.threading.Threading
 import com.waz.utils.events.Signal
-import com.waz.zclient.ViewHelper
+import com.waz.zclient.{R, ViewHelper}
 import com.waz.zclient.common.controllers.global.AccentColorController
-import com.waz.zclient.ui.R
 import com.waz.zclient.ui.utils.{ColorUtils, TypefaceUtils}
 import com.waz.zclient.ui.views.CursorIconButton
 

@@ -29,14 +29,15 @@ import com.waz.service.AccountsService
 import com.waz.threading.Threading
 import com.waz.utils.returning
 import com.waz.zclient._
-import com.waz.zclient.appentry.{AppEntryActivity, EntryError}
+import com.waz.zclient.appentry.AppEntryActivity
+import com.waz.zclient.appentry.DialogErrorMessage.PhoneError
 import com.waz.zclient.appentry.fragments.PhoneSetNameFragment._
-import com.waz.zclient.appentry.fragments.SignInFragment.{Phone, Register, SignInMethod}
+import com.waz.zclient.controllers.globallayout.IGlobalLayoutController
 import com.waz.zclient.controllers.navigation.Page
 import com.waz.zclient.newreg.views.PhoneConfirmationButton
-import com.waz.zclient.pages.BaseFragment
 import com.waz.zclient.ui.text.TypefaceEditText
 import com.waz.zclient.ui.utils.KeyboardUtils
+import com.waz.zclient.utils.ContextUtils.showErrorDialog
 
 object PhoneSetNameFragment {
   val Tag = classOf[PhoneSetNameFragment].getName
@@ -51,15 +52,9 @@ object PhoneSetNameFragment {
       args.putString(CodeArg, code)
       f.setArguments(args)
     }
-
-  trait Container {
-    def enableProgress(enable: Boolean): Unit
-    def showError(entryError: EntryError, okCallback: => Unit = {}): Unit
-  }
-
 }
 
-class PhoneSetNameFragment extends BaseFragment[PhoneSetNameFragment.Container] with FragmentHelper with TextWatcher with View.OnClickListener {
+class PhoneSetNameFragment extends FragmentHelper with TextWatcher with View.OnClickListener {
 
   implicit val executionContext = Threading.Ui
 
@@ -94,7 +89,7 @@ class PhoneSetNameFragment extends BaseFragment[PhoneSetNameFragment.Container] 
         }
       })
     }
-    getControllerFactory.getGlobalLayoutController.setSoftInputModeForPage(Page.PHONE_REGISTRATION_ADD_NAME)
+    inject[IGlobalLayoutController].setSoftInputModeForPage(Page.PHONE_REGISTRATION_ADD_NAME)
     KeyboardUtils.showKeyboard(getActivity)
   }
 
@@ -110,7 +105,7 @@ class PhoneSetNameFragment extends BaseFragment[PhoneSetNameFragment.Container] 
   }
 
   private def confirmName(): Unit = {
-    getContainer.enableProgress(true)
+    activity.enableProgress(true)
     KeyboardUtils.hideKeyboard(getActivity)
 
     val phone = getStringArg(PhoneArg).getOrElse("")
@@ -119,15 +114,15 @@ class PhoneSetNameFragment extends BaseFragment[PhoneSetNameFragment.Container] 
 
     accountsService.register(PhoneCredentials(PhoneNumber(phone), ConfirmationCode(code)), name).map {
       case Left(error) =>
-        getContainer.enableProgress(false)
-        getContainer.showError(EntryError(error.code, error.label, SignInMethod(Register, Phone)), {
+        activity.enableProgress(false)
+        showErrorDialog(PhoneError(error)).foreach { _ =>
           if (getActivity == null) return
           KeyboardUtils.showKeyboard(getActivity)
           editTextName.foreach(_.requestFocus)
           nameConfirmationButton.foreach(_.setState(PhoneConfirmationButton.State.INVALID))
-        })
+        }
       case _ =>
-        getContainer.enableProgress(false)
+        activity.enableProgress(false)
         activity.onEnterApplication(false)
     }
   }

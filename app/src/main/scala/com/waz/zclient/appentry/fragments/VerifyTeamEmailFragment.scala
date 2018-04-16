@@ -21,12 +21,11 @@ import android.app.Activity
 import android.os.Bundle
 import android.view.View
 import com.waz.ZLog
-import com.waz.client.RegistrationClientImpl.ActivateResult.Failure
 import com.waz.model.{ConfirmationCode, EmailAddress}
 import com.waz.threading.Threading
 import com.waz.zclient._
-import com.waz.zclient.appentry.fragments.SignInFragment.{Email, Register, SignInMethod}
-import com.waz.zclient.appentry.{CreateTeamFragment, EntryError}
+import com.waz.zclient.appentry.CreateTeamFragment
+import com.waz.zclient.appentry.DialogErrorMessage.EmailError
 import com.waz.zclient.common.views.NumberCodeInput
 import com.waz.zclient.ui.text.TypefaceTextView
 import com.waz.zclient.ui.utils.KeyboardUtils
@@ -65,7 +64,7 @@ case class VerifyTeamEmailFragment() extends CreateTeamFragment{
           _ <- setButtonsVisible(true)
         } yield resp match {
           case Left(error) =>
-            Some(getString(EntryError(error.code, error.label, SignInMethod(Register, Email)).bodyResource))
+            Some(getString(EmailError(error).bodyResource))
           case _ =>
             createTeamController.code = code
             showFragment(SetNameFragment(), SetNameFragment.Tag)
@@ -79,17 +78,16 @@ case class VerifyTeamEmailFragment() extends CreateTeamFragment{
         if (cooldown) {
           resendCount += 1
           cooldown = false
-          accountsService.requestEmailCode(EmailAddress(createTeamController.teamEmail)) map {
-            case Failure(error) =>
-              cooldown = true
-              showToast(EntryError(error.code, error.label, SignInMethod(Register, Email)).bodyResource)
-            case _ =>
-              cooldown = true
-              showToast(R.string.app_entry_email_sent)
+          accountsService.requestEmailCode(EmailAddress(createTeamController.teamEmail)) map { resp =>
+            cooldown = true
+            resp match {
+              case Left(err) => showErrorDialog(EmailError(err))
+              case Right(_)  => showToast(R.string.app_entry_email_sent)
+            }
           }
         }
       } else {
-        showToast(R.string.new_reg_phone_too_man_attempts_header)
+        showToast(R.string.too_many_attempts_header)
       }
     })
 

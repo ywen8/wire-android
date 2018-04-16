@@ -39,8 +39,7 @@ import com.waz.zclient.pages.BaseFragment
 import com.waz.zclient.ui.text.TypefaceTextView
 import com.waz.zclient.ui.utils.TextViewUtils
 import com.waz.zclient.ui.views.ZetaButton
-import com.waz.zclient.utils.{ContextUtils, StringUtils, ViewUtils}
-import com.waz.zclient.utils.RichView
+import com.waz.zclient.utils.{ContextUtils, RichView, StringUtils}
 
 import scala.util.{Failure, Success}
 
@@ -112,7 +111,7 @@ class SetHandleFragment extends BaseFragment[SetHandleFragment.Container] with F
     }
 
     summaryTextView.foreach { summaryTextView =>
-      TextViewUtils.linkifyText(summaryTextView, Color.WHITE, com.waz.zclient.ui.R.string.wire__typeface__light, false, new Runnable() {
+      TextViewUtils.linkifyText(summaryTextView, Color.WHITE, R.string.wire__typeface__light, false, new Runnable() {
         def run(): Unit = browser.openUrl(getString(R.string.usernames__learn_more__link))
       })
     }

@@ -51,10 +51,10 @@ import com.waz.zclient.pages.startup.UpdateFragment
 import com.waz.zclient.preferences.dialogs.ChangeHandleFragment
 import com.waz.zclient.preferences.{PreferencesActivity, PreferencesController}
 import com.waz.zclient.tracking.{CrashController, UiTrackingController}
-import com.waz.zclient.utils.ContextUtils.showToast
+import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.utils.PhoneUtils.PhoneState
 import com.waz.zclient.utils.StringUtils.TextDrawing
-import com.waz.zclient.utils.{BuildConfigUtils, ContextUtils, Emojis, IntentUtils, PhoneUtils, ViewUtils}
+import com.waz.zclient.utils.{BuildConfigUtils, Emojis, IntentUtils, PhoneUtils, ViewUtils}
 import com.waz.zclient.views.LoadingIndicatorView
 import net.hockeyapp.android.NativeCrashManager
 import MainActivity._
@@ -244,7 +244,7 @@ class MainActivity extends BaseActivity
                     else                                  (OtrDeviceLimitFragment.newInstance,           OtrDeviceLimitFragment.Tag)
                   replaceMainFragment(f, t, addToBackStack = false)
                 }
-              case Left(err) => Future.successful(showToast(s"Something went wrong: $err")) //TODO show dialog and ask user to try again
+              case Left(err) => showGenericErrorDialog()
             }
 
           case Right(PasswordMissing) =>
@@ -257,12 +257,13 @@ class MainActivity extends BaseActivity
                     else                             (AddEmailFragment(hasPassword = true),                             AddEmailFragment.Tag)
                   replaceMainFragment(f, t, addToBackStack = false)
                 }
-              case Left(err) => Future.successful(showToast(s"Something went wrong: $err")) //TODO show dialog and ask user to try again
+              case Left(err) => showGenericErrorDialog()
             }
           case Right(Unregistered) => warn("This shouldn't happen, going back to sign in..."); Future.successful(openSignUpPage())
-          case Left(err) => Future.successful(showToast(s"Something went wrong: $err")) //TODO show dialog and ask user to try again
+          case Left(err) => showGenericErrorDialog()
         } (Threading.Ui)
-      case _ => warn("No logged in account, sending to Sign in")
+      case _ =>
+        warn("No logged in account, sending to Sign in")
         Future.successful(openSignUpPage())
     }
   }
@@ -354,7 +355,7 @@ class MainActivity extends BaseActivity
     // Make sure we have a running OrientationController instance
     getControllerFactory.getOrientationController
     // Here comes code for adding other dependencies to controllers...
-    getControllerFactory.getNavigationController.setIsLandscape(ContextUtils.isInLandscape(this))
+    getControllerFactory.getNavigationController.setIsLandscape(isInLandscape(this))
   }
 
   private def onPasswordWasReset() =

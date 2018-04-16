@@ -24,6 +24,7 @@ import android.support.annotation.StringRes
 import android.support.v7.widget.RecyclerView
 import android.view.{LayoutInflater, View, ViewGroup}
 import android.widget.{ImageView, TextView}
+import com.waz.ZLog.ImplicitTag._
 import com.waz.api.{OtrClientType, Verification}
 import com.waz.model.otr.Client
 import com.waz.service.ZMessaging
@@ -34,12 +35,10 @@ import com.waz.zclient.ui.utils.TextViewUtils
 import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.utils.{RichClient, RichView, ViewUtils}
 import com.waz.zclient.{Injectable, Injector, R}
-import com.waz.ZLog.ImplicitTag._
 
 class ParticipantOtrDeviceAdapter(implicit context: Context, injector: Injector, eventContext: EventContext)
   extends RecyclerView.Adapter[ParticipantOtrDeviceAdapter.ViewHolder] with Injectable {
   import ParticipantOtrDeviceAdapter._
-
   import Threading.Implicits.Background
 
   private lazy val zms = inject[Signal[ZMessaging]]
@@ -139,10 +138,7 @@ object ParticipantOtrDeviceAdapter {
 
       val linkTextView = view.findViewById[TextView](R.id.ttv__row__otr_details_link)
       linkTextView.setVisible(!noDevices)
-      ViewUtils.setPaddingTop(
-        linkTextView,
-        if (noDevices) 0 else linkTextView.getContext.getResources.getDimensionPixelSize(R.dimen.wire__padding__small)
-      )
+      linkTextView.setPaddingTopRes(if (noDevices) R.dimen.zero else R.dimen.wire__padding__small)
       linkTextView.setOnClickListener(if (noDevices) null else this)
 
       if (!noDevices) linkTextView.setText(

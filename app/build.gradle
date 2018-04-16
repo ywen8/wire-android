@@ -222,8 +222,6 @@ dexinfo {
 }
 
 dependencies {
-    compile project(':wire-core')
-    compile project(':wire-ui')
     compile project(':lintlib')
     compile project(':macrosupport')
 
@@ -231,6 +229,7 @@ dependencies {
     compile deps.scala
     provided deps.scalaReflect
     compile deps.multidex
+    compile deps.timber
     compile deps.supportv4
     compile deps.supportv13
     compile deps.supportdesign
@@ -242,6 +241,10 @@ dependencies {
     compile deps.audioNotifications
     compile deps.mixpanel
     compile deps.rebound
+    compile deps.preferences
+    compile(deps.supportpreferences) {
+        exclude group: 'com.android.support', module: 'appcompat-v7'
+    }
 
     //noinspection GradleDynamicVersion
     compile deps.psBase
@@ -255,11 +258,6 @@ dependencies {
     experimentalCompile deps.stetho
     qaCompile           deps.stetho
     internalCompile     deps.stetho
-
-    // For using local files in app/libs
-    //compile (name:'avs', ext:'aar')
-    //compile (name:'audio-notifications', ext:'aar')
-    //compile (name:'zmessaging-android', ext:'aar')
 
     // Test dependencies
     testCompile deps.junit
@@ -295,6 +293,27 @@ dependencies {
     //Translations
     compile deps.translations
     compile deps.jna
+
+    // TODO  Nasty hack to be able to build add only one wire-core flavor to the build
+    // TODO  (I know, it sucks, will think of a better way to do this, and we need this
+    // TODO   when there are different SE APIs in dev vs internal/prod)
+    boolean internal = true;
+    for (String taskName : gradle.startParameter.taskNames) {
+        if (taskName.contains("Prod") || taskName.contains("Candidate")) {
+            internal = false;
+            break;
+        }
+    }
+
+    // For using local files in app/libs
+    //compile (name:'avs', ext:'aar')
+    //compile (name:'audio-notifications', ext:'aar')
+    //compile (name:'zmessaging-android', ext:'aar')
+
+    compile "$avsGroup:$avsName:${internal ? avsInternalVersion : avsVersion}"
+    compile("com.wire:zmessaging-android:${internal ? zMessagingDevVersion : zMessagingReleaseVersion}") {
+        transitive = true
+    }
 }
 
 tasks.withType(ScalaCompile) {
@@ -303,7 +322,7 @@ tasks.withType(ScalaCompile) {
         "-Xfuture",
         "-Xfatal-warnings",
         "-deprecation",
-//        "-Ywarn-unused-import", //TODO turn back on and tidy up!
+        "-Ywarn-unused-import",
         "-encoding",
         "UTF-8"]
 }

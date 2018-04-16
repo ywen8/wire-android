@@ -21,26 +21,25 @@ import android.os.{Build, Bundle, Handler}
 import android.support.v4.content.ContextCompat
 import android.text.{Editable, TextWatcher}
 import android.view.{LayoutInflater, View, ViewGroup}
-import android.widget.{TextView, Toast}
+import android.widget.TextView
 import com.waz.api.impl.ErrorResponse
-import com.waz.client.RegistrationClientImpl.ActivateResult
 import com.waz.model.{ConfirmationCode, PhoneNumber}
 import com.waz.service.AccountsService
 import com.waz.threading.Threading
-import com.waz.utils.returning
+import com.waz.utils.{returning, _}
 import com.waz.zclient._
+import com.waz.zclient.appentry.AppEntryActivity
+import com.waz.zclient.appentry.DialogErrorMessage.PhoneError
 import com.waz.zclient.appentry.fragments.SignInFragment.{Login, Phone, Register, SignInMethod}
 import com.waz.zclient.appentry.fragments.VerifyPhoneFragment._
-import com.waz.zclient.appentry.{AppEntryActivity, EntryError, GenericLoginPhoneError, GenericRegisterPhoneError}
 import com.waz.zclient.controllers.globallayout.IGlobalLayoutController
 import com.waz.zclient.controllers.navigation.Page
 import com.waz.zclient.newreg.views.PhoneConfirmationButton
-import com.waz.zclient.pages.BaseFragment
 import com.waz.zclient.tracking.GlobalTrackingController
 import com.waz.zclient.ui.text.TypefaceEditText
 import com.waz.zclient.ui.utils.KeyboardUtils
+import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.utils.DeprecationUtils
-import com.waz.utils._
 
 import scala.concurrent.Future
 
@@ -58,19 +57,13 @@ object VerifyPhoneFragment {
       args.putString(PhoneArg, phone)
       f.setArguments(args)
     }
-
-  trait Container {
-    def enableProgress(enabled: Boolean): Unit
-    def showError(entryError: EntryError, okCallback: => Unit = {}): Unit
-  }
-
 }
 
-class VerifyPhoneFragment extends BaseFragment[VerifyPhoneFragment.Container] with FragmentHelper with View.OnClickListener with TextWatcher with OnBackPressedListener {
+class VerifyPhoneFragment extends FragmentHelper with View.OnClickListener with TextWatcher with OnBackPressedListener {
 
-  implicit val executionContext = Threading.Ui
-  private lazy val accountService     = inject[AccountsService]
-  private lazy val tracking           = inject[GlobalTrackingController]
+  import Threading.Implicits.Ui
+  private lazy val accountService = inject[AccountsService]
+  private lazy val tracking       = inject[GlobalTrackingController]
 
   private lazy val resendCodeButton = view[TextView](R.id.ttv__resend_button)
   private lazy val resendCodeTimer = view[TextView](R.id.ttv__resend_timer)
@@ -162,21 +155,14 @@ class VerifyPhoneFragment extends BaseFragment[VerifyPhoneFragment.Container] wi
     editTextCode.foreach(_.setText(""))
     val isLoggingIn = getBooleanArg(LoggingInArg, default = true)
     val phone = getStringArg(PhoneArg).getOrElse("")
-    accountService.requestPhoneCode(PhoneNumber(phone), login = isLoggingIn, call = shouldCall).map {
-      case ActivateResult.Success => Right(())
-      case ActivateResult.PasswordExists => Left(if (isLoggingIn) GenericLoginPhoneError else GenericRegisterPhoneError)
-      case ActivateResult.Failure(error) => Left(EntryError(error.code, error.label, SignInMethod(if (isLoggingIn) Login else Register, Phone)))
-    }.map { result =>
+    accountService.requestPhoneCode(PhoneNumber(phone), login = isLoggingIn, call = shouldCall).map { result =>
       tracking.onRequestResendCode(result, SignInMethod(if (isLoggingIn) Login else Register, Phone), isCall = shouldCall)
       result match {
-        case Left(entryError) =>
-          getContainer.showError(entryError)
+        case Left(err) =>
+          showErrorDialog(PhoneError(err))
           editTextCode.foreach(_.requestFocus)
         case _ =>
-          if (shouldCall)
-            Toast.makeText(getActivity, getResources.getString(R.string.new_reg__code_resent__call), Toast.LENGTH_LONG).show()
-          else
-            Toast.makeText(getActivity, getResources.getString(R.string.new_reg__code_resent), Toast.LENGTH_LONG).show()
+          showToast(if (shouldCall) R.string.new_reg__code_resent__call else R.string.new_reg__code_resent)
       }
     }
   }
@@ -184,25 +170,29 @@ class VerifyPhoneFragment extends BaseFragment[VerifyPhoneFragment.Container] wi
   private def goBack(): Unit = getFragmentManager.popBackStack()
 
   private def confirmCode(): Unit = {
-    getContainer.enableProgress(true)
+    activity.enableProgress(true)
     KeyboardUtils.hideKeyboard(getActivity)
 
     val isLoggingIn = getBooleanArg(LoggingInArg, default = true)
     val phone = getStringArg(PhoneArg).getOrElse("")
     val code = editTextCode.map(_.getText.toString).getOrElse("")
 
+    def onError(err: ErrorResponse) = {
+      activity.enableProgress(false)
+      showErrorDialog(PhoneError(err)).map { _ =>
+        if (getActivity != null) {
+          KeyboardUtils.showKeyboard(getActivity)
+          editTextCode.foreach(_.requestFocus)
+          phoneConfirmationButton.foreach(_.setState(PhoneConfirmationButton.State.INVALID))
+        }
+      }
+    }
+
     if (isLoggingIn) {
       accountService.loginPhone(phone, code).map {
-        case Left(error) =>
-          getContainer.enableProgress(false)
-          getContainer.showError(EntryError(error.code, error.label, SignInMethod(Login, Phone)), {
-            if (getActivity != null) {
-              KeyboardUtils.showKeyboard(getActivity)
-              editTextCode.foreach(_.requestFocus)
-              phoneConfirmationButton.foreach(_.setState(PhoneConfirmationButton.State.INVALID))
-            }
-          })
+        case Left(error) => onError(error)
         case Right(userId) =>
+          activity.enableProgress(false)
           for {
             am <- accountService.createAccountManager(userId, None)
             _ <- accountService.setAccount(Some(userId))
@@ -211,21 +201,12 @@ class VerifyPhoneFragment extends BaseFragment[VerifyPhoneFragment.Container] wi
       }
     } else {
       accountService.verifyPhoneNumber(PhoneNumber(phone), ConfirmationCode(code), dryRun = true).foreach {
-        case Left(error) =>
-          getContainer.enableProgress(false)
-          getContainer.showError(EntryError(error.code, error.label, SignInMethod(Register, Phone)), {
-            if (getActivity != null) {
-              KeyboardUtils.showKeyboard(getActivity)
-              editTextCode.foreach(_.requestFocus)
-              phoneConfirmationButton.foreach(_.setState(PhoneConfirmationButton.State.INVALID))
-            }
-          })
+        case Left(error) => onError(error)
         case _ =>
-          getContainer.enableProgress(false)
+          activity.enableProgress(false)
           activity.showFragment(PhoneSetNameFragment(phone, code), PhoneSetNameFragment.Tag)
       }
     }
-
   }
 
   def onClick(view: View): Unit = {

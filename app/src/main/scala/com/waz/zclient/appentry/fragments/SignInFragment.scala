@@ -17,7 +17,7 @@
  */
 package com.waz.zclient.appentry.fragments
 
-import android.content.{Context, DialogInterface}
+import android.content.Context
 import android.graphics.Color
 import android.os.Build.VERSION.SDK_INT
 import android.os.Build.VERSION_CODES.KITKAT
@@ -29,21 +29,19 @@ import android.widget.{FrameLayout, LinearLayout}
 import com.waz.ZLog.ImplicitTag._
 import com.waz.ZLog._
 import com.waz.api.impl.ErrorResponse
-import com.waz.client.RegistrationClientImpl.ActivateResult
-import com.waz.client.RegistrationClientImpl.ActivateResult.{Failure, PasswordExists, Success}
 import com.waz.model.{EmailAddress, PhoneNumber}
 import com.waz.service.{AccountsService, ZMessaging}
 import com.waz.threading.Threading
 import com.waz.utils.events.Signal
 import com.waz.utils.returning
 import com.waz.zclient._
+import com.waz.zclient.appentry.AppEntryActivity
+import com.waz.zclient.appentry.DialogErrorMessage.{EmailError, PhoneError}
 import com.waz.zclient.appentry.fragments.SignInFragment._
-import com.waz.zclient.appentry.{AppEntryActivity, EntryError}
 import com.waz.zclient.common.controllers.BrowserController
 import com.waz.zclient.newreg.fragments.TabPages
 import com.waz.zclient.newreg.fragments.country.{Country, CountryController}
 import com.waz.zclient.newreg.views.PhoneConfirmationButton
-import com.waz.zclient.pages.BaseFragment
 import com.waz.zclient.pages.main.profile.validator.{EmailValidator, NameValidator, PasswordValidator}
 import com.waz.zclient.pages.main.profile.views.GuidedEditText
 import com.waz.zclient.tracking.{GlobalTrackingController, SignUpScreenEvent}
@@ -54,8 +52,7 @@ import com.waz.zclient.ui.views.tab.TabIndicatorLayout.Callback
 import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.utils._
 
-class SignInFragment extends BaseFragment[Container]
-  with FragmentHelper
+class SignInFragment extends FragmentHelper
   with View.OnClickListener
   with CountryController.Observer {
 
@@ -326,19 +323,15 @@ class SignInFragment extends BaseFragment[Container]
         KeyboardUtils.closeKeyboardIfShown(getActivity)
         activity.enableProgress(true)
 
-        def onResponse[A](resp: Either[ErrorResponse, A], m: SignInMethod) = {
-          returning(resp match {
-            case Left(error) => Left(EntryError(error.code, error.label, m))
-            case Right(ret) => Right(ret)
-          })(tracking.onEnteredCredentials(_, m))
-        }
-
-        def onActivateResponse(resp: ActivateResult, m: SignInMethod): Either[EntryError, Unit] = {
-          returning(resp match {
-            case Failure(error) => Left(EntryError(error.code, error.label, m))
-            case PasswordExists => Left(EntryError(ErrorResponse.Forbidden, "password-exists", m))
-            case Success => Right(())
-          })(tracking.onEnteredCredentials(_, m))
+        def onResponse[A](req: Either[ErrorResponse, A], method: SignInMethod) = {
+          tracking.onEnteredCredentials(req, method)
+          activity.enableProgress(false)
+          req match {
+            case Left(error) =>
+              showErrorDialog(if (method.inputType == Email) EmailError(error) else PhoneError(error))
+              Left({})
+            case Right(res) => Right(res)
+          }
         }
 
         uiSignInState.head.flatMap {
@@ -346,28 +339,18 @@ class SignInFragment extends BaseFragment[Container]
             for {
               email     <- email.head
               password  <- password.head
-              req       <- accountsService.loginEmail(email, password).map(onResponse(_, m))
-            } yield req match {
-              case Left(error) =>
-                activity.enableProgress(false)
-                showError(error)
-              case Right(id) =>
-                activity.enableProgress(false)
-                activity.showFragment(FirstLaunchAfterLoginFragment(id), FirstLaunchAfterLoginFragment.Tag)
+              req       <- accountsService.loginEmail(email, password)
+            } yield onResponse(req, m).right.foreach { id =>
+              activity.showFragment(FirstLaunchAfterLoginFragment(id), FirstLaunchAfterLoginFragment.Tag)
             }
           case m@SignInMethod(Register, Email) =>
             for {
               email     <- email.head
               password  <- password.head
               name      <- name.head
-              req       <- accountsService.requestEmailCode(EmailAddress(email)).map(onActivateResponse(_, m))
-            } yield req match {
-              case Left(error) =>
-                activity.enableProgress(false)
-                showError(error)
-              case Right(_) =>
-                activity.enableProgress(false)
-                activity.showFragment(VerifyEmailWithCodeFragment(email, name, password), VerifyEmailWithCodeFragment.Tag)
+              req       <- accountsService.requestEmailCode(EmailAddress(email))
+            } yield onResponse(req, m).right.foreach { _ =>
+              activity.showFragment(VerifyEmailWithCodeFragment(email, name, password), VerifyEmailWithCodeFragment.Tag)
             }
           case m@SignInMethod(method, Phone) =>
             val isLogin = method == Login
@@ -376,14 +359,9 @@ class SignInFragment extends BaseFragment[Container]
               country <- phoneCountry.head
               phoneStr <- phone.head
               phone = PhoneNumber(s"+${country.getCountryCode}$phoneStr")
-              req <- accountsService.requestPhoneCode(phone, login = isLogin).map(onActivateResponse(_, m))
-            } yield req match {
-              case Left(error) =>
-                activity.enableProgress(false)
-                showError(error)
-              case Right(_) =>
-                activity.enableProgress(false)
-                activity.showFragment(VerifyPhoneFragment(phone.str, login = isLogin), VerifyPhoneFragment.Tag)
+              req <- accountsService.requestPhoneCode(phone, login = isLogin)
+            } yield onResponse(req, m).right.foreach { _ =>
+              activity.showFragment(VerifyPhoneFragment(phone.str, login = isLogin), VerifyPhoneFragment.Tag)
             }
           case _ => throw new NotImplementedError("Only login with email works right now") //TODO
         }
@@ -391,7 +369,7 @@ class SignInFragment extends BaseFragment[Container]
       case R.id.ttv_signin_forgot_password =>
         browserController.openUrl(getString(R.string.url_password_reset))
       case R.id.close_button =>
-        getContainer.abortAddAccount()
+        activity.abortAddAccount()
       case _ =>
     }
   }
@@ -404,20 +382,6 @@ class SignInFragment extends BaseFragment[Container]
 
   def clearCredentials(): Unit =
     Set(email, password, name, phone).foreach(_ ! "")
-
-  def showError(entryError: EntryError, okCallback: => Unit = {}): Unit =
-    ViewUtils.showAlertDialog(getActivity,
-      entryError.headerResource,
-      entryError.bodyResource,
-      R.string.reg__phone_alert__button,
-      new DialogInterface.OnClickListener() {
-        def onClick(dialog: DialogInterface, which: Int): Unit = {
-          dialog.dismiss()
-          okCallback
-        }
-      },
-      false)
-
 
   override def onBackPressed(): Boolean =
     if (getFragmentManager.getBackStackEntryCount > 1) {
@@ -447,9 +411,6 @@ object SignInFragment {
   }
 
   val Tag = logTagFor[SignInFragment]
-  trait Container {
-    def abortAddAccount(): Unit
-  }
 
   sealed trait SignType{
     val str: String
