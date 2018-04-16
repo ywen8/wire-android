@@ -18,16 +18,23 @@
 package com.waz.zclient
 
 import com.waz.utils.events.{EventContext, Signal, SourceSignal}
+import com.waz.zclient.SpinnerController.{Hide, Show, SpinnerParameters}
 import com.waz.zclient.views.LoadingIndicatorView._
 
 class SpinnerController(implicit inj: Injector, cxt: WireContext, eventContext: EventContext) extends Injectable {
 
-  val spinnerShowing: SourceSignal[Either[AnimationType, Option[String]]] = Signal(Right(None))
+  val spinnerShowing: SourceSignal[SpinnerParameters] = Signal(Hide())
 
-  def showSpinner(animationType: AnimationType = Spinner): Unit = spinnerShowing ! Left(animationType)
+  def showSpinner(animationType: AnimationType = Spinner, forcedTheme: Option[Boolean] = None): Unit = spinnerShowing ! Show(animationType, forcedTheme)
 
-  def hideSpinner(message: Option[String] = None): Unit = spinnerShowing ! Right(message)
+  def hideSpinner(message: Option[String] = None): Unit = spinnerShowing ! Hide(message)
 
-  def showSpinner(show: Boolean): Unit = spinnerShowing ! (if (show) Left(Spinner) else Right(None))
-  def showDimmedSpinner(show: Boolean, text: String = ""): Unit = spinnerShowing ! (if (show) Left(SpinnerWithDimmedBackground(text)) else Right(None))
+  def showSpinner(show: Boolean): Unit = spinnerShowing ! (if (show) Show(Spinner) else Hide(None))
+  def showDimmedSpinner(show: Boolean, text: String = ""): Unit = spinnerShowing ! (if (show) Show(SpinnerWithDimmedBackground(text)) else Hide(None))
+}
+
+object SpinnerController {
+  sealed trait SpinnerParameters
+  case class Show(animationType: AnimationType, forcedTheme: Option[Boolean] = None) extends SpinnerParameters
+  case class Hide(message: Option[String] = None) extends SpinnerParameters
 }

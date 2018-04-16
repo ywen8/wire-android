@@ -38,6 +38,7 @@ import com.waz.utils.events.Signal
 import com.waz.utils.{RichInstant, returning}
 import com.waz.zclient.Intents._
 import com.waz.zclient.MainActivity._
+import com.waz.zclient.SpinnerController.{Hide, Show}
 import com.waz.zclient.appentry.AppEntryActivity
 import com.waz.zclient.calling.CallingActivity
 import com.waz.zclient.calling.controllers.CallPermissionsController
@@ -158,9 +159,9 @@ class MainActivity extends BaseActivity
       darkTheme <- themeController.darkThemeSet
       show <- spinnerController.spinnerShowing
     }  yield (show, darkTheme)).onUi{
-      case (Left(animation), theme) => loadingIndicator.show(animation, theme, 300)
-      case (Right(Some(message)), _) => loadingIndicator.hideWithMessage(message, 750)
-      case (Right(_), _) => loadingIndicator.hide()
+      case (Show(animation, forcedTheme), theme) => loadingIndicator.show(animation, forcedTheme.getOrElse(theme), 300)
+      case (Hide(Some(message)), _) => loadingIndicator.hideWithMessage(message, 750)
+      case (Hide(_), _) => loadingIndicator.hide()
     }
   }
 

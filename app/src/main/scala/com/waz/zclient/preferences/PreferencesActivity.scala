@@ -36,6 +36,7 @@ import com.waz.service.{AccountsService, ZMessaging}
 import com.waz.threading.Threading
 import com.waz.utils.events.Signal
 import com.waz.zclient.Intents._
+import com.waz.zclient.SpinnerController.{Hide, Show}
 import com.waz.zclient.common.controllers.global.AccentColorController
 import com.waz.zclient.common.views.AccountTabsView
 import com.waz.zclient.pages.main.profile.camera.{CameraContext, CameraFragment}
@@ -116,8 +117,8 @@ class PreferencesActivity extends BaseActivity
     val loadingIndicator = findViewById[LoadingIndicatorView](R.id.progress_spinner)
 
     spinnerController.spinnerShowing.onUi {
-      case Left(animation) => loadingIndicator.show(animation, darkTheme = true)
-      case Right(Some(message)) => loadingIndicator.hideWithMessage(message, 1000)
+      case Show(animation, forcedTheme) => loadingIndicator.show(animation, darkTheme = forcedTheme.getOrElse(true))
+      case Hide(Some(message)) => loadingIndicator.hideWithMessage(message, 1000)
       case _ => loadingIndicator.hide()
     }
   }
@@ -170,7 +171,7 @@ class PreferencesActivity extends BaseActivity
 
   override def onBackPressed() = {
     Option(getSupportFragmentManager.findFragmentByTag(CameraFragment.TAG).asInstanceOf[CameraFragment]).fold{
-      if (!spinnerController.spinnerShowing.currentValue.exists(_.isLeft) && !backStackNavigator.back())
+      if (!spinnerController.spinnerShowing.currentValue.exists(_.isInstanceOf[Show]) && !backStackNavigator.back())
         finish()
     }{ _.onBackPressed() }
   }

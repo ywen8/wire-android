@@ -31,6 +31,7 @@ import com.waz.service.AccountManager.ClientRegistrationState
 import com.waz.service.{AccountsService, ZMessaging}
 import com.waz.utils.events.Signal
 import com.waz.utils.returning
+import com.waz.zclient.SpinnerController.{Hide, Show}
 import com.waz.zclient._
 import com.waz.zclient.appentry.AppEntryActivity._
 import com.waz.zclient.appentry.controllers.InvitationsController
@@ -141,9 +142,9 @@ class AppEntryActivity extends BaseActivity {
     skipButton.onClick(onEnterApplication(false))
 
     spinnerController.spinnerShowing.onUi {
-      case Left(animation)=> progressView.show(animation, darkTheme = true, 300)
-      case Right(Some(message)) => progressView.hideWithMessage(message, 750)
-      case Right(_) => progressView.hide()
+      case Show(animation, forcedTheme)=> progressView.show(animation, darkTheme = forcedTheme.getOrElse(true), 300)
+      case Hide(Some(message)) => progressView.hideWithMessage(message, 750)
+      case Hide(_) => progressView.hide()
     }
   }
 
