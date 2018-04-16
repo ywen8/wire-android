@@ -161,7 +161,7 @@ class FirstLaunchAfterLoginFragment extends FragmentHelper with View.OnClickList
           file
         }
 
-        val accountManager = await { accountsService.createAccountManager(userId.get, backupFile) }
+        val accountManager = await(accountsService.createAccountManager(userId.get, backupFile, isLogin = Some(true)))
         backupFile.foreach(_.delete())
         await { accountsService.setAccount(userId) }
         val registrationState = await { accountManager.fold2(Future.successful(Left(ErrorResponse.internalError(""))), _.getOrRegisterClient()) }

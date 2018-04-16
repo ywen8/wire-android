@@ -194,7 +194,7 @@ class VerifyPhoneFragment extends FragmentHelper with View.OnClickListener with 
         case Right(userId) =>
           activity.enableProgress(false)
           for {
-            am <- accountService.createAccountManager(userId, None)
+            am <- accountService.createAccountManager(userId, None, isLogin = Some(true))
             _ <- accountService.setAccount(Some(userId))
             regState <- am.fold2(Future.successful(Left(ErrorResponse.internalError(""))), _.getOrRegisterClient())
           } yield activity.onEnterApplication(openSettings = false, regState.fold(_ => None, Some(_)))
