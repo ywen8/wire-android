@@ -148,7 +148,7 @@ class FirstLaunchAfterLoginFragment extends FragmentHelper with View.OnClickList
     ViewUtils.showAlertDialog(getContext, title, text, android.R.string.ok, null, true)
 
   private def enter(backup: Option[URI]) = {
-    spinnerController.showDimmedSpinner(show = true, getString(R.string.restore_progress))
+    spinnerController.showDimmedSpinner(show = true, if (backup.isDefined) getString(R.string.restore_progress) else "")
     async {
       val userId = getStringArg(UserIdArg).map(UserId(_))
       if (userId.nonEmpty) {
@@ -165,8 +165,10 @@ class FirstLaunchAfterLoginFragment extends FragmentHelper with View.OnClickList
         backupFile.foreach(_.delete())
         await { accountsService.setAccount(userId) }
         val registrationState = await { accountManager.fold2(Future.successful(Left(ErrorResponse.internalError(""))), _.getOrRegisterClient()) }
-        spinnerController.hideSpinner(Some(getString(R.string.back_up_progress_complete)))
-        await { CancellableFuture.delay(750.millis).future }
+        if (backup.isDefined) {
+          spinnerController.hideSpinner(Some(getString(R.string.back_up_progress_complete)))
+          await { CancellableFuture.delay(750.millis).future }
+        }
         registrationState match {
           case Right(regState) => activity.onEnterApplication(openSettings = false, Some(regState))
           case _ => activity.onEnterApplication(openSettings = false)
