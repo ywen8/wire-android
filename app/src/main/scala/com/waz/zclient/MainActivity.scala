@@ -28,7 +28,7 @@ import com.waz.ZLog.ImplicitTag._
 import com.waz.ZLog.{error, info, verbose, warn}
 import com.waz.api.{NetworkMode, _}
 import com.waz.content.Preferences.Preference.PrefCodec
-import com.waz.content.UserPreferences.{PendingEmail, PendingPassword}
+import com.waz.content.UserPreferences._
 import com.waz.model.{ConvId, ConversationData, UserId}
 import com.waz.service.AccountManager.ClientRegistrationState.{LimitReached, PasswordMissing, Registered, Unregistered}
 import com.waz.service.ZMessaging.clock
@@ -216,18 +216,19 @@ class MainActivity extends BaseActivity
           case Right(Registered(_))   =>
             for {
               z            <- zms.head
+              isLogin      <- z.userPrefs(IsLogin).apply()
+              isNewClient  <- z.userPrefs(IsNewClient).apply()
               email        <- z.users.selfUser.map(_.email).head
-              clientCount  <- z.otrClientsStorage.getClients(z.selfUserId)
               pendingPw    <- z.userPrefs(PendingPassword).apply()
               pendingEmail <- z.userPrefs(PendingEmail).apply()
               handle       <- z.users.selfUser.map(_.handle).head
             } yield {
               val (f, t) =
-                if (email.isDefined && pendingPw)                (SetOrRequestPasswordFragment(email.get), SetOrRequestPasswordFragment.Tag)
-                else if (pendingEmail.isDefined)                 (VerifyEmailFragment(pendingEmail.get),   VerifyEmailFragment.Tag)
-                else if (email.isEmpty && clientCount.size >= 2) (AddEmailFragment(),                      AddEmailFragment.Tag)
-                else if (handle.isEmpty)                         (SetHandleFragment(),                     SetHandleFragment.Tag)
-                else                                             (new MainPhoneFragment,                   MainPhoneFragment.Tag)
+                if (email.isDefined && pendingPw)                 (SetOrRequestPasswordFragment(email.get), SetOrRequestPasswordFragment.Tag)
+                else if (pendingEmail.isDefined)                  (VerifyEmailFragment(pendingEmail.get),   VerifyEmailFragment.Tag)
+                else if (email.isEmpty && isLogin && isNewClient) (AddEmailFragment(),                      AddEmailFragment.Tag)
+                else if (handle.isEmpty)                          (SetHandleFragment(),                     SetHandleFragment.Tag)
+                else                                              (new MainPhoneFragment,                   MainPhoneFragment.Tag)
               replaceMainFragment(f, t, addToBackStack = false)
             }
 
