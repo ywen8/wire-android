@@ -18,14 +18,13 @@
 
 package com.waz.zclient.appentry.fragments
 
-import java.io.{File, FileOutputStream, OutputStream}
+import java.io.{File, FileOutputStream}
 
 import android.Manifest.permission._
 import android.content.{DialogInterface, Intent}
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.support.v4.content.ContextCompat
-import android.support.v7.app.AlertDialog
 import android.view.{LayoutInflater, View, ViewGroup}
 import com.waz.ZLog.ImplicitTag._
 import com.waz.api.impl.ErrorResponse
@@ -33,9 +32,8 @@ import com.waz.model.UserId
 import com.waz.permissions.PermissionsService
 import com.waz.service.AccountsService
 import com.waz.service.BackupManager.InvalidMetadata
-import com.waz.service.downloads.AssetLoader
-import com.waz.threading.Threading
-import com.waz.utils.wrappers.{AndroidURI, AndroidURIUtil, URI}
+import com.waz.threading.{CancellableFuture, Threading}
+import com.waz.utils.wrappers.{AndroidURIUtil, URI}
 import com.waz.utils.{RichFuture, returning, _}
 import com.waz.zclient.appentry.AppEntryActivity
 import com.waz.zclient.appentry.fragments.FirstLaunchAfterLoginFragment._
@@ -43,7 +41,8 @@ import com.waz.zclient.pages.main.conversation.AssetIntentsManager
 import com.waz.zclient.ui.text.TypefaceTextView
 import com.waz.zclient.ui.views.ZetaButton
 import com.waz.zclient.utils.ViewUtils
-import com.waz.zclient.{FragmentHelper, R, ShareActivity}
+import com.waz.zclient.{FragmentHelper, R, SpinnerController}
+import scala.concurrent.duration._
 
 import scala.async.Async.{async, await}
 import scala.concurrent.Future
@@ -66,6 +65,7 @@ class FirstLaunchAfterLoginFragment extends FragmentHelper with View.OnClickList
 
   private lazy val accountsService    = inject[AccountsService]
   private lazy val permissions        = inject[PermissionsService]
+  private lazy val spinnerController  = inject[SpinnerController]
 
   private lazy val restoreButton = view[ZetaButton](R.id.restore_button)
   private lazy val registerButton = view[ZetaButton](R.id.zb__first_launch__confirm)
@@ -148,7 +148,7 @@ class FirstLaunchAfterLoginFragment extends FragmentHelper with View.OnClickList
     ViewUtils.showAlertDialog(getContext, title, text, android.R.string.ok, null, true)
 
   private def enter(backup: Option[URI]) = {
-    activity.enableProgress(true)
+    spinnerController.showDimmedSpinner(show = true, getString(R.string.restore_progress))
     async {
       val userId = getStringArg(UserIdArg).map(UserId(_))
       if (userId.nonEmpty) {
@@ -165,6 +165,8 @@ class FirstLaunchAfterLoginFragment extends FragmentHelper with View.OnClickList
         backupFile.foreach(_.delete())
         await { accountsService.setAccount(userId) }
         val registrationState = await { accountManager.fold2(Future.successful(Left(ErrorResponse.internalError(""))), _.getOrRegisterClient()) }
+        spinnerController.hideSpinner(Some(getString(R.string.back_up_progress_complete)))
+        await { CancellableFuture.delay(750.millis).future }
         registrationState match {
           case Right(regState) => activity.onEnterApplication(openSettings = false, Some(regState))
           case _ => activity.onEnterApplication(openSettings = false)
@@ -172,13 +174,13 @@ class FirstLaunchAfterLoginFragment extends FragmentHelper with View.OnClickList
       }
     } logFailure() recover {
       case InvalidMetadata.UserId =>
-        activity.enableProgress(false)
+        spinnerController.showSpinner(false)
         displayError(R.string.backup_import_error_wrong_account_title, R.string.backup_import_error_wrong_account)
       case _: InvalidMetadata =>
-        activity.enableProgress(false)
+        spinnerController.showSpinner(false)
         displayError(R.string.backup_import_error_unsupported_version_title, R.string.backup_import_error_unsupported_version)
       case _ =>
-        activity.enableProgress(false)
+        spinnerController.showSpinner(false)
         displayError(R.string.backup_import_error_unknown_title, R.string.backup_import_error_unknown)
     }
   }

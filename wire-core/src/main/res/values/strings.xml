@@ -1368,6 +1368,7 @@
 
     <string name="back_up_progress">BACKING UP…</string>
     <string name="back_up_progress_complete">COMPLETE</string>
+    <string name="restore_progress">RESTORING…</string>
     <string name="pref_account_backup_warning_title">Set an email and password.</string>
     <string name="pref_account_backup_warning_message">You need an email and a password in order to back up your conversation history. You can do it from the account page in Settings.</string>
     <string name="pref_account_backup_warning_ok">OK</string>

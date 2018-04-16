@@ -76,6 +76,7 @@ class AppEntryActivity extends BaseActivity
   private lazy val progressView = ViewUtils.getView(this, R.id.liv__progress).asInstanceOf[LoadingIndicatorView]
   private lazy val countryController: CountryController = new CountryController(this)
   private lazy val invitesController = inject[InvitationsController]
+  private lazy val spinnerController  = inject[SpinnerController]
   private var createdFromSavedInstance: Boolean = false
   private var isPaused: Boolean = false
 
@@ -142,6 +143,12 @@ class AppEntryActivity extends BaseActivity
       }
     })
     skipButton.onClick(onEnterApplication(false))
+
+    spinnerController.spinnerShowing.onUi {
+      case Left(animation)=> progressView.show(animation, darkTheme = true, 300)
+      case Right(Some(message)) => progressView.hideWithMessage(message, 750)
+      case Right(_) => progressView.hide()
+    }
   }
 
   override protected def onResume(): Unit = {
