@@ -27,6 +27,7 @@ import android.support.v4.app.{Fragment, FragmentTransaction}
 import com.waz.ZLog.ImplicitTag._
 import com.waz.ZLog.{error, info, verbose, warn}
 import com.waz.api.{NetworkMode, _}
+import com.waz.content.Preferences.Preference.PrefCodec
 import com.waz.content.UserPreferences.{PendingEmail, PendingPassword}
 import com.waz.model.{ConvId, ConversationData, UserId}
 import com.waz.service.AccountManager.ClientRegistrationState.{LimitReached, PasswordMissing, Registered, Unregistered}
@@ -36,6 +37,7 @@ import com.waz.threading.{CancellableFuture, Threading}
 import com.waz.utils.events.Signal
 import com.waz.utils.{RichInstant, returning}
 import com.waz.zclient.Intents._
+import com.waz.zclient.MainActivity._
 import com.waz.zclient.appentry.AppEntryActivity
 import com.waz.zclient.calling.CallingActivity
 import com.waz.zclient.calling.controllers.CallPermissionsController
@@ -57,8 +59,6 @@ import com.waz.zclient.utils.StringUtils.TextDrawing
 import com.waz.zclient.utils.{BuildConfigUtils, Emojis, IntentUtils, PhoneUtils, ViewUtils}
 import com.waz.zclient.views.LoadingIndicatorView
 import net.hockeyapp.android.NativeCrashManager
-import MainActivity._
-import com.waz.content.Preferences.Preference.PrefCodec
 
 import scala.collection.JavaConverters._
 import scala.concurrent.duration._
@@ -238,13 +238,13 @@ class MainActivity extends BaseActivity
                   pendingEmail <- am.storage.userPrefs(PendingEmail).apply()
                 } yield {
                   val (f, t) =
-                    if(self.email.isDefined && pendingPw) (SetOrRequestPasswordFragment(self.email.get), SetOrRequestPasswordFragment.Tag)
-                    else if (pendingEmail.isDefined)      (VerifyEmailFragment(pendingEmail.get),        VerifyEmailFragment.Tag)
-                    else if (self.email.isEmpty)          (AddEmailFragment(),                           AddEmailFragment.Tag)
-                    else                                  (OtrDeviceLimitFragment.newInstance,           OtrDeviceLimitFragment.Tag)
+                    if (self.email.isDefined && pendingPw) (SetOrRequestPasswordFragment(self.email.get), SetOrRequestPasswordFragment.Tag)
+                    else if (pendingEmail.isDefined)       (VerifyEmailFragment(pendingEmail.get),        VerifyEmailFragment.Tag)
+                    else if (self.email.isEmpty)           (AddEmailFragment(),                           AddEmailFragment.Tag)
+                    else                                   (OtrDeviceLimitFragment.newInstance,           OtrDeviceLimitFragment.Tag)
                   replaceMainFragment(f, t, addToBackStack = false)
                 }
-              case Left(err) => showGenericErrorDialog()
+              case Left(_) => showGenericErrorDialog()
             }
 
           case Right(PasswordMissing) =>
@@ -252,12 +252,12 @@ class MainActivity extends BaseActivity
               case Right(self) =>
                 am.storage.userPrefs(PendingEmail).apply().map { pendingEmail =>
                   val (f ,t) =
-                    if(self.email.isDefined)         (SetOrRequestPasswordFragment(self.email.get, hasPassword = true), SetOrRequestPasswordFragment.Tag)
+                    if (self.email.isDefined)        (SetOrRequestPasswordFragment(self.email.get, hasPassword = true), SetOrRequestPasswordFragment.Tag)
                     else if (pendingEmail.isDefined) (VerifyEmailFragment(pendingEmail.get, hasPassword = true),        VerifyEmailFragment.Tag)
                     else                             (AddEmailFragment(hasPassword = true),                             AddEmailFragment.Tag)
                   replaceMainFragment(f, t, addToBackStack = false)
                 }
-              case Left(err) => showGenericErrorDialog()
+              case Left(_) => showGenericErrorDialog()
             }
           case Right(Unregistered) => warn("This shouldn't happen, going back to sign in..."); Future.successful(openSignUpPage())
           case Left(err) => showGenericErrorDialog()

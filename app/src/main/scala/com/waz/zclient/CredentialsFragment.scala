@@ -36,7 +36,7 @@ import com.waz.utils.events.Signal
 import com.waz.utils.{returning, _}
 import com.waz.zclient.appentry.DialogErrorMessage.EmailError
 import com.waz.zclient.common.controllers.BrowserController
-import com.waz.zclient.common.controllers.global.KeyboardController
+import com.waz.zclient.common.controllers.global.{KeyboardController, PasswordController}
 import com.waz.zclient.newreg.views.PhoneConfirmationButton
 import com.waz.zclient.newreg.views.PhoneConfirmationButton.State.{CONFIRM, NONE}
 import com.waz.zclient.pages.main.profile.validator.{EmailValidator, PasswordValidator}
@@ -253,6 +253,7 @@ object VerifyEmailFragment {
 
 class SetOrRequestPasswordFragment extends CredentialsFragment {
 
+  lazy val passwordController = inject[PasswordController]
   lazy val password = Signal(Option.empty[Password])
   lazy val passwordValidator = PasswordValidator.instance(getContext)
 
@@ -265,7 +266,6 @@ class SetOrRequestPasswordFragment extends CredentialsFragment {
 
   lazy val passwordInput = view[GuidedEditText](R.id.password_field)
 
-
   lazy val confirmationButton = returning(view[PhoneConfirmationButton](R.id.confirmation_button)) { vh =>
     vh.onClick { _ =>
       spinner.showSpinner(LoadingIndicatorView.Spinner)
@@ -275,7 +275,8 @@ class SetOrRequestPasswordFragment extends CredentialsFragment {
         _        <- if (hasPw)
           for {
             resp  <- am.auth.onPasswordReset(Some(EmailCredentials(email, pw)))
-            resp2 <- resp.fold(e => Future.successful(Left(e)), _ => am.getOrRegisterClient(Some(pw)))
+            resp2 <- resp.fold(e => Future.successful(Left(e)),
+              _ => passwordController.setPassword(pw).flatMap(_ => am.getOrRegisterClient()))
           } yield resp2 match {
             case Right(state) =>
               (am.storage.userPrefs(PendingPassword) := false).map { _ =>
@@ -290,7 +291,8 @@ class SetOrRequestPasswordFragment extends CredentialsFragment {
         else
           for {
             resp <- am.setPassword(pw)
-            _    <- resp.fold(e => Future.successful(Left(e)), _ => (am.storage.userPrefs(PendingPassword) := false).map(_ => Right({})))
+            _    <- resp.fold(e => Future.successful(Left(e)),
+              _ => passwordController.setPassword(pw).flatMap(_ => am.storage.userPrefs(PendingPassword) := false).map(_ => Right({})))
           } yield resp match {
             case Right(_) => activity.startFirstFragment()
             case Left(err) =>
