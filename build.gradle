@@ -182,11 +182,7 @@ if (project.file('user.gradle').exists()) {
 
 task ci(dependsOn: [
                     ':app:assembleDevDebug',
-
-                    // Different Lint checks
                     ':app:lintDevDebug',
-                    ':wire-core:lintDebug',
-
                     // By default on whole app
                     //':app:checkstyle',
                     ':app:pmd'
