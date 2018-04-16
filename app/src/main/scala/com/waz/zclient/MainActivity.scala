@@ -300,6 +300,13 @@ class MainActivity extends BaseActivity
     spinnerController.hideSpinner()
   }
 
+  def removeFragment(fragment: Fragment): Unit = {
+    val transaction = getSupportFragmentManager
+      .beginTransaction
+      .remove(fragment)
+    transaction.commit
+  }
+
   override protected def onPause() = {
     info("onPause")
     super.onPause()
@@ -438,12 +445,9 @@ class MainActivity extends BaseActivity
     } (Threading.Ui)
   }
 
-  def manageDevices() = {
-    getSupportFragmentManager.popBackStackImmediate
-    startActivity(ShowDevicesIntent(this))
-  }
+  def manageDevices() = startActivity(ShowDevicesIntent(this))
 
-  def dismissOtrDeviceLimitFragment() = getSupportFragmentManager.popBackStackImmediate
+  def dismissOtrDeviceLimitFragment() = withFragmentOpt(OtrDeviceLimitFragment.Tag)(_.foreach(removeFragment))
 
   def onStartCall(withVideo: Boolean) = conversationController.currentConv.head.map { conv =>
     handleOnStartCall(withVideo, conv)
