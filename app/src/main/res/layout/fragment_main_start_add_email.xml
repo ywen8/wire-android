@@ -48,7 +48,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom"
-        android:layout_marginBottom="@dimen/credentials_fragment_bottom_padding"
+        android:layout_marginBottom="@dimen/wire__padding__regular"
         android:layout_marginLeft="@dimen/wire__padding__regular"
         android:layout_marginRight="@dimen/wire__padding__regular"
         >
