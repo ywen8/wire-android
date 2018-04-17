@@ -250,6 +250,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private String getFilename(Uri uri, String scheme) {
+        if (scheme == null || scheme.equals("file")) {
+            return new File(uri.getPath()).getName();
+        }
         if (scheme.equals("content")) {
             Cursor cursor =
                 getContentResolver().query(uri, null, null, null, null);
@@ -262,9 +265,6 @@ public class MainActivity extends AppCompatActivity {
             }
             return "";
 
-        }
-        if (scheme.equals("file")) {
-            return new File(uri.getPath()).getName();
         }
         return "";
     }
