@@ -440,10 +440,6 @@
         <item name="colorPrimary">@color/dark_theme_preferences_primary</item>
     </style>
 
-    <style name="Preference.Material.BadgeablePreferenceScreenLike" parent="Preference.Material.PreferenceScreen">
-        <item name="android:widgetLayout">@layout/preference_widget_badge</item>
-    </style>
-
     <style name="NumberPickerText">
         <item name="android:textSize">@dimen/wire__text_size__medium</item>
         <item name="android:textColorPrimary">@color/text__primary_dark</item>

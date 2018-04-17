@@ -218,10 +218,6 @@
         <attr name="buttonExpandedDiameter" format="dimension"/>
     </declare-styleable>
 
-    <declare-styleable name="BadgeablePreferenceScreenLike">
-        <attr name="badgeCount" format="integer" />
-    </declare-styleable>
-
     <declare-styleable name="AssetActionButton">
         <attr name="isFileType" format="boolean"/>
     </declare-styleable>
