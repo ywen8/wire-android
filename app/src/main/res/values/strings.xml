@@ -1331,7 +1331,7 @@
     <string name="set_a_password">Set a password</string>
     <string name="email_and_password_explanation">You need an email address and a password to use Wire on multiple devices.</string>
     <string name="new_device_password">New device</string>
-    <string name="new_device_password_explanation">Confirm by entering your password.</string>
+    <string name="new_device_password_explanation">Enter the password for your Wire account.\n%1$s</string>
 
     <string name="restore_from_backup_button">RESTORE FROM BACKUP</string>
 
