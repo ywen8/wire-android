@@ -218,15 +218,6 @@
         <attr name="buttonExpandedDiameter" format="dimension"/>
     </declare-styleable>
 
-    <declare-styleable name="Theme">
-        <attr name="devicePreferenceStyle" format="reference" />
-        <attr name="badgeablePreferenceScreenLikeStyle" format="reference" />
-    </declare-styleable>
-
-    <declare-styleable name="DevicePreference">
-        <attr name="verified" format="boolean" />
-    </declare-styleable>
-
     <declare-styleable name="BadgeablePreferenceScreenLike">
         <attr name="badgeCount" format="integer" />
     </declare-styleable>

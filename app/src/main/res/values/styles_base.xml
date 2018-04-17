@@ -440,17 +440,8 @@
         <item name="colorPrimary">@color/dark_theme_preferences_primary</item>
     </style>
 
-    <style name="Preference.Material.DevicePreference" parent="Preference.Material">
-        <item name="android:widgetLayout">@layout/preference_widget_shield</item>
-    </style>
-
     <style name="Preference.Material.BadgeablePreferenceScreenLike" parent="Preference.Material.PreferenceScreen">
         <item name="android:widgetLayout">@layout/preference_widget_badge</item>
-    </style>
-
-    <style name="PreferenceTheme" parent="@style/PreferenceThemeOverlay.Material">
-        <item name="devicePreferenceStyle">@style/Preference.Material.DevicePreference</item>
-        <item name="badgeablePreferenceScreenLikeStyle">@style/Preference.Material.BadgeablePreferenceScreenLike</item>
     </style>
 
     <style name="NumberPickerText">
