@@ -200,6 +200,7 @@ class MainActivity extends BaseActivity
   }
 
   def startFirstFragment(): Unit = {
+    verbose("startFirstFragment")
     def openSignUpPage(): Unit = {
       startActivity(new Intent(getApplicationContext, classOf[AppEntryActivity]))
       finish()
@@ -274,7 +275,6 @@ class MainActivity extends BaseActivity
       case _: AddEmailFragment             => Some(AddEmailFragment.Tag)
       case _ => None
     }
-
     verbose(s"replaceMainFragment: $oldTag -> $newTag")
 
     val (in, out) = (MainActivity.isSlideAnimation(oldTag, newTag), reverse) match {
