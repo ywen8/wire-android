@@ -180,6 +180,7 @@ case class DeviceDetailsViewController(view: DeviceDetailsView, clientId: Client
   val passwordController = inject[PasswordController]
   val backStackNavigator = inject[BackStackNavigator]
   val clientsController  = inject[ClientsController]
+  val spinnerController  = inject[SpinnerController]
 
   val accounts       = inject[AccountsService]
   val accountManager = inject[Signal[AccountManager]]
@@ -233,6 +234,7 @@ case class DeviceDetailsViewController(view: DeviceDetailsView, clientId: Client
   }
 
   private def removeDevice(password: Password): Unit = {
+    spinnerController.showDimmedSpinner(show = true)
     for {
       am           <- accountManager.head
       limitReached <- am.clientState.head.map {
@@ -243,11 +245,17 @@ case class DeviceDetailsViewController(view: DeviceDetailsView, clientId: Client
         case Right(_) =>
           for {
             _ <- passwordController.setPassword(password)
-            _ <- if (limitReached) am.getOrRegisterClient(Some(password)) else Future.successful({})
-            _ <- Threading.Ui(context.asInstanceOf[BaseActivity].onBackPressed()) //TODO it can take a while to get here, maybe we need a spinner...
+            _ <- if (limitReached) am.getOrRegisterClient() else Future.successful({})
+            _ <- Threading.Ui {
+              spinnerController.showSpinner(false)
+              context.asInstanceOf[BaseActivity].onBackPressed()
+            }
           } yield {}
         case Left(ErrorResponse(_, msg, _)) =>
-          Threading.Ui(showRemoveDeviceDialog(Some(getString(R.string.otr__remove_device__error))))
+          Threading.Ui {
+            spinnerController.showSpinner(false)
+            showRemoveDeviceDialog(Some(getString(R.string.otr__remove_device__error)))
+          }
       }
     } yield ()
   }

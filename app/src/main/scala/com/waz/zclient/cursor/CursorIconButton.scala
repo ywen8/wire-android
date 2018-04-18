@@ -45,7 +45,7 @@ import com.waz.api.AccentColor
 import com.waz.threading.Threading
 import com.waz.utils.events.Signal
 import com.waz.zclient.ViewHelper
-import com.waz.zclient.ui.R
+import com.waz.zclient.R
 import com.waz.zclient.ui.text.GlyphTextView
 import com.waz.zclient.ui.theme.ThemeUtils
 import com.waz.zclient.ui.utils.ColorUtils

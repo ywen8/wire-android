@@ -17,7 +17,7 @@
  */
 package com.waz.zclient.cursor
 
-import com.waz.zclient.ui.R
+import com.waz.zclient.R
 
 case class CursorMenuItem(name: String, glyphResId: Int, timedGlyphResId: Int, resId: Int, resTooltip: Int)
 

@@ -212,7 +212,7 @@ class MessageActionsController(implicit injector: Injector, ctx: Context, ec: Ev
               imageNotifications.showImageSavedNotification(message.assetId, uri)
               Toast.makeText(context, R.string.message_bottom_menu_action_save_ok, Toast.LENGTH_SHORT).show()
             case _ =>
-              Toast.makeText(context, com.waz.zclient.ui.R.string.content__file__action__save_error, Toast.LENGTH_SHORT).show()
+              Toast.makeText(context, R.string.content__file__action__save_error, Toast.LENGTH_SHORT).show()
           }
         } else {
           val dialog = ProgressDialog.show(context, getString(R.string.conversation__action_mode__fwd__dialog__title), getString(R.string.conversation__action_mode__fwd__dialog__message), true, true, null)
@@ -222,11 +222,11 @@ class MessageActionsController(implicit injector: Injector, ctx: Context, ec: Ev
                 case Some(data) => onAssetSaved ! data
                 case None => // should never happen
               }
-              Toast.makeText(context, com.waz.zclient.ui.R.string.content__file__action__save_completed, Toast.LENGTH_SHORT).show()
+              Toast.makeText(context, R.string.content__file__action__save_completed, Toast.LENGTH_SHORT).show()
               context.sendBroadcast(returning(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE))(_.setData(AndroidURIUtil.unwrap(URI.fromFile(file)))))
               dialog.dismiss()
             case None =>
-              Toast.makeText(context, com.waz.zclient.ui.R.string.content__file__action__save_error, Toast.LENGTH_SHORT).show()
+              Toast.makeText(context, R.string.content__file__action__save_error, Toast.LENGTH_SHORT).show()
               dialog.dismiss()
           }
         }

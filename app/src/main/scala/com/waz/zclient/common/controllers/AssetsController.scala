@@ -180,7 +180,7 @@ class AssetsController(implicit context: Context, inj: Injector, ec: EventContex
         val uri = URI.fromFile(file)
         val downloadManager = context.getSystemService(Context.DOWNLOAD_SERVICE).asInstanceOf[DownloadManager]
         downloadManager.addCompletedDownload(asset.name.get, asset.name.get, false, asset.mime.orDefault.str, uri.getPath, asset.sizeInBytes, true)
-        Toast.makeText(context, com.waz.zclient.ui.R.string.content__file__action__save_completed, Toast.LENGTH_SHORT).show()
+        Toast.makeText(context, R.string.content__file__action__save_completed, Toast.LENGTH_SHORT).show()
         context.sendBroadcast(returning(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE))(_.setData(URI.unwrap(uri))))
       case _ =>
     }(Threading.Ui)

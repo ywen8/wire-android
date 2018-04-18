@@ -17,16 +17,22 @@
  */
 package com.waz.zclient.utils
 
-import android.content.Context
 import android.content.res.{Configuration, Resources, TypedArray}
+import android.content.{Context, DialogInterface}
 import android.graphics.drawable.Drawable
 import android.os.Build
 import android.support.annotation.StyleableRes
 import android.support.v4.content.ContextCompat
+import android.support.v7.app.AlertDialog
 import android.util.{AttributeSet, DisplayMetrics, TypedValue}
 import android.view.WindowManager
 import android.widget.Toast
+import com.waz.zclient.R
+import com.waz.zclient.appentry.DialogErrorMessage
 import com.waz.zclient.ui.utils.ResourceUtils
+
+import scala.concurrent.{Future, Promise}
+import scala.util.Success
 
 
 object ContextUtils {
@@ -137,4 +143,26 @@ object ContextUtils {
   def isInLandscape(configuration: Configuration): Boolean = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
   def isInPortrait(implicit context: Context): Boolean = isInPortrait(context.getResources.getConfiguration)
   def isInPortrait(configuration: Configuration): Boolean = configuration.orientation == Configuration.ORIENTATION_PORTRAIT
+
+  def showGenericErrorDialog()(implicit context: Context): Future[Unit] =
+    showErrorDialog(R.string.generic_error_header, R.string.generic_error_message)
+
+  def showErrorDialog(dialogErrorMessage: DialogErrorMessage)(implicit context: Context): Future[Unit] =
+    showErrorDialog(dialogErrorMessage.headerResource, dialogErrorMessage.bodyResource)
+
+  def showErrorDialog(headerRes: Int, msgRes: Int)(implicit context: Context): Future[Unit] = {
+    val p = Promise[Unit]()
+    val dialog = new AlertDialog.Builder(context)
+      .setCancelable(false)
+      .setTitle(headerRes)
+      .setMessage(msgRes)
+      .setNeutralButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+        def onClick(dialog: DialogInterface, which: Int): Unit = {
+          dialog.dismiss()
+          p.complete(Success({}))
+        }
+      }).create
+    dialog.show()
+    p.future
+  }
 }

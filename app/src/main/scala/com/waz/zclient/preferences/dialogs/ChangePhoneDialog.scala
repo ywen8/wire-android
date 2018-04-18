@@ -39,7 +39,6 @@ import android.view.inputmethod.EditorInfo
 import android.view.{KeyEvent, LayoutInflater, View, WindowManager}
 import android.widget.{EditText, TextView}
 import com.waz.ZLog.ImplicitTag._
-import com.waz.api.impl.ErrorResponse
 import com.waz.model.PhoneNumber
 import com.waz.permissions.PermissionsService
 import com.waz.service.ZMessaging
@@ -47,7 +46,7 @@ import com.waz.threading.Threading
 import com.waz.utils.events.{EventStream, Signal}
 import com.waz.utils.returning
 import com.waz.zclient._
-import com.waz.zclient.appentry.{GenericRegisterPhoneError, PhoneExistsError}
+import com.waz.zclient.appentry.DialogErrorMessage.PhoneError
 import com.waz.zclient.controllers.deviceuser.IDeviceUserController
 import com.waz.zclient.newreg.fragments.country.{Country, CountryController}
 import com.waz.zclient.ui.utils.{DrawableUtils, MathUtils}
@@ -197,11 +196,8 @@ class ChangePhoneDialog extends DialogFragment with FragmentHelper with CountryC
                 case Right(_) =>
                   onPhoneChanged ! Some(n)
                   dismiss()
-                case Left(ErrorResponse(c, _, l)) =>
-                  if (PhoneExistsError.code == c && PhoneExistsError.label == l)
-                    showError(getString(PhoneExistsError.headerResource))
-                  else
-                    showError(getString(GenericRegisterPhoneError.headerResource))
+                case Left(err) =>
+                  showError(getString(PhoneError(err).headerResource))
               }
           },
           null

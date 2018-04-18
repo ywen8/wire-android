@@ -27,7 +27,8 @@ import android.support.v4.app.{Fragment, FragmentTransaction}
 import com.waz.ZLog.ImplicitTag._
 import com.waz.ZLog.{error, info, verbose, warn}
 import com.waz.api.{NetworkMode, _}
-import com.waz.content.UserPreferences.{PendingEmail, PendingPassword}
+import com.waz.content.Preferences.Preference.PrefCodec
+import com.waz.content.UserPreferences._
 import com.waz.model.{ConvId, ConversationData, UserId}
 import com.waz.service.AccountManager.ClientRegistrationState.{LimitReached, PasswordMissing, Registered, Unregistered}
 import com.waz.service.ZMessaging.clock
@@ -36,6 +37,8 @@ import com.waz.threading.{CancellableFuture, Threading}
 import com.waz.utils.events.Signal
 import com.waz.utils.{RichInstant, returning}
 import com.waz.zclient.Intents._
+import com.waz.zclient.MainActivity._
+import com.waz.zclient.SpinnerController.{Hide, Show}
 import com.waz.zclient.appentry.AppEntryActivity
 import com.waz.zclient.calling.CallingActivity
 import com.waz.zclient.calling.controllers.CallPermissionsController
@@ -51,10 +54,10 @@ import com.waz.zclient.pages.startup.UpdateFragment
 import com.waz.zclient.preferences.dialogs.ChangeHandleFragment
 import com.waz.zclient.preferences.{PreferencesActivity, PreferencesController}
 import com.waz.zclient.tracking.{CrashController, UiTrackingController}
-import com.waz.zclient.utils.ContextUtils.showToast
+import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.utils.PhoneUtils.PhoneState
 import com.waz.zclient.utils.StringUtils.TextDrawing
-import com.waz.zclient.utils.{BuildConfigUtils, ContextUtils, Emojis, IntentUtils, PhoneUtils, ViewUtils}
+import com.waz.zclient.utils.{BuildConfigUtils, Emojis, IntentUtils, PhoneUtils, ViewUtils}
 import com.waz.zclient.views.LoadingIndicatorView
 import net.hockeyapp.android.NativeCrashManager
 
@@ -152,13 +155,11 @@ class MainActivity extends BaseActivity
 
     val loadingIndicator = findViewById[LoadingIndicatorView](R.id.progress_spinner)
 
-    (for {
-      darkTheme <- themeController.darkThemeSet
-      show <- spinnerController.spinnerShowing
-    }  yield (show, darkTheme)).onUi{
-      case (Left(animation), theme) => loadingIndicator.show(animation, theme, 300)
-      case (Right(Some(message)), _) => loadingIndicator.hideWithMessage(message, 750)
-      case (Right(_), _) => loadingIndicator.hide()
+    spinnerController.spinnerShowing.onUi {
+      case Show(animation, forcedTheme)=>
+        themeController.darkThemeSet.head.foreach(theme => loadingIndicator.show(animation, forcedTheme.getOrElse(theme), 300))(Threading.Ui)
+      case Hide(Some(message))=> loadingIndicator.hideWithMessage(message, 750)
+      case Hide(_) => loadingIndicator.hide()
     }
   }
 
@@ -197,6 +198,7 @@ class MainActivity extends BaseActivity
   }
 
   def startFirstFragment(): Unit = {
+    verbose("startFirstFragment")
     def openSignUpPage(): Unit = {
       startActivity(new Intent(getApplicationContext, classOf[AppEntryActivity]))
       finish()
@@ -204,78 +206,100 @@ class MainActivity extends BaseActivity
 
     account.head.flatMap {
       case Some(am) =>
-        am.getOrRegisterClient().flatMap {
+        (Option(getIntent).flatMap(i => Option(i.getStringExtra(ClientRegStateArg))) match {
+          case Some(clientRegState) =>
+            getIntent.removeExtra(ClientRegStateArg)
+            Future.successful(Right(PrefCodec.SelfClientIdCodec.decode(clientRegState)))
+          case _ => am.getOrRegisterClient()
+        }).map {
           case Right(Registered(_))   =>
             for {
               z            <- zms.head
+              isLogin      <- z.userPrefs(IsLogin).apply()
+              isNewClient  <- z.userPrefs(IsNewClient).apply()
               email        <- z.users.selfUser.map(_.email).head
-              clientCount  <- z.otrClientsStorage.getClients(z.selfUserId)
               pendingPw    <- z.userPrefs(PendingPassword).apply()
               pendingEmail <- z.userPrefs(PendingEmail).apply()
               handle       <- z.users.selfUser.map(_.handle).head
             } yield {
               val (f, t) =
-                if (email.isDefined && pendingPw)                (SetOrRequestPasswordFragment(email.get), SetOrRequestPasswordFragment.Tag)
-                else if (pendingEmail.isDefined)                 (VerifyEmailFragment(pendingEmail.get),   VerifyEmailFragment.Tag)
-                else if (email.isEmpty && clientCount.size >= 2) (AddEmailFragment(),                      AddEmailFragment.Tag)
-                else if (handle.isEmpty)                         (SetHandleFragment(),                     SetHandleFragment.Tag)
-                else                                             (new MainPhoneFragment,                   MainPhoneFragment.Tag)
+                if (email.isDefined && pendingPw)                 (SetOrRequestPasswordFragment(email.get), SetOrRequestPasswordFragment.Tag)
+                else if (pendingEmail.isDefined)                  (VerifyEmailFragment(pendingEmail.get),   VerifyEmailFragment.Tag)
+                else if (email.isEmpty && isLogin && isNewClient) (AddEmailFragment(),                      AddEmailFragment.Tag)
+                else if (handle.isEmpty)                          (SetHandleFragment(),                     SetHandleFragment.Tag)
+                else                                              (new MainPhoneFragment,                   MainPhoneFragment.Tag)
               replaceMainFragment(f, t, addToBackStack = false)
             }
 
           case Right(LimitReached) =>
-            am.getSelf.flatMap {
-              case Right(self) =>
-                for {
-                  pendingPw    <- am.storage.userPrefs(PendingPassword).apply()
-                  pendingEmail <- am.storage.userPrefs(PendingEmail).apply()
-                } yield {
-                  val (f, t) =
-                    if(self.email.isDefined && pendingPw) (SetOrRequestPasswordFragment(self.email.get), SetOrRequestPasswordFragment.Tag)
-                    else if (pendingEmail.isDefined)      (VerifyEmailFragment(pendingEmail.get),        VerifyEmailFragment.Tag)
-                    else if (self.email.isEmpty)          (AddEmailFragment(),                           AddEmailFragment.Tag)
-                    else                                  (OtrDeviceLimitFragment.newInstance,           OtrDeviceLimitFragment.Tag)
-                  replaceMainFragment(f, t, addToBackStack = false)
-                }
-              case Left(err) => Future.successful(showToast(s"Something went wrong: $err")) //TODO show dialog and ask user to try again
+            for {
+              self         <- am.getSelf
+              pendingPw    <- am.storage.userPrefs(PendingPassword).apply()
+              pendingEmail <- am.storage.userPrefs(PendingEmail).apply()
+            } yield {
+              val (f, t) =
+                if (self.email.isDefined && pendingPw) (SetOrRequestPasswordFragment(self.email.get), SetOrRequestPasswordFragment.Tag)
+                else if (pendingEmail.isDefined)       (VerifyEmailFragment(pendingEmail.get),        VerifyEmailFragment.Tag)
+                else if (self.email.isEmpty)           (AddEmailFragment(),                           AddEmailFragment.Tag)
+                else                                   (OtrDeviceLimitFragment.newInstance,           OtrDeviceLimitFragment.Tag)
+              replaceMainFragment(f, t, addToBackStack = false)
             }
-
           case Right(PasswordMissing) =>
-            am.getSelf.flatMap {
-              case Right(self) =>
-                am.storage.userPrefs(PendingEmail).apply().map { pendingEmail =>
-                  val (f ,t) =
-                    if(self.email.isDefined)         (SetOrRequestPasswordFragment(self.email.get, hasPassword = true), SetOrRequestPasswordFragment.Tag)
-                    else if (pendingEmail.isDefined) (VerifyEmailFragment(pendingEmail.get, hasPassword = true),        VerifyEmailFragment.Tag)
-                    else                             (AddEmailFragment(hasPassword = true),                             AddEmailFragment.Tag)
-                  replaceMainFragment(f, t, addToBackStack = false)
-                }
-              case Left(err) => Future.successful(showToast(s"Something went wrong: $err")) //TODO show dialog and ask user to try again
+            for {
+              self         <- am.getSelf
+              pendingEmail <- am.storage.userPrefs(PendingEmail).apply()
+            } {
+              val (f ,t) =
+                if (self.email.isDefined)        (SetOrRequestPasswordFragment(self.email.get, hasPassword = true), SetOrRequestPasswordFragment.Tag)
+                else if (pendingEmail.isDefined) (VerifyEmailFragment(pendingEmail.get, hasPassword = true),        VerifyEmailFragment.Tag)
+                else                             (AddEmailFragment(hasPassword = true),                             AddEmailFragment.Tag)
+              replaceMainFragment(f, t, addToBackStack = false)
             }
           case Right(Unregistered) => warn("This shouldn't happen, going back to sign in..."); Future.successful(openSignUpPage())
-          case Left(err) => Future.successful(showToast(s"Something went wrong: $err")) //TODO show dialog and ask user to try again
+          case Left(_) => showGenericErrorDialog()
         } (Threading.Ui)
-      case _ => warn("No logged in account, sending to Sign in")
+      case _ =>
+        warn("No logged in account, sending to Sign in")
         Future.successful(openSignUpPage())
     }
   }
 
-  def replaceMainFragment(fragment: Fragment, tag: String, reverse: Boolean = false, addToBackStack: Boolean = true): Unit = {
-    verbose(s"replaceMainFragment: $tag")
-    val frag = Option(getSupportFragmentManager.findFragmentByTag(tag)) match {
+  def replaceMainFragment(fragment: Fragment, newTag: String, reverse: Boolean = false, addToBackStack: Boolean = true): Unit = {
+
+    import scala.collection.JavaConverters._
+    val oldTag = getSupportFragmentManager.getFragments.asScala.toList.flatMap(Option(_)).lastOption.flatMap {
+      case _: SetOrRequestPasswordFragment => Some(SetOrRequestPasswordFragment.Tag)
+      case _: VerifyEmailFragment          => Some(VerifyEmailFragment.Tag)
+      case _: AddEmailFragment             => Some(AddEmailFragment.Tag)
+      case _ => None
+    }
+    verbose(s"replaceMainFragment: $oldTag -> $newTag")
+
+    val (in, out) = (MainActivity.isSlideAnimation(oldTag, newTag), reverse) match {
+      case (true, true)  => (R.anim.fragment_animation_second_page_slide_in_from_left_no_alpha, R.anim.fragment_animation_second_page_slide_out_to_right_no_alpha)
+      case (true, false) => (R.anim.fragment_animation_second_page_slide_in_from_right_no_alpha, R.anim.fragment_animation_second_page_slide_out_to_left_no_alpha)
+      case _             => (R.anim.fade_in, R.anim.fade_out)
+    }
+
+    val frag = Option(getSupportFragmentManager.findFragmentByTag(newTag)) match {
       case Some(f) => returning(f)(_.setArguments(fragment.getArguments))
       case _       => fragment
     }
+
     val transaction = getSupportFragmentManager
       .beginTransaction
-      .setCustomAnimations(
-        if (reverse) R.anim.fragment_animation_second_page_slide_in_from_left_no_alpha else R.anim.fragment_animation_second_page_slide_in_from_right_no_alpha,
-        if (reverse) R.anim.fragment_animation_second_page_slide_out_to_right_no_alpha else R.anim.fragment_animation_second_page_slide_out_to_left_no_alpha
-      )
-      .replace(R.id.fl_main_content, frag, tag)
-    if (addToBackStack) transaction.addToBackStack(tag)
+      .setCustomAnimations(in, out)
+      .replace(R.id.fl_main_content, frag, newTag)
+    if (addToBackStack) transaction.addToBackStack(newTag)
     transaction.commit
     spinnerController.hideSpinner()
+  }
+
+  def removeFragment(fragment: Fragment): Unit = {
+    val transaction = getSupportFragmentManager
+      .beginTransaction
+      .remove(fragment)
+    transaction.commit
   }
 
   override protected def onPause() = {
@@ -333,7 +357,7 @@ class MainActivity extends BaseActivity
     // Make sure we have a running OrientationController instance
     getControllerFactory.getOrientationController
     // Here comes code for adding other dependencies to controllers...
-    getControllerFactory.getNavigationController.setIsLandscape(ContextUtils.isInLandscape(this))
+    getControllerFactory.getNavigationController.setIsLandscape(isInLandscape(this))
   }
 
   private def onPasswordWasReset() =
@@ -416,12 +440,9 @@ class MainActivity extends BaseActivity
     } (Threading.Ui)
   }
 
-  def manageDevices() = {
-    getSupportFragmentManager.popBackStackImmediate
-    startActivity(ShowDevicesIntent(this))
-  }
+  def manageDevices() = startActivity(ShowDevicesIntent(this))
 
-  def dismissOtrDeviceLimitFragment() = getSupportFragmentManager.popBackStackImmediate
+  def dismissOtrDeviceLimitFragment() = withFragmentOpt(OtrDeviceLimitFragment.Tag)(_.foreach(removeFragment))
 
   def onStartCall(withVideo: Boolean) = conversationController.currentConv.head.map { conv =>
     handleOnStartCall(withVideo, conv)
@@ -518,5 +539,19 @@ class MainActivity extends BaseActivity
       .commit
 
   override def onUsernameSet(): Unit = replaceMainFragment(new MainPhoneFragment, MainPhoneFragment.Tag, addToBackStack = false)
+}
+
+object MainActivity {
+  val ClientRegStateArg: String = "ClientRegStateArg"
+
+  private val slideAnimations = Set(
+    (SetOrRequestPasswordFragment.Tag, VerifyEmailFragment.Tag),
+    (SetOrRequestPasswordFragment.Tag,  AddEmailFragment.Tag),
+    (VerifyEmailFragment.Tag, AddEmailFragment.Tag)
+  )
+
+  private def isSlideAnimation(oldTag: Option[String], newTag: String) = oldTag.fold(false) { old =>
+    slideAnimations.contains((old, newTag)) || slideAnimations.contains((newTag, old))
+  }
 }
 

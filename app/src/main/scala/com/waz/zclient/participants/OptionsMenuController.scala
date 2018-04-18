@@ -112,14 +112,12 @@ case class OptionsMenuController(convId: ConvId, inConvList: Boolean)(implicit i
         if (teamMember || connectStatus.contains(ACCEPTED) || isBot) {
           builder += (if (conv.muted) UNSILENCE else SILENCE)
           builder += DELETE
-          if (inConvList) builder ++= Set(CALL, PICTURE)
           if (!teamMember && connectStatus.contains(ACCEPTED)) builder ++= Set(BLOCK)
         }
         else if (connectStatus.contains(PENDING_FROM_USER)) builder += BLOCK
       case true =>
         if (conv.isActive) {
           builder +=  (if (conv.muted) UNSILENCE else SILENCE)
-          builder ++= (if (inConvList) Set(CALL, PICTURE) else Set())
           builder +=  LEAVE
         }
         builder += DELETE

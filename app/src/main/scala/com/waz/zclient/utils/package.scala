@@ -33,6 +33,7 @@ import com.waz.model.otr.Client
 import com.waz.utils.events.Signal
 import com.waz.utils.returning
 import com.waz.zclient.ui.views.OnDoubleClickListener
+import com.waz.zclient.utils.ContextUtils._
 
 package object utils {
 
@@ -42,6 +43,8 @@ package object utils {
   }
 
   implicit class RichView(val view: View) extends AnyVal {
+
+    implicit def context = view.getContext
 
     def setVisible(isVisible: Boolean): Unit = view.setVisibility(if (isVisible) VISIBLE else GONE)
 
@@ -70,8 +73,19 @@ package object utils {
       view.requestLayout()
     }
 
-    //TODO improve this so that multiple click listeners can be set from different places at once
-    //TODO could also handle a set of views?
+    def setPaddingTopRes(resId: Int) =
+      setPaddingTopPx(getDimenPx(resId))
+
+    def setPaddingTopPx(px: Int) =
+      view.setPadding(view.getPaddingLeft, px, view.getPaddingRight, view.getPaddingBottom)
+
+    //TODO maybe use some case class wrappers here to introduce type safety
+    def setPaddingBottomRes(resId: Int) =
+      setPaddingBottomPx(getDimenPx(resId))
+
+    def setPaddingBottomPx(px: Int) =
+      view.setPadding(view.getPaddingLeft, view.getPaddingTop, view.getPaddingRight, px)
+
     def onClick(f: => Unit): Unit = view.setOnClickListener(new OnClickListener {
       override def onClick(v: View): Unit = f
     })

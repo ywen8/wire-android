@@ -24,6 +24,7 @@ import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.NumberPicker;
 import com.waz.api.EphemeralExpiration;
+import com.waz.zclient.R;
 import timber.log.Timber;
 
 import java.lang.reflect.Field;
@@ -51,7 +52,7 @@ public class EphemeralLayout extends LinearLayout {
     protected void onFinishInflate() {
         super.onFinishInflate();
 
-        ContextThemeWrapper cw = new ContextThemeWrapper(getContext(), com.waz.zclient.ui.R.style.NumberPickerText);
+        ContextThemeWrapper cw = new ContextThemeWrapper(getContext(), R.style.NumberPickerText);
         numberPicker = new NumberPicker(cw);
         numberPicker.setMinValue(0);
         final EphemeralExpiration[] ephemeralExpirationsValues = getAvailableEphemeralExpirations();
@@ -80,7 +81,7 @@ public class EphemeralLayout extends LinearLayout {
         try {
             Field f = numberPicker.getClass().getDeclaredField("mSelectionDivider"); //NoSuchFieldException
             f.setAccessible(true);
-            f.set(numberPicker, getResources().getDrawable(com.waz.zclient.ui.R.drawable.number_picker_divider));
+            f.set(numberPicker, getResources().getDrawable(R.drawable.number_picker_divider));
         } catch (Throwable t) {
             Timber.e(t, "Something went wrong");
         }
@@ -114,19 +115,19 @@ public class EphemeralLayout extends LinearLayout {
     private String getDisplayName(EphemeralExpiration expiration) {
         switch (expiration) {
             case NONE:
-                return getContext().getString(com.waz.zclient.core.R.string.ephemeral_message__timeout__off);
+                return getContext().getString(R.string.ephemeral_message__timeout__off);
             case FIVE_SECONDS:
-                return getContext().getString(com.waz.zclient.core.R.string.ephemeral_message__timeout__5_sec);
+                return getContext().getString(R.string.ephemeral_message__timeout__5_sec);
             case FIFTEEN_SECONDS:
-                return getContext().getString(com.waz.zclient.core.R.string.ephemeral_message__timeout__15_sec);
+                return getContext().getString(R.string.ephemeral_message__timeout__15_sec);
             case THIRTY_SECONDS:
-                return getContext().getString(com.waz.zclient.core.R.string.ephemeral_message__timeout__30_sec);
+                return getContext().getString(R.string.ephemeral_message__timeout__30_sec);
             case ONE_MINUTE:
-                return getContext().getString(com.waz.zclient.core.R.string.ephemeral_message__timeout__1_min);
+                return getContext().getString(R.string.ephemeral_message__timeout__1_min);
             case FIVE_MINUTES:
-                return getContext().getString(com.waz.zclient.core.R.string.ephemeral_message__timeout__5_min);
+                return getContext().getString(R.string.ephemeral_message__timeout__5_min);
             case ONE_DAY:
-                return getContext().getString(com.waz.zclient.core.R.string.ephemeral_message__timeout__1_day);
+                return getContext().getString(R.string.ephemeral_message__timeout__1_day);
             default:
                 return expiration.name();
         }

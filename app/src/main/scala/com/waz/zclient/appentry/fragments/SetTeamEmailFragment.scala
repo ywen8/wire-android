@@ -24,18 +24,17 @@ import android.os.Bundle
 import android.text.InputType
 import android.view.View
 import com.waz.ZLog
-import com.waz.client.RegistrationClientImpl.ActivateResult.Failure
 import com.waz.model.EmailAddress
 import com.waz.threading.Threading
 import com.waz.zclient._
-import com.waz.zclient.appentry.fragments.SignInFragment.{Email, Register, SignInMethod}
-import com.waz.zclient.appentry.{CreateTeamFragment, EntryError}
+import com.waz.zclient.appentry.CreateTeamFragment
+import com.waz.zclient.appentry.DialogErrorMessage.EmailError
+import com.waz.zclient.appentry.fragments.SetTeamEmailFragment._
 import com.waz.zclient.common.views.InputBox
 import com.waz.zclient.common.views.InputBox.EmailValidator
 import com.waz.zclient.ui.text.TypefaceTextView
 import com.waz.zclient.ui.utils.KeyboardUtils
 import com.waz.zclient.utils._
-import SetTeamEmailFragment._
 
 case class SetTeamEmailFragment() extends CreateTeamFragment {
 
@@ -55,16 +54,16 @@ case class SetTeamEmailFragment() extends CreateTeamFragment {
       inputField.editText.requestFocus()
       inputField.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS | InputType.TYPE_TEXT_FLAG_AUTO_COMPLETE | InputType.TYPE_TEXT_FLAG_AUTO_CORRECT)
       KeyboardUtils.showKeyboard(context.asInstanceOf[Activity])
-      inputField.setOnClick( text =>
+      inputField.setOnClick { text =>
         accountsService.requestEmailCode(EmailAddress(text)).map {
-        case Failure(error) =>
-          val errorMessage = getString(EntryError(error.code, error.label, SignInMethod(Register, Email)).bodyResource)
-          if (error.code == DuplicateEmailErrorCode) aboutButton.foreach(_.setVisible(true))
-          Some(errorMessage)
-        case _ =>
-          showFragment(VerifyTeamEmailFragment(), VerifyTeamEmailFragment.Tag)
-          None
-      } (Threading.Ui))
+          case Left(err) =>
+            if (err.code == DuplicateEmailErrorCode) aboutButton.foreach(_.setVisible(true))
+            Some(getString(EmailError(err).bodyResource))
+          case _ =>
+            showFragment(VerifyTeamEmailFragment(), VerifyTeamEmailFragment.Tag)
+            None
+        }(Threading.Ui)
+      }
     }
     aboutButton.foreach(_.onClick(openUrl(R.string.teams_set_email_about_url)))
   }

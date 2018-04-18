@@ -37,7 +37,7 @@ class BackgroundImageView(val context: Context, val attrs: AttributeSet, val def
 
   val pictureId: Signal[ImageSource] = for {
     z <- zms
-    Some(picture) <- z.usersStorage.signal(z.selfUserId).map(_.picture)
+    Some(picture) <- z.users.selfUser.map(_.picture)
   } yield WireImage(picture)
 
   setBackground(new BackgroundDrawable(pictureId, getContext))

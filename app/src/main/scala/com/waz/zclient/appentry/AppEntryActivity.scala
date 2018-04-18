@@ -17,8 +17,8 @@
  */
 package com.waz.zclient.appentry
 
+import android.content.Intent
 import android.content.res.Configuration
-import android.content.{DialogInterface, Intent}
 import android.net.Uri
 import android.os.Bundle
 import android.support.v4.app.FragmentManager.OnBackStackChangedListener
@@ -26,10 +26,12 @@ import android.support.v4.app.{Fragment, FragmentTransaction}
 import android.view.View
 import com.waz.ZLog.ImplicitTag._
 import com.waz.ZLog._
-import com.waz.api._
+import com.waz.content.Preferences.Preference.PrefCodec
+import com.waz.service.AccountManager.ClientRegistrationState
 import com.waz.service.{AccountsService, ZMessaging}
 import com.waz.utils.events.Signal
 import com.waz.utils.returning
+import com.waz.zclient.SpinnerController.{Hide, Show}
 import com.waz.zclient._
 import com.waz.zclient.appentry.AppEntryActivity._
 import com.waz.zclient.appentry.controllers.InvitationsController
@@ -66,15 +68,12 @@ object AppEntryActivity {
     }
 }
 
-class AppEntryActivity extends BaseActivity
-  with VerifyPhoneFragment.Container
-  with PhoneSetNameFragment.Container
-  with CountryDialogFragment.Container
-  with SignInFragment.Container {
+class AppEntryActivity extends BaseActivity {
 
   private lazy val progressView = ViewUtils.getView(this, R.id.liv__progress).asInstanceOf[LoadingIndicatorView]
   private lazy val countryController: CountryController = new CountryController(this)
   private lazy val invitesController = inject[InvitationsController]
+  private lazy val spinnerController  = inject[SpinnerController]
   private var createdFromSavedInstance: Boolean = false
   private var isPaused: Boolean = false
 
@@ -85,7 +84,7 @@ class AppEntryActivity extends BaseActivity
     Signal(accountsService.zmsInstances.map(_.nonEmpty), attachedFragment).map {
       case (false, _) => View.GONE
       case (true, fragment) if Set(SignInFragment.Tag, FirstLaunchAfterLoginFragment.Tag, VerifyEmailWithCodeFragment.Tag,
-          VerifyPhoneFragment.Tag, CountryDialogFragment.TAG, PhoneSetNameFragment.Tag).contains(fragment) => View.GONE
+          VerifyPhoneFragment.Tag, CountryDialogFragment.TAG, PhoneSetNameFragment.Tag, InviteToTeamFragment.Tag).contains(fragment) => View.GONE
       case _ => View.VISIBLE
     }.onUi(v.setVisibility(_))
   }
@@ -141,6 +140,12 @@ class AppEntryActivity extends BaseActivity
       }
     })
     skipButton.onClick(onEnterApplication(false))
+
+    spinnerController.spinnerShowing.onUi {
+      case Show(animation, forcedTheme)=> progressView.show(animation, darkTheme = forcedTheme.getOrElse(true), 300)
+      case Hide(Some(message)) => progressView.hideWithMessage(message, 750)
+      case Hide(_) => progressView.hide()
+    }
   }
 
   override protected def onResume(): Unit = {
@@ -222,9 +227,11 @@ class AppEntryActivity extends BaseActivity
   def onShowFirstLaunchPage(): Unit =
     showFragment(FirstLaunchAfterLoginFragment(), FirstLaunchAfterLoginFragment.Tag)
 
-  def onEnterApplication(openSettings: Boolean): Unit = {
+  def onEnterApplication(openSettings: Boolean, clientRegState: Option[ClientRegistrationState] = None): Unit = {
     getControllerFactory.getVerificationController.finishVerification()
-    startActivity(Intents.EnterAppIntent(openSettings)(this))
+    val intent = Intents.EnterAppIntent(openSettings)(this)
+    clientRegState.foreach(state => intent.putExtra(MainActivity.ClientRegStateArg, PrefCodec.SelfClientIdCodec.encode(state)))
+    startActivity(intent)
     finish()
   }
 
@@ -253,19 +260,6 @@ class AppEntryActivity extends BaseActivity
     getSupportFragmentManager.popBackStackImmediate
     KeyboardUtils.showKeyboard(this)
   }
-
-  def showError(entryError: EntryError, okCallback: => Unit = {}): Unit =
-    ViewUtils.showAlertDialog(this,
-      entryError.headerResource,
-      entryError.bodyResource,
-      R.string.reg__phone_alert__button,
-      new DialogInterface.OnClickListener() {
-        def onClick(dialog: DialogInterface, which: Int): Unit = {
-          dialog.dismiss()
-          okCallback
-        }
-      },
-      false)
 
   def showFragment(f: => Fragment, tag: String, animated: Boolean = true): Unit = {
     val transaction = getSupportFragmentManager.beginTransaction()

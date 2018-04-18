@@ -36,13 +36,12 @@ import com.waz.threading.CancellableFuture.CancelException
 import com.waz.threading.Threading
 import com.waz.utils.events.{ClockSignal, Signal}
 import com.waz.utils.{RichThreetenBPDuration, returning}
-import com.waz.zclient.ViewHelper
+import com.waz.zclient.{R, ViewHelper}
 import com.waz.zclient.common.controllers.global.AccentColorController
 import com.waz.zclient.common.controllers.{SoundController, ThemeController}
 import com.waz.zclient.controllers.globallayout.IGlobalLayoutController
 import com.waz.zclient.conversation.ConversationController
 import com.waz.zclient.core.api.scala.ModelObserver
-import com.waz.zclient.ui.R
 import com.waz.zclient.ui.utils.CursorUtils
 import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.utils.{RichView, StringUtils, ViewUtils}

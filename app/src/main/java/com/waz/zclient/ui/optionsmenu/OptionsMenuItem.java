@@ -18,7 +18,7 @@
 package com.waz.zclient.ui.optionsmenu;
 
 
-import com.waz.zclient.ui.R;
+import com.waz.zclient.R;
 
 public enum OptionsMenuItem {
 
@@ -29,16 +29,16 @@ public enum OptionsMenuItem {
     /**
      * OptionsMenuItems for conversation
      */
-    ARCHIVE(R.string.conversation__action__archive, R.string.glyph__archive),
-    UNARCHIVE(R.string.conversation__action__unarchive, R.string.glyph__archive),
-    BLOCK(R.string.confirmation_menu__confirm_block, R.string.glyph__block),
-    UNBLOCK(R.string.connect_request__unblock__button__text, R.string.glyph__block),
-    SILENCE(R.string.conversation__action__silence, R.string.glyph__silence),
-    UNSILENCE(R.string.conversation__action__unsilence, R.string.glyph__notify),
     PICTURE(R.string.conversation__action__picture, R.string.glyph__camera),
     CALL(R.string.conversation__action__call, R.string.glyph__call),
-    DELETE(R.string.conversation__action__delete, R.string.glyph__trash),
-    LEAVE(R.string.conversation__action__leave, R.string.glyph__minus);
+    SILENCE(R.string.conversation__action__silence, R.string.glyph__silence),
+    UNSILENCE(R.string.conversation__action__unsilence, R.string.glyph__notify),
+    ARCHIVE(R.string.conversation__action__archive, R.string.glyph__archive),
+    UNARCHIVE(R.string.conversation__action__unarchive, R.string.glyph__archive),
+    DELETE(R.string.conversation__action__delete, R.string.glyph__delete_me),
+    LEAVE(R.string.conversation__action__leave, R.string.glyph__leave),
+    BLOCK(R.string.confirmation_menu__confirm_block, R.string.glyph__block),
+    UNBLOCK(R.string.connect_request__unblock__button__text, R.string.glyph__block);
 
     public final int resTextId;
     public final int resGlyphId;

@@ -45,7 +45,7 @@ import com.waz.zclient.preferences.views.{EditNameDialog, PictureTextButton, Tex
 import com.waz.zclient.ui.utils.TextViewUtils._
 import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.utils.ViewUtils._
-import com.waz.zclient.utils.{BackStackKey, BackStackNavigator, RichView, StringUtils, UiStorage}
+import com.waz.zclient.utils.{BackStackKey, BackStackNavigator, ContextUtils, RichView, StringUtils, UiStorage}
 
 trait AccountView {
   val onNameClick:          EventStream[Unit]
@@ -202,20 +202,22 @@ class AccountViewController(view: AccountView)(implicit inj: Injector, ec: Event
 
   view.onEmailClick.onUi { _ =>
     import Threading.Implicits.Ui
-    self.head.map(_.email).map { email =>
-      showPrefDialog(
-        returning(ChangeEmailDialog(addingEmail = email.isEmpty)) {
-          _.onEmailChanged { e =>
-            val f = VerifyEmailPreferencesFragment(e)
-            //hide the verification screen when complete
-            self.map(_.email).onChanged.filter(_.contains(e)).onUi { _ =>
-              f.dismiss()
+    accounts.activeAccountManager.head.map(_.foreach(_.hasPassword().foreach {
+      case None => ContextUtils.showToast("Something went wrong, please try again later")
+      case Some(hasPass) =>
+        showPrefDialog(
+          returning(ChangeEmailDialog(hasPassword = hasPass)) {
+            _.onEmailChanged { e =>
+              val f = VerifyEmailPreferencesFragment(e)
+              //hide the verification screen when complete
+              self.map(_.email).onChanged.filter(_.contains(e)).onUi { _ =>
+                f.dismiss()
+              }
+              showPrefDialog(f, VerifyEmailPreferencesFragment.Tag)
             }
-            showPrefDialog(f, VerifyEmailPreferencesFragment.Tag)
-          }
-        },
-        ChangeEmailDialog.FragmentTag)
-    }
+          },
+          ChangeEmailDialog.FragmentTag)
+    }))
   }
 
   //TODO move most of this information to the dialogs themselves -- it's too tricky here to sort out what thread things are running on...
@@ -246,7 +248,7 @@ class AccountViewController(view: AccountView)(implicit inj: Injector, ec: Event
   view.onPictureClick.onUi(_ => navigator.goTo(ProfilePictureBackStackKey()))
 
   view.onAccentClick.onUi { _ =>
-    self.head.map { self =>
+    self.head.map { _ =>
       showPrefDialog(new AccentColorPickerFragment(), AccentColorPickerFragment.fragmentTag)
     }(Threading.Ui)
   }

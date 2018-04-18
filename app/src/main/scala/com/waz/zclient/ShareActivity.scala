@@ -160,6 +160,8 @@ object ShareActivity {
             case _ => None
           }
           contentUri.flatMap(uri => getDocumentPath(context, uri, "_id=?", Array[String](split(1))))
+        case _ if isDocumentUri(context, uri) =>
+          getDocumentPath(context, uri).orElse(default)
         case _ =>
           warn(s"Unrecognised authority for uri: $uri")
           None
@@ -173,8 +175,9 @@ object ShareActivity {
       }).flatMap { u =>
         //filter out attempts to trick us into sending application/sensitive data
         val path = u.getPath
-        if (path.contains(context.getPackageName) ||
-            path.startsWith("/proc")) {
+
+        if (!u.getLastPathSegment.contains(".Android_wbu") && (path.contains(context.getPackageName) ||
+            path.startsWith("/proc"))) {
           None
         } else {
           Some(u)
@@ -192,8 +195,8 @@ object ShareActivity {
     * @return The value of the _data column, which is typically a file path.
     */
   def getDocumentPath(context: Context, uri: Uri, selection: String = null, selectionArgs: Array[String] = null): Option[AndroidURI] = {
-    val column = "_data"
-    val cursor = Option(context.getContentResolver.query(uri, Array(column), selection, selectionArgs, null))
+    val column = android.provider.MediaStore.MediaColumns.DATA
+    val cursor = Option(context.getContentResolver.query(uri, Array(), selection, selectionArgs, null))
 
     returning(cursor.flatMap { c =>
       try {
