@@ -64,18 +64,6 @@ class ParticipantDetailsTab(val context: Context, callback: FooterMenuCallback) 
     user   <- participantsController.otherParticipant
   } yield !user.isWireBot && user.isGuest(teamId)
 
-  private val leftActionStrings = for {
-    isWireless <- participantsController.otherParticipant.map(_.expiresAt.isDefined)
-    isGroupOrBot <- participantsController.isGroupOrBot
-    hasPermissions <- userAccountsController.hasCreateConvPermission
-  } yield if (isWireless) {
-    (R.string.empty_string, R.string.empty_string)
-  } else if (hasPermissions && !isGroupOrBot) {
-    (R.string.glyph__add_people, R.string.conversation__action__create_group)
-  } else {
-    (R.string.glyph__conversation, R.string.empty_string)
-  }
-
   otherUserIsGuest.onUi(guestIndication.setVisible(_))
 
   returning(findById[ImageView](R.id.participant_guest_indicator_icon)) { icon =>
@@ -105,24 +93,6 @@ class ParticipantDetailsTab(val context: Context, callback: FooterMenuCallback) 
 
   participantsController.isGroupOrBot.flatMap {
     case false => userAccountsController.hasCreateConvPermission.map {
-      case true => R.string.glyph__add_people
-      case _    => R.string.empty_string
-    }
-    case _ => Signal.const(R.string.glyph__conversation)
-  }.map(getString)
-   .onUi(footerMenu.setLeftActionText)
-
-  participantsController.isGroupOrBot.flatMap {
-    case false => userAccountsController.hasCreateConvPermission.map {
-      case true => R.string.conversation__action__create_group
-      case _    => R.string.empty_string
-    }
-    case _ => Signal.const(R.string.empty_string)
-  }.map(getString)
-   .onUi(footerMenu.setLeftActionLabelText)
-
-  participantsController.isGroupOrBot.flatMap {
-    case false => userAccountsController.hasCreateConvPermission.map {
       case true => R.string.glyph__more
       case _    => R.string.empty_string
     }
@@ -133,9 +103,21 @@ class ParticipantDetailsTab(val context: Context, callback: FooterMenuCallback) 
   }.map(getString)
    .onUi(footerMenu.setRightActionText)
 
-  leftActionStrings.onUi { case (icon, text) =>
-      footerMenu.setLeftActionText(getString(icon))
-      footerMenu.setLeftActionLabelText(getString(text))
+  (for {
+    isWireless     <- participantsController.otherParticipant.map(_.expiresAt.isDefined)
+    isGroupOrBot   <- if (isWireless) Signal.const(false) else participantsController.isGroupOrBot
+    hasPermissions <- if (isWireless) Signal.const(false) else userAccountsController.hasCreateConvPermission
+  } yield if (isWireless) {
+    (R.string.empty_string, R.string.empty_string)
+  } else if (hasPermissions && !isGroupOrBot) {
+    (R.string.glyph__add_people, R.string.conversation__action__create_group)
+  } else {
+    (R.string.glyph__conversation, R.string.empty_string)
+  }).map {
+    case (iconId, textId) => (getString(iconId), getString(textId))
+  }.onUi { case (icon, text) =>
+    footerMenu.setLeftActionText(icon)
+    footerMenu.setLeftActionLabelText(text)
   }
 
 }
