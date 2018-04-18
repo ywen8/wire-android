@@ -19,13 +19,10 @@ package com.waz.zclient.views
 
 import android.content.Context
 import android.graphics.Color
-import android.util.{AttributeSet, TypedValue}
-import android.view.Gravity
-import android.view.ViewGroup.LayoutParams
-import android.widget.FrameLayout
+import android.util.AttributeSet
+import android.widget.{FrameLayout, ProgressBar}
 import com.waz.threading.CancellableFuture
-import com.waz.utils.returning
-import com.waz.zclient.ui.text.TypefaceTextView
+import com.waz.zclient.ui.text.{GlyphTextView, TypefaceTextView}
 import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.utils.{RichView, ViewUtils}
 import com.waz.zclient.{R, ViewHelper}
@@ -42,34 +39,34 @@ class LoadingIndicatorView(context: Context, attrs: AttributeSet, defStyle: Int)
 
   import LoadingIndicatorView._
 
+  inflate(R.layout.loading_indicator_layout)
+
   private val animations: PartialFunction[AnimationType, () => Unit] = {
     case InfiniteLoadingBar => () => if (setToVisible) {
-      progressView.setVisible(false)
+      indeterminateSpinner.setVisible(false)
       infiniteLoadingBarView.setVisible(true)
       progressLoadingBarView.setVisible(false)
       setBackgroundColor(Color.TRANSPARENT)
       ViewUtils.fadeInView(LoadingIndicatorView.this)
     }
     case Spinner => () => if (setToVisible) {
-      progressView.setText(R.string.glyph__loading)
-      progressView.setVisible(true)
+      indeterminateSpinner.setVisible(true)
       infiniteLoadingBarView.setVisible(false)
       progressLoadingBarView.setVisible(false)
       setBackgroundColor(Color.TRANSPARENT)
       ViewUtils.fadeInView(LoadingIndicatorView.this)
     }
     case SpinnerWithDimmedBackground(text) => () => if (setToVisible) {
-      progressView.setText(R.string.glyph__loading)
-      progressView.setVisible(true)
-      textView.setVisible(true)
-      textView.setText(text)
+      indeterminateSpinner.setVisible(true)
+      indeterminateText.setVisible(true)
+      indeterminateText.setText(text)
       infiniteLoadingBarView.setVisible(false)
       progressLoadingBarView.setVisible(false)
       setBackgroundColor(backgroundColor)
       ViewUtils.fadeInView(LoadingIndicatorView.this)
     }
     case ProgressLoadingBar => () => if (setToVisible) {
-      progressView.setVisible(false)
+      indeterminateSpinner.setVisible(false)
       infiniteLoadingBarView.setVisible(false)
       progressLoadingBarView.setVisible(true)
       setBackgroundColor(Color.TRANSPARENT)
@@ -77,37 +74,13 @@ class LoadingIndicatorView(context: Context, attrs: AttributeSet, defStyle: Int)
     }
   }
 
-  private lazy val infiniteLoadingBarView = returning(new InfiniteLoadingBarView(context)) { view =>
-    view.setVisible(false)
-    addView(view, new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT))
-  }
+  private lazy val infiniteLoadingBarView = findById[InfiniteLoadingBarView](R.id.indeterminate_bar)
 
-  private lazy val progressLoadingBarView = returning(new ProgressLoadingBarView(context)) { view =>
-    view.setVisible(false)
-    addView(view, new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT))
-  }
+  private lazy val progressLoadingBarView = findById[ProgressLoadingBarView](R.id.loading_bar)
 
-  private lazy val progressView = returning(new ProgressView(context)) { view =>
-    view.setTextColor(Color.WHITE)
-    view.setTextSize(TypedValue.COMPLEX_UNIT_PX, getDimenPx(R.dimen.loading_spinner__size))
-    view.setVisible(false)
-
-    val params = new FrameLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT)
-    params.gravity = Gravity.CENTER
-    addView(view, params)
-  }
-
-  private lazy val textView = returning(new TypefaceTextView(context)) { view =>
-    view.setVisible(false)
-    view.setTextColor(Color.WHITE)
-    view.setTypeface(getString(R.string.wire__typeface__regular))
-    view.setTextSize(TypedValue.COMPLEX_UNIT_PX, getDimenPx(R.dimen.wire__text_size__smaller))
-
-    val params = new FrameLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT)
-    params.gravity = Gravity.CENTER
-    params.topMargin = getDimenPx(R.dimen.wire__padding__32)
-    addView(view, params)
-  }
+  private lazy val indeterminateSpinner = findById[ProgressBar](R.id.indeterminate_spinner)
+  private lazy val indeterminateText = findById[TypefaceTextView](R.id.indeterminate_text)
+  private lazy val indeterminateGlyph = findById[GlyphTextView](R.id.spinner_complete_glyph)
 
   private var setToVisible = false
   private var backgroundColor = 0
@@ -132,21 +105,22 @@ class LoadingIndicatorView(context: Context, attrs: AttributeSet, defStyle: Int)
   def hide(): Unit = {
     setToVisible = false
     Future {
-      progressView.setVisible(false)
-      textView.setVisible(false)
+      indeterminateSpinner.setVisible(false)
+      indeterminateText.setVisible(false)
       ViewUtils.fadeOutView(LoadingIndicatorView.this)
     }
   }
 
   def hideWithMessage(message: String, delayMs: Long): Unit = {
     setToVisible = false
-    progressView.setText(R.string.glyph__check)
-    progressView.stopAnimation()
-    progressView.setRotation(0)
-    textView.setText(message)
+    indeterminateGlyph.setVisible(true)
+    indeterminateSpinner.setVisible(false)
+    indeterminateText.setVisible(true)
+    indeterminateText.setText(message)
     CancellableFuture.delayed(delayMs.millis) {
-      progressView.setVisible(false)
-      textView.setVisible(false)
+      indeterminateSpinner.setVisible(false)
+      indeterminateText.setVisible(false)
+      indeterminateGlyph.setVisible(false)
       ViewUtils.fadeOutView(LoadingIndicatorView.this)
     }
   }
@@ -159,13 +133,15 @@ class LoadingIndicatorView(context: Context, attrs: AttributeSet, defStyle: Int)
   def setProgress(progress: Float): Unit = progressLoadingBarView.setProgress(progress)
 
   def applyLightTheme(): Unit = {
-    progressView.setTextColor(getColorWithTheme(R.color.text__primary_light, getContext))
+    indeterminateGlyph.setTextColor(getColor(R.color.text__primary_light))
+    indeterminateSpinner.setIndeterminateTintList(getColorStateList(R.color.text__primary_light))
     backgroundColor = getColorWithTheme(R.color.text__primary_disabled_dark, getContext)
   }
 
   def applyDarkTheme(): Unit = {
-    progressView.setTextColor(getColorWithTheme(R.color.text__primary_dark, getContext))
-    backgroundColor = getColorWithTheme(R.color.black_48, getContext)
+    indeterminateGlyph.setTextColor(getColor(R.color.text__primary_dark))
+    indeterminateSpinner.setIndeterminateTintList(getColorStateList(R.color.text__primary_dark))
+    backgroundColor = getColorWithTheme(R.color.black_80, getContext)
   }
 
 }

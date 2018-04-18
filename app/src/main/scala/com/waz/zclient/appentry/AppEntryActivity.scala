@@ -84,7 +84,7 @@ class AppEntryActivity extends BaseActivity {
     Signal(accountsService.zmsInstances.map(_.nonEmpty), attachedFragment).map {
       case (false, _) => View.GONE
       case (true, fragment) if Set(SignInFragment.Tag, FirstLaunchAfterLoginFragment.Tag, VerifyEmailWithCodeFragment.Tag,
-          VerifyPhoneFragment.Tag, CountryDialogFragment.TAG, PhoneSetNameFragment.Tag).contains(fragment) => View.GONE
+          VerifyPhoneFragment.Tag, CountryDialogFragment.TAG, PhoneSetNameFragment.Tag, InviteToTeamFragment.Tag).contains(fragment) => View.GONE
       case _ => View.VISIBLE
     }.onUi(v.setVisibility(_))
   }

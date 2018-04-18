@@ -596,7 +596,8 @@
 
     <dimen name="loading_bar__gap_size">32dp</dimen>
     <dimen name="loading_bar__stroke_width">4dp</dimen>
-    <dimen name="loading_spinner__size">25dp</dimen>
+    <dimen name="loading_spinner__size">32dp</dimen>
+    <dimen name="loading_spinner__complete">24dp</dimen>
 
     <dimen name="mediaplayer__seekbar__stroke_width">10dp</dimen>
     <dimen name="mediaplayer__seekbar_small_stroke_width">1dp</dimen>
