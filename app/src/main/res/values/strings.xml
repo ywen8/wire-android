@@ -270,7 +270,7 @@
     <string name="conversation__action__create_group">CREATE GROUP</string>
     <string name="conversation__action__silence">Mute</string>
     <string name="conversation__action__unsilence">Unmute</string>
-    <string name="conversation__action__leave">Leave…</string>
+    <string name="conversation__action__leave">Leave group…</string>
     <string name="conversation__action__remove">Remove</string>
     <string name="conversation__action__call">Call</string>
     <string name="conversation__action__picture">Picture</string>
@@ -399,7 +399,7 @@
     <!-- Block someone dialogue -->
     <string name="confirmation_menu__block_header">Block?</string>
     <string name="confirmation_menu__block_text_with_name">%1$s won\'t be able to contact you or add you to group conversations.</string>
-    <string name="confirmation_menu__confirm_block">Block</string>
+    <string name="confirmation_menu__confirm_block">Block…</string>
     <!-- RE-USING: confirmation_menu.cancel -->
     <string name="connect_request__footer__blocked_label">Blocked</string>
 

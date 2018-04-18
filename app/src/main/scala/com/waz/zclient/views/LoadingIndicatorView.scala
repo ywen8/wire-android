@@ -102,7 +102,7 @@ class LoadingIndicatorView(context: Context, attrs: AttributeSet, defStyle: Int)
     show(animationType, delayMs)
   }
 
-  def hide(): Unit = {
+  def hide(): Unit = if (setToVisible) {
     setToVisible = false
     Future {
       indeterminateSpinner.setVisible(false)
@@ -111,7 +111,7 @@ class LoadingIndicatorView(context: Context, attrs: AttributeSet, defStyle: Int)
     }
   }
 
-  def hideWithMessage(message: String, delayMs: Long): Unit = {
+  def hideWithMessage(message: String, delayMs: Long): Unit = if (setToVisible) {
     setToVisible = false
     indeterminateGlyph.setVisible(true)
     indeterminateSpinner.setVisible(false)

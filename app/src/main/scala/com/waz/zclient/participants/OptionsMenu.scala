@@ -25,11 +25,9 @@ import android.widget.{LinearLayout, TextView}
 import com.waz.model.ConvId
 import com.waz.utils.returning
 import com.waz.zclient.ui.animation.interpolators.penner.{Expo, Quart}
-import com.waz.zclient.ui.optionsmenu.OptionsMenuItem
 import com.waz.zclient.ui.text.GlyphTextView
 import com.waz.zclient.utils.ViewUtils.getView
 import com.waz.zclient.utils.{RichView, ViewUtils}
-import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.{DialogHelper, R}
 
 case class OptionsMenu(context: Context, inConvList: Boolean, convId: ConvId) extends BottomSheetDialog(context, R.style.message__bottom_sheet__base) with DialogHelper {
@@ -53,15 +51,11 @@ case class OptionsMenu(context: Context, inConvList: Boolean, convId: ConvId) ex
       items.foreach { item =>
         view.addView(returning(getLayoutInflater.inflate(R.layout.message__bottom__menu__row, view, false)) { itemView =>
 
-          val isRed = Set(OptionsMenuItem.DELETE, OptionsMenuItem.LEAVE).contains(item)
-
           returning(getView[GlyphTextView](itemView, R.id.icon)) { v =>
             v.setText(item.resGlyphId)
-            if (isRed) v.setTextColor(getColor(R.color.accent_red))
           }
           returning(getView[TextView](itemView, R.id.text)) { v =>
             v.setText(item.resTextId)
-            if (isRed) v.setTextColor(getColor(R.color.accent_red))
           }
           itemView.onClick {
             ctrl.onMenuItemClicked ! item
