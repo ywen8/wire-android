@@ -139,8 +139,6 @@ object AccountBackStackKey {
 
 class AccountViewController(view: AccountView)(implicit inj: Injector, ec: EventContext, context: Context) extends Injectable {
 
-  import com.waz.ZLog._
-
   val zms                = inject[Signal[ZMessaging]]
   val self               = zms.flatMap(_.users.selfUser)
   val accounts           = inject[AccountsService]
