@@ -18,6 +18,7 @@
 package com.waz.zclient.usersearch
 
 import android.content.Context
+import android.graphics.Rect
 import android.support.v7.widget.{LinearLayoutManager, RecyclerView}
 import android.view.{LayoutInflater, View, ViewGroup}
 import android.widget.TextView
@@ -27,6 +28,7 @@ import com.waz.model._
 import com.waz.service.ZMessaging
 import com.waz.threading.Threading
 import com.waz.utils.events.{EventContext, Signal}
+import com.waz.utils.returning
 import com.waz.zclient._
 import com.waz.zclient.common.controllers.{IntegrationsController, UserAccountsController}
 import com.waz.zclient.common.views.{SingleUserRowView, TopUserChathead}
@@ -318,7 +320,8 @@ object SearchUIAdapter {
 
   class CreateConversationButtonViewHolder(view: View, callback: SearchUIAdapter.Callback) extends RecyclerView.ViewHolder(view) {
     private implicit val ctx = view.getContext
-    view.findViewById[View](R.id.icon).setBackground(CreateGroupIcon(R.color.white))
+    private val iconView  = view.findViewById[View](R.id.icon)
+    iconView.setBackground(returning(CreateGroupIcon(R.color.white))(_.setPadding(new Rect(iconView.getPaddingLeft, iconView.getPaddingTop, iconView.getPaddingRight, iconView.getPaddingBottom))))
     view.findViewById[TypefaceTextView](R.id.title).setText(R.string.create_group_conversation)
     view.onClick(callback.onCreateConvClicked())
     view.setId(R.id.create_group_button)
@@ -326,7 +329,8 @@ object SearchUIAdapter {
 
   class NewGuestRoomViewHolder(view: View, callback: SearchUIAdapter.Callback) extends RecyclerView.ViewHolder(view) {
     private implicit val ctx = view.getContext
-    view.findViewById[View](R.id.icon).setBackground(GuestIcon(R.color.white))
+    private val iconView  = view.findViewById[View](R.id.icon)
+    iconView.setBackground(returning(GuestIcon(R.color.white))(_.setPadding(new Rect(iconView.getPaddingLeft, iconView.getPaddingTop, iconView.getPaddingRight, iconView.getPaddingBottom))))
     view.findViewById[TypefaceTextView](R.id.title).setText(R.string.create_guest_room_conversation)
     view.onClick(callback.onCreateGuestRoomClicked())
     view.setId(R.id.create_guest_room_button)

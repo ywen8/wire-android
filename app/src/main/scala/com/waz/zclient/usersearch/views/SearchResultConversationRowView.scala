@@ -41,7 +41,7 @@ class SearchResultConversationRowView(val context: Context, val attrs: Attribute
   private val conversationSignal = Signal[ConversationData]()
   private val nameView = findById[TypefaceTextView](R.id.conversation_title)
   private val avatar = findById[ConversationAvatarView](R.id.conversation_icon)
-  private val separator = findById[View](R.id.conversation_separator)
+  private val subtitleView = findById[TypefaceTextView](R.id.conversation_subtitle)
 
   val zms = inject[Signal[ZMessaging]]
   implicit val uiStorage = inject[UiStorage]
@@ -53,7 +53,7 @@ class SearchResultConversationRowView(val context: Context, val attrs: Attribute
     memberSeq <- Signal.sequence(memberIds.map(uid => UserSignal(uid)).toSeq:_*)
   } yield (conv.id, conv.convType, memberSeq.filter(_.id != z.selfUserId).map(_.id))
 
-  separator.setVisibility(View.GONE)
+  subtitleView.setVisibility(View.GONE)
   avatarInfo.on(Threading.Ui) {
     case (convId, convType, members) =>
       avatar.setMembers(members, convId, convType)
