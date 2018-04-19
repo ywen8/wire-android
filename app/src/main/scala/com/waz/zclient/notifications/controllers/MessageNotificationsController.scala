@@ -410,18 +410,18 @@ class MessageNotificationsController(implicit inj: Injector, cxt: Context, event
     }
 
     val body = n.tpe match {
-      case _ if n.isEphemeral       => getString(R.string.conversation_list__ephemeral)
-      case TEXT | CONNECT_REQUEST   => message
-      case MISSED_CALL              => getString(R.string.notification__message__one_to_one__wanted_to_talk)
-      case KNOCK                    => getString(R.string.notification__message__one_to_one__pinged)
-      case ANY_ASSET                => getString(R.string.notification__message__one_to_one__shared_file)
-      case ASSET                    => getString(R.string.notification__message__one_to_one__shared_picture)
-      case VIDEO_ASSET              => getString(R.string.notification__message__one_to_one__shared_video)
-      case AUDIO_ASSET              => getString(R.string.notification__message__one_to_one__shared_audio)
-      case LOCATION                 => getString(R.string.notification__message__one_to_one__shared_location)
-      case RENAME                   => getString(R.string.notification__message__group__renamed_conversation, message)
-      case MEMBER_LEAVE             => getString(R.string.notification__message__group__remove)
-      case MEMBER_JOIN              => getString(R.string.notification__message__group__add)
+      case _ if n.isEphemeral  => getString(R.string.conversation_list__ephemeral)
+      case TEXT                => message
+      case MISSED_CALL         => getString(R.string.notification__message__one_to_one__wanted_to_talk)
+      case KNOCK               => getString(R.string.notification__message__one_to_one__pinged)
+      case ANY_ASSET           => getString(R.string.notification__message__one_to_one__shared_file)
+      case ASSET               => getString(R.string.notification__message__one_to_one__shared_picture)
+      case VIDEO_ASSET         => getString(R.string.notification__message__one_to_one__shared_video)
+      case AUDIO_ASSET         => getString(R.string.notification__message__one_to_one__shared_audio)
+      case LOCATION            => getString(R.string.notification__message__one_to_one__shared_location)
+      case RENAME              => getString(R.string.notification__message__group__renamed_conversation, message)
+      case MEMBER_LEAVE        => getString(R.string.notification__message__group__remove)
+      case MEMBER_JOIN         => getString(R.string.notification__message__group__add)
       case LIKE if n.likedContent.nonEmpty =>
         n.likedContent.collect {
           case LikedContent.PICTURE =>
@@ -429,8 +429,9 @@ class MessageNotificationsController(implicit inj: Injector, cxt: Context, event
           case LikedContent.TEXT_OR_URL =>
             getString(R.string.notification__message__liked, n.message)
         }.getOrElse(getString(R.string.notification__message__liked_message))
-      case CONNECT_ACCEPTED         => if (n.userName.isEmpty) getString(R.string.notification__message__generic__accept_request)    else getString(R.string.notification__message__single__accept_request, n.userName.getOrElse(""))
-      case MESSAGE_SENDING_FAILED   => getString(R.string.notification__message__send_failed)
+      case CONNECT_ACCEPTED       => getString(R.string.notification__message__single__accept_request, n.userName.getOrElse(""))
+      case CONNECT_REQUEST        => getString(R.string.people_picker__invite__share_text__header, n.userName.getOrElse(""))
+      case MESSAGE_SENDING_FAILED => getString(R.string.notification__message__send_failed)
       case _ => ""
     }
     getMessageSpannable(header, body, isTextMessage)
