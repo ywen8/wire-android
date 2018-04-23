@@ -47,7 +47,7 @@ class ClientsController(implicit inj: Injector) extends Injectable {
 
   val self = accountManager.map(_.userId)
 
-  private def selfClientId = accountManager.flatMap(_.clientId)
+  val selfClientId = accountManager.flatMap(_.clientId)
 
   def client(userId: UserId, clientId: ClientId): Signal[Option[Client]] = for {
     manager <- accountManager
