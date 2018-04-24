@@ -62,31 +62,39 @@
                 android:textSize="@dimen/wire__text_size__small"
                 />
 
-            <com.waz.zclient.ui.text.TypefaceTextView
-                android:layout_width="match_parent"
-                android:layout_height="@dimen/preference_button_height"
-                android:text="@string/pref_devices_device_fingerprint_category_title"
-                android:gravity="center_vertical"
-                android:paddingStart="@dimen/wire__padding__16"
-                android:paddingEnd="@dimen/wire__padding__16"
-                android:textColor="@color/accent_blue"
-                />
-
-            <com.waz.zclient.preferences.views.TextButton
-                android:id="@+id/device_detail_fingerprint"
+            <LinearLayout
+                android:id="@+id/fingerprint_group"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <com.waz.zclient.ui.text.TypefaceTextView
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/preference_button_height"
+                    android:text="@string/pref_devices_device_fingerprint_category_title"
+                    android:gravity="center_vertical"
+                    android:paddingStart="@dimen/wire__padding__16"
+                    android:paddingEnd="@dimen/wire__padding__16"
+                    android:textColor="@color/accent_blue"
                 />
 
-            <com.waz.zclient.ui.text.TypefaceTextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/pref_devices_device_fingerprint_summary"
-                android:gravity="center_vertical"
-                android:padding="@dimen/wire__padding__16"
-                android:textColor="@color/light_graphite"
-                android:textSize="@dimen/wire__text_size__small"
+                <com.waz.zclient.preferences.views.TextButton
+                    android:id="@+id/device_detail_fingerprint"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
                 />
+
+                <com.waz.zclient.ui.text.TypefaceTextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/pref_devices_device_fingerprint_summary"
+                    android:gravity="center_vertical"
+                    android:padding="@dimen/wire__padding__16"
+                    android:textColor="@color/light_graphite"
+                    android:textSize="@dimen/wire__text_size__small"
+                />
+            </LinearLayout>
+
 
             <LinearLayout
                 android:id="@+id/device_detail_actions"

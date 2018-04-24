@@ -60,6 +60,7 @@ trait DeviceDetailsView {
   def setId(cId: String): Unit
   def setActivated(regTime: Instant, regLocation: Option[Location]): Unit
   def setFingerPrint(fingerprint: String): Unit
+  def setRemoveOnly(removeOnly: Boolean): Unit
   def setActionsVisible(visible: Boolean): Unit
   def setVerified(verified: Boolean): Unit
 
@@ -82,6 +83,8 @@ class DeviceDetailsViewImpl(context: Context, attrs: AttributeSet, style: Int) e
   val verifiedSwitch   = findById[SwitchPreference](R.id.device_detail_verified)
   val resetSessionView = findById[TextButton]      (R.id.device_detail_reset)
   val removeDeviceView = findById[TextButton]      (R.id.device_detail_remove)
+
+  val fingerPrintGroup = findById[View](R.id.fingerprint_group)
 
   override val onVerifiedChecked = verifiedSwitch.onCheckedChange
   override val onSessionReset    = resetSessionView.onClickEvent.map(_ => {})
@@ -112,6 +115,12 @@ class DeviceDetailsViewImpl(context: Context, attrs: AttributeSet, style: Int) e
 
   override def setActionsVisible(visible: Boolean) = {
     actionsView.setVisible(visible)
+  }
+
+  override def setRemoveOnly(removeOnly: Boolean) = {
+    fingerPrintGroup.setVisible(!removeOnly)
+    verifiedSwitch.setVisible(!removeOnly)
+    resetSessionView.setVisible(!removeOnly)
   }
 
   private def getActivationSummary(context: Context, regTime: Instant, regLocation: Option[Location]): String = {
@@ -199,6 +208,7 @@ case class DeviceDetailsViewController(view: DeviceDetailsView, clientId: Client
   isCurrentClient.map(!_).onUi(view.setActionsVisible)
   client.map(_.isVerified).onUi(view.setVerified)
   fingerPrint.onUi{ _.foreach(view.setFingerPrint) }
+  clientsController.selfClientId.map(_.isEmpty).onUi(view.setRemoveOnly)
 
   view.onVerifiedChecked { checked =>
     //TODO should this be a signal? Will create a new subscription every time the view is clicked...
