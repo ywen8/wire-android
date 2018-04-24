@@ -55,28 +55,21 @@ class ConnectRequestFragment extends BaseFragment[Container] with FragmentHelper
     (for {
       Some(u) <- scrollToOnOpen
       req     <- adapter.incomingRequests
-    } yield if (req.contains(u)) Some(u) else None).onUi {
-      case Some(u) =>
-        adapter.findPosition(u).foreach { p =>
-          recyclerView.scrollToPosition(p)
-          scrollToOnOpen ! None
-        }
-      case _ => //
+    } yield (u, req)).collect { case (u, req) if req.contains(u) => u } .onUi { u =>
+      adapter.findPosition(u).foreach { p =>
+        recyclerView.scrollToPosition(p)
+        scrollToOnOpen ! None
+      }
     }
 
     scrollToOnOpen ! Try(getArguments.getString(SelectedUser)).toOption.map(UserId)
 
     rootView
   }
-
-  //FIXME - sometimes this is not called by the SecondPageFragment, so the position setting is lost.
-  def setVisibleConnectRequest(userId: UserId) =
-    scrollToOnOpen ! Some(userId)
 }
 
 object ConnectRequestFragment {
-
-  val FragmentTag = classOf[ConnectRequestFragment].getName
+  val Tag = classOf[ConnectRequestFragment].getName
   val SelectedUser = "ARG_SELECTED_USER"
 
   trait Container {
