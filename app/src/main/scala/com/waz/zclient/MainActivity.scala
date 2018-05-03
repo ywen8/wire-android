@@ -40,7 +40,6 @@ import com.waz.zclient.Intents._
 import com.waz.zclient.MainActivity._
 import com.waz.zclient.SpinnerController.{Hide, Show}
 import com.waz.zclient.appentry.AppEntryActivity
-import com.waz.zclient.calling.CallingActivity
 import com.waz.zclient.calling.controllers.CallStartController
 import com.waz.zclient.common.controllers.global.{AccentColorController, KeyboardController}
 import com.waz.zclient.common.controllers.{SharingController, UserAccountsController}
@@ -65,7 +64,7 @@ import scala.concurrent.{Await, Future}
 import scala.util.control.NonFatal
 
 class MainActivity extends BaseActivity
-  with ActivityHelper
+  with CallingBannerActivity
   with UpdateFragment.Container
   with NavigationControllerObserver
   with OtrDeviceLimitFragment.Container
@@ -80,7 +79,7 @@ class MainActivity extends BaseActivity
   lazy val accountsService          = inject[AccountsService]
   lazy val sharingController        = inject[SharingController]
   lazy val accentColorController    = inject[AccentColorController]
-  lazy val callController           = inject[CallStartController]
+  lazy val callStart                = inject[CallStartController]
   lazy val conversationController   = inject[ConversationController]
   lazy val userAccountsController   = inject[UserAccountsController]
   lazy val spinnerController        = inject[SpinnerController]
@@ -158,6 +157,7 @@ class MainActivity extends BaseActivity
       case Hide(Some(message))=> loadingIndicator.hideWithMessage(message, 750)
       case Hide(_) => loadingIndicator.hide()
     }
+
   }
 
   override protected def onResumeFragments() = {
@@ -170,8 +170,6 @@ class MainActivity extends BaseActivity
     getControllerFactory.getNavigationController.addNavigationControllerObserver(this)
 
     super.onStart()
-    //This is needed to drag the user back to the calling activity if they open the app again during a call
-    CallingActivity.startIfCallIsActive(this)
 
     if (!getControllerFactory.getUserPreferencesController.hasCheckedForUnsupportedEmojis(Emojis.VERSION))
       Future(checkForUnsupportedEmojis())(Threading.Background)
@@ -372,7 +370,7 @@ class MainActivity extends BaseActivity
           if (call)
             for {
               Some(acc) <- account.map(_.map(_.userId)).head
-              _         <- callController.startCall(acc, convId)
+              _         <- callStart.startCall(acc, convId)
             } yield {}
         }
     } (Threading.Ui).future

@@ -78,9 +78,6 @@ class CallingActivity extends BaseActivity {
     }(Threading.Ui)
   }
 
-  //don't allow user to go back during call - no way to re-enter call
-  override def onBackPressed(): Unit = ()
-
   override def onAttachedToWindow(): Unit = {
     getWindow.addFlags(
         WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON |

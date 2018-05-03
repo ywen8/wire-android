@@ -26,9 +26,9 @@ import com.waz.avs.{VideoPreview, VideoRenderer}
 import com.waz.model.{UserData, UserId}
 import com.waz.service.call.Avs.VideoReceiveState
 import com.waz.service.call.CallInfo
-import com.waz.service.call.CallInfo.CallState._
+import com.waz.service.call.CallInfo.CallState.{SelfJoining, _}
 import com.waz.service.{AccountsService, GlobalModule, NetworkModeService, ZMessaging}
-import com.waz.threading.Threading
+import com.waz.threading.{CancellableFuture, Threading}
 import com.waz.utils._
 import com.waz.utils.events.{ButtonSignal, ClockSignal, EventContext, Signal}
 import com.waz.zclient.calling.CallingActivity
@@ -38,9 +38,11 @@ import com.waz.zclient.conversation.ConversationController
 import com.waz.zclient.utils.ContextUtils._
 import com.waz.zclient.utils.{DeprecationUtils, LayoutSpec}
 import com.waz.zclient.{Injectable, Injector, R, WireContext}
-import org.threeten.bp.Duration.{ZERO, between}
+import org.threeten.bp.Duration
+import org.threeten.bp.Duration.between
 import org.threeten.bp.Instant.now
-import org.threeten.bp.{Duration, Instant}
+
+import scala.concurrent.duration._
 
 class CallController(implicit inj: Injector, cxt: WireContext, eventContext: EventContext) extends Injectable {
 
@@ -71,7 +73,12 @@ class CallController(implicit inj: Injector, cxt: WireContext, eventContext: Eve
 
   val callConvIdOpt     = currentCallOpt.map(_.map(_.convId))
   val callConvId        = callConvIdOpt.collect { case Some(c) => c }
+
   val isCallActive      = currentCallOpt.map(_.isDefined)
+  val isCallActiveDelay = isCallActive.flatMap {
+    case true  => Signal.future(CancellableFuture.delay(300.millis).future.map(_ => true)).orElse(Signal.const(false))
+    case false => Signal.const(false)
+  }
 
   val callStateOpt      = currentCallOpt.map(_.flatMap(_.state))
   val callState         = callStateOpt.collect { case Some(s) => s }
@@ -87,12 +94,20 @@ class CallController(implicit inj: Injector, cxt: WireContext, eventContext: Eve
   val isGroupCall       = currentCall.map(_.isGroup)
   val cbrEnabled        = currentCall.map(_.isCbrEnabled)
 
-  val duration = {
-    def timeSince(est: Option[Instant]) = ClockSignal(Duration.ofSeconds(1).asScala).map(_ => est.fold2(ZERO, between(_, now)))
-    currentCall.map(_.estabTime).flatMap(timeSince)
+  val duration = currentCall.map(_.estabTime).flatMap {
+    case Some(inst) => ClockSignal(Duration.ofSeconds(1).asScala).map(_ => Option(between(inst, now)))
+    case None => Signal.const(Option.empty[Duration])
   }
 
-  val flowManager = callingZms map (_.flowmanager)
+  val durationFormatted = duration.map {
+    case Some(d) =>
+      val seconds = ((d.toMillis / 1000) % 60).toInt
+      val minutes = ((d.toMillis / 1000) / 60).toInt
+      f"$minutes%02d:$seconds%02d"
+    case None => ""
+  }
+
+  val flowManager = callingZms.map(_.flowmanager)
 
   val captureDevices = flowManager.flatMap(fm => Signal.future(fm.getVideoCaptureDevices))
 
@@ -116,10 +131,9 @@ class CallController(implicit inj: Injector, cxt: WireContext, eventContext: Eve
   val cameraFailed = flowManager.flatMap(_.cameraFailedSig)
 
   val userStorage = callingZms map (_.usersStorage)
-  val prefs = callingZms.map(_.prefs)
+  val prefs       = callingZms.map(_.prefs)
 
   val callingService = callingZms.map(_.calling).disableAutowiring()
-
 
   val callingServiceAndCurrentConvId =
     for {
@@ -295,23 +309,28 @@ class CallController(implicit inj: Injector, cxt: WireContext, eventContext: Eve
     }
   }
 
+  val callBannerText = Signal(isVideoCall, callState).map {
+    case (_,     SelfCalling)   => R.string.call_banner_outgoing
+    case (true,  OtherCalling)  => R.string.call_banner_incoming_video
+    case (false, OtherCalling)  => R.string.call_banner_incoming
+    case (_,     SelfJoining)   => R.string.call_banner_joining
+    case (false, SelfConnected) => R.string.call_banner_tap_to_return_to_call
+    case _                      => R.string.empty_string
+  }
+
   val subtitleText: Signal[String] = convDegraded.flatMap {
     case true => Signal("")
     case false => (for {
       video <- isVideoCall
       state <- callState
-      dur <- duration map { duration =>
-        val seconds = ((duration.toMillis / 1000) % 60).toInt
-        val minutes = ((duration.toMillis / 1000) / 60).toInt
-        f"$minutes%02d:$seconds%02d"
-      }
+      dur   <- durationFormatted
     } yield (video, state, dur)).map {
-      case (true,  SelfCalling,  _)                    => cxt.getString(R.string.calling__header__outgoing_video_subtitle)
-      case (false, SelfCalling,  _)                    => cxt.getString(R.string.calling__header__outgoing_subtitle)
-      case (true,  OtherCalling, _)                    => cxt.getString(R.string.calling__header__incoming_subtitle__video)
-      case (false, OtherCalling, _)                    => cxt.getString(R.string.calling__header__incoming_subtitle)
-      case (_,     SelfJoining,  _)                    => cxt.getString(R.string.calling__header__joining)
-      case (false, SelfConnected, duration)            => duration
+      case (true,  SelfCalling,  _)  => cxt.getString(R.string.calling__header__outgoing_video_subtitle)
+      case (false, SelfCalling,  _)  => cxt.getString(R.string.calling__header__outgoing_subtitle)
+      case (true,  OtherCalling, _)  => cxt.getString(R.string.calling__header__incoming_subtitle__video)
+      case (false, OtherCalling, _)  => cxt.getString(R.string.calling__header__incoming_subtitle)
+      case (_,     SelfJoining,  _)  => cxt.getString(R.string.calling__header__joining)
+      case (false, SelfConnected, d) => d
       case _ => ""
     }
   }
@@ -428,7 +447,7 @@ private class ScreenManager(implicit injector: Injector) extends Injectable {
     wakeLock = powerManager.map(_.newWakeLock(flags, TAG))
     verbose(s"Creating wakelock")
     wakeLock.foreach(_.acquire())
-    verbose(s"Aquiring wakelock")
+    verbose(s"Acquiring wakelock")
   }
 
   def releaseWakeLock() = {
