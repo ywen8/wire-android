@@ -36,7 +36,8 @@ import com.waz.utils.returning
 import com.waz.zclient.FragmentHelper.getNextAnimationDuration
 import com.waz.zclient.calling.CallingActivity
 import com.waz.zclient.calling.controllers.CallController
-import com.waz.zclient.utils.RichView
+import com.waz.zclient.utils.{ContextUtils, RichView}
+
 import scala.language.implicitConversions
 
 object WireContext {
@@ -358,7 +359,7 @@ trait CallingBannerActivity extends ActivityHelper {
     super.onCreate(savedInstanceState)
 
     callController.isCallActiveDelay.onUi { est =>
-      getWindow.setStatusBarColor(getColor(if (est) R.color.accent_green else android.R.color.transparent))
+      getWindow.setStatusBarColor(ContextUtils.getColor(if (est) R.color.accent_green else android.R.color.transparent)(this))
       callBanner.setVisibility(if (est) View.VISIBLE else View.GONE)
     }
 
