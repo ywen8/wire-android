@@ -15,8 +15,17 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package com.waz.zclient.controllers.calling;
+package com.wire.testinggallery.utils;
 
-public interface CallingObserver {
-    void onStartCall(boolean withVideo);
+import android.content.Context;
+import android.widget.Toast;
+
+import static android.widget.Toast.LENGTH_LONG;
+
+public class InfoDisplayManager {
+    public static void showToast(Context context, String message) {
+        Toast.makeText(context,
+            message, LENGTH_LONG)
+            .show();
+    }
 }

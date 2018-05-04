@@ -36,7 +36,6 @@ import com.waz.utils.returning
 import com.waz.zclient.common.controllers.global.AccentColorController
 import com.waz.zclient.common.controllers.{SoundController, ThemeController, UserAccountsController}
 import com.waz.zclient.connect.{PendingConnectRequestManagerFragment, SendConnectRequestFragment}
-import com.waz.zclient.controllers.calling.ICallingController
 import com.waz.zclient.controllers.camera.ICameraController
 import com.waz.zclient.controllers.confirmation._
 import com.waz.zclient.controllers.navigation.{INavigationController, NavigationControllerObserver, Page}
@@ -46,7 +45,8 @@ import com.waz.zclient.messages.UsersController
 import com.waz.zclient.pages.main.connect.BlockedUserProfileFragment
 import com.waz.zclient.pages.main.conversation.controller.{ConversationScreenControllerObserver, IConversationScreenController}
 import com.waz.zclient.pages.main.pickuser.controller.{IPickUserController, PickUserControllerScreenObserver}
-import com.waz.zclient.participants.{OptionsMenu, UserRequester}
+import com.waz.zclient.participants.ConversationOptionsMenuController.Mode
+import com.waz.zclient.participants.{ConversationOptionsMenuController, OptionsMenu, UserRequester}
 import com.waz.zclient.ui.animation.interpolators.penner.{Expo, Quart}
 import com.waz.zclient.ui.utils.KeyboardUtils
 import com.waz.zclient.usersearch.SearchUIFragment
@@ -89,7 +89,6 @@ class ConversationListManagerFragment extends Fragment
   private lazy val convScreenController           = inject[IConversationScreenController]
   private lazy val confirmationController         = inject[IConfirmationController]
   private lazy val cameraController               = inject[ICameraController]
-  private lazy val callingController              = inject[ICallingController]
   private lazy val userAccountsController         = inject[UserAccountsController]
 
   private var startUiLoadingIndicator: LoadingIndicatorView = _
@@ -401,7 +400,9 @@ class ConversationListManagerFragment extends Fragment
   }
 
   override def onShowConversationMenu(inConvList: Boolean, convId: ConvId): Unit =
-    if (inConvList) OptionsMenu(getContext, inConvList, convId).show()
+    if (inConvList) {
+      OptionsMenu(getContext, new ConversationOptionsMenuController(convId, Mode.Normal(inConvList))).show()
+    }
 
   override def dismissUserProfile() =
     pickUserController.hideUserProfile()

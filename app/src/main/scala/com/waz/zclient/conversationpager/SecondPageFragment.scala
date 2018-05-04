@@ -25,7 +25,6 @@ import com.waz.ZLog._
 import com.waz.api.IConversation.Type
 import com.waz.model.UserId
 import com.waz.threading.Threading
-import com.waz.utils.events.Signal
 import com.waz.zclient.common.controllers.UserAccountsController
 import com.waz.zclient.connect.{ConnectRequestFragment, PendingConnectRequestManagerFragment}
 import com.waz.zclient.controllers.navigation.{INavigationController, Page, PagerControllerObserver}
@@ -61,58 +60,61 @@ class SecondPageFragment extends FragmentHelper
     inflater.inflate(R.layout.fragment_pager_second, container, false)
   }
 
-  override def onViewCreated(view: View, savedInstanceState: Bundle): Unit =
-    (for {
-      conv  <- conversationController.currentConv
-      other <-
-        if (Set(Type.INCOMING_CONNECTION, Type.WAIT_FOR_CONNECTION).contains(conv.convType))
-          conversationController.currentConvMembers.map(_.headOption)
-        else Signal.const(Option.empty[UserId])
-    } yield (conv.convType, other)).onUi { case (convType, maybeUserId) =>
-      info(s"Conversation type: $convType, otherUser: $maybeUserId")
+  private val connectionRequestTags = Set(ConnectRequestFragment.Tag, PendingConnectRequestManagerFragment.Tag)
 
-      val (fragment, tag, page) = (convType, maybeUserId) match {
-        case (Type.INCOMING_CONNECTION, Some(userId)) =>
-          import ConnectRequestFragment._
-          (newInstance(userId), FragmentTag, Page.CONNECT_REQUEST_INBOX)
-        case (Type.WAIT_FOR_CONNECTION, Some(userId)) =>
-          import PendingConnectRequestManagerFragment._
-          (newInstance(userId, UserRequester.CONVERSATION), Tag, Page.CONNECT_REQUEST_PENDING)
-        case _ =>
-          import ConversationManagerFragment._
-          (newInstance, Tag, Page.MESSAGE_STREAM)
-      }
+  private lazy val pageDetails = conversationController.currentConv.map(c => (c.id, c.convType)).map {
+    case (id, Type.INCOMING_CONNECTION) => (ConnectRequestFragment.Tag, Some(UserId(id.str)))
+    case (id, Type.WAIT_FOR_CONNECTION) => (PendingConnectRequestManagerFragment.Tag, Some(UserId(id.str)))
+    case _                              => (ConversationManagerFragment.Tag, None)
+  }
 
-      def open() = {
-        info(s"openPage $tag ($page)")
-        navigationController.setRightPage(page, SecondPageFragment.Tag)
-
-        val transaction = getChildFragmentManager
-          .beginTransaction.replace(R.id.fl__second_page_container, fragment, tag)
-
-        val currentPage = navigationController.getCurrentPage
-        if (currentPage == Page.CONVERSATION_LIST)
-          transaction.setCustomAnimations(
-            R.anim.message_fade_in,
-            R.anim.message_fade_out,
-            R.anim.message_fade_in,
-            R.anim.message_fade_out
-          )
-        else if (currentPage == Page.CONNECT_REQUEST_INBOX || currentPage == Page.CONNECT_REQUEST_PENDING)
-          transaction.setCustomAnimations(
-            R.anim.fragment_animation_second_page_slide_in_from_right,
-            R.anim.fragment_animation_second_page_slide_out_to_left
-          )
-
-        transaction.commit()
-      }
-
-      withFragmentOpt(R.id.fl__second_page_container) {
-        case Some(f) if f.getTag != tag => open()
-        case None => open()
-        case _ => //already showing correct fragment - nothing to do
-      }
+  private def open(tag: String, other: Option[UserId]): Unit = {
+    info(s"open ($tag, $other)")
+    val (fragment, page) = (tag, other) match {
+      case (ConnectRequestFragment.Tag, Some(userId)) =>
+        (ConnectRequestFragment.newInstance(userId), Page.CONNECT_REQUEST_INBOX)
+      case (PendingConnectRequestManagerFragment.Tag, Some(userId)) =>
+        (PendingConnectRequestManagerFragment.newInstance(userId, UserRequester.CONVERSATION), Page.CONNECT_REQUEST_PENDING)
+      case _ =>
+        (ConversationManagerFragment.newInstance, Page.MESSAGE_STREAM)
     }
+
+    navigationController.setRightPage(page, SecondPageFragment.Tag)
+
+    val transaction = getChildFragmentManager
+      .beginTransaction.replace(R.id.fl__second_page_container, fragment, tag)
+
+    val currentPage = navigationController.getCurrentPage
+    if (currentPage == Page.CONVERSATION_LIST)
+      transaction.setCustomAnimations(
+        R.anim.message_fade_in,
+        R.anim.message_fade_out,
+        R.anim.message_fade_in,
+        R.anim.message_fade_out
+      )
+    else if (currentPage == Page.CONNECT_REQUEST_INBOX || currentPage == Page.CONNECT_REQUEST_PENDING)
+      transaction.setCustomAnimations(
+        R.anim.fragment_animation_second_page_slide_in_from_right,
+        R.anim.fragment_animation_second_page_slide_out_to_left
+      )
+
+    transaction.commit()
+  }
+
+  override def onCreate(savedInstanceState: Bundle): Unit = {
+    super.onCreate(savedInstanceState)
+
+    // in case of connect requests, the fragment is always recreated;
+    // otherwise we check if the previous one was the same or different
+    pageDetails.onUi {
+      case (tag, other) if connectionRequestTags.contains(tag) => open(tag, other)
+      case (tag, other) =>
+        withFragmentOpt(R.id.fl__second_page_container) {
+          case Some(f) if f.getTag == tag => //already showing the correct fragment - nothing to do
+          case _                          => open(tag, other)
+        }
+    }
+  }
 
   override def onActivityResult(requestCode: Int, resultCode: Int, data: Intent): Unit = {
     super.onActivityResult(requestCode, resultCode, data)
@@ -156,7 +158,6 @@ class SecondPageFragment extends FragmentHelper
 
 object SecondPageFragment {
   val Tag: String = classOf[SecondPageFragment].getName
-  val ArgConversationId = "ARGUMENT_CONVERSATION_ID"
 
   def newInstance = new SecondPageFragment
 }
